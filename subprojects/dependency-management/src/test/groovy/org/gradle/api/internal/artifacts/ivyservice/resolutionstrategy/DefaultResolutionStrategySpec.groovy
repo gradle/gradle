@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
-import org.gradle.vcs.internal.VcsMappingsInternal
+import org.gradle.vcs.internal.VcsMappingsStore
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.rules.NoInputsRuleAction
@@ -45,7 +45,7 @@ class DefaultResolutionStrategySpec extends Specification {
     def dependencySubstitutions = Mock(DependencySubstitutionsInternal)
     def globalDependencySubstitutions = Mock(DependencySubstitutionRules)
     def componentSelectorConverter = Mock(ComponentSelectorConverter)
-    def vcsMappingsInternal = Mock(VcsMappingsInternal)
+    def vcsMappingsInternal = Mock(VcsMappingsStore)
 
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
         module(_, _) >> { args ->

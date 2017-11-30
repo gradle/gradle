@@ -26,6 +26,8 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
     GitRepository first = new GitRepository('first', testDirectory)
     @Rule
     GitRepository second = new GitRepository('second', testDirectory)
+    @Rule
+    GitRepository third = new GitRepository('third', testDirectory)
 
     def setup() {
         buildFile << """
@@ -94,10 +96,16 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
             """
         }
         first.commit("initial commit", first.listFiles())
+
         singleProjectBuild("second") {
             buildFile << commonConfiguration
         }
         second.commit("initial commit", second.listFiles())
+
+        singleProjectBuild("third") {
+            buildFile << commonConfiguration
+        }
+        third.commit("initial commit", third.listFiles())
     }
 
     def "can use source mappings in nested builds"() {
@@ -149,7 +157,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        
+
         def secondPath = TextUtil.normaliseFileSeparators(file('second').absolutePath)
         file('first/settings.gradle') << """
             sourceControl {
@@ -157,6 +165,116 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
                     withModule('org.test:second') {
                         from vcs(GitVersionControlSpec) {
                             url = file('${secondPath}').toURI()
+                        }
+                    }
+                }
+            }
+        """
+        first.commit("add source mapping", file('first/settings.gradle'))
+
+        when:
+        succeeds("resolve")
+        then:
+        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
+
+        // Updating the remote repository causes changes downstream
+        when:
+        def message = "goodbye world"
+        buildFile << """
+            resolve.message = "$message"
+        """
+        file("first/build.gradle") << """
+            generate.message = "$message"
+        """
+        file("second/build.gradle") << """
+            generate.message = "$message"
+        """
+        first.commit("change message", file("first/build.gradle"))
+        second.commit("change message", file("second/build.gradle"))
+        then:
+        succeeds("resolve")
+    }
+
+    def "can use a source mapping defined in both the parent build and a nested build"() {
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    addRule('org.test group rule') { details ->
+                        if (details.requested.group == "org.test") {
+                            from vcs(GitVersionControlSpec) {
+                                url = file(details.requested.module).toURI()
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        def secondPath = TextUtil.normaliseFileSeparators(file('second').absolutePath)
+        file('first/settings.gradle') << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:second') {
+                        from vcs(GitVersionControlSpec) {
+                            url = file('${secondPath}').toURI()
+                        }
+                    }
+                }
+            }
+        """
+        first.commit("add source mapping", file('first/settings.gradle'))
+
+        when:
+        succeeds("resolve")
+        then:
+        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
+
+        // Updating the remote repository causes changes downstream
+        when:
+        def message = "goodbye world"
+        buildFile << """
+            resolve.message = "$message"
+        """
+        file("first/build.gradle") << """
+            generate.message = "$message"
+        """
+        file("second/build.gradle") << """
+            generate.message = "$message"
+        """
+        first.commit("change message", file("first/build.gradle"))
+        second.commit("change message", file("second/build.gradle"))
+        then:
+        succeeds("resolve")
+    }
+
+    def "prefers a source mapping defined in the root build to one defined in a nested build"() {
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:first') {
+                        from vcs(GitVersionControlSpec) {
+                            url = file('first').toURI()
+                        }
+                    }
+                    withModule('org.test:second') {
+                        from vcs(GitVersionControlSpec) {
+                            url = file('second').toURI()
+                        }
+                    }
+                }
+            }
+        """
+
+        file('third/settings.gradle').text = """
+            rootProject.name = 'second'
+        """
+        def thirdPath = TextUtil.normaliseFileSeparators(file('third').absolutePath)
+        file('first/settings.gradle') << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:second') {
+                        from vcs(GitVersionControlSpec) {
+                            url = file('${thirdPath}').toURI()
                         }
                     }
                 }

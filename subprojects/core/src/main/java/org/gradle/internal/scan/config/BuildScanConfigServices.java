@@ -23,8 +23,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.scan.BuildScanRequest;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.vcs.VcsMappings;
-import org.gradle.vcs.internal.VcsMappingsInternal;
+import org.gradle.vcs.internal.VcsMappingsStore;
 
 /**
  * Wiring of the objects that provide the build scan config integration.
@@ -55,8 +54,8 @@ public class BuildScanConfigServices {
         return new Factory<BuildScanConfig.Attributes>() {
             @Override
             public BuildScanConfig.Attributes create() {
-                VcsMappings vcsMappings = ((GradleInternal) gradle).getSettings().getSourceControl().getVcsMappings();
-                final boolean hasRules = ((VcsMappingsInternal) vcsMappings).hasRules();
+                VcsMappingsStore vcsMappings = ((GradleInternal) gradle).getServices().get(VcsMappingsStore.class);
+                final boolean hasRules = vcsMappings.hasRules();
                 return new BuildScanConfig.Attributes() {
                     @Override
                     public boolean isRootProjectHasVcsMappings() {

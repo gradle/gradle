@@ -35,7 +35,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
-import org.gradle.vcs.internal.VcsMappingsInternal
+import org.gradle.vcs.internal.VcsMappingsStore
 import spock.lang.Specification
 
 class DefaultConfigurationContainerSpec extends Specification {
@@ -51,7 +51,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     private FileCollectionFactory fileCollectionFactory = Mock()
     private ComponentIdentifierFactory componentIdentifierFactory = Mock()
     private DependencySubstitutionRules globalSubstitutionRules = Mock()
-    private VcsMappingsInternal vcsMappingsInternal = Mock()
+    private VcsMappingsStore vcsMappingsInternal = Mock()
     private BuildOperationExecutor buildOperationExecutor = Mock()
     private TaskResolver taskResolver = Mock()
     private ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
