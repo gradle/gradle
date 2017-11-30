@@ -152,4 +152,38 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
         failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 17, rejects ]17,), prefers 15, rejects ]15,)')
 
     }
+
+    def "should fail during conflict resolution transitive dependency rejects"() {
+        given:
+        repository {
+            'org:foo' {
+                '1.0'()
+                '1.1'()
+            }
+            'org:bar:1.0' {
+                dependsOn(group: 'org', artifact: 'foo', version: '1.0', rejects: ['1.1']) // transitive dependency rejects version
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.1'
+                conf 'org:bar:1.0'
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.1' {
+                expectGetMetadata()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot find a version of 'org:foo' that satisfies the constraints: prefers 1.1, prefers 1.0, rejects 1.1")
+    }
 }

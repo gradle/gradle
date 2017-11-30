@@ -555,4 +555,43 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         'latest.release' | true
     }
 
+    def "should fail during conflict resolution when one module rejects version"() {
+        given:
+        repository {
+            'org:foo' {
+                '1.0'()
+                '1.1'()
+            }
+            'org:bar:1.0' {
+                dependsOn('org:foo:1.1') // transitive dependency on rejected version
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:1.0') {
+                   version {
+                      reject '1.1'
+                   }
+                }
+                conf 'org:bar:1.0'
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot find a version of 'org:foo' that satisfies the constraints: prefers 1.0, rejects 1.1, prefers 1.1")
+    }
+
+
 }
