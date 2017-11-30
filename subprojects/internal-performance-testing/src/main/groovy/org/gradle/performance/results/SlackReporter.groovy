@@ -52,7 +52,11 @@ class SlackReporter implements DataReporter<CrossVersionPerformanceResults> {
         def exclamation = EXCLAMATIONS[new Random().nextInt(EXCLAMATIONS.length)]
         def title = "*${results.testProject}* with tasks `${results.tasks.join('`, `')}`"
         def changes = "<https://github.com/gradle/gradle/compare/${results.vcsCommits.first()}^...${results.vcsCommits.last()}|these changes>"
+        def buildUrl = System.getenv("BUILD_URL")
         def message = "$exclamation Looks like ${title} is now faster on `${results.vcsBranch}` after $changes."
+        if (buildUrl) {
+            message += " <$buildUrl|-> Go to build>"
+        }
 
         def json = JSON.toString(
             text: message,

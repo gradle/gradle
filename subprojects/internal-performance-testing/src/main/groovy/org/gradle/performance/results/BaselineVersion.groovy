@@ -63,7 +63,7 @@ class BaselineVersion implements VersionResults {
     }
 
     boolean significantlySlowerThan(MeasuredOperationList current) {
-        results.totalTime && results.totalTime.median - current.totalTime.median > getMaxExecutionTimeRegression(current)
+        results.totalTime && results.totalTime.median - current.totalTime.median > getMaxExecutionTimeRegression(current) * NUM_STANDARD_ERRORS_FROM_MEAN
     }
 
     Amount<Duration> getMaxExecutionTimeRegression(MeasuredOperationList current) {
