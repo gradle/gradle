@@ -20,8 +20,10 @@ import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatistic
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.time.TimeFormatting;
 
 public class TaskExecutionStatisticsReporter implements TaskExecutionStatisticsListener {
+    public static final long CACHE_IMPACT_DISPLAY_LIMIT = 1000;
     private final StyledTextOutputFactory textOutputFactory;
 
     public TaskExecutionStatisticsReporter(StyledTextOutputFactory textOutputFactory) {
@@ -37,6 +39,7 @@ public class TaskExecutionStatisticsReporter implements TaskExecutionStatisticsL
             boolean printedDetail = formatDetail(textOutput, statistics.getExecutedTasksCount(), "executed", false);
             printedDetail = formatDetail(textOutput, statistics.getFromCacheTaskCount(), "from cache", printedDetail);
             formatDetail(textOutput, statistics.getUpToDateTaskCount(), "up-to-date", printedDetail);
+            formatCacheTimeImpact(textOutput, statistics.getCacheTimeImpact());
             textOutput.println();
         }
     }
@@ -50,5 +53,13 @@ public class TaskExecutionStatisticsReporter implements TaskExecutionStatisticsL
         }
         textOutput.format(" %d %s", count, title);
         return true;
+    }
+
+    private static void formatCacheTimeImpact(StyledTextOutput textOutput, long cacheTimeImpact) {
+        if (cacheTimeImpact > CACHE_IMPACT_DISPLAY_LIMIT) {
+            textOutput.format(" (caching saved %s)", TimeFormatting.formatDurationTerse(cacheTimeImpact));
+        } else if (cacheTimeImpact < -CACHE_IMPACT_DISPLAY_LIMIT) {
+            textOutput.format(" (caching took %s)", TimeFormatting.formatDurationTerse(-cacheTimeImpact));
+        }
     }
 }

@@ -16,124 +16,128 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.GradleException
-import org.junit.Test
+import spock.lang.Specification
 
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+class TaskStateInternalTest extends Specification {
+    def state = new TaskStateInternal()
 
-class TaskStateInternalTest {
-    private final TaskStateInternal state = new TaskStateInternal()
-
-    @Test
-    public void defaultValues() {
-        assertFalse(state.getExecuted())
-        assertFalse(state.getExecuting())
-        assertTrue(state.configurable)
-        assertThat(state.getFailure(), nullValue())
-        assertFalse(state.getDidWork())
-        assertFalse(state.getSkipped())
-        assertThat(state.getSkipMessage(), nullValue())
-        assertFalse(state.upToDate)
-        assertFalse(state.taskOutputCaching.enabled)
-        assertTrue(state.actionable)
+    void defaultValues() {
+        expect:
+        !state.executed
+        !state.executing
+        state.configurable
+        state.failure == null
+        !state.didWork
+        !state.skipped
+        state.skipMessage == null
+        !state.upToDate
+        !state.taskOutputCaching.enabled
+        state.actionable
     }
 
-    @Test
-    public void canMarkTaskAsExecuted() {
-        state.setOutcome(TaskExecutionOutcome.EXECUTED)
-        assertTrue(state.executed)
-        assertFalse(state.skipped)
-        assertFalse(state.upToDate)
-        assertFalse(state.configurable)
-        assertThat(state.getFailure(), nullValue())
+    void canMarkTaskAsExecuted() {
+        state.recordExecuted()
+
+        expect:
+        state.executed
+        !state.skipped
+        !state.upToDate
+        !state.configurable
+        state.failure == null
     }
 
-    @Test
-    public void canMarkTaskAsExecutedWithFailure() {
+    void canMarkTaskAsExecutedWithFailure() {
         RuntimeException failure = new RuntimeException()
-        state.setOutcome(failure)
-        assertTrue(state.executed)
-        assertFalse(state.skipped)
-        assertFalse(state.upToDate)
-        assertFalse(state.configurable)
-        assertThat(state.failure, sameInstance(failure))
+        state.recordFailure(failure)
+
+        expect:
+        state.executed
+        !state.skipped
+        !state.upToDate
+        !state.configurable
+        state.failure == failure
     }
 
-    @Test
-    public void canMarkTaskAsSkipped() {
-        state.setOutcome(TaskExecutionOutcome.SKIPPED)
-        assertTrue(state.executed)
-        assertTrue(state.skipped)
-        assertFalse(state.upToDate)
-        assertFalse(state.configurable)
-        assertThat(state.skipMessage, equalTo("SKIPPED"))
+    void canMarkTaskAsSkipped() {
+        state.recordSkipped()
+
+        expect:
+        state.executed
+        state.skipped
+        !state.upToDate
+        !state.configurable
+        state.skipMessage == "SKIPPED"
     }
 
-    @Test
-    public void canMarkTaskAsUpToDate() {
-        state.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
-        assertTrue(state.executed)
-        assertTrue(state.skipped)
-        assertTrue(state.upToDate)
-        assertFalse(state.configurable)
-        assertThat(state.skipMessage, equalTo('UP-TO-DATE'))
+    void canMarkTaskAsUpToDate() {
+        state.recordUpToDate()
+
+        expect:
+        state.executed
+        state.skipped
+        state.upToDate
+        !state.configurable
+        state.skipMessage == 'UP-TO-DATE'
     }
 
-    @Test
-    public void canMarkTaskAsFromCache() {
-        state.setOutcome(TaskExecutionOutcome.FROM_CACHE)
-        assertTrue(state.executed)
-        assertTrue(state.skipped)
-        assertTrue(state.upToDate)
-        assertFalse(state.configurable)
-        assertThat(state.skipMessage, equalTo('FROM-CACHE'))
+    void canMarkTaskAsFromCache() {
+        state.recordLoadedFromCache(0L)
+
+        expect:
+        state.executed
+        state.skipped
+        state.upToDate
+        !state.configurable
+        state.skipMessage == 'FROM-CACHE'
     }
 
-    @Test
-    public void rethrowFailureDoesNothingWhenTaskHasNotExecuted() {
+    void rethrowFailureDoesNothingWhenTaskHasNotExecuted() {
+        when:
         state.rethrowFailure()
+        then:
+        noExceptionThrown()
     }
 
-    @Test
-    public void rethrowFailureDoesNothingWhenTaskDidNotFail() {
-        state.setOutcome(TaskExecutionOutcome.EXECUTED)
+    void rethrowFailureDoesNothingWhenTaskDidNotFail() {
+        state.recordExecuted()
+
+        when:
         state.rethrowFailure()
+        then:
+        noExceptionThrown()
     }
 
-    @Test
-    public void rethrowsFailureWhenFailureIsRuntimeException() {
+    void rethrowsFailureWhenFailureIsRuntimeException() {
         RuntimeException failure = new RuntimeException()
-        state.setOutcome(failure)
-        try {
-            state.rethrowFailure()
-            fail()
-        } catch (RuntimeException e) {
-            assertThat(e, sameInstance(failure))
-        }
+        state.recordFailure(failure)
+
+        when:
+        state.rethrowFailure()
+        then:
+        def e = thrown RuntimeException
+        e == failure
     }
 
-    @Test
-    public void rethrowsFailureWhenFailureIsError() {
+    void rethrowsFailureWhenFailureIsError() {
         Error failure = new Error()
-        state.setOutcome(failure)
-        try {
-            state.rethrowFailure()
-            fail()
-        } catch (Error e) {
-            assertThat(e, sameInstance(failure))
-        }
+        state.recordFailure(failure)
+
+        when:
+        state.rethrowFailure()
+        then:
+        def e = thrown Error
+        e == failure
     }
 
-    @Test
-    public void rethrowsFailureWhenFailureIsException() {
+    void rethrowsFailureWhenFailureIsException() {
         Exception failure = new Exception()
-        state.setOutcome(failure)
-        try {
-            state.rethrowFailure()
-            fail()
-        } catch (GradleException e) {
-            assertThat(e.message, equalTo('Task failed with an exception.'))
-            assertThat(e.cause, sameInstance(failure))
-        }
+        state.recordFailure(failure)
+
+        when:
+        state.rethrowFailure()
+        then:
+        def e = thrown GradleException
+        e.message == 'Task failed with an exception.'
+        e.cause == failure
     }
 }

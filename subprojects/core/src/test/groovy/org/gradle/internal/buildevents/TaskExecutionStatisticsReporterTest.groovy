@@ -30,7 +30,7 @@ class TaskExecutionStatisticsReporterTest extends Specification {
 
     def "does not report statistics given 0 tasks"() {
         when:
-        reporter.buildFinished(new TaskExecutionStatistics(0, 0, 0))
+        reporter.buildFinished(new TaskExecutionStatistics(0, 0, 0, 0))
 
         then:
         (textOutputFactory as String) == ""
@@ -39,7 +39,7 @@ class TaskExecutionStatisticsReporterTest extends Specification {
 
     def "disallows negative task counts as input"() {
         when:
-        reporter.buildFinished(new TaskExecutionStatistics(-1, 12, 7))
+        reporter.buildFinished(new TaskExecutionStatistics(-1, 12, 7, 0))
 
         then:
         thrown IllegalArgumentException
@@ -47,7 +47,7 @@ class TaskExecutionStatisticsReporterTest extends Specification {
 
     def "properly pluralizes output"() {
         when:
-        reporter.buildFinished(new TaskExecutionStatistics(1, 0, 0))
+        reporter.buildFinished(new TaskExecutionStatistics(1, 0, 0, 0))
 
         then:
         TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}1 actionable task: 1 executed\n"
@@ -56,7 +56,7 @@ class TaskExecutionStatisticsReporterTest extends Specification {
     @Unroll
     def "reports only task counts > 0 (exec: #executed, from cache: #fromCache, up-to-date #upToDate)"() {
         when:
-        reporter.buildFinished(new TaskExecutionStatistics(executed, fromCache, upToDate))
+        reporter.buildFinished(new TaskExecutionStatistics(executed, fromCache, upToDate, 0))
 
         then:
         TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}$expected\n"
@@ -68,5 +68,25 @@ class TaskExecutionStatisticsReporterTest extends Specification {
         2        | 0         | 1        | "3 actionable tasks: 2 executed, 1 up-to-date"
         0        | 7         | 0        | "7 actionable tasks: 7 from cache"
         0        | 0         | 5        | "5 actionable tasks: 5 up-to-date"
+    }
+
+    @Unroll
+    def "reports cache impact of #cacheTimeImpact as:#expected"() {
+        when:
+        reporter.buildFinished(new TaskExecutionStatistics(0, 2, 0, cacheTimeImpact))
+
+        then:
+        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}2 actionable tasks: 2 from cache$expected\n"
+
+        where:
+        cacheTimeImpact | expected
+        750             | ""
+        1250            | " (caching saved 1s)"
+        1750            | " (caching saved 1s)"
+        62000           | " (caching saved 1m 2s)"
+        -750            | ""
+        -1250           | " (caching took 1s)"
+        -1750           | " (caching took 1s)"
+        -62000          | " (caching took 1m 2s)"
     }
 }

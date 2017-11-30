@@ -39,7 +39,17 @@ public class TaskOutputOriginFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskOutputOriginFactory.class);
 
     private static final String BUILD_INVOCATION_ID_KEY = "buildInvocationId";
-    private static final List<String> METADATA_KEYS = Arrays.asList(BUILD_INVOCATION_ID_KEY, "type", "path", "gradleVersion", "creationTime", "executionTime", "rootPath", "operatingSystem", "hostName", "userName");
+    private static final String EXECUTION_TIME_KEY = "executionTime";
+    private static final String TYPE_KEY = "type";
+    private static final String PATH_KEY = "path";
+    private static final String GRADLE_VERSION_KEY = "gradleVersion";
+    private static final String CREATION_TIME_KEY = "creationTime";
+    private static final String ROOT_PATH_KEY = "rootPath";
+    private static final String OPERATING_SYSTEM_KEY = "operatingSystem";
+    private static final String HOST_NAME_KEY = "hostName";
+    private static final String USER_NAME_KEY = "userName";
+
+    private static final List<String> METADATA_KEYS = Arrays.asList(BUILD_INVOCATION_ID_KEY, TYPE_KEY, PATH_KEY, GRADLE_VERSION_KEY, CREATION_TIME_KEY, EXECUTION_TIME_KEY, ROOT_PATH_KEY, OPERATING_SYSTEM_KEY, HOST_NAME_KEY, USER_NAME_KEY);
 
     private final InetAddressFactory inetAddressFactory;
     private final String userName;
@@ -66,19 +76,19 @@ public class TaskOutputOriginFactory {
                 // TODO: Replace this with something better
                 Properties properties = new Properties();
                 properties.setProperty(BUILD_INVOCATION_ID_KEY, buildInvocationScopeId.getId().asString());
-                properties.setProperty("type", task.getClass().getCanonicalName());
-                properties.setProperty("path", task.getPath());
-                properties.setProperty("gradleVersion", gradleVersion.getVersion());
-                properties.setProperty("creationTime", Long.toString(clock.getCurrentTime()));
-                properties.setProperty("executionTime", Long.toString(elapsedTime));
-                properties.setProperty("rootPath", rootDir.getAbsolutePath());
-                properties.setProperty("operatingSystem", operatingSystem);
-                properties.setProperty("hostName", inetAddressFactory.getHostname());
-                properties.setProperty("userName", userName);
+                properties.setProperty(TYPE_KEY, task.getClass().getCanonicalName());
+                properties.setProperty(PATH_KEY, task.getPath());
+                properties.setProperty(GRADLE_VERSION_KEY, gradleVersion.getVersion());
+                properties.setProperty(CREATION_TIME_KEY, Long.toString(clock.getCurrentTime()));
+                properties.setProperty(EXECUTION_TIME_KEY, Long.toString(elapsedTime));
+                properties.setProperty(ROOT_PATH_KEY, rootDir.getAbsolutePath());
+                properties.setProperty(OPERATING_SYSTEM_KEY, operatingSystem);
+                properties.setProperty(HOST_NAME_KEY, inetAddressFactory.getHostname());
+                properties.setProperty(USER_NAME_KEY, userName);
                 try {
                     properties.store(outputStream, "Generated origin information");
                 } catch (IOException e) {
-                    UncheckedException.throwAsUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 assert METADATA_KEYS.containsAll(properties.stringPropertyNames()) : "Update expected metadata property list";
             }
@@ -94,16 +104,16 @@ public class TaskOutputOriginFactory {
                 try {
                     properties.load(inputStream);
                 } catch (IOException e) {
-                    UncheckedException.throwAsUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 if (!properties.stringPropertyNames().containsAll(METADATA_KEYS)) {
                     throw new IllegalStateException("Cached result format error, corrupted origin metadata.");
                 }
                 LOGGER.info("Origin for {}: {}", task, properties);
 
-                String originBuildInvocationIdString = properties.getProperty(BUILD_INVOCATION_ID_KEY);
-                UniqueId originBuildInvocationId = UniqueId.from(originBuildInvocationIdString);
-                return new TaskOutputOriginMetadata(originBuildInvocationId);
+                UniqueId originBuildInvocationId = UniqueId.from(properties.getProperty(BUILD_INVOCATION_ID_KEY));
+                long executionTime = Long.parseLong(properties.getProperty(EXECUTION_TIME_KEY));
+                return new TaskOutputOriginMetadata(originBuildInvocationId, executionTime);
             }
         };
     }

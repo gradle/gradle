@@ -24,7 +24,6 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
-import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand
@@ -78,10 +77,10 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskOutputGenerationListener, _, _) >> loadCommand
 
         then:
-        1 * buildCacheController.load(loadCommand) >> new TaskOutputOriginMetadata(originId)
+        1 * buildCacheController.load(loadCommand) >> new TaskOutputOriginMetadata(originId, 123L)
 
         then:
-        1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
+        1 * taskState.recordLoadedFromCache(_)
         1 * taskContext.setOriginBuildInvocationId(originId)
         0 * _
     }
@@ -105,6 +104,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheController.load(loadCommand) >> null
+        1 * taskState.recordCacheMiss(_)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -118,6 +118,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheController.store(storeCommand)
+        1 * taskState.recordStoredInCache(_)
         0 * _
     }
 
@@ -149,6 +150,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheController.store(storeCommand)
+        1 * taskState.recordStoredInCache(_)
         0 * _
     }
 
@@ -169,6 +171,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
         1 * buildCacheController.load(_)
+        1 * taskState.recordCacheMiss(_)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -241,6 +244,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheController.store(storeCommand)
+        1 * taskState.recordStoredInCache(_)
         0 * _
     }
 
@@ -286,6 +290,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
         1 * buildCacheController.load(_)
+        1 * taskState.recordCacheMiss(_)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)

@@ -25,7 +25,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
-import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import spock.lang.Specification
@@ -65,7 +64,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * taskExecutionHistory.outputFiles >> new HashSet<File>()
 
         then:
-        1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
+        1 * state.recordNoSource()
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -102,7 +101,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * previousFile.delete() >> true
 
         then:
-        1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
+        1 * state.recordExecuted()
         1 * taskArtifactState.snapshotAfterTaskExecution(null)
 
         then:
@@ -138,7 +137,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> false
 
         then:
-        1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
+        1 * state.recordNoSource()
         1 * taskArtifactState.snapshotAfterTaskExecution(null)
 
         then:
@@ -182,7 +181,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * previousFile.delete() >> true
 
         then:
-        1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
+        1 * state.recordExecuted()
         1 * taskArtifactState.snapshotAfterTaskExecution(null)
 
         then:

@@ -21,13 +21,18 @@ import org.gradle.internal.id.UniqueId;
 public class TaskOutputOriginMetadata {
 
     private final UniqueId buildInvocationId;
+    private final long executionTime;
 
-    public TaskOutputOriginMetadata(UniqueId buildInvocationId) {
+    public TaskOutputOriginMetadata(UniqueId buildInvocationId, long executionTime) {
         this.buildInvocationId = buildInvocationId;
+        this.executionTime = executionTime;
     }
 
     public UniqueId getBuildInvocationId() {
         return buildInvocationId;
     }
 
+    public long getExecutionTime() {
+        return executionTime;
+    }
 }

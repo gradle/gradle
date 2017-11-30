@@ -51,7 +51,7 @@ public interface TaskValidationContext {
                     causes.add(new InvalidUserDataException(message));
                 }
                 String errorMessage = getMainMessage(task, messages);
-                state.setOutcome(new TaskValidationException(errorMessage, causes));
+                state.recordFailure(new TaskValidationException(errorMessage, causes));
                 return false;
             }
         };

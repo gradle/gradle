@@ -28,6 +28,7 @@ public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements
     private int executedTasksCount;
     private int fromCacheTaskCount;
     private int upToDateTaskCount;
+    private long cacheTimeImpact;
 
     public TaskExecutionStatisticsEventAdapter(TaskExecutionStatisticsListener listener) {
         this.listener = listener;
@@ -37,7 +38,7 @@ public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements
     public void buildFinished(BuildResult result) {
         // Do not report stats for nested builds
         if (result.getGradle().getParent() == null) {
-            listener.buildFinished(new TaskExecutionStatistics(executedTasksCount, fromCacheTaskCount, upToDateTaskCount));
+            listener.buildFinished(new TaskExecutionStatistics(executedTasksCount, fromCacheTaskCount, upToDateTaskCount, cacheTimeImpact));
         }
     }
 
@@ -50,6 +51,7 @@ public class TaskExecutionStatisticsEventAdapter extends BuildAdapter implements
     public void afterExecute(Task task, TaskState state) {
         if (!taskIsForNestedBuild(task)) {
             TaskStateInternal stateInternal = (TaskStateInternal) state;
+            cacheTimeImpact += stateInternal.getCacheTimeImpact();
             if (stateInternal.isActionable()) {
                 switch (stateInternal.getOutcome()) {
                     case EXECUTED:

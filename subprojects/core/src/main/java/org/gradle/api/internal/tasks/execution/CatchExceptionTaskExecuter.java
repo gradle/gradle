@@ -33,7 +33,7 @@ public class CatchExceptionTaskExecuter implements TaskExecuter {
         try {
             delegate.execute(task, state, context);
         } catch (RuntimeException e) {
-            state.setOutcome(e);
+            state.recordFailure(e);
         }
     }
 }
