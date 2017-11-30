@@ -64,7 +64,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return componentResolveMetadata.isMissing();
     }
 
-    public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector requestedVersionMatcher) {
+    public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector requestedVersionMatcher, VersionSelector rejectedVersionSelector) {
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
         // Loop over all listed versions, sorted by LATEST first
@@ -82,10 +82,16 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 continue;
             }
 
-            ModuleComponentIdentifier candidateIdentifier = candidate.getId();
-            if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
-                result.matches(candidateIdentifier);
-                return;
+            if (rejectedVersionSelector != null && rejectedVersionSelector.accept(version)) {
+                // Mark this version as rejected and continue
+                result.rejected(version);
+                continue;
+            } else {
+                ModuleComponentIdentifier candidateIdentifier = candidate.getId();
+                if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
+                    result.matches(candidateIdentifier);
+                    return;
+                }
             }
 
             // Mark this version as rejected

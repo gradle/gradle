@@ -75,14 +75,14 @@ public class DynamicVersionResolver {
         repositoryNames.add(repository.getName());
     }
 
-    public void resolve(ModuleDependencyMetadata dependency, VersionSelector versionSelector, BuildableComponentIdResolveResult result) {
+    public void resolve(ModuleDependencyMetadata dependency, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, BuildableComponentIdResolveResult result) {
         ModuleComponentSelector requested = dependency.getSelector();
         LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
 
         List<RepositoryResolveState> resolveStates = Lists.newArrayListWithCapacity(repositories.size());
         for (ModuleComponentRepository repository : repositories) {
-            resolveStates.add(new RepositoryResolveState(versionedComponentChooser, dependency, repository, versionSelector));
+            resolveStates.add(new RepositoryResolveState(versionedComponentChooser, dependency, repository, versionSelector, rejectedVersionSelector));
         }
 
         final RepositoryChainModuleResolution latestResolved = findLatestModule(resolveStates, errors);
@@ -213,11 +213,13 @@ public class DynamicVersionResolver {
         private final AttemptCollector attemptCollector;
         private final ModuleDependencyMetadata dependency;
         private final VersionSelector versionSelector;
+        private final VersionSelector rejectedVersionSelector;
 
-        public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, ModuleDependencyMetadata dependency, ModuleComponentRepository repository, VersionSelector versionSelector) {
+        public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, ModuleDependencyMetadata dependency, ModuleComponentRepository repository, VersionSelector versionSelector, VersionSelector rejectedVersionSelector) {
             this.versionedComponentChooser = versionedComponentChooser;
             this.dependency = dependency;
             this.versionSelector = versionSelector;
+            this.rejectedVersionSelector = rejectedVersionSelector;
             this.repository = repository;
             this.attemptCollector = new AttemptCollector();
             versionListingResult = new VersionListResult(dependency, repository);
@@ -245,7 +247,7 @@ public class DynamicVersionResolver {
 
         private void selectMatchingVersionAndResolve() {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
-            versionedComponentChooser.selectNewestMatchingComponent(candidates(), this, versionSelector);
+            versionedComponentChooser.selectNewestMatchingComponent(candidates(), this, versionSelector, rejectedVersionSelector);
         }
 
         @Override

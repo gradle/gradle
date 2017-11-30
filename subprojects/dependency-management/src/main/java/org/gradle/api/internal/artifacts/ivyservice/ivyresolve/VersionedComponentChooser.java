@@ -25,7 +25,7 @@ import java.util.Collection;
 public interface VersionedComponentChooser {
     ComponentResolveMetadata selectNewestComponent(ComponentResolveMetadata one, ComponentResolveMetadata two);
 
-    void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector versionSelector);
+    void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector versionSelector, VersionSelector rejectedVersionSelector);
 
     boolean isRejectedComponent(ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider);
 }
