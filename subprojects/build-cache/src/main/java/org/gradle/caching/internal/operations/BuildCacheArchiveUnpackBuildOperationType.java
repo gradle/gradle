@@ -38,6 +38,7 @@ public final class BuildCacheArchiveUnpackBuildOperationType implements BuildOpe
 
         long getArchiveEntryCount();
 
+        long getOriginalExecutionTime();
     }
 
 }
