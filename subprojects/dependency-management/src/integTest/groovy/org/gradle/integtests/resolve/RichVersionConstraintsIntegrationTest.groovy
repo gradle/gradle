@@ -593,5 +593,41 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         failure.assertHasCause("Cannot find a version of 'org:foo' that satisfies the constraints: prefers 1.0, rejects 1.1, prefers 1.1")
     }
 
+    def "can reject a version range"() {
+        given:
+        repository {
+            (0..5).each {
+                "org:foo:1.$it"()
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:[1.0,)') {
+                   version {
+                      reject '[1.2, 1.5]'
+                   }
+                }
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '1.1' {
+                    expectResolve()
+                }
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:[1.0,)", "org:foo:1.1")
+            }
+        }
+    }
 
 }
