@@ -402,7 +402,7 @@ version = '$project.version'""";
         StringBuilder build = new StringBuilder()
         if (!compileTimeScope.isEmpty() || !runTimeScope.isEmpty() || !testScope.isEmpty() || !providedScope.isEmpty() || !systemScope.isEmpty()) {
             build.append("dependencies {").append("\n")
-// for each collection, one at a time, we take each element and call our print function
+            // for each collection, one at a time, we take each element and call our print function
             if (!compileTimeScope.isEmpty()) {
                 compileTimeScope.each() { createGradleDep("compile", build, it) }
             }
@@ -635,11 +635,11 @@ artifacts.archives packageTests
         return qualifiedNames
     }
 
-/**
- * complex print statement does one extra task which is
- * iterate over each <exclusion> node and print out the artifact id.
- * It also provides review comments for the user.
- */
+    /**
+     * complex print statement does one extra task which is
+     * iterate over each <exclusion> node and print out the artifact id.
+     * It also provides review comments for the user.
+     */
     private def createComplexDependency(it, build, scope, useKotlinAccessors) {
         build.append("    ${scope}(${contructSignature(it)}) {\n")
         it.exclusions.exclusion.each() {
@@ -648,9 +648,9 @@ artifacts.archives packageTests
         build.append("    }\n")
     }
 
-/**
- * Print out the basic form og gradle dependency
- */
+    /**
+     * Print out the basic form og gradle dependency
+     */
     private def createBasicDependency(mavenDependency, build, String scope, useKotlinAccessors) {
         def classifier = contructSignature(mavenDependency)
         switch (dsl) {
@@ -666,9 +666,10 @@ artifacts.archives packageTests
                 build.append("    ${scope} ${classifier}\n")
         }
     }
-/**
- * Print out the basic form of gradle dependency
- */
+
+    /**
+     * Print out the basic form of gradle dependency
+     */
     private def createProjectDependency(projectDep, build, String scope, allProjects, useKotlinAccessors) {
         if (projectDep.packaging.text() == 'war') {
             dependentWars += projectDep
@@ -688,10 +689,10 @@ artifacts.archives packageTests
         }
     }
 
-/**
- * Construct and return the signature of a dependency, including its version and
- * classifier if it exists
- */
+    /**
+     * Construct and return the signature of a dependency, including its version and
+     * classifier if it exists
+     */
     private def contructSignature(mavenDependency) {
         switch (dsl) {
             case KOTLIN:
@@ -706,9 +707,9 @@ artifacts.archives packageTests
         }
     }
 
-/**
- * Check to see if the selected node has content
- */
+    /**
+     * Check to see if the selected node has content
+     */
     private boolean elementHasText(it) {
         return it.text().length() != 0
     }
