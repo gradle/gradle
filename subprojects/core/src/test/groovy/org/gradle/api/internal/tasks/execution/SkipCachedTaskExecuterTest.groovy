@@ -60,6 +60,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
     def "skip task when cached results exist"() {
         def originId = UniqueId.generate()
+        def originalExecutionTime = 1234L
 
         when:
         executer.execute(task, taskState, taskContext)
@@ -78,7 +79,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskOutputGenerationListener, _, _) >> loadCommand
 
         then:
-        1 * buildCacheController.load(loadCommand) >> new TaskOutputOriginMetadata(originId)
+        1 * buildCacheController.load(loadCommand) >> new TaskOutputOriginMetadata(originId, originalExecutionTime)
 
         then:
         1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
