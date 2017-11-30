@@ -57,9 +57,6 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         for (int i = 0; i < rejectCount; i++) {
             rejects.add(decoder.readString());
         }
-        if (rejectCount > 1) {
-            throw new UnsupportedOperationException("Multiple rejects are not yet supported");
-        }
         return new DefaultImmutableVersionConstraint(prefers, rejects);
     }
 

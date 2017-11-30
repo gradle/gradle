@@ -630,4 +630,102 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
+    void "can reject multiple versions of an external component"() {
+        given:
+        repository {
+            'org:foo:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:1.0') {
+                   version {
+                      reject '1.1', '1.2'
+                   }
+                }
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:foo:1.0")
+            }
+        }
+    }
+
+    @Unroll
+    void "honors multiple rejections #rejects using dynamic versions using dependency notation #notation"() {
+        given:
+        repository {
+            (0..5).each {
+                "org:foo:1.$it" {
+                    withModule(IvyModule) {
+                        withStatus('release')
+                    }
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:$notation') {
+                   version {
+                      reject $rejects
+                   }
+                }
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                if (requiresMetadata) {
+                    5.downto(selected + 1) {
+                        "1.$it" {
+                            expectGetMetadata()
+                        }
+                    }
+                }
+                "1.$selected" {
+                    expectResolve()
+                }
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:$notation", "org:foo:1.$selected")
+            }
+        }
+
+        where:
+        notation         | rejects                      | selected | requiresMetadata
+        '1+'             | "'1.4', '1.5'"               | 3        | false
+        '1.+'            | "'1.4', '1.5'"               | 3        | false
+        '[1.0,)'         | "'1.4', '1.5'"               | 3        | false
+        'latest.release' | "'1.4', '1.5'"               | 3        | true
+
+        '1+'             | "'[1.2,)', '1.5'"            | 1        | false
+        '1.+'            | "'[1.2,)', '1.5'"            | 1        | false
+        '[1.0,)'         | "'[1.2,)', '1.5'"            | 1        | false
+        'latest.release' | "'[1.2,)', '1.5'"            | 1        | true
+
+        '1+'             | "'1.5', '[1.1, 1.3]', '1.4'" | 0        | false
+        '1.+'            | "'1.5', '[1.1, 1.3]', '1.4'" | 0        | false
+        '[1.0,)'         | "'1.5', '[1.1, 1.3]', '1.4'" | 0        | false
+        'latest.release' | "'1.5', '[1.1, 1.3]', '1.4'" | 0        | true
+    }
 }

@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.CompositeVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -116,7 +117,20 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         StringBuilder sb = new StringBuilder("prefers ");
         sb.append(preferredSelector.getSelector());
         if (rejectedSelector != null) {
-            sb.append(", rejects ").append(rejectedSelector.getSelector());
+            sb.append(", rejects ");
+            if (rejectedSelector instanceof CompositeVersionSelector) {
+                sb.append("any of \"");
+                int i = 0;
+                for (VersionSelector selector : ((CompositeVersionSelector) rejectedSelector).getSelectors()) {
+                    if (i++>0) {
+                        sb.append(", ");
+                    }
+                    sb.append(selector.getSelector());
+                }
+                sb.append("\"");
+            } else {
+                sb.append(rejectedSelector.getSelector());
+            }
         }
         return sb.toString();
     }
