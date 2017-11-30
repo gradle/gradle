@@ -418,7 +418,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     }
 
     def runner() {
-        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases, new IntegrationTestBuildContext())
+        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, reporter, releases, new IntegrationTestBuildContext())
         runner.testId = 'some-test'
         runner.testProject = 'some-project'
         runner.workingDir = tmpDir.testDirectory
