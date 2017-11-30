@@ -35,7 +35,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.xcode.XcodeExtension;
 import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeExtension;
@@ -49,7 +48,6 @@ import org.gradle.ide.xcode.tasks.GenerateSchemeFileTask;
 import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.plugins.CppApplicationPlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
@@ -99,7 +97,7 @@ public class XcodePlugin extends IdePlugin {
 
         if (isRoot()) {
             GenerateXcodeWorkspaceFileTask workspaceTask = createWorkspaceTask(project);
-            addIncludedBuildToWorkspace(project, workspaceTask);
+            configureWorkspace(project, workspaceTask);
             lifecycleTask.dependsOn(workspaceTask);
         }
 
@@ -140,8 +138,30 @@ public class XcodePlugin extends IdePlugin {
         GenerateWorkspaceSettingsFileTask workspaceSettingsFileTask = project.getTasks().create("xcodeProjectWorkspaceSettings", GenerateWorkspaceSettingsFileTask.class);
         workspaceSettingsFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings"));
 
-        GenerateXcodeProjectFileTask projectFileTask = project.getTasks().create("xcodeProject", GenerateXcodeProjectFileTask.class);
+        final GenerateXcodeProjectFileTask projectFileTask = project.getTasks().create("xcodeProject", GenerateXcodeProjectFileTask.class);
         projectFileTask.dependsOn(workspaceSettingsFileTask);
+        projectFileTask.dependsOn(new Callable<List<FileCollection>>() {
+            @Override
+            public List<FileCollection> call() throws Exception {
+                return CollectionUtils.collect(xcode.getProject().getTargets(), new Transformer<FileCollection, XcodeTarget>() {
+                    @Override
+                    public FileCollection transform(XcodeTarget xcodeTarget) {
+                        return xcodeTarget.getHeaderSearchPaths();
+                    }
+                });
+            }
+        });
+        projectFileTask.dependsOn(new Callable<List<FileCollection>>() {
+            @Override
+            public List<FileCollection> call() throws Exception {
+                return CollectionUtils.collect(xcode.getProject().getTargets(), new Transformer<FileCollection, XcodeTarget>() {
+                    @Override
+                    public FileCollection transform(XcodeTarget xcodeTarget) {
+                        return xcodeTarget.getCompileModules();
+                    }
+                });
+            }
+        });
         projectFileTask.setXcodeProject(xcode.getProject());
         projectFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.pbxproj"));
 
@@ -332,34 +352,8 @@ public class XcodePlugin extends IdePlugin {
         return new XcodeProjectArtifact(xcodeProject, byName);
     }
 
-    private void addIncludedBuildToWorkspace(final Project project, GenerateXcodeWorkspaceFileTask workspaceTask) {
-        workspaceTask.dependsOn(new Callable<List<TaskDependency>>() {
-            @Override
-            public List<TaskDependency> call() throws Exception {
-                return CollectionUtils.collect(
-                    getIdeArtifactMetadata("xcodeproj"),
-                    new Transformer<TaskDependency, LocalComponentArtifactMetadata>() {
-                        @Override
-                        public TaskDependency transform(LocalComponentArtifactMetadata metadata) {
-                            return metadata.getBuildDependencies();
-                        }
-                    });
-            }
-        });
-
-        workspaceTask.setXcodeProjectLocations(project.files(new Callable<Iterable<File>>() {
-            @Override
-            public Iterable<File> call() throws Exception {
-                return CollectionUtils.collect(
-                    getIdeArtifactMetadata("xcodeproj"),
-                    new Transformer<File, LocalComponentArtifactMetadata>() {
-                        @Override
-                        public File transform(LocalComponentArtifactMetadata metadata) {
-                            return metadata.getFile();
-                        }
-                    });
-            }
-        }));
+    private void configureWorkspace(final Project project, final GenerateXcodeWorkspaceFileTask workspaceTask) {
+        workspaceTask.setXcodeProjectLocations(getIdeArtifacts("xcodeproj"));
     }
 
     private static class XcodeProjectArtifact extends DefaultPublishArtifact {

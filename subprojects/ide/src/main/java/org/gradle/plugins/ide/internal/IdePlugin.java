@@ -22,8 +22,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -34,9 +37,11 @@ import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
@@ -123,7 +128,7 @@ public abstract class IdePlugin implements Plugin<Project> {
         ProjectPathRegistry projectPathRegistry = serviceRegistry.get(ProjectPathRegistry.class);
         LocalComponentRegistry localComponentRegistry = serviceRegistry.get(LocalComponentRegistry.class);
 
-        for (Path projectPath : projectPathRegistry.getAllProjectPaths()) {
+        for (Path projectPath : projectPathRegistry.getAllExplicitProjectPaths()) {
             ProjectComponentIdentifier projectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
             LocalComponentArtifactMetadata xcodeprojArtifact = localComponentRegistry.findAdditionalArtifact(projectId, type);
             if (xcodeprojArtifact != null) {
@@ -132,6 +137,24 @@ public abstract class IdePlugin implements Plugin<Project> {
         }
 
         return artifactMetadata;
+    }
+
+    public FileCollection getIdeArtifacts(final String type) {
+        return project.files(new Callable<List<FileCollection>>() {
+            @Override
+            public List<FileCollection> call() throws Exception {
+                return CollectionUtils.collect(
+                    getIdeArtifactMetadata("xcodeproj"),
+                    new Transformer<FileCollection, LocalComponentArtifactMetadata>() {
+                        @Override
+                        public FileCollection transform(LocalComponentArtifactMetadata metadata) {
+                            ConfigurableFileCollection result = project.files(metadata.getFile());
+                            result.builtBy(metadata.getBuildDependencies());
+                            return result;
+                        }
+                    });
+            }
+        });
     }
 
     public boolean isRoot() {

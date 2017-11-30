@@ -18,7 +18,8 @@ package org.gradle.ide.xcode.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
 import org.gradle.ide.xcode.tasks.internal.XcodeWorkspaceFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 
@@ -49,7 +50,8 @@ public class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorksp
         return new XcodeWorkspaceFile(getXmlTransformer());
     }
 
-    @Internal
+    @Optional
+    @InputFiles
     public FileCollection getXcodeProjectLocations() {
         return xcodeProjectLocations;
     }
