@@ -248,6 +248,10 @@ These issues may affect the number of cache hits you get between machines.
 | If two or more tasks share an output directory or files, Gradle will disable caching for these tasks when it detects an overlap.
 | Use separate output directories for each task.
 
+| Using cached C/C++ object files with absolute paths
+| When Gradle compiles C/C++ code, object files tend to have absolute paths embedded inside them. This doesn't affect their correctness, but it can interfere with debuggers that search for source code at those absolute paths.
+| Build the project from the same absolute path on every machine.
+
 | Line endings in build scripts files.
 | Gradle calculates the build cache key based on the MD5 hash of the build script contents. If the line endings are different between developers and the CI servers, Gradle will calculate different build cache keys even when all other inputs to a task are the same.
 | Check if your VCS will change source file line endings and configure it to have a consistent line ending across all platforms.
