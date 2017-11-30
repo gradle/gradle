@@ -500,7 +500,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         when:
         resolveModuleMetadata = false
 
-        then: "constraints are not published to POM files"
+        then: "constraints are not published to Ivy files"
         resolveArtifacts(javaLibrary) == [
             'commons-compress-1.5.jar', 'commons-logging-1.0.4.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.2.jar'
         ]
@@ -529,19 +529,12 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 """)
 
         when:
-        // This currently fails, because the ivy.xml does not provide a version. There are several options to fix this.
-        // One or more of them will be implemented and then this test needs to be updated.
-        // - Do not publish the incomplete ivy.xml (only the module metadata)
-        // - Publish constraints to ivy by substituting the empty version with the one from the constraint
-        fails "publish"
+        succeeds "publish"
 
         then:
-        failure.assertHasCause("Could not parse Ivy file ")
-        failure.assertHasCause("xml parsing: ivy.xml:13:98: cvc-complex-type.4: Attribute 'rev' must appear on element 'dependency'.")
-
-        /*javaLibrary.assertPublished()
+        javaLibrary.assertPublished()
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
-        javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:3.2.2@runtime")
+        javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:@runtime")
 
         and:
         javaLibrary.parsedModuleMetadata.variant('api') {
@@ -549,7 +542,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('commons-collections:commons-collections:1') {
+            dependency('commons-collections:commons-collections:') {
                 rejects()
                 noMoreExcludes()
             }
@@ -558,7 +551,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         and:
-        resolveArtifacts(javaLibrary)*/
+        resolveArtifacts(javaLibrary) == ['commons-collections-3.2.2.jar', 'publishTest-1.9.jar']
     }
 
     private void createBuildScripts(def append) {
