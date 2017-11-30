@@ -17,15 +17,19 @@
 package org.gradle.performance.results
 
 import com.google.common.base.Charsets
+import org.apache.http.HttpStatus
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.impl.client.HttpClients
 import org.mortbay.util.ajax.JSON
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class SlackReporter implements DataReporter<CrossVersionPerformanceResults> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SlackReporter)
     private static final String SLACK_WEBHOOK_URL_ENV_VAR = "SLACK_WEBHOOK_URL"
-    private static final String[] EXCLAMATIONS = ["Hurrah!", "Whoopee!", "Excellent!", "Yippee!", "Wow!", "OMG!", "Amazing!", "Fantastic!", "Awesome!", "Brilliant!"]
+    private static final String[] EXCLAMATIONS = ["Hurrah!", "Whoopee!", "Excellent!", "Yippee!", "Splendid!", "OMG!", "Amazing!", "Fantastic!", "Awesome!", "Brilliant!"]
     private final URI webhook
     private final CloseableHttpClient httpClient
     private final DataReporter<CrossVersionPerformanceResults> delegate
@@ -41,30 +45,34 @@ class SlackReporter implements DataReporter<CrossVersionPerformanceResults> {
         delegate.report(results)
 
         def significantlyFasterThanBaselines = results.baselineVersions.every { it.significantlySlowerThan(results.current) }
-        if (true || significantlyFasterThanBaselines) {
-            def exclamation = EXCLAMATIONS[new Random().nextInt(EXCLAMATIONS.length)]
+        if (!significantlyFasterThanBaselines) {
+            return
+        }
 
-            def title = "Results for `${results.testProject}` with tasks `${results.tasks.join('`, `')}`"
-            if (results.cleanTasks) {
-                title += ", cleaned with `${results.cleanTasks.join('`, `')}`"
+        def exclamation = EXCLAMATIONS[new Random().nextInt(EXCLAMATIONS.length)]
+        def title = "*${results.testProject}* with tasks `${results.tasks.join('`, `')}`"
+        def changes = "<https://github.com/gradle/gradle/compare/${results.vcsCommits.first()}^...${results.vcsCommits.last()}|these changes>"
+        def message = "$exclamation Looks like ${title} is now faster on `${results.vcsBranch}` after $changes."
+
+        def json = JSON.toString(
+            text: message,
+            username: "Performance tests",
+            icon_emoji: ":dash:",
+            channel: "#test-lptr"
+        )
+
+        def post = new HttpPost(webhook)
+        post.setHeader("Accept", "application/json")
+        post.setHeader("Content-type", "application/json")
+        post.setEntity(new StringEntity(json, Charsets.UTF_8))
+
+        def response = httpClient.execute(post)
+        try {
+            if (response.statusLine.statusCode != HttpStatus.SC_OK) {
+                LOGGER.warn("Could not notify Slack: {}", response.statusLine)
             }
-
-            def compareLink = "<https://github.com/gradle/gradle/compare/${results.vcsCommits.first()}^...${results.vcsCommits.last()}|recent changes>"
-            def commits = "`" + results.vcsCommits.collect { it.substring(0, 7) }.join("`, `") + "`"
-            def message = "$exclamation ${title} look significantly faster on `${results.vcsBranch}` after ($compareLink})\nCommits: $commits"
-
-            def json = JSON.toString(
-                text: message,
-                username: "Performance tests",
-                icon_emoji: ":dash:",
-                channel: "#test-lptr"
-            )
-
-            def post = new HttpPost(webhook)
-            post.setHeader("Accept", "application/json")
-            post.setHeader("Content-type", "application/json")
-            post.setEntity(new StringEntity(json, Charsets.UTF_8))
-            httpClient.execute(post)
+        } finally {
+            response.close()
         }
     }
 
