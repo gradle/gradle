@@ -110,10 +110,13 @@ class MixedLanguageHelloWorldApp extends HelloWorldApp {
         return i386GnuAsmSource
     }
 
+    // HACK: Ensure include root are correctly setup, use `INCLUDE <winbase.h>`
+    // See: https://github.com/gradle/gradle/issues/3662
     private static String windowsMasmSource = '''
 .386
 .model    flat
 
+INCLUDE <winbase.h>
 PUBLIC    _sumx
 _TEXT     SEGMENT
 _sumx    PROC

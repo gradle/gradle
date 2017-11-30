@@ -18,6 +18,7 @@ package org.gradle.language.assembler.tasks;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -50,6 +51,7 @@ import java.util.concurrent.Callable;
 @Incubating
 public class Assemble extends DefaultTask {
     private FileCollection source;
+    private ConfigurableFileCollection includes;
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
     private File objectFileDir;
@@ -58,6 +60,7 @@ public class Assemble extends DefaultTask {
     @Inject
     public Assemble() {
         source = getProject().files();
+        includes = getProject().files();
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -83,6 +86,7 @@ public class Assemble extends DefaultTask {
 
         spec.setObjectFileDir(getObjectFileDir());
         spec.source(getSource());
+        spec.include(getIncludes());
         spec.args(getAssemblerArgs());
         spec.setOperationLogger(operationLogger);
 
@@ -150,5 +154,24 @@ public class Assemble extends DefaultTask {
 
     public void setObjectFileDir(File objectFileDir) {
         this.objectFileDir = objectFileDir;
+    }
+
+    /**
+     * Returns the header directories to be used for compilation.
+     *
+     * @since 4.4
+     */
+    @InputFiles
+    public FileCollection getIncludes() {
+        return includes;
+    }
+
+    /**
+     * Add directories where the compiler should search for header files.
+     *
+     * @since 4.4
+     */
+    public void includes(Object includeRoots) {
+        includes.from(includeRoots);
     }
 }
