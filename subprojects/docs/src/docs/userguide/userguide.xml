@@ -38,7 +38,7 @@
         <xi:include href='../../../build/asciidoc/userguide/installation.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/tutorialGradleCommandLine.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/console.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/wrapper.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/gradleWrapper.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/gradleDaemon.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/artifactDependenciesTutorial.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/introMultiProjectBuilds.xml'/>
