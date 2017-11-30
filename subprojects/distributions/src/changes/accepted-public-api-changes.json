@@ -25,16 +25,6 @@
             "changes": [
                 "org.gradle.api.artifacts.DirectDependency"
             ]
-        },
-        {
-            "type": "org.gradle.language.assembler.tasks.Assemble",
-            "member": "Method org.gradle.language.assembler.tasks.Assemble.getIncludes()",
-            "acceptation": "Temporarily accept @since problem until release snapshot is ready"
-        },
-        {
-            "type": "org.gradle.language.assembler.tasks.Assemble",
-            "member": "Method org.gradle.language.assembler.tasks.Assemble.includes(java.lang.Object)",
-            "acceptation": "Temporarily accept @since problem until release snapshot is ready"
         }
     ]
 }
