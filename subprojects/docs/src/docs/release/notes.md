@@ -191,7 +191,6 @@ force a particular version of Visual Studio to be used, configure the [installat
 This version includes several upgrades of third-party dependencies:
 
 - `jackson`: `2.6.6` -> `2.8.9` 
-- `httpclient`: `4.4.1` -> `4.5.3` 
 - `plexus-utils`: `2.0.6` -> `2.1` 
 - `xercesImpl`: `2.9.1` -> `2.11.0` 
 - `bsh`: `2.0b4` -> `2.0b6` 

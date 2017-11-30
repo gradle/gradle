@@ -93,7 +93,7 @@ dependencies {
         exclude group: 'org.apache.httpcomponents'
     }
     testCompile libraries.commons_httpclient
-    testCompile 'org.apache.httpcomponents:httpmime:4.5.3'
+    testCompile 'org.apache.httpcomponents:httpmime:4.4.1'
     testCompile project(":core")
 }
 
