@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.RequiredFeatures
 @RequiredFeatures(
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 )
-class StrictDependenciesResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
+class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
     def "should not downgrade dependency version when an external transitive dependency has strict version"() {
         given:
         repository {

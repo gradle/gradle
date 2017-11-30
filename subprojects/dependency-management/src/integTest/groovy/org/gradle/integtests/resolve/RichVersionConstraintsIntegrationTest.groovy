@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve
 
 import spock.lang.Unroll
 
-class StrictDependenciesIntegrationTest extends AbstractModuleDependencyResolveTest {
+class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     void "can declare a strict dependency onto an external component"() {
         given:
