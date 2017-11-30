@@ -249,8 +249,9 @@ ${globalExclusions(this.effectivePom)}
         if (moduleDependencies.contains('testng')) {
             switch (dsl) {
                 case KOTLIN:
-                    return """val test by tasks.getting(Test::class)
-test.useTestNG()
+                    return """val test by tasks.getting(Test::class) {
+    useTestNG()
+}
 """
                 case GROOVY:
                 default:
