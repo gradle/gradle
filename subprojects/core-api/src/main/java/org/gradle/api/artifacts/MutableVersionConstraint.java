@@ -42,4 +42,14 @@ public interface MutableVersionConstraint extends VersionConstraint {
      */
     void strictly(String version);
 
+    /**
+     * Declares a list of rejected versions. If such a version is found during dependency resolution, it will not
+     * be selected.
+     *
+     * @param versions the rejected versions
+     *
+     * @since 4.5
+     */
+    void reject(String... versions);
+
 }
