@@ -30,10 +30,13 @@ class SlackReporter implements DataReporter<CrossVersionPerformanceResults> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SlackReporter)
     private static final String SLACK_WEBHOOK_URL_ENV = "SLACK_WEBHOOK_URL"
     private static final String SLACK_PERFORMANCE_REPORT_CHANNEL_ENV = "SLACK_PERFORMANCE_REPORT_CHANNEL"
+    private static final String BUILD__URL_ENV = "BUILD_URL"
     private static final String[] EXCLAMATIONS = ["Hurrah!", "Whoopee!", "Excellent!", "Yippee!", "Splendid!", "OMG!", "Amazing!", "Fantastic!", "Awesome!", "Brilliant!"]
+
     private final URI webhook
     private final String slackPerformanceReportChannel
     private final CloseableHttpClient httpClient
+    private final String buildUrl
     private final DataReporter<CrossVersionPerformanceResults> delegate
 
     SlackReporter(URI webhook, String slackPerformanceReportChannel, DataReporter<CrossVersionPerformanceResults> delegate) {
@@ -41,6 +44,7 @@ class SlackReporter implements DataReporter<CrossVersionPerformanceResults> {
         this.slackPerformanceReportChannel = slackPerformanceReportChannel
         this.delegate = delegate
         this.httpClient = HttpClients.createDefault()
+        this.buildUrl = System.getenv(BUILD__URL_ENV)
     }
 
     @Override
@@ -53,19 +57,26 @@ class SlackReporter implements DataReporter<CrossVersionPerformanceResults> {
         }
 
         def exclamation = EXCLAMATIONS[new Random().nextInt(EXCLAMATIONS.length)]
-        def title = "*${results.testProject}* with tasks `${results.tasks.join('`, `')}`"
         def changes = "<https://github.com/gradle/gradle/compare/${results.vcsCommits.first()}^...${results.vcsCommits.last()}|these changes>"
-        def buildUrl = System.getenv("BUILD_URL")
-        def message = "$exclamation Looks like ${title} is now faster on `${results.vcsBranch}` after $changes."
+        def message = "$exclamation Looks like *${results.testId}* on `${results.testProject}` is now faster on `${results.vcsBranch}` after $changes."
         if (buildUrl) {
-            message += " <$buildUrl|-> Go to build>"
+            message += " (<$buildUrl|Go to build>)"
+        }
+
+        def stats = results.baselineVersions.collect { baseline ->
+            baseline.getSpeedStatsAgainst(results.displayName, results.current)
         }
 
         def json = JSON.toString(
             text: message,
             username: "Performance tests",
             icon_emoji: ":dash:",
-            channel: slackPerformanceReportChannel
+            channel: slackPerformanceReportChannel,
+            attachments: stats.collect {
+                [
+                    text: "```\n$it\n```"
+                ]
+            }
         )
 
         def post = new HttpPost(webhook)
