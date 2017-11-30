@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ComponentMetadata;
 
 import java.util.List;
@@ -24,8 +25,16 @@ import java.util.List;
  * "rejects" clauses of version constraints, where each reject is turned into a
  * version selector, then the whole selector is the union of all of them.
  */
-public class UnionVersionSelector implements VersionSelector {
+public class UnionVersionSelector implements CompositeVersionSelector {
     private final List<VersionSelector> selectors;
+
+    public static UnionVersionSelector of(List<String> selectors, VersionSelectorScheme scheme) {
+        ImmutableList.Builder<VersionSelector> builder = new ImmutableList.Builder<VersionSelector>();
+        for (String selector : selectors) {
+            builder.add(scheme.parseSelector(selector));
+        }
+        return new UnionVersionSelector(builder.build());
+    }
 
     public UnionVersionSelector(List<VersionSelector> selectors) {
         this.selectors = selectors;
@@ -104,5 +113,9 @@ public class UnionVersionSelector implements VersionSelector {
     @Override
     public String getSelector() {
         throw new UnsupportedOperationException("Union selectors should only be used internally and don't provide a public string representation");
+    }
+
+    public List<VersionSelector> getSelectors() {
+        return selectors;
     }
 }

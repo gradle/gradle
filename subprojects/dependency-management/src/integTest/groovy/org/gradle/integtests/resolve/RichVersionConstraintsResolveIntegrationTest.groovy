@@ -18,8 +18,8 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-
 import org.gradle.integtests.fixtures.RequiredFeatures
+import spock.lang.Unroll
 
 @RequiredFeatures(
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -185,5 +185,47 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
 
         then:
         failure.assertHasCause("Cannot find a version of 'org:foo' that satisfies the constraints: prefers 1.1, prefers 1.0, rejects 1.1")
+    }
+
+    @Unroll
+    void "honors multiple rejections #rejects using dynamic versions using dependency notation #notation"() {
+        given:
+        repository {
+            (0..5).each {
+                "org:foo:1.$it"()
+            }
+            'org:bar:1.0' {
+                dependsOn(group: 'org', artifact: 'foo', version: '1.0', rejects: rejects) // transitive dependency rejects version
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.1'
+                conf 'org:bar:1.0'
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:bar:1.0' {
+                expectGetMetadata()
+            }
+            'org:foo:1.1' {
+                expectGetMetadata()
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot find a version of 'org:foo' that satisfies the constraints: prefers 1.1, prefers 1.0, rejects any of \"${rejects.join(', ')}\"")
+
+        where:
+        rejects << [
+            ['1.4', '1.5', '1.1'],
+            ['[1.1,)', '1.5'],
+            ['1.5', '[1.1, 1.3]', '1.4'],
+        ]
+
     }
 }

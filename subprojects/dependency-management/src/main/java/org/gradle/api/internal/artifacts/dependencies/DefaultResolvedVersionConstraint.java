@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 
@@ -37,7 +38,7 @@ public class DefaultResolvedVersionConstraint extends DefaultImmutableVersionCon
 
     private static VersionSelector toRejectSelector(VersionSelectorScheme scheme, List<String> rejectedVersions) {
         if (rejectedVersions.size()>1) {
-            throw new UnsupportedOperationException("Multiple rejects are not yet supported");
+            return UnionVersionSelector.of(rejectedVersions, scheme);
         }
         return rejectedVersions.isEmpty() ? null : scheme.parseSelector(rejectedVersions.get(0));
     }
