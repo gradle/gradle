@@ -22,6 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
@@ -58,6 +59,7 @@ model {
         !executedTasks.contains(":compileMainExecutableMainRc")
     }
 
+    @Ignore
     @Requires(TestPrecondition.WINDOWS)
     @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
     def "reasonable error message when attempting to compile resource files with unsupported tool chain"() {
