@@ -282,6 +282,77 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         ]
     }
 
+    def "can publish java-library with rejected versions"() {
+        given:
+        createBuildScripts("""
+
+            ${jcenterRepository()}
+
+            dependencies {
+                api "org.springframework:spring-core:2.5.6"
+                implementation("commons-collections:commons-collections") {
+                    version { 
+                        prefer '[3.2, 4)'
+                        reject '3.2.1', '[3.2.2,)'
+                    }
+                }
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        javaLibrary.parsedPom.scopes.keySet() == ["compile", "runtime"] as Set
+        javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.springframework:spring-core:2.5.6")
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:[3.2, 4)")
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.springframework:spring-core:2.5.6') {
+                noMoreExcludes()
+                rejects()
+            }
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('commons-collections:commons-collections:[3.2, 4)') {
+                noMoreExcludes()
+                rejects '3.2.1', '[3.2.2,)'
+            }
+            dependency('org.springframework:spring-core:2.5.6') {
+                noMoreExcludes()
+                rejects()
+            }
+            noMoreDependencies()
+        }
+
+        then:
+        resolveArtifacts(javaLibrary, false) == [
+            'commons-collections-3.2.jar', 'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
+        ]
+
+        when:
+        resolveModuleMetadata = false
+
+        then:
+        resolveArtifacts(javaLibrary, false) == [
+            'commons-collections-3.2.2.jar', 'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
+        ]
+
+    }
+
     def "can publish java-library with dependencies without version"() {
         given:
         createBuildScripts("""

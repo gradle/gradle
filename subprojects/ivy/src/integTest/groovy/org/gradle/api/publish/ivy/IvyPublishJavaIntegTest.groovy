@@ -598,6 +598,67 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         resolveArtifacts(javaLibrary) == ['commons-collections-3.2.2.jar', 'publishTest-1.9.jar']
     }
 
+    def "can publish java-library with rejected versions"() {
+        given:
+        createBuildScripts("""
+
+            ${jcenterRepository()}
+
+            dependencies {
+                api "org.springframework:spring-core:2.5.6"
+                implementation("commons-collections:commons-collections") {
+                    version { 
+                        prefer '[3.2, 4)'
+                        reject '3.2.1', '[3.2.2,)'
+                    }
+                }
+            }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
+        javaLibrary.parsedIvy.assertDependsOn("org.springframework:spring-core:2.5.6@compile", "commons-collections:commons-collections:[3.2, 4)@runtime")
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.springframework:spring-core:2.5.6') {
+                noMoreExcludes()
+                rejects()
+            }
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('commons-collections:commons-collections:[3.2, 4)') {
+                noMoreExcludes()
+                rejects '3.2.1', '[3.2.2,)'
+            }
+            dependency('org.springframework:spring-core:2.5.6') {
+                noMoreExcludes()
+                rejects()
+            }
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(javaLibrary) == [
+            'commons-collections-3.2.jar', 'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
+        ]
+    }
+
     private void createBuildScripts(def append) {
         settingsFile << "rootProject.name = 'publishTest' "
 
