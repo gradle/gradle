@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[javaLibraryDistribution_plugin]]
+[[java_library_distribution_plugin]]
 == The Java Library Distribution Plugin
 
 
 [NOTE]
 ====
- 
+
 The Java library distribution plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
- 
+
 ====
 
 The Java library distribution plugin adds support for building a distribution ZIP for a Java library. The distribution contains the JAR file for the library and its dependencies.

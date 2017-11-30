@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[project_reports_plugin]]
+[[project_report_plugin]]
 == The Project Report Plugin
 
 The Project report plugin adds some tasks to your project which generate reports containing useful information about your build. These tasks generate the same content that you get by executing the `tasks`, `dependencies`, and `properties` tasks from the command line (see <<sec:obtaining_information_about_your_build>>). In contrast to the command line reports, the report plugin generates the reports into a file. There is also an aggregating task that depends on all report tasks added by the plugin.
