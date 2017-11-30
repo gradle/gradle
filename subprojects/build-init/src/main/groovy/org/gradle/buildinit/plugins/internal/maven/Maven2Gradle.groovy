@@ -24,9 +24,6 @@ import org.gradle.api.logging.Logging
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.util.RelativePathUtil
 
-import static BuildInitDsl.GROOVY
-import static BuildInitDsl.KOTLIN
-
 /**
  * This script obtains the effective POM of the current project, reads its dependencies
  * and generates build.gradle scripts. It also generates settings.gradle for multimodule builds. <br/>
@@ -98,20 +95,13 @@ subprojects {
 
                 def group = ''
                 if (module.groupId != allProjects[0].groupId) {
-                    switch (dsl) {
-                        case KOTLIN:
-                            group = "group = \"${module.groupId}\""
-                            break
-                        case GROOVY:
-                        default:
-                            group = "group = '${module.groupId}'"
-                    }
+                    group = withDsl(
+                        GROOVY: { "group = '${module.groupId}'\n" },
+                        KOTLIN: { "group = \"${module.groupId}\"\n" })
                 }
                 String moduleBuild = ""
                 if (warPack) {
-                    moduleBuild += """${declarativelyApplyPlugins(["war"])}
-
-"""
+                    moduleBuild += "${declarativelyApplyPlugins(["war"])}\n"
                 }
                 moduleBuild += "${group}\n"
                 if (warPack) {
@@ -119,12 +109,13 @@ subprojects {
                         project.groupId.text() == module.groupId.text() &&
                             project.artifactId.text() == id
                     }) {
-                        moduleBuild += """jar.enabled = true
-"""
+                        moduleBuild += "jar.enabled = true\n"
                     }
                 }
                 if (module.name) {
-                    moduleBuild += "description = \"${module.name}\"\n"
+                    moduleBuild += withDsl(
+                        GROOVY: { "description = '${module.name}'\n" },
+                        KOTLIN: { "description = \"${module.name}\"\n" })
                 }
 
 
@@ -172,8 +163,8 @@ ${globalExclusions(this.effectivePom)}
 
             String packageTests = packageTests(this.effectivePom);
             if (packageTests) {
-                build += '//packaging tests'
-                build += packageTests;
+                build += '//packaging tests\n'
+                build += packageTests
             }
             generateSettings(workingDir.getName(), this.effectivePom.artifactId, null);
         }
@@ -187,28 +178,17 @@ ${globalExclusions(this.effectivePom)}
     }
 
     def imperativelyApplyPlugin = { pluginId ->
-        switch (dsl) {
-            case KOTLIN:
-                return "apply { plugin(\"$pluginId\") }\n"
-            case GROOVY:
-            default:
-                return "apply plugin: '$pluginId'\n"
-        }
+        withDsl(
+            GROOVY: { "apply plugin: '$pluginId'\n" },
+            KOTLIN: { "apply { plugin(\"$pluginId\") }\n" })
     }
 
     def declarativelyApplyPlugins = { List<String> pluginIds ->
         String script = "plugins {\n"
-        switch (dsl) {
-            case KOTLIN:
-                pluginIds.each { pluginId ->
-                    script += "    $pluginId\n"
-                }
-                break;
-            case GROOVY:
-            default:
-                pluginIds.each { pluginId ->
-                    script += "    id '$pluginId'\n"
-                }
+        pluginIds.each { pluginId ->
+            script += withDsl(
+                GROOVY: { "  id '$pluginId'\n" },
+                KOTLIN: { "    $pluginId\n" })
         }
         return script + "}\n"
     }
@@ -223,22 +203,9 @@ ${globalExclusions(this.effectivePom)}
                 def tokens = it.text().tokenize(':')
                 def group = tokens[0]
                 def module = tokens.size() > 1 && tokens[1] != '*' ? tokens[1] : null
-                switch (dsl) {
-                    case KOTLIN:
-                        exclusions += "exclude(group = \"$group\""
-                        if (module) {
-                            exclusions += ", module = \"${module}\""
-                        }
-                        exclusions += ")"
-                        break
-                    case GROOVY:
-                    default:
-                        exclusions += "it.exclude group: '$group'"
-                        if (module) {
-                            exclusions += ", module: '${module}'"
-                        }
-                }
-                exclusions += '\n'
+                exclusions += withDsl(
+                    GROOVY: { "it.exclude group: '$group'${module ? ", module: '$module'" : ''}\n" },
+                    KOTLIN: { "exclude(group = \"$group\"${module ? ", module = \"$module\"" : ''})\n" })
             }
         }
         exclusions = exclusions ? exclusions += '}' : exclusions
@@ -247,17 +214,9 @@ ${globalExclusions(this.effectivePom)}
 
     def testNg(moduleDependencies) {
         if (moduleDependencies.contains('testng')) {
-            switch (dsl) {
-                case KOTLIN:
-                    return """val test by tasks.getting(Test::class) {
-    useTestNG()
-}
-"""
-                case GROOVY:
-                default:
-                    return """test.useTestNG()
-"""
-            }
+            withDsl(
+                GROOVY: { 'test.useTestNG()\n' },
+                KOTLIN: { 'val test by tasks.getting(Test::class) {\n    useTestNG()\n}\n' })
         } else {
             ''
         }
@@ -298,15 +257,9 @@ ${globalExclusions(this.effectivePom)}
     }
 
     private String getArtifactData(project) {
-        switch (dsl) {
-            case KOTLIN:
-                return """group = "$project.groupId"
-version = "$project.version\"""";
-            case GROOVY:
-            default:
-                return """group = '$project.groupId'
-version = '$project.version'""";
-        }
+        return withDsl(
+            GROOVY: { "group = '$project.groupId'\nversion = '$project.version'" },
+            KOTLIN: { "group = \"$project.groupId\"\nversion = \"$project.version\"" })
     }
 
     private String getRepositoriesForProjects(projects) {
@@ -325,15 +278,10 @@ version = '$project.version'""";
     }
 
     private void getRepositoriesForModule(module, repoSet) {
-        module.repositories.repository.each {
-            switch (dsl) {
-                case KOTLIN:
-                    repoSet.add("    maven { url = uri(\"${it.url}\") }")
-                    break;
-                case GROOVY:
-                default:
-                    repoSet.add("    maven { url \"${it.url}\" }")
-            }
+        module.repositories.repository.each { repo ->
+            repoSet.add(withDsl(
+                GROOVY: { "  maven { url '${repo.url}' }\n" },
+                KOTLIN: { "    maven { url = uri(\"${repo.url}\") }\n" }))
         }
         //No need to include plugin repos - who cares about maven plugins?
     }
@@ -428,8 +376,17 @@ version = '$project.version'""";
         def configuration = plugin('maven-compiler-plugin', project).configuration
         def encoding = project.properties.'project.build.sourceEncoding'.text()
         def settings = new StringBuilder()
-        switch (dsl) {
-            case KOTLIN:
+        withDsl(
+            GROOVY: {
+                settings.append "sourceCompatibility = ${configuration.source.text() ?: '1.5'}\n"
+                settings.append "${indent}targetCompatibility = ${configuration.target.text() ?: '1.5'}\n"
+                if (encoding) {
+                    settings.append "${indent}tasks.withType(JavaCompile) {\n"
+                    settings.append "${indent}  options.encoding = '${encoding}'\n"
+                    settings.append "${indent}}\n"
+                }
+            },
+            KOTLIN: {
                 if (useKotlinAccessors) {
                     settings.append "${indent}java {\n"
                 } else {
@@ -445,17 +402,7 @@ version = '$project.version'""";
                     settings.append "${indent}    options.encoding = \"${encoding}\"\n"
                     settings.append "${indent}}\n"
                 }
-                break
-            case GROOVY:
-            default:
-                settings.append "sourceCompatibility = ${configuration.source.text() ?: '1.5'}\n"
-                settings.append "${indent}targetCompatibility = ${configuration.target.text() ?: '1.5'}\n"
-                if (encoding) {
-                    settings.append "${indent}tasks.withType(JavaCompile) {\n"
-                    settings.append "${indent}\toptions.encoding = '${encoding}'\n"
-                    settings.append "${indent}}\n"
-                }
-        }
+            })
         return settings
     }
 
@@ -476,32 +423,29 @@ version = '$project.version'""";
     def packSources = { sourceSets ->
         def sourceSetStr = ''
         if (!sourceSets.empty) {
-            switch (dsl) {
-                case KOTLIN:
-                    sourceSetStr = """val packageSources by tasks.creating(Jar::class) {
-    classifier = "sources"
-"""
-                    sourceSets.each { sourceSet ->
-                        sourceSetStr += """    from(sourceSets["$sourceSet"].allSource)
-"""
-                    }
-                    sourceSetStr += """}
-artifacts.add("archives", packageSources)
-"""
-                    break;
-                case GROOVY:
-                default:
+            withDsl(
+                GROOVY: {
                     sourceSetStr = """task packageSources(type: Jar) {
 classifier = 'sources'
 """
                     sourceSets.each { sourceSet ->
-                        sourceSetStr += """from sourceSets.${sourceSet}.allSource
-"""
+                        sourceSetStr += "  from sourceSets.${sourceSet}.allSource\n"
                     }
                     sourceSetStr += """
 }
 artifacts.archives packageSources"""
-            }
+                },
+                KOTLIN: {
+                    sourceSetStr = """val packageSources by tasks.creating(Jar::class) {
+    classifier = "sources"
+"""
+                    sourceSets.each { sourceSet ->
+                        sourceSetStr += "    from(sourceSets[\"$sourceSet\"].allSource)\n"
+                    }
+                    sourceSetStr += """}
+artifacts.add("archives", packageSources)
+"""
+                })
         }
         sourceSetStr
     }
@@ -511,35 +455,23 @@ artifacts.archives packageSources"""
         if (!pluginGoal('test-jar', jarPlugin)) {
             return ''
         }
-        switch (dsl) {
-            case KOTLIN:
-                if (useKotlinAccessors) {
-                    return """
-val packageTests by tasks.creating(Jar::class) {
-    from(java.sourceSets["test"].output)
-    classifier = "tests"
-}
-artifacts.add("archives", packageTests)
-"""
-                } else {
-                    return """
-val packageTests by tasks.creating(Jar::class) {
-    from(the<JavaPluginConvention>().sourceSets["test"].output)
-    classifier = "tests"
-}
-artifacts.add("archives", packageTests)
-"""
-                }
-            case GROOVY:
-            default:
-                return """
-task packageTests(type: Jar) {
+        return withDsl(
+            GROOVY: {
+                """task packageTests(type: Jar) {
   from sourceSets.test.output
   classifier = 'tests'
 }
 artifacts.archives packageTests
 """
-        }
+            },
+            KOTLIN: {
+                """val packageTests by tasks.creating(Jar::class) {
+    from(${useKotlinAccessors ? "java" : "the<JavaPluginConvention>()"}.sourceSets["test"].output)
+    classifier = "tests"
+}
+artifacts.add("archives", packageTests)
+"""
+            })
     }
 
     def packageSources = { project ->
@@ -586,14 +518,9 @@ artifacts.archives packageTests
         def qualifiedNames = [:]
         def projectName = "";
         if (dirName != mvnProjectName) {
-            switch (dsl) {
-                case KOTLIN:
-                    projectName = "rootProject.name = \"${mvnProjectName}\"\n"
-                    break
-                case GROOVY:
-                default:
-                    projectName = "rootProject.name = '${mvnProjectName}'\n"
-            }
+            projectName = withDsl(
+                GROOVY: { "rootProject.name = '${mvnProjectName}'\n" },
+                KOTLIN: { "rootProject.name = \"${mvnProjectName}\"\n" })
         }
         def modulePoms = modules(projects, true)
 
@@ -617,20 +544,17 @@ artifacts.archives packageTests
         }
         StringBuffer settingsText = new StringBuffer(projectName)
         if (moduleNames.size() > 0) {
-            moduleNames.each {
-                switch (dsl) {
-                    case KOTLIN:
-                        settingsText.append("include(\"$it\")\n")
-                        break;
-                    case GROOVY:
-                    default:
-                        settingsText.append("include '$it'\n")
-                }
+            moduleNames.each { moduleName ->
+                settingsText.append(withDsl(
+                    GROOVY: { "include '$moduleName'\n" },
+                    KOTLIN: { "include(\"$moduleName\")\n" }))
             }
         }
 
         artifactIdToDir.each { entry ->
-            settingsText.append("project(\"$entry.key\").projectDir = file(\"${entry.value}\")\n")
+            settingsText.append(withDsl(
+                GROOVY: { "project('$entry.key').projectDir = file('${entry.value}')\n" },
+                KOTLIN: { "project(\"$entry.key\").projectDir = file(\"${entry.value}\")\n" }))
         }
         settingsFile.text = settingsText.toString()
         return qualifiedNames
@@ -641,71 +565,64 @@ artifacts.archives packageTests
      * iterate over each <exclusion> node and print out the artifact id.
      * It also provides review comments for the user.
      */
-    private def createComplexDependency(it, build, scope, useKotlinAccessors) {
-        build.append("    ${scope}(${contructSignature(it)}) {\n")
-        it.exclusions.exclusion.each() {
-            build.append("exclude(module: '${it.artifactId}')\n")
-        }
-        build.append("    }\n")
+    private void createComplexDependency(mavenDependency, build, scope, useKotlinAccessors) {
+        def signature = contructSignature(mavenDependency)
+        build.append(withDsl(
+            GROOVY: {
+                build.append("  ${scope}(${signature}) {\n")
+                mavenDependency.exclusions.exclusion.each() {
+                    build.append("  exclude(module: '${it.artifactId}')\n")
+                }
+                build.append("  }\n")
+            },
+            KOTLIN: {
+                build.append("    ${useKotlinAccessors ? scope : "\"$scope\""}(${signature}) {\n")
+                mavenDependency.exclusions.exclusion.each() {
+                    build.append("    exclude(module = \"${it.artifactId}\")\n")
+                }
+                build.append("    }\n")
+            }))
     }
 
     /**
      * Print out the basic form og gradle dependency
      */
-    private def createBasicDependency(mavenDependency, build, String scope, useKotlinAccessors) {
-        def classifier = contructSignature(mavenDependency)
-        switch (dsl) {
-            case KOTLIN:
-                if (useKotlinAccessors) {
-                    build.append("    ${scope}(${classifier})\n")
-                } else {
-                    build.append("    \"${scope}\"(${classifier})\n")
-                }
-                break
-            case GROOVY:
-            default:
-                build.append("    ${scope} ${classifier}\n")
-        }
+    private void createBasicDependency(mavenDependency, build, String scope, useKotlinAccessors) {
+        def signature = contructSignature(mavenDependency)
+        build.append(withDsl(
+            GROOVY: { "  ${scope} ${signature}\n" },
+            KOTLIN: { "    ${useKotlinAccessors ? scope : "\"$scope\""}(${signature})\n" }))
     }
 
     /**
      * Print out the basic form of gradle dependency
      */
-    private def createProjectDependency(projectDep, build, String scope, allProjects, useKotlinAccessors) {
+    private void createProjectDependency(projectDep, build, String scope, allProjects, useKotlinAccessors) {
         if (projectDep.packaging.text() == 'war') {
             dependentWars += projectDep
         }
         def fqn = fqn(projectDep, allProjects)
-        switch (dsl) {
-            case KOTLIN:
-                if (useKotlinAccessors) {
-                    build.append "    ${scope}(project(\"$fqn\"))\n"
-                } else {
-                    build.append "    \"${scope}\"(project(\"$fqn\"))\n"
-                }
-                break
-            case GROOVY:
-            default:
-                build.append("  ${scope} project('$fqn')\n")
-        }
+        build.append(withDsl(
+            GROOVY: { "  ${scope} project('$fqn')\n" },
+            KOTLIN: { "    ${useKotlinAccessors ? scope : "\"$scope\""}(project(\"$fqn\"))\n" }))
     }
 
     /**
      * Construct and return the signature of a dependency, including its version and
      * classifier if it exists
      */
-    private def contructSignature(mavenDependency) {
-        switch (dsl) {
-            case KOTLIN:
-                def gradelDep = "group = \"${mavenDependency.groupId.text()}\", name = \"${mavenDependency.artifactId.text()}\", version = \"${mavenDependency?.version?.text()}\""
-                def classifier = elementHasText(mavenDependency.classifier) ? gradelDep + ", classifier = \"" + mavenDependency.classifier.text().trim() + '"' : gradelDep
-                return classifier
-            case GROOVY:
-            default:
-                def gradelDep = "group: '${mavenDependency.groupId.text()}', name: '${mavenDependency.artifactId.text()}', version: '${mavenDependency?.version?.text()}'"
-                def classifier = elementHasText(mavenDependency.classifier) ? gradelDep + ", classifier:'" + mavenDependency.classifier.text().trim() + "'" : gradelDep
-                return classifier
-        }
+    private String contructSignature(mavenDependency) {
+        def groupId = mavenDependency.groupId.text()
+        def artifactId = mavenDependency.artifactId.text()
+        def version = mavenDependency.version?.text()
+        def classifier = elementHasText(mavenDependency.classifier) ? mavenDependency.classifier.text().trim() : null
+        return withDsl(
+            GROOVY: { "group: '$groupId', name: '$artifactId', version: '$version'${classifier ? ", classifier: '$classifier'" : ''}" },
+            KOTLIN: { "group = \"$groupId\", name = \"$artifactId\", version = \"$version\"${classifier ? ", classifier = \"$classifier\"" : ''}" })
+    }
+
+    private String withDsl(Map<String, Closure<String>> args) {
+        return args[dsl.name()].call()
     }
 
     /**
