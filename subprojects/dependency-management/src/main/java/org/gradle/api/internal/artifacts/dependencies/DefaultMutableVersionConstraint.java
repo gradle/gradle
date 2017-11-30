@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.InvalidUserDataException;
 import com.google.common.base.Strings;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
@@ -30,7 +32,7 @@ import static com.google.common.base.Strings.nullToEmpty;
 
 public class DefaultMutableVersionConstraint extends AbstractVersionConstraint implements VersionConstraintInternal {
     private String prefer;
-    private List<String> rejects;
+    private final List<String> rejects = Lists.newArrayListWithExpectedSize(1);
 
     public DefaultMutableVersionConstraint(VersionConstraint versionConstraint) {
         this(versionConstraint.getPreferredVersion(), versionConstraint.getRejectedVersions());
@@ -40,14 +42,12 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         this.prefer = nullToEmpty(version);
         if (strict) {
             doStrict();
-        } else {
-            this.rejects = Collections.emptyList();
         }
     }
 
     public DefaultMutableVersionConstraint(String version, List<String> rejects) {
         this.prefer = nullToEmpty(version);
-        this.rejects = rejects;
+        this.rejects.addAll(rejects);
     }
 
     private void doStrict() {
@@ -57,7 +57,8 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator());
         VersionSelector preferredSelector = versionSelectorScheme.parseSelector(prefer);
         VersionSelector rejectedSelector = versionSelectorScheme.complementForRejection(preferredSelector);
-        this.rejects = Collections.singletonList(rejectedSelector.getSelector());
+        this.rejects.clear();
+        this.rejects.add(rejectedSelector.getSelector());
     }
 
     public DefaultMutableVersionConstraint(String version) {
@@ -78,13 +79,21 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     @Override
     public void prefer(String version) {
         this.prefer = Strings.nullToEmpty(version);
-        this.rejects = Collections.emptyList();
+        this.rejects.clear();
     }
 
     @Override
     public void strictly(String version) {
         prefer(version);
         doStrict();
+    }
+
+    @Override
+    public void reject(String... versions) {
+        if (versions == null) {
+            throw new InvalidUserDataException("The 'reject' clause requires at least one rejected version");
+        }
+        Collections.addAll(rejects, versions);
     }
 
     @Override
