@@ -74,7 +74,8 @@ class SlackReporter implements DataReporter<CrossVersionPerformanceResults> {
             channel: slackPerformanceReportChannel,
             attachments: stats.collect {
                 [
-                    text: it
+                    text: "```\n$it\n```",
+                    mrkdwn_in: ["text"]
                 ]
             }
         )
