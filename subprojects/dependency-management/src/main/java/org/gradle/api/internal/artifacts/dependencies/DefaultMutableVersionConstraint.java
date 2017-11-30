@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
+import com.google.common.collect.Lists;
+import org.gradle.api.InvalidUserDataException;
 import com.google.common.base.Strings;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
