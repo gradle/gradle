@@ -34,7 +34,6 @@ import java.util.zip.GZIPOutputStream
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.SMALL_JAVA_MULTI_PROJECT
 
 @Unroll
 class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
@@ -106,8 +105,8 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
     def "clean #tasks on #testProject with empty local cache"() {
         given:
         setupTestProject(testProject, tasks)
-        runner.warmUpRuns = 1
-        runner.runs = 1
+        runner.warmUpRuns = 6
+        runner.runs = 8
         pushToRemote = false
         runner.addBuildExperimentListener(cleanLocalCache())
 
@@ -118,8 +117,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject = SMALL_JAVA_MULTI_PROJECT
-        tasks = "assemble"
+        [testProject, tasks] << scenarios
     }
 
     def "clean #tasks on #testProject with empty remote http cache"() {
