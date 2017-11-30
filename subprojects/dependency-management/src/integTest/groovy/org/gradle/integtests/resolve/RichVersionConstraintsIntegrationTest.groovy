@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
+import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.Unroll
 
 class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -462,4 +463,96 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
             }
         }
     }
+
+
+    void "can reject dependency versions of an external component"() {
+        given:
+        repository {
+            'org:foo:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:1.0') {
+                   version {
+                      reject '1.1'
+                   }
+                }
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:foo:1.0")
+            }
+        }
+    }
+
+    @Unroll
+    void "honors rejection using dynamic versions using dependency notation #notation"() {
+        given:
+        repository {
+            'org:foo:1.0' {
+                withModule(IvyModule) {
+                    withStatus('release')
+                }
+            }
+            'org:foo:1.1' {
+                withModule(IvyModule) {
+                    withStatus('release')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:$notation') {
+                   version {
+                      reject '1.1'
+                   }
+                }
+            }           
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                if (requiresMetadata) {
+                    '1.1' {
+                        expectGetMetadata()
+                    }
+                }
+                '1.0' {
+                    expectResolve()
+                }
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:$notation", "org:foo:1.0")
+            }
+        }
+
+        where:
+        notation         | requiresMetadata
+        '1+'             | false
+        '1.+'            | false
+        '[1.0,)'         | false
+        'latest.release' | true
+    }
+
 }
