@@ -82,6 +82,7 @@ class PatchExternalModules extends DefaultTask {
         // TODO: Should this be configurable?
         new JarPatcher(project.rootProject, temporaryDir, allModules, "kotlin-compiler-embeddable")
             .exclude("META-INF/services/java.nio.charset.spi.CharsetProvider")
+            .exclude("META-INF/services/javax.annotation.processing.Processor")
             .exclude("net/rubygrapefruit/platform/**")
             .exclude("org/fusesource/jansi/**")
             .exclude("META-INF/native/**/*jansi.*")
