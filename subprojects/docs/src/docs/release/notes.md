@@ -28,9 +28,15 @@ Think of every feature section as a mini blog post.
 
 In this release, the Gradle team added a new chapter in the user guide documenting the [Provider API](userguide/lazy_configuration.html).
 
+### Cacheable C/C++ compilation  
+
+We introduced [experimental C/C++ caching support](https://docs.gradle.org/4.3/release-notes.html#experimental-task-output-caching-for-c/c++-compilation) in Gradle 4.3, but this feature was hidden behind an additional flag.
+
+In this release, we have removed the special flag.  If you [enable the build cache](current/userguide/build_cache.html#sec:build_cache_enable), Gradle will try to reuse task outputs from C/C++ compile tasks when all inputs (compiler flags, source, dependencies) are identical.
+
 ### Improvement to C/C++ incremental compilation
 
-Gradle' incremental C/C++ compilation works by analysing and understanding the dependencies between source files and the header files that they include. Gradle can use this information to compile only those source files that are affected by a change to a header file. This means much faster builds. However, in some cases Gradle cannot analyze all of these dependencies, and in these cases it assumes all source files depend on all header files and recompiles all source files when any header file changes regardless of whether the change affects the compiler output or not. This also affects how well the Gradle build cache can be used to skip the compilation. None of this is good for performance.
+Gradle's incremental C/C++ compilation works by analysing and understanding the dependencies between source files and the header files that they include. Gradle can use this information to compile only those source files that are affected by a change to a header file. This means much faster builds. However, in some cases Gradle cannot analyze all of these dependencies, and in these cases it assumes all source files depend on all header files and recompiles all source files when any header file changes regardless of whether the change affects the compiler output or not. This also affects how well the Gradle build cache can be used to skip the compilation. None of this is good for performance.
 
 In this release, Gradle's incremental C/C++ compilation is now able to understand most dependencies between source files and header files. This means much better incremental compilation and more build cache hits. And this means faster builds.
 

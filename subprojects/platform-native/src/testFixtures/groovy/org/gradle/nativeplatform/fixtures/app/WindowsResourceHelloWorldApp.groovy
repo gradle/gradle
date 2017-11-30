@@ -123,6 +123,10 @@ void DLL_FUNC hello() {
         sourceFile("rc", "resources.rc", """
 #include "hello.h"
 
+// HACK: Ensure include root are correctly setup
+// See: https://github.com/gradle/gradle/issues/3662
+#include "winres.h"
+
 STRINGTABLE
 {
     #ifdef FRENCH
