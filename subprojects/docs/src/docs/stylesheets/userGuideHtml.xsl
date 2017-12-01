@@ -157,7 +157,7 @@
                 </section>
                 <section class="site-footer__subscribe-newsletter">
                     <p>Subscribe for important Gradle updates and news</p>
-                    <form id="newsletter-form" class="newsletter-form" action="https://go.pardot.com/l/68052/2015-01-26/23sh" method="post">
+                    <form id="newsletter-form" class="newsletter-form" action="https://go.pardot.com/l/68052/2017-12-01/b8dh7j" method="post">
                         <input id="email" class="email" name="email" type="email" placeholder="name@email.com" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" maxlength="255" required=""/>
                         <button id="submit" class="submit" type="submit">Subscribe</button>
                     </form>
