@@ -158,11 +158,11 @@ public class BuildScriptBuilder {
                         PrettyPrinter printer = prettyPrinterFor(dsl, writer);
                         printer.printFileHeader(headerLines);
                         printer.printPlugins(plugins);
-                        if (!dependencies.isEmpty()) {
-                            printer.printRepositories();
-                            printer.printDependencies(dependencies);
-                        }
                         printer.printConfigSpecs(configSpecs);
+                        if (!dependencies.isEmpty()) {
+                            printer.printDependencies(dependencies);
+                            printer.printRepositories();
+                        }
                     } finally {
                         writer.close();
                     }
@@ -379,11 +379,14 @@ public class BuildScriptBuilder {
         }
 
         public void printConfigSpecs(List<ConfigSpec> configSpecs) {
+            if (configSpecs.isEmpty()) {
+                return;
+            }
             for (ConfigGroup group : sortedConfigGroups(configSpecs)) {
-                writer.println();
+                println();
                 printConfigGroup(group);
             }
-            writer.println();
+            println();
         }
 
         private void printConfigGroup(ConfigGroup configGroup) {
