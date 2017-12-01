@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.internal.TaskInternal;
 
 /**
  * A task dependency that is aware of the inputs of the task that owns it.
@@ -24,16 +24,40 @@ import org.gradle.api.tasks.TaskInputs;
  * depend on its own inputs.
  */
 public class InputsAwareTaskDependency extends DefaultTaskDependency {
-    private final TaskInputs inputs;
+    private final TaskInternal task;
+    private final TaskPropertiesWalker taskPropertiesWalker;
 
-    public InputsAwareTaskDependency(TaskInputs inputs, TaskResolver resolver) {
+    public InputsAwareTaskDependency(TaskInternal task, TaskResolver resolver, TaskPropertiesWalker taskPropertiesWalker) {
         super(resolver);
-        this.inputs = inputs;
+        this.task = task;
+        this.taskPropertiesWalker = taskPropertiesWalker;
     }
 
     @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(inputs.getFiles());
+    public void visitDependencies(final TaskDependencyResolveContext context) {
+        InputFilesVisitor visitor = new InputFilesVisitor(context);
+        taskPropertiesWalker.visitInputs(task, visitor);
+        for (DeclaredTaskInputFileProperty declaredTaskInputFileProperty : task.getInputs().getRuntimeFileProperties()) {
+            visitor.visitFileProperty(declaredTaskInputFileProperty);
+        }
         super.visitDependencies(context);
     }
+
+    private static class InputFilesVisitor implements InputsVisitor {
+        private final TaskDependencyResolveContext context;
+
+        public InputFilesVisitor(TaskDependencyResolveContext context) {
+            this.context = context;
+        }
+
+        @Override
+        public void visitFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
+            context.add(inputFileProperty.getPropertyFiles());
+        }
+
+        @Override
+        public void visitProperty(PropertyDeclaration propertyDeclaration) {
+        }
+    }
+
 }

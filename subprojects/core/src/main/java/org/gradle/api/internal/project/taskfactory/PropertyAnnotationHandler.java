@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.internal.TaskInputsInternal;
+import org.gradle.api.internal.tasks.InputsVisitor;
+import org.gradle.api.internal.tasks.PropertyInfo;
+
 import java.lang.annotation.Annotation;
 
 /**
@@ -32,4 +36,6 @@ public interface PropertyAnnotationHandler {
      * Attaches the actions for the given property.
      */
     void attachActions(TaskPropertyActionContext context);
+
+    void accept(PropertyInfo propertyInfo, InputsVisitor visitor, TaskInputsInternal inputs);
 }

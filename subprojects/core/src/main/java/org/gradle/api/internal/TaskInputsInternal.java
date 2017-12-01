@@ -17,25 +17,35 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
+
+import java.util.List;
 
 public interface TaskInputsInternal extends TaskInputs {
     ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
 
     TaskInputFilePropertyBuilderInternal registerFiles(ValidatingValue paths);
 
+    List<DeclaredTaskInputFileProperty> getRuntimeFileProperties();
+
     TaskInputFilePropertyBuilderInternal registerFile(ValidatingValue value);
 
     TaskInputFilePropertyBuilderInternal registerDir(ValidatingValue dirPath);
 
+    DeclaredTaskInputFileProperty createFileSpec(ValidatingValue paths, ValidationAction validationAction);
+
     TaskInputPropertyBuilder registerProperty(String name, ValidatingValue value);
 
     TaskInputPropertyBuilder registerNested(String name, ValidatingValue value);
+
+    DeclaredTaskInputFileProperty createDirSpec(ValidatingValue dirPath, ValidationAction validator);
 
     void validate(TaskValidationContext context);
 }

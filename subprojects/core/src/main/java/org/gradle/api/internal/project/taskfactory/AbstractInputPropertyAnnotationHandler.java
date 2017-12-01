@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
+import org.gradle.api.internal.tasks.InputsVisitor;
+import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -48,6 +52,26 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
             }
         });
     }
+
+    @Override
+    public void accept(PropertyInfo propertyInfo, InputsVisitor visitor, TaskInputsInternal inputs) {
+        PathSensitive pathSensitive = propertyInfo.getAnnotation(PathSensitive.class);
+        final PathSensitivity pathSensitivity;
+        if (pathSensitive == null) {
+            pathSensitivity = PathSensitivity.ABSOLUTE;
+        } else {
+            pathSensitivity = pathSensitive.value();
+        }
+        DeclaredTaskInputFileProperty fileSpec = createFileSpec(propertyInfo, inputs);
+        fileSpec
+            .withPropertyName(propertyInfo.getName()).optional(propertyInfo.isOptional())
+            .withPathSensitivity(pathSensitivity)
+            .skipWhenEmpty(propertyInfo.isAnnotationPresent(SkipWhenEmpty.class))
+            .optional(propertyInfo.isOptional());
+        visitor.visitFileProperty(fileSpec);
+    }
+
+    protected abstract DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, TaskInputsInternal inputs);
 
     protected abstract TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue);
 }

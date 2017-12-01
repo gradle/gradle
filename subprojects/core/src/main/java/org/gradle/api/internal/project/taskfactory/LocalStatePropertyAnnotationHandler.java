@@ -15,7 +15,10 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.InputsVisitor;
+import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.LocalState;
 
@@ -34,5 +37,9 @@ public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHa
                 task.getLocalState().register(futureValue);
             }
         });
+    }
+
+    @Override
+    public void accept(PropertyInfo propertyInfo, InputsVisitor visitor, TaskInputsInternal inputs) {
     }
 }

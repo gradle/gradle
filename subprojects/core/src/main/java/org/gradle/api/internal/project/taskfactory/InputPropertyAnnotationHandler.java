@@ -16,7 +16,11 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.AbstractPropertyDeclaration;
+import org.gradle.api.internal.tasks.InputsVisitor;
+import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.Input;
 
@@ -41,6 +45,17 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
             || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
             context.validationMessage("has @Input annotation used on property of type " + valueType.getName());
+        }
+    }
+
+    @Override
+    public void accept(PropertyInfo propertyInfo, InputsVisitor visitor, TaskInputsInternal inputs) {
+        visitor.visitProperty(new InputPropertyDeclaration(propertyInfo));
+    }
+
+    private static class InputPropertyDeclaration extends AbstractPropertyDeclaration {
+        public InputPropertyDeclaration(PropertyInfo propertyInfo) {
+            super(propertyInfo);
         }
     }
 }

@@ -45,6 +45,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
+import org.gradle.api.internal.tasks.TaskPropertiesWalker;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
@@ -168,7 +169,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskDestroyables = new DefaultTaskDestroyables(fileResolver, this, taskMutator);
         taskLocalState = new DefaultTaskLocalState(fileResolver, this, taskMutator);
 
-        dependencies = new InputsAwareTaskDependency(taskInputs, tasks);
+        dependencies = new InputsAwareTaskDependency(this, tasks, services.get(TaskPropertiesWalker.class));
     }
 
     private void assertDynamicObject() {

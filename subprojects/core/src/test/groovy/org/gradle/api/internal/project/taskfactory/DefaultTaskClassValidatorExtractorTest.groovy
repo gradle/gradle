@@ -19,6 +19,9 @@ package org.gradle.api.internal.project.taskfactory
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.TaskInputsInternal
+import org.gradle.api.internal.tasks.InputsVisitor
+import org.gradle.api.internal.tasks.PropertyInfo
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Console
@@ -75,6 +78,10 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         void attachActions(TaskPropertyActionContext context) {
             assert context.isAnnotationPresent(SearchPath)
             context.configureAction = configureAction
+        }
+
+        @Override
+        void accept(PropertyInfo propertyInfo, InputsVisitor visitor, TaskInputsInternal inputs) {
         }
     }
 

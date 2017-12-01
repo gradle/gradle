@@ -53,6 +53,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final TaskMutator taskMutator;
     private final Map<String, PropertyValue> properties = new HashMap<String, PropertyValue>();
     private final List<DeclaredTaskInputFileProperty> declaredFileProperties = Lists.newArrayList();
+    private final List<DeclaredTaskInputFileProperty> runtimeProperties = Lists.newArrayList();
     private final TaskInputs deprecatedThis;
     private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
 
@@ -90,7 +91,9 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return taskMutator.mutate("TaskInputs.files(Object...)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
-                return registerFiles(new StaticValue(unpackVarargs(paths)));
+                StaticValue value = new StaticValue(unpackVarargs(paths));
+                runtimeProperties.add(createFileSpec(value, ValidationAction.NO_OP));
+                return registerFiles(value);
             }
         });
     }
@@ -108,11 +111,18 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
+    public List<DeclaredTaskInputFileProperty> getRuntimeFileProperties() {
+        return runtimeProperties;
+    }
+
+    @Override
     public TaskInputFilePropertyBuilderInternal file(final Object path) {
         return taskMutator.mutate("TaskInputs.file(Object)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
-                return fileInternal(new StaticValue(path), RUNTIME_INPUT_FILE_VALIDATOR);
+                StaticValue value = new StaticValue(path);
+                runtimeProperties.add(createFileSpec(value, ValidationAction.NO_OP));
+                return fileInternal(value, RUNTIME_INPUT_FILE_VALIDATOR);
             }
         });
     }
@@ -131,7 +141,9 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return taskMutator.mutate("TaskInputs.dir(Object)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
-                return dir(new StaticValue(dirPath), RUNTIME_INPUT_DIRECTORY_VALIDATOR);
+                StaticValue value = new StaticValue(dirPath);
+                runtimeProperties.add(createFileSpec(value, ValidationAction.NO_OP));
+                return dir(value, RUNTIME_INPUT_DIRECTORY_VALIDATOR);
             }
         });
     }
@@ -141,9 +153,16 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return dir(dirPath, INPUT_DIRECTORY_VALIDATOR);
     }
 
-    private TaskInputFilePropertyBuilderInternal dir(ValidatingValue dirPath, ValidationAction validator) {
+    @Override
+    public DeclaredTaskInputFileProperty createDirSpec(ValidatingValue dirPath, ValidationAction validator) {
         FileTreeInternal fileTree = resolver.resolveFilesAsTree(dirPath);
-        return addSpec(new FileTreeValue(dirPath, fileTree), validator);
+        return createFileSpec(new FileTreeValue(dirPath, fileTree), validator);
+    }
+
+    private TaskInputFilePropertyBuilderInternal dir(ValidatingValue dirPath, ValidationAction validator) {
+        DeclaredTaskInputFileProperty dirSpec = createDirSpec(dirPath, validator);
+        declaredFileProperties.add(dirSpec);
+        return dirSpec;
     }
 
     @Override
@@ -172,8 +191,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
+    @Override
+    public DeclaredTaskInputFileProperty createFileSpec(ValidatingValue paths, ValidationAction validationAction) {
+        return new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
+    }
+
     private TaskInputFilePropertyBuilderInternal addSpec(ValidatingValue paths, ValidationAction validationAction) {
-        DefaultTaskInputFilePropertySpec spec = new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
+        DeclaredTaskInputFileProperty spec = createFileSpec(paths, validationAction);
         declaredFileProperties.add(spec);
         return spec;
     }

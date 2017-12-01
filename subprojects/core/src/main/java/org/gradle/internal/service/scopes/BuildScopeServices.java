@@ -64,6 +64,7 @@ import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.internal.tasks.TaskPropertiesWalker;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
@@ -235,6 +236,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected TaskClassValidatorExtractor createTaskClassValidatorExtractor(List<PropertyAnnotationHandler> annotationHandlers) {
         return new DefaultTaskClassValidatorExtractor(annotationHandlers);
+    }
+
+    protected TaskPropertiesWalker createTaskPropertiesWalker(List<PropertyAnnotationHandler> annotationHandlers) {
+        return new TaskPropertiesWalker(annotationHandlers);
     }
 
     protected TaskClassInfoStore createTaskClassInfoStore(TaskClassValidatorExtractor validatorExtractor) {

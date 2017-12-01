@@ -15,8 +15,12 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
+import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.TaskPropertyValue;
+import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
@@ -30,4 +34,10 @@ public class InputDirectoryPropertyAnnotationHandler extends AbstractInputProper
     protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue) {
         return task.getInputs().registerDir(futureValue);
     }
+
+    @Override
+    protected DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, TaskInputsInternal inputs) {
+        return inputs.createDirSpec(propertyInfo, ValidationAction.NO_OP);
+    }
+
 }

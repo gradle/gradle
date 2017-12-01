@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.InputsVisitor;
+import org.gradle.api.internal.tasks.PropertyDeclaration;
+import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.Nested;
 
@@ -37,5 +41,29 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
                     .optional(context.isOptional());
             }
         });
+    }
+
+    @Override
+    public void accept(final PropertyInfo propertyInfo, InputsVisitor visitor, TaskInputsInternal inputs) {
+        visitor.visitProperty(new NestedPropertyTypeDeclaration(propertyInfo));
+    }
+
+    private static class NestedPropertyTypeDeclaration implements PropertyDeclaration {
+        private final PropertyInfo propertyInfo;
+
+        public NestedPropertyTypeDeclaration(PropertyInfo propertyInfo) {
+            this.propertyInfo = propertyInfo;
+        }
+
+        @Override
+        public String getName() {
+            return propertyInfo.getName() + ".class";
+        }
+
+        @Override
+        public Object getValue() {
+            Object value = propertyInfo.getValue();
+            return value == null ? null : value.getClass().getName();
+        }
     }
 }
