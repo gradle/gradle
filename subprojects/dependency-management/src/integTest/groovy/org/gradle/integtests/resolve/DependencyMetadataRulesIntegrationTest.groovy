@@ -436,4 +436,38 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
    Dependency path ':testproject:unspecified' --> 'org.test:moduleB' prefers '1.1'
    Dependency path ':testproject:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' prefers '1.0', rejects ']1.0,)'"""
     }
+
+    def "can make add rejections to a dependency"() {
+        given:
+        moduleB = repo.module("org.test", "moduleB", "1.1").allowAll().publish()
+        moduleA.dependsOn(moduleB).publish()
+
+        when:
+        buildFile << """
+            dependencies {
+                $variantToTest group: 'org.test', name: 'moduleB', version: '1.1' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
+ 
+                components {
+                    withModule('org.test:moduleA') {
+                        withVariant("$variantToTest") {
+                            withDependencies { dependencies ->
+                                dependencies.findAll { it.name == 'moduleB' }.each {
+                                    it.version { 
+                                        prefer '1.0'
+                                        reject '1.1', '1.2'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        then:
+        fails 'checkDep'
+        failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints: 
+   Dependency path ':testproject:unspecified' --> 'org.test:moduleB' prefers '1.1'
+   Dependency path ':testproject:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' prefers '1.0', rejects any of "'1.1', '1.2'\""""
+    }
 }
