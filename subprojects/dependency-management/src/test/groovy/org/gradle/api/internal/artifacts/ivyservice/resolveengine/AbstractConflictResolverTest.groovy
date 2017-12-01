@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentStateWithDependents
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import spock.lang.Specification
@@ -35,23 +36,31 @@ abstract class AbstractConflictResolverTest extends Specification {
     ConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails(participants)
 
     ModuleConflictResolver resolver
+    TestComponent root = new TestComponent(DefaultModuleVersionIdentifier.newId('', 'root', ''))
 
     protected void resolveConflicts() {
         resolver.select(details)
     }
 
-    protected TestComponent module(String org, String name, String version) {
+    protected TestComponent module(String org, String name, String version, TestComponent... dependents) {
         ComponentResolutionState state = new TestComponent(DefaultModuleVersionIdentifier.newId(org, name, version))
-        participants << state
+        if (dependents) {
+            Collections.addAll(state.dependents, dependents)
+        } else {
+            state.dependents << root
+        }
         state
     }
 
-    protected TestComponent prefer(String version) {
-        module('org', 'foo', version)
+    protected TestComponent prefer(String version, TestComponent... dependents) {
+        module('org', 'foo', version, dependents).with {
+            participants << it
+            it
+        }
     }
 
-    protected TestComponent strictly(String version) {
-        prefer(version).strict()
+    protected TestComponent strictly(String version, TestComponent... dependents) {
+        prefer(version, dependents).strict()
     }
 
     protected void selected(ComponentResolutionState state) {
@@ -75,11 +84,12 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
     }
 
-    private static class TestComponent implements ComponentResolutionState {
+    private static class TestComponent implements ComponentStateWithDependents<TestComponent> {
 
         private final ModuleVersionIdentifier id
         private MutableVersionConstraint constraint
         private ComponentResolveMetadata metaData
+        private List<TestComponent> dependents = []
 
         TestComponent(ModuleVersionIdentifier id) {
             this.id = id
@@ -132,5 +142,15 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         String toString() { id }
+
+        @Override
+        List<TestComponent> getDependents() {
+            dependents
+        }
+
+        @Override
+        List<TestComponent> getUnattachedDependencies() {
+            []
+        }
     }
 }

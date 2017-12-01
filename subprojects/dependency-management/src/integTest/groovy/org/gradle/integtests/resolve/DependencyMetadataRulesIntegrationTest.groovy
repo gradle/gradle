@@ -432,6 +432,8 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
 
         then:
         fails 'checkDep'
-        failure.assertHasCause "Cannot find a version of 'org.test:moduleB' that satisfies the constraints: prefers 1.1, prefers 1.0, rejects ]1.0,)"
+        failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints: 
+   Dependency path ':testproject:unspecified' --> 'org.test:moduleB' prefers '1.1'
+   Dependency path ':testproject:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' prefers '1.0', rejects ']1.0,)'"""
     }
 }

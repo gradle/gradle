@@ -90,7 +90,9 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 1.0, rejects ]1.0,), prefers 1.1')
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:foo' prefers '1.0', rejects ']1.0,)'
+   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' prefers '1.1'""")
 
     }
 
@@ -289,7 +291,9 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 17, prefers 15, rejects ]15,)')
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:foo' prefers '17'
+   Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo' prefers '15', rejects ']15,)'""")
 
     }
 
@@ -340,7 +344,9 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 17, rejects ]17,), prefers 15, rejects ]15,)')
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:foo' prefers '17', rejects ']17,)'
+   Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo' prefers '15', rejects ']15,)'""")
 
     }
 
@@ -394,7 +400,9 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('Cannot find a version of \'org:foo\' that satisfies the constraints: prefers [15,16], rejects ]16,), prefers [17,18], rejects ]18,)')
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:foo' prefers '[15,16]', rejects ']16,)'
+   Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo' prefers '[17,18]', rejects ']18,)'""")
 
     }
 
@@ -590,7 +598,9 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("Cannot find a version of 'org:foo' that satisfies the constraints: prefers 1.0, rejects 1.1, prefers 1.1")
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:foo' prefers '1.0', rejects '1.1'
+   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' prefers '1.1'""")
     }
 
     def "can reject a version range"() {

@@ -15,22 +15,29 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.CompositeVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentStateWithDependents;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 class LatestModuleConflictResolver implements ModuleConflictResolver {
     private final Comparator<Version> versionComparator;
@@ -75,11 +82,17 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
             for (T candidate : candidates) {
                 if (first) {
                     sb.append("'").append(candidate.getId().getModule()).append("'");
-                    sb.append(" that satisfies the constraints: ");
-                } else {
-                    sb.append(", ");
+                    sb.append(" that satisfies the version constraints: \n");
                 }
-                sb.append(render(candidate.getVersionConstraint()));
+                if (candidate instanceof ComponentStateWithDependents) {
+                    ComponentStateWithDependents component = (ComponentStateWithDependents) candidate;
+                    List<String> paths = pathTo(component);
+                    for (String path : paths) {
+                        sb.append("   ").append(path).append("\n");
+                    }
+                } else {
+                    sb.append(renderVersionConstraint(candidate.getVersionConstraint()));
+                }
                 first = false;
             }
             details.fail(new GradleException(sb.toString()));
@@ -111,25 +124,69 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         details.select(matches.get(sorted.get(0)));
     }
 
-    private static String render(ResolvedVersionConstraint constraint) {
+    private List<String> pathTo(ComponentStateWithDependents component) {
+        List<List<ComponentStateWithDependents>> acc = Lists.newArrayListWithExpectedSize(1);
+        pathTo(component, Lists.<ComponentStateWithDependents>newArrayList(), acc);
+        List<String> result = Lists.newArrayListWithCapacity(acc.size());
+        for (List<ComponentStateWithDependents> path : acc) {
+            StringBuilder sb = new StringBuilder("Dependency path ");
+            for (Iterator<ComponentStateWithDependents> iterator = path.iterator(); iterator.hasNext();) {
+                ComponentStateWithDependents e = iterator.next();
+                ModuleVersionIdentifier id = e.getId();
+                if (iterator.hasNext()) {
+                    sb.append('\'').append(id).append('\'');
+                    sb.append(" --> ");
+                } else {
+                    sb.append('\'').append(id.getGroup()).append(':').append(id.getName()).append('\'');
+                    sb.append(" ").append(renderVersionConstraint(e.getVersionConstraint()));
+                }
+            }
+            result.add(sb.toString());
+        }
+        return result;
+    }
+
+    private void pathTo(ComponentStateWithDependents component, List<ComponentStateWithDependents> currentPath, List<List<ComponentStateWithDependents>> accumulator) {
+        currentPath.add(0, component);
+        Collection<ComponentState> dependents = component.getDependents();
+        List<ComponentState> unattachedDependencies = component.getUnattachedDependencies();
+        Set<ComponentState> allDependents = Sets.newLinkedHashSet();
+        allDependents.addAll(dependents);
+        allDependents.addAll(unattachedDependencies);
+        for (ComponentStateWithDependents dependent : allDependents) {
+            List<ComponentStateWithDependents> otherPath = Lists.newArrayList(currentPath);
+            pathTo(dependent, otherPath, accumulator);
+        }
+        if (allDependents.isEmpty()) {
+            accumulator.add(currentPath);
+        }
+    }
+
+    private static String renderVersionConstraint(ResolvedVersionConstraint constraint) {
         VersionSelector preferredSelector = constraint.getPreferredSelector();
         VersionSelector rejectedSelector = constraint.getRejectedSelector();
         StringBuilder sb = new StringBuilder("prefers ");
+        sb.append('\'');
         sb.append(preferredSelector.getSelector());
+        sb.append('\'');
         if (rejectedSelector != null) {
             sb.append(", rejects ");
             if (rejectedSelector instanceof CompositeVersionSelector) {
                 sb.append("any of \"");
                 int i = 0;
                 for (VersionSelector selector : ((CompositeVersionSelector) rejectedSelector).getSelectors()) {
-                    if (i++>0) {
+                    if (i++ > 0) {
                         sb.append(", ");
                     }
+                    sb.append('\'');
                     sb.append(selector.getSelector());
+                    sb.append('\'');
                 }
                 sb.append("\"");
             } else {
+                sb.append('\'');
                 sb.append(rejectedSelector.getSelector());
+                sb.append('\'');
             }
         }
         return sb.toString();
