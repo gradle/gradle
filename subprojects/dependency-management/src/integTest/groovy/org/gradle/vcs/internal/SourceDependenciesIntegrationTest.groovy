@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.TextUtil
 import org.gradle.vcs.fixtures.GitRepository
 import org.junit.Rule
 
@@ -113,6 +114,56 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        when:
+        succeeds("resolve")
+        then:
+        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
+
+        // Updating the remote repository causes changes downstream
+        when:
+        def message = "goodbye world"
+        buildFile << """
+            resolve.message = "$message"
+        """
+        file("first/build.gradle") << """
+            generate.message = "$message"
+        """
+        file("second/build.gradle") << """
+            generate.message = "$message"
+        """
+        first.commit("change message", file("first/build.gradle"))
+        second.commit("change message", file("second/build.gradle"))
+        then:
+        succeeds("resolve")
+    }
+
+    def "can use source mappings defined in nested builds"() {
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:first') {
+                        from vcs(GitVersionControlSpec) {
+                            url = file('first').toURI()
+                        }
+                    }
+                }
+            }
+        """
+        
+        def secondPath = TextUtil.normaliseFileSeparators(file('second').absolutePath)
+        file('first/settings.gradle') << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:second') {
+                        from vcs(GitVersionControlSpec) {
+                            url = file('${secondPath}').toURI()
+                        }
+                    }
+                }
+            }
+        """
+        first.commit("add source mapping", file('first/settings.gradle'))
+
         when:
         succeeds("resolve")
         then:
