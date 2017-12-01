@@ -749,6 +749,14 @@ Compile-avoidance is deactivated if annotation processors are found on the compi
 
 The `test` task is an instance of api:org.gradle.api.tasks.testing.Test[]. It automatically detects and executes all unit tests in the `test` source set. It also generates a report once test execution is complete. JUnit and TestNG are both supported. Have a look at api:org.gradle.api.tasks.testing.Test[] for the complete API.
 
+[NOTE]
+====
+
+There're some limitations when running test with Gradle. For example, issues may occur if a https://docs.oracle.com/javase/8/docs/api/java/lang/SecurityManager.html[SecurityManager] is used in tests because
+Gradle's internal message mechanism depends on reflection and socket communication, which may be disrupted by Java security manager. In this case, you should restore the original `SecurityManager` after the test so that the gradle test worker process can continue to function.
+
+====
+
 
 [[sec:test_execution]]
 ==== Test execution
