@@ -28,11 +28,12 @@ object SourcePathProvider {
     fun sourcePathFor(
         classPath: ClassPath,
         projectDir: File,
-        gradleHomeDir: File?): ClassPath {
+        gradleHomeDir: File?,
+        sourceDistributionResolver: SourceDistributionProvider): ClassPath {
 
         val gradleKotlinDslJar = classPath.filter { it.name.startsWith("gradle-kotlin-dsl-") }
         val projectBuildSrcRoots = buildSrcRootsOf(projectDir)
-        val gradleSourceRoots = gradleHomeDir?.let { sourceRootsOf(it) } ?: emptyList()
+        val gradleSourceRoots = gradleHomeDir?.let { sourceRootsOf(it, sourceDistributionResolver) } ?: emptyList()
 
         return gradleKotlinDslJar + projectBuildSrcRoots + gradleSourceRoots
     }
@@ -48,13 +49,22 @@ object SourcePathProvider {
         subDirsOf(File(projectRoot, "buildSrc/src/main"))
 
     private
-    fun sourceRootsOf(gradleInstallation: File): Collection<File> =
-        subDirsOf(File(gradleInstallation, "src"))
+    fun sourceRootsOf(gradleInstallation: File, sourceDistributionResolver: SourceDistributionProvider): Collection<File> =
+        gradleInstallationSources(gradleInstallation) ?: downloadedSources(sourceDistributionResolver)
 
     private
-    fun subDirsOf(dir: File): Collection<File> =
-        if (dir.isDirectory)
-            dir.listFiles().filter { it.isDirectory }
-        else
-            emptyList()
+    fun gradleInstallationSources(gradleInstallation: File) =
+        File(gradleInstallation, "src").takeIf { it.exists() }?.let { subDirsOf(it) }
+
+    private
+    fun downloadedSources(sourceDistributionResolver: SourceDistributionProvider) =
+        sourceDistributionResolver.sourceDirs()
 }
+
+
+internal
+fun subDirsOf(dir: File): Collection<File> =
+    if (dir.isDirectory)
+        dir.listFiles().filter { it.isDirectory }
+    else
+        emptyList()
