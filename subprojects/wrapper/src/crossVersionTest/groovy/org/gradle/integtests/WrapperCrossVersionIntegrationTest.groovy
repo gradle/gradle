@@ -104,6 +104,7 @@ task hello {
     }
 }
 """
+        settingsFile << "rootProject.name = 'wrapper'"
         version(wrapperVersion).withTasks('wrapper').run()
 
         def executer = wrapperExecuter(wrapperVersion)
@@ -134,13 +135,7 @@ task hello {
     }
 
     void checkWrapperWorksWith(GradleExecuter executer, GradleDistribution executionVersion) {
-        def gradlewExecutor = executer.usingExecutable('gradlew').withTasks('hello')
-
-        if (executionVersion.getVersion().compareTo(GradleVersion.version("4.4")) <= 0) {
-            executer.withArgument("--no-search-upward")
-        }
-
-        def result = gradlewExecutor.run()
+        def result = executer.usingExecutable('gradlew').withTasks('hello').run()
 
         assert result.output.contains("hello from $executionVersion.version.version")
         assert result.output.contains("using distribution at ${executer.gradleUserHomeDir.file("wrapper/dists")}")
