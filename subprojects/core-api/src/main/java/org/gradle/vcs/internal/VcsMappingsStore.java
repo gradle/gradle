@@ -17,14 +17,14 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Actions;
-import org.gradle.util.Path;
 import org.gradle.vcs.VcsMapping;
 
 public interface VcsMappingsStore {
     Action<VcsMapping> getVcsMappingRule();
     boolean hasRules();
-    void addRule(Action<VcsMapping> rule, boolean isRootBuild);
+    void addRule(Action<VcsMapping> rule, Gradle gradle);
 
     VcsMappingsStore NO_OP = new VcsMappingsStore() {
         @Override
@@ -38,7 +38,7 @@ public interface VcsMappingsStore {
         }
 
         @Override
-        public void addRule(Action<VcsMapping> rule, boolean isRootBuild) {
+        public void addRule(Action<VcsMapping> rule, Gradle gradle) {
         }
     };
 }

@@ -16,16 +16,22 @@
 
 package org.gradle.vcs.internal;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Actions;
+import org.gradle.util.CollectionUtils;
 import org.gradle.vcs.VcsMapping;
+import org.gradle.vcs.VersionControlSpec;
 
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultVcsMappingsStore implements VcsMappingsStore {
-    private final Set<Action<VcsMapping>> vcsMappings = Sets.newHashSet();
-    private final Set<Action<VcsMapping>> rootVcsMappings = Sets.newHashSet();
+    private final Set<Action<VcsMapping>> rootVcsMappings = Sets.newLinkedHashSet();
+    private final Map<Gradle, Set<Action<VcsMapping>>> vcsMappings = Maps.newHashMap();
 
     @Override
     public Action<VcsMapping> getVcsMappingRule() {
@@ -35,7 +41,16 @@ public class DefaultVcsMappingsStore implements VcsMappingsStore {
                 VcsMappingInternal vcsMappingInternal = (VcsMappingInternal) vcsMapping;
                 Actions.composite(rootVcsMappings).execute(vcsMappingInternal);
                 if (!vcsMappingInternal.hasRepository()) {
-                    Actions.composite(vcsMappings).execute(vcsMappingInternal);
+                    Set<VersionControlSpec> resolutions = Sets.newHashSet();
+                    for (Gradle gradle : vcsMappings.keySet()) {
+                        Actions.composite(vcsMappings.get(gradle)).execute(vcsMappingInternal);
+                        if (vcsMappingInternal.hasRepository()) {
+                            resolutions.add(vcsMappingInternal.getRepository());
+                        }
+                    }
+                    if (resolutions.size() > 1) {
+                        throw new GradleException("Conflicting external source dependency rules were found in nested builds for " + vcsMappingInternal.getRequested().getDisplayName() + ":\n  " + CollectionUtils.join("\n  ", resolutions));
+                    }
                 }
             }
         };
@@ -47,11 +62,14 @@ public class DefaultVcsMappingsStore implements VcsMappingsStore {
     }
 
     @Override
-    public void addRule(Action<VcsMapping> rule, boolean isRootBuild) {
-        if (isRootBuild) {
+    public void addRule(Action<VcsMapping> rule, Gradle gradle) {
+        if (gradle.getParent() == null) {
             rootVcsMappings.add(rule);
         } else {
-            vcsMappings.add(rule);
+            if (!vcsMappings.containsKey(gradle)) {
+                vcsMappings.put(gradle, Sets.<Action<VcsMapping>>newLinkedHashSet());
+            }
+            vcsMappings.get(gradle).add(rule);
         }
     }
 }

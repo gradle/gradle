@@ -46,4 +46,31 @@ public class DirectoryRepositorySpec extends AbstractVersionControlSpec implemen
     public String getRepoName() {
         return sourceDir.getName();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DirectoryRepositorySpec that = (DirectoryRepositorySpec) o;
+
+        return sourceDir != null ? sourceDir.equals(that.sourceDir) : that.sourceDir == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return sourceDir != null ? sourceDir.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "DirectoryRepositorySpec{"
+            + "directory="
+            + sourceDir
+            + '}';
+    }
 }

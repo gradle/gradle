@@ -65,7 +65,7 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
 
     private static class VersionControlSettingsServices {
         VcsMappings createVcsMappings(Instantiator instantiator, VcsMappingsStore vcsMappingsStore, Gradle gradle) {
-            return instantiator.newInstance(DefaultVcsMappings.class, instantiator, vcsMappingsStore, gradle.getParent() == null);
+            return instantiator.newInstance(DefaultVcsMappings.class, instantiator, vcsMappingsStore, gradle);
         }
 
         protected SourceControl createSourceControl(Instantiator instantiator, VcsMappings vcsMappings) {
