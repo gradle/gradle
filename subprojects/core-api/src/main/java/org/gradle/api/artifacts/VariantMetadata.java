@@ -33,5 +33,13 @@ public interface VariantMetadata {
      *
      * @param action the action that performs the dependencies adjustment
      */
-    void withDependencies(Action<DependenciesMetadata> action);
+    void withDependencies(Action<DirectDependenciesMetadata> action);
+
+    /**
+     * Register a rule that modifies the dependency constraints of this variant.
+     *
+     * @param action the action that performs the dependency constraints adjustment
+     * @since 4.5
+     */
+    void withDependencyConstraints(Action<DependencyConstraintsMetadata> action);
 }
