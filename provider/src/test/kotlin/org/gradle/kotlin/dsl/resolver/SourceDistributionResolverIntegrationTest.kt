@@ -19,19 +19,19 @@ class SourceDistributionResolverIntegrationTest : AbstractIntegrationTest() {
             for (sourceDir in resolver.sourceDirs()) {
                 val path = sourceDir.toPath()
                 val relativePath = path.parent.parent.parent.parent.relativize(path)
-                println(relativePath)
+                println("*" + relativePath)
             }
 
         """)
 
         assertThat(
-            firstNonEmptyLinesOf(build().output).toSet(),
+            build().output.linesPrefixedBy("*").toSet(),
             equalTo(expectedSourceDirs))
     }
 
     private
-    fun firstNonEmptyLinesOf(text: String) =
-        text.lineSequence().takeWhile { it.isNotBlank() }
+    fun String.linesPrefixedBy(prefix: String) =
+        lineSequence().filter { it.startsWith(prefix) }.map { it.removePrefix(prefix) }
 
     private
     val expectedSourceDirs = setOf(
