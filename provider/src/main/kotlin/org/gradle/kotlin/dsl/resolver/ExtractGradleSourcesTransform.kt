@@ -30,11 +30,25 @@ import java.io.File
 class ExtractGradleSourcesTransform : ArtifactTransform() {
 
     override fun transform(input: File): List<File> {
-        unzipTo(input, outputDirectory)
+        unzipTo(outputDirectory, input)
         return sourceDirectories()
     }
 
     private
     fun sourceDirectories() =
-        subDirsOf(outputDirectory).flatMap { subDirsOf(File(it, "src/main")) }
+        unzippedSubProjectsDir()?.let {
+            subDirsOf(it).flatMap { subProject ->
+                subDirsOf(File(subProject, "src/main"))
+            }
+        } ?: emptyList()
+
+    private
+    fun unzippedSubProjectsDir(): File? =
+        unzippedDistroDir()?.let {
+            File(it, "subprojects")
+        }
+
+    private
+    fun unzippedDistroDir(): File? =
+        outputDirectory.listFiles().singleOrNull()
 }

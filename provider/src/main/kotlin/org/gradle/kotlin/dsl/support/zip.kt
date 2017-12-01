@@ -19,14 +19,13 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.util.TextUtil.normaliseFileSeparators
 
 import java.io.File
+import java.io.InputStream
 import java.io.OutputStream
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
-private
-fun Any?.discard() = Unit
 
 fun zipTo(zipFile: File, baseDir: File) {
     val files = baseDir.walkTopDown().filter { it.isFile }
@@ -60,23 +59,28 @@ fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>
     }
 }
 
-fun unzipTo(zipFile: File, outputDirectory: File) {
-    ZipFile(zipFile).use { zip ->
-        zip.entries().asSequence().forEach { entry ->
-            zip.getInputStream(entry).use { input ->
-                val out = File(outputDirectory, entry.name)
-                if (!out.parentFile.exists()) {
-                    out.parentFile.mkdirs()
-                }
-                if (entry.isDirectory) {
-                    out.mkdir().discard()
-                } else {
-                    out.outputStream().use { output ->
-                        input.copyTo(output)
-                    }.discard()
-                }
 
-            }
+internal
+fun unzipTo(outputDirectory: File, zipFile: File) {
+    ZipFile(zipFile).use { zip ->
+        for (entry in zip.entries()) {
+            unzipEntryTo(outputDirectory, zip, entry)
         }
     }
 }
+
+
+private
+fun unzipEntryTo(outputDirectory: File, zip: ZipFile, entry: ZipEntry) {
+    val output = File(outputDirectory, entry.name)
+    if (entry.isDirectory) {
+        output.mkdirs()
+    } else {
+        zip.getInputStream(entry).use { it.copyTo(output) }
+    }
+}
+
+
+private
+fun InputStream.copyTo(file: File): Long =
+    file.outputStream().use { copyTo(it) }
