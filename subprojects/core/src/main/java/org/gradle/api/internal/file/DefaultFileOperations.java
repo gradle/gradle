@@ -43,6 +43,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -70,13 +71,13 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher) {
+    public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, TextResourceLoader textResourceLoader) {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.resourceHandler = new DefaultResourceHandler(this, temporaryFileProvider);
+        this.resourceHandler = new DefaultResourceHandler(this, temporaryFileProvider, textResourceLoader);
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
         this.fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup, directoryFileTreeFactory);

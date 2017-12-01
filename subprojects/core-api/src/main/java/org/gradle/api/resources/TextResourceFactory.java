@@ -18,6 +18,8 @@ package org.gradle.api.resources;
 
 import org.gradle.api.Incubating;
 
+import java.net.URI;
+
 /**
  * Creates {@code TextResource}s backed by sources such as strings, files, and archive entries.
  *
@@ -37,6 +39,8 @@ import org.gradle.api.Incubating;
  * configurations { someConfig } // assumption: contains a single archive
  * def sourcedFromConfiguration =
  *   resources.text.fromArchiveEntry(configurations.someConfig, "path/to/archive/entry.txt")
+ *
+ * def sourceFromUri = resources.text.fromUri("http(s)://path/to/the/resource".toURI())
  * </pre>
  *
  * File based factory methods optionally accept a character encoding. If no encoding is specified,
@@ -85,4 +89,15 @@ public interface TextResourceFactory {
      * Same as {@code fromArchiveEntry(archive, path, Charset.defaultCharset().name())}.
      */
     TextResource fromArchiveEntry(Object archive, String path);
+
+    /**
+     * Creates a text resource backed by the given uri.
+     *
+     * @param uri an uri
+     *
+     * @return a text resource backed by the given uri
+     * @since TODO
+     */
+    @Incubating
+    TextResource fromUri(URI uri);
 }

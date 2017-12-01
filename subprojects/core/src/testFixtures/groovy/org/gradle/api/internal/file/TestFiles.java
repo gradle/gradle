@@ -25,6 +25,7 @@ import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.process.internal.DefaultExecActionFactory;
@@ -70,7 +71,7 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir) {
-        return new DefaultFileOperations(resolver(basedDir), null, null, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher());
+        return new DefaultFileOperations(resolver(basedDir), null, null, DirectInstantiator.INSTANCE, fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), textResourceLoader());
     }
 
     public static DefaultStreamHasher streamHasher() {
@@ -115,5 +116,10 @@ public class TestFiles {
 
     public static String systemSpecificAbsolutePath(String path) {
         return new File(path).getAbsolutePath();
+    }
+
+    public static TextResourceLoader textResourceLoader() {
+        //TODO Is using a mock here correct? Or should we instantiate it somehow?
+        return null;
     }
 }
