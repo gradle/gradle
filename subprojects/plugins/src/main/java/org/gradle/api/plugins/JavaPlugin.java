@@ -431,7 +431,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         }
 
         public Collection<String> getBuildTasks() {
-            return Collections.singletonList(JavaBasePlugin.BUILD_TASK_NAME);
+            return Collections.singleton(JavaBasePlugin.BUILD_TASK_NAME);
         }
 
         public FileCollection getRuntimeClasspath() {
