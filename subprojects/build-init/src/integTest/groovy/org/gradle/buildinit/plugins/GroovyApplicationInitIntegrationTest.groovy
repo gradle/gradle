@@ -26,10 +26,6 @@ class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
     public static final String SAMPLE_APP_CLASS = "src/main/groovy/App.groovy"
     public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "src/test/groovy/AppTest.groovy"
 
-    def setup() {
-        requireGradleDistribution()
-    }
-
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:

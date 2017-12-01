@@ -38,10 +38,6 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
         getRootCauseMessage(t).startsWith("Could not GET")
     }
 
-    def setup() {
-        requireGradleDistribution()
-    }
-
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
