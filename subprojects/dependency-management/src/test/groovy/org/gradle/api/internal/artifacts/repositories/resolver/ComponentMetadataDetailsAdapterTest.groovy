@@ -33,7 +33,7 @@ import spock.lang.Specification
 class ComponentMetadataDetailsAdapterTest extends Specification {
     private instantiator = DirectInstantiator.INSTANCE
     private dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class)
-    private dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyConstraintMetadataImpl.class)
+    private dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class)
 
     def versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)

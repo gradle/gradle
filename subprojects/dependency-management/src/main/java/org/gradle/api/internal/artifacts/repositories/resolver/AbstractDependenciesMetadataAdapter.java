@@ -34,7 +34,7 @@ import java.util.Map;
 
 abstract public class AbstractDependenciesMetadataAdapter<T extends DependencyMetadata> extends AbstractList<T> implements DependenciesMetadata<T> {
     private final List<org.gradle.internal.component.model.DependencyMetadata> dependenciesMetadata;
-    private final Map<Integer, T> dependencyMetadataAdapters;
+    protected final Map<Integer, T> dependencyMetadataAdapters;
     private final Instantiator instantiator;
     private final NotationParser<Object, T> dependencyNotationParser;
 

@@ -21,6 +21,8 @@ import org.gradle.api.Action
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl
+import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.internal.component.external.descriptor.MavenScope
@@ -36,7 +38,8 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 
 class DependencyMetadataRulesTest extends Specification {
     private instantiator = DirectInstantiator.INSTANCE
-    private notationParser = DependencyMetadataNotationParser.parser(instantiator)
+    private notationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl)
+    private constraintNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl)
 
     @Shared versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
     @Shared componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
@@ -72,7 +75,7 @@ class DependencyMetadataRulesTest extends Specification {
         def rule = Mock(Action)
 
         when:
-        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser, constraintNotationParser)
         def metadata = metadataImplementation.asImmutable()
 
         then:
@@ -105,7 +108,7 @@ class DependencyMetadataRulesTest extends Specification {
         def rule = Mock(Action)
 
         when:
-        metadataImplementation.addDependencyMetadataRule("anotherVariant", rule, instantiator, notationParser)
+        metadataImplementation.addDependencyMetadataRule("anotherVariant", rule, instantiator, notationParser, constraintNotationParser)
         selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
@@ -130,7 +133,7 @@ class DependencyMetadataRulesTest extends Specification {
         }
 
         when:
-        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser, constraintNotationParser)
 
         then:
         selectTargetConfigurationMetadata(metadataImplementation).dependencies.size() == 2
@@ -153,7 +156,7 @@ class DependencyMetadataRulesTest extends Specification {
         }
 
         when:
-        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser, constraintNotationParser)
 
         then:
         selectTargetConfigurationMetadata(metadataImplementation).dependencies[0].selector.version == "2.0"
@@ -174,7 +177,7 @@ class DependencyMetadataRulesTest extends Specification {
         }
 
         when:
-        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser, constraintNotationParser)
 
         then:
         selectTargetConfigurationMetadata(metadataImplementation).dependencies.collect { it.selector } == [ newSelector("org.test", "added", "1.0") ]
@@ -195,7 +198,7 @@ class DependencyMetadataRulesTest extends Specification {
         }
 
         when:
-        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser, constraintNotationParser)
 
         then:
         selectTargetConfigurationMetadata(metadataImplementation).dependencies.empty

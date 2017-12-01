@@ -27,7 +27,7 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 
 class DependenciesMetadataAdapterTest extends Specification {
     List<DependencyMetadata> dependenciesMetadata = []
-    DependenciesMetadataAdapter adapter
+    TestDependenciesMetadataAdapter adapter
 
     def setup() {
         fillDependencyList(0)
@@ -151,8 +151,8 @@ class DependenciesMetadataAdapterTest extends Specification {
         def dependencyMetadata = ++adapter.iterator()
 
         then:
-        dependencyMetadata instanceof DependencyMetadataAdapter
-        !(dependencyMetadata instanceof DependencyMetadataImpl)
+        dependencyMetadata instanceof DirectDependencyMetadataAdapter
+        !(dependencyMetadata instanceof DirectDependencyMetadataImpl)
     }
 
     def "can modify underlying list items"() {
@@ -175,6 +175,22 @@ class DependenciesMetadataAdapterTest extends Specification {
             ModuleComponentSelector requested = newSelector("org.gradle.test", "module$size", "1.0")
             dependenciesMetadata += [ new GradleDependencyMetadata(requested, []) ]
         }
-        adapter = new DependenciesMetadataAdapter(dependenciesMetadata, DirectInstantiator.INSTANCE, DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE))
+        adapter = new TestDependenciesMetadataAdapter(dependenciesMetadata)
+    }
+
+    class TestDependenciesMetadataAdapter extends AbstractDependenciesMetadataAdapter {
+        TestDependenciesMetadataAdapter(List<DependencyMetadata> dependenciesMetadata) {
+            super(dependenciesMetadata, DirectInstantiator.INSTANCE, DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE, DirectDependencyMetadataImpl.class))
+        }
+
+        @Override
+        protected Class adapterImplementationType() {
+            return DirectDependencyMetadataAdapter
+        }
+
+        @Override
+        protected boolean isPending() {
+            return false
+        }
     }
 }
