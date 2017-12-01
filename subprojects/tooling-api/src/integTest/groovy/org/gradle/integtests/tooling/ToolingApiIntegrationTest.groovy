@@ -207,6 +207,7 @@ allprojects {
         projectDir.file("src/main/java/Main.java") << """
             import org.gradle.tooling.BuildLauncher;
             import org.gradle.tooling.GradleConnector;
+            import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
             import org.gradle.tooling.ProjectConnection;
 
             import java.io.ByteArrayOutputStream;
@@ -229,6 +230,9 @@ allprojects {
                     if (args.length > 0) {
                         connector.useInstallation(new File(args[0]));
                     }
+
+                    // required because invoked build script doesn't provide a settings file
+                    ((DefaultGradleConnector) connector).searchUpwards(false);
 
                     ProjectConnection connection = connector.connect();
                     try {
