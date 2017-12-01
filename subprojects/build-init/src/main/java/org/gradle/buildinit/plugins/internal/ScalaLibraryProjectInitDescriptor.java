@@ -41,7 +41,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
         String junitVersion = libraryVersionProvider.getVersion("junit");
         String scalaXmlVersion = libraryVersionProvider.getVersion("scala-xml");
 
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder()
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
             .fileComment("This generated file contains a sample Scala library project to get you started.")
             .fileComment("For more details take a look at the Scala plugin chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("scala_plugin"))
@@ -54,7 +54,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
             .testRuntimeDependency("Need scala-xml at test runtime",
                 "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
 
-        buildScriptBuilder.create(dsl, fileResolver.resolve(dsl.fileNameFor("build"))).generate();
+        buildScriptBuilder.create().generate();
 
         TemplateOperation scalaLibTemplateOperation = fromClazzTemplate("scalalibrary/Library.scala.template", "main");
         TemplateOperation scalaTestTemplateOperation = fromClazzTemplate("scalalibrary/LibrarySuite.scala.template", "test");

@@ -16,6 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal
 
+import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -29,12 +31,15 @@ class BuildScriptBuilderGroovyTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
+    def fileResolver = new BaseDirFileResolver(TestFiles.fileSystem(), tmpDir.testDirectory, TestFiles.patternSetFactory)
+    def builder = new BuildScriptBuilder(GROOVY, fileResolver, "build")
+
     def outputFile = tmpDir.file("build.gradle")
-    def builder = new BuildScriptBuilder()
 
     def "generates basic groovy build script"() {
         when:
-        builder.create(GROOVY, outputFile).generate()
+        builder.create().generate()
 
         then:
         assertOutputFile("""/*
@@ -47,7 +52,7 @@ class BuildScriptBuilderGroovyTest extends Specification {
         when:
         builder.fileComment("""This is a sample
 see more at gradle.org""")
-        builder.create(GROOVY, outputFile).generate()
+        builder.create().generate()
 
         then:
         assertOutputFile("""/*
@@ -63,7 +68,7 @@ see more at gradle.org""")
         when:
         builder.plugin("Add support for the Java language", "java")
         builder.plugin("Add support for Java libraries", "java-library")
-        builder.create(GROOVY, outputFile).generate()
+        builder.create().generate()
 
         then:
         assertOutputFile("""/*
@@ -84,7 +89,7 @@ plugins {
         when:
         builder.compileDependency("Use slf4j", "org.slf4j:slf4j-api:2.7", "org.slf4j:slf4j-simple:2.7")
         builder.compileDependency("Use Scala to compile", "org.scala-lang:scala-library:2.10")
-        builder.create(GROOVY, outputFile).generate()
+        builder.create().generate()
 
         then:
         assertOutputFile("""/*
@@ -113,7 +118,7 @@ repositories {
         when:
         builder.testCompileDependency("use some test kit", "org:test:1.2", "org:test-utils:1.2")
         builder.testRuntimeDependency("needs some libraries at runtime", "org:test-runtime:1.2")
-        builder.create(GROOVY, outputFile).generate()
+        builder.create().generate()
 
         then:
         assertOutputFile("""/*
@@ -150,7 +155,7 @@ repositories {
             .taskPropertyAssignment("Disable tests", "test", "Test", "enabled", false)
 
         when:
-        builder.create(GROOVY, outputFile).generate()
+        builder.create().generate()
 
         then:
         assertOutputFileContains("""
