@@ -54,7 +54,25 @@ class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
         resolveConflicts()
 
         then:
-        resolutionFailedWith 'Cannot find a version of \'org:foo\' that satisfies the constraints: prefers 1.2, prefers 1.1, rejects ]1.1,)'
+        resolutionFailedWith """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':root:' --> 'org:foo' prefers '1.2'
+   Dependency path ':root:' --> 'org:foo' prefers '1.1', rejects ']1.1,)'
+"""
+    }
+
+    def "reasonable error message when path to dependency isn't simple"() {
+        given:
+        prefer('1.2', module('org', 'bar', '1.0', module('org', 'baz', '1.0')))
+        strictly('1.1', module('com', 'other', '15'))
+
+        when:
+        resolveConflicts()
+
+        then:
+        resolutionFailedWith """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':root:' --> 'org:baz:1.0' --> 'org:bar:1.0' --> 'org:foo' prefers '1.2'
+   Dependency path ':root:' --> 'com:other:15' --> 'org:foo' prefers '1.1', rejects ']1.1,)'
+"""
     }
 
     def "can upgrade non strict version"() {

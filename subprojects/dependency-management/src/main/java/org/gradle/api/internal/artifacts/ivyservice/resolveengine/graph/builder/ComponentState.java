@@ -32,13 +32,12 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
  * Resolution state for a given component
  */
-public class ComponentState implements ComponentResolutionState, ComponentResult, DependencyGraphComponent {
+public class ComponentState implements ComponentResolutionState, ComponentResult, DependencyGraphComponent, ComponentStateWithDependents<ComponentState> {
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
     private final List<NodeState> nodes = Lists.newLinkedList();
@@ -204,7 +203,7 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     }
 
     @Override
-    public Collection<ComponentState> getDependents() {
+    public List<ComponentState> getDependents() {
         List<ComponentState> incoming = Lists.newArrayListWithCapacity(nodes.size());
         for (NodeState configuration : nodes) {
             for (EdgeState dependencyEdge : configuration.getIncomingEdges()) {
@@ -212,6 +211,10 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
             }
         }
         return incoming;
+    }
+
+    public List<ComponentState> getUnattachedDependencies() {
+        return module.getUnattachedEdgesTo(this);
     }
 
     boolean isSelected() {
