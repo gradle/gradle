@@ -31,7 +31,7 @@ import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
-import org.gradle.kotlin.dsl.resolver.StandardSourceDistributionResolver
+import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -152,7 +152,8 @@ data class KotlinScriptTargetModelBuilder<out T : Any>(
 
     private
     fun gradleSource() =
-        SourcePathProvider.sourcePathFor(scriptClassPath, rootDir, gradleHomeDir, StandardSourceDistributionResolver(project))
+        SourcePathProvider.sourcePathFor(
+            scriptClassPath, rootDir, gradleHomeDir, SourceDistributionResolver(project))
 }
 
 

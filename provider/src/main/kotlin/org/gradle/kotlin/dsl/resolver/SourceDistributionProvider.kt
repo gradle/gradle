@@ -17,78 +17,95 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout
+import org.gradle.api.artifacts.transform.VariantTransform
 import org.gradle.api.attributes.Attribute
+
 import org.gradle.kotlin.dsl.create
+
 import java.io.File
+
 import java.lang.Integer.max
+
 
 interface SourceDistributionProvider {
     fun sourceDirs(): Collection<File>
 }
 
-class StandardSourceDistributionResolver(val project: Project) : SourceDistributionProvider {
+
+class SourceDistributionResolver(val project: Project) : SourceDistributionProvider {
+
     companion object {
         val artifactType = Attribute.of("artifactType", String::class.java)
         val zipType = "zip"
         val sourceDirectory = "src-directory"
     }
 
-    override
-    fun sourceDirs(): Collection<File> = createSourceRepository().run {
-        try {
+    override fun sourceDirs(): Collection<File> =
+        withSourceRepository {
             registerTransforms()
-            return transientConfigurationForSourcesDownload().files
-        } finally {
-            project.repositories.remove(this)
+            transientConfigurationForSourcesDownload().files
         }
-    }
-
 
     private
-    fun transientConfigurationForSourcesDownload(): Configuration {
-        val sourceDependency = project.dependencies.create(
-            "gradle",
-            "gradle",
-            dependencyVersion(project.gradle.gradleVersion),
-            null,
-            "src",
-            "zip")
-        val configuration = project.configurations.detachedConfiguration(sourceDependency)
-        configuration.attributes.attribute(artifactType, sourceDirectory)
-        return configuration
-    }
-
-    private
-    fun createSourceRepository(): IvyArtifactRepository = project.repositories.ivy {
-            val repoName = repositoryName(project.gradle.gradleVersion)
-            it.setName("Gradle ${repoName}")
-            it.setUrl("https://services.gradle.org/${repoName}")
-            it.layout("pattern") {
-                val layout = it as IvyPatternRepositoryLayout
-                if (isSnapshot(project.gradle.gradleVersion)) {
-                    layout.ivy("/dummy") // avoids a lookup that interferes with version listing
-                }
-                layout.artifact("[module]-[revision](-[classifier])(.[ext])")
+    fun <T> withSourceRepository(produce: () -> T): T =
+        createSourceRepository().let {
+            try {
+                produce()
+            } finally {
+                repositories.remove(it)
             }
-        }.apply {
-            // push the repository first in the list, for performance
-            project.repositories.remove(this)
-            project.repositories.addFirst(this)
         }
 
+    private
+    fun registerTransforms() =
+        registerTransform {
+            from.attribute(artifactType, zipType)
+            to.attribute(artifactType, sourceDirectory)
+            artifactTransform(ExtractGradleSourcesTransform::class.java)
+        }
 
     private
-    fun registerTransforms() = project.dependencies.registerTransform {
-            it.from.attribute(artifactType, zipType)
-            it.to.attribute(artifactType, sourceDirectory)
-            it.artifactTransform(ExtractGradleSourcesTransform::class.java)
+    fun transientConfigurationForSourcesDownload() =
+        detachedConfigurationFor(gradleSourceDependency()).apply {
+            attributes.attribute(artifactType, sourceDirectory)
+        }
+
+    private
+    fun detachedConfigurationFor(dependency: Dependency) =
+        configurations.detachedConfiguration(dependency)
+
+    private
+    fun gradleSourceDependency() = dependencies.create(
+        group = "gradle",
+        name = "gradle",
+        version = dependencyVersion(gradleVersion),
+        configuration = null,
+        classifier = "src",
+        ext = "zip")
+
+    private
+    fun createSourceRepository() = ivy {
+        val repoName = repositoryNameFor(gradleVersion)
+        name = "Gradle $repoName"
+        setUrl("https://services.gradle.org/$repoName")
+        layout("pattern") {
+            val layout = it as IvyPatternRepositoryLayout
+            if (isSnapshot(gradleVersion)) {
+                layout.ivy("/dummy") // avoids a lookup that interferes with version listing
+            }
+            layout.artifact("[module]-[revision](-[classifier])(.[ext])")
+        }
+    }.also {
+        // push the repository first in the list, for performance
+        makeItFirstInTheList(it)
     }
 
     private
-    fun repositoryName(gradleVersion: String) =
+    fun repositoryNameFor(gradleVersion: String) =
         if (isSnapshot(gradleVersion)) "distributions-snapshots" else "distributions"
 
     private
@@ -104,10 +121,42 @@ class StandardSourceDistributionResolver(val project: Project) : SourceDistribut
 
     private
     fun previousMinor(gradleVersion: String): String =
-        gradleVersion.split('.')
+        gradleVersion
+            .split('.')
             .take(2)
-            .map { it.takeWhile { it != '-' }. toInt() }
-            .mapIndexed { i, v -> if (i==0) v else max(v-1,0) }
-            .map(Int::toString)
-            .joinToString(".")
+            .map { it.takeWhile { it != '-' }.toInt() }
+            .mapIndexed { i, v -> if (i == 0) v else max(v - 1, 0) }
+            .joinToString(".") { it.toString() }
+
+    private
+    fun makeItFirstInTheList(repository: ArtifactRepository) {
+        repositories.apply {
+            remove(repository)
+            addFirst(repository)
+        }
+    }
+
+    private
+    fun registerTransform(configure: VariantTransform.() -> Unit) =
+        dependencies.registerTransform { configure(it) }
+
+    private
+    fun ivy(configure: IvyArtifactRepository.() -> Unit) =
+        repositories.ivy { configure(it) }
+
+    private
+    val repositories
+        get() = project.repositories
+
+    private
+    val configurations
+        get() = project.configurations
+
+    private
+    val dependencies
+        get() = project.dependencies
+
+    private
+    val gradleVersion
+        get() = project.gradle.gradleVersion
 }
