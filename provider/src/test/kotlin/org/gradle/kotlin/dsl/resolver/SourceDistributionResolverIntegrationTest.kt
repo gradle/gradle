@@ -2,6 +2,8 @@ package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 
+import org.gradle.util.TextUtil.normaliseFileSeparators
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -25,7 +27,7 @@ class SourceDistributionResolverIntegrationTest : AbstractIntegrationTest() {
         """)
 
         assertThat(
-            build().output.linesPrefixedBy("*").toSet(),
+            build().output.linesPrefixedBy("*").map(::normaliseFileSeparators).toSet(),
             equalTo(expectedSourceDirs))
     }
 
