@@ -25,6 +25,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -530,7 +531,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
                 getServices().get(WorkerLeaseRegistry.class),
                 getServices().get(BuildOperationExecutor.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount(),
-                getServices().get(Clock.class));
+                getServices().get(Clock.class),
+                getServices().get(DocumentationRegistry.class));
         } else {
             return testExecuter;
         }
