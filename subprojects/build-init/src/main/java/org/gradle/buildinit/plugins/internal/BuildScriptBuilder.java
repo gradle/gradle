@@ -339,7 +339,7 @@ public class BuildScriptBuilder {
 
             println();
             println("plugins {");
-            for (Iterator<Map.Entry<String, String>> it = plugins.entrySet().iterator(); it.hasNext(); ) {
+            for (Iterator<Map.Entry<String, String>> it = plugins.entrySet().iterator(); it.hasNext();) {
                 Map.Entry<String, String> entry = it.next();
                 String pluginId = entry.getKey();
                 String comment = entry.getValue();
