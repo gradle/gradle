@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.vcs;
+package org.gradle.vcs.internal;
 
 import java.io.File;
 

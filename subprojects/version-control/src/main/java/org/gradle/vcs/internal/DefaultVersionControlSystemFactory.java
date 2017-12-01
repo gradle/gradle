@@ -17,10 +17,12 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.cache.CacheAccess;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
 import org.gradle.vcs.VersionRef;
@@ -33,11 +35,14 @@ import java.util.Set;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultVersionControlSystemFactory implements VersionControlSystemFactory {
-    private final CacheRepository cacheRepository;
+public class DefaultVersionControlSystemFactory implements VersionControlSystemFactory, Stoppable {
+    private final PersistentCache vcsWorkingDirCache;
 
-    DefaultVersionControlSystemFactory(CacheRepository cacheRepository) {
-        this.cacheRepository = cacheRepository;
+    DefaultVersionControlSystemFactory(VcsWorkingDirectoryRoot workingDirectoryRoot, CacheRepository cacheRepository) {
+        this.vcsWorkingDirCache = cacheRepository
+            .cache(workingDirectoryRoot.getDir())
+            .withLockOptions(mode(FileLockManager.LockMode.None))
+            .open();
     }
 
     @Override
@@ -49,16 +54,21 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         } else {
             vcs = new GitVersionControlSystem();
         }
-        return new LockingVersionControlSystem(vcs, cacheRepository);
+        return new LockingVersionControlSystem(vcs, vcsWorkingDirCache);
+    }
+
+    @Override
+    public void stop() {
+        vcsWorkingDirCache.close();
     }
 
     private static final class LockingVersionControlSystem implements VersionControlSystem {
         private final VersionControlSystem delegate;
-        private final CacheRepository cacheRepository;
+        private final CacheAccess cacheAccess;
 
-        private LockingVersionControlSystem(VersionControlSystem delegate, CacheRepository cacheRepository) {
+        private LockingVersionControlSystem(VersionControlSystem delegate, CacheAccess cacheAccess) {
             this.delegate = delegate;
-            this.cacheRepository = cacheRepository;
+            this.cacheAccess = cacheAccess;
         }
 
         @Override
@@ -72,12 +82,8 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
 
         @Override
         public File populate(final File versionDir, final VersionRef ref, final VersionControlSpec spec) {
-            PersistentCache cache = cacheRepository
-                .cache(versionDir)
-                .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
-                .open();
             try {
-                return cache.useCache(new Factory<File>() {
+                return cacheAccess.useCache(new Factory<File>() {
                     @Nullable
                     @Override
                     public File create() {
@@ -86,8 +92,6 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
                 });
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not populate %s from '%s'.", versionDir, spec.getDisplayName()), e);
-            } finally {
-                cache.close();
             }
         }
     }
