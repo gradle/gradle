@@ -37,7 +37,6 @@ class SelectorState implements DependencyGraphSelector {
     private final DependencyMetadata dependencyMetadata;
     private final DependencyToComponentIdResolver resolver;
     private final ResolveState resolveState;
-    private final ModuleIdentifier targetModuleId;
     private ModuleVersionResolveException failure;
     private ModuleResolveState targetModule;
     private ComponentState selected;
@@ -50,7 +49,6 @@ class SelectorState implements DependencyGraphSelector {
         this.resolver = resolver;
         this.resolveState = resolveState;
         this.targetModule = resolveState.getModule(targetModuleId);
-        this.targetModuleId = targetModuleId;
     }
 
     @Override
