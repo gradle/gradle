@@ -64,6 +64,7 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
             
             task myTask(type: com.example.MyTask)
         """
+        settingsFile << ''
     }
 
     @TargetGradleVersion(">=3.3")
