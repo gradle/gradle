@@ -44,6 +44,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
@@ -57,6 +58,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResu
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -92,6 +94,11 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
     public ArtifactResolutionQuery forComponents(ComponentIdentifier... componentIds) {
         CollectionUtils.addAll(this.componentIds, componentIds);
+        return this;
+    }
+
+    public ArtifactResolutionQuery forModule(@Nonnull String group, @Nonnull String name, @Nonnull String version) {
+        componentIds.add(DefaultModuleComponentIdentifier.newId(group, name, version));
         return this;
     }
 

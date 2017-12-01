@@ -62,6 +62,17 @@ public interface ArtifactResolutionQuery {
     ArtifactResolutionQuery forComponents(ComponentIdentifier... componentIds);
 
     /**
+     * Specifies a module component to include in the result using its GAV coordinates.
+     *
+     * @param group Module group.
+     * @param name Module name.
+     * @param version Module version.
+     *
+     * @since 4.5
+     */
+    ArtifactResolutionQuery forModule(String group, String name, String version);
+
+    /**
      * Defines the type of component that is expected in the result, and the artifacts to retrieve for components of this type.
      *
      * Presently, only a single component type and set of artifacts is permitted.
