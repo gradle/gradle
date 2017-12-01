@@ -61,6 +61,7 @@ object SourcePathProvider {
         sourceDistributionResolver.sourceDirs()
 }
 
+
 internal
 fun subDirsOf(dir: File): Collection<File> =
     if (dir.isDirectory)

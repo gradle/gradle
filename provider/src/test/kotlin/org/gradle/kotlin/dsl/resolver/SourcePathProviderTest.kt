@@ -13,7 +13,6 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
-import org.mockito.Mockito.mock
 
 class SourcePathProviderTest : FolderBasedTest() {
 
@@ -39,7 +38,7 @@ class SourcePathProviderTest : FolderBasedTest() {
                 classPath = ClassPath.EMPTY,
                 projectDir = folder("project"),
                 gradleHomeDir = folder("gradle"),
-                sourceDistributionResolver = mock(SourceDistributionProvider::class.java)).asFiles,
+                sourceDistributionResolver = mock()).asFiles,
             hasItems(
                 folder("project/buildSrc/src/main/foo"),
                 folder("project/buildSrc/src/main/bar"),
@@ -57,12 +56,15 @@ class SourcePathProviderTest : FolderBasedTest() {
                 }
             }
             "gradle" {
-
+            }
+            "sourceDistribution" {
+                "src-foo" {}
+                "src-bar" {}
             }
         }
 
         val resolver = mock<SourceDistributionProvider> {
-            on { sourceDirs() } doReturn listOf(tempFolder.newFolder("gradle", "src", "gradle-foo"))
+            on { sourceDirs() } doReturn subDirsOf(folder("sourceDistribution"))
         }
 
         assertThat(
@@ -74,6 +76,7 @@ class SourcePathProviderTest : FolderBasedTest() {
             hasItems(
                 folder("project/buildSrc/src/main/foo"),
                 folder("project/buildSrc/src/main/bar"),
-                folder("gradle/src/gradle-foo")))
+                folder("sourceDistribution/src-foo"),
+                folder("sourceDistribution/src-bar")))
     }
 }
