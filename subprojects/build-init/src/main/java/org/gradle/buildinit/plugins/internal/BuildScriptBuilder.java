@@ -81,20 +81,6 @@ public class BuildScriptBuilder {
     }
 
     /**
-     * Adds the application plugin and sets the application main class name.
-     *
-     * @param mainClassName the application main class name
-     */
-    public BuildScriptBuilder applicationWithMainClassName(String mainClassName) {
-        return plugin(
-            "Apply the application plugin to add support for building an application",
-            "application")
-            .conventionPropertyAssignment(
-                "Define the main class for the application",
-                "application", "mainClassName", mainClassName);
-    }
-
-    /**
      * Adds one or more dependency to the specified configuration
      *
      * @param configuration The configuration where the dependency should be added
