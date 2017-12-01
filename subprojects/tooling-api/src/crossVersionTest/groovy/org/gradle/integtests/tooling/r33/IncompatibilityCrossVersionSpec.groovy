@@ -36,7 +36,13 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
         println "Building plugin with $gradleDist"
         def pluginDir = file("plugin")
         def pluginJar = pluginDir.file("plugin.jar")
-        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(gradleDist, temporaryFolder), pluginDir)
+        def executer = new NoDaemonGradleExecuter(gradleDist, temporaryFolder)
+
+        if (gradleDist.supportsNoSearchUpwardOptionWithoutDeprecation) {
+            executer.withArgument("--no-search-upward")
+        }
+
+        def builder = new GradleBackedArtifactBuilder(executer, pluginDir)
         builder.sourceFile("com/example/MyTask.java") << """
             package com.example;
             
@@ -64,7 +70,6 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
             
             task myTask(type: com.example.MyTask)
         """
-        settingsFile << ''
     }
 
     @TargetGradleVersion(">=3.3")
