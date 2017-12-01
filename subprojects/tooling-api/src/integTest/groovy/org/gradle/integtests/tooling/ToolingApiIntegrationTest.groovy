@@ -204,8 +204,6 @@ allprojects {
             }
         """
 
-        settingsFile << ""
-
         projectDir.file("src/main/java/Main.java") << """
             import org.gradle.tooling.BuildLauncher;
             import org.gradle.tooling.GradleConnector;
