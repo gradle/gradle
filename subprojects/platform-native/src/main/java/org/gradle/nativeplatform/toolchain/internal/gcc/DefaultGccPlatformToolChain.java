@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
@@ -22,8 +23,15 @@ import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineT
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 
-import java.util.*;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+@NonNullApi
 public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRegistry {
     private final NativePlatform platform;
     private boolean canUseCommandFile = true;
@@ -50,6 +58,7 @@ public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRe
         this.compilerProbeArgs.addAll(Arrays.asList(args));
     }
 
+    @Nullable
     @Override
     public GccCommandLineToolConfigurationInternal getTool(ToolType toolType) {
         return tools.get(toolType);
