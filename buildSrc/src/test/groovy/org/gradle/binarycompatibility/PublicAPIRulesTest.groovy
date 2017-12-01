@@ -341,8 +341,8 @@ class PublicAPIRulesTest extends Specification {
         rule.maybeViolation(jApiConstructor) == null
 
         where:
-        ruleElem << [new BinaryBreakingChangesRule([:]), new SinceAnnotationMissingRule([:])]
-        error << ['Is not binary compatible.', 'Is not annotated with @since']
+        ruleElem << [new BinaryBreakingChangesRule([:]), new SinceAnnotationMissingRule([:]), new IncubatingMissingRule([:])]
+        error << ['Is not binary compatible.', 'Is not annotated with @since', 'Is not annotated with @Incubating']
     }
 
     def "the @since annotation on inner classes is recognised"() {
