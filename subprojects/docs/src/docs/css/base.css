@@ -22,14 +22,14 @@ html {
 
 body {
     color: #02303A;
-    background-color: #fff;
+    background-color: #f7f7f8;
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
 }
 
 a {
-    color: #00c489;
+    color: #1DA2BD;
     text-decoration: none;
 }
 
@@ -70,6 +70,7 @@ th {
 
 /* typography */
 h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
     margin-bottom: .5rem;
     font-weight: 700;
     line-height: 1.2;
@@ -101,10 +102,6 @@ p {
     line-height: 1.6;
     margin-bottom: 1.25rem;
     text-rendering: optimizeLegibility;
-}
-
-strong {
-    color: #303030;
 }
 
 dt {
@@ -208,13 +205,15 @@ blockquote p:last-child {
 
 /* layout */
 .container, .book, .chapter, .footer {
-    max-width: 44.3125rem;
-    margin: 0 auto;
-    padding: 0 0.75rem;
+    background-color: white;
+    border-radius: 5px;
+    max-width: 45rem;
+    margin: 2rem auto;
+    padding: 1.5rem;
 }
 
 .content, .text-container {
-    width: 44.3125rem;
+    width: 45rem;
 }
 
 .content-container {
@@ -230,7 +229,7 @@ blockquote p:last-child {
     width: 12.5rem;
 }
 
-@media screen and (max-width: 44.3125em) {
+@media screen and (max-width: 45em) {
     .container, .footer {
         max-width: 100%;
     }
