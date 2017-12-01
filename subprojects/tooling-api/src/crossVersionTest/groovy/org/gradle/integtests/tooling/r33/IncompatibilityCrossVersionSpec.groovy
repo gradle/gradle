@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.tooling.r33
 
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -36,13 +36,7 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
         println "Building plugin with $gradleDist"
         def pluginDir = file("plugin")
         def pluginJar = pluginDir.file("plugin.jar")
-        def executer = new NoDaemonGradleExecuter(gradleDist, temporaryFolder)
-
-        if (gradleDist.supportsNoSearchUpwardOptionWithoutDeprecation) {
-            executer.withArgument("--no-search-upward")
-        }
-
-        def builder = new GradleBackedArtifactBuilder(executer, pluginDir)
+        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(gradleDist, temporaryFolder), pluginDir)
         builder.sourceFile("com/example/MyTask.java") << """
             package com.example;
             
