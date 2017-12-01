@@ -41,4 +41,9 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
         result = 31 * result + getRejectedVersions().hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return getPreferredVersion() + (getRejectedVersions().isEmpty() ? "" : " (rejects: " + getRejectedVersions() + ")");
+    }
 }

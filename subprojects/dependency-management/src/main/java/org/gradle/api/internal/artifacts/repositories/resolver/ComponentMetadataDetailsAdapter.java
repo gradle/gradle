@@ -83,6 +83,11 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
         action.execute(instantiator.newInstance(VariantMetadataAdapter.class, name, metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
     }
 
+    @Override
+    public String toString() {
+        return metadata.getId().toString();
+    }
+
     private void assertVariantExists(String name) {
         if (!metadata.definesVariant(name)) {
             throw new GradleException("Variant " + name + " is not declared for " + metadata.getId());

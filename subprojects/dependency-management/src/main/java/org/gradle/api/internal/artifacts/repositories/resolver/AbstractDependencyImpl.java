@@ -55,4 +55,9 @@ public abstract class AbstractDependencyImpl<T extends DirectDependencyMetadata>
         configureAction.execute(versionConstraint);
         return Cast.uncheckedCast(this);
     }
+
+    @Override
+    public String toString() {
+        return getGroup() + ":" + getName() + ":" + getVersionConstraint();
+    }
 }

@@ -66,4 +66,9 @@ public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMeta
         updateMetadata(dependencyMetadata);
         return Cast.uncheckedCast(this);
     }
+
+    @Override
+    public String toString() {
+        return getGroup() + ":" + getName() + ":" + getVersionConstraint();
+    }
 }
