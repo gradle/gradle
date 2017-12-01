@@ -125,9 +125,4 @@ public interface GradleDistribution {
      * Returns true if the wrapper for this version honours the --gradle-user-home command-line option.
      */
     boolean isWrapperSupportsGradleUserHomeCommandLineOption();
-
-    /**
-     * Returns true if the wrapper for this version fully supports the {@code --no-search-upward} command line option.
-     */
-    boolean isSupportsNoSearchUpwardOptionWithoutDeprecation();
 }

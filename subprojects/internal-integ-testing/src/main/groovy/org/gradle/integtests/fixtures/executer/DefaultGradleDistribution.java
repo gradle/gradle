@@ -220,10 +220,6 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("1.0-milestone-7");
     }
 
-    public boolean isSupportsNoSearchUpwardOptionWithoutDeprecation() {
-        return isSameOrOlder("4.4");
-    }
-
     protected boolean isSameOrNewer(String otherVersion) {
         return isVersion(otherVersion) || version.compareTo(GradleVersion.version(otherVersion)) > 0;
     }

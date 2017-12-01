@@ -106,11 +106,11 @@ task hello {
 """
         version(wrapperVersion).withTasks('wrapper').run()
 
-        def executer = wrapperExecuter(wrapperVersion, executionVersion)
+        def executer = wrapperExecuter(wrapperVersion)
         executer
     }
 
-    GradleExecuter wrapperExecuter(GradleDistribution wrapper, GradleDistribution executionVersion) {
+    GradleExecuter wrapperExecuter(GradleDistribution wrapper) {
         def executer = super.version(wrapper)
 
         if (!wrapper.supportsSpacesInGradleAndJavaOpts) {
@@ -125,10 +125,6 @@ task hello {
          */
         if (!wrapper.wrapperSupportsGradleUserHomeCommandLineOption) {
             executer.withCommandLineGradleOpts("-Dgradle.user.home=${executer.gradleUserHomeDir}")
-        }
-
-        if (executionVersion.isSupportsNoSearchUpwardOptionWithoutDeprecation()) {
-            executer.withArgument("--no-search-upward")
         }
 
         // Use isolated daemons in order to verify that using the installed distro works, and so that the daemons aren't visible to other tests, because
