@@ -18,16 +18,18 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyMetadata;
+import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
+import org.gradle.internal.Cast;
 
-public class DependencyMetadataImpl implements DependencyMetadata {
+abstract public class AbstractDependencyImpl<T extends DirectDependencyMetadata> implements DependencyMetadata<T> {
     private final String group;
     private final String name;
     private MutableVersionConstraint versionConstraint;
 
-    public DependencyMetadataImpl(String group, String name, String version) {
+    public AbstractDependencyImpl(String group, String name, String version) {
         this.group = group;
         this.name = name;
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
@@ -49,8 +51,8 @@ public class DependencyMetadataImpl implements DependencyMetadata {
     }
 
     @Override
-    public DependencyMetadata version(Action<? super MutableVersionConstraint> configureAction) {
+    public T version(Action<? super MutableVersionConstraint> configureAction) {
         configureAction.execute(versionConstraint);
-        return this;
+        return Cast.uncheckedCast(this);
     }
 }

@@ -32,16 +32,17 @@ import spock.lang.Specification
 
 class ComponentMetadataDetailsAdapterTest extends Specification {
     private instantiator = DirectInstantiator.INSTANCE
-    private notationParser = DependencyMetadataNotationParser.parser(instantiator)
+    private dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class)
+    private dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyConstraintMetadataImpl.class)
 
     def versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
     def attributes = TestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
     def variantDefinedInGradleMetadata
 
-    def adapterOnMavenMetadata = new ComponentMetadataDetailsAdapter(new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier), instantiator, notationParser)
-    def adapterOnIvyMetadata = new ComponentMetadataDetailsAdapter(ivyComponentMetadata(), instantiator, notationParser)
-    def adapterOnGradleMetadata = new ComponentMetadataDetailsAdapter(gradleComponentMetadata(), instantiator, notationParser)
+    def adapterOnMavenMetadata = new ComponentMetadataDetailsAdapter(new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
+    def adapterOnIvyMetadata = new ComponentMetadataDetailsAdapter(ivyComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
+    def adapterOnGradleMetadata = new ComponentMetadataDetailsAdapter(gradleComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
 
     private ivyComponentMetadata() {
         new DefaultMutableIvyModuleResolveMetadata(versionIdentifier, componentIdentifier, [new Configuration("configurationDefinedInIvyMetadata", true, true, [])], [], [], [])

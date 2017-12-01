@@ -18,7 +18,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
-import org.gradle.api.artifacts.DependencyMetadata;
+import org.gradle.api.artifacts.DependencyConstraintMetadata;
+import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VariantMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
@@ -30,12 +31,16 @@ import java.util.List;
 public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails {
     private final MutableModuleComponentResolveMetadata metadata;
     private final Instantiator instantiator;
-    private final NotationParser<Object, DependencyMetadata> dependencyMetadataNotationParser;
+    private final NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser;
+    private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser;
 
-    public ComponentMetadataDetailsAdapter(MutableModuleComponentResolveMetadata metadata, Instantiator instantiator, NotationParser<Object, DependencyMetadata> dependencyMetadataNotationParser) {
+    public ComponentMetadataDetailsAdapter(MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
+                                           NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
+                                           NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser) {
         this.metadata = metadata;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
+        this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
     }
 
     @Override
@@ -75,7 +80,7 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     @Override
     public void withVariant(String name, Action<VariantMetadata> action) {
         assertVariantExists(name);
-        action.execute(instantiator.newInstance(VariantMetadataAdapter.class, name, metadata, instantiator, dependencyMetadataNotationParser));
+        action.execute(instantiator.newInstance(VariantMetadataAdapter.class, name, metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
     }
 
     private void assertVariantExists(String name) {

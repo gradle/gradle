@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.DependencyMetadata;
+import org.gradle.api.artifacts.DependenciesMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -32,23 +32,27 @@ import java.util.AbstractList;
 import java.util.List;
 import java.util.Map;
 
-public class DependenciesMetadataAdapter extends AbstractList<DependencyMetadata> implements DependenciesMetadata {
+abstract public class AbstractDependenciesMetadataAdapter<T extends DependencyMetadata> extends AbstractList<T> implements DependenciesMetadata<T> {
     private final List<org.gradle.internal.component.model.DependencyMetadata> dependenciesMetadata;
-    private final Map<Integer, DependencyMetadata> dependencyMetadataAdapters;
+    private final Map<Integer, T> dependencyMetadataAdapters;
     private final Instantiator instantiator;
-    private final NotationParser<Object, DependencyMetadata> dependencyNotationParser;
+    private final NotationParser<Object, T> dependencyNotationParser;
 
-    public DependenciesMetadataAdapter(List<org.gradle.internal.component.model.DependencyMetadata> dependenciesMetadata, Instantiator instantiator, NotationParser<Object, DependencyMetadata> dependencyNotationParser) {
+    public AbstractDependenciesMetadataAdapter(List<org.gradle.internal.component.model.DependencyMetadata> dependenciesMetadata, Instantiator instantiator, NotationParser<Object, T> dependencyNotationParser) {
         this.dependenciesMetadata = dependenciesMetadata;
         this.dependencyMetadataAdapters = Maps.newHashMap();
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
     }
 
+    protected abstract Class<? extends T> adapterImplementationType();
+
+    protected abstract boolean isPending();
+
     @Override
-    public DependencyMetadata get(int index) {
+    public T get(int index) {
         if (!dependencyMetadataAdapters.containsKey(index)) {
-            dependencyMetadataAdapters.put(index, instantiator.newInstance(DependencyMetadataAdapter.class, dependenciesMetadata, index));
+            dependencyMetadataAdapters.put(index, instantiator.newInstance(adapterImplementationType(), dependenciesMetadata, index));
         }
         return dependencyMetadataAdapters.get(index);
     }
@@ -59,8 +63,8 @@ public class DependenciesMetadataAdapter extends AbstractList<DependencyMetadata
     }
 
     @Override
-    public DependencyMetadata remove(int index) {
-        DependencyMetadata componentDependencyMetadata = get(index);
+    public T remove(int index) {
+        T componentDependencyMetadata = get(index);
         dependenciesMetadata.remove(index);
         dependencyMetadataAdapters.remove(index);
         return componentDependencyMetadata;
@@ -77,25 +81,25 @@ public class DependenciesMetadataAdapter extends AbstractList<DependencyMetadata
     }
 
     @Override
-    public void add(String dependencyNotation, Action<DependencyMetadata> configureAction) {
+    public void add(String dependencyNotation, Action<T> configureAction) {
         doAdd(dependencyNotation, configureAction);
     }
 
     @Override
-    public void add(Map<String, String> dependencyNotation, Action<DependencyMetadata> configureAction) {
+    public void add(Map<String, String> dependencyNotation, Action<T> configureAction) {
         doAdd(dependencyNotation, configureAction);
     }
 
-    private void doAdd(Object dependencyNotation, @Nullable Action<DependencyMetadata> configureAction) {
-        DependencyMetadata dependencyMetadata = dependencyNotationParser.parseNotation(dependencyNotation);
+    private void doAdd(Object dependencyNotation, @Nullable Action<T> configureAction) {
+        T dependencyMetadata = dependencyNotationParser.parseNotation(dependencyNotation);
         if (configureAction != null) {
             configureAction.execute(dependencyMetadata);
         }
         dependenciesMetadata.add(toDependencyMetadata(dependencyMetadata));
     }
 
-    private org.gradle.internal.component.model.DependencyMetadata toDependencyMetadata(DependencyMetadata details) {
+    private org.gradle.internal.component.model.DependencyMetadata toDependencyMetadata(T details) {
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(details.getGroup(), details.getName(), DefaultImmutableVersionConstraint.of(details.getVersionConstraint()));
-        return new GradleDependencyMetadata(selector);
+        return new GradleDependencyMetadata(selector, isPending());
     }
 }

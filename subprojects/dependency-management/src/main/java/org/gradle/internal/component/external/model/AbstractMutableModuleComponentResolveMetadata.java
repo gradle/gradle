@@ -20,7 +20,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependenciesMetadata;
+import org.gradle.api.artifacts.DirectDependenciesMetadata;
+import org.gradle.api.artifacts.DependencyConstraintMetadata;
+import org.gradle.api.artifacts.DependencyConstraintsMetadata;
+import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -178,13 +181,23 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     }
 
     @Override
-    public void addDependencyMetadataRule(String variantName, Action<DependenciesMetadata> action,
-                                          Instantiator instantiator, NotationParser<Object, org.gradle.api.artifacts.DependencyMetadata> dependencyNotationParser) {
-        DependencyMetadataRules rulesForVariant = dependencyMetadataRules.get(variantName);
-        if (rulesForVariant == null) {
-            dependencyMetadataRules.put(variantName, new DependencyMetadataRules(instantiator, dependencyNotationParser));
+    public void addDependencyMetadataRule(String variantName, Action<DirectDependenciesMetadata> action, Instantiator instantiator,
+                                          NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
+                                          NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
+        maybeCreateRulesContainer(variantName, instantiator, dependencyNotationParser, dependencyConstraintNotationParser);
+        dependencyMetadataRules.get(variantName).addDependencyAction(action);
+    }
+
+    @Override
+    public void addDependencyConstraintMetadataRule(String variantName, Action<DependencyConstraintsMetadata> action, Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
+        maybeCreateRulesContainer(variantName, instantiator, dependencyNotationParser, dependencyConstraintNotationParser);
+        dependencyMetadataRules.get(variantName).addDependencyConstraintAction(action);
+    }
+
+    private void maybeCreateRulesContainer(String variantName, Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
+        if (!dependencyMetadataRules.containsKey(variantName)) {
+            dependencyMetadataRules.put(variantName, new DependencyMetadataRules(instantiator, dependencyNotationParser, dependencyConstraintNotationParser));
         }
-        dependencyMetadataRules.get(variantName).addAction(action);
     }
 
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {
