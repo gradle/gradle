@@ -97,7 +97,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         return this;
     }
 
-    public ArtifactResolutionQuery forComponent(@Nonnull String group, @Nonnull String name, @Nonnull String version) {
+    public ArtifactResolutionQuery forModule(@Nonnull String group, @Nonnull String name, @Nonnull String version) {
         componentIds.add(DefaultModuleComponentIdentifier.newId(group, name, version));
         return this;
     }

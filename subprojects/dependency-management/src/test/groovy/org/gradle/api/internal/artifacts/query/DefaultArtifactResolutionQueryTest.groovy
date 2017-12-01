@@ -109,7 +109,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         testComponentTypeRegistry  | TestComponent         | UnknownArtifact        | "Artifact type $UnknownArtifact.name is not registered for component type ${TestComponent.name}."
     }
 
-    def "forComponent is cumulative"() {
+    def "forModule is cumulative"() {
         withArtifactResolutionInteractions(2)
 
         given:
@@ -117,8 +117,8 @@ class DefaultArtifactResolutionQueryTest extends Specification {
 
         when:
         def result = query
-            .forComponent("g1", "n1", "v1")
-            .forComponent("g2", "n2", "v2")
+            .forModule("g1", "n1", "v1")
+            .forModule("g2", "n2", "v2")
             .withArtifacts(TestComponent, TestArtifact)
             .execute()
 
