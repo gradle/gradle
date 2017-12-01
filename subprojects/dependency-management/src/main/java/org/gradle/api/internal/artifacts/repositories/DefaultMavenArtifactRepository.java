@@ -111,7 +111,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
                                           ExperimentalFeatures experimentalFeatures) {
-        super(instantiatorFactory.decorate(), authenticationContainer, mavenDefaults());
+        super(instantiatorFactory.decorate(), authenticationContainer, mavenDefaults(experimentalFeatures));
         this.describer = describer;
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;

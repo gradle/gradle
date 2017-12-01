@@ -17,11 +17,17 @@
 package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
 class LegacyArtifactLookupResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
+    @RequiredFeatures(
+        // if experimental features is off, we don't look for the artifacts anymore
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    )
     def "tries to fetch the jar whenever the metadata artifact isn't found"() {
         buildFile << """
             dependencies {
@@ -55,7 +61,7 @@ class LegacyArtifactLookupResolveIntegrationTest extends AbstractModuleDependenc
         buildFile << """
             repositories.all {
                 metadataSources {
-                    gradleMetadata()
+                    ${GradleMetadataResolveRunner.gradleMetadataEnabled?'gradleMetadata()':''}
                     ${source}()
                 }
             }

@@ -256,8 +256,9 @@ dependencies {
                     withModule {
                         if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
                             moduleMetadata.expectGetMissing()
+                        } else {
+                            artifact.expectHeadMissing()
                         }
-                        artifact.expectHeadMissing()
                     }
                 }
             }
@@ -268,7 +269,7 @@ dependencies {
         failure.assertHasCause("""Could not find any matches for org.utils:api:+ as no versions of org.utils:api are available.
 Searched in the following locations:
     ${versionListingURI('org.utils', 'api')}
-${triedMetadata('org.utils', 'api', '2.1', true)}
+${triedMetadata('org.utils', 'api', '2.1', !GradleMetadataResolveRunner.isGradleMetadataEnabled())}
 Required by:
 """)
 

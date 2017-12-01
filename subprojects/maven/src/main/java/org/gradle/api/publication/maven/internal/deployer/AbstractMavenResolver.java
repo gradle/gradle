@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -68,8 +69,9 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
     public AbstractMavenResolver(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer,
-                                 LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        super(mavenDefaults());
+                                 LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider,
+                                 LocalMavenRepositoryLocator mavenRepositoryLocator, ExperimentalFeatures experimentalFeatures) {
+        super(mavenDefaults(experimentalFeatures));
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
         this.loggingManager = loggingManager;

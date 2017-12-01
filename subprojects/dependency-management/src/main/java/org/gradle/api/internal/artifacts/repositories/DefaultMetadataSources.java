@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
@@ -27,20 +28,28 @@ import java.util.List;
 public class DefaultMetadataSources implements MetadataSourcesInternal {
     private final List<Class<? extends MetadataSource>> metadataSources = Lists.newArrayListWithExpectedSize(3);
 
-    public static MetadataSourcesInternal ivyDefaults() {
+    public static MetadataSourcesInternal ivyDefaults(ExperimentalFeatures experimentalFeatures) {
         DefaultMetadataSources metadataSources = new DefaultMetadataSources();
-        metadataSources.gradleMetadata();
+        if (experimentalFeatures.isEnabled()) {
+            metadataSources.gradleMetadata();
+        }
         metadataSources.ivyDescriptor();
-        metadataSources.artifact();
+        if (!experimentalFeatures.isEnabled()) {
+            metadataSources.artifact();
+        }
         return metadataSources;
     }
 
-    public static MetadataSourcesInternal mavenDefaults() {
-        DefaultMetadataSources sources = new DefaultMetadataSources();
-        sources.gradleMetadata();
-        sources.mavenPom();
-        sources.artifact();
-        return sources;
+    public static MetadataSourcesInternal mavenDefaults(ExperimentalFeatures experimentalFeatures) {
+        DefaultMetadataSources metadataSources = new DefaultMetadataSources();
+        if (experimentalFeatures.isEnabled()) {
+            metadataSources.gradleMetadata();
+        }
+        metadataSources.mavenPom();
+        if (!experimentalFeatures.isEnabled()) {
+            metadataSources.artifact();
+        }
+        return metadataSources;
     }
 
     @Override

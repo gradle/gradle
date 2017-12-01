@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
+import org.gradle.api.internal.ExperimentalFeatures
 import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.reflect.Instantiator
@@ -101,6 +102,49 @@ class DefaultMetadataSourcesTest extends Specification {
         'mavenPom'       | 'DefaultMavenPomMetadataSource'
         'artifact'       | 'DefaultArtifactMetadataSource'
     }
+
+    @Unroll
+    def "reasonable defaults for Ivy repositories when experimental features = #experimental"() {
+        when:
+        def enabled = experimental
+        def experimentalFeatures = new ExperimentalFeatures() {
+            @Override
+            boolean isEnabled() {
+                enabled
+            }
+        }
+        def sources = DefaultMetadataSources.ivyDefaults(experimentalFeatures)
+
+        then:
+        sources.asImmutable(instantiator).sources().name == enabledSources*.simpleName
+
+        where:
+        experimental | enabledSources
+        false        | [DefaultIvyDescriptorMetadataSource, DefaultArtifactMetadataSource]
+        true         | [DefaultGradleModuleMetadataSource, DefaultIvyDescriptorMetadataSource]
+    }
+
+    @Unroll
+    def "reasonable defaults for Maven repositories when experimental features = #experimental"() {
+        when:
+        def enabled = experimental
+        def experimentalFeatures = new ExperimentalFeatures() {
+            @Override
+            boolean isEnabled() {
+                enabled
+            }
+        }
+        def sources = DefaultMetadataSources.mavenDefaults(experimentalFeatures)
+
+        then:
+        sources.asImmutable(instantiator).sources().name == enabledSources*.simpleName
+
+        where:
+        experimental | enabledSources
+        false        | [DefaultMavenPomMetadataSource, DefaultArtifactMetadataSource]
+        true         | [DefaultGradleModuleMetadataSource, DefaultMavenPomMetadataSource]
+    }
+
 
     private ImmutableMetadataSources build(DefaultMetadataSources sources) {
         sources.asImmutable(instantiator)

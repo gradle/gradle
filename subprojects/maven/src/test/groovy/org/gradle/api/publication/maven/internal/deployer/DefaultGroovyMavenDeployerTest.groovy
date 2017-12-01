@@ -17,6 +17,7 @@
 package org.gradle.api.publication.maven.internal.deployer
 
 import org.gradle.api.artifacts.maven.PomFilterContainer
+import org.gradle.api.internal.ExperimentalFeatures
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer
@@ -35,7 +36,7 @@ class DefaultGroovyMavenDeployerTest {
     protected LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal);
     protected MavenSettingsProvider mavenSettingsProvider = context.mock(MavenSettingsProvider)
     protected LocalMavenRepositoryLocator mavenRepositoryLocator = context.mock(LocalMavenRepositoryLocator)
-    private DefaultGroovyMavenDeployer groovyMavenDeployer = new DefaultGroovyMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock, mavenSettingsProvider, mavenRepositoryLocator)
+    private DefaultGroovyMavenDeployer groovyMavenDeployer = new DefaultGroovyMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock, mavenSettingsProvider, mavenRepositoryLocator, new ExperimentalFeatures())
 
     protected PomFilterContainer createPomFilterContainerMock() {
         context.mock(PomFilterContainer.class);
@@ -50,7 +51,7 @@ class DefaultGroovyMavenDeployerTest {
     void snapshotRepositoryBuilder() {
         checkRepositoryBuilder("snapshotRepository")
     }
-    
+
     void checkRepositoryBuilder(String repositoryName) {
         String testUrl = 'testUrl'
         String testProxyHost = 'hans'

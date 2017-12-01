@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -70,6 +71,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     private final MavenSettingsProvider mavenSettingsProvider;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ExperimentalFeatures experimentalFeatures;
 
     private Project project;
 
@@ -77,7 +79,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver,
                        ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer,
                        MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator,
-                       ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                       ImmutableModuleIdentifierFactory moduleIdentifierFactory, ExperimentalFeatures experimentalFeatures) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.fileResolver = fileResolver;
         this.publicationRegistry = publicationRegistry;
@@ -85,6 +87,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         this.mavenSettingsProvider = mavenSettingsProvider;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.experimentalFeatures = experimentalFeatures;
     }
 
     public void apply(final ProjectInternal project) {
@@ -101,7 +104,8 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                 project.getConfigurations(),
                 pluginConvention.getConf2ScopeMappings(),
                 mavenSettingsProvider,
-                mavenRepositoryLocator);
+                mavenRepositoryLocator,
+                experimentalFeatures);
 
         configureUploadTasks(deployerFactory);
         configureUploadArchivesTask();

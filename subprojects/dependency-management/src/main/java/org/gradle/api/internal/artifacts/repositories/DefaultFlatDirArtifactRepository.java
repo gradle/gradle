@@ -72,7 +72,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
                                             ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository,
                                             ModuleMetadataParser moduleMetadataParser, InstantiatorFactory instantiatorFactory,
                                             ExperimentalFeatures experimentalFeatures) {
-        super(ivyDefaults());
+        super(ivyDefaults(experimentalFeatures));
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;

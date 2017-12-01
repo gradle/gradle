@@ -112,7 +112,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         FileResourceRepository fileResourceRepository,
                                         ModuleMetadataParser moduleMetadataParser,
                                         ExperimentalFeatures experimentalFeatures) {
-        super(instantiatorFactory.decorate(), authenticationContainer, ivyDefaults());
+        super(instantiatorFactory.decorate(), authenticationContainer, ivyDefaults(experimentalFeatures));
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;

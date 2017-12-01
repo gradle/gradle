@@ -26,6 +26,8 @@ import spock.lang.Issue
 @RequiredFeatures([
     // this test is specific to Ivy
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy"),
+    // and explicitly tests cases where metadata is missing, which is no longer enabled when experimental features = on
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
 ]
 )
 @IgnoreIf({ GradleContextualExecuter.parallel })
