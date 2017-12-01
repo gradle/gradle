@@ -37,7 +37,7 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
     public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
         globalSettingsDescriptor.generate(dsl, testFramework);
 
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder()
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
             .fileComment("This generated file contains a sample Groovy project to get you started.")
             .fileComment("For more details take a look at the Groovy Quickstart chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_groovy_projects"))
@@ -47,7 +47,7 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
             .testCompileDependency("Use the awesome Spock testing and specification framework",
                 "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
         configureBuildScript(buildScriptBuilder);
-        buildScriptBuilder.create(dsl, fileResolver.resolve(dsl.fileNameFor("build"))).generate();
+        buildScriptBuilder.create().generate();
 
         TemplateOperation groovySourceTemplate = sourceTemplateOperation();
         whenNoSourcesAvailable(groovySourceTemplate, testTemplateOperation(testFramework)).generate();

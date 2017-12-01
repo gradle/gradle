@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.internal.file.PathToFileResolver;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -46,10 +47,20 @@ import static org.gradle.util.CollectionUtils.groupBy;
  */
 public class BuildScriptBuilder {
 
+    private final BuildInitDsl dsl;
+    private final PathToFileResolver fileResolver;
+    private final String fileNameWithoutExtension;
+
     private final List<String> headerLines = new ArrayList<String>();
     private final ListMultimap<String, DepSpec> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
     private final Map<String, String> plugins = new LinkedHashMap<String, String>();
     private final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
+
+    public BuildScriptBuilder(BuildInitDsl dsl, PathToFileResolver fileResolver, String fileNameWithoutExtension) {
+        this.dsl = dsl;
+        this.fileResolver = fileResolver;
+        this.fileNameWithoutExtension = fileNameWithoutExtension;
+    }
 
     /**
      * Adds a comment to the header of the file.
@@ -148,10 +159,11 @@ public class BuildScriptBuilder {
         return this;
     }
 
-    public TemplateOperation create(final BuildInitDsl dsl, final File target) {
+    public TemplateOperation create() {
         return new TemplateOperation() {
             @Override
             public void generate() {
+                File target = getTargetFile();
                 try {
                     PrintWriter writer = new PrintWriter(new FileWriter(target));
                     try {
@@ -171,6 +183,10 @@ public class BuildScriptBuilder {
                 }
             }
         };
+    }
+
+    private File getTargetFile() {
+        return fileResolver.resolve(dsl.fileNameFor(fileNameWithoutExtension));
     }
 
     private static PrettyPrinter prettyPrinterFor(BuildInitDsl dsl, PrintWriter writer) {
@@ -337,7 +353,7 @@ public class BuildScriptBuilder {
 
             println();
             println("plugins {");
-            for (Iterator<Map.Entry<String, String>> it = plugins.entrySet().iterator(); it.hasNext();) {
+            for (Iterator<Map.Entry<String, String>> it = plugins.entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry<String, String> entry = it.next();
                 String pluginId = entry.getKey();
                 String comment = entry.getValue();

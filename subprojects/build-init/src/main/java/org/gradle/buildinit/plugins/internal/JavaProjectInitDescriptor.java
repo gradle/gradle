@@ -47,14 +47,14 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
         globalSettingsDescriptor.generate(dsl, testFramework);
         Description desc = getDescription();
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder()
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
             .fileComment("This generated file contains a sample " + desc.projectType + " project to get you started.")
             .fileComment("For more details take a look at the " + desc.chapterName + " chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor(desc.userguideId))
             .plugin("Apply the " + desc.pluginName + " plugin to add support for " + desc.projectType, desc.pluginName);
         configureBuildScript(buildScriptBuilder);
         addTestFramework(testFramework, buildScriptBuilder);
-        buildScriptBuilder.create(dsl, fileResolver.resolve(dsl.fileNameFor("build"))).generate();
+        buildScriptBuilder.create().generate();
 
         TemplateOperation javaSourceTemplate = sourceTemplateOperation();
         whenNoSourcesAvailable(javaSourceTemplate, testTemplateOperation(testFramework)).generate();
