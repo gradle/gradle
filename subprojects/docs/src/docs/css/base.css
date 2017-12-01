@@ -240,6 +240,10 @@ blockquote p:last-child {
     .sidebar {
         display: none;
     }
+    .container, .book, .chapter {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
 }
 
 /* code */

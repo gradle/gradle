@@ -178,6 +178,18 @@
         top: 30px !important;
         left: 0 !important;
     }
+
+    .site-header-version {
+        display: none;
+    }
+
+    .site-footer__navigation {
+        flex-direction: column;
+    }
+
+    .site-footer__links {
+        flex-wrap: wrap;
+    }
 }
 
 /* Top navigation desktop styles */
@@ -256,6 +268,8 @@
 
 .site-footer__link-group {
     flex: 1 1 auto;
+    flex-basis: 175px;
+    margin-bottom: 1rem;
 }
 
 .site-footer__link-group header {
@@ -264,7 +278,6 @@
 
 .site-footer__subscribe-newsletter {
     flex: 0 1 auto;
-    flex-basis: 262px;
 }
 
 .site-footer__subscribe-newsletter p {
