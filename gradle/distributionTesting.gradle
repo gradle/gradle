@@ -182,7 +182,7 @@ def removeCachedScripts(File cachesDir) {
     if (cachesDir.directory) {
         for (File cacheDir : cachesDir.listFiles()) {
             if(cacheDir.directory) {
-                ["scripts", "scripts-remapped"].each {
+                ["scripts", "scripts-remapped", "gradle-kotlin-dsl", "gradle-kotlin-dsl-accessors"].each {
                     File scriptsCacheDir = new File(cacheDir, it)
                     if(scriptsCacheDir.directory) {
                         println "Removing scripts cache directory : ${scriptsCacheDir}"
