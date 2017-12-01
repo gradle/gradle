@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.tooling.builders
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -26,7 +27,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 
 import org.gradle.jvm.JvmLibrary
 
@@ -44,7 +44,9 @@ fun sourcePathFor(scriptHandlers: List<ScriptHandler>): ClassPath {
     for (buildscript in scriptHandlers.asReversed()) {
         val unresolvedDependencies = classpathDependenciesOf(buildscript).filter { it !in resolvedDependencies }
         if (unresolvedDependencies.isNotEmpty()) {
-            sourcePath += resolveSourcesUsing(buildscript.dependencies, unresolvedDependencies)
+            sourcePath += resolveSourcesUsing(buildscript.dependencies) {
+                forComponents(unresolvedDependencies)
+            }
             resolvedDependencies += unresolvedDependencies
         }
     }
@@ -58,8 +60,14 @@ fun sourcePathFor(scriptHandlers: List<ScriptHandler>): ClassPath {
 
 
 private
-fun containsBuiltinKotlinModules(resolvedDependencies: HashSet<ComponentIdentifier>) =
-    resolvedDependencies.containsAll(kotlinComponentIdentifiers)
+fun containsBuiltinKotlinModules(resolvedDependencies: Collection<ComponentIdentifier>): Boolean {
+    val resolvedModules = resolvedDependencies.filterIsInstance<ModuleComponentIdentifier>()
+    return builtinKotlinModules.all { kotlinModule ->
+        resolvedModules.any { resolved ->
+            resolved.module == kotlinModule && resolved.version == embeddedKotlinVersion
+        }
+    }
+}
 
 
 private
@@ -83,15 +91,19 @@ fun kotlinLibSourcesFor(scriptHandlers: List<ScriptHandler>): ClassPath =
 
 private
 fun resolveKotlinLibSourcesUsing(dependencyHandler: DependencyHandler): ClassPath =
-    resolveSourcesUsing(dependencyHandler, kotlinComponentIdentifiers)
+    resolveSourcesUsing(dependencyHandler) {
+        builtinKotlinModules.forEach { kotlinModule ->
+            forModule("org.jetbrains.kotlin", kotlinModule, embeddedKotlinVersion)
+        }
+    }
 
 
 private
-fun resolveSourcesUsing(dependencyHandler: DependencyHandler, components: List<ComponentIdentifier>): ClassPath =
+fun resolveSourcesUsing(dependencyHandler: DependencyHandler, query: ArtifactResolutionQuery.() -> Unit): ClassPath =
     DefaultClassPath.of(
         dependencyHandler
             .createArtifactResolutionQuery()
-            .forComponents(components)
+            .apply(query)
             .withArtifacts(JvmLibrary::class.java, SourcesArtifact::class.java)
             .execute()
             .resolvedComponents
@@ -102,19 +114,3 @@ fun resolveSourcesUsing(dependencyHandler: DependencyHandler, components: List<C
 
 private
 val builtinKotlinModules = listOf("kotlin-stdlib-jre8", "kotlin-reflect")
-
-
-private
-val kotlinComponentIdentifiers by lazy {
-    builtinKotlinModules.map(::kotlinComponent)
-}
-
-
-private
-fun kotlinComponent(module: String): ComponentIdentifier =
-    moduleId("org.jetbrains.kotlin", module, embeddedKotlinVersion)
-
-
-private
-fun moduleId(group: String, module: String, version: String): ModuleComponentIdentifier =
-    DefaultModuleComponentIdentifier.newId(group, module, version)
