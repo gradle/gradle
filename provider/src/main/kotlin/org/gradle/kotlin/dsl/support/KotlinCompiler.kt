@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileBunchOfSources
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileScript
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
-import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 
 import org.jetbrains.kotlin.codegen.CompilationException
 
@@ -187,13 +186,6 @@ private
 fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFiles: Iterable<File>): CompilerConfiguration =
     CompilerConfiguration().apply {
         addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
-        addJvmClasspathRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
-        /*
-         * Without this the compiler won't work with JDK 9.
-         * See the discussion here:
-         * https://youtrack.jetbrains.com/issue/KT-20167
-         */
-        put(JVMConfigurationKeys.JDK_HOME, File(System.getProperty("java.home")))
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }
 
@@ -242,7 +234,7 @@ fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it 
                 "${severity.presentableName[0]}: ${msg()}"
 
             when (severity) {
-                in CompilerMessageSeverity.ERRORS -> {
+                CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> {
                     errors++
                     log.error { taggedMsg() }
                 }
