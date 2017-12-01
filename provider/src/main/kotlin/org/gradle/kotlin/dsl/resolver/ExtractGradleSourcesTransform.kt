@@ -35,10 +35,6 @@ class ExtractGradleSourcesTransform : ArtifactTransform() {
     }
 
     private
-    fun sourceDirectories() = outputDirectory.walk().filter(this::isSourceDirectory).toList()
-
-    private
-    fun isSourceDirectory(file: File) =
-        file.isDirectory && file.parentFile.name == "main" && file.parentFile.parentFile.name == "src"
-
+    fun sourceDirectories() =
+        subDirsOf(outputDirectory).flatMap { subDirsOf(File(it, "src/main")) }
 }

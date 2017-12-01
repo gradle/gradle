@@ -59,11 +59,11 @@ object SourcePathProvider {
     private
     fun downloadedSources(sourceDistributionResolver: SourceDistributionProvider) =
         sourceDistributionResolver.sourceDirs()
-
-    private
-    fun subDirsOf(dir: File): Collection<File> =
-        if (dir.isDirectory)
-            dir.listFiles().filter { it.isDirectory }
-        else
-            emptyList()
 }
+
+internal
+fun subDirsOf(dir: File): Collection<File> =
+    if (dir.isDirectory)
+        dir.listFiles().filter { it.isDirectory }
+    else
+        emptyList()
