@@ -386,7 +386,6 @@ public class BuildScriptBuilder {
                 println();
                 printConfigGroup(group);
             }
-            println();
         }
 
         private void printConfigGroup(ConfigGroup configGroup) {
