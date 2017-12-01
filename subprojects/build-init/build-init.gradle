@@ -21,8 +21,7 @@ dependencies {
 
     testFixturesImplementation project(":internalTesting")
 
-    integTestRuntime project(':maven')
-    integTestRuntime project(':scala')
+    integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 
 useTestFixtures()
