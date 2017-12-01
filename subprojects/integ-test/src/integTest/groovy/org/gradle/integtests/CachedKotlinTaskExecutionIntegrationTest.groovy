@@ -51,6 +51,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
+        executer.expectDeprecationWarning()
         withBuildCache().succeeds "customTask"
         then:
         skippedTasks.empty
@@ -60,6 +61,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/.gradle").deleteDir()
         cleanBuildDir()
 
+        executer.expectDeprecationWarning()
         withBuildCache().succeeds "customTask"
         then:
         skippedTasks.contains ":customTask"
@@ -78,6 +80,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
+        executer.expectDeprecationWarning()
         withBuildCache().succeeds "customTask"
         then:
         skippedTasks.empty
@@ -87,6 +90,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         taskSourceFile.text = customKotlinTask(" modified")
 
         cleanBuildDir()
+        executer.expectDeprecationWarning()
         withBuildCache().succeeds "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
