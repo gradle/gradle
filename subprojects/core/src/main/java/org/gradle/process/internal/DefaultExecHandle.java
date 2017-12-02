@@ -193,27 +193,32 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private void setEndStateInfo(ExecHandleState newState, int exitValue, Throwable failureCause) {
         ShutdownHookActionRegister.removeAction(shutdownHookAction);
-
         ExecHandleState currentState;
         lock.lock();
         try {
             currentState = this.state;
-            setState(newState);
-            ExecResultImpl newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
-            if (execResult != null) {
-                String message = "Attempted to overwrite exec result: " + execResult + " -> " + newResult;
-                throw execExceptionFor(new RuntimeException(message), currentState);
+        } finally {
+            lock.unlock();
+        }
+
+        ExecResultImpl newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
+        if (!currentState.isTerminal() && newState != ExecHandleState.DETACHED) {
+            try {
+                broadcast.getSource().executionFinished(this, newResult);
+            } catch (Exception e) {
+                newResult = new ExecResultImpl(exitValue, execExceptionFor(e, currentState), displayName);
             }
+        }
+
+        lock.lock();
+        try {
+            setState(newState);
             this.execResult = newResult;
         } finally {
             lock.unlock();
         }
 
         LOGGER.debug("Process '{}' finished with exit value {} (state: {})", displayName, exitValue, newState);
-
-        if (currentState != ExecHandleState.DETACHED && newState != ExecHandleState.DETACHED) {
-            broadcast.getSource().executionFinished(this, execResult);
-        }
     }
 
     @Nullable
@@ -285,7 +290,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     public ExecResult waitForFinish() {
         lock.lock();
         try {
-            while (!stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.ABORTED, ExecHandleState.FAILED, ExecHandleState.DETACHED)) {
+            while (!state.isTerminal()) {
                 try {
                     stateChanged.await();
                 } catch (InterruptedException e) {

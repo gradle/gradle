@@ -175,6 +175,79 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         0 * listener._
     }
 
+    void "clients can listen to notifications when execution fails"() {
+        ExecHandleListener listener = Mock()
+        def execHandle = handle().listener(listener).args(args(BrokenApp.class)).build();
+
+        when:
+        execHandle.start();
+        execHandle.waitForFinish()
+
+        then:
+        1 * listener.executionStarted(execHandle)
+        1 * listener.executionFinished(execHandle, _ as ExecResult)
+        0 * listener._
+    }
+
+    void "propagates listener start notification failure"() {
+        def failure = new RuntimeException()
+        ExecHandleListener listener = Mock()
+        def execHandle = handle().listener(listener).args(args(TestApp.class)).build();
+
+        when:
+        execHandle.start();
+        execHandle.waitForFinish()
+
+        then:
+        1 * listener.executionStarted(execHandle) >> { throw failure }
+        1 * listener.executionFinished(execHandle, _ as ExecResult) >> { ExecHandle h, ExecResult r ->
+            assert r.failure.cause == failure
+        }
+        0 * listener._
+
+        and:
+        def e = thrown(ExecException)
+        e.cause == failure
+    }
+
+    void "propagates listener finish notification failure"() {
+        def failure = new RuntimeException()
+        ExecHandleListener listener = Mock()
+        def execHandle = handle().listener(listener).args(args(TestApp.class)).build();
+
+        when:
+        execHandle.start();
+        execHandle.waitForFinish()
+
+        then:
+        1 * listener.executionStarted(execHandle)
+        1 * listener.executionFinished(execHandle, _ as ExecResult) >> { throw failure }
+        0 * listener._
+
+        and:
+        def e = thrown(ExecException)
+        e.cause == failure
+    }
+
+    void "propagates listener finish notification failure after execution fails"() {
+        def failure = new RuntimeException()
+        ExecHandleListener listener = Mock()
+        def execHandle = handle().listener(listener).args(args(BrokenApp.class)).build();
+
+        when:
+        execHandle.start();
+        execHandle.waitForFinish()
+
+        then:
+        1 * listener.executionStarted(execHandle)
+        1 * listener.executionFinished(execHandle, _ as ExecResult) >> { throw failure }
+        0 * listener._
+
+        and:
+        def e = thrown(ExecException)
+        e.cause == failure
+    }
+
     void "forks daemon and aborts it"() {
         def output = new ByteArrayOutputStream()
         def execHandle = handle().setDaemon(true).setStandardOutput(output).args(args(SlowDaemonApp.class)).build();
