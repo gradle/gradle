@@ -19,7 +19,7 @@ ext {
     libraries = [:]
 }
 
-versions.gradle_kotlin_dsl = '0.13.1'
+versions.gradle_kotlin_dsl = '0.14.0'
 versions.commons_io = '2.2'
 versions.groovy = '2.4.12'
 versions.bouncycastle = '1.58'
