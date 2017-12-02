@@ -94,6 +94,10 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish a snapshot version that was previously published with uploadArchives"() {
+        given:
+        using m2 // uploadArchives writes to .m2/repo
+
+        and:
         settingsFile << 'rootProject.name = "snapshotPublish"'
         buildFile << """
     apply plugin: 'java'
