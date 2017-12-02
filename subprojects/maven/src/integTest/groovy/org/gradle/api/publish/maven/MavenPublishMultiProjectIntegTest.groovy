@@ -290,13 +290,22 @@ project(":project2") {
         project2.assertPublished()
         project2.assertApiDependencies("org.gradle.test:project1:1.0")
 
-        def dependency = project2.parsedPom.scopes.compile.expectDependency("org.gradle.test:project1:1.0")
-        dependency.exclusions.size() == 2
-        def sorted = dependency.exclusions.sort { it.groupId }
+        def dep = project2.parsedPom.scopes.compile.expectDependency("org.gradle.test:project1:1.0")
+        dep.exclusions.size() == 2
+        def sorted = dep.exclusions.sort { it.groupId }
         sorted[0].groupId == "*"
         sorted[0].artifactId == "commons-collections"
         sorted[1].groupId == "commons-io"
         sorted[1].artifactId == "*"
+
+        project2.parsedModuleMetadata.variant('api') {
+            dependency('org.gradle.test:project1:1.0') {
+                exists()
+                hasExclude('*', 'commons-collections')
+                hasExclude('commons-io', '*')
+                noMoreExcludes()
+            }
+        }
     }
 
     def "publish and resolve java-library with dependency on java-library-platform"() {

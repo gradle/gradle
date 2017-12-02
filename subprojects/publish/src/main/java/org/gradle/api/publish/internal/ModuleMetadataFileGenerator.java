@@ -375,9 +375,9 @@ public class ModuleMetadataFileGenerator {
                 vc = DefaultImmutableVersionConstraint.of(Strings.nullToEmpty(dependency.getVersion()));
             }
             writeVersionConstraint(vc, jsonWriter);
-            if (dependency instanceof ModuleDependency) {
-                writeExcludes((ModuleDependency) dependency, jsonWriter);
-            }
+        }
+        if (dependency instanceof ModuleDependency) {
+            writeExcludes((ModuleDependency) dependency, jsonWriter);
         }
         jsonWriter.endObject();
     }
