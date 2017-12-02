@@ -190,9 +190,13 @@ public class TaskPropertiesWalker {
                 PropertyInfo propertyInfo = propertyContext.createPropertyInfo(propertyName, instance);
                 annotationHandler.accept(propertyInfo, visitor, inputs);
                 if (propertyInfo.isAnnotationPresent(Nested.class)) {
-                    Object nestedBean = propertyInfo.getValue();
-                    if (nestedBean != null) {
-                        queue.add(new PropertyContainer(propertyName, nestedBean));
+                    try {
+                        Object nestedBean = propertyInfo.getValue();
+                        if (nestedBean != null) {
+                            queue.add(new PropertyContainer(propertyName, nestedBean));
+                        }
+                    } catch (Exception e) {
+                        // No nested bean
                     }
                 }
             }
