@@ -19,6 +19,7 @@ package org.gradle.api.publish.ivy.internal.publication
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
@@ -27,6 +28,7 @@ import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.ExperimentalFeatures
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
@@ -119,14 +121,14 @@ class DefaultIvyPublicationTest extends Specification {
     def "adopts module dependency from added component"() {
         given:
         def publication = createPublication()
-        def moduleDependency = Mock(ModuleDependency)
+        def moduleDependency = Mock(ExternalModuleDependency)
         def artifact = Mock(DependencyArtifact)
         def exclude = Mock(ExcludeRule)
 
         when:
         moduleDependency.group >> "org"
         moduleDependency.name >> "name"
-        moduleDependency.version >> "version"
+        moduleDependency.versionConstraint >> DefaultImmutableVersionConstraint.of("version")
         moduleDependency.targetConfiguration >> "dep-configuration"
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [exclude]

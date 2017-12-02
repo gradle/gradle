@@ -177,7 +177,7 @@ public class DependencyMapNotationConverterTest extends Specification {
         d.group == null
         d.name == 'foo'
         d.version == null
-        d.versionConstraint.preferredVersion == null
+        d.versionConstraint.preferredVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 

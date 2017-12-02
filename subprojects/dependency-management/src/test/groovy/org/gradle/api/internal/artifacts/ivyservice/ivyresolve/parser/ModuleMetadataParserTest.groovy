@@ -35,8 +35,12 @@ class ModuleMetadataParserTest extends Specification {
     def identifierFactory = new DefaultImmutableModuleIdentifierFactory()
     def parser = new ModuleMetadataParser(TestUtil.attributesFactory(), identifierFactory, NamedObjectInstantiator.INSTANCE)
 
+    VersionConstraint emptyConstraint() {
+        DefaultImmutableVersionConstraint.of()
+    }
+
     VersionConstraint prefers(String version) {
-        DefaultImmutableVersionConstraint.of(version)
+        DefaultImmutableVersionConstraint.of((String) version)
     }
 
     VersionConstraint prefersAndRejects(String version, List<String> rejects) {
@@ -200,6 +204,7 @@ class ModuleMetadataParserTest extends Specification {
             {
                 "name": "api",
                 "dependencies": [ 
+                    { "group": "g0", "module": "m0" },
                     { "group": "g1", "module": "m1", "version": { "prefers": "v1" } },
                     { "version": { "prefers": "v2" }, "group": "g2", "module": "m2" },
                     { 
@@ -229,6 +234,7 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * variant1.addDependency("g0", "m0", emptyConstraint(), [])
         1 * variant1.addDependency("g1", "m1", prefers("v1"), [])
         1 * variant1.addDependency("g2", "m2", prefers("v2"), [])
         1 * variant1.addDependency("g3", "m3", prefers("v3"), excludes("gx:mx", "*:*"))
