@@ -248,7 +248,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         if (hasModuleMetadata) {
             expectedArtifacts << "${artifactId}-${publishArtifactVersion}.module"
         }
-        assertArtifactsPublished(expectedArtifacts as String[])
+        assertArtifactsPublished(expectedArtifacts)
         assert parsedPom.packaging == packaging
     }
 
@@ -265,6 +265,13 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         for (name in names) {
             assertChecksumsPublishedFor(moduleDir.file(name))
         }
+    }
+
+    /**
+     * Asserts that exactly the given artifacts have been deployed, along with their checksum files
+     */
+    void assertArtifactsPublished(Iterable<String> names) {
+        assertArtifactsPublished(names as String[])
     }
 
     void assertChecksumsPublishedFor(TestFile testFile) {
@@ -287,8 +294,13 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     @Override
-    DefaultMavenMetaData getRootMetaData() {
-        new DefaultMavenMetaData("$moduleRootPath/${MAVEN_METADATA_FILE}", rootMetaDataFile)
+    DefaultRootMavenMetaData getRootMetaData() {
+        new DefaultRootMavenMetaData("$moduleRootPath/${MAVEN_METADATA_FILE}", rootMetaDataFile)
+    }
+
+    @Override
+    DefaultSnapshotMavenMetaData getSnapshotMetaData() {
+        new DefaultSnapshotMavenMetaData("$path/${MAVEN_METADATA_FILE}", snapshotMetaDataFile)
     }
 
     @Override
@@ -322,6 +334,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     TestFile getRootMetaDataFile() {
         moduleDir.parentFile.file(MAVEN_METADATA_FILE)
+    }
+
+    TestFile getSnapshotMetaDataFile() {
+        moduleDir.file(MAVEN_METADATA_FILE)
     }
 
     TestFile artifactFile(Map<String, ?> options) {

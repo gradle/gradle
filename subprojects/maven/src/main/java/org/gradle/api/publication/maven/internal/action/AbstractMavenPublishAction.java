@@ -63,7 +63,6 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
         container = newPlexusContainer(wagonJars);
         session = new MavenRepositorySystemSession();
         session.setTransferListener(new LoggingMavenTransferListener());
-        session.getConfigProperties().put("maven.metadata.legacy", "true");
 
         Model pom = parsePom(pomFile);
         pomArtifact = new DefaultArtifact(pom.getGroupId(), pom.getArtifactId(), "pom", pom.getVersion()).setFile(pomFile);
@@ -81,6 +80,10 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
 
     public void setLocalMavenRepositoryLocation(File localMavenRepository) {
         session.setLocalRepositoryManager(new SimpleLocalRepositoryManager(localMavenRepository));
+    }
+
+    public void produceLegacyMavenMetadata() {
+        session.getConfigProperties().put("maven.metadata.legacy", "true");
     }
 
     public void setMainArtifact(File file) {

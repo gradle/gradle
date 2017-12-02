@@ -154,6 +154,10 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
         return backingModule.getRootMetaData();
     }
 
+    public ModuleArtifact getSnapshotMetaData() {
+        return backingModule.getSnapshotMetaData();
+    }
+
     @Override
     public MavenPom getParsedPom() {
         return backingModule.getParsedPom();

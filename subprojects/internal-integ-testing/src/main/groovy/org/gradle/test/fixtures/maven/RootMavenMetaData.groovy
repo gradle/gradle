@@ -18,6 +18,6 @@ package org.gradle.test.fixtures.maven
 
 import org.gradle.test.fixtures.ModuleArtifact
 
-interface MavenMetaData extends ModuleArtifact {
+interface RootMavenMetaData extends ModuleArtifact {
     List<String> getVersions();
 }

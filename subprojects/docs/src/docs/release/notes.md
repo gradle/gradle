@@ -72,6 +72,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 * Two overloaded `ValidateTaskProperties.setOutputFile()` methods were removed. They are replaced with auto-generated setters when the task is accessed from a build script.
 
+* The `maven-publish` plugin now produces more complete `maven-metadata.xml` files, including maintaining a list of `<snapshotVersion>` elements. Some older versions of Maven may not be able to consume this metadata.
+
 <!--
 ### Example breaking change
 -->
