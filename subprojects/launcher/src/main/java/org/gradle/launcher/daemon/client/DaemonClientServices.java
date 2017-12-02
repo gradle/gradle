@@ -21,7 +21,6 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
-import org.gradle.process.internal.ExecHandleFactory;
 
 import java.io.InputStream;
 
@@ -37,8 +36,8 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
         addProvider(new DaemonRegistryServices(daemonParameters.getBaseDir()));
     }
 
-    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, ExecHandleFactory execHandleFactory) {
-        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonGreeter, jvmVersionValidator, execHandleFactory);
+    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator) {
+        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonGreeter, jvmVersionValidator);
     }
 
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
