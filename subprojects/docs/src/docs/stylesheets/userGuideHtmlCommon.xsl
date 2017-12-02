@@ -40,6 +40,7 @@
     <!-- Use custom style sheet content -->
     <xsl:param name="html.stylesheet">DUMMY</xsl:param>
     <xsl:template name="output.html.stylesheets">
+        <link rel="preconnect" href="//assets.gradle.com" crossorigin="crossorigin"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
         <link href="base.css" rel="stylesheet" type="text/css"/>
         <link href="docs.css" rel="stylesheet" type="text/css"/>
