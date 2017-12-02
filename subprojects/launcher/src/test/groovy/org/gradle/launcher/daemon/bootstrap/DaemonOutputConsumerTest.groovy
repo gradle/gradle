@@ -22,12 +22,12 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
 
     def "input process and name cannot be null"() {
         when:
-        consumer.connectStreams((Process) null, "foo", executorFactory)
+        consumer.connectStreams((Process) null, "foo", executor)
         then:
         thrown(IllegalArgumentException)
 
         when:
-        consumer.connectStreams(Mock(Process), null, executorFactory)
+        consumer.connectStreams(Mock(Process), null, executor)
         then:
         thrown(IllegalArgumentException)
     }
@@ -38,7 +38,7 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
         def process = process("", receivedInput)
 
         when:
-        consumer.connectStreams(process , "cool process", executorFactory)
+        consumer.connectStreams(process, "cool process", executor)
         consumer.start()
         consumer.stop()
 
@@ -50,7 +50,7 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
         def process = process('hey Joe!')
 
         when:
-        consumer.connectStreams(process , "cool process", executorFactory)
+        consumer.connectStreams(process, "cool process", executor)
         consumer.start()
         consumer.stop()
         then:
@@ -68,10 +68,10 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
 
         given:
         consumer.startupCommunication = Mock(DaemonStartupCommunication)
-        consumer.startupCommunication.containsGreeting( {it.contains "Come visit Krakow"} ) >> true
+        consumer.startupCommunication.containsGreeting({ it.contains "Come visit Krakow" }) >> true
 
         when:
-        consumer.connectStreams(process , "cool process", executorFactory)
+        consumer.connectStreams(process, "cool process", executor)
         consumer.start()
         consumer.stop()
 
@@ -81,34 +81,35 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
 
     def "connecting streams is required initially"() {
         expect:
-        illegalStateReportedWhen {consumer.start()}
-        illegalStateReportedWhen {consumer.stop()}
-        illegalStateReportedWhen {consumer.processOutput}
+        illegalStateReportedWhen { consumer.start() }
+        illegalStateReportedWhen { consumer.stop() }
+        illegalStateReportedWhen { consumer.processOutput }
     }
 
     def "starting is required"() {
         when:
-        consumer.connectStreams(process(""), "cool process", executorFactory)
+        consumer.connectStreams(process(""), "cool process", executor)
 
         then:
-        illegalStateReportedWhen {consumer.stop()}
-        illegalStateReportedWhen {consumer.processOutput}
+        illegalStateReportedWhen { consumer.stop() }
+        illegalStateReportedWhen { consumer.processOutput }
     }
 
     def "stopping is required"() {
         when:
-        consumer.connectStreams(process("") , "cool process", executorFactory)
+        consumer.connectStreams(process(""), "cool process", executor)
         consumer.start()
 
         then:
-        illegalStateReportedWhen {consumer.processOutput}
+        illegalStateReportedWhen { consumer.processOutput }
     }
 
     void illegalStateReportedWhen(Closure action) {
         try {
             action()
             assert false
-        } catch (IllegalStateException) {}
+        } catch (IllegalStateException) {
+        }
     }
 
     def process(String input = "", OutputStream processInput = new ByteArrayOutputStream()) {

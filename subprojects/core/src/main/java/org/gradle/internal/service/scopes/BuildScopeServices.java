@@ -156,6 +156,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -303,6 +304,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(TextResourceLoader.class),
             get(StreamHasher.class),
             get(FileHasher.class),
+            get(ExecFactory.class),
             get(AutoAppliedPluginHandler.class));
     }
 

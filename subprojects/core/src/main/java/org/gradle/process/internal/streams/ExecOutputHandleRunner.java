@@ -18,11 +18,13 @@ package org.gradle.process.internal.streams;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.CountDownLatch;
 
 public class ExecOutputHandleRunner implements Runnable {
     private final static Logger LOGGER = Logging.getLogger(ExecOutputHandleRunner.class);
@@ -31,6 +33,7 @@ public class ExecOutputHandleRunner implements Runnable {
     private final InputStream inputStream;
     private final OutputStream outputStream;
     private final int bufferSize;
+    private final CountDownLatch completed = new CountDownLatch(1);
 
     public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream) {
         this(displayName, inputStream, outputStream, 2048);
@@ -44,6 +47,14 @@ public class ExecOutputHandleRunner implements Runnable {
     }
 
     public void run() {
+        try {
+            forwardContent();
+        } finally {
+            completed.countDown();
+        }
+    }
+
+    private void forwardContent() {
         byte[] buffer = new byte[bufferSize];
         try {
             while (true) {
@@ -67,5 +78,13 @@ public class ExecOutputHandleRunner implements Runnable {
     @Override
     public String toString() {
         return displayName;
+    }
+
+    void waitForCompletion() {
+        try {
+            completed.await();
+        } catch (InterruptedException e) {
+            throw new UncheckedException(e);
+        }
     }
 }

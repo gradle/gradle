@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -29,12 +30,14 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final WorkerDaemonFactory workerDaemonFactory;
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
     private final FileResolver fileResolver;
+    private final ExecHandleFactory execHandleFactory;
 
-    public DefaultJavaCompilerFactory(File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, FileResolver fileResolver) {
+    public DefaultJavaCompilerFactory(File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, FileResolver fileResolver, ExecHandleFactory execHandleFactory) {
         this.daemonWorkingDir = daemonWorkingDir;
         this.workerDaemonFactory = workerDaemonFactory;
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
         this.fileResolver = fileResolver;
+        this.execHandleFactory = execHandleFactory;
     }
 
     @Override
@@ -54,7 +57,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         if (CommandLineJavaCompileSpec.class.isAssignableFrom(type)) {
-            return new CommandLineJavaCompiler();
+            return new CommandLineJavaCompiler(execHandleFactory);
         }
 
         Compiler<JavaCompileSpec> compiler = new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);

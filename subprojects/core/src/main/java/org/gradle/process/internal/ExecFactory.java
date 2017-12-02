@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.streams;
+package org.gradle.process.internal;
 
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.reflect.Instantiator;
 
-public interface StreamsHandler extends Stoppable {
-
-    void start();
-
-    void connectStreams(Process process, String processName, ExecutorFactory executorFactory);
+/**
+ * Manages forking/spawning processes.
+ */
+public interface ExecFactory extends ExecActionFactory, ExecHandleFactory, JavaExecHandleFactory, DslExecActionFactory {
+    /**
+     * Creates a new factory for the given context.
+     */
+    ExecFactory forContext(FileResolver fileResolver, Instantiator instantiator);
 }

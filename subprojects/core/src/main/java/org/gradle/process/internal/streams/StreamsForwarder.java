@@ -16,14 +16,15 @@
 
 package org.gradle.process.internal.streams;
 
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.operations.BuildOperationIdentifierPreservingRunnable;
+import org.gradle.process.internal.StreamsHandler;
 import org.gradle.util.DisconnectableInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.Executor;
 
 public class StreamsForwarder implements StreamsHandler {
 
@@ -32,10 +33,10 @@ public class StreamsForwarder implements StreamsHandler {
     private final InputStream input;
     private final boolean readErrorStream;
 
-    private ManagedExecutor executor;
-    private ExecOutputHandleRunner standardOutputRunner;
-    private ExecOutputHandleRunner errorOutputRunner;
-    private ExecOutputHandleRunner standardInputRunner;
+    private Executor executor;
+    private ExecOutputHandleRunner standardOutputReader;
+    private ExecOutputHandleRunner standardErrorReader;
+    private ExecOutputHandleRunner standardInputWriter;
 
     public StreamsForwarder(OutputStream standardOutput, OutputStream errorOutput, InputStream input, boolean readErrorStream) {
         this.standardOutput = standardOutput;
@@ -44,7 +45,10 @@ public class StreamsForwarder implements StreamsHandler {
         this.readErrorStream = readErrorStream;
     }
 
-    public void connectStreams(Process process, String processName, ExecutorFactory executorFactory) {
+    @Override
+    public void connectStreams(Process process, String processName, Executor executor) {
+        this.executor = executor;
+
         /*
             There's a potential problem here in that DisconnectableInputStream reads from input in the background.
             This won't automatically stop when the process is over. Therefore, if input is not closed then this thread
@@ -52,22 +56,20 @@ public class StreamsForwarder implements StreamsHandler {
          */
         InputStream instr = new DisconnectableInputStream(input);
 
-        standardOutputRunner = new ExecOutputHandleRunner("read standard output of: " + processName,
+        standardOutputReader = new ExecOutputHandleRunner("read standard output of " + processName,
                 process.getInputStream(), standardOutput);
-        errorOutputRunner = new ExecOutputHandleRunner("read error output of: " + processName, process.getErrorStream(),
+        standardErrorReader = new ExecOutputHandleRunner("read error output of " + processName, process.getErrorStream(),
                 errorOutput);
-        standardInputRunner = new ExecOutputHandleRunner("write standard input into: " + processName,
+        standardInputWriter = new ExecOutputHandleRunner("write standard input to " + processName,
                 instr, process.getOutputStream());
-
-        this.executor = executorFactory.create("Forward streams with process: " + processName);
     }
 
     public void start() {
-        executor.execute(standardInputRunner);
+        executor.execute(standardInputWriter);
         if (readErrorStream) {
-            executor.execute(wrapInBuildOperation(errorOutputRunner));
+            executor.execute(wrapInBuildOperation(standardErrorReader));
         }
-        executor.execute(wrapInBuildOperation(standardOutputRunner));
+        executor.execute(wrapInBuildOperation(standardOutputReader));
     }
 
     private Runnable wrapInBuildOperation(Runnable runnable) {
@@ -76,10 +78,14 @@ public class StreamsForwarder implements StreamsHandler {
 
     public void stop() {
         try {
-            standardInputRunner.closeInput();
+            standardInputWriter.closeInput();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
-        executor.stop();
+        standardInputWriter.waitForCompletion();
+        if (readErrorStream) {
+            standardErrorReader.waitForCompletion();
+        }
+        standardOutputReader.waitForCompletion();
     }
 }

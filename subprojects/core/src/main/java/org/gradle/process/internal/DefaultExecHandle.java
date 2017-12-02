@@ -21,14 +21,11 @@ import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
-import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.operations.BuildOperationIdentifierPreservingRunnable;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
-import org.gradle.process.internal.streams.StreamsHandler;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -36,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -87,7 +85,6 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final StreamsHandler streamsHandler;
     private final boolean redirectErrorStream;
     private final ProcessLauncher processLauncher;
-    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
     private int timeoutMillis;
     private boolean daemon;
 
@@ -97,7 +94,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final Lock lock;
     private final Condition stateChanged;
 
-    private final ManagedExecutor executor;
+    private final Executor executor;
 
     /**
      * State of this ExecHandle.
@@ -117,7 +114,8 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
                       Map<String, String> environment, StreamsHandler streamsHandler,
-                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon) {
+                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
+                      Executor executor) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
@@ -127,10 +125,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.redirectErrorStream = redirectErrorStream;
         this.timeoutMillis = timeoutMillis;
         this.daemon = daemon;
+        this.executor = executor;
         this.lock = new ReentrantLock();
         this.stateChanged = lock.newCondition();
         this.state = ExecHandleState.INIT;
-        executor = executorFactory.create(format("Run %s", displayName));
         processLauncher = NativeServices.getInstance().get(ProcessLauncher.class);
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
         broadcast = new ListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
@@ -214,7 +212,6 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         if (currentState != ExecHandleState.DETACHED && newState != ExecHandleState.DETACHED) {
             broadcast.getSource().executionFinished(this, execResult);
         }
-        executor.requestStop();
     }
 
     @Nullable
@@ -243,7 +240,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             }
             setState(ExecHandleState.STARTING);
 
-            execHandleRunner = new ExecHandleRunner(this, streamsHandler, processLauncher, executorFactory);
+            execHandleRunner = new ExecHandleRunner(this, streamsHandler, processLauncher, executor);
             executor.execute(new BuildOperationIdentifierPreservingRunnable(execHandleRunner));
 
             while (stateIn(ExecHandleState.STARTING)) {
@@ -298,7 +295,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             lock.unlock();
         }
 
-        executor.stop();
+        // At this point:
+        // If in daemon mode, the process has started successfully and all streams to the process have been closed
+        // If in fork mode, the process has completed and all cleanup has been done
+        // In both cases, all asynchronous work for the process has completed and we're done
 
         return result();
     }

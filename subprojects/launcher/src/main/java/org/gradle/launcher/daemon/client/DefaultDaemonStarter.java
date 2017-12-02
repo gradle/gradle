@@ -38,6 +38,7 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.streams.EncodedStream;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
@@ -58,12 +59,14 @@ public class DefaultDaemonStarter implements DaemonStarter {
     private final DaemonParameters daemonParameters;
     private final DaemonGreeter daemonGreeter;
     private final JvmVersionValidator versionValidator;
+    private final ExecHandleFactory execHandleFactory;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator) {
+    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator, ExecHandleFactory execHandleFactory) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
         this.daemonGreeter = daemonGreeter;
         this.versionValidator = versionValidator;
+        this.execHandleFactory = execHandleFactory;
     }
 
     public DaemonStartupInfo startDaemon(boolean singleUse) {
@@ -142,7 +145,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             GFileUtils.mkdirs(workingDir);
 
             DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer(stdInput);
-            ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer);
+            ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, execHandleFactory.newExec());
 
             handle.start();
             LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");

@@ -20,12 +20,12 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.process.internal.streams.StreamsForwarder;
-import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
     private OutputStream standardOutput;
@@ -38,9 +38,11 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
     protected boolean daemon;
+    private Executor executor;
 
-    public AbstractExecHandleBuilder(PathToFileResolver fileResolver) {
+    AbstractExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
         super(fileResolver);
+        this.executor = executor;
         standardOutput = SafeStreams.systemOut();
         errorOutput = SafeStreams.systemErr();
         input = SafeStreams.emptyInput();
@@ -122,7 +124,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
         StreamsHandler effectiveHandler = getEffectiveStreamsHandler();
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                effectiveHandler, listeners, redirectErrorStream, timeoutMillis, daemon);
+                effectiveHandler, listeners, redirectErrorStream, timeoutMillis, daemon, executor);
     }
 
     private StreamsHandler getEffectiveStreamsHandler() {
@@ -141,6 +143,9 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         return this;
     }
 
+    /**
+     * Merge the process' error stream into its output stream
+     */
     public AbstractExecHandleBuilder redirectErrorStream() {
         this.redirectErrorStream = true;
         return this;

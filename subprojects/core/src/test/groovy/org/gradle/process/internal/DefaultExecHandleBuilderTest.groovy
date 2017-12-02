@@ -20,9 +20,11 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+import java.util.concurrent.Executor
+
 @UsesNativeServices
 class DefaultExecHandleBuilderTest extends Specification {
-    private final DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.resolver())
+    private final DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.resolver(), Mock(Executor))
 
     def handlesCommandLineWithNoArgs() {
         when:
