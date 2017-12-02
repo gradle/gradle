@@ -18,33 +18,7 @@ package org.gradle.launcher.daemon.bootstrap
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DaemonOutputConsumerTest extends ConcurrentSpec {
-    def consumer = new DaemonOutputConsumer(new ByteArrayInputStream([] as byte[]))
-
-    def "input process and name cannot be null"() {
-        when:
-        consumer.connectStreams((Process) null, "foo", executor)
-        then:
-        thrown(IllegalArgumentException)
-
-        when:
-        consumer.connectStreams(Mock(Process), null, executor)
-        then:
-        thrown(IllegalArgumentException)
-    }
-
-    def "forwards process input"() {
-        def consumer = new DaemonOutputConsumer(new ByteArrayInputStream("send this to the process".bytes))
-        def receivedInput = new ByteArrayOutputStream()
-        def process = process("", receivedInput)
-
-        when:
-        consumer.connectStreams(process, "cool process", executor)
-        consumer.start()
-        consumer.stop()
-
-        then:
-        receivedInput.toString() == "send this to the process"
-    }
+    def consumer = new DaemonOutputConsumer()
 
     def "consumes process output until EOF"() {
         def process = process('hey Joe!')
@@ -82,23 +56,12 @@ class DaemonOutputConsumerTest extends ConcurrentSpec {
     def "connecting streams is required initially"() {
         expect:
         illegalStateReportedWhen { consumer.start() }
-        illegalStateReportedWhen { consumer.stop() }
         illegalStateReportedWhen { consumer.processOutput }
     }
 
     def "starting is required"() {
         when:
         consumer.connectStreams(process(""), "cool process", executor)
-
-        then:
-        illegalStateReportedWhen { consumer.stop() }
-        illegalStateReportedWhen { consumer.processOutput }
-    }
-
-    def "stopping is required"() {
-        when:
-        consumer.connectStreams(process(""), "cool process", executor)
-        consumer.start()
 
         then:
         illegalStateReportedWhen { consumer.processOutput }

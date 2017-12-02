@@ -33,6 +33,9 @@ public interface ExecHandleBuilder extends ProcessForkOptions, BaseExecSpec, Exe
      */
     ExecHandleBuilder setDaemon(boolean daemon);
 
+    /**
+     * Sets a handler for the <em>output</em> streams of the process.
+     */
     ExecHandleBuilder streamsHandler(StreamsHandler streamsHandler);
 
     /**

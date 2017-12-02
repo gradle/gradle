@@ -82,7 +82,8 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
      * The variables to set in the environment the executable is run in.
      */
     private final Map<String, String> environment;
-    private final StreamsHandler streamsHandler;
+    private final StreamsHandler outputHandler;
+    private final StreamsHandler inputHandler;
     private final boolean redirectErrorStream;
     private final ProcessLauncher processLauncher;
     private int timeoutMillis;
@@ -113,7 +114,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final ExecHandleShutdownHookAction shutdownHookAction;
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
-                      Map<String, String> environment, StreamsHandler streamsHandler,
+                      Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
                       List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
                       Executor executor) {
         this.displayName = displayName;
@@ -121,7 +122,8 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.command = command;
         this.arguments = arguments;
         this.environment = environment;
-        this.streamsHandler = streamsHandler;
+        this.outputHandler = outputHandler;
+        this.inputHandler = inputHandler;
         this.redirectErrorStream = redirectErrorStream;
         this.timeoutMillis = timeoutMillis;
         this.daemon = daemon;
@@ -240,7 +242,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             }
             setState(ExecHandleState.STARTING);
 
-            execHandleRunner = new ExecHandleRunner(this, streamsHandler, processLauncher, executor);
+            execHandleRunner = new ExecHandleRunner(this, new CompositeStreamsHandler(), processLauncher, executor);
             executor.execute(new BuildOperationIdentifierPreservingRunnable(execHandleRunner));
 
             while (stateIn(ExecHandleState.STARTING)) {
@@ -394,6 +396,26 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         @Override
         public String toString() {
             return "{exitValue=" + exitValue + ", failure=" + failure + "}";
+        }
+    }
+
+    private class CompositeStreamsHandler implements StreamsHandler {
+        @Override
+        public void connectStreams(Process process, String processName, Executor executor) {
+            inputHandler.connectStreams(process, processName, executor);
+            outputHandler.connectStreams(process, processName, executor);
+        }
+
+        @Override
+        public void start() {
+            inputHandler.start();
+            outputHandler.start();
+        }
+
+        @Override
+        public void stop() {
+            inputHandler.stop();
+            outputHandler.stop();
         }
     }
 }

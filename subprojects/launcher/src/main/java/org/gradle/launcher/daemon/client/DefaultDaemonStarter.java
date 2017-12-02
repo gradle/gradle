@@ -144,8 +144,8 @@ public class DefaultDaemonStarter implements DaemonStarter {
         try {
             GFileUtils.mkdirs(workingDir);
 
-            DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer(stdInput);
-            ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, execHandleFactory.newExec());
+            DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
+            ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execHandleFactory.newExec());
 
             handle.start();
             LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");

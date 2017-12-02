@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,32 +17,26 @@
 package org.gradle.process.internal.streams;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.operations.BuildOperationIdentifierPreservingRunnable;
+import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.StreamsHandler;
 import org.gradle.util.DisconnectableInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
-public class StreamsForwarder implements StreamsHandler {
-
-    private final OutputStream standardOutput;
-    private final OutputStream errorOutput;
+/**
+ * Forwards the contents of an {@link InputStream} to the process' stdin
+ */
+public class ForwardStdinStreamsHandler implements StreamsHandler {
     private final InputStream input;
-    private final boolean readErrorStream;
-
+    private final CountDownLatch completed = new CountDownLatch(1);
     private Executor executor;
-    private ExecOutputHandleRunner standardOutputReader;
-    private ExecOutputHandleRunner standardErrorReader;
     private ExecOutputHandleRunner standardInputWriter;
 
-    public StreamsForwarder(OutputStream standardOutput, OutputStream errorOutput, InputStream input, boolean readErrorStream) {
-        this.standardOutput = standardOutput;
-        this.errorOutput = errorOutput;
+    public ForwardStdinStreamsHandler(InputStream input) {
         this.input = input;
-        this.readErrorStream = readErrorStream;
     }
 
     @Override
@@ -55,25 +49,11 @@ public class StreamsForwarder implements StreamsHandler {
             will run forever. It would be better to ensure that this thread stops when the process does.
          */
         InputStream instr = new DisconnectableInputStream(input);
-
-        standardOutputReader = new ExecOutputHandleRunner("read standard output of " + processName,
-                process.getInputStream(), standardOutput);
-        standardErrorReader = new ExecOutputHandleRunner("read error output of " + processName, process.getErrorStream(),
-                errorOutput);
-        standardInputWriter = new ExecOutputHandleRunner("write standard input to " + processName,
-                instr, process.getOutputStream());
+        standardInputWriter = new ExecOutputHandleRunner("write standard input to " + processName, instr, process.getOutputStream(), completed);
     }
 
     public void start() {
         executor.execute(standardInputWriter);
-        if (readErrorStream) {
-            executor.execute(wrapInBuildOperation(standardErrorReader));
-        }
-        executor.execute(wrapInBuildOperation(standardOutputReader));
-    }
-
-    private Runnable wrapInBuildOperation(Runnable runnable) {
-        return new BuildOperationIdentifierPreservingRunnable(runnable);
     }
 
     public void stop() {
@@ -82,10 +62,10 @@ public class StreamsForwarder implements StreamsHandler {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        standardInputWriter.waitForCompletion();
-        if (readErrorStream) {
-            standardErrorReader.waitForCompletion();
+        try {
+            completed.await();
+        } catch (InterruptedException e) {
+            throw new UncheckedException(e);
         }
-        standardOutputReader.waitForCompletion();
     }
 }
