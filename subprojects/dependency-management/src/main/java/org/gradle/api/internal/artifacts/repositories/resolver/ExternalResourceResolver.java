@@ -221,10 +221,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     @Nullable
     protected S parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
-        // TODO:DAZ Do not resolve the ivy/pom file if we are going to ignore it
-        ModuleComponentArtifactMetadata artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
-        LocallyAvailableExternalResource metadataArtifact = artifactResolver.resolveArtifact(artifact, result);
-
         if (useGradleMetadata) {
             DefaultModuleComponentArtifactMetadata gradleDescriptorArtifact = new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "module", "module"));
             LocallyAvailableExternalResource gradleMetadataArtifact = artifactResolver.resolveArtifact(gradleDescriptorArtifact, result);
@@ -236,6 +232,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             }
         }
 
+        ModuleComponentArtifactMetadata artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
+        LocallyAvailableExternalResource metadataArtifact = artifactResolver.resolveArtifact(artifact, result);
         if (metadataArtifact != null) {
             ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileResourceRepository);
             return parseMetaDataFromResource(moduleComponentIdentifier, metadataArtifact, context);

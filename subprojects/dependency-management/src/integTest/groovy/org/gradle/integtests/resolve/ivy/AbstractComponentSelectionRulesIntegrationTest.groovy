@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -62,6 +63,24 @@ abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractMo
     void checkDependencies(String task = ':checkDeps', Closure<?> onSuccess = {}) {
         succeeds task
         onSuccess()
+    }
+
+    String triedMetadata(String group, String module, String version, boolean fallbackToArtifact = false, boolean stopFirst = false) {
+        Set uris = []
+        def repo = GradleMetadataResolveRunner.useIvy() ? ivyHttpRepo : mavenHttpRepo
+        def desc = GradleMetadataResolveRunner.useIvy() ? 'ivy' : 'pom'
+        def resolve = repo.module(group, module, version)
+        if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+            uris << resolve.moduleMetadata.uri
+        }
+        uris << resolve."$desc".uri
+        if (fallbackToArtifact) {
+            uris << resolve.artifact.uri
+        }
+        if (stopFirst) {
+            uris = [uris[0]]
+        }
+        uris.collect { "    $it" }.join('\n')
     }
 
     static Map<String, String> rules = [
