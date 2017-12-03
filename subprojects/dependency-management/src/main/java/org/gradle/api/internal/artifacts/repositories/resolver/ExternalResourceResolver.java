@@ -221,26 +221,26 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     @Nullable
     protected S parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
+        // TODO:DAZ Do not resolve the ivy/pom file if we are going to ignore it
         ModuleComponentArtifactMetadata artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
         LocallyAvailableExternalResource metadataArtifact = artifactResolver.resolveArtifact(artifact, result);
-        S metaDataFromResource = null;
-        if (metadataArtifact != null) {
-            ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileResourceRepository);
-            metaDataFromResource = parseMetaDataFromResource(moduleComponentIdentifier, metadataArtifact, context);
-        }
 
         if (useGradleMetadata) {
-            LocallyAvailableExternalResource gradleMetadataArtifact = artifactResolver.resolveArtifact(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "module", "module")), result);
+            DefaultModuleComponentArtifactMetadata gradleDescriptorArtifact = new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "module", "module"));
+            LocallyAvailableExternalResource gradleMetadataArtifact = artifactResolver.resolveArtifact(gradleDescriptorArtifact, result);
             if (gradleMetadataArtifact != null) {
-                // Use default empty metadata when the Ivy/POM file isn't present
-                if (metaDataFromResource == null) {
-                    ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
-                    metaDataFromResource = metadata(mvi, moduleComponentIdentifier);
-                }
+                ModuleVersionIdentifier mvi = moduleIdentifierFactory.moduleWithVersion(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
+                S metaDataFromResource = metadata(mvi, moduleComponentIdentifier);
                 metadataParser.parse(gradleMetadataArtifact, metaDataFromResource);
+                return metaDataFromResource;
             }
         }
-        return metaDataFromResource;
+
+        if (metadataArtifact != null) {
+            ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileResourceRepository);
+            return parseMetaDataFromResource(moduleComponentIdentifier, metadataArtifact, context);
+        }
+        return null;
     }
 
     @Nullable
