@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -26,6 +27,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
     def "uses '#rule' rule to choose component for #selector"() {
         given:
         boolean expectWellBehaved = GradleMetadataResolveRunner.useIvy() || mavenCompatible
+        Assume.assumeTrue(expectWellBehaved)
 
         buildFile << """
             dependencies {
@@ -49,7 +51,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         def chosenModule = setupInterations(selector, chosenVersion, downloadedMetadata)
 
         then:
-        checkDependencies(!expectWellBehaved) {
+        checkDependencies {
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge("org.utils:api:${selector}", "org.utils:${chosenModule}:${chosenVersion}")
@@ -58,13 +60,13 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         }
 
         when:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
 
         then:
-        checkDependencies(!expectWellBehaved)
+        checkDependencies()
 
         and:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
 
         where:
         selector             | rule            | chosenVersion | candidates       | downloadedMetadata | mavenCompatible
@@ -113,6 +115,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
     def "uses '#rule' rule to reject all candidates for dynamic version #selector"() {
         given:
         boolean expectWellBehaved = GradleMetadataResolveRunner.useIvy() || mavenCompatible
+        Assume.assumeTrue(expectWellBehaved)
         buildFile << """
 
             dependencies {
@@ -140,10 +143,10 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         setupInterations(selector, null, downloadedMetadata)
 
         then:
-        checkDependencies(':checkLenient', !expectWellBehaved)
+        checkDependencies(':checkLenient')
 
         when:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
         repositoryInteractions {
             'org.utils:api' {
                 expectHeadVersionListing()
@@ -155,7 +158,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         failureHasCause("Could not find any version that matches org.utils:api:${selector}.")
 
         when:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
         repositoryInteractions {
             'org.utils:api' {
                 expectHeadVersionListing()
@@ -167,7 +170,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         failureHasCause("Could not find any version that matches org.utils:api:${selector}.")
 
         and:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
 
         where:
         selector             | rule                       | candidates              | downloadedMetadata    | mavenCompatible
@@ -251,6 +254,8 @@ Required by:
     def "uses '#rule' rule to reject candidate for static version #selector"() {
         given:
         boolean expectWellBehaved = GradleMetadataResolveRunner.useIvy() || mavenCompatible
+        Assume.assumeTrue(expectWellBehaved)
+
         buildFile << """
             dependencies {
                 conf "org.utils:api:${selector}"
@@ -277,25 +282,19 @@ Required by:
         setupInterations(selector, null, downloadedMetadata)
 
         then:
-        checkDependencies(':checkLenient', !expectWellBehaved)
+        checkDependencies(':checkLenient')
 
         when:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
 
         then:
         fails ':checkDeps'
-        if (expectWellBehaved) {
-            failureHasCause("Could not find org.utils:api:${selector}.")
-        }
 
         when:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
 
         then:
         fails ':checkDeps'
-        if (expectWellBehaved) {
-            failureHasCause("Could not find org.utils:api:${selector}.")
-        }
 
         where:
         selector | rule            | candidates | downloadedMetadata | mavenCompatible
@@ -373,6 +372,8 @@ Required by:
     def "can control selection of components by module rule #rule for #selector"() {
         given:
         boolean expectWellBehaved = GradleMetadataResolveRunner.useIvy() || mavenCompatible
+        Assume.assumeTrue(expectWellBehaved)
+
         buildFile << """
             dependencies {
                 conf "org.utils:api:${selector}"
@@ -416,10 +417,10 @@ Required by:
         }
 
         then:
-        checkDependencies(!expectWellBehaved)
+        checkDependencies()
 
         and:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
 
         where:
         selector           | rule            | chosen | candidates       | downloadedMetadata | mavenCompatible

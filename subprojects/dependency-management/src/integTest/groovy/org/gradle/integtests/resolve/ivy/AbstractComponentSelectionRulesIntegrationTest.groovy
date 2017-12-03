@@ -55,20 +55,13 @@ abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractMo
         }
     }
 
-    void checkDependencies(boolean expectFailure, Closure<?> onSuccess = {}) {
-        checkDependencies(':checkDeps', expectFailure, onSuccess)
+    void checkDependencies(Closure<?> onSuccess) {
+        checkDependencies(':checkDeps', onSuccess)
     }
 
-    void checkDependencies(String task = ':checkDeps', boolean expectFailure = false, Closure<?> onSuccess = {}) {
-        try {
-            succeeds task
-            onSuccess()
-        } catch (Throwable e) {
-            // Happily ignore failures if they are allowed, which is not the same as expecting the build to fail
-            if (!expectFailure) {
-                throw e
-            }
-        }
+    void checkDependencies(String task = ':checkDeps', Closure<?> onSuccess = {}) {
+        succeeds task
+        onSuccess()
     }
 
     static Map<String, String> rules = [

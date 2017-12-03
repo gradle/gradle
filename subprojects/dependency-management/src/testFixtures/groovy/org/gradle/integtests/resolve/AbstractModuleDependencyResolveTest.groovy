@@ -39,8 +39,8 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
 
     String getRootProjectName() { 'test' }
 
-    void resetExpectations(boolean expectFailure = false) {
-        server.resetExpectations(expectFailure)
+    void resetExpectations() {
+        server.resetExpectations()
         repoSpec.nextStep()
     }
 
