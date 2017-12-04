@@ -28,10 +28,6 @@ public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     @Override
-    public void attachActions(TaskPropertyActionContext context) {
-    }
-
-    @Override
     public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
         visitor.visitLocalState(propertyInfo);
     }

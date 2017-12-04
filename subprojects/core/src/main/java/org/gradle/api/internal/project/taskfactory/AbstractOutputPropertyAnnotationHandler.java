@@ -23,9 +23,6 @@ import org.gradle.api.internal.tasks.PropertySpecFactory;
 
 public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
-    public void attachActions(final TaskPropertyActionContext context) {
-    }
-
     protected abstract DeclaredTaskOutputFileProperty createFileSpec(PropertyInfo propertyInfo, PropertySpecFactory specFactory);
 
     @Override

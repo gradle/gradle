@@ -46,10 +46,6 @@ public class CompileClasspathPropertyAnnotationHandler implements OverridingProp
     }
 
     @Override
-    public void attachActions(final TaskPropertyActionContext context) {
-    }
-
-    @Override
     public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
         DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(propertyInfo, ValidationAction.NO_OP);
         fileSpec

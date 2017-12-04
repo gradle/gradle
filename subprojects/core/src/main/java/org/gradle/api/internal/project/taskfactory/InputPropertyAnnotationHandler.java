@@ -28,10 +28,6 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         return Input.class;
     }
 
-    @SuppressWarnings("Since15")
-    public void attachActions(final TaskPropertyActionContext context) {
-    }
-
     @Override
     public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
         DefaultTaskInputPropertySpec declaration = specFactory.createInputPropertySpec(propertyInfo.getPropertyName(), propertyInfo);

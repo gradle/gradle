@@ -29,9 +29,6 @@ import java.io.File;
 
 abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
-    public void attachActions(final TaskPropertyActionContext context) {
-    }
-
     @Override
     public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
         PathSensitive pathSensitive = propertyInfo.getAnnotation(PathSensitive.class);

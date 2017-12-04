@@ -32,10 +32,5 @@ public interface PropertyAnnotationHandler {
      */
     Class<? extends Annotation> getAnnotationType();
 
-    /**
-     * Attaches the actions for the given property.
-     */
-    void attachActions(TaskPropertyActionContext context);
-
     void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory);
 }

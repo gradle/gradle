@@ -30,10 +30,6 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
     }
 
     @Override
-    public void attachActions(TaskPropertyActionContext context) {
-    }
-
-    @Override
     public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
         visitor.visitDestroyable(propertyInfo);
     }
