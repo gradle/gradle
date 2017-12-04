@@ -49,7 +49,6 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning()
         run 'build'
 
         then:
@@ -79,7 +78,6 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         server.expectGet('/script.gradle', scriptFile)
 
         when:
-        executer.expectDeprecationWarning()
         run 'hello'
 
         then:
@@ -90,7 +88,6 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         args("--offline")
 
         then:
-        executer.expectDeprecationWarning()
         succeeds 'hello'
         result.output.contains("Hello!")
     }
@@ -115,7 +112,6 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """apply { from("http://localhost:${server.port}/script.gradle.kts") }"""
 
         when:
-        executer.expectDeprecationWarning()
         run 'hello'
 
         then:
@@ -126,7 +122,6 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         args("--offline")
 
         then:
-        executer.expectDeprecationWarning()
         succeeds 'hello'
         result.output.contains("Hello!")
     }
@@ -154,7 +149,6 @@ task("dumpKotlinBuildScriptModelClassPath") {
         """
 
         when:
-        executer.expectDeprecationWarning()
         run 'dumpKotlinBuildScriptModelClassPath'
 
         then:
