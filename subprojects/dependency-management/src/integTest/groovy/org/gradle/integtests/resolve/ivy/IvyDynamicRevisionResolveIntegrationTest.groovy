@@ -54,32 +54,6 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
         when:
         resetExpectations()
         repository {
-            'org.test:projectA:1.0' {
-                withModule() {
-                    withNoMetaData()
-                }
-            }
-        }
-        repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
-            'org.test:projectA:1.0' {
-                expectResolveArtifactOnly()
-            }
-        }
-        run 'checkDeps', '--refresh-dependencies'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.test:projectA:latest.integration", "org.test:projectA:1.0")
-            }
-        }
-
-        when:
-        resetExpectations()
-        repository {
             'org.test:projectA' {
                 '1.1' {
                     withModule {
@@ -139,34 +113,6 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
                 edge("org.test:projectA:latest.integration", "org.test:projectA:1.3")
             }
         }
-
-        when:
-        resetExpectations()
-        repository {
-            'org.test:projectA' {
-                '1.4' {
-                    withModule {
-                        withNoMetaData()
-                    }
-                }
-            }
-        }
-        repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
-            'org.test:projectA:1.4' {
-                expectResolveArtifactOnly()
-            }
-        }
-        run 'checkDeps', '--refresh-dependencies'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.test:projectA:latest.integration", "org.test:projectA:1.4")
-            }
-        }
     }
 
     @Issue("GRADLE-2502")
@@ -192,33 +138,6 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
         when:
         resetExpectations()
         repository {
-            'org.test:projectA:2.0' {
-                withModule {
-                    withNoMetaData()
-                }
-            }
-        }
-        repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
-            'org.test:projectA:2.0' {
-                expectGetMetadataMissing()
-                expectHeadArtifact()
-            }
-        }
-        runAndFail 'checkDeps', '--refresh-dependencies'
-
-        then:
-        failureHasCause '''Could not find any version that matches org.test:projectA:latest.milestone.
-Versions that do not match:
-    2.0
-Searched in the following locations:
-'''
-
-        when:
-        resetExpectations()
-        repository {
             'org.test:projectA:1.3' {
                 withModule {
                     withStatus 'integration'
@@ -229,10 +148,6 @@ Searched in the following locations:
             'org.test:projectA' {
                 expectVersionListing()
             }
-            'org.test:projectA:2.0' {
-                expectGetMetadataMissing()
-                expectHeadArtifact()
-            }
             'org.test:projectA:1.3' {
                 expectGetMetadata()
             }
@@ -242,7 +157,6 @@ Searched in the following locations:
         then:
         failureHasCause '''Could not find any version that matches org.test:projectA:latest.milestone.
 Versions that do not match:
-    2.0
     1.3
 Searched in the following locations:
 '''
@@ -264,10 +178,6 @@ Searched in the following locations:
         repositoryInteractions {
             'org.test:projectA' {
                 expectVersionListing()
-            }
-            'org.test:projectA:2.0' {
-                expectGetMetadataMissing()
-                expectHeadArtifact()
             }
             'org.test:projectA:1.3' {
                 expectHeadMetadata()
@@ -299,10 +209,6 @@ Searched in the following locations:
             'org.test:projectA' {
                 expectVersionListing()
             }
-            'org.test:projectA:2.0' {
-                expectGetMetadataMissing()
-                expectHeadArtifact()
-            }
             'org.test:projectA:1.3' {
                 expectHeadMetadata()
             }
@@ -333,10 +239,6 @@ Searched in the following locations:
         repositoryInteractions {
             'org.test:projectA' {
                 expectVersionListing()
-            }
-            'org.test:projectA:2.0' {
-                expectGetMetadataMissing()
-                expectHeadArtifact()
             }
             'org.test:projectA:1.3' {
                 allowAll()
@@ -378,33 +280,6 @@ Searched in the following locations:
         when:
         resetExpectations()
         repository {
-            'org.test:projectA:2.0' {
-                withModule {
-                    withNoMetaData()
-                }
-            }
-        }
-        repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
-            'org.test:projectA:2.0' {
-                expectGetMetadataMissing()
-                expectHeadArtifact()
-            }
-        }
-        runAndFail 'checkDeps'
-
-        then:
-        failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
-Versions that do not match:
-    2.0
-Searched in the following locations:
-'''
-
-        when:
-        resetExpectations()
-        repository {
             'org.test:projectA:1.3' {
                 withModule {
                     withStatus 'integration'
@@ -420,10 +295,6 @@ Searched in the following locations:
             'org.test:projectA' {
                 expectVersionListing()
             }
-            'org.test:projectA:2.0' {
-                expectGetMetadataMissing()
-                expectHeadArtifact()
-            }
             'org.test:projectA:1.3' {
                 expectGetMetadata()
             }
@@ -436,7 +307,6 @@ Searched in the following locations:
         then:
         failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
 Versions that do not match:
-    2.0
     1.3
     1.2
 Searched in the following locations:
@@ -459,10 +329,6 @@ Searched in the following locations:
         repositoryInteractions {
             'org.test:projectA' {
                 expectVersionListing()
-            }
-            'org.test:projectA:2.0' {
-                expectGetMetadataMissing()
-                expectHeadArtifact()
             }
             'org.test:projectA:1.3' {
                 expectHeadMetadata()
@@ -502,10 +368,6 @@ Searched in the following locations:
             'org.test:projectA' {
                 expectVersionListing()
             }
-            'org.test:projectA:2.0' {
-                expectGetMetadataMissing()
-                expectHeadArtifact()
-            }
             'org.test:projectA:1.3' {
                 expectHeadMetadata()
             }
@@ -536,6 +398,7 @@ Searched in the following locations:
     // this test is a variant of the previous one, where we don't publish ivy.xml files, but publish Gradle module files only
     // it allows making sure that we actually read and write the "status" flag in Gradle metadata, because otherwise if the
     // Ivy file is present, it will be taken from there first
+    // TODO:DAZ Use opt-out when it is available
     void "latest.release selects highest version with release status using Gradle metadata only"() {
         given:
         buildFile << """
@@ -552,7 +415,6 @@ Searched in the following locations:
   dependencies.components.all { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
      def version = details.id.version
      def expectedStatus = [
-        '2.0'        : 'integration',
         '1.3'        : 'integration',
         '1.2'        : 'milestone',
         '1.1'        : 'release',
@@ -574,31 +436,6 @@ Searched in the following locations:
         then:
         failureHasCause 'Could not find any matches for org.test:projectA:latest.release as no versions of org.test:projectA are available.'
 
-        when:
-        resetExpectations()
-        repository {
-            'org.test:projectA:2.0' {
-                withModule {
-                    withNoMetaData()
-                }
-            }
-        }
-        repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
-            'org.test:projectA:2.0' {
-                allowAll()
-            }
-        }
-        runAndFail 'checkDeps'
-
-        then:
-        failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
-Versions that do not match:
-    2.0
-Searched in the following locations:
-'''
 
         when:
         resetExpectations()
@@ -620,9 +457,6 @@ Searched in the following locations:
             'org.test:projectA' {
                 expectVersionListing()
             }
-            'org.test:projectA:2.0' {
-                allowAll()
-            }
             'org.test:projectA:1.3' {
                 allowAll()
             }
@@ -635,7 +469,6 @@ Searched in the following locations:
         then:
         failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
 Versions that do not match:
-    2.0
     1.3
     1.2
 Searched in the following locations:
@@ -660,9 +493,6 @@ Searched in the following locations:
         repositoryInteractions {
             'org.test:projectA' {
                 expectVersionListing()
-            }
-            'org.test:projectA:2.0' {
-                allowAll()
             }
             'org.test:projectA:1.3' {
                 allowAll()
@@ -702,9 +532,6 @@ Searched in the following locations:
         repositoryInteractions {
             'org.test:projectA' {
                 expectVersionListing()
-            }
-            'org.test:projectA:2.0' {
-                allowAll()
             }
             'org.test:projectA:1.3' {
                 allowAll()
@@ -753,34 +580,6 @@ Searched in the following locations:
 
         then:
         failureHasCause 'Could not find any version that matches org.test:projectA:1.2+'
-
-        when:
-        resetExpectations()
-        repository {
-            'org.test:projectA:1.2' {
-                withModule {
-                    withNoMetaData()
-                }
-            }
-        }
-        repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
-            'org.test:projectA:1.2' {
-                expectGetMetadataMissing()
-                expectHeadArtifact()
-                expectGetArtifact()
-            }
-        }
-        run 'checkDeps', '--refresh-dependencies'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.test:projectA:1.2+", "org.test:projectA:1.2")
-            }
-        }
 
         when:
         resetExpectations()
@@ -881,32 +680,6 @@ Searched in the following locations:
         when:
         resetExpectations()
         repository {
-            'org.test:projectA:1.2' {
-                withModule {
-                    withNoMetaData()
-                }
-            }
-        }
-        repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
-            'org.test:projectA:1.2' {
-                expectResolveArtifactOnly()
-            }
-        }
-        run 'checkDeps', '--refresh-dependencies'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.2")
-            }
-        }
-
-        when:
-        resetExpectations()
-        repository {
             'org.test:projectA:1.2.1'()
         }
         repositoryInteractions {
@@ -949,30 +722,58 @@ Searched in the following locations:
                 edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.3")
             }
         }
+    }
 
-        when:
-        resetExpectations()
+    /**
+     * We only resolve artifacts without metadata without experimentalFeatures enabled (or with explicit opt-in)
+     * // TODO:DAZ Use opt-in when it is available
+     */
+    @RequiredFeatures(
+        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
+    )
+    def "can resolve version range when no metadata is published"() {
+        given:
+        buildFile << """
+  dependencies {
+      conf 'org.test:projectA:[1.2,2.0)'
+  }
+  
+  """
+        and:
         repository {
-            'org.test:projectA:1.4' {
+            'org.test:projectA:1.2' {
+                withModule {
+                    withNoMetaData()
+                }
+            }
+            'org.test:projectA:1.2.1' {
+                withModule {
+                    withNoMetaData()
+                }
+            }
+            'org.test:projectA:2.0' {
                 withModule {
                     withNoMetaData()
                 }
             }
         }
+
+        when:
         repositoryInteractions {
             'org.test:projectA' {
                 expectVersionListing()
             }
-            'org.test:projectA:1.4' {
+            'org.test:projectA:1.2.1' {
                 expectResolveArtifactOnly()
             }
         }
+
         run 'checkDeps', '--refresh-dependencies'
 
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.4")
+                edge("org.test:projectA:[1.2,2.0)", "org.test:projectA:1.2.1")
             }
         }
     }

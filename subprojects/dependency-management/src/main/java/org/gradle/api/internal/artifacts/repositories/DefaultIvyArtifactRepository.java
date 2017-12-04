@@ -181,7 +181,9 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             sources.add(new DefaultGradleModuleMetadataSource(moduleMetadataParser, metadataFactory));
         }
         sources.add(new DefaultIvyDescriptorMetadataSource(IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, moduleIdentifierFactory));
-        sources.add(new DefaultArtifactMetadataSource(metadataFactory));
+        if (!experimentalFeatures.isEnabled()) {
+            sources.add(new DefaultArtifactMetadataSource(metadataFactory));
+        }
         return new DefaultImmutableMetadataSources(sources.build());
     }
 

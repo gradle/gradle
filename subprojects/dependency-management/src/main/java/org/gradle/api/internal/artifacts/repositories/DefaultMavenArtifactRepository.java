@@ -195,7 +195,9 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             sources.add(new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory));
         }
         sources.add(new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices()));
-        sources.add(new DefaultArtifactMetadataSource(metadataFactory));
+        if (!experimentalFeatures.isEnabled()) {
+            sources.add(new DefaultArtifactMetadataSource(metadataFactory));
+        }
         return new DefaultImmutableMetadataSources(sources.build());
     }
 

@@ -664,7 +664,6 @@ dependencies {
 
         m.moduleMetadata.expectGetMissing()
         m.pom.expectGetMissing()
-        m.artifact.expectHeadMissing()
 
         when:
         fails("checkDeps")
@@ -675,7 +674,6 @@ dependencies {
 Searched in the following locations:
     ${m.moduleMetadata.uri}
     ${m.pom.uri}
-    ${m.artifact.uri}
 Required by:
     project :""")
 
