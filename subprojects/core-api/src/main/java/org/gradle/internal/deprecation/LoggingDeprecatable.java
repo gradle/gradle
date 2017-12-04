@@ -43,4 +43,23 @@ public class LoggingDeprecatable implements Deprecatable {
             DeprecationLogger.nagUserWith(String.format("%s %s.", deprecation, suffix));
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        LoggingDeprecatable that = (LoggingDeprecatable) o;
+
+        return deprecations != null ? deprecations.equals(that.deprecations) : that.deprecations == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return deprecations != null ? deprecations.hashCode() : 0;
+    }
 }
