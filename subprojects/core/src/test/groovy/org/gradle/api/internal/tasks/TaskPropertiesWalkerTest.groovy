@@ -28,7 +28,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
 
-    def visitor = Mock(InputsVisitor)
+    def visitor = Mock(InputsOutputVisitor)
 
     def "visits inputs"() {
         def task = project.tasks.create("myTask", MyTask)
@@ -37,12 +37,12 @@ class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
         new TaskPropertiesWalker([]).visitInputs(task, visitor)
 
         then:
-        1 * visitor.visitProperty({ it.name == 'myProperty' && it.value == 'myValue' })
-        1 * visitor.visitFileProperty({ it.propertyName == 'inputFile' })
-        1 * visitor.visitFileProperty({ it.propertyName == 'inputFiles' })
-        1 * visitor.visitProperty({ it.name == 'bean.class' && it.value == NestedBean.name })
-        1 * visitor.visitProperty({ it.name == 'bean.nestedInput' && it.value == 'nested' })
-        1 * visitor.visitFileProperty({ it.propertyName == 'bean.inputDir' })
+        1 * visitor.visitInputProperty({ it.propertyName == 'myProperty' && it.value == 'myValue' })
+        1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFile' })
+        1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFiles' })
+        1 * visitor.visitInputProperty({ it.propertyName == 'bean.class' && it.value == NestedBean.name })
+        1 * visitor.visitInputProperty({ it.propertyName == 'bean.nestedInput' && it.value == 'nested' })
+        1 * visitor.visitInputFileProperty({ it.propertyName == 'bean.inputDir' })
 
         0 * _
     }
@@ -55,7 +55,7 @@ class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
         new TaskPropertiesWalker([]).visitInputs(task, visitor)
 
         then:
-        1 * visitor.visitProperty({ it.name == 'bean.class' && it.value == null })
+        1 * visitor.visitInputProperty({ it.propertyName == 'bean.class' && it.value == null })
     }
 
     static class MyTask extends DefaultTask {

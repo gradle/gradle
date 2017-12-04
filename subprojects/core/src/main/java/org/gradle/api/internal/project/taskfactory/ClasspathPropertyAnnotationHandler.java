@@ -17,13 +17,11 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInputsInternal;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.InputsVisitor;
+import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
-import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.ClasspathNormalizer;
@@ -49,23 +47,15 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
 
     @Override
     public void attachActions(final TaskPropertyActionContext context) {
-        context.setConfigureAction(new UpdateAction() {
-            public void update(TaskInternal task, TaskPropertyValue futureValue) {
-                task.getInputs().registerFiles(futureValue)
-                    .withPropertyName(context.getName())
-                    .withNormalizer(ClasspathNormalizer.class)
-                    .optional(context.isOptional());
-            }
-        });
     }
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsVisitor visitor, TaskInputsInternal inputs) {
+    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, TaskInputsInternal inputs) {
         DeclaredTaskInputFileProperty fileSpec = inputs.createFileSpec(propertyInfo, ValidationAction.NO_OP);
         fileSpec
             .withPropertyName(propertyInfo.getName())
             .withNormalizer(ClasspathNormalizer.class)
             .optional(propertyInfo.isOptional());
-        visitor.visitFileProperty(fileSpec);
+        visitor.visitInputFileProperty(fileSpec);
     }
 }

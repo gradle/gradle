@@ -48,12 +48,17 @@ public class TaskPropertyUtils {
     public static <T extends TaskPropertySpec & TaskFilePropertyBuilder> void ensurePropertiesHaveNames(Iterable<T> properties) {
         int unnamedPropertyCounter = 0;
         for (T propertySpec : properties) {
-            String propertyName = propertySpec.getPropertyName();
-            if (propertyName == null) {
-                propertyName = "$" + (++unnamedPropertyCounter);
-                propertySpec.withPropertyName(propertyName);
-            }
+            unnamedPropertyCounter = ensurePropertyHasName(unnamedPropertyCounter, propertySpec);
         }
+    }
+
+    public static <T extends TaskPropertySpec & TaskFilePropertyBuilder> int ensurePropertyHasName(int unnamedPropertyCounter, T propertySpec) {
+        String propertyName = propertySpec.getPropertyName();
+        if (propertyName == null) {
+            propertyName = "$" + (++unnamedPropertyCounter);
+            propertySpec.withPropertyName(propertyName);
+        }
+        return unnamedPropertyCounter;
     }
 
     public static <T extends TaskFilePropertySpec> SortedSet<ResolvedTaskOutputFilePropertySpec> resolveFileProperties(ImmutableSortedSet<T> properties) {

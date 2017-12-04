@@ -16,14 +16,13 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInputsInternal;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.PropertyInfo;
-import org.gradle.api.internal.tasks.TaskPropertyValue;
+import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 
 public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
@@ -33,10 +32,18 @@ public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnn
 
     @Override
     protected DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, TaskInputsInternal inputs) {
-        return inputs.createFileSpec(propertyInfo, ValidationAction.NO_OP);
+        return inputs.createFileSpec(propertyInfo, INPUT_FILE_VALIDATOR);
     }
 
-    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue) {
-        return task.getInputs().registerFile(futureValue);
-    }
+    public static final ValidationAction INPUT_FILE_VALIDATOR = new ValidationAction() {
+        @Override
+        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+            File file = toFile(context, value);
+            if (!file.exists()) {
+                context.recordValidationMessage(severity, String.format("File '%s' specified for property '%s' does not exist.", file, propertyName));
+            } else if (!file.isFile()) {
+                context.recordValidationMessage(severity, String.format("File '%s' specified for property '%s' is not a file.", file, propertyName));
+            }
+        }
+    };
 }

@@ -17,13 +17,15 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInputsInternal;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.InputsVisitor;
-import org.gradle.api.internal.tasks.PropertyDeclaration;
+import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
+import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
-import org.gradle.api.internal.tasks.TaskPropertyValue;
+import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.tasks.Nested;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
 public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -34,36 +36,32 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
 
     @Override
     public void attachActions(final TaskPropertyActionContext context) {
-        context.setNestedType(context.getValueType());
-        context.setConfigureAction(new UpdateAction() {
-            public void update(TaskInternal task, final TaskPropertyValue futureValue) {
-                task.getInputs().registerNested(context.getName(), futureValue)
-                    .optional(context.isOptional());
-            }
-        });
     }
 
     @Override
-    public void accept(final PropertyInfo propertyInfo, InputsVisitor visitor, TaskInputsInternal inputs) {
-        visitor.visitProperty(new NestedPropertyTypeDeclaration(propertyInfo));
+    public void accept(final PropertyInfo propertyInfo, InputsOutputVisitor visitor, TaskInputsInternal inputs) {
+        DefaultTaskInputPropertySpec propertySpec = inputs.createInputPropertySpec(propertyInfo.getName() + ".class", new NestedPropertyValue(propertyInfo));
+        propertySpec.optional(propertyInfo.isOptional());
+        visitor.visitInputProperty(propertySpec);
     }
 
-    private static class NestedPropertyTypeDeclaration implements PropertyDeclaration {
+    private static class NestedPropertyValue implements ValidatingValue {
         private final PropertyInfo propertyInfo;
 
-        public NestedPropertyTypeDeclaration(PropertyInfo propertyInfo) {
+        public NestedPropertyValue(PropertyInfo propertyInfo) {
             this.propertyInfo = propertyInfo;
         }
 
+        @Nullable
         @Override
-        public String getName() {
-            return propertyInfo.getName() + ".class";
-        }
-
-        @Override
-        public Object getValue() {
+        public Object call() {
             Object value = propertyInfo.getValue();
             return value == null ? null : value.getClass().getName();
         }
+
+        @Override
+        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+        }
+
     }
 }

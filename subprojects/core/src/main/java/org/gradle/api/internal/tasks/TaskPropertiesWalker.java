@@ -143,7 +143,7 @@ public class TaskPropertiesWalker {
             .build();
     }
 
-    public void visitInputs(TaskInternal instance, InputsVisitor visitor) {
+    public void visitInputs(TaskInternal instance, InputsOutputVisitor visitor) {
         TaskInputsInternal inputs = instance.getInputs();
         Queue<PropertyContainer> queue = new ArrayDeque<PropertyContainer>();
         queue.add(new PropertyContainer(null, instance));
@@ -153,7 +153,7 @@ public class TaskPropertiesWalker {
         }
     }
 
-    private <T> void detectProperties(PropertyContainer container, Class<T> type, Queue<PropertyContainer> queue, InputsVisitor visitor, TaskInputsInternal inputs) {
+    private <T> void detectProperties(PropertyContainer container, Class<T> type, Queue<PropertyContainer> queue, InputsOutputVisitor visitor, TaskInputsInternal inputs) {
         final Set<Class<? extends Annotation>> propertyTypeAnnotations = annotationHandlers.keySet();
         final Map<String, DefaultPropertyContext> propertyContexts = Maps.newLinkedHashMap();
         Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {
@@ -172,7 +172,7 @@ public class TaskPropertiesWalker {
                         propertyContexts.put(fieldName, propertyContext);
                     }
 
-                    Iterable<Annotation> declaredAnnotations = mergeDeclaredAnnotations(propertyContext, method, field);
+                    Iterable<Annotation> declaredAnnotations = mergeDeclaredAnnotations(method, field);
 
                     // Discard overridden property type annotations when an overriding annotation is also present
                     Iterable<Annotation> overriddenAnnotations = filterOverridingAnnotations(declaredAnnotations, propertyTypeAnnotations);
@@ -202,7 +202,7 @@ public class TaskPropertiesWalker {
             }
         }
     }
-    private Iterable<Annotation> mergeDeclaredAnnotations(DefaultPropertyContext propertyContext, Method method, @Nullable Field field) {
+    private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field) {
         Collection<Annotation> methodAnnotations = collectRelevantAnnotations(method.getDeclaredAnnotations());
 //        if (Modifier.isPrivate(method.getModifiers()) && !methodAnnotations.isEmpty()) {
 // FIXME           propertyContext.validationMessage("is private and annotated with an input or output annotation");

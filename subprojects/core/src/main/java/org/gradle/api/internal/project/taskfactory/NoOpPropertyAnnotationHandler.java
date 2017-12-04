@@ -17,7 +17,7 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInputsInternal;
-import org.gradle.api.internal.tasks.InputsVisitor;
+import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
 
 import java.lang.annotation.Annotation;
@@ -37,7 +37,7 @@ public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler 
     }
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsVisitor visitor, TaskInputsInternal inputs) {
+    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, TaskInputsInternal inputs) {
     }
 
 }

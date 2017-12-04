@@ -17,47 +17,30 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInputsInternal;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.InputsVisitor;
+import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
-import org.gradle.api.internal.tasks.TaskPropertyValue;
+import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
+
+import java.io.File;
 
 abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
     public void attachActions(final TaskPropertyActionContext context) {
-        PathSensitive pathSensitive = context.getAnnotation(PathSensitive.class);
-        final PathSensitivity pathSensitivity;
-        if (pathSensitive == null) {
-            if (context.isCacheable()) {
-                context.validationMessage("is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE");
-            }
-            pathSensitivity = PathSensitivity.ABSOLUTE;
-        } else {
-            pathSensitivity = pathSensitive.value();
-        }
-
-        context.setConfigureAction(new UpdateAction() {
-            public void update(TaskInternal task, TaskPropertyValue futureValue) {
-                final TaskInputFilePropertyBuilder propertyBuilder = createPropertyBuilder(context, task, futureValue);
-                propertyBuilder
-                    .withPropertyName(context.getName())
-                    .withPathSensitivity(pathSensitivity)
-                    .skipWhenEmpty(context.isAnnotationPresent(SkipWhenEmpty.class))
-                    .optional(context.isOptional());
-            }
-        });
     }
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsVisitor visitor, TaskInputsInternal inputs) {
+    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, TaskInputsInternal inputs) {
         PathSensitive pathSensitive = propertyInfo.getAnnotation(PathSensitive.class);
         final PathSensitivity pathSensitivity;
         if (pathSensitive == null) {
+//            FIXME wolfs
+//            if (context.isCacheable()) {
+//                context.validationMessage("is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE");
+//            }
             pathSensitivity = PathSensitivity.ABSOLUTE;
         } else {
             pathSensitivity = pathSensitive.value();
@@ -68,10 +51,12 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
             .withPathSensitivity(pathSensitivity)
             .skipWhenEmpty(propertyInfo.isAnnotationPresent(SkipWhenEmpty.class))
             .optional(propertyInfo.isOptional());
-        visitor.visitFileProperty(fileSpec);
+        visitor.visitInputFileProperty(fileSpec);
     }
 
     protected abstract DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, TaskInputsInternal inputs);
 
-    protected abstract TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue);
+    protected static File toFile(TaskValidationContext context, Object value) {
+        return context.getResolver().resolve(value);
+    }
 }

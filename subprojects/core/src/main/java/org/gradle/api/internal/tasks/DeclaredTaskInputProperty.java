@@ -18,5 +18,9 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 
+import javax.annotation.Nullable;
+
 public interface DeclaredTaskInputProperty extends TaskInputPropertySpec, TaskInputPropertyBuilder, ValidatingTaskPropertySpec {
+    @Nullable
+    Object getValue();
 }

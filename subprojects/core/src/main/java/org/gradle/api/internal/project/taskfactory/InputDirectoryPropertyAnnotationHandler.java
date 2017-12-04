@@ -15,15 +15,15 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.TaskInputsInternal;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.PropertyInfo;
-import org.gradle.api.internal.tasks.TaskPropertyValue;
+import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 
 public class InputDirectoryPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
@@ -31,13 +31,28 @@ public class InputDirectoryPropertyAnnotationHandler extends AbstractInputProper
         return InputDirectory.class;
     }
 
-    protected TaskInputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue) {
-        return task.getInputs().registerDir(futureValue);
-    }
-
     @Override
     protected DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, TaskInputsInternal inputs) {
-        return inputs.createDirSpec(propertyInfo, ValidationAction.NO_OP);
+        return inputs.createDirSpec(propertyInfo, INPUT_DIRECTORY_VALIDATOR);
+    }
+
+    public static final ValidationAction INPUT_DIRECTORY_VALIDATOR = new ValidationAction() {
+        @Override
+        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
+            File directory = toDirectory(context, value);
+            if (!directory.exists()) {
+                context.recordValidationMessage(severity, String.format("Directory '%s' specified for property '%s' does not exist.", directory, propertyName));
+            } else if (!directory.isDirectory()) {
+                context.recordValidationMessage(severity, String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
+            }
+        }
+    };
+
+    private static File toDirectory(TaskValidationContext context, Object value) {
+        if (value instanceof ConfigurableFileTree) {
+            return ((ConfigurableFileTree) value).getDir();
+        }
+        return toFile(context, value);
     }
 
 }

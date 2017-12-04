@@ -18,7 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.InputsVisitor;
+import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.Destroys;
@@ -42,6 +42,6 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
     }
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsVisitor visitor, TaskInputsInternal inputs) {
+    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, TaskInputsInternal inputs) {
     }
 }

@@ -15,16 +15,12 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.AbstractPropertyDeclaration;
-import org.gradle.api.internal.tasks.InputsVisitor;
+import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
+import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
-import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.Input;
 
-import java.io.File;
 import java.lang.annotation.Annotation;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -34,28 +30,20 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
 
     @SuppressWarnings("Since15")
     public void attachActions(final TaskPropertyActionContext context) {
-        context.setConfigureAction(new UpdateAction() {
-            public void update(TaskInternal task, TaskPropertyValue futureValue) {
-                task.getInputs().registerProperty(context.getName(), futureValue)
-                    .optional(context.isOptional());
-            }
-        });
-        Class<?> valueType = context.getValueType();
-        if (File.class.isAssignableFrom(valueType)
-            || java.nio.file.Path.class.isAssignableFrom(valueType)
-            || FileCollection.class.isAssignableFrom(valueType)) {
-            context.validationMessage("has @Input annotation used on property of type " + valueType.getName());
-        }
     }
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsVisitor visitor, TaskInputsInternal inputs) {
-        visitor.visitProperty(new InputPropertyDeclaration(propertyInfo));
+    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, TaskInputsInternal inputs) {
+        DefaultTaskInputPropertySpec declaration = inputs.createInputPropertySpec(propertyInfo.getName(), propertyInfo);
+        declaration.optional(propertyInfo.isOptional());
+        visitor.visitInputProperty(declaration);
+//        FIXME wolfs
+//        Class<?> valueType = context.getValueType();
+//        if (File.class.isAssignableFrom(valueType)
+//            || java.nio.file.Path.class.isAssignableFrom(valueType)
+//            || FileCollection.class.isAssignableFrom(valueType)) {
+//            context.validationMessage("has @Input annotation used on property of type " + valueType.getName());
+//        }
     }
 
-    private static class InputPropertyDeclaration extends AbstractPropertyDeclaration {
-        public InputPropertyDeclaration(PropertyInfo propertyInfo) {
-            super(propertyInfo);
-        }
-    }
 }

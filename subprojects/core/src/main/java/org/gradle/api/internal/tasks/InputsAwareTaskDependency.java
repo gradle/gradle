@@ -25,25 +25,20 @@ import org.gradle.api.internal.TaskInternal;
  */
 public class InputsAwareTaskDependency extends DefaultTaskDependency {
     private final TaskInternal task;
-    private final TaskPropertiesWalker taskPropertiesWalker;
 
-    public InputsAwareTaskDependency(TaskInternal task, TaskResolver resolver, TaskPropertiesWalker taskPropertiesWalker) {
+    public InputsAwareTaskDependency(TaskInternal task, TaskResolver resolver) {
         super(resolver);
         this.task = task;
-        this.taskPropertiesWalker = taskPropertiesWalker;
     }
 
     @Override
     public void visitDependencies(final TaskDependencyResolveContext context) {
         InputFilesVisitor visitor = new InputFilesVisitor(context);
-        taskPropertiesWalker.visitInputs(task, visitor);
-        for (DeclaredTaskInputFileProperty declaredTaskInputFileProperty : task.getInputs().getRuntimeFileProperties()) {
-            visitor.visitFileProperty(declaredTaskInputFileProperty);
-        }
+        task.getInputs().accept(visitor);
         super.visitDependencies(context);
     }
 
-    private static class InputFilesVisitor implements InputsVisitor {
+    private static class InputFilesVisitor extends InputsOutputVisitor.Adapter {
         private final TaskDependencyResolveContext context;
 
         public InputFilesVisitor(TaskDependencyResolveContext context) {
@@ -51,13 +46,10 @@ public class InputsAwareTaskDependency extends DefaultTaskDependency {
         }
 
         @Override
-        public void visitFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
+        public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
             context.add(inputFileProperty.getPropertyFiles());
         }
 
-        @Override
-        public void visitProperty(PropertyDeclaration propertyDeclaration) {
-        }
     }
 
 }
