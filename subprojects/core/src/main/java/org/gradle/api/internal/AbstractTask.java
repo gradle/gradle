@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
@@ -38,7 +39,6 @@ import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
-import org.gradle.api.internal.tasks.InputsAwareTaskDependency;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -168,7 +168,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskDestroyables = new DefaultTaskDestroyables(fileResolver, this, taskMutator);
         taskLocalState = new DefaultTaskLocalState(fileResolver, this, taskMutator);
 
-        dependencies = new InputsAwareTaskDependency(taskInputs, tasks);
+        dependencies = new DefaultTaskDependency(tasks, ImmutableSet.<Object>of(taskInputs.getFiles()));
     }
 
     private void assertDynamicObject() {
