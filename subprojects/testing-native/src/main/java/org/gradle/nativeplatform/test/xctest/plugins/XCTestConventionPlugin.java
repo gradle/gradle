@@ -25,8 +25,6 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.provider.Provider;
@@ -235,12 +233,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 // Test configuration extends main configuration
                 testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
                 ((Configuration)(testSuite.getDevelopmentBinary().getCompileModules())).getDependencies()
-                    .add(new DefaultSelfResolvingDependency((FileCollectionInternal)project.files(((DefaultSwiftBinary)testedComponent.getDevelopmentBinary()).getModuleFile().map(new Transformer<File, RegularFile>() {
-                        @Override
-                        public File transform(RegularFile regularFile) {
-                            return regularFile.getAsFile().getParentFile();
-                        }
-                    }))));
+                    .add(project.getDependencies().create(project.files(((DefaultSwiftBinary)testedComponent.getDevelopmentBinary()).getModuleFile())));
 
                 // Configure test suite link task from tested component compiled objects
                 AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
