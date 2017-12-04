@@ -31,7 +31,6 @@ import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -166,7 +165,6 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public Map<String, TypeOf<?>> getSchema() {
-        DeprecationLogger.nagUserOfReplacedProperty("ExtensionContainer.schema", "ExtensionContainer.extensionsSchema");
         Map<String, TypeOf<?>> map = new HashMap<String, TypeOf<?>>();
         for (ExtensionsSchema.ExtensionSchema schema : getExtensionsSchema()) {
             map.put(schema.getName(), schema.getPublicType());
