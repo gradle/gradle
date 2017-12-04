@@ -23,6 +23,8 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
 import org.gradle.vcs.VersionRef;
@@ -38,10 +40,11 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class DefaultVersionControlSystemFactory implements VersionControlSystemFactory, Stoppable {
     private final PersistentCache vcsWorkingDirCache;
 
-    DefaultVersionControlSystemFactory(VcsWorkingDirectoryRoot workingDirectoryRoot, CacheRepository cacheRepository) {
+    DefaultVersionControlSystemFactory(VcsWorkingDirectoryRoot workingDirectoryRoot, BuildOperationExecutor buildOperationExecutor, CacheRepository cacheRepository) {
         this.vcsWorkingDirCache = cacheRepository
             .cache(workingDirectoryRoot.getDir())
             .withLockOptions(mode(FileLockManager.LockMode.None))
+            .withDisplayName("VCS Checkout Cache")
             .open();
     }
 
@@ -82,17 +85,19 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
 
         @Override
         public File populate(final File versionDir, final VersionRef ref, final VersionControlSpec spec) {
-            try {
-                return cacheAccess.useCache(new Factory<File>() {
-                    @Nullable
-                    @Override
-                    public File create() {
+            return cacheAccess.useCache(new Factory<File>() {
+                @Nullable
+                @Override
+                public File create() {
+                    GFileUtils.mkdirs(versionDir);
+                    GFileUtils.touch(versionDir);
+                    try {
                         return delegate.populate(versionDir, ref, spec);
+                    } catch (Exception e) {
+                        throw new GradleException(String.format("Could not populate %s from '%s'.", versionDir, spec.getDisplayName()), e);
                     }
-                });
-            } catch (Exception e) {
-                throw new GradleException(String.format("Could not populate %s from '%s'.", versionDir, spec.getDisplayName()), e);
-            }
+                }
+            });
         }
     }
 }

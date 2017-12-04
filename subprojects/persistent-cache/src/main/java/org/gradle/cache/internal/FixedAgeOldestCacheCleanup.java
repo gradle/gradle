@@ -16,54 +16,40 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
-import org.apache.commons.io.FileUtils;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-public final class FixedSizeOldestCacheCleanup extends AbstractCacheCleanup {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FixedSizeOldestCacheCleanup.class);
-    private static final Comparator<File> NEWEST_FIRST = Ordering.natural().onResultOf(new Function<File, Comparable<Long>>() {
-        @Override
-        public Comparable<Long> apply(File input) {
-            return input.lastModified();
-        }
-    }).reverse();
+/**
+ * Deletes any cache entries older than a given age.
+ */
+public class FixedAgeOldestCacheCleanup extends AbstractCacheCleanup {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FixedAgeOldestCacheCleanup.class);
 
-    private final long targetSizeInMB;
+    private final long minimumTimestamp;
 
-    public FixedSizeOldestCacheCleanup(BuildOperationExecutor buildOperationExecutor, long targetSizeInMB) {
+    public FixedAgeOldestCacheCleanup(BuildOperationExecutor buildOperationExecutor, long age, TimeUnit units) {
         super(buildOperationExecutor);
-        this.targetSizeInMB = targetSizeInMB;
+        this.minimumTimestamp = Math.max(0, System.currentTimeMillis() - units.toMillis(age));
     }
 
     protected List<File> findFilesToDelete(final PersistentCache persistentCache, File[] filesEligibleForCleanup) {
-        Arrays.sort(filesEligibleForCleanup, NEWEST_FIRST);
+        LOGGER.info("{} remove files older than {}.", persistentCache, new Date(minimumTimestamp));
 
-        // All sizes are in bytes
-        long totalSize = 0;
-        long targetSize = targetSizeInMB * 1024 * 1024;
         final List<File> filesForDeletion = Lists.newArrayList();
 
         for (File file : filesEligibleForCleanup) {
-            long size = file.length();
-            totalSize += size;
-
-            if (totalSize > targetSize) {
+            if (file.lastModified() < minimumTimestamp) {
                 filesForDeletion.add(file);
             }
         }
-
-        LOGGER.info("{} consuming {} (target: {} MB).", persistentCache, FileUtils.byteCountToDisplaySize(totalSize), targetSizeInMB);
 
         return filesForDeletion;
     }
