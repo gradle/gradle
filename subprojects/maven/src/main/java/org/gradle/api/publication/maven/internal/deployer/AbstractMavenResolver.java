@@ -40,11 +40,11 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.MutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -66,7 +66,8 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
     public AbstractMavenResolver(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer,
-                                 LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+                                 LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider,
+                                 LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
         this.loggingManager = loggingManager;

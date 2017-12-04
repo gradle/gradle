@@ -39,8 +39,8 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
 
     String getRootProjectName() { 'test' }
 
-    void resetExpectations(boolean expectFailure = false) {
-        server.resetExpectations(expectFailure)
+    void resetExpectations() {
+        server.resetExpectations()
         repoSpec.nextStep()
     }
 
@@ -60,36 +60,18 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
 
     String metadataURI(String group, String module, String version) {
         if (GradleMetadataResolveRunner.useIvy()) {
-            def httpModule = ivyHttpRepo.module(group, module, version)
-            return httpModule.ivy.uri
-        } else {
-            def httpModule = mavenHttpRepo.module(group, module, version)
-            return httpModule.pom.uri
-        }
-    }
-
-    String triedMetadata(String group, String module, String version, boolean includeJar = false) {
-        def uris = []
-        if (GradleMetadataResolveRunner.useIvy()) {
-            def httpModule = ivyHttpRepo.module(group, module, version)
-            uris << httpModule.ivy.uri
+            def ivyModule = ivyHttpRepo.module(group, module, version)
             if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
-                uris << httpModule.moduleMetadata.uri
+                return ivyModule.moduleMetadata.uri
             }
-            if (includeJar) {
-                uris << httpModule.artifact.uri
-            }
+            return ivyModule.ivy.uri
         } else {
-            def httpModule = mavenHttpRepo.module(group, module, version)
-            uris << httpModule.pom.uri
+            def mavenModule = mavenHttpRepo.module(group, module, version)
             if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
-                uris << httpModule.moduleMetadata.uri
+                return mavenModule.moduleMetadata.uri
             }
-            if (includeJar) {
-                uris << httpModule.artifact.uri
-            }
+            return mavenModule.pom.uri
         }
-        uris.collect { "    $it" }.join('\n')
     }
 
     private String getMavenRepository() {

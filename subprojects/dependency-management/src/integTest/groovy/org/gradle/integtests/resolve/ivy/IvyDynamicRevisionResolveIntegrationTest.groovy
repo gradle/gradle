@@ -65,9 +65,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
                 expectVersionListing()
             }
             'org.test:projectA:1.0' {
-                expectGetMetadata()
-                expectHeadArtifact()
-                expectGetArtifact()
+                expectResolveArtifactOnly()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -158,9 +156,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
                 expectVersionListing()
             }
             'org.test:projectA:1.4' {
-                expectGetMetadata()
-                expectHeadArtifact()
-                expectGetArtifact()
+                expectResolveArtifactOnly()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -207,7 +203,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
+                expectGetMetadataMissing()
                 expectHeadArtifact()
             }
         }
@@ -234,7 +230,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
+                expectGetMetadataMissing()
                 expectHeadArtifact()
             }
             'org.test:projectA:1.3' {
@@ -270,7 +266,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
+                expectGetMetadataMissing()
                 expectHeadArtifact()
             }
             'org.test:projectA:1.3' {
@@ -304,7 +300,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
+                expectGetMetadataMissing()
                 expectHeadArtifact()
             }
             'org.test:projectA:1.3' {
@@ -339,19 +335,11 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
+                expectGetMetadataMissing()
                 expectHeadArtifact()
             }
             'org.test:projectA:1.3' {
-                expectHeadMetadata()
-                withModule {
-                    // todo: handle this properly in ModuleVersionSpec test fixture
-                    getArtifact(name: 'ivy', ext: 'xml.sha1').allowGetOrHead()
-                    if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
-                        getArtifact(ext: 'module.sha1').allowGetOrHead()
-                    }
-                }
-                maybeGetMetadata()
+                allowAll()
             }
             'org.test:projectA:1.2' {
                 expectHeadMetadata()
@@ -401,7 +389,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
+                expectGetMetadataMissing()
                 expectHeadArtifact()
             }
         }
@@ -433,7 +421,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
+                expectGetMetadataMissing()
                 expectHeadArtifact()
             }
             'org.test:projectA:1.3' {
@@ -473,7 +461,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
+                expectGetMetadataMissing()
                 expectHeadArtifact()
             }
             'org.test:projectA:1.3' {
@@ -515,7 +503,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
+                expectGetMetadataMissing()
                 expectHeadArtifact()
             }
             'org.test:projectA:1.3' {
@@ -780,7 +768,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:1.2' {
-                expectGetMetadata()
+                expectGetMetadataMissing()
                 expectHeadArtifact()
                 expectGetArtifact()
             }
@@ -904,9 +892,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:1.2' {
-                expectGetMetadata()
-                expectHeadArtifact()
-                expectGetArtifact()
+                expectResolveArtifactOnly()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -978,9 +964,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:1.4' {
-                expectGetMetadata()
-                expectHeadArtifact()
-                expectGetArtifact()
+                expectResolveArtifactOnly()
             }
         }
         run 'checkDeps', '--refresh-dependencies'

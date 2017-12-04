@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts.repositories.metadata;
 
-package org.gradle.integtests.fixtures.publish
+import com.google.common.collect.ImmutableList;
+import org.gradle.caching.internal.BuildCacheHasher;
 
-enum InteractionExpectation {
-    GET,
-    HEAD,
-    MAYBE,
-    NONE,
-    GET_MISSING,
-    HEAD_MISSING
+/**
+ * An immutable, usable representation of metadata sources.
+ */
+public interface ImmutableMetadataSources {
+    ImmutableList<MetadataSource<?>> sources();
+
+    void appendId(BuildCacheHasher hasher);
 }

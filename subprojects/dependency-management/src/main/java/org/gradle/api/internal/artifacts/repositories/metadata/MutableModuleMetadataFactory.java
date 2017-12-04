@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts.repositories.metadata;
 
-package org.gradle.integtests.fixtures.publish
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 
-enum InteractionExpectation {
-    GET,
-    HEAD,
-    MAYBE,
-    NONE,
-    GET_MISSING,
-    HEAD_MISSING
+/**
+ * A factory for creating instances of `MutableComponentResolveMetadata` for different repository formats.
+ */
+public interface MutableModuleMetadataFactory<S extends MutableModuleComponentResolveMetadata> {
+    S create(ModuleComponentIdentifier from);
+
+    S missing(ModuleComponentIdentifier from);
 }

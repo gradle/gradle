@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts.repositories.metadata;
 
-package org.gradle.integtests.fixtures.publish
+import org.gradle.internal.component.model.IvyArtifactName;
 
-enum InteractionExpectation {
-    GET,
-    HEAD,
-    MAYBE,
-    NONE,
-    GET_MISSING,
-    HEAD_MISSING
+/**
+ * Represents the canonical metadata artifact for a repository: Ivy descriptor or Maven POM.
+ */
+public interface MetadataArtifactProvider {
+    IvyArtifactName getMetaDataArtifactName(String module);
 }

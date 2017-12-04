@@ -271,10 +271,12 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         checkDependencies()
     }
 
-    @RequiredFeatures(
+    @RequiredFeatures([
         // because of the IvyModuleDescriptor rule
-        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
-    )
+        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy"),
+        // because of branch
+        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false"),
+    ])
     def "changed component metadata becomes visible when module is refreshed" () {
 
         def commonBuildFile = buildFile.text + """
@@ -368,9 +370,6 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                     withModule {
                         // todo: handle this properly in ModuleVersionSpec test fixture
                         getArtifact(name: 'ivy', ext: 'xml.sha1').allowGetOrHead()
-                        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
-                            getArtifact(ext: 'module.sha1').allowGetOrHead()
-                        }
                         getArtifact(ext: 'jar.sha1').allowGetOrHead()
                     }
                     expectGetMetadata()

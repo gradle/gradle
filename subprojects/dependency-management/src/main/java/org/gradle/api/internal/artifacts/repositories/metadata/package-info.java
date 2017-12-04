@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.publish
-
-enum InteractionExpectation {
-    GET,
-    HEAD,
-    MAYBE,
-    NONE,
-    GET_MISSING,
-    HEAD_MISSING
-}
+/**
+ * Types that represent different metadata sources for a repository.
+ */
+package org.gradle.api.internal.artifacts.repositories.metadata;
