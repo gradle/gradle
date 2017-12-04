@@ -150,6 +150,7 @@
                         <header><strong>Get Help</strong></header>
                         <ul class="site-footer__links-list">
                             <li itemprop="name"><a href="https://discuss.gradle.org/c/help-discuss" itemprop="url">Forums</a></li>
+                            <li itemprop="name"><a href="https://github.com/gradle/" itemprop="url">GitHub</a></li>
                             <li itemprop="name"><a href="https://gradle.org/training/" itemprop="url">Training</a></li>
                             <li itemprop="name"><a href="https://gradle.org/services/" itemprop="url">Services</a></li>
                         </ul>
