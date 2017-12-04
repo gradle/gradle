@@ -24,6 +24,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,7 +126,7 @@ abstract class AbstractCacheCleanup implements Action<PersistentCache> {
         for (File file : files) {
             try {
                 long size = file.length();
-                if (file.delete()) {
+                if (GFileUtils.deleteQuietly(file)) {
                     removedSize += size;
                 }
             } catch (Exception e) {

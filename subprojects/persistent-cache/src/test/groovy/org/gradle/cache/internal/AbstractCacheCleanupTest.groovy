@@ -59,6 +59,15 @@ class AbstractCacheCleanupTest extends Specification {
         }
     }
 
+    def "can delete directories"() {
+        def cacheEntry = cacheDir.file(String.format("%032x", r.nextInt())).file("subdir/somefile")
+        cacheEntry.text = "delete me"
+        when:
+        cleanupAction.cleanupFiles(persistentCache, [cacheEntry])
+        then:
+        cacheEntry.assertDoesNotExist()
+    }
+
     private Random r = new Random()
     def createCacheEntry(int size=1024, long timestamp=0) {
         def cacheEntry = cacheDir.file(String.format("%032x", r.nextInt()))
