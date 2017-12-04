@@ -18,9 +18,12 @@ package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
 import org.gradle.api.internal.tasks.InputsOutputVisitor
 import org.gradle.api.internal.tasks.PropertyInfo
 import org.gradle.api.internal.tasks.PropertySpecFactory
+import org.gradle.api.internal.tasks.TaskPropertiesWalker
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -30,14 +33,12 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
-import spock.lang.Ignore
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Shared
-import spock.lang.Specification
 
 import java.lang.annotation.Annotation
 
-@Ignore("FIXME wolfs")
-class DefaultTaskClassValidatorExtractorTest extends Specification {
+class DefaultTaskClassValidatorExtractorTest extends AbstractProjectBuilderSpec {
     private static final List<Class<? extends Annotation>> PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
         InputFile, InputFiles, InputDirectory, OutputFile, OutputDirectory, OutputFiles, OutputDirectories
     ]
@@ -52,15 +53,15 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
         groovyClassLoader = new GroovyClassLoader(getClass().classLoader)
     }
 
-    class TaskWithCustomAnnotation extends DefaultTask {
+    static  class TaskWithCustomAnnotation extends DefaultTask {
         @SearchPath FileCollection searchPath;
     }
 
     class SearchPathAnnotationHandler implements PropertyAnnotationHandler {
-        private final UpdateAction configureAction
+        private final visitorAction
 
-        SearchPathAnnotationHandler(UpdateAction configureAction) {
-            this.configureAction = configureAction
+        SearchPathAnnotationHandler(visitorAction) {
+            this.visitorAction = visitorAction
         }
 
         @Override
@@ -71,44 +72,67 @@ class DefaultTaskClassValidatorExtractorTest extends Specification {
 
         @Override
         void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
+            visitorAction.call(propertyInfo, visitor)
         }
     }
 
-//    FIXME wolfs
-//    def "can use custom annotation processor"() {
-//        def configureAction = Mock(UpdateAction)
-//        def annotationHandler = new SearchPathAnnotationHandler(configureAction)
-//        def extractor = new DefaultTaskClassValidatorExtractor(annotationHandler)
-//
-//        expect:
-//        def validator = extractor.extractValidator(TaskWithCustomAnnotation)
-//        validator.annotatedProperties*.name as List == ["searchPath"]
-//        validator.annotatedProperties[0].propertyType == SearchPath
-//        validator.annotatedProperties[0].configureAction == configureAction
-//        validator.validationMessages.empty
-//    }
-//
-//    class TaskWithInputFile extends DefaultTask {
-//        @InputFile getFile() {}
-//    }
-//
-//    class TaskWithInternal extends TaskWithInputFile {
-//        @Internal @Override getFile() {}
-//    }
-//
-//    class TaskWithOutputFile extends TaskWithInternal {
-//        @OutputFile @Override getFile() {}
-//    }
-//
-//    def "can make property internal and then make it into another type of property"() {
-//        def extractor = new DefaultTaskClassValidatorExtractor()
-//
-//        expect:
-//        extractor.extractValidator(TaskWithInputFile).annotatedProperties[0].propertyType == InputFile
-//        extractor.extractValidator(TaskWithInternal).annotatedProperties.empty
-//        extractor.extractValidator(TaskWithOutputFile).annotatedProperties[0].propertyType == OutputFile
-//    }
-//
+    def "can use custom annotation processor"() {
+        def annotatedProperties = []
+        def configureAction = { propertyInfo, visitor ->
+            annotatedProperties << propertyInfo.propertyName
+        }
+        def annotationHandler = new SearchPathAnnotationHandler(configureAction)
+        def walker = new TaskPropertiesWalker([annotationHandler])
+        def visitor = Mock(InputsOutputVisitor)
+
+        when:
+        visitTask(walker, TaskWithCustomAnnotation, visitor)
+
+        then:
+        annotatedProperties == ["searchPath"]
+    }
+
+    private void visitTask(TaskPropertiesWalker walker = new TaskPropertiesWalker([]), Class taskClass, InputsOutputVisitor visitor) {
+        def task = project.tasks.create(taskClass.simpleName, taskClass)
+        def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
+        walker.visitInputs(specFactory, visitor, task)
+    }
+
+    static class TaskWithInputFile extends DefaultTask {
+        @InputFile getFile() {}
+    }
+
+    static class TaskWithInternal extends TaskWithInputFile {
+        @Internal @Override getFile() {}
+    }
+
+    static class TaskWithOutputFile extends TaskWithInternal {
+        @OutputFile @Override getFile() {}
+    }
+
+    def "can make property internal and then make it into another type of property"() {
+        def visitor = Mock(InputsOutputVisitor)
+
+        when:
+        visitTask(TaskWithInputFile, visitor)
+
+        then:
+        1 * visitor.visitInputFileProperty(_)
+        0 * _
+
+        when:
+        visitTask(TaskWithInternal, visitor)
+
+        then:
+        0 * _
+
+        when:
+        visitTask(TaskWithOutputFile, visitor)
+
+        then:
+        1 * visitor.visitOutputFileProperty(_)
+    }
+
 //    @Unroll
 //    def "can override @#parentAnnotation.simpleName property type with @#childAnnotation.simpleName"() {
 //        def parentTask = groovyClassLoader.parseClass """
