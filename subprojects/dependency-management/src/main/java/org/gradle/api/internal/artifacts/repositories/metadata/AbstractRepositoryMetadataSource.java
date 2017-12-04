@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -28,6 +28,9 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
@@ -39,7 +42,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponentResolveMetadata> extends AbstractMetadataSource<S> {
+abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponentResolveMetadata> extends AbstractMetadataSource<S> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final MetadataArtifactProvider metadataArtifactProvider;
@@ -62,14 +65,18 @@ public abstract class AbstractRepositoryMetadataSource<S extends MutableModuleCo
 
     @Nullable
     private S parseMetaDataFromArtifact(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
-        ModuleComponentArtifactMetadata artifact = metadataArtifactProvider.getMetaDataArtifactFor(moduleComponentIdentifier);
+        ModuleComponentArtifactMetadata artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
         LocallyAvailableExternalResource metadataArtifact = artifactResolver.resolveArtifact(artifact, result);
-        S metaDataFromResource = null;
         if (metadataArtifact != null) {
             ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileResourceRepository);
-            metaDataFromResource = parseMetaDataFromResource(moduleComponentIdentifier, metadataArtifact, artifactResolver, context, repositoryName);
+            return parseMetaDataFromResource(moduleComponentIdentifier, metadataArtifact, artifactResolver, context, repositoryName);
         }
-        return metaDataFromResource;
+        return null;
+    }
+
+    private ModuleDescriptorArtifactMetadata getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
+        IvyArtifactName ivyArtifactName = metadataArtifactProvider.getMetaDataArtifactName(moduleComponentIdentifier.getModule());
+        return new DefaultModuleDescriptorArtifactMetadata(moduleComponentIdentifier, ivyArtifactName);
     }
 
     void checkMetadataConsistency(ModuleComponentIdentifier expectedId, MutableModuleComponentResolveMetadata metadata) throws MetaDataParseException {

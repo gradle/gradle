@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -23,6 +23,10 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 
+/**
+ * Represents a source of metadata for a repository. Each implementation is responsible for a different metadata
+ * format: for discovering the metadata artifact, parsing the metadata and constructing a `MutableModuleComponentResolveMetadata`.
+ */
 public interface MetadataSource<S extends MutableModuleComponentResolveMetadata> {
 
     S create(String repositoryName,

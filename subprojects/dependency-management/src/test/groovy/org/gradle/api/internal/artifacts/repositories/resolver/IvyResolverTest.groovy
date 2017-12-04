@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository
-import org.gradle.api.internal.artifacts.repositories.DefaultIvyDescriptorMetadataSource
-import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
-import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMetadataArtifactProvider
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultIvyDescriptorMetadataSource
+import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
@@ -150,7 +150,7 @@ class IvyResolverTest extends Specification {
         def transport = Stub(RepositoryTransport)
         transport.resourceAccessor >> externalResourceAccessor
 
-        MetadataArtifactProvider metadataArtifactProvider = new DefaultIvyArtifactRepository.IvyMetadataArtifactProvider()
+        MetadataArtifactProvider metadataArtifactProvider = new IvyMetadataArtifactProvider()
         def fileResourceRepository = Stub(FileResourceRepository)
         def moduleIdentifierFactory = Stub(ImmutableModuleIdentifierFactory)
         ImmutableMetadataSources metadataSources = Stub() {

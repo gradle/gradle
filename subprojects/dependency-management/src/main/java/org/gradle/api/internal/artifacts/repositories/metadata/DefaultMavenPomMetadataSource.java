@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -28,7 +28,7 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 import javax.inject.Inject;
 
-public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSource<MutableMavenModuleResolveMetadata> implements MavenPomMetadataSource {
+public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSource<MutableMavenModuleResolveMetadata> {
 
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
     private final MavenMetadataValidator validator;
@@ -58,7 +58,7 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
             checkMetadataConsistency(moduleComponentIdentifier, metaData);
         }
         MutableMavenModuleResolveMetadata result = MavenResolver.processMetaData(metaData);
-        if (validator.validate(repoName, result, artifactResolver)) {
+        if (validator.isUsableModule(repoName, result, artifactResolver)) {
             return result;
         }
         return null;
@@ -70,6 +70,6 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
      * do not have a corresponding artifact.
      */
     public interface MavenMetadataValidator {
-        boolean validate(String repoName, MutableMavenModuleResolveMetadata metadata, ExternalResourceArtifactResolver artifactResolver);
+        boolean isUsableModule(String repoName, MutableMavenModuleResolveMetadata metadata, ExternalResourceArtifactResolver artifactResolver);
     }
 }

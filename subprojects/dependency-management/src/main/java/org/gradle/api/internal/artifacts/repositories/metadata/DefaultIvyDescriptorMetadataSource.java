@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -26,7 +26,7 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 import javax.inject.Inject;
 
-public class DefaultIvyDescriptorMetadataSource extends AbstractRepositoryMetadataSource<MutableIvyModuleResolveMetadata> implements IvyDescriptorMetadataSource {
+public class DefaultIvyDescriptorMetadataSource extends AbstractRepositoryMetadataSource<MutableIvyModuleResolveMetadata> {
 
     private final MetaDataParser<MutableIvyModuleResolveMetadata> metaDataParser;
 

@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 
-/**
- * An immutable, usable representation of metadata sources.
- */
-public interface ImmutableMetadataSources {
-    ImmutableList<MetadataSource<?>> sources();
+public class MavenMetadataArtifactProvider implements MetadataArtifactProvider {
+    public static final MavenMetadataArtifactProvider INSTANCE = new MavenMetadataArtifactProvider();
 
-    void appendId(BuildCacheHasher hasher);
+    @Override
+    public IvyArtifactName getMetaDataArtifactName(String moduleName) {
+        return new DefaultIvyArtifactName(moduleName, "pom", "pom");
+    }
 }

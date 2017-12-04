@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.ExperimentalFeatures;
@@ -29,19 +28,22 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultGradleModuleMetadataSource;
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultImmutableMetadataSources;
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource;
+import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArtifactProvider;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -55,7 +57,7 @@ import java.util.Set;
 public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private static final DefaultMavenPomMetadataSource.MavenMetadataValidator NO_OP_VALIDATION_SERVICES = new DefaultMavenPomMetadataSource.MavenMetadataValidator() {
         @Override
-        public boolean validate(String repoName, MutableMavenModuleResolveMetadata metadata, ExternalResourceArtifactResolver artifactResolver) {
+        public boolean isUsableModule(String repoName, MutableMavenModuleResolveMetadata metadata, ExternalResourceArtifactResolver artifactResolver) {
             return true;
         }
     };
@@ -236,19 +238,4 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         }
     }
 
-    public static class MavenMetadataArtifactProvider implements MetadataArtifactProvider {
-        protected static final MavenMetadataArtifactProvider INSTANCE = new MavenMetadataArtifactProvider();
-
-        @Override
-        public ModuleDescriptorArtifactMetadata getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
-            IvyArtifactName ivyArtifactName = getMetaDataArtifactName(moduleComponentIdentifier.getModule());
-            DefaultModuleComponentArtifactMetadata defaultModuleComponentArtifactMetadata = new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, ivyArtifactName);
-            return new DefaultModuleDescriptorArtifactMetadata(defaultModuleComponentArtifactMetadata);
-        }
-
-        @Override
-        public IvyArtifactName getMetaDataArtifactName(String moduleName) {
-            return new DefaultIvyArtifactName(moduleName, "pom", "pom");
-        }
-    }
 }

@@ -13,28 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 
-class DefaultImmutableMetadataSources implements ImmutableMetadataSources {
-    private final ImmutableList<MetadataSource<?>> sources;
-
-    DefaultImmutableMetadataSources(Iterable<MetadataSource<?>> sources) {
-        this.sources = ImmutableList.copyOf(sources);
-    }
-
-    @Override
-    public ImmutableList<MetadataSource<?>> sources() {
-        return sources;
-    }
-
+abstract class AbstractMetadataSource<S extends MutableModuleComponentResolveMetadata> implements MetadataSource<S> {
     @Override
     public void appendId(BuildCacheHasher hasher) {
-        hasher.putInt(sources.size());
-        for (MetadataSource<?> source : sources) {
-            source.appendId(hasher);
-        }
+        hasher.putString(this.getClass().getName());
     }
 }

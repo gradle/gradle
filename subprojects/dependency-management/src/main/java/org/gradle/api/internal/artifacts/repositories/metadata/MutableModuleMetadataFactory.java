@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 
 /**
- * Sources module metadata from Maven POM files.
- *
- * @since 4.5
+ * A factory for creating instances of `MutableComponentResolveMetadata` for different repository formats.
  */
-@Incubating
-@HasInternalProtocol
-public interface MavenPomMetadataSource {
+public interface MutableModuleMetadataFactory<S extends MutableModuleComponentResolveMetadata> {
+    S create(ModuleComponentIdentifier from);
+
+    S missing(ModuleComponentIdentifier from);
 }

@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
-import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
+import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister

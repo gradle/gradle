@@ -28,9 +28,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources;
-import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider;
-import org.gradle.api.internal.artifacts.repositories.MetadataSource;
+import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -48,6 +48,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSource;
@@ -225,7 +226,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private ModuleDescriptorArtifactMetadata getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
-        return metadataArtifactProvider.getMetaDataArtifactFor(moduleComponentIdentifier);
+        IvyArtifactName ivyArtifactName = metadataArtifactProvider.getMetaDataArtifactName(moduleComponentIdentifier.getModule());
+        return new DefaultModuleDescriptorArtifactMetadata(moduleComponentIdentifier, ivyArtifactName);
     }
 
     protected ExternalResourceArtifactResolver createArtifactResolver() {

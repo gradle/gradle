@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
-import org.gradle.api.internal.artifacts.repositories.DefaultMavenPomMetadataSource
-import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
-import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArtifactProvider
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource
+import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.internal.component.external.model.ComponentVariant
 import org.gradle.internal.component.external.model.FixedComponentArtifacts
@@ -118,7 +118,7 @@ class MavenResolverTest extends Specification {
     }
 
     private MavenResolver resolver(boolean useGradleMetadata = false, boolean alwaysProvidesMetadataForModules = false) {
-        MetadataArtifactProvider metadataArtifactProvider = new DefaultMavenArtifactRepository.MavenMetadataArtifactProvider()
+        MetadataArtifactProvider metadataArtifactProvider = new MavenMetadataArtifactProvider()
         def fileResourceRepository = Stub(FileResourceRepository)
         def moduleIdentifierFactory = Stub(ImmutableModuleIdentifierFactory)
         ImmutableMetadataSources metadataSources = Stub() {

@@ -19,11 +19,11 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.repositories.DefaultArtifactMetadataSource
-import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
-import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
-import org.gradle.api.internal.artifacts.repositories.MetadataSource
-import org.gradle.api.internal.artifacts.repositories.MutableModuleMetadataFactory
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource
+import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource
+import org.gradle.api.internal.artifacts.repositories.metadata.MutableModuleMetadataFactory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata

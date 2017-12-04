@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 
-public abstract class AbstractMetadataSource<S extends MutableModuleComponentResolveMetadata> implements MetadataSource<S> {
+public class IvyMetadataArtifactProvider implements MetadataArtifactProvider {
+
+    public static final MetadataArtifactProvider INSTANCE = new IvyMetadataArtifactProvider();
+
     @Override
-    public void appendId(BuildCacheHasher hasher) {
-        hasher.putString(this.getClass().getName());
+    public IvyArtifactName getMetaDataArtifactName(String module) {
+        return new DefaultIvyArtifactName("ivy", "ivy", "xml");
     }
 }

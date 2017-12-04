@@ -23,6 +23,8 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -91,7 +93,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
      */
     private static class MavenLocalMetadataValidator implements DefaultMavenPomMetadataSource.MavenMetadataValidator {
         @Override
-        public boolean validate(String repoName, MutableMavenModuleResolveMetadata metaData, ExternalResourceArtifactResolver artifactResolver) {
+        public boolean isUsableModule(String repoName, MutableMavenModuleResolveMetadata metaData, ExternalResourceArtifactResolver artifactResolver) {
 
             if (metaData.isPomPackaging()) {
                 return true;

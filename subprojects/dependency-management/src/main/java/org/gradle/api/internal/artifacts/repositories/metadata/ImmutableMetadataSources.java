@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import com.google.common.collect.ImmutableList;
+import org.gradle.caching.internal.BuildCacheHasher;
 
 /**
- * Sources module metadata from the presence of a jar in a repository.
- *
- * @since 4.5
+ * An immutable, usable representation of metadata sources.
  */
-@Incubating
-@HasInternalProtocol
-public interface ArtifactMetadataSource {
+public interface ImmutableMetadataSources {
+    ImmutableList<MetadataSource<?>> sources();
+
+    void appendId(BuildCacheHasher hasher);
 }

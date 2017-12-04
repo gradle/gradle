@@ -30,6 +30,14 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleD
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultGradleModuleMetadataSource;
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultImmutableMetadataSources;
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultIvyDescriptorMetadataSource;
+import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMetadataArtifactProvider;
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -123,7 +131,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
         }
 
-        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createTransport("file", getName(), Collections.<Authentication>emptyList()), locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, createMetadataSources(), DefaultIvyArtifactRepository.IvyMetadataArtifactProvider.INSTANCE);
+        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createTransport("file", getName(), Collections.<Authentication>emptyList()), locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE);
         for (File root : dirs) {
             resolver.addArtifactLocation(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactLocation(root.toURI(), "/[artifact](-[classifier]).[ext]");
@@ -138,7 +146,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         if (experimentalFeatures.isEnabled()) {
             sources.add(new DefaultGradleModuleMetadataSource(moduleMetadataParser, metadataFactory));
         }
-        sources.add(new DefaultIvyDescriptorMetadataSource(DefaultIvyArtifactRepository.IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, moduleIdentifierFactory));
+        sources.add(new DefaultIvyDescriptorMetadataSource(IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, moduleIdentifierFactory));
         if (!experimentalFeatures.isEnabled()) {
             sources.add(new DefaultArtifactMetadataSource(metadataFactory));
         }
