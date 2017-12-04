@@ -26,6 +26,8 @@ import spock.lang.Issue
 @RequiredFeatures([
     // this test is specific to Ivy
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy"),
+    // and explicitly tests cases where metadata is missing, which is no longer enabled when experimental features = on
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
 ]
 )
 @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -65,9 +67,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
                 expectVersionListing()
             }
             'org.test:projectA:1.0' {
-                expectGetMetadata()
-                expectHeadArtifact()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -100,8 +100,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
                 expectVersionListing()
             }
             'org.test:projectA:1.2' {
-                expectGetMetadata()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -129,8 +128,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
                 expectVersionListing()
             }
             'org.test:projectA:1.3' {
-                expectGetMetadata()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -158,9 +156,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
                 expectVersionListing()
             }
             'org.test:projectA:1.4' {
-                expectGetMetadata()
-                expectHeadArtifact()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -207,8 +203,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
-                expectHeadArtifact()
+                allowAll()
             }
         }
         runAndFail 'checkDeps', '--refresh-dependencies'
@@ -234,11 +229,10 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
-                expectHeadArtifact()
+                allowAll()
             }
             'org.test:projectA:1.3' {
-                expectGetMetadata()
+                allowAll()
             }
         }
         runAndFail 'checkDeps', '--refresh-dependencies'
@@ -270,15 +264,13 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
-                expectHeadArtifact()
+                allowAll()
             }
             'org.test:projectA:1.3' {
-                expectHeadMetadata()
+                allowAll()
             }
             'org.test:projectA:1.1' {
-                expectGetMetadata()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -304,15 +296,13 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
-                expectHeadArtifact()
+                allowAll()
             }
             'org.test:projectA:1.3' {
-                expectHeadMetadata()
+                allowAll()
             }
             'org.test:projectA:1.2' {
-                expectGetMetadata()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -339,23 +329,13 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
-                expectHeadArtifact()
+                allowAll()
             }
             'org.test:projectA:1.3' {
-                expectHeadMetadata()
-                withModule {
-                    // todo: handle this properly in ModuleVersionSpec test fixture
-                    getArtifact(name: 'ivy', ext: 'xml.sha1').allowGetOrHead()
-                    if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
-                        getArtifact(ext: 'module.sha1').allowGetOrHead()
-                    }
-                }
-                maybeGetMetadata()
+                allowAll()
             }
             'org.test:projectA:1.2' {
-                expectHeadMetadata()
-                expectHeadArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -401,8 +381,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
-                expectHeadArtifact()
+                allowAll()
             }
         }
         runAndFail 'checkDeps'
@@ -433,14 +412,13 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
-                expectHeadArtifact()
+                allowAll()
             }
             'org.test:projectA:1.3' {
-                expectGetMetadata()
+                allowAll()
             }
             'org.test:projectA:1.2' {
-                expectGetMetadata()
+                allowAll()
             }
         }
         runAndFail 'checkDeps', '--refresh-dependencies'
@@ -473,18 +451,16 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
-                expectHeadArtifact()
+                allowAll()
             }
             'org.test:projectA:1.3' {
-                expectHeadMetadata()
+                allowAll()
             }
             'org.test:projectA:1.2' {
-                expectHeadMetadata()
+                allowAll()
             }
             'org.test:projectA:1.1' {
-                expectGetMetadata()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -515,21 +491,19 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:2.0' {
-                expectGetMetadata()
-                expectHeadArtifact()
+                allowAll()
             }
             'org.test:projectA:1.3' {
-                expectHeadMetadata()
+                allowAll()
             }
             'org.test:projectA:1.2' {
-                expectHeadMetadata()
+                allowAll()
             }
             'org.test:projectA:1.1.1' {
-                expectGetMetadata()
+                allowAll()
             }
             'org.test:projectA:1.1' {
-                expectHeadMetadata()
-                expectHeadArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -780,9 +754,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:1.2' {
-                expectGetMetadata()
-                expectHeadArtifact()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -804,8 +776,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:1.2.1' {
-                expectGetMetadata()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -827,8 +798,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:1.2.9' {
-                expectGetMetadata()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -850,8 +820,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:1.2.10' {
-                expectGetMetadata()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -904,9 +873,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:1.2' {
-                expectGetMetadata()
-                expectHeadArtifact()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -928,8 +895,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:1.2.1' {
-                expectGetMetadata()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -951,8 +917,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:1.3' {
-                expectGetMetadata()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -978,9 +943,7 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:1.4' {
-                expectGetMetadata()
-                expectHeadArtifact()
-                expectGetArtifact()
+                allowAll()
             }
         }
         run 'checkDeps', '--refresh-dependencies'
@@ -1021,8 +984,7 @@ dependencies {
                 expectVersionListing()
             }
             'org.test:projectA:1.1' {
-                expectGetMetadata()
-                expectGetArtifact()
+                allowAll()
             }
             if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
                 // todo: is single version in range something we want to allow in Gradle metadata?
@@ -1031,8 +993,7 @@ dependencies {
                 }
             }
             'org.test:projectB:2.0' {
-                expectGetMetadata()
-                expectGetArtifact()
+                allowAll()
             }
         }
         succeeds 'checkDeps'

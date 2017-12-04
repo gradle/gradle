@@ -19,10 +19,16 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
+import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
+import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -30,9 +36,12 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.service.DefaultServiceRegistry;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -40,6 +49,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.repositories.DefaultMetadataSources.ivyDefaults;
 
 public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private final FileResolver fileResolver;
@@ -51,13 +62,17 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final FileResourceRepository fileResourceRepository;
     private final ModuleMetadataParser moduleMetadataParser;
+    private final InstantiatorFactory instantiatorFactory;
+    private final ExperimentalFeatures experimentalFeatures;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
                                             LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                             FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, IvyContextManager ivyContextManager,
                                             ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileResourceRepository fileResourceRepository,
-                                            ModuleMetadataParser moduleMetadataParser) {
+                                            ModuleMetadataParser moduleMetadataParser, InstantiatorFactory instantiatorFactory,
+                                            ExperimentalFeatures experimentalFeatures) {
+        super(ivyDefaults(experimentalFeatures));
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
@@ -66,6 +81,8 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.fileResourceRepository = fileResourceRepository;
         this.moduleMetadataParser = moduleMetadataParser;
+        this.instantiatorFactory = instantiatorFactory;
+        this.experimentalFeatures = experimentalFeatures;
     }
 
     @Override
@@ -111,7 +128,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
         }
 
-        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createTransport("file", getName(), Collections.<Authentication>emptyList()), locallyAvailableResourceFinder, false, artifactFileStore, ivyContextManager, moduleIdentifierFactory, null, fileResourceRepository, moduleMetadataParser, false);
+        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createTransport("file", getName(), Collections.<Authentication>emptyList()), locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, getMetadataSources().asImmutable(createInjectorForMetadataSources()), DefaultIvyArtifactRepository.IvyMetadataArtifactProvider.INSTANCE);
         for (File root : dirs) {
             resolver.addArtifactLocation(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactLocation(root.toURI(), "/[artifact](-[classifier]).[ext]");
@@ -119,4 +136,39 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         return resolver;
     }
 
+    private Instantiator createInjectorForMetadataSources() {
+        DefaultServiceRegistry registry = new DefaultServiceRegistry();
+        registry.addProvider(new MetadataSourcesServices());
+        return instantiatorFactory.inject(registry);
+    }
+
+    private class MetadataSourcesServices {
+        MetaDataParser<MutableIvyModuleResolveMetadata> createParser() {
+            return new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository));
+        }
+
+        MetadataArtifactProvider createMetadataArtifactProvider() {
+            return DefaultIvyArtifactRepository.IvyMetadataArtifactProvider.INSTANCE;
+        }
+
+        FileResourceRepository createFileResourceRepository() {
+            return fileResourceRepository;
+        }
+
+        ImmutableModuleIdentifierFactory createImmutableModuleIdentifierFactory() {
+            return moduleIdentifierFactory;
+        }
+
+        ExperimentalFeatures createExperimentalFeatures() {
+            return experimentalFeatures;
+        }
+
+        ModuleMetadataParser createModuleMetadataParser() {
+            return moduleMetadataParser;
+        }
+
+        MutableModuleMetadataFactory<MutableIvyModuleResolveMetadata> createMutableIvyModuleResolveMetadataMutableModuleMetadataFactory() {
+            return new IvyMutableModuleMetadataFactory(moduleIdentifierFactory);
+        }
+    }
 }

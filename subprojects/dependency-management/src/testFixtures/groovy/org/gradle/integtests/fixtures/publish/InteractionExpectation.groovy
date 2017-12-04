@@ -20,5 +20,6 @@ enum InteractionExpectation {
     GET,
     HEAD,
     MAYBE,
-    NONE
+    NONE,
+    GET_MISSING
 }

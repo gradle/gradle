@@ -20,16 +20,16 @@ import org.gradle.api.internal.ExperimentalFeatures
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
-import org.gradle.api.internal.artifacts.repositories.resolver.MavenLocalResolver
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultMavenLocalRepositoryTest extends Specification {
@@ -44,7 +44,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenLocalArtifactRepository(
-        resolver, transportFactory, locallyAvailableResourceFinder, DirectInstantiator.INSTANCE, artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, Mock(FileResourceRepository), new ExperimentalFeatures())
+        resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(), artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, Mock(FileResourceRepository), new ExperimentalFeatures())
     final ProgressLoggerFactory progressLoggerFactory = Mock()
 
     def "creates local repository"() {
@@ -62,7 +62,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
         def repo = repository.createRealResolver()
 
         then:
-        repo instanceof MavenLocalResolver
+        repo instanceof MavenResolver
         repo.root == uri
     }
 

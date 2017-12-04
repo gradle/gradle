@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.file.FileResolver;
@@ -37,10 +38,11 @@ public class DefaultDeployerFactory implements DeployerFactory {
     private final Conf2ScopeMappingContainer scopeMapping;
     private final MavenSettingsProvider mavenSettingsProvider;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
+    private final ExperimentalFeatures experimentalFeatures;
 
     public DefaultDeployerFactory(MavenFactory mavenFactory, Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver, MavenPomMetaInfoProvider pomMetaInfoProvider,
-                                  ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping, 
-                                  MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+                                  ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping,
+                                  MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator, ExperimentalFeatures experimentalFeatures) {
         this.mavenFactory = mavenFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.fileResolver = fileResolver;
@@ -49,6 +51,7 @@ public class DefaultDeployerFactory implements DeployerFactory {
         this.scopeMapping = scopeMapping;
         this.mavenSettingsProvider = mavenSettingsProvider;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
+        this.experimentalFeatures = experimentalFeatures;
     }
 
     public DefaultGroovyMavenDeployer createMavenDeployer() {
@@ -56,7 +59,7 @@ public class DefaultDeployerFactory implements DeployerFactory {
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
         return new DefaultGroovyMavenDeployer(pomFilterContainer, createArtifactPomContainer(
                 pomMetaInfoProvider, pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create(),
-                mavenSettingsProvider, mavenRepositoryLocator);
+                mavenSettingsProvider, mavenRepositoryLocator, experimentalFeatures);
     }
 
     public MavenResolver createMavenInstaller() {
@@ -64,7 +67,7 @@ public class DefaultDeployerFactory implements DeployerFactory {
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
         return new BaseMavenInstaller(pomFilterContainer, createArtifactPomContainer(pomMetaInfoProvider,
                 pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create(),
-                mavenSettingsProvider, mavenRepositoryLocator);
+                mavenSettingsProvider, mavenRepositoryLocator, experimentalFeatures);
     }
 
     private PomFilterContainer createPomFilterContainer(Factory<MavenPom> mavenPomFactory) {

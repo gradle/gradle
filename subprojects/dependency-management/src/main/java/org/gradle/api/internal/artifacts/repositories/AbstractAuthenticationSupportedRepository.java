@@ -29,7 +29,8 @@ import java.util.Collection;
 public abstract class AbstractAuthenticationSupportedRepository extends AbstractArtifactRepository implements AuthenticationSupportedInternal {
     private final AuthenticationSupporter delegate;
 
-    AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
+    AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, MetadataSourcesInternal metadataSources) {
+        super(metadataSources);
         this.delegate = new AuthenticationSupporter(instantiator, authenticationContainer);
     }
 

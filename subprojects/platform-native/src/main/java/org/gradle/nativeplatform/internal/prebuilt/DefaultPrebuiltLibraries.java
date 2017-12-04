@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.internal.prebuilt;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.repositories.MetadataSources;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -43,6 +44,11 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
     @Override
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public void metadataSources(Action<? super MetadataSources> configureAction) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

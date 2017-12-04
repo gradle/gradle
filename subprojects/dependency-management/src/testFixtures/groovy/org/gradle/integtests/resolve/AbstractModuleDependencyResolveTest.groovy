@@ -61,33 +61,33 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
     String metadataURI(String group, String module, String version) {
         if (GradleMetadataResolveRunner.useIvy()) {
             def httpModule = ivyHttpRepo.module(group, module, version)
+            if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                return httpModule.moduleMetadata.uri
+            }
             return httpModule.ivy.uri
         } else {
             def httpModule = mavenHttpRepo.module(group, module, version)
+            if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                return httpModule.moduleMetadata.uri
+            }
             return httpModule.pom.uri
         }
     }
 
-    String triedMetadata(String group, String module, String version, boolean includeJar = false) {
-        def uris = []
-        if (GradleMetadataResolveRunner.useIvy()) {
-            def httpModule = ivyHttpRepo.module(group, module, version)
-            uris << httpModule.ivy.uri
-            if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
-                uris << httpModule.moduleMetadata.uri
-            }
-            if (includeJar) {
-                uris << httpModule.artifact.uri
-            }
-        } else {
-            def httpModule = mavenHttpRepo.module(group, module, version)
-            uris << httpModule.pom.uri
-            if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
-                uris << httpModule.moduleMetadata.uri
-            }
-            if (includeJar) {
-                uris << httpModule.artifact.uri
-            }
+    String triedMetadata(String group, String module, String version, boolean fallbackToArtifact = false, boolean stopFirst = false) {
+        Set uris = []
+        def repo = GradleMetadataResolveRunner.useIvy() ? ivyHttpRepo : mavenHttpRepo
+        def desc = GradleMetadataResolveRunner.useIvy() ? 'ivy' : 'pom'
+        def resolve = repo.module(group, module, version)
+        if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+            uris << resolve.moduleMetadata.uri
+        }
+        uris << resolve."$desc".uri
+        if (fallbackToArtifact) {
+            uris << resolve.artifact.uri
+        }
+        if (stopFirst) {
+            uris = [uris[0]]
         }
         uris.collect { "    $it" }.join('\n')
     }

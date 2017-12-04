@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
+import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -40,17 +41,19 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.MutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.repositories.DefaultMetadataSources.mavenDefaults;
 
 abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, ModuleVersionPublisher, ResolutionAwareRepository, PublicationAwareRepository {
 
@@ -66,7 +69,9 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
     public AbstractMavenResolver(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer,
-                                 LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+                                 LoggingManagerInternal loggingManager, MavenSettingsProvider mavenSettingsProvider,
+                                 LocalMavenRepositoryLocator mavenRepositoryLocator, ExperimentalFeatures experimentalFeatures) {
+        super(mavenDefaults(experimentalFeatures));
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
         this.loggingManager = loggingManager;
