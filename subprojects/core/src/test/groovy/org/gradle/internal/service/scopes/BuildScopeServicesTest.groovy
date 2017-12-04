@@ -118,7 +118,6 @@ class BuildScopeServicesTest extends Specification {
         sessionServices.get(ListenerManager) >> parentListenerManager
         parentListenerManager.createChild() >> listenerManager
         sessionServices.getAll(_) >> []
-        sessionServices.hasService(_) >> true
 
         registry = new BuildScopeServices(sessionServices)
     }

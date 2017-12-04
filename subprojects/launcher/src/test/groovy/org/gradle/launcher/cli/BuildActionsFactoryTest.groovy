@@ -72,7 +72,6 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.get(FileSystem) >> Mock(FileSystem)
         _ * loggingServices.getFactory(LoggingManagerInternal) >> Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
         _ * loggingServices.getAll(PluginServiceRegistry) >> []
-        _ * loggingServices.hasService(_) >> true
         _ * loggingServices.getAll(_) >> []
     }
 

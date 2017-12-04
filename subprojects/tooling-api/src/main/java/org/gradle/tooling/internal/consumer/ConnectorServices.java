@@ -32,20 +32,22 @@ import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementa
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 
 public class ConnectorServices {
-    private static DefaultServiceRegistry singletonRegistry = new ConnectorServiceRegistry();
+    private static DefaultServiceRegistry singletonRegistry;
+
+    static {
+        checkJavaVersion();
+        singletonRegistry = new ConnectorServiceRegistry();
+    }
 
     public static DefaultGradleConnector createConnector() {
-        checkJavaVersion();
         return singletonRegistry.getFactory(DefaultGradleConnector.class).create();
     }
 
     public static CancellationTokenSource createCancellationTokenSource() {
-        checkJavaVersion();
         return new DefaultCancellationTokenSource();
     }
 
     public static void close() {
-        checkJavaVersion();
         singletonRegistry.close();
     }
 
