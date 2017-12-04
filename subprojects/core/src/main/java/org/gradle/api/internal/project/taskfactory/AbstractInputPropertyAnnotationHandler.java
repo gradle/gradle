@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
+import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -33,7 +33,7 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
     }
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, TaskInputsInternal inputs) {
+    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
         PathSensitive pathSensitive = propertyInfo.getAnnotation(PathSensitive.class);
         final PathSensitivity pathSensitivity;
         if (pathSensitive == null) {
@@ -45,7 +45,7 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
         } else {
             pathSensitivity = pathSensitive.value();
         }
-        DeclaredTaskInputFileProperty fileSpec = createFileSpec(propertyInfo, inputs);
+        DeclaredTaskInputFileProperty fileSpec = createFileSpec(propertyInfo, specFactory);
         fileSpec
             .withPropertyName(propertyInfo.getName()).optional(propertyInfo.isOptional())
             .withPathSensitivity(pathSensitivity)
@@ -54,7 +54,7 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
         visitor.visitInputFileProperty(fileSpec);
     }
 
-    protected abstract DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, TaskInputsInternal inputs);
+    protected abstract DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, PropertySpecFactory specFactory);
 
     protected static File toFile(TaskValidationContext context, Object value) {
         return context.getResolver().resolve(value);

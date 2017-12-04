@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
 import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
+import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.tasks.Input;
 
 import java.lang.annotation.Annotation;
@@ -33,8 +33,8 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
     }
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, TaskInputsInternal inputs) {
-        DefaultTaskInputPropertySpec declaration = inputs.createInputPropertySpec(propertyInfo.getName(), propertyInfo);
+    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
+        DefaultTaskInputPropertySpec declaration = specFactory.createInputPropertySpec(propertyInfo.getName(), propertyInfo);
         declaration.optional(propertyInfo.isOptional());
         visitor.visitInputProperty(declaration);
 //        FIXME wolfs

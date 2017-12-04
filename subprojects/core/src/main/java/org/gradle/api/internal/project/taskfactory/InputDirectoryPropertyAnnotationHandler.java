@@ -16,9 +16,9 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.PropertyInfo;
+import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.tasks.InputDirectory;
@@ -32,8 +32,8 @@ public class InputDirectoryPropertyAnnotationHandler extends AbstractInputProper
     }
 
     @Override
-    protected DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, TaskInputsInternal inputs) {
-        return inputs.createDirSpec(propertyInfo, INPUT_DIRECTORY_VALIDATOR);
+    protected DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, PropertySpecFactory specFactory) {
+        return specFactory.createDirSpec(propertyInfo, INPUT_DIRECTORY_VALIDATOR);
     }
 
     public static final ValidationAction INPUT_DIRECTORY_VALIDATOR = new ValidationAction() {

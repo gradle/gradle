@@ -43,23 +43,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertyHasName;
+import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 @NonNullApi
 public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileCollection allInputFiles;
     private final FileCollection allSourceFiles;
-    private final FileResolver resolver;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
     private final TaskPropertiesWalker propertiesWalker;
     private final List<DeclaredTaskInputProperty> runtimeProperties = Lists.newArrayList();
     private final List<DeclaredTaskInputFileProperty> runtimeFileProperties = Lists.newArrayList();
     private final TaskInputs deprecatedThis;
+    private final DefaultPropertySpecFactory specFactory;
 
     public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, TaskPropertiesWalker propertiesWalker) {
-        this.resolver = resolver;
         this.task = task;
         this.taskMutator = taskMutator;
         this.propertiesWalker = propertiesWalker;
@@ -67,6 +66,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, this);
         this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, this);
         this.deprecatedThis = new LenientTaskInputsDeprecationSupport(this);
+        this.specFactory = new DefaultPropertySpecFactory(task, resolver);
     }
 
     @Override
@@ -78,7 +78,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public void accept(InputsOutputVisitor visitor) {
-        propertiesWalker.visitInputs(task, visitor);
+        propertiesWalker.visitInputs(specFactory, visitor, task);
+        ensurePropertiesHaveNames(runtimeFileProperties);
         for (DeclaredTaskInputFileProperty fileProperty : runtimeFileProperties) {
             visitor.visitInputFileProperty(fileProperty);
         }
@@ -105,7 +106,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(unpackVarargs(paths));
-                DeclaredTaskInputFileProperty fileSpec = createFileSpec(value, ValidationAction.NO_OP);
+                DeclaredTaskInputFileProperty fileSpec = specFactory.createFileSpec(value, ValidationAction.NO_OP);
                 runtimeFileProperties.add(fileSpec);
                 return fileSpec;
             }
@@ -125,7 +126,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(path);
-                DeclaredTaskInputFileProperty fileSpec = createFileSpec(value, RUNTIME_INPUT_FILE_VALIDATOR);
+                DeclaredTaskInputFileProperty fileSpec = specFactory.createFileSpec(value, RUNTIME_INPUT_FILE_VALIDATOR);
                 runtimeFileProperties.add(fileSpec);
                 return fileSpec;
             }
@@ -138,17 +139,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(dirPath);
-                DeclaredTaskInputFileProperty dirSpec = createDirSpec(value, RUNTIME_INPUT_DIRECTORY_VALIDATOR);
+                DeclaredTaskInputFileProperty dirSpec = specFactory.createDirSpec(value, RUNTIME_INPUT_DIRECTORY_VALIDATOR);
                 runtimeFileProperties.add(dirSpec);
                 return dirSpec;
             }
         });
-    }
-
-    @Override
-    public DeclaredTaskInputFileProperty createDirSpec(ValidatingValue dirPath, ValidationAction validator) {
-        FileTreeInternal fileTree = resolver.resolveFilesAsTree(dirPath);
-        return createFileSpec(new FileTreeValue(dirPath, fileTree), validator);
     }
 
     @Override
@@ -166,11 +161,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     @Override
     public void validate(final TaskValidationContext context) {
         accept(new InputsOutputVisitor.Adapter() {
-            int unnamedPropertyCounter = 0;
-
             @Override
             public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
-                ensurePropertyHasName(unnamedPropertyCounter, inputFileProperty);
                 inputFileProperty.validate(context);
             }
 
@@ -179,11 +171,6 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 inputProperty.validate(context);
             }
         });
-    }
-
-    @Override
-    public DeclaredTaskInputFileProperty createFileSpec(ValidatingValue paths, ValidationAction validationAction) {
-        return new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
     }
 
     public Map<String, Object> getProperties() {
@@ -218,7 +205,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputPropertyBuilder call() {
                 StaticValue staticValue = new StaticValue(value);
-                DefaultTaskInputPropertySpec inputPropertySpec = createInputPropertySpec(name, staticValue);
+                DefaultTaskInputPropertySpec inputPropertySpec = specFactory.createInputPropertySpec(name, staticValue);
                 runtimeProperties.add(inputPropertySpec);
                 return inputPropertySpec;
             }
@@ -233,16 +220,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 for (Map.Entry<String, ?> entry : newProps.entrySet()) {
                     StaticValue staticValue = new StaticValue(entry.getValue());
                     String name = entry.getKey();
-                    runtimeProperties.add(createInputPropertySpec(name, staticValue));
+                    runtimeProperties.add(specFactory.createInputPropertySpec(name, staticValue));
                 }
             }
         });
         return deprecatedThis;
-    }
-
-    @Override
-    public DefaultTaskInputPropertySpec createInputPropertySpec(String name, ValidatingValue value) {
-        return new DefaultTaskInputPropertySpec(this, name, value);
     }
 
     private static class TaskInputUnionFileCollection extends CompositeFileCollection implements Describable {
@@ -335,12 +317,10 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     private static class FilePropertiesVisitor extends InputsOutputVisitor.Adapter {
         ImmutableSortedSet.Builder<TaskInputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
-        int unnamedPropertyCounter = 0;
         Set<String> names = Sets.newHashSet();
 
         @Override
         public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
-            unnamedPropertyCounter = ensurePropertyHasName(unnamedPropertyCounter, inputFileProperty);
             String propertyName = inputFileProperty.getPropertyName();
             if (!names.add(propertyName)) {
                 throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", "input", propertyName));

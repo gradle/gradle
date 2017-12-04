@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
@@ -34,7 +35,7 @@ class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
         def task = project.tasks.create("myTask", MyTask)
 
         when:
-        new TaskPropertiesWalker([]).visitInputs(task, visitor)
+        visitInputs(task)
 
         then:
         1 * visitor.visitInputProperty({ it.propertyName == 'myProperty' && it.value == 'myValue' })
@@ -52,10 +53,15 @@ class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
         task.bean = null
 
         when:
-        new TaskPropertiesWalker([]).visitInputs(task, visitor)
+        visitInputs(task)
 
         then:
         1 * visitor.visitInputProperty({ it.propertyName == 'bean.class' && it.value == null })
+    }
+
+    private visitInputs(MyTask task) {
+        def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
+        new TaskPropertiesWalker([]).visitInputs(specFactory, visitor, task)
     }
 
     static class MyTask extends DefaultTask {

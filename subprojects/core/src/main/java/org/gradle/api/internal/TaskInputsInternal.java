@@ -17,25 +17,15 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
 import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.tasks.TaskInputs;
 
 public interface TaskInputsInternal extends TaskInputs {
     void accept(InputsOutputVisitor visitor);
 
     ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
-
-    DeclaredTaskInputFileProperty createFileSpec(ValidatingValue paths, ValidationAction validationAction);
-
-    DeclaredTaskInputFileProperty createDirSpec(ValidatingValue dirPath, ValidationAction validator);
-
-    DefaultTaskInputPropertySpec createInputPropertySpec(String name, ValidatingValue value);
 
     void validate(TaskValidationContext context);
 }

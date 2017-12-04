@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
+import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.ClasspathNormalizer;
@@ -50,8 +50,8 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
     }
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, TaskInputsInternal inputs) {
-        DeclaredTaskInputFileProperty fileSpec = inputs.createFileSpec(propertyInfo, ValidationAction.NO_OP);
+    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
+        DeclaredTaskInputFileProperty fileSpec = specFactory.createFileSpec(propertyInfo, ValidationAction.NO_OP);
         fileSpec
             .withPropertyName(propertyInfo.getName())
             .withNormalizer(ClasspathNormalizer.class)

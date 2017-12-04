@@ -33,8 +33,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.TaskInputsInternal;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.InputFilePropertyAnnotationHandler;
@@ -143,17 +141,16 @@ public class TaskPropertiesWalker {
             .build();
     }
 
-    public void visitInputs(TaskInternal instance, InputsOutputVisitor visitor) {
-        TaskInputsInternal inputs = instance.getInputs();
+    public void visitInputs(PropertySpecFactory specFactory, InputsOutputVisitor visitor, Object instance) {
         Queue<PropertyContainer> queue = new ArrayDeque<PropertyContainer>();
         queue.add(new PropertyContainer(null, instance));
         while (!queue.isEmpty()) {
             PropertyContainer container = queue.remove();
-            detectProperties(container, container.getInstance().getClass(), queue, visitor, inputs);
+            detectProperties(container, container.getInstance().getClass(), queue, visitor, specFactory);
         }
     }
 
-    private <T> void detectProperties(PropertyContainer container, Class<T> type, Queue<PropertyContainer> queue, InputsOutputVisitor visitor, TaskInputsInternal inputs) {
+    private <T> void detectProperties(PropertyContainer container, Class<T> type, Queue<PropertyContainer> queue, InputsOutputVisitor visitor, PropertySpecFactory inputs) {
         final Set<Class<? extends Annotation>> propertyTypeAnnotations = annotationHandlers.keySet();
         final Map<String, DefaultPropertyContext> propertyContexts = Maps.newLinkedHashMap();
         Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {

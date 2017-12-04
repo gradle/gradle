@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
 import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
+import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
@@ -39,8 +39,8 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     @Override
-    public void accept(final PropertyInfo propertyInfo, InputsOutputVisitor visitor, TaskInputsInternal inputs) {
-        DefaultTaskInputPropertySpec propertySpec = inputs.createInputPropertySpec(propertyInfo.getName() + ".class", new NestedPropertyValue(propertyInfo));
+    public void accept(final PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
+        DefaultTaskInputPropertySpec propertySpec = specFactory.createInputPropertySpec(propertyInfo.getName() + ".class", new NestedPropertyValue(propertyInfo));
         propertySpec.optional(propertyInfo.isOptional());
         visitor.visitInputProperty(propertySpec);
     }
