@@ -28,6 +28,8 @@ import org.gradle.api.tasks.Nested;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
+import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
+
 public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
@@ -51,17 +53,20 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
         @Nullable
         @Override
         public Object call() {
-            try {
-                Object value = propertyInfo.getValue();
-                return value == null ? null : value.getClass().getName();
-            } catch (Exception e) {
-                return null;
-            }
+            Object value = propertyInfo.getValue();
+            return value == null ? null : value.getClass().getName();
         }
 
         @Override
         public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+            Object value = propertyInfo.getValue();
+            if (value == null) {
+                if (!optional) {
+                    context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", propertyName));
+                }
+            } else {
+                valueValidator.validate(propertyName, value, context, ERROR);
+            }
         }
-
     }
 }
