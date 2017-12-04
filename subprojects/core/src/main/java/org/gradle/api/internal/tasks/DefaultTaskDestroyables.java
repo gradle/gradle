@@ -24,7 +24,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.util.DeprecationLogger;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 @NonNullApi
@@ -32,12 +34,16 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
     private final FileResolver resolver;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
+    private final TaskPropertiesWalker propertiesWalker;
+    private final PropertySpecFactory specFactory;
     private final List<Object> paths = Lists.newArrayList();
 
-    public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
+    public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, TaskPropertiesWalker propertiesWalker, PropertySpecFactory specFactory) {
         this.resolver = resolver;
         this.task = task;
         this.taskMutator = taskMutator;
+        this.propertiesWalker = propertiesWalker;
+        this.specFactory = specFactory;
     }
 
     @Override
@@ -72,8 +78,36 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
         });
     }
 
+    public void accept(InputsOutputVisitor visitor) {
+        propertiesWalker.visitInputs(specFactory, visitor, task);
+        for (Object path : paths) {
+            visitor.visitDestroyable(path);
+        }
+    }
+
     @Override
     public FileCollection getFiles() {
-        return new DefaultConfigurableFileCollection(task + " destroy files", resolver, null, paths);
+        Iterable<Object> objects = new Iterable<Object>() {
+            @Override
+            public Iterator<Object> iterator() {
+                GetFilesVisitor visitor = new GetFilesVisitor();
+                accept(visitor);
+                return visitor.getDestroyables().iterator();
+            }
+        };
+        return new DefaultConfigurableFileCollection(task + " destroy files", resolver, null, objects);
+    }
+
+    private static class GetFilesVisitor extends InputsOutputVisitor.Adapter {
+        private List<Object> destroyables = new ArrayList<Object>();
+
+        @Override
+        public void visitDestroyable(Object path) {
+            destroyables.add(path);
+        }
+
+        public List<Object> getDestroyables() {
+            return destroyables;
+        }
     }
 }

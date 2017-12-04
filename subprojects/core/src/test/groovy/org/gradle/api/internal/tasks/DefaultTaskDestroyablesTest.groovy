@@ -43,7 +43,13 @@ class DefaultTaskDestroyablesTest extends Specification {
             }
         }
     }
-    TaskDestroyables taskDestroys = new DefaultTaskDestroyables(resolver, Mock(TaskInternal), taskMutator)
+    def task = Mock(TaskInternal) {
+        getName() >> "task"
+        toString() >> "task 'task'"
+    }
+
+    def specFactory = new DefaultPropertySpecFactory(task, resolver)
+    TaskDestroyables taskDestroys = new DefaultTaskDestroyables(resolver, task, taskMutator, new TaskPropertiesWalker([]), specFactory)
 
     def "empty destroys by default"() {
         expect:

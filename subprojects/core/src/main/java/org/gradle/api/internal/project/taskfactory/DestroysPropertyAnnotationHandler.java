@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.TaskPropertyValue;
 import org.gradle.api.tasks.Destroys;
 
 import java.lang.annotation.Annotation;
@@ -33,15 +31,10 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
 
     @Override
     public void attachActions(TaskPropertyActionContext context) {
-        context.setConfigureAction(new UpdateAction() {
-            @Override
-            public void update(TaskInternal task, TaskPropertyValue futureValue) {
-                task.getDestroyables().register(futureValue);
-            }
-        });
     }
 
     @Override
     public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
+        visitor.visitDestroyable(propertyInfo);
     }
 }

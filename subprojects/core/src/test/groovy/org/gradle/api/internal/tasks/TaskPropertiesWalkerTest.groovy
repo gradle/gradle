@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -49,6 +50,8 @@ class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
 
         1 * visitor.visitOutputFileProperty({ it.propertyName == 'outputFile' && it.value.value.path == 'output' })
         1 * visitor.visitOutputFileProperty({ it.propertyName == 'bean.outputDir' && it.value.value.path == 'outputDir' })
+
+        1 * visitor.visitDestroyable({ it.propertyName == 'destroyed' && it.value.path == 'destroyed' })
 
         0 * _
     }
@@ -85,6 +88,9 @@ class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
 
         @Nested
         Object bean = new NestedBean()
+
+        @Destroys
+        File destroyed = new File('destroyed')
 
     }
 

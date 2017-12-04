@@ -24,6 +24,8 @@ public interface InputsOutputVisitor {
 
     void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty);
 
+    void visitDestroyable(Object path);
+
     class Adapter implements InputsOutputVisitor {
 
         @Override
@@ -36,6 +38,10 @@ public interface InputsOutputVisitor {
 
         @Override
         public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
+        }
+
+        @Override
+        public void visitDestroyable(Object path) {
         }
     }
 
