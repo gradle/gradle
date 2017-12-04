@@ -126,7 +126,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
     private File populateWorkingDirectory(File baseWorkingDir, VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionRef selectedVersion) {
         String repositoryId = HashUtil.createCompactMD5(spec.getUniqueId());
-        File versionDirectory = new File(baseWorkingDir, repositoryId + "/" + selectedVersion.getCanonicalId());
+        File versionDirectory = new File(baseWorkingDir, repositoryId + "-" + selectedVersion.getCanonicalId());
         return versionControlSystem.populate(versionDirectory, selectedVersion, spec);
     }
 
