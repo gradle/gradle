@@ -223,6 +223,33 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         hash(snapshot) != hash(snapshot2)
     }
 
+    def "determines whether file exists when snapshot is cached"() {
+        def f = tmpDir.createFile("file")
+        def d = tmpDir.createDir("dir")
+        def m = tmpDir.file("missing")
+
+        given:
+        snapshotter.snapshotSelf(f)
+        snapshotter.snapshotSelf(d)
+        snapshotter.snapshotSelf(m)
+
+        expect:
+        snapshotter.exists(f)
+        snapshotter.exists(d)
+        !snapshotter.exists(m)
+    }
+
+    def "determines whether file exists when snapshot is not cached"() {
+        def f = tmpDir.createFile("file")
+        def d = tmpDir.createDir("dir")
+        def m = tmpDir.file("missing")
+
+        expect:
+        snapshotter.exists(f)
+        snapshotter.exists(d)
+        !snapshotter.exists(m)
+    }
+
     def hash(Snapshot snapshot) {
         def builder = new DefaultBuildCacheHasher()
         snapshot.appendToHasher(builder)
