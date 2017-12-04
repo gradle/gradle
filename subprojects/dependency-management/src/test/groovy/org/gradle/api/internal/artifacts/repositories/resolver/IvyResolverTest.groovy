@@ -15,9 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
+import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository
+import org.gradle.api.internal.artifacts.repositories.DefaultIvyDescriptorMetadataSource
+import org.gradle.api.internal.artifacts.repositories.ImmutableMetadataSources
+import org.gradle.api.internal.artifacts.repositories.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
@@ -70,19 +74,19 @@ class IvyResolverTest extends Specification {
         0 * _
 
         where:
-        moduleId                    | layoutPattern
-        newId("", "", "")     | IvyArtifactRepository.GRADLE_IVY_PATTERN
-        newId("", "", "")     | "[module]"
-        newId("group", "", "1")     | IvyArtifactRepository.GRADLE_IVY_PATTERN
-        newId("group", "", "1")     | "[module]"
-        newId("", "name", "1")      | IvyArtifactRepository.GRADLE_IVY_PATTERN
-        newId("", "name", "1")      | "[organisation]/[module]"
-        newId("group", "name", "")  | IvyArtifactRepository.GRADLE_IVY_PATTERN
-        newId("group", "name", "")  | "[module]-[revision]"
-        newId("", "name", "")       | "([branch])[organisation]/[module]-[revision]"
-        newId("", "name", "")       | "([organisation])/[module]-[revision]"
-        newId("", "name", "")       | "([branch])[organization]/[module]-[revision]"
-        newId("", "name", "")       | "([organization])/[module]-[revision]"
+        moduleId                   | layoutPattern
+        newId("", "", "")          | IvyArtifactRepository.GRADLE_IVY_PATTERN
+        newId("", "", "")          | "[module]"
+        newId("group", "", "1")    | IvyArtifactRepository.GRADLE_IVY_PATTERN
+        newId("group", "", "1")    | "[module]"
+        newId("", "name", "1")     | IvyArtifactRepository.GRADLE_IVY_PATTERN
+        newId("", "name", "1")     | "[organisation]/[module]"
+        newId("group", "name", "") | IvyArtifactRepository.GRADLE_IVY_PATTERN
+        newId("group", "name", "") | "[module]-[revision]"
+        newId("", "name", "")      | "([branch])[organisation]/[module]-[revision]"
+        newId("", "name", "")      | "([organisation])/[module]-[revision]"
+        newId("", "name", "")      | "([branch])[organization]/[module]-[revision]"
+        newId("", "name", "")      | "([organization])/[module]-[revision]"
     }
 
     @Unroll
@@ -128,11 +132,53 @@ class IvyResolverTest extends Specification {
         resolver1.id != resolver2.id
     }
 
-    private IvyResolver resolver(String ivyPattern = null, boolean useGradleMetadata = false) {
+    def "resolvers are differentiated by alwaysProvidesMetadataForModules flag"() {
+        given:
+        def resolver1 = resolver(null, false, false)
+        def resolver2 = resolver(null, false, true)
+
+        resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
+        resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))
+        resolver2.addIvyPattern(new IvyResourcePattern("ivy1"))
+        resolver2.addArtifactPattern(new IvyResourcePattern("artifact1"))
+
+        expect:
+        resolver1.id != resolver2.id
+    }
+
+    private IvyResolver resolver(String ivyPattern = null, boolean useGradleMetadata = false, boolean alwaysProvidesMetadataForModules = false) {
         def transport = Stub(RepositoryTransport)
         transport.resourceAccessor >> externalResourceAccessor
 
-        new IvyResolver("repo", transport, Stub(LocallyAvailableResourceFinder), false, Stub(FileStore), Stub(IvyContextManager), Stub(ImmutableModuleIdentifierFactory), null, Stub(FileResourceRepository), null, useGradleMetadata).with {
+        MetadataArtifactProvider metadataArtifactProvider = new DefaultIvyArtifactRepository.IvyMetadataArtifactProvider()
+        def fileResourceRepository = Stub(FileResourceRepository)
+        def moduleIdentifierFactory = Stub(ImmutableModuleIdentifierFactory)
+        ImmutableMetadataSources metadataSources = Stub() {
+            sources() >> {
+                ImmutableList.of(new DefaultIvyDescriptorMetadataSource(
+                    metadataArtifactProvider,
+                    null,
+                    fileResourceRepository,
+                    moduleIdentifierFactory
+                ))
+            }
+            appendId(_) >> { args ->
+                args[0].putBoolean(useGradleMetadata)
+                args[0].putBoolean(alwaysProvidesMetadataForModules)
+            }
+        }
+
+        new IvyResolver(
+            "repo",
+            transport,
+            Stub(LocallyAvailableResourceFinder),
+            false,
+            Stub(FileStore),
+            moduleIdentifierFactory,
+            Stub(org.gradle.internal.Factory)
+            ,
+            metadataSources,
+            metadataArtifactProvider).with {
             if (ivyPattern) {
                 it.addDescriptorLocation(URI.create(""), ivyPattern)
             }
