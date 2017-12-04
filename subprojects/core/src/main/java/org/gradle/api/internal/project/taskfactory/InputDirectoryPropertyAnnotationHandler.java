@@ -33,7 +33,7 @@ public class InputDirectoryPropertyAnnotationHandler extends AbstractInputProper
 
     @Override
     protected DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, PropertySpecFactory specFactory) {
-        return specFactory.createDirSpec(propertyInfo, INPUT_DIRECTORY_VALIDATOR);
+        return specFactory.createInputDirSpec(propertyInfo, INPUT_DIRECTORY_VALIDATOR);
     }
 
     public static final ValidationAction INPUT_DIRECTORY_VALIDATOR = new ValidationAction() {

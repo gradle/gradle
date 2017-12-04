@@ -33,12 +33,14 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.DefaultPropertySpecFactory;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.InputsAwareTaskDependency;
+import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -165,8 +167,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         FileResolver fileResolver = project.getFileResolver();
         TaskPropertiesWalker propertiesWalker = services.get(TaskPropertiesWalker.class);
         taskMutator = new TaskMutator(this);
-        taskInputs = new DefaultTaskInputs(fileResolver, this, taskMutator, propertiesWalker);
-        taskOutputs = new DefaultTaskOutputs(fileResolver, this, taskMutator);
+        PropertySpecFactory specFactory = new DefaultPropertySpecFactory(this, fileResolver);
+        taskInputs = new DefaultTaskInputs(this, taskMutator, propertiesWalker, specFactory);
+        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertiesWalker, specFactory);
         taskDestroyables = new DefaultTaskDestroyables(fileResolver, this, taskMutator);
         taskLocalState = new DefaultTaskLocalState(fileResolver, this, taskMutator);
 

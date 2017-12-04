@@ -16,29 +16,24 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.TaskPropertyValue;
-import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
 public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
     public void attachActions(final TaskPropertyActionContext context) {
-        context.setConfigureAction(new UpdateAction() {
-            @Override
-            public void update(TaskInternal task, final TaskPropertyValue futureValue) {
-                createPropertyBuilder(context, task, futureValue)
-                    .withPropertyName(context.getName())
-                    .optional(context.isOptional());
-            }
-        });
     }
 
-    protected abstract TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue);
+    protected abstract DeclaredTaskOutputFileProperty createFileSpec(PropertyInfo propertyInfo, PropertySpecFactory specFactory);
 
     @Override
     public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
+        DeclaredTaskOutputFileProperty fileSpec = createFileSpec(propertyInfo, specFactory);
+        fileSpec
+            .withPropertyName(propertyInfo.getName())
+            .optional(propertyInfo.isOptional());
+        visitor.visitOutputFileProperty(fileSpec);
     }
 }

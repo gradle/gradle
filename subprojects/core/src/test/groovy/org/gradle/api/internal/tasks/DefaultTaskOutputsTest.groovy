@@ -49,12 +49,13 @@ class DefaultTaskOutputsTest extends Specification {
         toString() >> "task 'task'"
         getProject() >> project
     }
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs([
-        resolve: {new File(it)},
+    def resolver = [
+        resolve: { new File(it) },
         resolveFiles: { it ->
             new SimpleFileCollection(it*.call().flatten().collect { new File((String) it) })
         }
-    ] as FileResolver, task, taskStatusNagger)
+    ]   as FileResolver
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new TaskPropertiesWalker([]), new DefaultPropertySpecFactory(task, resolver))
 
     void hasNoOutputsByDefault() {
         setup:

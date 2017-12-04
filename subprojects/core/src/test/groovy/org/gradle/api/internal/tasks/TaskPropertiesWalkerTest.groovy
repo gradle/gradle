@@ -25,6 +25,8 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
@@ -44,6 +46,9 @@ class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitInputProperty({ it.propertyName == 'bean.class' && it.value == NestedBean.name })
         1 * visitor.visitInputProperty({ it.propertyName == 'bean.nestedInput' && it.value == 'nested' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'bean.inputDir' })
+
+        1 * visitor.visitOutputFileProperty({ it.propertyName == 'outputFile' && it.value.value.path == 'output' })
+        1 * visitor.visitOutputFileProperty({ it.propertyName == 'bean.outputDir' && it.value.value.path == 'outputDir' })
 
         0 * _
     }
@@ -75,6 +80,9 @@ class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
         @InputFiles
         FileCollection inputFiles = new SimpleFileCollection([new File("files")])
 
+        @OutputFile
+        File outputFile = new File("output")
+
         @Nested
         Object bean = new NestedBean()
 
@@ -86,6 +94,9 @@ class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
 
         @InputDirectory
         File inputDir
+
+        @OutputDirectory
+        File outputDir = new File('outputDir')
     }
 
 }

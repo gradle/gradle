@@ -32,7 +32,7 @@ public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnn
 
     @Override
     protected DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, PropertySpecFactory specFactory) {
-        return specFactory.createFileSpec(propertyInfo, INPUT_FILE_VALIDATOR);
+        return specFactory.createInputFileSpec(propertyInfo, INPUT_FILE_VALIDATOR);
     }
 
     public static final ValidationAction INPUT_FILE_VALIDATOR = new ValidationAction() {

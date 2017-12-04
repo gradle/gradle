@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.TaskPropertyValue;
+import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
+import org.gradle.api.internal.tasks.PropertyInfo;
+import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.tasks.OutputDirectories;
-import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
 import java.lang.annotation.Annotation;
 
@@ -31,7 +31,7 @@ public class OutputDirectoriesPropertyAnnotationHandler extends AbstractOutputPr
     }
 
     @Override
-    protected TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, TaskPropertyValue futureValue) {
-        return task.getOutputs().dirs(futureValue);
+    protected DeclaredTaskOutputFileProperty createFileSpec(PropertyInfo propertyInfo, PropertySpecFactory specFactory) {
+        return specFactory.createOutputDirsSpec(propertyInfo);
     }
 }
