@@ -152,5 +152,10 @@ abstract class AbstractConflictResolverTest extends Specification {
         List<TestComponent> getUnattachedDependencies() {
             []
         }
+
+        @Override
+        boolean isFromPendingNode() {
+            false
+        }
     }
 }

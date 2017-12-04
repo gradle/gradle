@@ -154,4 +154,17 @@ class DefaultMutableVersionConstraintTest extends Specification {
         e.message == "The 'reject' clause requires at least one rejected version"
     }
 
+    def "calling rejectAll is equivalent to having empty preferred version and '+' reject"() {
+        given:
+        def version = new DefaultMutableVersionConstraint('1.0')
+        version.reject('1.1', '1.2')
+
+        when:
+        version.rejectAll()
+
+        then:
+        version.preferredVersion == ''
+        version.getRejectedVersions() == ['+']
+    }
+
 }

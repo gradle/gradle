@@ -217,6 +217,11 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
         return module.getUnattachedEdgesTo(this);
     }
 
+    @Override
+    public boolean isFromPendingNode() {
+        return selectedBy != null && selectedBy.getDependencyMetadata().isPending();
+    }
+
     boolean isSelected() {
         return state == ModuleState.Selected;
     }

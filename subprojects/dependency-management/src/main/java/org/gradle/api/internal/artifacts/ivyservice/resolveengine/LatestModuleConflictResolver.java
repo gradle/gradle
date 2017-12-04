@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
@@ -129,7 +130,13 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         pathTo(component, Lists.<ComponentStateWithDependents>newArrayList(), acc);
         List<String> result = Lists.newArrayListWithCapacity(acc.size());
         for (List<ComponentStateWithDependents> path : acc) {
-            StringBuilder sb = new StringBuilder("Dependency path ");
+            ComponentStateWithDependents target = Iterators.getLast(path.iterator());
+            StringBuilder sb = new StringBuilder();
+            if (target.isFromPendingNode()) {
+                sb.append("Constraint path ");
+            } else {
+                sb.append("Dependency path ");
+            }
             for (Iterator<ComponentStateWithDependents> iterator = path.iterator(); iterator.hasNext();) {
                 ComponentStateWithDependents e = iterator.next();
                 ModuleVersionIdentifier id = e.getId();
@@ -163,6 +170,9 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
     }
 
     private static String renderVersionConstraint(ResolvedVersionConstraint constraint) {
+        if (isRejectAll(constraint)) {
+            return "rejects all versions";
+        }
         VersionSelector preferredSelector = constraint.getPreferredSelector();
         VersionSelector rejectedSelector = constraint.getRejectedSelector();
         StringBuilder sb = new StringBuilder("prefers ");
@@ -190,5 +200,19 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
             }
         }
         return sb.toString();
+    }
+
+    private static boolean isRejectAll(ResolvedVersionConstraint constraint) {
+        return "".equals(constraint.getPreferredVersion())
+            && hasMatchAllSelector(constraint.getRejectedVersions());
+    }
+
+    private static boolean hasMatchAllSelector(List<String> rejectedVersions) {
+        for (String version : rejectedVersions) {
+            if ("+".equals(version)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
