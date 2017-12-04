@@ -31,6 +31,8 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec {
 
     Map<String, RevCommit> commits = [:]
 
+    def versions = ["1.0", "2.0", "3.0"]
+
     def setup() {
         repo.workTree.file("build.gradle") << """
             apply plugin: 'java'
@@ -46,7 +48,7 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec {
         commits["initial"] = repo.commit('initial', repo.workTree)
 
         def versionFile = repo.workTree.file("version")
-        ["1.0", "2.0", "3.0"].each { version ->
+        versions.each { version ->
             versionFile.text = version
             def commit = repo.commit("version is $version", repo.workTree)
             repo.createLightWeightTag(version)
@@ -73,7 +75,7 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec {
                     assert versionFile
                     assert versionFile.text == repoVersion
                 }
-            }   
+            }
         """
         settingsFile << """
             sourceControl {
@@ -111,12 +113,13 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "removes vcs checkout after 7 days"() {
-        succeeds("assertVersion", "-PrepoVersion=1.0")
-        succeeds("assertVersion", "-PrepoVersion=2.0")
-        succeeds("assertVersion", "-PrepoVersion=3.0")
+        // checkout all versions
+        versions.each { version ->
+            succeeds("assertVersion", "-PrepoVersion=${version}")
+        }
 
-        def checkout = checkoutDir("dep", commits["1.0"].id.name, repo.id).parentFile
-        checkout.setLastModified(checkout.lastModified() - TimeUnit.DAYS.toMillis(10))
+        // Mark 1.0 as unused
+        markUnused("1.0")
 
         when:
         cleanupNow()
@@ -128,15 +131,13 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "does not remove vcs checkout that is older than 7 days but recently used"() {
-        def versions = ["1.0", "2.0", "3.0"]
         // checkout all versions
         versions.each { version ->
             succeeds("assertVersion", "-PrepoVersion=${version}")
         }
-        // mark versions as unused
+        // mark all versions as unused
         versions.each { version ->
-            def checkout = checkoutDir("dep", commits[version].id.name, repo.id).parentFile
-            checkout.setLastModified(checkout.lastModified() - TimeUnit.DAYS.toMillis(10))
+            markUnused(version)
         }
 
         when:
@@ -146,6 +147,34 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec {
         checkoutDir("dep", commits["1.0"].id.name, repo.id).assertExists()
         checkoutDir("dep", commits["2.0"].id.name, repo.id).assertDoesNotExist()
         checkoutDir("dep", commits["3.0"].id.name, repo.id).assertDoesNotExist()
+    }
+
+    def "removes all checkouts when VCS mappings are removed"() {
+        // checkout all versions
+        versions.each { version ->
+            succeeds("assertVersion", "-PrepoVersion=${version}")
+        }
+        // mark all versions as unused
+        versions.each { version ->
+            markUnused(version)
+        }
+        // Remove VCS mappings
+        settingsFile.text = ""
+        cleanupNow()
+
+        when:
+        // Not resolving any configurations
+        succeeds("tasks", "-PrepoVersion=dummy")
+        then:
+        // unused VCS working directories are still deleted
+        checkoutDir("dep", commits["1.0"].id.name, repo.id).assertDoesNotExist()
+        checkoutDir("dep", commits["2.0"].id.name, repo.id).assertDoesNotExist()
+        checkoutDir("dep", commits["3.0"].id.name, repo.id).assertDoesNotExist()
+    }
+
+    private void markUnused(String version) {
+        def checkout = checkoutDir("dep", commits[version].id.name, repo.id).parentFile
+        checkout.setLastModified(checkout.lastModified() - TimeUnit.DAYS.toMillis(10))
     }
 
     TestFile checkoutDir(String repoName, String versionId, String repoId, TestFile baseDir=testDirectory) {
@@ -165,5 +194,4 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec {
         gcFile().assertIsFile()
         gcFile().lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(60)
     }
-
 }
