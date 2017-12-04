@@ -41,6 +41,16 @@ class SubVersionSelectorTest extends AbstractStringVersionSelectorTest {
         !accept("1.2.3+", "1.2")
     }
 
+    def "'+' is a valid selector which accepts everything"() {
+        expect:
+        accept("+", "11")
+        accept("+", "1.2")
+        accept("+", "1.2.3.11")
+        accept("+", "2")
+        accept("+", "11")
+        accept("+", "1.2")
+    }
+
     def "metadata-aware accept method delivers same results"() {
         def metadata = Stub(ComponentMetadata) {
             getId() >> Stub(ModuleVersionIdentifier) {

@@ -114,6 +114,33 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    void "dependency constraint can be used to declare incompatibility"() {
+        given:
+        mavenRepo.module("org", "foo", '1.1').publish()
+        mavenRepo.module("org", "bar", '1.0')
+            .dependsOn('org', 'foo', '1.1')
+            .publish()
+
+        buildFile << """
+            dependencies {
+                conf 'org:bar:1.0'
+                constraints {
+                    conf('org:foo') {
+                        version { rejectAll() }
+                    }
+                }
+            }
+        """
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' prefers '1.1'
+   Constraint path ':test:unspecified' --> 'org:foo' rejects all versions""")
+    }
+
     void "dependency constraint is included into the result of resolution when a hard dependency is also added transitively"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()

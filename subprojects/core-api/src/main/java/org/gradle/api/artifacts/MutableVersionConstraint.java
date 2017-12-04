@@ -52,4 +52,12 @@ public interface MutableVersionConstraint extends VersionConstraint {
      */
     void reject(String... versions);
 
+    /**
+     * Rejects all versions of this component. Can be used to declare that a component is incompatible with another
+     * (typically, cannot have both a 2 different implementations of the same API).
+     *
+     * @since 4.5
+     */
+    void rejectAll();
+
 }

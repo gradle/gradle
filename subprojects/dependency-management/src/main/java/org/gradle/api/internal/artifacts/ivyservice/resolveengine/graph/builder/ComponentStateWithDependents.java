@@ -27,4 +27,5 @@ import java.util.List;
 public interface ComponentStateWithDependents<T extends ComponentResolutionState> extends ComponentResolutionState {
     List<T> getDependents();
     List<T> getUnattachedDependencies();
+    boolean isFromPendingNode();
 }
