@@ -18,13 +18,13 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.util.GUtil
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import java.util.regex.Pattern
 
-@Requires(TestPrecondition.JDK8_OR_LATER)
 abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
+    def setup() {
+        executer.noDeprecationReport()
+    }
 
     String getPluginName() {
         def matcher = Pattern.compile("(\\w+)Plugin(GoodBehaviour)?(Integ(ration)?)?Test").matcher(getClass().simpleName)

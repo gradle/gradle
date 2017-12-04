@@ -18,14 +18,12 @@ package org.gradle.jvm.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "does not create library or binaries when not configured"() {
         when:
+        executer.noDeprecationReport()
         buildFile << '''
             plugins {
                 id 'jvm-component'

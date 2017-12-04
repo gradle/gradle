@@ -71,6 +71,29 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     }
 
     @Unroll
+    def 'honors property #value that controls report generation'() {
+        setup:
+        def original = System.getProperty(RENDER_REPORT_SYSTEM_PROPERTY)
+
+        when:
+        System.setProperty(RENDER_REPORT_SYSTEM_PROPERTY, value)
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('kotlin'), kotlinScriptStracktrace()))
+        renderDeprecationReport()
+
+        then:
+        outputEventListener.events.size() == 1
+        temporaryFolder.file(REPORT_LOCATION).exists() == exists
+
+        cleanup:
+        System.setProperty(RENDER_REPORT_SYSTEM_PROPERTY, original == null ? '' : original)
+
+        where:
+        value   | exists
+        'true'  | true
+        'false' | false
+    }
+
+    @Unroll
     def 'fake call logs full stack trace'() {
         when:
         handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('gradle'), gradleScriptStacktrace()))
@@ -119,24 +142,6 @@ at some.GradleScript.foo(GradleScript.gradle:1337)
 at java.lang.reflect.Method.invoke(Method.java:498)
 </pre>
 ''')
-    }
-
-    def "honor system property when generating report"() {
-        setup:
-        String originProperty = System.getProperty(RENDER_REPORT_SYSTEM_PROPERTY)
-        System.setProperty(RENDER_REPORT_SYSTEM_PROPERTY, 'false')
-
-        when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('gradle'), gradleScriptStacktrace()))
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(deprecatedFeatureUsage('kotlin'), kotlinScriptStracktrace()))
-        renderDeprecationReport()
-
-        then:
-        outputEventListener.events.size() == 0
-        !temporaryFolder.file(REPORT_LOCATION).exists()
-
-        cleanup:
-        System.setProperty(RENDER_REPORT_SYSTEM_PROPERTY, originProperty == null ? '' : null)
     }
 
     static gradleScriptStacktrace() {

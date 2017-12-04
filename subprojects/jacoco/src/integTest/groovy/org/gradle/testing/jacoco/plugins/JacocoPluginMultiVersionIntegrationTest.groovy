@@ -21,13 +21,10 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @TargetCoverage({ JacocoCoverage.SUPPORTS_JDK_8_OR_HIGHER })
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
     private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
@@ -37,6 +34,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
 
     def setup() {
         javaProjectUnderTest.writeSourceFiles()
+        executer.noDeprecationReport()
     }
 
     void generatesHtmlReportOnlyAsDefault() {

@@ -174,6 +174,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean noExplicitTmpDir;
     protected boolean noExplicitNativeServicesDir;
     private boolean checkDeprecations = true;
+    private boolean deprecationReport = true;
 
     private TestFile tmpDir;
     private DurationMeasurement durationMeasurement;
@@ -229,6 +230,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
+        deprecationReport = true;
         durationMeasurement = null;
         consoleType = null;
         return this;
@@ -368,6 +370,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (!checkDeprecations) {
             executer.noDeprecationChecks();
+        }
+
+        if (!deprecationReport) {
+            executer.noDeprecationReport();
         }
 
         if (durationMeasurement != null) {
@@ -914,7 +920,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put(ConsoleStateUtil.INTERACTIVE_TOGGLE, "true");
         }
 
-        if (!checkDeprecations) {
+        if (deprecationReport) {
+            properties.put(LoggingDeprecatedFeatureHandler.RENDER_REPORT_SYSTEM_PROPERTY, "true");
+        } else {
             properties.put(LoggingDeprecatedFeatureHandler.RENDER_REPORT_SYSTEM_PROPERTY, "false");
         }
 
@@ -1207,6 +1215,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter noDeprecationChecks() {
         checkDeprecations = false;
+        deprecationReport = false;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter noDeprecationReport() {
+        deprecationReport = false;
         return this;
     }
 

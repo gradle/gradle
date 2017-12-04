@@ -294,6 +294,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter noDeprecationChecks();
 
     /**
+     * Disable deprecation report generation.
+     */
+    GradleExecuter noDeprecationReport();
+
+    /**
      * Disables asserting that class loaders were not eagerly created, potentially leading to performance problems.
      */
     GradleExecuter withEagerClassLoaderCreationCheckDisabled();

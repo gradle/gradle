@@ -61,7 +61,11 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     }
 
     public void renderDeprecationReport(File reportLocation) {
+        if (deprecationUsages.isEmpty()) {
+            return;
+        }
         if (!shouldRenderReport()) {
+            LOGGER.warn("\nThere are {} deprecation warnings.", deprecationUsages.size());
             return;
         }
 
@@ -71,8 +75,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         replace(report, "${warnings}", renderWarnings(div));
 
         writeToFile(report.toString(), reportLocation);
-
-        LOGGER.warn(String.format("\nThere are %d deprecation warnings. See the detailed report at: %s", deprecationUsages.size(), new ConsoleRenderer().asClickableFileUrl(reportLocation)));
+        LOGGER.warn("\nThere are {} deprecation warnings. See the detailed report at: {}", deprecationUsages.size(), new ConsoleRenderer().asClickableFileUrl(reportLocation));
     }
 
     private void writeToFile(String content, File file) {
@@ -85,10 +88,6 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     }
 
     private boolean shouldRenderReport() {
-        if (deprecationUsages.isEmpty()) {
-            return false;
-        }
-
         return "true".equals(System.getProperty(RENDER_REPORT_SYSTEM_PROPERTY, "true"));
     }
 

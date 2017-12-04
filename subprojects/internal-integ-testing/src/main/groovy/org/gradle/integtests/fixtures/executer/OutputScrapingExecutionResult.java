@@ -63,7 +63,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED)( \\d+[smh])+");
 
-    public static final Pattern DEPRECATION_REPORT_PATTERN = Pattern.compile("There are \\d+ deprecation warnings\\. See the detailed report at: file://(.*)$");
+    public static final Pattern DEPRECATION_REPORT_PATTERN = Pattern.compile("There are \\d+ deprecation warnings\\.( See the detailed report at: file://(.*))?$");
 
     public static List<String> flattenTaskPaths(Object[] taskPaths) {
         return org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
@@ -77,11 +77,11 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private File extractFileLocation(String output) {
         Matcher matcher = DEPRECATION_REPORT_PATTERN.matcher(output);
-        if (!matcher.find()) {
+        if (!matcher.find() || matcher.group(2) == null) {
             return null;
         }
         try {
-            String decoded = URLDecoder.decode(matcher.group(1), "UTF-8");
+            String decoded = URLDecoder.decode(matcher.group(2), "UTF-8");
             return new File(decoded);
         } catch (UnsupportedEncodingException e) {
             throw UncheckedException.throwAsUncheckedException(e);

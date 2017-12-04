@@ -492,7 +492,6 @@ public class TestFile extends File {
         Set<String> actual = new TreeSet<String>();
         assertIsDir();
         visit(actual, "", this);
-        actual.remove("reports/deprecations/report.html");
         Set<String> expected = new TreeSet<String>(Lists.<String>newArrayList(descendants));
 
         Set<String> extras = new TreeSet<String>(actual);
