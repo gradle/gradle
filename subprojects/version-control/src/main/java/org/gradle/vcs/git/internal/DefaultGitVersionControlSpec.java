@@ -64,4 +64,30 @@ public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec imp
         }
         return repoPart;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultGitVersionControlSpec that = (DefaultGitVersionControlSpec) o;
+
+        return url != null ? url.equals(that.url) : that.url == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return url != null ? url.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "GitVersionControlSpec{"
+            + "url=" + url
+            + '}';
+    }
 }

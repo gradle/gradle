@@ -16,37 +16,36 @@
 
 package org.gradle.vcs.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.internal.Actions;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VcsMappings;
 import org.gradle.vcs.VersionControlSpec;
 
-import java.util.Set;
-
-public class DefaultVcsMappings implements VcsMappingsInternal {
-    private final Set<Action<VcsMapping>> vcsMappings;
+public class DefaultVcsMappings implements VcsMappings {
+    private final VcsMappingsStore vcsMappings;
     private final VersionControlSpecFactory versionControlSpecFactory;
+    private final Gradle gradle;
 
-    public DefaultVcsMappings(Instantiator instantiator) {
+    public DefaultVcsMappings(Instantiator instantiator, VcsMappingsStore vcsMappings, Gradle gradle) {
         this.versionControlSpecFactory = new VersionControlSpecFactory(instantiator);
-        this.vcsMappings = Sets.newLinkedHashSet();
+        this.vcsMappings = vcsMappings;
+        this.gradle = gradle;
     }
 
     @Override
     public VcsMappings addRule(String message, Action<VcsMapping> rule) {
-        vcsMappings.add(new DescribedRule(message, rule));
+        vcsMappings.addRule(new DescribedRule(message, rule), gradle);
         return this;
     }
 
     @Override
     public VcsMappings withModule(String groupName, Action<VcsMapping> rule) {
-        vcsMappings.add(new GavFilteredRule(groupName, rule));
+        vcsMappings.addRule(new GavFilteredRule(groupName, rule), gradle);
         return this;
     }
 
@@ -55,16 +54,6 @@ public class DefaultVcsMappings implements VcsMappingsInternal {
         T vcs = versionControlSpecFactory.create(type);
         configuration.execute(vcs);
         return vcs;
-    }
-
-    @Override
-    public Action<VcsMapping> getVcsMappingRule() {
-        return Actions.composite(vcsMappings);
-    }
-
-    @Override
-    public boolean hasRules() {
-        return !vcsMappings.isEmpty();
     }
 
     private static class DescribedRule implements Action<VcsMapping>, Describable {

@@ -17,16 +17,16 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Actions;
 import org.gradle.vcs.VcsMapping;
-import org.gradle.vcs.VcsMappings;
-import org.gradle.vcs.VersionControlSpec;
 
-public interface VcsMappingsInternal extends VcsMappings {
+public interface VcsMappingsStore {
     Action<VcsMapping> getVcsMappingRule();
     boolean hasRules();
+    void addRule(Action<VcsMapping> rule, Gradle gradle);
 
-    VcsMappingsInternal NO_OP = new VcsMappingsInternal() {
+    VcsMappingsStore NO_OP = new VcsMappingsStore() {
         @Override
         public Action<VcsMapping> getVcsMappingRule() {
             return Actions.doNothing();
@@ -38,18 +38,7 @@ public interface VcsMappingsInternal extends VcsMappings {
         }
 
         @Override
-        public VcsMappings addRule(String message, Action<VcsMapping> rule) {
-            return this;
-        }
-
-        @Override
-        public VcsMappings withModule(String groupName, Action<VcsMapping> rule) {
-            return this;
-        }
-
-        @Override
-        public <T extends VersionControlSpec> T vcs(Class<T> type, Action<? super T> configuration) {
-            return null;
+        public void addRule(Action<VcsMapping> rule, Gradle gradle) {
         }
     };
 }

@@ -122,6 +122,10 @@ public class GitRepository extends ExternalResource implements Named {
         return new TestFile(git.getRepository().getWorkTree());
     }
 
+    public TestFile file(Object... path) {
+        return getWorkTree().file(path);
+    }
+
     public URI getUrl() throws URISyntaxException {
         return getWorkTree().toURI();
     }

@@ -41,7 +41,7 @@ import org.gradle.vcs.VersionControlSystem;
 import org.gradle.vcs.VersionRef;
 import org.gradle.vcs.internal.VcsMappingFactory;
 import org.gradle.vcs.internal.VcsMappingInternal;
-import org.gradle.vcs.internal.VcsMappingsInternal;
+import org.gradle.vcs.internal.VcsMappingsStore;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 
 import java.io.File;
@@ -53,18 +53,18 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final ProjectDependencyResolver projectDependencyResolver;
     private final ServiceRegistry serviceRegistry;
     private final LocalComponentRegistry localComponentRegistry;
-    private final VcsMappingsInternal vcsMappingsInternal;
+    private final VcsMappingsStore vcsMappingsStore;
     private final VcsMappingFactory vcsMappingFactory;
     private final VersionControlSystemFactory versionControlSystemFactory;
     private final File baseWorkingDir;
     private final Map<String, VersionRef> selectedVersionCache = new HashMap<String, VersionRef>();
 
-    public VcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirRoot, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+    public VcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirRoot, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsStore vcsMappingsStore, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
         this.baseWorkingDir = vcsWorkingDirRoot.getDir();
         this.projectDependencyResolver = projectDependencyResolver;
         this.serviceRegistry = serviceRegistry;
         this.localComponentRegistry = localComponentRegistry;
-        this.vcsMappingsInternal = vcsMappingsInternal;
+        this.vcsMappingsStore = vcsMappingsStore;
         this.vcsMappingFactory = vcsMappingFactory;
         this.versionControlSystemFactory = versionControlSystemFactory;
     }
@@ -76,7 +76,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         if (vcsMappingInternal != null) {
             // Safe to cast because if it weren't a ModuleComponentSelector, vcsMappingInternal would be null.
             ModuleComponentSelector depSelector = (ModuleComponentSelector) dependency.getSelector();
-            vcsMappingsInternal.getVcsMappingRule().execute(vcsMappingInternal);
+            vcsMappingsStore.getVcsMappingRule().execute(vcsMappingInternal);
 
             // TODO: Need failure handling, e.g., cannot clone repository
             if (vcsMappingInternal.hasRepository()) {
@@ -150,7 +150,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     }
 
     private VcsMappingInternal getVcsMapping(DependencyMetadata dependency) {
-        if (vcsMappingsInternal.hasRules()
+        if (vcsMappingsStore.hasRules()
                 && dependency.getSelector() instanceof ModuleComponentSelector) {
             return vcsMappingFactory.create(dependency.getSelector());
         }

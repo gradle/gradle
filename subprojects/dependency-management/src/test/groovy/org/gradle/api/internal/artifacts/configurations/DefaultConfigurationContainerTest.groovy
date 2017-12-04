@@ -35,7 +35,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.TestUtil
-import org.gradle.vcs.internal.VcsMappingsInternal
+import org.gradle.vcs.internal.VcsMappingsStore
 import spock.lang.Specification
 
 class DefaultConfigurationContainerTest extends Specification {
@@ -48,7 +48,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private ConfigurationComponentMetaDataBuilder metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
     private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
-    private VcsMappingsInternal vcsMappingsInternal = Mock(VcsMappingsInternal)
+    private VcsMappingsStore vcsMappingsInternal = Mock(VcsMappingsStore)
     private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
     private TaskResolver taskResolver = Mock(TaskResolver)
 
