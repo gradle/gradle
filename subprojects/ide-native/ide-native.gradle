@@ -28,4 +28,5 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ":platformNative")
+useTestFixtures(project: ":versionControl")
 useClassycle()
