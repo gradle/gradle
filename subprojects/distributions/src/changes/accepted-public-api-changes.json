@@ -25,6 +25,21 @@
             "changes": [
                 "org.gradle.api.artifacts.DirectDependency"
             ]
-        }
-    ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask",
+            "member": "Class org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask",
+            "acceptation": "Incubating method no longer required",
+            "changes": [
+                "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getIncludePaths()"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask",
+            "member": "Class org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask",
+            "acceptation": "Incubating method no longer required",
+            "changes": [
+                "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getIncludePaths()"
+            ]
+        }    ]
 }
