@@ -25,14 +25,16 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -40,8 +42,10 @@ import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
@@ -56,7 +60,7 @@ import org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.Path;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
@@ -128,7 +132,7 @@ public class IdeaPlugin extends IdePlugin {
         configureForWarPlugin(project);
         configureForScalaPlugin();
         registerIdeArtifact(createImlArtifact(project));
-        linkIdeaModuleBuildDependencies();
+        linkCompositeBuildDependencies((ProjectInternal) project);
     }
 
     // No one should be calling this.
@@ -462,22 +466,35 @@ public class IdeaPlugin extends IdePlugin {
         project.getTasks().findByName("ideaModule").dependsOn(project.getRootProject().getTasks().findByName("ideaProject"));
     }
 
-    private void linkIdeaModuleBuildDependencies() {
+    private void linkCompositeBuildDependencies(final ProjectInternal project) {
         if (isRoot()) {
             getLifecycleTask().dependsOn(new Callable<List<TaskDependency>>() {
                 @Override
                 public List<TaskDependency> call() throws Exception {
-                    return CollectionUtils.collect(
-                        getIdeArtifactMetadata("iml"),
-                        new Transformer<TaskDependency, LocalComponentArtifactMetadata>() {
-                            @Override
-                            public TaskDependency transform(LocalComponentArtifactMetadata metadata) {
-                                return metadata.getBuildDependencies();
-                            }
-                        });
+                    return allImlArtifactsInComposite(project);
                 }
             });
         }
+    }
+
+    private List<TaskDependency> allImlArtifactsInComposite(ProjectInternal project) {
+        List<TaskDependency> dependencies = Lists.newArrayList();
+        ServiceRegistry services = project.getServices();
+        ProjectPathRegistry projectPathRegistry = services.get(ProjectPathRegistry.class);
+        LocalComponentRegistry localComponentRegistry = services.get(LocalComponentRegistry.class);
+        ProjectComponentIdentifier thisProjectId = projectPathRegistry.getProjectComponentIdentifier(project.getIdentityPath());
+        for (Path projectPath : projectPathRegistry.getAllProjectPaths()) {
+            final ProjectComponentIdentifier otherProjectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
+            if (thisProjectId.getBuild().equals(otherProjectId.getBuild())) {
+                // IDEA Module for project in current build: handled via `modules` model elements.
+                continue;
+            }
+            LocalComponentArtifactMetadata imlArtifact = localComponentRegistry.findAdditionalArtifact(otherProjectId, "iml");
+            if (imlArtifact != null) {
+                dependencies.add(imlArtifact.getBuildDependencies());
+            }
+        }
+        return dependencies;
     }
 
     private static class ImlArtifact extends DefaultPublishArtifact {
