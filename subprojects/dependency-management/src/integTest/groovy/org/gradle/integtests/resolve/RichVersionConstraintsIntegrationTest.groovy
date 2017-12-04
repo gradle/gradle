@@ -738,4 +738,32 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         '[1.0,)'         | "'1.5', '[1.1, 1.3]', '1.4'" | 0        | false
         'latest.release' | "'1.5', '[1.1, 1.3]', '1.4'" | 0        | true
     }
+
+    def "adding rejectAll on a dependency is pointless and make it fail"() {
+        given:
+        repository {
+            'org:foo' {
+                '1.0'()
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:1.0') {
+                   version {
+                      rejectAll()
+                   }
+                }
+            }           
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        // TODO CC: This is the generic error message for a failing dependency,
+        // but we can probably do better, even though it's not specific to rejectAll
+        failure.assertHasCause("""Could not find org:foo:.""")
+    }
+
 }
