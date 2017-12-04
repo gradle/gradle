@@ -364,6 +364,7 @@ public class TaskPropertiesWalker {
             this.annotations = ImmutableList.copyOf(annotations);
             this.instance = instance;
             this.method = method;
+            method.setAccessible(true);
         }
 
         @Override
