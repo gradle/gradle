@@ -88,6 +88,22 @@ The commit messages that accompany your code changes are an important piece of d
 
 After you submit your pull request, a Gradle core developer will review it. It is normal that this takes several iterations, so don't get discouraged by change requests. They ensure the high quality that we all enjoy.
 
+### Signing Off Commits After Submitting a Pull Request
+
+Pull requests are automatically verified that all commit messages contain the Signed-off-by line with an email address that matches the commit author. In case you didn't sign off your commits before creating a pull request, you can still fix that to confirm that you agree to the terms of [Developer Certificate of Origin](https://developercertificate.org/).
+
+To sign off a single commit:
+
+`git commit --amend --signoff`
+
+To sign off multiple commits:
+
+`git filter-branch --msg-filter "cat - && echo && echo 'Signed-off-by: Your Name <Your.Name@example.com>'" HEAD`
+
+Then force push your branch:
+
+`git push --force origin test-branch`
+
 ## Getting Help
 
 If you run into any trouble, please reach out to us on the issue you are working on.
