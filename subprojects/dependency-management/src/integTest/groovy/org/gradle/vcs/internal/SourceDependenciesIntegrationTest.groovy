@@ -124,8 +124,8 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        dependency(first, "second")
-        shouldResolve("first", "second")
+        dependency(first, "org.test:second")
+        shouldResolve(first, second)
 
         when:
         succeeds("resolve")
@@ -141,13 +141,11 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can use source mappings defined in nested builds"() {
-        def secondPath = TextUtil.normaliseFileSeparators(file('second').absolutePath)
-
         given:
-        vcsMapping('first', 'first')
-        nestedVcsMapping(first, 'second', secondPath)
-        dependency(first, "second")
-        shouldResolve("first", "second")
+        vcsMapping('org.test:first', first)
+        nestedVcsMapping(first, 'org.test:second', second)
+        dependency(first, "org.test:second")
+        shouldResolve(first, second)
 
         when:
         succeeds("resolve")
@@ -163,8 +161,6 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can use a source mapping defined in both the parent build and a nested build"() {
-        def secondPath = TextUtil.normaliseFileSeparators(file('second').absolutePath)
-
         given:
         settingsFile << """
             sourceControl {
@@ -179,9 +175,9 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        nestedVcsMapping(first, 'second', secondPath)
-        dependency(first, "second")
-        shouldResolve("first", "second")
+        nestedVcsMapping(first, 'org.test:second', second)
+        dependency(first, "org.test:second")
+        shouldResolve(first, second)
 
         when:
         succeeds("resolve")
@@ -197,12 +193,10 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "prefers a source mapping defined in the root build to one defined in a nested build"() {
-        def thirdPath = TextUtil.normaliseFileSeparators(file('third').absolutePath)
-
         given:
-        vcsMapping('first', 'first')
-        vcsMapping('second', 'second')
-        nestedVcsMapping(first, 'second', thirdPath)
+        vcsMapping('org.test:first', first)
+        vcsMapping('org.test:second', second)
+        nestedVcsMapping(first, 'org.test:second', third)
 
         third.with {
             file('settings.gradle').text = """
@@ -211,8 +205,8 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
             commit("Set project name to second", file('settings.gradle'))
         }
 
-        dependency(first, "second")
-        shouldResolve("first", "second")
+        dependency(first, "org.test:second")
+        shouldResolve(first, second)
 
         when:
         succeeds("resolve")
@@ -229,17 +223,15 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can use a source mapping defined similarly in two nested builds"() {
-        def thirdPath = TextUtil.normaliseFileSeparators(file('third').absolutePath)
-
         given:
-        vcsMapping('first', 'first')
-        vcsMapping('second', 'second')
-        nestedVcsMapping(first, 'third', thirdPath)
-        nestedVcsMapping(second, 'third', thirdPath)
-        dependency(first, "second")
-        dependency(first, "third")
-        dependency(second, "third")
-        shouldResolve("first", "second", "third")
+        vcsMapping('org.test:first', first)
+        vcsMapping('org.test:second', second)
+        nestedVcsMapping(first, 'org.test:third', third)
+        nestedVcsMapping(second, 'org.test:third', third)
+        dependency(first, "org.test:second")
+        dependency(first, "org.test:third")
+        dependency(second, "org.test:third")
+        shouldResolve(first, second, third)
 
         when:
         succeeds("resolve")
@@ -256,14 +248,11 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "produces a sensible error when nested builds define conflicting source mappings"() {
-        def thirdPath = TextUtil.normaliseFileSeparators(file('third').absolutePath)
-        def fourthPath = TextUtil.normaliseFileSeparators(file('fourth').absolutePath)
-
         given:
-        vcsMapping('first', 'first')
-        vcsMapping('second', 'second')
-        nestedVcsMapping(first, 'third', thirdPath)
-        nestedVcsMapping(second, 'third', fourthPath)
+        vcsMapping('org.test:first', first)
+        vcsMapping('org.test:second', second)
+        nestedVcsMapping(first, 'org.test:third', third)
+        nestedVcsMapping(second, 'org.test:third', fourth)
 
         fourth.with {
             file('settings.gradle').text = """
@@ -272,9 +261,9 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
             commit("Set project name to third", file('settings.gradle'))
         }
 
-        dependency(first, "second")
-        dependency(first, "third")
-        dependency(second, "third")
+        dependency(first, "org.test:second")
+        dependency(first, "org.test:third")
+        dependency(second, "org.test:third")
 
         when:
         fails("resolve")
@@ -284,15 +273,12 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can resolve a mapping conflict by defining a rule in the root build"() {
-        def thirdPath = TextUtil.normaliseFileSeparators(file('third').absolutePath)
-        def fourthPath = TextUtil.normaliseFileSeparators(file('fourth').absolutePath)
-
         given:
-        vcsMapping('first', 'first')
-        vcsMapping('second', 'second')
-        vcsMapping('third', 'third')
-        nestedVcsMapping(first, 'third', thirdPath)
-        nestedVcsMapping(second, 'third', fourthPath)
+        vcsMapping('org.test:first', first)
+        vcsMapping('org.test:second', second)
+        vcsMapping('org.test:third', third)
+        nestedVcsMapping(first, 'org.test:third', third)
+        nestedVcsMapping(second, 'org.test:third', fourth)
 
         fourth.with {
             file('settings.gradle').text = """
@@ -301,10 +287,10 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
             commit("Set project name to third", file('settings.gradle'))
         }
 
-        dependency(first, "second")
-        dependency(first, "third")
-        dependency(second, "third")
-        shouldResolve("first", "second", "third")
+        dependency(first, "org.test:second")
+        dependency(first, "org.test:third")
+        dependency(second, "org.test:third")
+        shouldResolve(first, second, third)
 
         when:
         succeeds("resolve")
@@ -323,18 +309,18 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
     void dependency(GitRepository consumer, String target) {
         consumer.file("build.gradle") << """
             dependencies {
-                runtime 'org.test:${target}:latest.integration'
+                runtime '${target}:latest.integration'
             }
         """
         consumer.commit("Create dependency on ${target}", consumer.file("build.gradle"))
     }
 
-    void shouldResolve(String... targets) {
+    void shouldResolve(GitRepository... targets) {
         targets.each { target ->
             buildFile << """
-                resolve.dependencies << "${target}"
+                resolve.dependencies << "${target.workTree.name}"
                 resolve.assertions << { resolved, message ->
-                    def artifactFile = resolved.find { it.name == "${target}.txt" }
+                    def artifactFile = resolved.find { it.name == "${target.workTree.name}.txt" }
                     assert artifactFile != null
                     assert artifactFile.text == message
                 }
@@ -358,7 +344,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         settings << """
             sourceControl {
                 vcsMappings {
-                    withModule('org.test:${module}') {
+                    withModule('${module}') {
                         from vcs(GitVersionControlSpec) {
                             url = file('${location}').toURI()
                         }
@@ -368,12 +354,12 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    void vcsMapping(String module, String location) {
-        vcsMapping(settingsFile, module, location)
+    void vcsMapping(String module, GitRepository repo) {
+        vcsMapping(settingsFile, module, repo.getWorkTree().name)
     }
 
-    void nestedVcsMapping(GitRepository repo, String module, String location) {
-        vcsMapping(repo.file('settings.gradle'), module, location)
+    void nestedVcsMapping(GitRepository repo, String module, GitRepository target) {
+        vcsMapping(repo.file('settings.gradle'), module, TextUtil.normaliseFileSeparators(file(target.workTree.name).absolutePath))
         repo.commit("add source mapping", repo.file('settings.gradle'))
     }
 }
