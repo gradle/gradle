@@ -34,8 +34,8 @@ class CppUnitTestPluginIntegrationTest extends AbstractCppInstalledToolChainInte
         succeeds("check")
 
         then:
-        result.assertTasksExecuted(":dependDebugCpp", ":compileDebugCpp",
-            ":dependUnitTestCpp", ":compileUnitTestCpp", ":linkUnitTest", ":installUnitTest", ":runUnitTest", ":check")
+        result.assertTasksExecuted(":compileDebugCpp",
+            ":compileUnitTestCpp", ":linkUnitTest", ":installUnitTest", ":runUnitTest", ":check")
     }
 
     def "does nothing if cpp-library or cpp-application are not applied"() {
