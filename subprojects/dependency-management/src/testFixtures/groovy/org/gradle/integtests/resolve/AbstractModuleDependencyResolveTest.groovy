@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
 
 @RunWith(GradleMetadataResolveRunner)
 abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependencyResolutionTest {
-    final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
+    ResolveTestFixture resolve
 
     private final RemoteRepositorySpec repoSpec = new RemoteRepositorySpec()
 
@@ -36,6 +36,8 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
     boolean isGradleMetadataEnabled() {
         GradleMetadataResolveRunner.isGradleMetadataEnabled()
     }
+
+    String getTestConfiguration() { 'conf' }
 
     String getRootProjectName() { 'test' }
 
@@ -99,6 +101,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
     }
 
     def setup() {
+        resolve = new ResolveTestFixture(buildFile, testConfiguration)
         settingsFile << "rootProject.name = '$rootProjectName'"
         if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
             ExperimentalFeaturesFixture.enable(settingsFile)
@@ -108,7 +111,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
             $repository
 
             configurations {
-                conf
+                $testConfiguration
             }
         """
     }

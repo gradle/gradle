@@ -109,6 +109,13 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    @Override
+    IvyFileModule variant(String variant, Map<String, String> attributes) {
+        variants.add(new VariantMetadata(variant, attributes))
+        configuration(variant) //add variant also as configuration for plain ivy publishing
+        return this
+    }
+
     IvyFileModule withXml(Closure action) {
         transformer.addAction(action);
         return this

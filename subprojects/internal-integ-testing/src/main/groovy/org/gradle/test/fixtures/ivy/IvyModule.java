@@ -100,6 +100,11 @@ public interface IvyModule extends Module {
     IvyModule configuration(Map<String, ?> options, String name);
 
     /**
+     * Define a variant with attributes. Variants are only published when using {@link #withModuleMetadata()}.
+     */
+    IvyModule variant(String variant, Map<String, String> attributes);
+
+    /**
      * Publishes ivy.xml plus all artifacts with different content (and size) to previous publication.
      */
     IvyModule publishWithChangedContent();

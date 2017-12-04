@@ -31,6 +31,7 @@ class ModuleVersionSpec {
 
     private final List<Object> dependsOn = []
     private final List<Object> constraints = []
+    private final Map<String, Map<String, String>> variants = [:]
     private final List<Closure<?>> withModule = []
     private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
     private List<ArtifactExpectation> expectGetArtifact = []
@@ -95,6 +96,10 @@ class ModuleVersionSpec {
         expectGetMetadata << InteractionExpectation.MAYBE
     }
 
+    void variant(String variant, Map<String, String> attributes) {
+        variants << [(variant): attributes]
+    }
+
     void dependsOn(coord) {
         dependsOn << coord
     }
@@ -125,7 +130,7 @@ class ModuleVersionSpec {
     void build(HttpRepository repository) {
         def module = repository.module(groupId, artifactId, version)
         def gradleMetadataEnabled = alwaysExpectGradleMetadata || GradleMetadataResolveRunner.isGradleMetadataEnabled()
-        if (gradleMetadataEnabled) {
+        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
             module.withModuleMetadata()
         }
         expectGetMetadata.each {
@@ -204,6 +209,12 @@ class ModuleVersionSpec {
                 }
             }
         }
+        if (variants) {
+            variants.each {
+                module.variant(it.key, it.value)
+            }
+        }
+
         if (dependsOn) {
             dependsOn.each {
                 if (it instanceof CharSequence) {
