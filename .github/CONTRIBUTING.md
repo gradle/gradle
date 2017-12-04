@@ -82,7 +82,7 @@ The commit messages that accompany your code changes are an important piece of d
 * Keep commits discrete: avoid including multiple unrelated changes in a single commit
 * Keep commits self-contained: avoid spreading a single change across multiple commits. A single commit should make sense in isolation
 * If your commit pertains to a GitHub issue, include (`Issue: #123`) in the commit message on a separate line
-* [Sign off](https://git-scm.com/docs/git-commit#git-commit---signoff) your Git commits to indicate that you agree to the terms of [Developer Certificate of Origin](https://developercertificate.org/).
+* [Sign off](https://git-scm.com/docs/git-commit#git-commit---signoff) your commits to indicate that you agree to the terms of [Developer Certificate of Origin](https://developercertificate.org/).
 
 ### Submitting Your Change
 
