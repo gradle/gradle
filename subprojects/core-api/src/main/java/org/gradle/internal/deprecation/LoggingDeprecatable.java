@@ -14,38 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal.deprecation;
 
-import org.gradle.StartParameter;
-import org.gradle.internal.deprecation.Deprecatable;
-import org.gradle.internal.deprecation.LoggingDeprecatable;
+import org.gradle.util.DeprecationLogger;
+import org.gradle.util.SingleMessageLogger;
 
+import java.util.HashSet;
 import java.util.Set;
 
-public class StartParameterInternal extends StartParameter implements Deprecatable {
-    private final Deprecatable deprecationHandler = new LoggingDeprecatable();
+public class LoggingDeprecatable implements Deprecatable {
 
-    @Override
-    public StartParameter newInstance() {
-        return prepareNewInstance(new StartParameterInternal());
-    }
-
-    public StartParameter newBuild() {
-        return prepareNewBuild(new StartParameterInternal());
-    }
+    private final Set<String> deprecations = new HashSet<String>();
 
     @Override
     public void addDeprecation(String deprecation) {
-        deprecationHandler.addDeprecation(deprecation);
+        deprecations.add(deprecation);
     }
 
     @Override
     public Set<String> getDeprecations() {
-        return deprecationHandler.getDeprecations();
+        return deprecations;
     }
 
     @Override
     public void checkDeprecation() {
-        deprecationHandler.checkDeprecation();
+        String suffix = SingleMessageLogger.getDeprecationMessage();
+        for (String deprecation : deprecations) {
+            DeprecationLogger.nagUserWith(String.format("%s %s.", deprecation, suffix));
+        }
     }
 }

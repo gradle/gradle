@@ -23,8 +23,6 @@ import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
-import org.gradle.util.DeprecationLogger;
-import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -85,8 +83,7 @@ public class BuildLayoutParametersBuildOptions {
         @Override
         public void applyTo(BuildLayoutParameters settings, Origin origin) {
             settings.setSearchUpwards(false);
-            String suffix = SingleMessageLogger.getDeprecationMessage();
-            DeprecationLogger.nagUserWith(String.format("--%s/-%s %s.", LONG_OPTION, SHORT_OPTION, suffix));
+            settings.addDeprecation(String.format("--%s/-%s", LONG_OPTION, SHORT_OPTION));
         }
     }
 }
