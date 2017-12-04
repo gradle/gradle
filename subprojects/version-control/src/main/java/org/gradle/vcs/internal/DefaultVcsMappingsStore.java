@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.Transformer;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Actions;
 import org.gradle.util.CollectionUtils;
@@ -49,7 +50,13 @@ public class DefaultVcsMappingsStore implements VcsMappingsStore {
                         }
                     }
                     if (resolutions.size() > 1) {
-                        throw new GradleException("Conflicting external source dependency rules were found in nested builds for " + vcsMappingInternal.getRequested().getDisplayName() + ":\n  " + CollectionUtils.join("\n  ", resolutions));
+                        Set<String> resolutionDisplayNames = CollectionUtils.collect(resolutions, new Transformer<String, VersionControlSpec>() {
+                            @Override
+                            public String transform(VersionControlSpec versionControlSpec) {
+                                return versionControlSpec.getDisplayName();
+                            }
+                        });
+                        throw new GradleException("Conflicting external source dependency rules were found in nested builds for " + vcsMappingInternal.getRequested().getDisplayName() + ":\n  " + CollectionUtils.join("\n  ", resolutionDisplayNames));
                     }
                 }
             }
