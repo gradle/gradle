@@ -55,8 +55,12 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
         @Nullable
         @Override
         public Object call() {
-            Object value = propertyInfo.getValue();
-            return value == null ? null : value.getClass().getName();
+            try {
+                Object value = propertyInfo.getValue();
+                return value == null ? null : value.getClass().getName();
+            } catch (Exception e) {
+                return null;
+            }
         }
 
         @Override
