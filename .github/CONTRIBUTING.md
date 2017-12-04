@@ -96,7 +96,7 @@ To sign off a single commit:
 
 `git commit --amend --signoff`
 
-To sign off multiple commits:
+To sign off one or multiple commits:
 
 `git filter-branch --msg-filter "cat - && echo && echo 'Signed-off-by: Your Name <Your.Name@example.com>'" HEAD`
 
