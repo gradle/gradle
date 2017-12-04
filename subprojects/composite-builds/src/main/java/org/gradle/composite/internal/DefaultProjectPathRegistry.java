@@ -31,7 +31,6 @@ public class DefaultProjectPathRegistry implements ProjectPathRegistry {
     private final Map<Path, ProjectPathEntry> allProjects = Maps.newLinkedHashMap();
 
     void add(Path projectIdentityPath, ProjectComponentIdentifier identifier, boolean isImplicitBuild) {
-        assert !allProjects.containsKey(projectIdentityPath) : String.format("Project with path '%s' already exists.", projectIdentityPath.getPath());
         allProjects.put(projectIdentityPath, new ProjectPathEntry(identifier, isImplicitBuild));
     }
 
