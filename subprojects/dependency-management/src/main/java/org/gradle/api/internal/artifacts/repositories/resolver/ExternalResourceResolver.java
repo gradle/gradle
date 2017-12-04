@@ -225,7 +225,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         LocallyAvailableExternalResource metadataArtifact = artifactResolver.resolveArtifact(artifact, result);
         S metaDataFromResource = null;
         if (metadataArtifact != null) {
-            ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileResourceRepository, moduleIdentifierFactory);
+            ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileResourceRepository);
             metaDataFromResource = parseMetaDataFromResource(moduleComponentIdentifier, metadataArtifact, context);
         }
 
