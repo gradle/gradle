@@ -15,10 +15,12 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.language.nativeplatform.internal.Include;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Map;
 
 public interface SourceIncludesResolver {
     interface IncludeResolutionResult {
@@ -29,7 +31,7 @@ public interface SourceIncludesResolver {
          */
         boolean isComplete();
 
-        Collection<File> getFiles();
+        Map<File, FileSnapshot> getFiles();
 
         /**
          * Every file path searched as part of resolution.

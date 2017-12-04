@@ -17,7 +17,9 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import org.gradle.internal.FileUtils;
+import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
+import org.gradle.internal.file.FileType;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -33,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,11 +43,13 @@ import java.util.Set;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private final List<File> includePaths;
-    private final Map<File, Map<String, Boolean>> includeRoots;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final Map<File, Map<String, FileSnapshot>> includeRoots;
 
-    public DefaultSourceIncludesResolver(List<File> includePaths) {
+    public DefaultSourceIncludesResolver(List<File> includePaths, FileSystemSnapshotter fileSystemSnapshotter) {
         this.includePaths = includePaths;
-        this.includeRoots = new HashMap<File, Map<String, Boolean>>();
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.includeRoots = new HashMap<File, Map<String, FileSnapshot>>();
     }
 
     @Override
@@ -246,8 +251,13 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     private List<File> prependSourceDir(File sourceFile, List<File> includePaths) {
+        File sourceDir = sourceFile.getParentFile();
+        if (includePaths.size() > 1 && includePaths.get(0).equals(sourceDir)) {
+            // Source dir already at the start of the path, just use the include path
+            return includePaths;
+        }
         List<File> quotedSearchPath = new ArrayList<File>(includePaths.size() + 1);
-        quotedSearchPath.add(sourceFile.getParentFile());
+        quotedSearchPath.add(sourceDir);
         quotedSearchPath.addAll(includePaths);
         return quotedSearchPath;
     }
@@ -256,25 +266,26 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         for (File searchDir : searchPath) {
             File candidate = new File(searchDir, include);
 
-            Map<String, Boolean> searchedIncludes = includeRoots.get(searchDir);
+            Map<String, FileSnapshot> searchedIncludes = includeRoots.get(searchDir);
             if (searchedIncludes == null) {
-                searchedIncludes = new HashMap<String, Boolean>();
+                searchedIncludes = new HashMap<String, FileSnapshot>();
                 includeRoots.put(searchDir, searchedIncludes);
             }
             dependencies.searched(candidate);
             if (searchedIncludes.containsKey(include)) {
-                if (searchedIncludes.get(include)) {
-                    dependencies.resolved(FileUtils.canonicalize(candidate));
+                FileSnapshot fileSnapshot = searchedIncludes.get(include);
+                if (fileSnapshot.getType() == FileType.RegularFile) {
+                    dependencies.resolved(candidate, fileSnapshot);
                     return;
                 }
                 continue;
             }
 
-            boolean found = candidate.isFile();
-            searchedIncludes.put(include, found);
+            FileSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(candidate);
+            searchedIncludes.put(include, fileSnapshot);
 
-            if (found) {
-                dependencies.resolved(FileUtils.canonicalize(candidate));
+            if (fileSnapshot.getType() == FileType.RegularFile) {
+                dependencies.resolved(candidate, fileSnapshot);
                 return;
             }
         }
@@ -320,7 +331,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     private static class BuildableResult implements IncludeResolutionResult {
-        private final Set<File> files = new LinkedHashSet<File>();
+        private final Map<File, FileSnapshot> files = new LinkedHashMap<File, FileSnapshot>();
         private final Set<File> candidates = new LinkedHashSet<File>();
         private boolean missing;
 
@@ -328,8 +339,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             candidates.add(candidate);
         }
 
-        void resolved(File file) {
-            files.add(file);
+        void resolved(File file, FileSnapshot fileSnapshot) {
+            files.put(file, fileSnapshot);
         }
 
         void unresolved() {
@@ -342,7 +353,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         @Override
-        public Collection<File> getFiles() {
+        public Map<File, FileSnapshot> getFiles() {
             return files;
         }
 

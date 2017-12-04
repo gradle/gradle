@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
+import org.gradle.api.internal.changedetection.state.TestFileSnapshotter
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser
@@ -26,7 +27,7 @@ import spock.lang.Specification
 
 class DefaultSourceIncludesResolverTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-
+    def fileSystemSnapshotter = new TestFileSnapshotter()
     def testDirectory = temporaryFolder.testDirectory
     def sourceDirectory = testDirectory.createDir("sources")
     def systemIncludeDir = testDirectory.createDir("headers")
@@ -48,7 +49,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def resolve(Include include) {
         def macros = new MacroLookup()
         macros.append(sourceFile, included)
-        return new DefaultSourceIncludesResolver(includePaths).resolveInclude(sourceFile, include, macros)
+        return new DefaultSourceIncludesResolver(includePaths, fileSystemSnapshotter).resolveInclude(sourceFile, include, macros)
     }
 
     def "ignores system include file that does not exist"() {
@@ -58,7 +59,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('<test.h>'))
         result.complete
-        result.files.empty
+        result.files.keySet().empty
         result.checkedLocations as List == [test]
     }
 
@@ -70,7 +71,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('"test.h"'))
         result.complete
-        result.files.empty
+        result.files.keySet().empty
         result.checkedLocations as List == [test1, test2]
     }
 
@@ -81,18 +82,18 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('"test.h"'))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [header]
         result.checkedLocations as List == [header]
     }
 
     def "locates quoted includes relative to source directory"() {
         given:
-        def header = sourceDirectory.createFile(path)
+        sourceDirectory.createFile(path)
 
         expect:
         def result = resolve(include("\"${path}\""))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [new File(sourceDirectory, path)] // not canonicalized
         result.checkedLocations as List == [new File(sourceDirectory, path)] // not canonicalized
 
         where:
@@ -107,7 +108,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('<system.h>'))
         result.complete
-        result.files.empty
+        result.files.keySet().empty
         result.checkedLocations as List == [header]
     }
 
@@ -124,7 +125,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('<system.h>'))
         result.complete
-        result.files as List == [header1]
+        result.files.keySet() as List == [header1]
         result.checkedLocations as List == [header, header1]
     }
 
@@ -142,7 +143,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('"header.h"'))
         result.complete
-        result.files as List == [header1]
+        result.files.keySet() as List == [header1]
         result.checkedLocations as List == [srcHeader, header, header1]
     }
 
@@ -161,7 +162,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST'))
         result.complete
-        result.files as List == [header1]
+        result.files.keySet() as List == [header1]
         result.checkedLocations as List == [srcHeader, header, header1]
     }
 
@@ -179,7 +180,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST()'))
         result.complete
-        result.files as List == [header1]
+        result.files.keySet() as List == [header1]
         result.checkedLocations as List == [srcHeader, header, header1]
     }
 
@@ -200,7 +201,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST3'))
         result.complete
-        result.files as List == [header1]
+        result.files.keySet() as List == [header1]
         result.checkedLocations as List == [srcHeader, header, header1]
     }
 
@@ -219,7 +220,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST'))
         result.complete
-        result.files as List == [includeFile1, includeFile2, includeFile3]
+        result.files.keySet() as List == [includeFile1, includeFile2, includeFile3]
         result.checkedLocations as List == [includeFile1, includeFile2, includeFile3]
     }
 
@@ -238,7 +239,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST()'))
         result.complete
-        result.files as List == [includeFile1, includeFile2, includeFile3]
+        result.files.keySet() as List == [includeFile1, includeFile2, includeFile3]
         result.checkedLocations as List == [includeFile1, includeFile2, includeFile3]
     }
 
@@ -251,7 +252,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST'))
         !result.complete
-        result.files.empty
+        result.files.keySet().empty
         result.checkedLocations.empty
     }
 
@@ -266,7 +267,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST'))
         !result.complete
-        result.files as List == [includeFile]
+        result.files.keySet() as List == [includeFile]
         result.checkedLocations as List == [includeFile]
     }
 
@@ -277,7 +278,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST'))
         !result.complete
-        result.files.empty
+        result.files.keySet().empty
         result.checkedLocations.empty
     }
 
@@ -288,7 +289,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST()'))
         !result.complete
-        result.files.empty
+        result.files.keySet().empty
         result.checkedLocations.empty
     }
 
@@ -300,12 +301,12 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST1(A, B)'))
         !result.complete
-        result.files.empty
+        result.files.keySet().empty
         result.checkedLocations.empty
 
         def result2 = resolve(include('TEST2(A)'))
         !result2.complete
-        result2.files.empty
+        result.files.keySet().empty
         result2.checkedLocations.empty
     }
 
@@ -318,12 +319,12 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST1()'))
         !result.complete
-        result.files.empty
+        result.files.keySet().empty
         result.checkedLocations.empty
 
         def result2 = resolve(include('TEST2()'))
         result2.complete
-        result2.files as List == [header]
+        result2.files.keySet() as List == [header]
         result2.checkedLocations as List == [header]
     }
 
@@ -331,7 +332,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST'))
         !result.complete
-        result.files.empty
+        result.files.keySet().empty
         result.checkedLocations.empty
     }
 
@@ -339,7 +340,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST()'))
         !result.complete
-        result.files.empty
+        result.files.keySet().empty
         result.checkedLocations.empty
     }
 
@@ -354,7 +355,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST'))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [header]
         result.checkedLocations as List == [srcHeader, header]
     }
 
@@ -371,7 +372,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST'))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [header]
         result.checkedLocations as List == [srcHeader, header]
     }
 
@@ -386,7 +387,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST(FILE, NAME)'))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [header]
         result.checkedLocations as List == [srcHeader, header]
     }
 
@@ -400,7 +401,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST(FILENAME, )'))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [header]
         result.checkedLocations as List == [header]
     }
 
@@ -417,7 +418,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST(FILE, NAME)'))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [header]
         result.checkedLocations as List == [srcHeader, header]
     }
 
@@ -436,7 +437,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST(A, B(C))'))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [header]
         result.checkedLocations as List == [srcHeader, header]
     }
 
@@ -454,7 +455,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST(FUNCTION_NAME, _NAME)'))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [header]
         result.checkedLocations as List == [srcHeader, header]
     }
 
@@ -471,7 +472,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST(FILENAME, _NAME, ~)'))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [header]
         result.checkedLocations as List == [srcHeader, header]
     }
 
@@ -487,7 +488,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST(TEST, (FILENAME))'))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [header]
         result.checkedLocations as List == [srcHeader, header]
     }
 
@@ -503,7 +504,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST(FILE, (~))'))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [header]
         result.checkedLocations as List == [header]
     }
 
@@ -520,7 +521,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include('TEST(FILE, FILE2, (~))'))
         result.complete
-        result.files as List == [header]
+        result.files.keySet() as List == [header]
         result.checkedLocations as List == [header]
     }
 

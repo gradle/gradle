@@ -16,16 +16,12 @@
 package org.gradle.language.nativeplatform.internal.incremental
 
 import com.google.common.collect.ImmutableList
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
-import org.gradle.api.internal.changedetection.state.MissingFileSnapshot
-import org.gradle.api.internal.changedetection.state.RegularFileSnapshot
+import org.gradle.api.internal.changedetection.state.TestFileSnapshotter
 import org.gradle.cache.PersistentStateCache
-import org.gradle.internal.hash.Hashing
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.IncludeType
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeWithSimpleExpression
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeWithSimpleExpression
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -38,7 +34,7 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def includesParser = Mock(SourceIncludesParser)
     def dependencyResolver = Mock(SourceIncludesResolver)
-    def fileSystemSnapshotter = Stub(FileSystemSnapshotter)
+    def fileSystemSnapshotter = new TestFileSnapshotter()
     def stateCache = new DummyPersistentStateCache()
     def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyResolver, fileSystemSnapshotter))
 
@@ -54,13 +50,6 @@ class IncrementalCompileProcessorTest extends Specification {
     List<TestFile> modified = []
 
     def setup() {
-        fileSystemSnapshotter.snapshotSelf(_) >> { File file ->
-            if (file.isFile()) {
-                return new RegularFileSnapshot(null, null, false, new FileHashSnapshot(Hashing.sha1().hashBytes(file.bytes)))
-            }
-            return new MissingFileSnapshot(null, null)
-        }
-
         // S1 - D1 \
         //    \ D2  \
         //           D3
@@ -429,8 +418,8 @@ class IncrementalCompileProcessorTest extends Specification {
     SourceIncludesResolver.IncludeResolutionResult resolveDeps(Collection<File> deps) {
         SourceIncludesResolver.IncludeResolutionResult includes = Stub(SourceIncludesResolver.IncludeResolutionResult)
         _ * includes.complete >> true
-        _ * includes.files >> (deps as List)
-        _ * includes.checkedLocations >> (deps as List)
+        _ * includes.files >> deps.collectEntries { [it, fileSystemSnapshotter.snapshotSelf(it)] }
+        _ * includes.checkedLocations >> deps
         return includes
     }
 
@@ -438,7 +427,7 @@ class IncrementalCompileProcessorTest extends Specification {
         SourceIncludesResolver.IncludeResolutionResult includes = Stub(SourceIncludesResolver.IncludeResolutionResult)
         _ * includes.complete >> false
         _ * includes.checkedLocations >> []
-        _ * includes.files >> []
+        _ * includes.files >> [:]
         return includes
     }
 

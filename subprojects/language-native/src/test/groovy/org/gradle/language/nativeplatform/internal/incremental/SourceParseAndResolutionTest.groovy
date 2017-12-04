@@ -16,15 +16,18 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
+import org.gradle.api.internal.changedetection.state.TestFileSnapshotter
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeDirectivesSerializer
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 
 /**
  * An integration test that covers source parsing and include resolution plus persistence of parsed state.
  */
+@UsesNativeServices
 class SourceParseAndResolutionTest extends SerializerSpec {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -32,7 +35,8 @@ class SourceParseAndResolutionTest extends SerializerSpec {
     def header = includeDir.createFile("hello.h")
     def sourceDir = tmpDir.createDir("src")
     def sourceFile = sourceDir.createFile("src.cpp")
-    def resolver = new DefaultSourceIncludesResolver([includeDir])
+    def fileSystemSnapshotter = new TestFileSnapshotter()
+    def resolver = new DefaultSourceIncludesResolver([includeDir], fileSystemSnapshotter)
     def parser = new RegexBackedCSourceParser()
     def serializer = new IncludeDirectivesSerializer()
 
@@ -714,7 +718,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         macros.append(sourceFile, directives)
         def result = resolver.resolveInclude(sourceFile, directives.all.first(), macros)
         assert result.complete
-        result.files as List
+        result.files.keySet() as List
     }
 
     void doesNotResolve(String reportedAs) {
@@ -725,6 +729,6 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         def result = resolver.resolveInclude(sourceFile, directives.all.first(), macros)
         assert directives.all.first().asSourceText == reportedAs
         assert !result.complete
-        assert result.files.empty
+        assert result.files.keySet().empty
     }
 }

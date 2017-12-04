@@ -47,13 +47,13 @@ public class IncrementalCompileFilesFactory {
 
     private final SourceIncludesParser sourceIncludesParser;
     private final SourceIncludesResolver sourceIncludesResolver;
-    private final FileSystemSnapshotter snapshotter;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
     private final boolean ignoreUnresolvedHeadersInDependencies;
 
-    public IncrementalCompileFilesFactory(SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileSystemSnapshotter snapshotter) {
+    public IncrementalCompileFilesFactory(SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileSystemSnapshotter fileSystemSnapshotter) {
         this.sourceIncludesParser = sourceIncludesParser;
         this.sourceIncludesResolver = sourceIncludesResolver;
-        this.snapshotter = snapshotter;
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.ignoreUnresolvedHeadersInDependencies = Boolean.getBoolean(IGNORE_UNRESOLVED_HEADERS_IN_DEPENDENCIES_PROPERTY_NAME);
     }
 
@@ -91,14 +91,14 @@ public class IncrementalCompileFilesFactory {
          * @return true if this source file requires recompilation, false otherwise.
          */
         private boolean visitSourceFile(File sourceFile) {
-            FileSnapshot fileSnapshot = snapshotter.snapshotSelf(sourceFile);
+            FileSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(sourceFile);
             if (fileSnapshot.getType() != FileType.RegularFile) {
                 // Skip things that aren't files
                 return false;
             }
 
             SourceFileState previousState = previous.getState(sourceFile);
-            FileVisitResult result = visitFile(sourceFile, new MacroLookup(), new HashSet<File>(), true);
+            FileVisitResult result = visitFile(sourceFile, fileSnapshot, new MacroLookup(), new HashSet<File>(), true);
             SourceFileState newState = new SourceFileState(fileSnapshot.getContent().getContentMd5(), ImmutableSet.copyOf(result.includeFileStates));
             current.setState(sourceFile, newState);
             includeDirectivesMap.put(sourceFile, result.includeDirectives);
@@ -109,7 +109,7 @@ public class IncrementalCompileFilesFactory {
             return previousState == null || result.result == IncludeFileResolutionResult.UnresolvedMacroIncludes || newState.hasChanged(previousState);
         }
 
-        private FileVisitResult visitFile(File file, MacroLookup visibleMacros, Set<File> visited, boolean isSourceFile) {
+        private FileVisitResult visitFile(File file, FileSnapshot fileSnapshot, MacroLookup visibleMacros, Set<File> visited, boolean isSourceFile) {
             FileDetails fileDetails = visitedFiles.get(file);
             if (fileDetails != null && fileDetails.results != null) {
                 // A file that we can safely reuse the result for
@@ -123,7 +123,6 @@ public class IncrementalCompileFilesFactory {
             }
 
             if (fileDetails == null) {
-                FileSnapshot fileSnapshot = snapshotter.snapshotSelf(file);
                 HashCode newHash = fileSnapshot.getContent().getContentMd5();
                 IncludeDirectives includeDirectives = sourceIncludesParser.parseIncludes(file);
                 fileDetails = new FileDetails(new IncludeFileState(newHash, file), includeDirectives);
@@ -148,9 +147,9 @@ public class IncrementalCompileFilesFactory {
                         hasUnresolvedHeaders = true;
                     }
                 }
-                for (File includeFile : resolutionResult.getFiles()) {
-                    existingHeaders.add(includeFile);
-                    FileVisitResult includeVisitResult = visitFile(includeFile, visibleMacros, visited, false);
+                for (Map.Entry<File, FileSnapshot> entry : resolutionResult.getFiles().entrySet()) {
+                    existingHeaders.add(entry.getKey());
+                    FileVisitResult includeVisitResult = visitFile(entry.getKey(), entry.getValue(), visibleMacros, visited, false);
                     if (includeVisitResult.result.ordinal() > result.ordinal()) {
                         result = includeVisitResult.result;
                     }
