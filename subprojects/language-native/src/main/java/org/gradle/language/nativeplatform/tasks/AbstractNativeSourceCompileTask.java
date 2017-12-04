@@ -56,12 +56,6 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
 
     public AbstractNativeSourceCompileTask() {
         super();
-        getOutputs().doNotCacheIf("No header dependency analysis provided", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return !getHeaderDependenciesFile().isPresent();
-            }
-        });
         getOutputs().doNotCacheIf("Pre-compiled headers are used", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {

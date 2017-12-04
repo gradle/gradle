@@ -142,9 +142,9 @@ public class IncrementalCompileFilesFactory {
                 discoveredInputs.addAll(resolutionResult.getCheckedLocations());
                 if (!resolutionResult.isComplete()) {
                     LOGGER.info("Cannot locate header file for '{}' in source file '{}'. Assuming changed.", include.getAsSourceText(), file.getName());
-                    result = IncludeFileResolutionResult.UnresolvedMacroIncludes;
                     if (isSourceFile || !ignoreUnresolvedHeadersInDependencies) {
                         hasUnresolvedHeaders = true;
+                        result = IncludeFileResolutionResult.UnresolvedMacroIncludes;
                     }
                 }
                 for (Map.Entry<File, FileSnapshot> entry : resolutionResult.getFiles().entrySet()) {

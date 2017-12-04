@@ -408,7 +408,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         and:
         executedAndNotSkipped compileTasksDebug(APP)
         output.contains("Cannot locate header file for '#include $include' in source file 'main.cpp'. Assuming changed.")
-        unresolvedHeadersDetected(':app:dependDebugCpp')
+        unresolvedHeadersDetected(':app:compileDebugCpp')
 
         when:
         disableTransitiveUnresolvedHeaderDetection()
@@ -421,7 +421,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
         and:
         executedAndNotSkipped compileTasksDebug(APP)
         output.contains("Cannot locate header file for '#include $include' in source file 'main.cpp'. Assuming changed.")
-        unresolvedHeadersDetected(':app:dependDebugCpp')
+        unresolvedHeadersDetected(':app:compileDebugCpp')
 
         when:
         file("app/src/main/headers/some-dir").mkdirs()
@@ -528,7 +528,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
     }
 
     private GradleExecuter disableTransitiveUnresolvedHeaderDetection() {
-        executer.with {
+        executer.beforeExecute {
             withArgument("-Dorg.gradle.internal.native.headers.unresolved.dependencies.ignore=true")
         }
     }
@@ -567,7 +567,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
 
         and:
         executedAndNotSkipped compileTasksDebug(APP)
-        unresolvedHeadersDetected(':app:dependDebugCpp')
+        unresolvedHeadersDetected(':app:compileDebugCpp')
     }
 
     def "can have a cycle between header files"() {
@@ -821,6 +821,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractCppInstalledToolChainIn
     }
 
     private boolean unresolvedHeadersDetected(String taskPath) {
+        executed(taskPath)
         output.contains("After parsing the source files, Gradle cannot calculate the exact set of include files for '${taskPath}'. Every file in the include search path will be considered a header dependency.")
     }
 }

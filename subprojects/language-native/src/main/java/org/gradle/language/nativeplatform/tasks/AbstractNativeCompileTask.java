@@ -15,28 +15,17 @@
  */
 package org.gradle.language.nativeplatform.tasks;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableList;
-import com.google.common.io.Files;
-import com.google.common.io.LineProcessor;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -47,8 +36,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.nativeplatform.internal.incremental.DefaultHeaderDependenciesCollector;
-import org.gradle.language.nativeplatform.internal.incremental.HeaderDependenciesCollector;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -59,13 +46,8 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Compiles native source files into object files.
@@ -82,15 +64,14 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final ConfigurableFileCollection source;
     private final Map<String, String> macros = new LinkedHashMap<String, String>();
     private final ListProperty<String> compilerArgs;
-    private ImmutableList<String> includePaths;
-    private final RegularFileProperty headerDependenciesFile;
+    private final IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
         source = getProject().files();
         objectFileDir = newOutputDirectory();
         compilerArgs = getProject().getObjects().listProperty(String.class);
-        headerDependenciesFile = newInputFile();
+        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(getPath(), getOutputs(), source, includes);
         dependsOn(includes);
     }
 
@@ -124,7 +105,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.setDebuggable(isDebuggable());
         spec.setOptimized(isOptimized());
         spec.setIncrementalCompile(inputs.isIncremental());
-        spec.setDiscoveredInputRecorder((DiscoveredInputRecorder) inputs);
         spec.setOperationLogger(operationLogger);
 
         configureSpec(spec);
@@ -139,14 +119,9 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
         Class<T> specType = Cast.uncheckedCast(spec.getClass());
         Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
-        HeaderDependenciesCollector headerDependenciesCollector = getHeaderDependenciesFile().isPresent() ? HeaderDependenciesCollector.NOOP : createDependenciesCollector();
-        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain, headerDependenciesCollector);
+        Compiler<T> incrementalCompiler = this.incrementalCompiler.createCompiler(baseCompiler);
         Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
         return loggingCompiler.execute(spec);
-    }
-
-    private DefaultHeaderDependenciesCollector createDependenciesCollector() {
-        return new DefaultHeaderDependenciesCollector(((ProjectInternal) getProject()).getServices().get(DirectoryFileTreeFactory.class));
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
@@ -161,6 +136,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     public void setToolChain(NativeToolChain toolChain) {
         this.toolChain = (NativeToolChainInternal) toolChain;
+        incrementalCompiler.setToolChain(this.toolChain);
     }
 
     /**
@@ -243,23 +219,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         return includes;
     }
 
-    @Input
-    @Optional
-    protected Collection<String> getIncludePaths() {
-        if (headerDependenciesFile.isPresent()) {
-            return null; // => Include paths are handled by a different task
-        }
-        if (includePaths == null) {
-            ImmutableList.Builder<String> builder = ImmutableList.builder();
-            Set<File> roots = includes.getFiles();
-            for (File root : roots) {
-                builder.add(root.getAbsolutePath());
-            }
-            includePaths = builder.build();
-        }
-        return includePaths;
-    }
-
     /**
      * Add directories where the compiler should search for header files.
      */
@@ -307,66 +266,13 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     /**
-     * The file containing the header dependency analysis.
+     * The set of dependent headers. This is used for up-to-date checks only.
      *
      * @since 4.3
      */
-    @Internal
-    public RegularFileProperty getHeaderDependenciesFile() {
-        return headerDependenciesFile;
-    }
-
-    /**
-     * The set of dependent headers, read from {@link #getHeaderDependenciesFile()}}.
-     *
-     * This is used for up-to-date checks only.
-     *
-     * @since 4.3
-     */
-    @Optional
     @InputFiles
     @PathSensitive(PathSensitivity.NAME_ONLY)
     protected FileCollection getHeaderDependencies() {
-        final File inputFile = headerDependenciesFile.getAsFile().getOrNull();
-        if (inputFile == null || !inputFile.isFile()) {
-            return null;
-        }
-
-        return getFileCollectionFactory().create(new HeaderDependencies(inputFile));
-    }
-
-    private class HeaderDependencies implements MinimalFileSet {
-        private final File inputFile;
-
-        public HeaderDependencies(File inputFile) {
-            this.inputFile = inputFile;
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            try {
-                return Files.readLines(inputFile, Charsets.UTF_8, new LineProcessor<Set<File>>() {
-                    private Set<File> result = new HashSet<File>();
-
-                    @Override
-                    public boolean processLine(String line) throws IOException {
-                        result.add(new File(line));
-                        return true;
-                    }
-
-                    @Override
-                    public Set<File> getResult() {
-                        return result;
-                    }
-                });
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Header dependencies for " + AbstractNativeCompileTask.this.toString();
-        }
+        return incrementalCompiler.getHeaderFiles();
     }
 }
