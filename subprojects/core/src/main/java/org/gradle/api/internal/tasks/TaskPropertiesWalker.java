@@ -367,7 +367,7 @@ public class TaskPropertiesWalker {
         }
 
         @Override
-        public String getName() {
+        public String getPropertyName() {
             return propertyName;
         }
 

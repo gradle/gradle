@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
@@ -52,6 +53,8 @@ class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitOutputFileProperty({ it.propertyName == 'bean.outputDir' && it.value.value.path == 'outputDir' })
 
         1 * visitor.visitDestroyable({ it.propertyName == 'destroyed' && it.value.path == 'destroyed' })
+
+        1 * visitor.visitLocalState({ it.propertyName == 'someLocalState' && it.value.path == 'localState' })
 
         0 * _
     }
@@ -91,6 +94,9 @@ class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
 
         @Destroys
         File destroyed = new File('destroyed')
+
+        @LocalState
+        File someLocalState = new File('localState')
 
     }
 

@@ -34,7 +34,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
 
     @Override
     public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
-        DefaultTaskInputPropertySpec declaration = specFactory.createInputPropertySpec(propertyInfo.getName(), propertyInfo);
+        DefaultTaskInputPropertySpec declaration = specFactory.createInputPropertySpec(propertyInfo.getPropertyName(), propertyInfo);
         declaration.optional(propertyInfo.isOptional());
         visitor.visitInputProperty(declaration);
 //        FIXME wolfs

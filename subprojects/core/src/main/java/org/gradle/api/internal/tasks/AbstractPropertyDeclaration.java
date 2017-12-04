@@ -28,7 +28,7 @@ public class AbstractPropertyDeclaration implements PropertyDeclaration {
 
     @Override
     public String getName() {
-        return propertyInfo.getName();
+        return propertyInfo.getPropertyName();
     }
 
     @Nullable

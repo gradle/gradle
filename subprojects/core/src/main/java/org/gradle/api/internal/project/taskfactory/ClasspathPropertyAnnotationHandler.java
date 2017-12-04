@@ -53,7 +53,7 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
     public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
         DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(propertyInfo, ValidationAction.NO_OP);
         fileSpec
-            .withPropertyName(propertyInfo.getName())
+            .withPropertyName(propertyInfo.getPropertyName())
             .withNormalizer(ClasspathNormalizer.class)
             .optional(propertyInfo.isOptional());
         visitor.visitInputFileProperty(fileSpec);

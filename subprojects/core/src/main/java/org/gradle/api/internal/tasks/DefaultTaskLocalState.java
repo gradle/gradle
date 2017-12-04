@@ -23,7 +23,9 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 @NonNullApi
@@ -31,12 +33,16 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
     private final FileResolver resolver;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
+    private final TaskPropertiesWalker propertiesWalker;
+    private final PropertySpecFactory specFactory;
     private final List<Object> paths = Lists.newArrayList();
 
-    public DefaultTaskLocalState(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
+    public DefaultTaskLocalState(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, TaskPropertiesWalker propertiesWalker, PropertySpecFactory specFactory) {
         this.resolver = resolver;
         this.task = task;
         this.taskMutator = taskMutator;
+        this.propertiesWalker = propertiesWalker;
+        this.specFactory = specFactory;
     }
 
     @Override
@@ -49,8 +55,36 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
         });
     }
 
+    public void accept(InputsOutputVisitor visitor) {
+        propertiesWalker.visitInputs(specFactory, visitor, task);
+        for (Object path : paths) {
+            visitor.visitLocalState(path);
+        }
+    }
+
     @Override
     public FileCollection getFiles() {
-        return new DefaultConfigurableFileCollection(task + " local state", resolver, null, paths);
+        Iterable<Object> objects = new Iterable<Object>() {
+            @Override
+            public Iterator<Object> iterator() {
+                GetFilesVisitor visitor = new GetFilesVisitor();
+                accept(visitor);
+                return visitor.getLocalState().iterator();
+            }
+        };
+        return new DefaultConfigurableFileCollection(task + " local state", resolver, null, objects);
+    }
+
+    private static class GetFilesVisitor extends InputsOutputVisitor.Adapter {
+        private List<Object> localState = new ArrayList<Object>();
+
+        @Override
+        public void visitLocalState(Object path) {
+            localState.add(path);
+        }
+
+        public List<Object> getLocalState() {
+            return localState;
+        }
     }
 }

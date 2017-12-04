@@ -26,6 +26,8 @@ public interface InputsOutputVisitor {
 
     void visitDestroyable(Object path);
 
+    void visitLocalState(Object path);
+
     class Adapter implements InputsOutputVisitor {
 
         @Override
@@ -42,6 +44,10 @@ public interface InputsOutputVisitor {
 
         @Override
         public void visitDestroyable(Object path) {
+        }
+
+        @Override
+        public void visitLocalState(Object path) {
         }
     }
 

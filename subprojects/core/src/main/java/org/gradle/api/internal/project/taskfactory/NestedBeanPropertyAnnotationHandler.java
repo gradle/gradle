@@ -40,7 +40,7 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
 
     @Override
     public void accept(final PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
-        DefaultTaskInputPropertySpec propertySpec = specFactory.createInputPropertySpec(propertyInfo.getName() + ".class", new NestedPropertyValue(propertyInfo));
+        DefaultTaskInputPropertySpec propertySpec = specFactory.createInputPropertySpec(propertyInfo.getPropertyName() + ".class", new NestedPropertyValue(propertyInfo));
         propertySpec.optional(propertyInfo.isOptional());
         visitor.visitInputProperty(propertySpec);
     }

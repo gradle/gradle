@@ -47,7 +47,7 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
         }
         DeclaredTaskInputFileProperty fileSpec = createFileSpec(propertyInfo, specFactory);
         fileSpec
-            .withPropertyName(propertyInfo.getName()).optional(propertyInfo.isOptional())
+            .withPropertyName(propertyInfo.getPropertyName()).optional(propertyInfo.isOptional())
             .withPathSensitivity(pathSensitivity)
             .skipWhenEmpty(propertyInfo.isAnnotationPresent(SkipWhenEmpty.class))
             .optional(propertyInfo.isOptional());

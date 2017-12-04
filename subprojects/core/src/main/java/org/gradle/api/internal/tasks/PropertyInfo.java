@@ -21,7 +21,7 @@ import java.lang.annotation.Annotation;
 
 public interface PropertyInfo extends ValidatingValue {
 
-    String getName();
+    String getPropertyName();
 
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 

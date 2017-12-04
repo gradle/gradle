@@ -32,7 +32,7 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
     public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
         DeclaredTaskOutputFileProperty fileSpec = createFileSpec(propertyInfo, specFactory);
         fileSpec
-            .withPropertyName(propertyInfo.getName())
+            .withPropertyName(propertyInfo.getPropertyName())
             .optional(propertyInfo.isOptional());
         visitor.visitOutputFileProperty(fileSpec);
     }
