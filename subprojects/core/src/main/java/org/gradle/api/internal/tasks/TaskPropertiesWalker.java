@@ -48,6 +48,7 @@ import org.gradle.api.internal.project.taskfactory.OutputFilesPropertyAnnotation
 import org.gradle.api.internal.project.taskfactory.OverridingPropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.options.OptionValues;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -59,6 +60,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.Types;
+import org.gradle.util.DeferredUtil;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nonnull;
@@ -77,6 +79,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+
+import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
 
 @NonNullApi
 public class TaskPropertiesWalker {
@@ -391,7 +395,7 @@ public class TaskPropertiesWalker {
         @Nullable
         @Override
         public Object getValue() {
-            return DeprecationLogger.whileDisabled(new Factory<Object>() {
+            Object value = DeprecationLogger.whileDisabled(new Factory<Object>() {
                 public Object create() {
                     try {
                         return method.invoke(instance);
@@ -402,6 +406,7 @@ public class TaskPropertiesWalker {
                     }
                 }
             });
+            return value instanceof Provider ? ((Provider<?>) value).getOrNull() : value;
         }
 
         @Nullable
@@ -412,6 +417,14 @@ public class TaskPropertiesWalker {
 
         @Override
         public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+            Object unpacked = DeferredUtil.unpack(getValue());
+            if (unpacked == null) {
+                if (!optional) {
+                    context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", propertyName));
+                }
+            } else {
+                valueValidator.validate(propertyName, unpacked, context, ERROR);
+            }
         }
     }
 

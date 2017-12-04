@@ -27,7 +27,6 @@ import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.project.taskfactory.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.InputFilePropertyAnnotationHandler;
@@ -275,27 +274,6 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         };
     }
 
-
-    private static class FileTreeValue implements ValidatingValue {
-        private final ValidatingValue delegate;
-        private final FileTreeInternal fileTree;
-
-        public FileTreeValue(ValidatingValue delegate, FileTreeInternal fileTree) {
-            this.delegate = delegate;
-            this.fileTree = fileTree;
-        }
-
-        @Nullable
-        @Override
-        public Object call() {
-            return fileTree;
-        }
-
-        @Override
-        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-            delegate.validate(propertyName, optional, valueValidator, context);
-        }
-    }
 
     private static class HasInputsVisitor extends InputsOutputVisitor.Adapter {
         private boolean hasInputs;
