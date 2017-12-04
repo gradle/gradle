@@ -35,10 +35,10 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
     def "latest.integration selects highest version regardless of status"() {
         given:
         buildFile << """
-  dependencies {
-      conf 'org.test:projectA:latest.integration'
-  }
-  """
+            dependencies {
+                conf 'org.test:projectA:latest.integration'
+            }
+"""
 
         when:
         repositoryInteractions {
@@ -119,10 +119,10 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
     def "latest.milestone selects highest version with milestone or release status"() {
         given:
         buildFile << """
-  dependencies {
-      conf 'org.test:projectA:latest.milestone'
-  }
-  """
+            dependencies {
+                conf 'org.test:projectA:latest.milestone'
+            }
+"""
 
         when:
         repositoryInteractions {
@@ -262,10 +262,10 @@ Searched in the following locations:
     void "latest.release selects highest version with release status"() {
         given:
         buildFile << """
-  dependencies {
-      conf 'org.test:projectA:latest.release'
-  }
-  """
+            dependencies {
+                conf 'org.test:projectA:latest.release'
+            }
+"""
         when:
         repositoryInteractions {
             'org.test:projectA' {
@@ -392,178 +392,14 @@ Searched in the following locations:
         }
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
-    )
-    // this test is a variant of the previous one, where we don't publish ivy.xml files, but publish Gradle module files only
-    // it allows making sure that we actually read and write the "status" flag in Gradle metadata, because otherwise if the
-    // Ivy file is present, it will be taken from there first
-    // TODO:DAZ Use opt-out when it is available
-    void "latest.release selects highest version with release status using Gradle metadata only"() {
-        given:
-        buildFile << """
-  dependencies {
-      conf 'org.test:projectA:latest.release'
-  }
-  
-  configurations {
-      conf.resolutionStrategy.componentSelection.all { ComponentSelection s, ComponentMetadata d ->
-         if (d.status != 'release') { s.reject('nope') } 
-      }
-  }
-      
-  dependencies.components.all { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
-     def version = details.id.version
-     def expectedStatus = [
-        '1.3'        : 'integration',
-        '1.2'        : 'milestone',
-        '1.1'        : 'release',
-        '1.1.1'      : 'milestone',
-        '1.1-beta-2' : 'integration',
-        '1.0'        : 'release',
-     ]
-     assert details.status == expectedStatus[version]
-  }
-  """
-        when:
-        repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
-        }
-        runAndFail 'checkDeps'
-
-        then:
-        failureHasCause 'Could not find any matches for org.test:projectA:latest.release as no versions of org.test:projectA are available.'
-
-
-        when:
-        resetExpectations()
-        repository {
-            'org.test:projectA:1.3' {
-                withModule {
-                    withStatus 'integration'
-                    withNoIvyMetaData()
-                }
-            }
-            'org.test:projectA:1.2' {
-                withModule {
-                    withStatus 'milestone'
-                    withNoIvyMetaData()
-                }
-            }
-        }
-        repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
-            'org.test:projectA:1.3' {
-                allowAll()
-            }
-            'org.test:projectA:1.2' {
-                allowAll()
-            }
-        }
-        runAndFail 'checkDeps', '--refresh-dependencies'
-
-        then:
-        failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
-Versions that do not match:
-    1.3
-    1.2
-Searched in the following locations:
-'''
-
-        when:
-        resetExpectations()
-        repository {
-            'org.test:projectA:1.1' {
-                withModule {
-                    withStatus 'release'
-                    withNoIvyMetaData()
-                }
-            }
-            'org.test:projectA:1.0' {
-                withModule {
-                    withStatus 'release'
-                    withNoIvyMetaData()
-                }
-            }
-        }
-        repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
-            'org.test:projectA:1.3' {
-                allowAll()
-            }
-            'org.test:projectA:1.2' {
-                allowAll()
-            }
-            'org.test:projectA:1.1' {
-                allowAll()
-            }
-        }
-        run 'checkDeps', '--refresh-dependencies'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.test:projectA:latest.release", "org.test:projectA:1.1")
-            }
-        }
-
-        when:
-        resetExpectations()
-        repository {
-            'org.test:projectA:1.1.1' {
-                withModule {
-                    withStatus 'milestone'
-                    withNoIvyMetaData()
-                }
-            }
-            'org.test:projectA:1.1-beta2' {
-                withModule {
-                    withStatus 'integration'
-                    withNoIvyMetaData()
-                }
-            }
-        }
-        repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
-            'org.test:projectA:1.3' {
-                allowAll()
-            }
-            'org.test:projectA:1.2' {
-                allowAll()
-            }
-            'org.test:projectA:1.1.1' {
-                allowAll()
-            }
-            'org.test:projectA:1.1' {
-                allowAll()
-            }
-        }
-        run 'checkDeps', '--refresh-dependencies'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.test:projectA:latest.release", "org.test:projectA:1.1")
-            }
-        }
-    }
-
     @Issue(["GRADLE-2502", "GRADLE-2794"])
     def "version selector ending in + selects highest matching version"() {
         given:
         buildFile << """
-  dependencies {
-      conf 'org.test:projectA:1.2+'
-  }
-  """
+            dependencies {
+                conf 'org.test:projectA:1.2+'
+            }
+"""
         and:
         repository {
             'org.test:projectA:1.1.2'()
@@ -655,10 +491,10 @@ Searched in the following locations:
     def "version range selects highest matching version"() {
         given:
         buildFile << """
-  dependencies {
-      conf 'org.test:projectA:[1.2,2.0]'
-  }
-  """
+            dependencies {
+                conf 'org.test:projectA:[1.2,2.0]'
+            }
+"""
         and:
         repository {
             'org.test:projectA' {
@@ -724,21 +560,18 @@ Searched in the following locations:
         }
     }
 
-    /**
-     * We only resolve artifacts without metadata without experimentalFeatures enabled (or with explicit opt-in)
-     * // TODO:DAZ Use opt-in when it is available
-     */
-    @RequiredFeatures(
-        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
-    )
     def "can resolve version range when no metadata is published"() {
         given:
         buildFile << """
-  dependencies {
-      conf 'org.test:projectA:[1.2,2.0)'
-  }
-  
-  """
+            repositories.all {
+                metadataSources {
+                    artifact()
+                }
+            }
+            dependencies {
+                conf 'org.test:projectA:[1.2,2.0)'
+            }
+"""
         and:
         repository {
             'org.test:projectA:1.2' {
@@ -764,7 +597,8 @@ Searched in the following locations:
                 expectVersionListing()
             }
             'org.test:projectA:1.2.1' {
-                expectResolveArtifactOnly()
+                expectHeadArtifact()
+                expectGetArtifact()
             }
         }
 

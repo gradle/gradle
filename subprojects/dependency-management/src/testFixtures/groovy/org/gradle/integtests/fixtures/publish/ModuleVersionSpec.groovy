@@ -58,12 +58,6 @@ class ModuleVersionSpec {
         expectGetArtifact()
     }
 
-    void expectResolveArtifactOnly() {
-        expectGetMetadataMissing()
-        expectHeadArtifact()
-        expectGetArtifact()
-    }
-
     void expectGetMetadata(boolean alwaysExpectGradleMetadata = false) {
         this.alwaysExpectGradleMetadata = alwaysExpectGradleMetadata
         expectGetMetadata << InteractionExpectation.GET
