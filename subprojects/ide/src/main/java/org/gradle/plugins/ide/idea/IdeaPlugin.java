@@ -280,6 +280,18 @@ public class IdeaPlugin extends IdePlugin {
                 return Sets.newLinkedHashSet();
             }
         });
+        conventionMapping.map("resourceDirs", new Callable<Set<File>>() {
+            @Override
+            public Set<File> call() throws Exception {
+                return Sets.newLinkedHashSet();
+            }
+        });
+        conventionMapping.map("testResourceDirs", new Callable<Set<File>>() {
+            @Override
+            public Set<File> call() throws Exception {
+                return Sets.newLinkedHashSet();
+            }
+        });
         conventionMapping.map("excludeDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
@@ -336,14 +348,28 @@ public class IdeaPlugin extends IdePlugin {
                     @Override
                     public Set<File> call() {
                         SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        return sourceSets.getByName("main").getAllSource().getSrcDirs();
+                        return sourceSets.getByName("main").getAllJava().getSrcDirs();
                     }
                 });
                 convention.map("testSourceDirs", new Callable<Set<File>>() {
                     @Override
                     public Set<File> call() {
                         SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        return sourceSets.getByName("test").getAllSource().getSrcDirs();
+                        return sourceSets.getByName("test").getAllJava().getSrcDirs();
+                    }
+                });
+                convention.map("resourceDirs", new Callable<Set<File>>() {
+                    @Override
+                    public Set<File> call() throws Exception {
+                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+                        return sourceSets.getByName("main").getResources().getSrcDirs();
+                    }
+                });
+                convention.map("testResourceDirs", new Callable<Set<File>>() {
+                    @Override
+                    public Set<File> call() throws Exception {
+                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+                        return sourceSets.getByName("test").getResources().getSrcDirs();
                     }
                 });
                 convention.map("singleEntryLibraries", new Callable<Map<String, FileCollection>>() {

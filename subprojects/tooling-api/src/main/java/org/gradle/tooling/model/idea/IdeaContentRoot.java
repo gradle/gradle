@@ -59,6 +59,40 @@ public interface IdeaContentRoot {
     DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedTestDirectories();
 
     /**
+     * The set of resource directories.
+     * NOTE: The resources directory is only available for Java projects, otherwise it is empty set.
+     *
+     * @since 4.7
+     */
+    @Incubating
+    DomainObjectSet<? extends IdeaSourceDirectory> getResourceDirectories();
+
+    /**
+     * The set of generated resource directories. This is a subset of those directories returned by {@link #getResourceDirectories()}.
+     *
+     * @since 4.7
+     */
+    @Incubating
+    DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedResourceDirectories();
+
+    /**
+     * The set of test resource directories.
+     * NOTE: The test resources directory is only available for Java projects, otherwise it is empty set.
+     *
+     * @since 4.7
+     */
+    @Incubating
+    DomainObjectSet<? extends IdeaSourceDirectory> getTestResourceDirectories();
+
+    /**
+     * The set of generated test resource directories. This is a subset of those directories returned by {@link #getTestResourceDirectories()}.
+     *
+     * @since 4.7
+     */
+    @Incubating
+    DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedTestResourceDirectories();
+
+    /**
      * The set of excluded directories.
      */
     Set<File> getExcludeDirectories();

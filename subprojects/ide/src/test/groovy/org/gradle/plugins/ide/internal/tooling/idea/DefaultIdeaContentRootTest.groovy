@@ -44,4 +44,28 @@ class DefaultIdeaContentRootTest extends Specification {
         expect:
         contentRoot.generatedTestDirectories == [generated] as Set
     }
+
+    def "generated resource is a subset of resource"() {
+        def dir = Stub(DefaultIdeaSourceDirectory)
+        def generated = Stub(DefaultIdeaSourceDirectory)
+
+        given:
+        generated.generated >> true
+        contentRoot.resourceDirectories = [dir, generated]
+
+        expect:
+        contentRoot.generatedResourceDirectories == [generated] as Set
+    }
+
+    def "generated test resource is a subset of test resource"() {
+        def dir = Stub(DefaultIdeaSourceDirectory)
+        def generated = Stub(DefaultIdeaSourceDirectory)
+
+        given:
+        generated.generated >> true
+        contentRoot.testResourceDirectories = [dir, generated]
+
+        expect:
+        contentRoot.generatedTestResourceDirectories == [generated] as Set
+    }
 }

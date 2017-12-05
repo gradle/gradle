@@ -17,7 +17,7 @@
             <tr>
                 <td>sourceDirs</td>
                 <td><literal>[]</literal></td>
-                <td>source dirs from <literal>project.sourceSets.main.allSource</literal></td>
+                <td>source dirs from <literal>project.sourceSets.main.allJava</literal></td>
             </tr>
             <tr>
                 <td>scopes</td>
@@ -54,8 +54,20 @@
             <tr>
                 <td>testSourceDirs</td>
                 <td><literal>[]</literal></td>
-                <td>source dirs from <literal>project.sourceSets.test.allSource</literal></td>
+                <td>source dirs from <literal>project.sourceSets.test.allJava</literal></td>
             </tr>
+            <tr>
+                <td>resourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td>resource dirs from <literal>project.sourceSets.main.resources</literal></td>
+            </tr>
+            <tr>
+                <td>testResourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td>resource dirs from <literal>project.sourceSets.test.resources</literal></td>
+            </tr>
+
+
             <tr>
                 <td>excludeDirs</td>
                 <td><literal>[project.buildDir, project.file('.gradle')]</literal></td>
