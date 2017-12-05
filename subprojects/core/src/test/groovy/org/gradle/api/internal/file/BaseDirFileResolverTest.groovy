@@ -215,10 +215,6 @@ class BaseDirFileResolverTest {
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve({'relative'} as Callable))
     }
 
-    @Test public void testResolveFileSource() {
-        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(baseDirConverter.resolveLater('relative')))
-    }
-
     @Test public void testResolveNestedClosuresAndCallables() {
         Callable callable = {'relative'} as Callable
         Closure closure = {callable}
@@ -304,14 +300,6 @@ class BaseDirFileResolverTest {
     @Test public void testResolveParentDirToRelativePath() {
         assertEquals('..', baseDirConverter.resolveAsRelativePath(baseDir.parentFile))
         assertEquals('..', baseDirConverter.resolveAsRelativePath('..'))
-    }
-
-    @Test public void testResolveLater() {
-        String src;
-        Closure cl = { src }
-        org.gradle.internal.Factory<File> source = baseDirConverter.resolveLater(cl)
-        src = 'file1'
-        assertEquals(new File(baseDir, 'file1'), source.create())
     }
 
     @Test public void testCreateFileResolver() {

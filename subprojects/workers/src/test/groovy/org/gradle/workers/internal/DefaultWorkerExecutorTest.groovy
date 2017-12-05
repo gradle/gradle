@@ -19,7 +19,6 @@ package org.gradle.workers.internal
 import com.google.common.util.concurrent.ListenableFutureTask
 import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -47,7 +46,6 @@ class DefaultWorkerExecutorTest extends Specification {
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     def fileResolver = Mock(FileResolver)
     def workerDirectoryProvider = Mock(WorkerDirectoryProvider)
-    def factory = Mock(Factory)
     def runnable = Mock(Runnable)
     def executor = Mock(ManagedExecutor)
     def instantiatorFactory = Mock(InstantiatorFactory)
@@ -56,8 +54,8 @@ class DefaultWorkerExecutorTest extends Specification {
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
-        _ * fileResolver.resolveLater(_) >> factory
-        _ * fileResolver.resolve(_) >> { files -> files[0] }
+        _ * fileResolver.resolve(_ as File) >> { files -> files[0] }
+        _ * fileResolver.resolve(_ as String) >> { files -> new File(files[0]) }
         _ * executorFactory.create(_ as String) >> executor
         workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, executorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider)
     }
