@@ -47,28 +47,11 @@ import spock.lang.Unroll
 class ModuleMetadataSerializerTest extends Specification {
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    private final ModuleMetadataSerializer serializer = new ModuleMetadataSerializer(
-        TestUtil.attributesFactory(),
-        NamedObjectInstantiator.INSTANCE
-    )
+    private final ModuleMetadataSerializer serializer = moduleMetadataSerializer()
+    private GradlePomModuleDescriptorParser pomModuleDescriptorParser = pomParser()
+    private MetaDataParser<MutableIvyModuleResolveMetadata> ivyDescriptorParser = ivyParser()
+    private ModuleMetadataParser gradleMetadataParser = gradleMetadataParser()
 
-    private GradlePomModuleDescriptorParser pomModuleDescriptorParser = new GradlePomModuleDescriptorParser(
-        new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme()),
-        moduleIdentifierFactory,
-        Stub(FileResourceRepository)
-    )
-
-    private MetaDataParser<MutableIvyModuleResolveMetadata> ivyDescriptorParser = new IvyXmlModuleDescriptorParser(
-        new IvyModuleDescriptorConverter(moduleIdentifierFactory),
-        moduleIdentifierFactory,
-        Stub(FileResourceRepository)
-    )
-
-    private ModuleMetadataParser gradleMetadataParser = new ModuleMetadataParser(
-        TestUtil.attributesFactory(),
-        moduleIdentifierFactory,
-        NamedObjectInstantiator.INSTANCE
-    )
 
     @Unroll
     def "can write and re-read sample #sample.parentFile.name metadata file #sample.name"() {
@@ -105,6 +88,10 @@ class ModuleMetadataSerializerTest extends Specification {
             samples.addAll(it.listFiles() as List)
         }
 
+        String filter = System.getProperty('org.gradle.internal.test.moduleMetadataSerializerFilter', null)
+        if (filter) {
+            samples = samples.findAll { it =~ filter }
+        }
         samples
     }
 
@@ -141,4 +128,34 @@ class ModuleMetadataSerializerTest extends Specification {
         return new LocalFileStandInExternalResource(testFile, TestFiles.fileSystem())
     }
 
+    private ModuleMetadataSerializer moduleMetadataSerializer() {
+        new ModuleMetadataSerializer(
+            TestUtil.attributesFactory(),
+            NamedObjectInstantiator.INSTANCE
+        )
+    }
+
+    private GradlePomModuleDescriptorParser pomParser() {
+        new GradlePomModuleDescriptorParser(
+            new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme()),
+            moduleIdentifierFactory,
+            Stub(FileResourceRepository)
+        )
+    }
+
+    private IvyXmlModuleDescriptorParser ivyParser() {
+        new IvyXmlModuleDescriptorParser(
+            new IvyModuleDescriptorConverter(moduleIdentifierFactory),
+            moduleIdentifierFactory,
+            Stub(FileResourceRepository)
+        )
+    }
+
+    private ModuleMetadataParser gradleMetadataParser() {
+        new ModuleMetadataParser(
+            TestUtil.attributesFactory(),
+            moduleIdentifierFactory,
+            NamedObjectInstantiator.INSTANCE
+        )
+    }
 }
