@@ -249,6 +249,25 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         public void appendToHasher(BuildCacheHasher hasher) {
             hasher.putHash(hashCode);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            HashBackedSnapshot that = (HashBackedSnapshot) o;
+
+            return hashCode.equals(that.hashCode);
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode.hashCode();
+        }
     }
 
     private class FileVisitorImpl implements FileVisitor {
