@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -358,6 +360,23 @@ public class TaskPropertiesWalker {
         private final List<Annotation> annotations;
         private final Object instance;
         private final Method method;
+        private final Supplier<Object> valueSupplier = Suppliers.memoize(new Supplier<Object>() {
+            @Override
+            public Object get() {
+                Object value = DeprecationLogger.whileDisabled(new Factory<Object>() {
+                    public Object create() {
+                        try {
+                            return method.invoke(instance);
+                        } catch (InvocationTargetException e) {
+                            throw UncheckedException.throwAsUncheckedException(e.getCause());
+                        } catch (Exception e) {
+                            throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), instance), e);
+                        }
+                    }
+                });
+                return value instanceof Provider ? ((Provider<?>) value).getOrNull() : value;
+            }
+        });
 
         public DefaultPropertyInfo(String propertyName, List<Annotation> annotations, Object instance, Method method) {
             this.propertyName = propertyName;
@@ -396,18 +415,7 @@ public class TaskPropertiesWalker {
         @Nullable
         @Override
         public Object getValue() {
-            Object value = DeprecationLogger.whileDisabled(new Factory<Object>() {
-                public Object create() {
-                    try {
-                        return method.invoke(instance);
-                    } catch (InvocationTargetException e) {
-                        throw UncheckedException.throwAsUncheckedException(e.getCause());
-                    } catch (Exception e) {
-                        throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), instance), e);
-                    }
-                }
-            });
-            return value instanceof Provider ? ((Provider<?>) value).getOrNull() : value;
+            return valueSupplier.get();
         }
 
         @Nullable
