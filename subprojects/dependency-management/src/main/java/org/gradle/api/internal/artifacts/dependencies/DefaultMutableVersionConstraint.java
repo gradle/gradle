@@ -90,7 +90,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public void reject(String... versions) {
-        if (versions == null) {
+        if (versions.length==0) {
             throw new InvalidUserDataException("The 'reject' clause requires at least one rejected version");
         }
         Collections.addAll(rejects, versions);
