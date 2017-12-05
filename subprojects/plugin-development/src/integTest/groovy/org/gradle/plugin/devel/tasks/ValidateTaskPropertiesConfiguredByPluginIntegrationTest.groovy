@@ -17,7 +17,9 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
+@Ignore("FIXME wolfs")
 class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
