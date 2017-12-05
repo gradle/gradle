@@ -22,12 +22,18 @@ public class TaskOutputOriginMetadata {
 
     private final UniqueId buildInvocationId;
 
-    public TaskOutputOriginMetadata(UniqueId buildInvocationId) {
+    private final long originalExecutionTime;
+
+    public TaskOutputOriginMetadata(UniqueId buildInvocationId, long originalExecutionTime) {
         this.buildInvocationId = buildInvocationId;
+        this.originalExecutionTime = originalExecutionTime;
     }
 
     public UniqueId getBuildInvocationId() {
         return buildInvocationId;
     }
 
+    public long getOriginalExecutionTime() {
+        return originalExecutionTime;
+    }
 }

@@ -17,10 +17,13 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractVcsIntegrationTest extends AbstractIntegrationSpec {
+    BuildTestFile depProject
+
     def setup() {
         buildFile << """
             apply plugin: 'java'
@@ -37,7 +40,7 @@ abstract class AbstractVcsIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         buildTestFixture.withBuildInSubDir()
-        singleProjectBuild("dep") {
+        depProject = singleProjectBuild("dep") {
             buildFile << """
                 apply plugin: 'java'
             """
@@ -45,8 +48,12 @@ abstract class AbstractVcsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    TestFile checkoutDir(String repoName, String versionId, String repoId) {
-        def hashedRepo = HashUtil.createCompactMD5(repoId)
-        file(".gradle/vcsWorkingDirs/${hashedRepo}/${versionId}/${repoName}")
+    TestFile checkoutDir(String repoName, String versionId, String repoId, TestFile baseDir=testDirectory) {
+        def hashedRepo = hashRepositoryId(repoId)
+        baseDir.file(".gradle/vcsWorkingDirs/${hashedRepo}/${versionId}/${repoName}")
+    }
+
+    String hashRepositoryId(String repoId) {
+        HashUtil.createCompactMD5(repoId)
     }
 }

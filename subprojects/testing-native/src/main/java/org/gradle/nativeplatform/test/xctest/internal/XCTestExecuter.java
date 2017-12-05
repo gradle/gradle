@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
@@ -32,9 +31,9 @@ import org.gradle.internal.io.TextStream;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
-import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.process.internal.ExecHandleFactory;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -56,8 +55,9 @@ import java.util.List;
  * - Test probing (so we know which tests exist without executing them)
  */
 public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
-    public ExecHandleBuilder getExecHandleBuilder() {
-        return new DefaultExecHandleBuilder();
+    @Inject
+    public ExecHandleFactory getExecHandleFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
@@ -70,7 +70,7 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     }
 
     @Inject
-    public ObjectFactory getObjectFactory() {
+    public Clock getClock() {
         throw new UnsupportedOperationException();
     }
 
@@ -81,10 +81,9 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
 
     @Override
     public void execute(XCTestTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
-        ObjectFactory objectFactory = getObjectFactory();
         File executable = testExecutionSpec.getRunScript();
         File workingDir = testExecutionSpec.getWorkingDir();
-        TestClassProcessor processor = objectFactory.newInstance(XCTestProcessor.class, executable, workingDir, getExecHandleBuilder(), getIdGenerator());
+        TestClassProcessor processor = new XCTestProcessor(getClock(), executable, workingDir, getExecHandleFactory().newExec(), getIdGenerator());
 
         Runnable detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
 

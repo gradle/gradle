@@ -17,7 +17,6 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -32,9 +31,8 @@ public interface VersionConstraint {
      * The preferred version of a module. The preferred version of a module can typically be upgraded during dependency resolution,
      * unless further constraints are added.
      *
-     * @return the baseline version, often referred to as the preferred version.
+     * @return the preferred version, or empty string if no preferred version specified. Never null.
      */
-    @Nullable
     String getPreferredVersion();
 
     /**

@@ -86,13 +86,13 @@ class SwiftApplicationPluginTest extends Specification {
         compileRelease.source.files == [src] as Set
         compileRelease.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
         compileRelease.moduleFile.get().asFile == projectDir.file("build/modules/main/release/TestApp.swiftmodule")
-        !compileRelease.debuggable
+        compileRelease.debuggable
         compileRelease.optimized
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkExecutable
         linkRelease.binaryFile.get().asFile == projectDir.file("build/exe/main/release/" + OperatingSystem.current().getExecutableName("TestApp"))
-        !linkRelease.debuggable
+        linkRelease.debuggable
 
         def installRelease = project.tasks.installRelease
         installRelease instanceof InstallExecutable

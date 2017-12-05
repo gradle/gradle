@@ -162,6 +162,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
                     AttributeContainer attributes = org.gradle.api.internal.attributes.ImmutableAttributes.EMPTY
                     Set<PublishArtifact> artifacts = [ publishedArtifact ]
                     Set<ModuleDependency> dependencies = [ publishedDependency ]
+                    Set<DependencyConstraint> dependencyConstraints = []
                 }
             }
             class MyComponentWithVariants extends MySoftwareComponent implements ComponentWithVariants {

@@ -101,7 +101,7 @@ public class HttpBuildCacheService implements BuildCacheService {
             } else {
                 String defaultMessage = String.format("Loading entry from '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
                 if (isRedirect(statusCode)) {
-                    return handleRedirect(uri, response, statusCode, defaultMessage);
+                    return handleRedirect(uri, response, statusCode, defaultMessage, "loading entry from");
                 } else {
                     return throwHttpStatusCodeException(statusCode, defaultMessage);
                 }
@@ -115,14 +115,14 @@ public class HttpBuildCacheService implements BuildCacheService {
         }
     }
 
-    private boolean handleRedirect(URI uri, CloseableHttpResponse response, int statusCode, String defaultMessage) {
+    private boolean handleRedirect(URI uri, CloseableHttpResponse response, int statusCode, String defaultMessage, String action) {
         final Header locationHeader = response.getFirstHeader("location");
         if (locationHeader == null) {
             return throwHttpStatusCodeException(statusCode, defaultMessage);
         }
         try {
-            throw new BuildCacheException(String.format("Received redirect (HTTP %d) to %s when loading entry from '%s'. "
-                + "Redirects have a performance penalty and are therefore not supported.", statusCode, safeUri(new URI(locationHeader.getValue())), safeUri(uri)));
+            throw new BuildCacheException(String.format("Received unexpected redirect (HTTP %d) to %s when " + action + " '%s'. "
+                + "Ensure the configured URL for the remote build cache is correct.", statusCode, safeUri(new URI(locationHeader.getValue())), safeUri(uri)));
         } catch (URISyntaxException e) {
             return throwHttpStatusCodeException(statusCode, defaultMessage);
         }
@@ -180,7 +180,7 @@ public class HttpBuildCacheService implements BuildCacheService {
             if (!isHttpSuccess(statusCode)) {
                 String defaultMessage = String.format("Storing entry at '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
                 if (isRedirect(statusCode)) {
-                    handleRedirect(uri, response, statusCode, defaultMessage);
+                    handleRedirect(uri, response, statusCode, defaultMessage, "storing entry at");
                 } else {
                     throwHttpStatusCodeException(statusCode, defaultMessage);
                 }

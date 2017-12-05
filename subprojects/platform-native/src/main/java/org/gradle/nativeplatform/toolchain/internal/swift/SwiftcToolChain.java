@@ -117,10 +117,17 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
     private void addDefaultTools(DefaultSwiftcPlatformToolChain toolChain) {
         toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.SWIFT_COMPILER));
         toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.LINKER));
+        toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.SYMBOL_EXTRACTOR));
+        toolChain.add(instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.STRIPPER));
     }
 
     @Override
     protected String getTypeName() {
         return "Swift Compiler";
+    }
+
+    @Override
+    public boolean requiresDebugBinaryStripping() {
+        return true;
     }
 }

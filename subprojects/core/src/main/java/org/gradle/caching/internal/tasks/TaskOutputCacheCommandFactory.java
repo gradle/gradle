@@ -142,6 +142,11 @@ public class TaskOutputCacheCommandFactory {
                 }
 
                 @Override
+                public long getOriginalExecutionTime() {
+                    return unpackResult.getOriginMetadata().getOriginalExecutionTime();
+                }
+
+                @Override
                 public TaskOutputOriginMetadata getMetadata() {
                     return unpackResult.getOriginMetadata();
                 }

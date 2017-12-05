@@ -77,7 +77,4 @@ public interface ServiceRegistry {
      * @throws ServiceLookupException On failure to lookup the specified service factory.
      */
     <T> T newInstance(Class<T> type) throws UnknownServiceException, ServiceLookupException;
-
-    boolean hasService(Class<?> serviceType);
-
 }

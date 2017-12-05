@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.gradle.DependencyConstraintSpec
 import org.gradle.test.fixtures.gradle.DependencySpec
 import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
 import org.gradle.test.fixtures.gradle.VariantMetadata
@@ -36,6 +37,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final String revision
     final boolean m2Compatible
     final List dependencies = []
+    final List dependencyConstraints = []
     final Map<String, Map> configurations = [:]
     final List artifacts = []
     final Map extendsFrom = [:]
@@ -152,6 +154,12 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         allAttrs.putAll(attributes)
         dependsOn(allAttrs)
         return this
+    }
+
+    @Override
+    IvyModule dependencyConstraint(Module target) {
+        dependencyConstraints << [group: target.group, module: target.module, version: target.version]
+        return null
     }
 
     IvyFileModule dependsOn(Map<String, ?> attributes) {
@@ -342,6 +350,9 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                     v.attributes,
                     dependencies.collect { d ->
                         new DependencySpec(d.organisation, d.module, d.revision, d.rejects, d.exclusions)
+                    },
+                    dependencyConstraints.collect { d ->
+                        new DependencyConstraintSpec(d.group, d.module, d.version, d.rejects)
                     },
                     artifacts.collect { moduleArtifact(it) }
                 )

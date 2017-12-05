@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[javaGradle_plugin]]
+[[java_gradle_plugin]]
 == The Java Gradle Plugin Development Plugin
 
 
 [NOTE]
 ====
- 
+
 The Java Gradle plugin development plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
- 
+
 ====
 
 The Java Gradle Plugin development plugin can be used to assist in the development of Gradle plugins. It automatically applies the <<java_plugin,Java>> plugin, adds the `gradleApi()` dependency to the compile configuration and performs validation of plugin metadata during `jar` task execution.

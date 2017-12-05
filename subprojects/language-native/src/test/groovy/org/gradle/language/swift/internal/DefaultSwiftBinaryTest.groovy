@@ -37,7 +37,7 @@ class DefaultSwiftBinaryTest extends Specification {
         _ * configurations.maybeCreate("nativeLinkDebug") >> link
         _ * configurations.maybeCreate("nativeRuntimeDebug") >> runtime
 
-        binary = new DefaultSwiftBinary("mainDebug", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(Provider), true, false, Stub(FileCollection),  configurations, implementation)
+        binary = new DefaultSwiftBinary("mainDebug", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(Provider), true, false,false, Stub(FileCollection),  configurations, implementation)
     }
 
     def "creates configurations for the binary"() {

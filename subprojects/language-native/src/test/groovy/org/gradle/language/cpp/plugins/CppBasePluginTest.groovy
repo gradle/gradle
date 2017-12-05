@@ -60,8 +60,10 @@ class CppBasePluginTest extends Specification {
         def baseName = project.objects.property(String)
         baseName.set("test_app")
         def executable = Stub(DefaultCppExecutable)
+        def executableFile = project.layout.fileProperty()
         executable.name >> name
         executable.baseName >> baseName
+        executable.getExecutableFile() >> executableFile
 
         when:
         project.pluginManager.apply(CppBasePlugin)

@@ -93,6 +93,10 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     @Override
     public void finishBuild() {
+        // If the gradleLauncher is null, then we've already finished building.
+        if (gradleLauncher == null) {
+            return;
+        }
         getGradleLauncher().finishBuild();
     }
 

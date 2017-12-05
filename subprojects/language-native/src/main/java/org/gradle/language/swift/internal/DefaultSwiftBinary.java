@@ -30,11 +30,13 @@ import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
 public class DefaultSwiftBinary implements SwiftBinary {
     private final String name;
     private final Provider<String> module;
     private final boolean debuggable;
+    private final boolean optimized;
     private final boolean testable;
     private final FileCollection source;
     private final FileCollection compileModules;
@@ -43,10 +45,11 @@ public class DefaultSwiftBinary implements SwiftBinary {
     private final DirectoryProperty objectsDir;
     private final RegularFileProperty moduleFile;
 
-    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
+    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         this.name = name;
         this.module = module;
         this.debuggable = debuggable;
+        this.optimized = optimized;
         this.testable = testable;
         this.source = source;
         this.objectsDir = projectLayout.directoryProperty();
@@ -60,18 +63,21 @@ public class DefaultSwiftBinary implements SwiftBinary {
         importPathConfig.setCanBeConsumed(false);
         importPathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         importPathConfig.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
+        importPathConfig.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
 
         Configuration nativeLink = configurations.maybeCreate(names.withPrefix("nativeLink"));
         nativeLink.extendsFrom(implementation);
         nativeLink.setCanBeConsumed(false);
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
         nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
+        nativeLink.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
 
         Configuration nativeRuntime = configurations.maybeCreate(names.withPrefix("nativeRuntime"));
         nativeRuntime.extendsFrom(implementation);
         nativeRuntime.setCanBeConsumed(false);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
+        nativeRuntime.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
 
         compileModules = importPathConfig;
         linkLibs = nativeLink;
@@ -91,6 +97,11 @@ public class DefaultSwiftBinary implements SwiftBinary {
     @Override
     public boolean isDebuggable() {
         return debuggable;
+    }
+
+    @Override
+    public boolean isOptimized() {
+        return optimized;
     }
 
     @Override

@@ -17,7 +17,6 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 
@@ -26,16 +25,16 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executor;
 
+/**
+ * Use {@link ExecHandleFactory} instead.
+ */
 public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder {
     private final List<Object> arguments = new ArrayList<Object>();
 
-    public DefaultExecHandleBuilder() {
-        super(new IdentityFileResolver());
-    }
-
-    public DefaultExecHandleBuilder(PathToFileResolver fileResolver) {
-        super(fileResolver);
+    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
+        super(fileResolver, executor);
     }
 
     public DefaultExecHandleBuilder executable(Object executable) {
@@ -135,6 +134,12 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     public DefaultExecHandleBuilder setStandardInput(InputStream inputStream) {
         super.setStandardInput(inputStream);
+        return this;
+    }
+
+    @Override
+    public DefaultExecHandleBuilder streamsHandler(StreamsHandler streamsHandler) {
+        super.streamsHandler(streamsHandler);
         return this;
     }
 

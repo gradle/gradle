@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[implement_rule_source]]
+[[rule_source]]
 == Implementing model rules in a plugin
 
 A plugin can define rules by extending api:org.gradle.model.RuleSource[] and adding methods that define the rules. The plugin class can either extend api:org.gradle.model.RuleSource[] directly or can implement api:org.gradle.api.Plugin[] and include a nested api:org.gradle.model.RuleSource[] subclass.

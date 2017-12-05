@@ -33,8 +33,8 @@ public class DefaultCppTestExecutable extends DefaultCppExecutable {
     private final Provider<CppComponent> testedComponent;
 
     @Inject
-    public DefaultCppTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, Provider<CppComponent> testedComponent) {
-        super(name, projectLayout, objects, baseName, debuggable, sourceFiles, componentHeaderDirs, configurations, implementation);
+    public DefaultCppTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, Provider<CppComponent> testedComponent) {
+        super(name, projectLayout, objects, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation);
         this.testedComponent = testedComponent;
     }
 

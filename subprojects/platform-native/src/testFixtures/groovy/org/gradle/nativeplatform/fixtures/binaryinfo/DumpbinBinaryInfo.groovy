@@ -98,6 +98,10 @@ class DumpbinBinaryInfo implements BinaryInfo {
         throw new UnsupportedOperationException("Not yet implemented")
     }
 
+    List<BinaryInfo.Symbol> listDebugSymbols() {
+        throw new UnsupportedOperationException("Not yet implemented")
+    }
+
     String getSoName() {
         throw new UnsupportedOperationException("soname is not relevant on windows")
     }

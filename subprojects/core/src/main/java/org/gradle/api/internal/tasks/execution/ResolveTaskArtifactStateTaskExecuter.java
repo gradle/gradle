@@ -47,7 +47,7 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
 
         context.setTaskArtifactState(taskArtifactState);
         outputs.setHistory(taskArtifactState.getExecutionHistory());
-        LOGGER.info("Putting task artifact state for {} into context took {}.", task, clock.getElapsed());
+        LOGGER.debug("Putting task artifact state for {} into context took {}.", task, clock.getElapsed());
         try {
             executer.execute(task, state, context);
         } finally {

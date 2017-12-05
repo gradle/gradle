@@ -18,11 +18,12 @@ package org.gradle.vcs.git.internal;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.vcs.git.GitVersionControlSpec;
+import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class DefaultGitVersionControlSpec implements GitVersionControlSpec {
+public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec implements GitVersionControlSpec {
     private URI url;
 
     @Override
@@ -62,5 +63,31 @@ public class DefaultGitVersionControlSpec implements GitVersionControlSpec {
             repoPart = repoPart.substring(0, repoPart.indexOf(".git"));
         }
         return repoPart;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultGitVersionControlSpec that = (DefaultGitVersionControlSpec) o;
+
+        return url != null ? url.equals(that.url) : that.url == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return url != null ? url.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "GitVersionControlSpec{"
+            + "url=" + url
+            + '}';
     }
 }

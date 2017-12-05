@@ -67,7 +67,6 @@ class GradleUserHomeScopeServicesTest extends Specification {
     ServiceRegistry registry
 
     def setup() {
-        parent.hasService(_) >> true
         parent.getAll(PluginServiceRegistry) >> []
         registry =  ServiceRegistryBuilder.builder()
             .parent(parent)

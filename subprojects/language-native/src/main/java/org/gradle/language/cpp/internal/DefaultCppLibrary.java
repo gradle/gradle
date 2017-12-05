@@ -43,8 +43,8 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         super(name, fileOperations, objectFactory, configurations);
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
-        debug = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Debug", projectLayout, objectFactory, getBaseName(), true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
-        release = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Release", projectLayout, objectFactory, getBaseName(), false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+        debug = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Debug", projectLayout, objectFactory, getBaseName(), true, false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
+        release = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Release", projectLayout, objectFactory, getBaseName(), true, true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
 
         api = configurations.maybeCreate(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);

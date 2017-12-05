@@ -49,7 +49,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
             projectDependency.getTargetConfiguration(),
             convertArtifacts(dependency.getArtifacts()),
             excludes,
-            false, false, dependency.isTransitive());
+            false, false, dependency.isTransitive(), false);
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }
 

@@ -143,6 +143,9 @@ Currently, the following built-in Gradle tasks are cacheable:
 * Scala toolchain:
     api:org.gradle.api.tasks.scala.ScalaCompile[],
     api:org.gradle.api.tasks.scala.ScalaDoc[]
+* Native toolchain:
+    api:org.gradle.language.cpp.tasks.CppCompile[],
+    api:org.gradle.language.c.tasks.CCompile[]
 * Testing:
     api:org.gradle.api.tasks.testing.Test[]
 * Code quality tasks:
@@ -157,20 +160,6 @@ Currently, the following built-in Gradle tasks are cacheable:
 * Other tasks:
     api:org.gradle.plugin.devel.tasks.ValidateTaskProperties[],
     api:org.gradle.api.tasks.WriteProperties[]
-
-[[sec:task_output_caching_native_tasks]]
-===== Caching native compilation
-
-It is also possible to enable caching for the native toolchain.
-This can be done by setting the system property `org.gradle.caching.native` to `true`.
-Caching is then enabled for api:org.gradle.language.c.tasks.CCompile[] and api:org.gradle.language.cpp.tasks.CppCompile[].
-
-[NOTE]
-====
-Caching native tasks is experimental.
-
-C/C++ compilers embed absolute paths to sources into object files, so you may not be able to debug object files which have been loaded from the cache.
-====
 
 [[sec:task_output_caching_non_cacheable_tasks]]
 ===== Non-cacheable tasks
@@ -258,6 +247,10 @@ These issues may affect the number of cache hits you get between machines.
 | Overlapping outputs between tasks
 | If two or more tasks share an output directory or files, Gradle will disable caching for these tasks when it detects an overlap.
 | Use separate output directories for each task.
+
+| Using cached C/C++ object files with absolute paths
+| When Gradle compiles C/C++ code, object files tend to have absolute paths embedded inside them. This doesn't affect their correctness, but it can interfere with debuggers that search for source code at those absolute paths.
+| Build the project from the same absolute path on every machine.
 
 | Line endings in build scripts files.
 | Gradle calculates the build cache key based on the MD5 hash of the build script contents. If the line endings are different between developers and the CI servers, Gradle will calculate different build cache keys even when all other inputs to a task are the same.

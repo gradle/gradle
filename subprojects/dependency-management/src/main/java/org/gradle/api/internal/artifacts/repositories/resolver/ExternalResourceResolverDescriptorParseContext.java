@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.component.ArtifactType;
@@ -46,12 +45,10 @@ import java.io.File;
 public class ExternalResourceResolverDescriptorParseContext implements DescriptorParseContext {
     private final ComponentResolvers mainResolvers;
     private final FileResourceRepository fileResourceRepository;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public ExternalResourceResolverDescriptorParseContext(ComponentResolvers mainResolvers, FileResourceRepository fileResourceRepository, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public ExternalResourceResolverDescriptorParseContext(ComponentResolvers mainResolvers, FileResourceRepository fileResourceRepository) {
         this.mainResolvers = mainResolvers;
         this.fileResourceRepository = fileResourceRepository;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     @Override

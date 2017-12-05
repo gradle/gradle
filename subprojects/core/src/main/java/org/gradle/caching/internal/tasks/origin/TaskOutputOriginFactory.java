@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.tasks.origin;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.UniqueId;
@@ -30,16 +31,24 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 public class TaskOutputOriginFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskOutputOriginFactory.class);
 
     private static final String BUILD_INVOCATION_ID_KEY = "buildInvocationId";
-    private static final List<String> METADATA_KEYS = Arrays.asList(BUILD_INVOCATION_ID_KEY, "type", "path", "gradleVersion", "creationTime", "executionTime", "rootPath", "operatingSystem", "hostName", "userName");
+    public static final String TYPE_KEY = "type";
+    public static final String PATH_KEY = "path";
+    public static final String GRADLE_VERSION_KEY = "gradleVersion";
+    public static final String CREATION_TIME_KEY = "creationTime";
+    public static final String EXECUTION_TIME_KEY = "executionTime";
+    public static final String ROOT_PATH_KEY = "rootPath";
+    public static final String OPERATING_SYSTEM_KEY = "operatingSystem";
+    public static final String HOST_NAME_KEY = "hostName";
+    public static final String USER_NAME_KEY = "userName";
+    private static final Set<String> METADATA_KEYS = ImmutableSet.of(BUILD_INVOCATION_ID_KEY, TYPE_KEY, PATH_KEY, GRADLE_VERSION_KEY, CREATION_TIME_KEY, EXECUTION_TIME_KEY, ROOT_PATH_KEY, OPERATING_SYSTEM_KEY, HOST_NAME_KEY, USER_NAME_KEY);
 
     private final InetAddressFactory inetAddressFactory;
     private final String userName;
@@ -66,19 +75,19 @@ public class TaskOutputOriginFactory {
                 // TODO: Replace this with something better
                 Properties properties = new Properties();
                 properties.setProperty(BUILD_INVOCATION_ID_KEY, buildInvocationScopeId.getId().asString());
-                properties.setProperty("type", task.getClass().getCanonicalName());
-                properties.setProperty("path", task.getPath());
-                properties.setProperty("gradleVersion", gradleVersion.getVersion());
-                properties.setProperty("creationTime", Long.toString(clock.getCurrentTime()));
-                properties.setProperty("executionTime", Long.toString(elapsedTime));
-                properties.setProperty("rootPath", rootDir.getAbsolutePath());
-                properties.setProperty("operatingSystem", operatingSystem);
-                properties.setProperty("hostName", inetAddressFactory.getHostname());
-                properties.setProperty("userName", userName);
+                properties.setProperty(TYPE_KEY, task.getClass().getCanonicalName());
+                properties.setProperty(PATH_KEY, task.getPath());
+                properties.setProperty(GRADLE_VERSION_KEY, gradleVersion.getVersion());
+                properties.setProperty(CREATION_TIME_KEY, Long.toString(clock.getCurrentTime()));
+                properties.setProperty(EXECUTION_TIME_KEY, Long.toString(elapsedTime));
+                properties.setProperty(ROOT_PATH_KEY, rootDir.getAbsolutePath());
+                properties.setProperty(OPERATING_SYSTEM_KEY, operatingSystem);
+                properties.setProperty(HOST_NAME_KEY, inetAddressFactory.getHostname());
+                properties.setProperty(USER_NAME_KEY, userName);
                 try {
                     properties.store(outputStream, "Generated origin information");
                 } catch (IOException e) {
-                    UncheckedException.throwAsUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 assert METADATA_KEYS.containsAll(properties.stringPropertyNames()) : "Update expected metadata property list";
             }
@@ -94,16 +103,16 @@ public class TaskOutputOriginFactory {
                 try {
                     properties.load(inputStream);
                 } catch (IOException e) {
-                    UncheckedException.throwAsUncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 if (!properties.stringPropertyNames().containsAll(METADATA_KEYS)) {
                     throw new IllegalStateException("Cached result format error, corrupted origin metadata.");
                 }
                 LOGGER.info("Origin for {}: {}", task, properties);
 
-                String originBuildInvocationIdString = properties.getProperty(BUILD_INVOCATION_ID_KEY);
-                UniqueId originBuildInvocationId = UniqueId.from(originBuildInvocationIdString);
-                return new TaskOutputOriginMetadata(originBuildInvocationId);
+                UniqueId originBuildInvocationId = UniqueId.from(properties.getProperty(BUILD_INVOCATION_ID_KEY));
+                long originalExecutionTime = Long.parseLong(properties.getProperty(EXECUTION_TIME_KEY));
+                return new TaskOutputOriginMetadata(originBuildInvocationId, originalExecutionTime);
             }
         };
     }

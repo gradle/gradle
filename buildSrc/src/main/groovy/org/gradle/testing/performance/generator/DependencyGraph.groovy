@@ -16,11 +16,21 @@
 
 package org.gradle.testing.performance.generator
 
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+
 class DependencyGraph {
+
+    @Input
     int size = 0
+
+    @Input
     int depth = 1
+
+    @Input
     boolean useSnapshotVersions = false
 
+    @Internal
     boolean isEmpty() {
         size == 0
     }

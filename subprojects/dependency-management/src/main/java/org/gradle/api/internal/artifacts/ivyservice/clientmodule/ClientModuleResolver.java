@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ClientModule;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -185,7 +186,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public ModuleDependency getSource() {
+        public Dependency getSource() {
             return delegate.getSource();
         }
     }

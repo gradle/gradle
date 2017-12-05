@@ -19,7 +19,6 @@ import spock.lang.Unroll
 
 class StrictDependenciesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @Unroll
     void "can declare a strict dependency onto an external component"() {
         given:
         repository {

@@ -83,6 +83,43 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operation().failure.contains("Task 'someNonExisting' not found in root project")
     }
 
+    def "build path for calculated task graph is exposed"() {
+        settingsFile << """
+            includeBuild "b"
+        """
+
+        file('buildSrc').mkdir()
+
+        buildFile << """
+            apply plugin:'java'
+            
+            dependencies {
+                compile "org.acme:b:1.0"            
+            }
+        """
+
+        file("b/build.gradle") << """
+            apply plugin:'java'
+            group = 'org.acme'
+            version = '1.0'
+        """
+        file('b/settings.gradle') << ""
+
+        when:
+        succeeds('build')
+
+        def taskGraphCalculations = buildOperations.all(CalculateTaskGraphBuildOperationType)
+
+        then:
+        taskGraphCalculations.size() == 3
+        taskGraphCalculations[0].details.buildPath == ":buildSrc"
+        taskGraphCalculations[0].result.requestedTaskPaths == [":build", ":clean"]
+        taskGraphCalculations[1].details.buildPath == ":"
+        taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
+        taskGraphCalculations[2].details.buildPath== ":b"
+        taskGraphCalculations[2].result.requestedTaskPaths == [":jar"]
+    }
+
     private BuildOperationRecord operation() {
         buildOperations.first(CalculateTaskGraphBuildOperationType)
     }

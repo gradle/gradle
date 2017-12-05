@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.java;
 
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
@@ -72,6 +73,11 @@ public class WebApplication implements SoftwareComponentInternal {
 
         @Override
         public Set<ModuleDependency> getDependencies() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<? extends DependencyConstraint> getDependencyConstraints() {
             return Collections.emptySet();
         }
     }

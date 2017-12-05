@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.gradle.DependencyConstraintSpec
 import org.gradle.test.fixtures.gradle.DependencySpec
 import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
 import org.gradle.test.fixtures.gradle.VariantMetadata
@@ -127,6 +128,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     MavenModule dependsOn(String group, String artifactId, String version, String type = null, String scope = null, String classifier = null, Collection<Map> exclusions = null) {
         this.dependencies << [groupId: group, artifactId: artifactId, version: version, type: type, scope: scope, classifier: classifier, exclusions: exclusions]
+        return this
+    }
+
+    @Override
+    MavenModule dependencyConstraint(Module target) {
+        this.dependencies << [groupId: target.group, artifactId: target.module, version: target.version, optional: true]
         return this
     }
 
@@ -241,7 +248,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         if (hasModuleMetadata) {
             expectedArtifacts << "${artifactId}-${publishArtifactVersion}.module"
         }
-        assertArtifactsPublished(expectedArtifacts as String[])
+        assertArtifactsPublished(expectedArtifacts)
         assert parsedPom.packaging == packaging
     }
 
@@ -258,6 +265,13 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         for (name in names) {
             assertChecksumsPublishedFor(moduleDir.file(name))
         }
+    }
+
+    /**
+     * Asserts that exactly the given artifacts have been deployed, along with their checksum files
+     */
+    void assertArtifactsPublished(Iterable<String> names) {
+        assertArtifactsPublished(names as String[])
     }
 
     void assertChecksumsPublishedFor(TestFile testFile) {
@@ -280,8 +294,13 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     @Override
-    DefaultMavenMetaData getRootMetaData() {
-        new DefaultMavenMetaData("$moduleRootPath/${MAVEN_METADATA_FILE}", rootMetaDataFile)
+    DefaultRootMavenMetaData getRootMetaData() {
+        new DefaultRootMavenMetaData("$moduleRootPath/${MAVEN_METADATA_FILE}", rootMetaDataFile)
+    }
+
+    @Override
+    DefaultSnapshotMavenMetaData getSnapshotMetaData() {
+        new DefaultSnapshotMavenMetaData("$path/${MAVEN_METADATA_FILE}", snapshotMetaDataFile)
     }
 
     @Override
@@ -315,6 +334,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     TestFile getRootMetaDataFile() {
         moduleDir.parentFile.file(MAVEN_METADATA_FILE)
+    }
+
+    TestFile getSnapshotMetaDataFile() {
+        moduleDir.file(MAVEN_METADATA_FILE)
     }
 
     TestFile artifactFile(Map<String, ?> options) {
@@ -386,12 +409,16 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                 new VariantMetadata(
                     v.name,
                     v.attributes,
-                    dependencies.collect { d ->
+                    dependencies.findAll { !it.optional }.collect { d ->
                         new DependencySpec(d.groupId, d.artifactId, d.version, d.rejects, d.exclusions)
+                    },
+                    dependencies.findAll { it.optional }.collect { d ->
+                        new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.rejects)
                     },
                     [getArtifact([:])]
                 )
-            }
+            },
+            ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release']
         )
 
         adapter.publishTo(moduleDir)

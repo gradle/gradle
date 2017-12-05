@@ -80,13 +80,13 @@ class SwiftLibraryPluginTest extends Specification {
         compileRelease.source.files == [src] as Set
         compileRelease.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
         compileRelease.moduleFile.get().asFile == projectDir.file("build/modules/main/release/TestLib.swiftmodule")
-        !compileRelease.debuggable
+        compileRelease.debuggable
         compileRelease.optimized
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkSharedLibrary
         linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("TestLib"))
-        !linkRelease.debuggable
+        linkRelease.debuggable
     }
 
     def "output file names are calculated from module name defined on extension"() {

@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
@@ -164,6 +165,15 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public Map<String, TypeOf<?>> getSchema() {
+        Map<String, TypeOf<?>> map = new HashMap<String, TypeOf<?>>();
+        for (ExtensionsSchema.ExtensionSchema schema : getExtensionsSchema()) {
+            map.put(schema.getName(), schema.getPublicType());
+        }
+        return map;
+    }
+
+    @Override
+    public ExtensionsSchema getExtensionsSchema() {
         return extensionsStorage.getSchema();
     }
 

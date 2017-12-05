@@ -290,13 +290,107 @@ project(":project2") {
         project2.assertPublished()
         project2.assertApiDependencies("org.gradle.test:project1:1.0")
 
-        def dependency = project2.parsedPom.scopes.compile.expectDependency("org.gradle.test:project1:1.0")
-        dependency.exclusions.size() == 2
-        def sorted = dependency.exclusions.sort { it.groupId }
+        def dep = project2.parsedPom.scopes.compile.expectDependency("org.gradle.test:project1:1.0")
+        dep.exclusions.size() == 2
+        def sorted = dep.exclusions.sort { it.groupId }
         sorted[0].groupId == "*"
         sorted[0].artifactId == "commons-collections"
         sorted[1].groupId == "commons-io"
         sorted[1].artifactId == "*"
+
+        project2.parsedModuleMetadata.variant('api') {
+            dependency('org.gradle.test:project1:1.0') {
+                exists()
+                hasExclude('*', 'commons-collections')
+                hasExclude('commons-io', '*')
+                noMoreExcludes()
+            }
+        }
+    }
+
+    def "publish and resolve java-library with dependency on java-library-platform"() {
+        given:
+        mavenRepo.module("org.test", "foo", "1.0").publish()
+        mavenRepo.module("org.test", "bar", "1.0").publish()
+        mavenRepo.module("org.test", "bar", "1.1").publish()
+
+        settingsFile << """
+include "platform", "library"
+"""
+
+        buildFile << """
+allprojects {
+    apply plugin: 'maven-publish'
+    apply plugin: 'java-library'
+
+    group = "org.test"
+    version = "1.0"
+}
+
+project(":platform") {
+    dependencies {
+        api "org.test:foo:1.0"
+        constraints {
+            api "org.test:bar:1.1"
+        }
+    }
+    publishing {
+        repositories {
+            maven { url "${mavenRepo.uri}" }
+        }
+        publications {
+            maven(MavenPublication) { from components.javaLibraryPlatform }
+        }
+    }
+}
+
+project(":library") {
+    dependencies {
+        api project(":platform")
+        api "org.test:bar:1.0"
+    }
+    publishing {
+        repositories {
+            maven { url "${mavenRepo.uri}" }
+        }
+        publications {
+            maven(MavenPublication) { from components.java }
+        }
+    }
+}
+"""
+        when:
+        run "publish"
+
+        def platformModule = mavenRepo.module("org.test", "platform", "1.0")
+        def libraryModule = mavenRepo.module("org.test", "library", "1.0")
+
+        then:
+        platformModule.parsedPom.packaging == 'pom'
+        platformModule.parsedPom.scopes.compile.assertDependsOn("org.test:foo:1.0")
+        platformModule.parsedModuleMetadata.variant('api') {
+            dependency("org.test:foo:1.0").exists()
+            constraint("org.test:bar:1.1").exists()
+            noMoreDependencies()
+        }
+
+        libraryModule.parsedPom.packaging == null
+        libraryModule.parsedPom.scopes.compile.assertDependsOn("org.test:bar:1.0", "org.test:platform:1.0")
+        libraryModule.parsedModuleMetadata.variant('api') {
+            dependency("org.test:bar:1.0").exists()
+            dependency("org.test:platform:1.0").exists()
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(platformModule) == ['foo-1.0.jar']
+        resolveArtifacts(libraryModule, false) == ['bar-1.1.jar', 'foo-1.0.jar', 'library-1.0.jar']
+
+        when:
+        resolveModuleMetadata = false
+
+        then: "constraints are not published to POM files"
+        resolveArtifacts(libraryModule) == ['bar-1.0.jar', 'foo-1.0.jar', 'library-1.0.jar']
     }
 
     private void createBuildScripts(String append = "") {

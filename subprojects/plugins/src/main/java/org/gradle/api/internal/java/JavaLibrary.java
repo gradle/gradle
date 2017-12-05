@@ -19,6 +19,7 @@ package org.gradle.api.internal.java;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -63,12 +64,14 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
     @Inject
     public JavaLibrary(ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory attributesFactory, PublishArtifact artifact) {
-        this.artifacts.add(artifact);
         this.configurations = configurations;
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
         this.runtimeUsage = new RuntimeUsageContext(Usage.JAVA_RUNTIME);
         this.compileUsage = new CompileUsageContext(Usage.JAVA_API);
+        if (artifact != null) {
+            this.artifacts.add(artifact);
+        }
     }
 
     /**
@@ -136,11 +139,21 @@ public class JavaLibrary implements SoftwareComponentInternal {
             return "runtime";
         }
 
+        @Override
         public Set<ModuleDependency> getDependencies() {
+            return getRuntimeDependencies().withType(ModuleDependency.class);
+        }
+
+        @Override
+        public Set<? extends DependencyConstraint> getDependencyConstraints() {
+            return getRuntimeDependencies().withType(DependencyConstraint.class);
+        }
+
+        private DependencySet getRuntimeDependencies() {
             if (dependencies == null) {
                 dependencies = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies();
             }
-            return dependencies.withType(ModuleDependency.class);
+            return dependencies;
         }
     }
 
@@ -156,11 +169,21 @@ public class JavaLibrary implements SoftwareComponentInternal {
             return "api";
         }
 
+        @Override
         public Set<ModuleDependency> getDependencies() {
+            return getApiDependencies().withType(ModuleDependency.class);
+        }
+
+        @Override
+        public Set<? extends DependencyConstraint> getDependencyConstraints() {
+            return getApiDependencies().withType(DependencyConstraint.class);
+        }
+
+        private DependencySet getApiDependencies() {
             if (dependencies == null) {
                 dependencies = configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies();
             }
-            return dependencies.withType(ModuleDependency.class);
+            return dependencies;
         }
     }
 
@@ -180,6 +203,11 @@ public class JavaLibrary implements SoftwareComponentInternal {
         @Override
         public Set<ModuleDependency> getDependencies() {
             return runtimeDependencies.withType(ModuleDependency.class);
+        }
+
+        @Override
+        public Set<? extends DependencyConstraint> getDependencyConstraints() {
+            return runtimeDependencies.withType(DependencyConstraint.class);
         }
     }
 

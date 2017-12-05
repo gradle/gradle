@@ -61,8 +61,10 @@ class SwiftBasePluginTest extends Specification {
         def module = project.objects.property(String)
         module.set("TestApp")
         def executable = Stub(DefaultSwiftExecutable)
+        def executableFile = project.layout.fileProperty()
         executable.name >> name
         executable.module >> module
+        executable.executableFile >> executableFile
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)

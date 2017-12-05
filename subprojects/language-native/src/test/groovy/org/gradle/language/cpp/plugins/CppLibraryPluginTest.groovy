@@ -86,13 +86,13 @@ class CppLibraryPluginTest extends Specification {
         compileReleaseCpp.includes.files.take(2) as List == [publicHeaders, privateHeaders]
         compileReleaseCpp.source.files as List == [src]
         compileReleaseCpp.objectFileDir.get().asFile == projectDir.file("build/obj/main/release")
-        !compileReleaseCpp.debuggable
+        compileReleaseCpp.debuggable
         compileReleaseCpp.optimized
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkSharedLibrary
         linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("testLib"))
-        !linkRelease.debuggable
+        linkRelease.debuggable
     }
 
     def "output locations are calculated using base name defined on extension"() {

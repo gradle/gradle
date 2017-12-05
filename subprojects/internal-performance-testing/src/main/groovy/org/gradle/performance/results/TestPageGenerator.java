@@ -181,7 +181,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 div().id(chartId).classAttr("chart");
                 p().text("Loading...").end();
                 script();
-                text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data." + jsonFieldName + "}, '" + fieldLabel + "', '" + fieldUnit + "', '" + chartId + "');");
+                text("performanceTests.createPerformanceGraph('" + urlEncode(testHistory.getId()) + ".json', function(data) { return data." + jsonFieldName + "}, '" + fieldLabel + "', '" + fieldUnit + "', '" + chartId + "');");
                 end();
                 end();
             }

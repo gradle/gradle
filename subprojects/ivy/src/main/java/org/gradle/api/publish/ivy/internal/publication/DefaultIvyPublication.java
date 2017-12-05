@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -171,7 +172,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                     if (dependency instanceof ProjectDependency) {
                         addProjectDependency((ProjectDependency) dependency, confMapping);
                     } else {
-                        addModuleDependency(dependency, confMapping);
+                        addExternalDependency((ExternalDependency) dependency, confMapping);
                     }
                 }
             }
@@ -200,7 +201,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping, dependency.isTransitive(), Collections.<DependencyArtifact>emptyList(), dependency.getExcludeRules()));
     }
 
-    private void addModuleDependency(ModuleDependency dependency, String confMapping) {
+    private void addExternalDependency(ExternalDependency dependency, String confMapping) {
         ivyDependencies.add(new DefaultIvyDependency(dependency, confMapping));
     }
 

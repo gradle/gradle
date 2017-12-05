@@ -30,9 +30,12 @@ class ModuleVersionSpec {
     private final boolean mustPublish = !RemoteRepositorySpec.DEFINES_INTERACTIONS.get()
 
     private final List<Object> dependsOn = []
+    private final List<Object> constraints = []
     private final List<Closure<?>> withModule = []
     private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
     private List<ArtifactExpectation> expectGetArtifact = []
+
+    private boolean alwaysExpectGradleMetadata
 
     static class ArtifactExpectation {
         final InteractionExpectation type
@@ -55,8 +58,13 @@ class ModuleVersionSpec {
         expectGetArtifact()
     }
 
-    void expectGetMetadata() {
+    void expectGetMetadata(boolean alwaysExpectGradleMetadata = false) {
+        this.alwaysExpectGradleMetadata = alwaysExpectGradleMetadata
         expectGetMetadata << InteractionExpectation.GET
+    }
+
+    void expectGetMetadataMissing() {
+        expectGetMetadata << InteractionExpectation.GET_MISSING
     }
 
     void expectHeadMetadata() {
@@ -79,12 +87,20 @@ class ModuleVersionSpec {
         expectGetArtifact << new ArtifactExpectation(InteractionExpectation.HEAD, artifact)
     }
 
+    void expectHeadArtifactMissing(String artifact = '') {
+        expectGetArtifact << new ArtifactExpectation(InteractionExpectation.HEAD_MISSING, artifact)
+    }
+
     void maybeGetMetadata() {
         expectGetMetadata << InteractionExpectation.MAYBE
     }
 
     void dependsOn(coord) {
         dependsOn << coord
+    }
+
+    void constraint(coord) {
+        constraints << coord
     }
 
     void withModule(@DelegatesTo(HttpModule) Closure<?> spec) {
@@ -108,42 +124,52 @@ class ModuleVersionSpec {
 
     void build(HttpRepository repository) {
         def module = repository.module(groupId, artifactId, version)
-        def gradleMetadataEnabled = GradleMetadataResolveRunner.isGradleMetadataEnabled()
+        def gradleMetadataEnabled = alwaysExpectGradleMetadata || GradleMetadataResolveRunner.isGradleMetadataEnabled()
         if (gradleMetadataEnabled) {
             module.withModuleMetadata()
         }
         expectGetMetadata.each {
             switch (it) {
                 case InteractionExpectation.NONE:
-                    break;
+                    break
                 case InteractionExpectation.MAYBE:
-                    if (module instanceof MavenModule) {
+                    if (gradleMetadataEnabled) {
+                        module.moduleMetadata.allowGetOrHead()
+                    } else if (module instanceof MavenModule) {
                         module.pom.allowGetOrHead()
                     } else if (module instanceof IvyModule) {
                         module.ivy.allowGetOrHead()
                     }
-                    if (gradleMetadataEnabled) {
-                        module.moduleMetadata.allowGetOrHead()
-                    }
                     break
                 case InteractionExpectation.HEAD:
-                    if (module instanceof MavenModule) {
+                    if (gradleMetadataEnabled) {
+                        module.moduleMetadata.expectHead()
+                    } else if (module instanceof MavenModule) {
                         module.pom.expectHead()
                     } else if (module instanceof IvyModule) {
                         module.ivy.expectHead()
                     }
+
+                    break
+                case InteractionExpectation.GET_MISSING:
+                    // Assume all metadata files are missing
                     if (gradleMetadataEnabled) {
-                        module.moduleMetadata.expectHead()
+                        module.moduleMetadata.expectGetMissing()
+                    }
+
+                    if (module instanceof MavenModule) {
+                        module.pom.expectGetMissing()
+                    } else if (module instanceof IvyModule) {
+                        module.ivy.expectGetMissing()
                     }
                     break
                 default:
-                    if (module instanceof MavenModule) {
+                    if (gradleMetadataEnabled) {
+                        module.moduleMetadata.expectGet()
+                    } else if (module instanceof MavenModule) {
                         module.pom.expectGet()
                     } else if (module instanceof IvyModule) {
                         module.ivy.expectGet()
-                    }
-                    if (gradleMetadataEnabled) {
-                        module.moduleMetadata.expectGet()
                     }
             }
         }
@@ -167,6 +193,9 @@ class ModuleVersionSpec {
                     case InteractionExpectation.HEAD:
                         artifact.expectHead()
                         break
+                    case InteractionExpectation.HEAD_MISSING:
+                        artifact.expectHeadMissing()
+                        break
                     case InteractionExpectation.MAYBE:
                         artifact.allowGetOrHead()
                         break
@@ -185,6 +214,19 @@ class ModuleVersionSpec {
                     module.dependsOn(it, other)
                 } else {
                     module.dependsOn(it)
+                }
+            }
+        }
+        if (constraints) {
+            constraints.each {
+                if (it instanceof CharSequence) {
+                    def args = it.split(':') as List
+                    module.dependencyConstraint(repository.module(*args))
+                } else if (it instanceof Map) {
+                    def other = repository.module(it.group, it.artifact, it.version)
+                    module.dependencyConstraint(it, other)
+                } else {
+                    module.dependencyConstraint(it)
                 }
             }
         }

@@ -86,11 +86,14 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
             apply plugin: 'swift-library'
          """
 
-        expect:
-        succeeds "linkRelease"
-        result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease")
+        when:
+        succeeds "assembleRelease"
+
+        then:
+        result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease", ":extractSymbolsRelease", ":stripSymbolsRelease", ":assembleRelease")
         file("build/modules/main/release/${lib.moduleName}.swiftmodule").assertIsFile()
         sharedLibrary("build/lib/main/release/${lib.moduleName}" ).assertExists()
+        sharedLibrary("build/lib/main/release/${lib.moduleName}" ).assertHasStrippedDebugSymbolsFor(lib.sourceFileNames)
     }
 
     def "can use link file as task dependency"() {
@@ -271,11 +274,13 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
         sharedLibrary("log/build/lib/main/debug/Log").assertExists()
 
-        succeeds ":hello:linkRelease"
+        succeeds ":hello:assembleRelease"
 
-        result.assertTasksExecuted(":log:compileReleaseSwift", ":log:linkRelease", ":hello:compileReleaseSwift", ":hello:linkRelease")
+        result.assertTasksExecuted(":log:compileReleaseSwift", ":log:linkRelease", ":log:stripSymbolsRelease", ":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:extractSymbolsRelease", ":hello:stripSymbolsRelease", ":hello:assembleRelease")
         sharedLibrary("hello/build/lib/main/release/Hello").assertExists()
+        sharedLibrary("hello/build/lib/main/release/Hello").assertHasStrippedDebugSymbolsFor(app.library.sourceFileNames)
         sharedLibrary("log/build/lib/main/release/Log").assertExists()
+        sharedLibrary("log/build/lib/main/release/Log").assertHasDebugSymbolsFor(app.logLibrary.sourceFileNames)
     }
 
     def "can change default module name and successfully link against library"() {

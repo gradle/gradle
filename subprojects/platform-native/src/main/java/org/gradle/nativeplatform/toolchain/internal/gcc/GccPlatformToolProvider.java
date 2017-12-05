@@ -34,6 +34,8 @@ import org.gradle.nativeplatform.toolchain.internal.DefaultMutableCommandLineToo
 import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.OutputCleaningCompiler;
+import org.gradle.nativeplatform.toolchain.internal.Stripper;
+import org.gradle.nativeplatform.toolchain.internal.SymbolExtractor;
 import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
@@ -46,6 +48,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCom
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
@@ -179,6 +182,18 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
         return new ArStaticLibraryArchiver(buildOperationExecutor, commandLineTool(staticLibArchiverTool), context(staticLibArchiverTool), workerLeaseService);
     }
 
+    @Override
+    protected Compiler<?> createSymbolExtractor() {
+        GccCommandLineToolConfigurationInternal symbolExtractor = toolRegistry.getTool(ToolType.SYMBOL_EXTRACTOR);
+        return new SymbolExtractor(buildOperationExecutor, commandLineTool(symbolExtractor), context(symbolExtractor), workerLeaseService);
+    }
+
+    @Override
+    protected Compiler<?> createStripper() {
+        GccCommandLineToolConfigurationInternal stripper = toolRegistry.getTool(ToolType.STRIPPER);
+        return new Stripper(buildOperationExecutor, commandLineTool(stripper), context(stripper), workerLeaseService);
+    }
+
     private CommandLineToolInvocationWorker commandLineTool(GccCommandLineToolConfigurationInternal tool) {
         ToolType key = tool.getToolType();
         String exeName = tool.getExecutable();
@@ -200,6 +215,9 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
 
     private GccMetadata getGccMetadata(ToolType compilerType) {
         GccCommandLineToolConfigurationInternal compiler = toolRegistry.getTool(compilerType);
+        if (compiler == null) {
+            return GccMetadataProvider.broken("Tool " + compilerType.getToolName() + " is not available");
+        }
         CommandLineToolSearchResult searchResult = toolSearchPath.locate(compiler.getToolType(), compiler.getExecutable());
         String language = LANGUAGE_FOR_COMPILER.get(compilerType);
         List<String> languageArgs = language == null ? Collections.<String>emptyList() : ImmutableList.of("-x", language);
@@ -209,6 +227,9 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
     @Override
     public List<File> getSystemIncludes(ToolType compilerType) {
         GccMetadata gccMetadata = getGccMetadata(compilerType);
-        return gccMetadata.getSystemIncludes();
+        if (gccMetadata.isAvailable()) {
+            return gccMetadata.getSystemIncludes();
+        }
+        return ImmutableList.of();
     }
 }

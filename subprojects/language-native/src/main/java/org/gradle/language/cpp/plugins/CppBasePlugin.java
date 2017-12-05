@@ -21,12 +21,14 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
+import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
@@ -39,9 +41,13 @@ import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.tasks.Depend;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.nativeplatform.tasks.ExtractSymbols;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
+import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.Clang;
 import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
@@ -86,12 +92,12 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 String language = "cpp";
                 final DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
                 // TODO - make this lazy
-                final NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
+                final NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
 
                 Callable<List<File>> systemIncludes = new Callable<List<File>>() {
                     @Override
                     public List<File> call() throws Exception {
-                        PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+                        PlatformToolProvider platformToolProvider = toolChain.select(currentPlatform);
                         if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
                             return ((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(ToolType.CPP_COMPILER);
                         }
@@ -109,12 +115,15 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 configureDepend(depend, binary, toolChain, systemIncludes);
                 compile.getHeaderDependenciesFile().set(depend.getHeaderDependenciesFile());
 
+                Task lifecycleTask = tasks.maybeCreate(names.getTaskName("assemble"));
+
                 if (binary instanceof CppExecutable) {
+                    DefaultCppExecutable executable = (DefaultCppExecutable) binary;
                     // Add a link task
                     LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
                     link.source(binary.getObjects());
                     link.lib(binary.getLinkLibraries());
-                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+                    final PlatformToolProvider toolProvider = toolChain.select(currentPlatform);
                     link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() throws Exception {
@@ -125,19 +134,42 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
+                    if (executable.isDebuggable() && executable.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
+                        Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+                            @Override
+                            public String call() {
+                                return toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
+                            }
+                        }));
+                        Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+                            @Override
+                            public String call() {
+                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
+                            }
+                        }));
+                        StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation, lifecycleTask);
+                        executable.getExecutableFile().set(stripSymbols.getOutputFile());
+                    } else {
+                        executable.getExecutableFile().set(link.getBinaryFile());
+                    }
+
                     // Add an install task
                     // TODO - should probably not add this for all executables?
+                    // TODO - add stripped symbols to the installation
                     final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
                     install.setPlatform(link.getTargetPlatform());
                     install.setToolChain(link.getToolChain());
                     install.getInstallDirectory().set(buildDirectory.dir("install/" + names.getDirName()));
-                    install.getSourceFile().set(link.getBinaryFile());
+                    install.getSourceFile().set(executable.getExecutableFile());
                     install.lib(binary.getRuntimeLibraries());
 
-                    ((DefaultCppExecutable) binary).getExecutableFile().set(link.getBinaryFile());
-                    ((DefaultCppExecutable) binary).getInstallDirectory().set(install.getInstallDirectory());
+                    executable.getInstallDirectory().set(install.getInstallDirectory());
+
+                    lifecycleTask.dependsOn(install.getInstallDirectory());
                 } else if (binary instanceof CppSharedLibrary) {
-                    final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+                    DefaultCppSharedLibrary library = (DefaultCppSharedLibrary) binary;
+
+                    final PlatformToolProvider toolProvider = toolChain.select(currentPlatform);
 
                     compile.setPositionIndependentCode(true);
 
@@ -146,18 +178,19 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     link.source(binary.getObjects());
                     link.lib(binary.getLinkLibraries());
                     // TODO - need to set soname
-                    Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
+                    Provider<RegularFile> binaryFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
                             return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
                         }
                     }));
-                    link.getBinaryFile().set(runtimeFile);
+                    link.getBinaryFile().set(binaryFile);
                     link.setTargetPlatform(currentPlatform);
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
                     Provider<RegularFile> linkFile = link.getBinaryFile();
+                    Provider<RegularFile> runtimeFile = link.getBinaryFile();
                     if (toolProvider.producesImportLibrary()) {
                         Provider<RegularFile> importLibrary = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
@@ -169,8 +202,27 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                         linkFile = link.getImportLibrary();
                     }
 
-                    ((DefaultCppSharedLibrary) binary).getRuntimeFile().set(link.getBinaryFile());
-                    ((DefaultCppSharedLibrary) binary).getLinkFile().set(linkFile);
+                    if (library.isDebuggable() && library.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
+                        Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+                            @Override
+                            public String call() {
+                                return toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
+                            }
+                        }));
+                        Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+                            @Override
+                            public String call() {
+                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/"+ binary.getBaseName().get());
+                            }
+                        }));
+                        StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation, lifecycleTask);
+                        linkFile = stripSymbols.getOutputFile();
+                        runtimeFile = stripSymbols.getOutputFile();
+                    }
+
+                    library.getLinkFile().set(linkFile);
+                    library.getRuntimeFile().set(runtimeFile);
+                    lifecycleTask.dependsOn(library.getRuntimeFile());
                 }
             }
 
@@ -180,7 +232,8 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 compile.source(binary.getCppSource());
                 if (binary.isDebuggable()) {
                     compile.setDebuggable(true);
-                } else {
+                }
+                if (binary.isOptimized()) {
                     compile.setOptimized(true);
                 }
                 compile.setTargetPlatform(currentPlatform);
@@ -194,7 +247,24 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 depend.getHeaderDependenciesFile().set(project.getLayout().getBuildDirectory().file(depend.getName() + "/" + "inputs.txt"));
                 depend.getImportsAreIncludes().set(Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass()));
             }
+
+            private StripSymbols extractAndStripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChainInternal toolChain, NativePlatformInternal currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation, Task lifecycleTask) {
+                ExtractSymbols extractSymbols = tasks.create(names.getTaskName("extractSymbols"), ExtractSymbols.class);
+                extractSymbols.getBinaryFile().set(link.getBinaryFile());
+                extractSymbols.getSymbolFile().set(symbolLocation);
+                extractSymbols.setTargetPlatform(currentPlatform);
+                extractSymbols.setToolChain(toolChain);
+                lifecycleTask.dependsOn(extractSymbols);
+
+                StripSymbols stripSymbols = tasks.create(names.getTaskName("stripSymbols"), StripSymbols.class);
+                stripSymbols.getBinaryFile().set(link.getBinaryFile());
+                stripSymbols.getOutputFile().set(strippedLocation);
+                stripSymbols.setTargetPlatform(currentPlatform);
+                stripSymbols.setToolChain(toolChain);
+                lifecycleTask.dependsOn(stripSymbols);
+
+                return stripSymbols;
+            }
         });
     }
-
 }

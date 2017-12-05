@@ -23,6 +23,7 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.gradle.api.Named;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.test.fixtures.file.TestFile;
@@ -36,7 +37,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class GitRepository extends ExternalResource {
+public class GitRepository extends ExternalResource implements Named {
     private final String repoName;
     private final File parentDirectory;
     private Git git;
@@ -48,6 +49,11 @@ public class GitRepository extends ExternalResource {
 
     public GitRepository(File parentDirectory) {
         this("repo", parentDirectory);
+    }
+
+    @Override
+    public String getName() {
+        return repoName;
     }
 
     /**
@@ -116,6 +122,10 @@ public class GitRepository extends ExternalResource {
         return new TestFile(git.getRepository().getWorkTree());
     }
 
+    public TestFile file(Object... path) {
+        return getWorkTree().file(path);
+    }
+
     public URI getUrl() throws URISyntaxException {
         return getWorkTree().toURI();
     }
@@ -140,5 +150,13 @@ public class GitRepository extends ExternalResource {
         CollectionUtils.collect(status.getUncommittedChanges(), files, relativePathToTestFile);
         CollectionUtils.collect(status.getUntracked(), files, relativePathToTestFile);
         return files;
+    }
+
+    public String getId() {
+        try {
+            return "git-repo:" + getUrl().toASCIIString();
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 }

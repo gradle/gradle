@@ -16,10 +16,12 @@
 
 package org.gradle.testing.performance.generator.tasks
 
+import org.gradle.api.tasks.Internal
 import org.gradle.testing.performance.generator.DependencyGenerator
 import org.gradle.testing.performance.generator.TestProject
 
 class CppMultiProjectGeneratorTask extends AbstractProjectGeneratorTask {
+    @Internal
     DependencyGenerator.DependencyInfo depInfo
 
     @Override

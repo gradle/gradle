@@ -22,8 +22,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
@@ -34,14 +32,15 @@ import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecException
+import org.gradle.process.internal.ExecFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -53,15 +52,16 @@ class DefaultFileOperationsTest extends Specification {
     }
     private final TaskResolver taskResolver = Mock()
     private final TemporaryFileProvider temporaryFileProvider = Mock()
-    private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
+    private final Instantiator instantiator = TestUtil.instantiatorFactory().decorate()
     private final FileLookup fileLookup = Mock()
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
     private final StreamHasher streamHasher = Mock()
     private final FileHasher fileHasher = Mock()
+    private final ExecFactory execFactory = TestFiles.execFactory()
     private DefaultFileOperations fileOperations = instance()
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
-        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher)
+        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory)
     }
 
     @Rule

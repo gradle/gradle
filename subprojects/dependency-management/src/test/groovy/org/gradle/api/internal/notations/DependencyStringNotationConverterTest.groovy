@@ -127,7 +127,7 @@ public class DependencyStringNotationConverterTest extends Specification {
         d.group == 'hey'
         d.name == 'foo'
         d.version == null
-        d.versionConstraint.preferredVersion == null
+        d.versionConstraint.preferredVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -143,7 +143,7 @@ public class DependencyStringNotationConverterTest extends Specification {
         d.group == null
         d.name == 'foo'
         d.version == null
-        d.versionConstraint.preferredVersion == null
+        d.versionConstraint.preferredVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 

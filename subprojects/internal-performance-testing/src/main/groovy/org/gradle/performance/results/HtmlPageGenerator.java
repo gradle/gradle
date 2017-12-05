@@ -16,16 +16,19 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.googlecode.jatl.Html;
 import org.gradle.api.Transformer;
-import org.gradle.performance.util.Git;
 import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataSeries;
+import org.gradle.performance.util.Git;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.GradleVersion;
 
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -209,5 +212,13 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
             }
         }
         return Collections.emptyList();
+    }
+
+    protected String urlEncode(String str) {
+        try {
+            return URLEncoder.encode(str, Charsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

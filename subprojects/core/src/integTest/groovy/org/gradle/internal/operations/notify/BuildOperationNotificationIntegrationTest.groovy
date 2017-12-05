@@ -102,7 +102,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         finished(ApplyScriptPluginBuildOperationType.Result, [:])
         finished(ConfigureProjectBuildOperationType.Result, [:])
 
-        started(CalculateTaskGraphBuildOperationType.Details, [:])
+        started(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':'])
         finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
         started(ExecuteTaskBuildOperationType.Details, [taskPath: ":t", buildPath: ":", taskClass: "org.gradle.api.DefaultTask"])
         finished(ExecuteTaskBuildOperationType.Result, [actionable: false, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: null, cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
@@ -124,7 +124,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notIncluded(ApplyPluginBuildOperationType)
         notIncluded(ConfigureProjectBuildOperationType)
 
-        started(CalculateTaskGraphBuildOperationType.Details, [:])
+        started(CalculateTaskGraphBuildOperationType.Details, [buildPath:':'])
         finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
         started(ExecuteTaskBuildOperationType.Details, [taskPath: ":t", buildPath: ":", taskClass: "org.gradle.api.DefaultTask"])
         finished(ExecuteTaskBuildOperationType.Result, [actionable: false, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: null, cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])

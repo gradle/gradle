@@ -95,16 +95,18 @@ class CppApplicationIntegrationTest extends AbstractCppInstalledToolChainIntegra
          """
 
         expect:
-        succeeds "installRelease"
-        result.assertTasksExecuted(compileTasksRelease(), linkTaskRelease(), installTaskRelease())
+        succeeds assembleTaskRelease()
+        result.assertTasksExecuted(compileTasksRelease(), linkTaskRelease(), extractAndStripSymbolsTasksRelease(toolChain), installTaskRelease(), assembleTaskRelease())
 
         executable("build/exe/main/release/app").assertExists()
+        executable("build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
-        succeeds "installDebug"
-        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug())
+        succeeds assembleTaskDebug()
+        result.assertTasksExecuted(compileTasksDebug(), linkTaskDebug(), installTaskDebug(), assembleTaskDebug())
 
         executable("build/exe/main/debug/app").assertExists()
+        executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
         installation("build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
@@ -379,19 +381,23 @@ class CppApplicationIntegrationTest extends AbstractCppInstalledToolChainIntegra
         app.main.writeToProject(file("app"))
 
         expect:
-        succeeds installTaskRelease(':app')
+        succeeds assembleTaskRelease(':app')
 
-        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], release), installTaskRelease(':app'))
+        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], release), stripSymbolsTasksRelease(':hello', toolChain), extractAndStripSymbolsTasksRelease(':app', toolChain), installTaskRelease(':app'), assembleTaskRelease(':app'))
         executable("app/build/exe/main/release/app").assertExists()
+        executable("app/build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(app.main.sourceFileNames)
         sharedLibrary("hello/build/lib/main/release/hello").assertExists()
+        sharedLibrary("hello/build/lib/main/release/hello").assertHasDebugSymbolsFor(app.greeterLib.sourceFileNamesWithoutHeaders)
         installation("app/build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
-        succeeds ":app:installDebug"
+        succeeds assembleTaskDebug(':app')
 
-        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'))
+        result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'), assembleTaskDebug(':app'))
 
         executable("app/build/exe/main/debug/app").assertExists()
+        executable("app/build/exe/main/debug/app").assertHasDebugSymbolsFor(app.main.sourceFileNames)
         sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
+        sharedLibrary("hello/build/lib/main/debug/hello").assertHasDebugSymbolsFor(app.greeterLib.sourceFileNamesWithoutHeaders)
         installation("app/build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
     }
 

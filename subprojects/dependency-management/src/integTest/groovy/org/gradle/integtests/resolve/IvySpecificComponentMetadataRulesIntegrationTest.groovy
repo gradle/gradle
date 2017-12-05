@@ -23,9 +23,10 @@ import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
 
-@RequiredFeatures(
-    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
-)
+@RequiredFeatures([
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy"),
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
+])
 class IvySpecificComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
 
     def setup() {

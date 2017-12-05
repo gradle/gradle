@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal
 
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.GFileUtils
 import org.gradle.vcs.fixtures.GitRepository
 import org.junit.Rule
@@ -24,6 +25,9 @@ import spock.lang.Issue
 class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Rule
     GitRepository repo = new GitRepository('dep', temporaryFolder.getTestDirectory())
+
+    @Rule
+    GitRepository deeperRepo = new GitRepository('deeperDep', temporaryFolder.getTestDirectory())
 
     def 'can define and use source repositories'() {
         given:
@@ -43,7 +47,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         expect:
         succeeds('assemble')
         // Git repo is cloned
-        def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
         gitCheckout.file('.git').assertExists()
     }
 
@@ -75,7 +79,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         expect:
         succeeds('assemble', '-I', 'initialize.gradle')
         // Git repo is cloned
-        def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
         gitCheckout.file('.git').assertExists()
     }
 
@@ -104,7 +108,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
 
         then:
         // Git repo is cloned
-        def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
         gitCheckout.file('.git').assertExists()
     }
 
@@ -134,7 +138,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         succeeds('assemble')
 
         then:
-        def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
         gitCheckout.file('.git').assertExists()
     }
 
@@ -211,10 +215,134 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         succeeds('assemble')
 
         then:
-        def gitCheckout = checkoutDir('dep', commit.getId().getName(), "git-repo:${repo.url.toASCIIString()}")
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
         gitCheckout.file('.git').assertExists()
-        def gitCheckout2 = checkoutDir('dep', commit2.id.name, "git-repo:${repo.url.toASCIIString()}")
+        def gitCheckout2 = checkoutDir(repo.name, commit2.id.name, repo.id)
         gitCheckout2.file('.git').assertExists()
+    }
+
+    def 'uses root project cache directory'() {
+        given:
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:dep') {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+
+        singleProjectBuild("deeperDep") {
+            buildFile << """
+                apply plugin: 'java'
+            """
+            file("src/main/java/DeeperDep.java") << "public class DeeperDep {}"
+        }
+
+        depProject.buildFile << """
+            dependencies {
+                implementation "org.test:deeperDep:latest.integration"
+            }
+        """
+        depProject.settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule('org.test:deeperDep') {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${deeperRepo.url}"
+                        }
+                    }
+                }
+             }
+        """
+
+        def depCommit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        def deeperCommit = deeperRepo.commit('initial commit', GFileUtils.listFiles(file('deeperDep'), null, true))
+
+        when:
+        succeeds('assemble')
+
+        then:
+        def depCheckout = checkoutDir('dep', depCommit.id.name, "git-repo:${repo.url.toASCIIString()}")
+        depCheckout.file('.git').assertExists()
+
+        def depDeeperCheckout = checkoutDir('deeperDep', depCommit.id.name, "git-repo:${repo.url.toASCIIString()}", depCheckout)
+        depDeeperCheckout.assertDoesNotExist()
+
+        def deeperCheckout = checkoutDir('deeperDep', deeperCommit.id.name, "git-repo:${deeperRepo.url.toASCIIString()}")
+        deeperCheckout.file('.git').assertExists()
+    }
+
+    def 'can resolve the same version for latest.integration within the same build session'() {
+        given:
+        BlockingHttpServer server = new BlockingHttpServer()
+        server.start()
+        settingsFile << """
+        include 'bar'
+        sourceControl {
+            vcsMappings {
+                withModule("org.test:dep") {
+                    from vcs(GitVersionControlSpec) {
+                        url = "${repo.url}"
+                    }
+                }
+            }
+        }
+        """
+
+        file('bar/src/main/java/Bar.java') << "public class Bar extends Dep {}"
+        file('src/main/java/Foo.java') << """
+            public class Foo extends Dep {
+                Foo(Bar d) {}
+            }
+        """
+        buildFile << """
+            project(':bar') {
+                apply plugin: 'java'
+                dependencies {
+                    compile 'org.test:dep:latest.integration'
+                }
+            }
+
+            configurations.compileClasspath.incoming.afterResolve {
+                ${server.callFromBuild("block")}
+            }
+
+            dependencies {
+                compile project(':bar')
+            }
+        """
+        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        def block = server.expectAndBlock("block")
+
+        when:
+        // Start the build then wait until the first configuration is resolved.
+        executer.withTasks("assemble")
+        def build = executer.start()
+        block.waitForAllPendingCalls()
+
+        // Change the head of the repo
+        def javaFile = file('dep/src/main/java/Dep.java')
+        javaFile.replace('class', 'interface')
+        repo.commit('Changed Dep to an interface', javaFile)
+
+        // Finish up build
+        block.releaseAll()
+        build.waitForFinish()
+
+        then:
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
+        gitCheckout.file('.git').assertExists()
+
+        and:
+        def hashedRepo = hashRepositoryId(repo.id)
+        file(".gradle/vcsWorkingDirs/${hashedRepo}").listFiles()*.name == [commit.id.name]
+
+        cleanup:
+        server.stop()
     }
 
     // TODO: Use HTTP hosting for git repo

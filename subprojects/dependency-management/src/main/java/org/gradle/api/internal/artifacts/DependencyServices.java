@@ -48,6 +48,11 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new DependencyManagementBuildScopeServices());
     }
 
+    @Override
+    public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.addProvider(new DependencyManagementBuildTreeScopeServices());
+    }
+
     private static class DependencyManagementBuildSessionServices {
         CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetaData artifactCacheMetaData) {
             return new DefaultCacheLockingManager(cacheRepository, artifactCacheMetaData);

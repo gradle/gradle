@@ -102,7 +102,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         BuildCacheException exception = thrown()
 
-        exception.message == "Received redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when loading entry from '${server.uri}/cache/${key.hashCode}'. Redirects have a performance penalty and are therefore not supported."
+        exception.message == "Received unexpected redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when storing entry at '${server.uri}/cache/${key.hashCode}'. Ensure the configured URL for the remote build cache is correct."
     }
 
     private static BuildCacheEntryWriter writer(byte[] content) {
@@ -148,7 +148,7 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         BuildCacheException exception = thrown()
 
-        exception.message == "Received redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when loading entry from '${server.uri}/cache/${key.hashCode}'. Redirects have a performance penalty and are therefore not supported."
+        exception.message == "Received unexpected redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when loading entry from '${server.uri}/cache/${key.hashCode}'. Ensure the configured URL for the remote build cache is correct."
     }
 
     def "reports cache miss on 404"() {

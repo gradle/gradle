@@ -17,11 +17,13 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import spock.lang.Specification
 
-public class DefaultDependencyDescriptorFactoryTest extends Specification {
+class DefaultDependencyDescriptorFactoryTest extends Specification {
     def configurationName = "conf"
     def projectDependency = Stub(ProjectDependency)
     def componentId = new OpaqueComponentIdentifier("foo")
@@ -35,7 +37,7 @@ public class DefaultDependencyDescriptorFactoryTest extends Specification {
         when:
         def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
                 ivyDependencyDescriptorFactory1, ivyDependencyDescriptorFactory2
-        );
+        )
         def created = dependencyDescriptorFactory.createDependencyDescriptor(componentId, configurationName, null, projectDependency)
 
         then:
@@ -56,10 +58,34 @@ public class DefaultDependencyDescriptorFactoryTest extends Specification {
         and:
         def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
                 ivyDependencyDescriptorFactory1
-        );
+        )
         dependencyDescriptorFactory.createDependencyDescriptor(componentId, configurationName, null, projectDependency)
 
         then:
         thrown InvalidUserDataException
+    }
+
+    def "creates descriptor for dependency constraints"() {
+        given:
+        def dependencyConstraint = new DefaultDependencyConstraint("g", "m", "1")
+
+        when:
+        def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory()
+        def created = dependencyDescriptorFactory.createDependencyConstraintDescriptor(componentId, configurationName, null, dependencyConstraint)
+        def selector = created.selector as ModuleComponentSelector
+
+        then:
+        created.pending
+        selector.group == "g"
+        selector.module == "m"
+        selector.version == "1"
+
+        and:
+        created.moduleConfiguration == configurationName
+        created.artifacts.empty
+        created.excludes.empty
+        !created.force
+        created.transitive
+        !created.changing
     }
 }

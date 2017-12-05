@@ -50,6 +50,7 @@ import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.plugin.use.internal.PluginRequestApplicator
+import org.gradle.process.internal.ExecFactory
 import spock.lang.Specification
 
 class DefaultScriptPluginFactoryTest extends Specification {
@@ -78,11 +79,12 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def textResourceLoader = Mock(TextResourceLoader)
     def streamHasher = Mock(StreamHasher)
     def fileHasher = Mock(FileHasher)
+    def execFactory = Mock(ExecFactory)
     def autoAppliedPluginHandler = Mock(AutoAppliedPluginHandler)
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
         directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), providerFactory, textResourceLoader,
-        streamHasher, fileHasher, autoAppliedPluginHandler)
+        streamHasher, fileHasher, execFactory, autoAppliedPluginHandler)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)
