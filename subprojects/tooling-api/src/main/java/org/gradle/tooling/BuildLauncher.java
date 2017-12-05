@@ -44,7 +44,7 @@ import org.gradle.tooling.model.Task;
  *    build.forTasks("clean", "test");
  *
  *    //include some build arguments:
- *    build.withArguments("--no-search-upward", "-i", "--project-dir", "someProjectDir");
+ *    build.withArguments("-i", "--project-dir", "someProjectDir");
  *
  *    //configure the standard input:
  *    build.setStandardInput(new ByteArrayInputStream("consume this!".getBytes()));
