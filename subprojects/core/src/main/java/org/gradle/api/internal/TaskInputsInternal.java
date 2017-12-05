@@ -19,7 +19,6 @@ package org.gradle.api.internal;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.TaskInputs;
 
 public interface TaskInputsInternal extends TaskInputs {
@@ -28,6 +27,4 @@ public interface TaskInputsInternal extends TaskInputs {
     void acceptRuntimeOnly(InputsOutputVisitor visitor);
 
     ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
-
-    void validate(TaskValidationContext context);
 }

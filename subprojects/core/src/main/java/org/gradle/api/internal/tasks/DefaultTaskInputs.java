@@ -161,21 +161,6 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return allSourceFiles;
     }
 
-    @Override
-    public void validate(final TaskValidationContext context) {
-        accept(new InputsOutputVisitor.Adapter() {
-            @Override
-            public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
-                inputFileProperty.validate(context);
-            }
-
-            @Override
-            public void visitInputProperty(DeclaredTaskInputProperty inputProperty) {
-                inputProperty.validate(context);
-            }
-        });
-    }
-
     public Map<String, Object> getProperties() {
         GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor();
         accept(visitor);

@@ -19,7 +19,11 @@ import com.google.common.collect.Lists;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
+import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
+import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
+import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -41,11 +45,25 @@ public class ValidatingTaskExecuter implements TaskExecuter {
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         List<String> messages = Lists.newArrayList();
         FileResolver resolver = ((ProjectInternal) task.getProject()).getFileResolver();
-        TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, messages);
+        final TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, messages);
 
         try {
-            task.getInputs().validate(validationContext);
-            task.getOutputs().validate(validationContext);
+            task.acceptInputsOutputsVisitor(new InputsOutputVisitor.Adapter() {
+                @Override
+                public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
+                    inputFileProperty.validate(validationContext);
+                }
+
+                @Override
+                public void visitInputProperty(DeclaredTaskInputProperty inputProperty) {
+                    inputProperty.validate(validationContext);
+                }
+
+                @Override
+                public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
+                    outputFileProperty.validate(validationContext);
+                }
+            });
         } catch (Exception ex) {
             throw new TaskExecutionException(task, ex);
         }

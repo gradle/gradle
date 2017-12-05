@@ -279,16 +279,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.history = history;
     }
 
-    @Override
-    public void validate(final TaskValidationContext context) {
-        accept(new InputsOutputVisitor.Adapter() {
-            @Override
-            public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
-                outputFileProperty.validate(context);
-            }
-        });
-    }
-
     private static class HasDeclaredOutputsVisitor extends InputsOutputVisitor.Adapter {
         boolean hasDeclaredOutputs;
 
