@@ -74,6 +74,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     public void accept(InputsOutputVisitor visitor) {
         propertiesWalker.visitInputs(specFactory, visitor, task);
+        acceptRuntimeOnly(visitor);
+    }
+
+    @Override
+    public void acceptRuntimeOnly(InputsOutputVisitor visitor) {
         TaskPropertyUtils.ensurePropertiesHaveNames(declaredRuntimeFileProperties);
         for (DeclaredTaskOutputFileProperty fileProperty : declaredRuntimeFileProperties) {
             visitor.visitOutputFileProperty(fileProperty);
@@ -297,7 +302,12 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
     }
 
-    private static class GetFilePropertiesVisitor extends InputsOutputVisitor.Adapter {
+    @Override
+    public GetFilePropertiesVisitor getFilePropertiesVisitor() {
+        return new GetFilePropertiesVisitor();
+    }
+
+    public class GetFilePropertiesVisitor extends InputsOutputVisitor.Adapter implements TaskOutputsInternal.GetFilePropertiesVisitor {
         List<TaskOutputFilePropertySpec> specs = new ArrayList<TaskOutputFilePropertySpec>();
 
         @Override
@@ -315,8 +325,32 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             }
         }
 
+        @Override
         public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
             return TaskPropertyUtils.collectFileProperties("output", specs.iterator());
+        }
+
+        @Override
+        public FileCollection getFiles() {
+            return new CompositeFileCollection() {
+                @Override
+                public String getDisplayName() {
+                    return "task '" + task.getName() + "' output files";
+                }
+
+                @Override
+                public void visitContents(FileCollectionResolveContext context) {
+                    for (TaskFilePropertySpec propertySpec : getFileProperties()) {
+                        context.add(propertySpec.getPropertyFiles());
+                    }
+                }
+
+                @Override
+                public void visitDependencies(TaskDependencyResolveContext context) {
+                    context.add(task);
+                    super.visitDependencies(context);
+                }
+            };
         }
     }
 

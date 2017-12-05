@@ -16,11 +16,20 @@
 
 package org.gradle.execution.taskgraph;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.tasks.CompositeInputsOutputsVisitor;
+import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
+import org.gradle.api.internal.tasks.InputsOutputVisitor;
+import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
+import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 
 import java.util.TreeSet;
 
 public class TaskInfo implements Comparable<TaskInfo> {
+
+
 
     private enum TaskExecutionState {
         UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
@@ -35,6 +44,11 @@ public class TaskInfo implements Comparable<TaskInfo> {
     private final TreeSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
+    private boolean inputsAndOutputsResolved;
+    private TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor;
+    private TaskLocalStateInternal.GetFilesVisitor localStateVisitor;
+    private TaskDestroyablesInternal.GetFilesVisitor destroyablesVisitor;
+    private HasFileInputsVisitor hasFileInputsVisitor;
 
     public TaskInfo(TaskInternal task) {
         this.task = task;
@@ -207,11 +221,60 @@ public class TaskInfo implements Comparable<TaskInfo> {
         shouldSuccessors.remove(toNode);
     }
 
+    public FileCollection getDestroyables() {
+        resolveInputsAndOutputs();
+        return destroyablesVisitor.getFiles();
+    }
+
+    private synchronized void resolveInputsAndOutputs() {
+        if (!inputsAndOutputsResolved) {
+            inputsAndOutputsResolved = true;
+            outputFilesVisitor = task.getOutputs().getFilePropertiesVisitor();
+            localStateVisitor = ((TaskLocalStateInternal) task.getLocalState()).getFilesVisitor();
+            destroyablesVisitor = ((TaskDestroyablesInternal) task.getDestroyables()).getFilesVisitor();
+            hasFileInputsVisitor = new HasFileInputsVisitor();
+            task.acceptInputsOutputsVisitor(new CompositeInputsOutputsVisitor(outputFilesVisitor, destroyablesVisitor, localStateVisitor, hasFileInputsVisitor));
+        }
+    }
+
+    public FileCollection getLocalState() {
+        resolveInputsAndOutputs();
+        return localStateVisitor.getFiles();
+    }
+
+    public FileCollection getOutputs() {
+        resolveInputsAndOutputs();
+        return outputFilesVisitor.getFiles();
+    }
+
+    public boolean hasFileInputs() {
+        resolveInputsAndOutputs();
+        return hasFileInputsVisitor.hasFileInputs();
+    }
+
+    public boolean hasOutputs() {
+        resolveInputsAndOutputs();
+        return !outputFilesVisitor.getFileProperties().isEmpty();
+    }
+
     public int compareTo(TaskInfo otherInfo) {
         return task.compareTo(otherInfo.getTask());
     }
 
     public String toString() {
         return task.getPath();
+    }
+
+    private static class HasFileInputsVisitor extends InputsOutputVisitor.Adapter {
+        boolean hasFileInputs;
+
+        @Override
+        public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
+            hasFileInputs = true;
+        }
+
+        public boolean hasFileInputs() {
+            return hasFileInputs;
+        }
     }
 }

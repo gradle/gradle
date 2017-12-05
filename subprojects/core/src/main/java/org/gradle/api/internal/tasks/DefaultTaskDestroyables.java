@@ -80,6 +80,11 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
 
     public void accept(InputsOutputVisitor visitor) {
         propertiesWalker.visitInputs(specFactory, visitor, task);
+        acceptRuntimeOnly(visitor);
+    }
+
+    @Override
+    public void acceptRuntimeOnly(InputsOutputVisitor visitor) {
         for (Object path : paths) {
             visitor.visitDestroyable(path);
         }
@@ -98,7 +103,12 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
         return new DefaultConfigurableFileCollection(task + " destroy files", resolver, null, objects);
     }
 
-    private static class GetFilesVisitor extends InputsOutputVisitor.Adapter {
+    @Override
+    public GetFilesVisitor getFilesVisitor() {
+        return new GetFilesVisitor();
+    }
+
+    public class GetFilesVisitor extends InputsOutputVisitor.Adapter implements TaskDestroyablesInternal.GetFilesVisitor {
         private List<Object> destroyables = new ArrayList<Object>();
 
         @Override
@@ -108,6 +118,10 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
 
         public List<Object> getDestroyables() {
             return destroyables;
+        }
+
+        public FileCollection getFiles() {
+            return new DefaultConfigurableFileCollection(task + " destroy files", resolver, null, destroyables);
         }
     }
 }

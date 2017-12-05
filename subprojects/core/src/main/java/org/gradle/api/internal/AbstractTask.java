@@ -40,9 +40,11 @@ import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.InputsAwareTaskDependency;
+import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
@@ -138,6 +140,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private LoggingManagerInternal loggingManager;
 
     private String toStringValue;
+    private final TaskPropertiesWalker propertiesWalker;
+    private final PropertySpecFactory specFactory;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -165,9 +169,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         services = project.getServices();
 
         FileResolver fileResolver = project.getFileResolver();
-        TaskPropertiesWalker propertiesWalker = services.get(TaskPropertiesWalker.class);
+        propertiesWalker = services.get(TaskPropertiesWalker.class);
         taskMutator = new TaskMutator(this);
-        PropertySpecFactory specFactory = new DefaultPropertySpecFactory(this, fileResolver);
+        specFactory = new DefaultPropertySpecFactory(this, fileResolver);
         taskInputs = new DefaultTaskInputs(this, taskMutator, propertiesWalker, specFactory);
         taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertiesWalker, specFactory);
         taskDestroyables = new DefaultTaskDestroyables(fileResolver, this, taskMutator, propertiesWalker, specFactory);
@@ -189,6 +193,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         } finally {
             NEXT_INSTANCE.set(null);
         }
+    }
+
+    @Override
+    public void acceptInputsOutputsVisitor(InputsOutputVisitor visitor) {
+        propertiesWalker.visitInputs(specFactory, visitor, this);
+        getInputs().acceptRuntimeOnly(visitor);
+        getOutputs().acceptRuntimeOnly(visitor);
+        ((TaskDestroyablesInternal) getDestroyables()).acceptRuntimeOnly(visitor);
+        ((TaskLocalStateInternal) getLocalState()).acceptRuntimeOnly(visitor);
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
@@ -26,6 +27,7 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
@@ -945,19 +947,26 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     private TaskOutputsInternal emptyTaskOutputs() {
         Mock(TaskOutputsInternal) {
-            getFiles() >> root.files()
+            getFilePropertiesVisitor() >> Mock(TaskOutputsInternal.GetFilePropertiesVisitor) {
+                getFiles() >> root.files()
+                getFileProperties() >> ImmutableSortedSet.<TaskOutputFilePropertySpec>of()
+            }
         }
     }
 
     private TaskDestroyables emptyTaskDestroys() {
         Mock(TaskDestroyablesInternal) {
-            getFiles() >> root.files()
+            getFilesVisitor() >> Mock(TaskDestroyablesInternal.GetFilesVisitor) {
+                getFiles() >> root.files()
+            }
         }
     }
 
     private TaskLocalStateInternal emptyTaskLocalState() {
         Mock(TaskLocalStateInternal) {
-            getFiles() >> root.files()
+            getFilesVisitor() >> Mock(TaskLocalStateInternal.GetFilesVisitor) {
+                getFiles() >> root.files()
+            }
         }
     }
 

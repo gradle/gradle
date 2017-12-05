@@ -18,6 +18,8 @@ package org.gradle.api.internal;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.specs.Spec;
@@ -29,6 +31,8 @@ import java.util.Set;
 
 @NonNullApi
 public interface TaskOutputsInternal extends TaskOutputs {
+
+    void acceptRuntimeOnly(InputsOutputVisitor visitor);
 
     Spec<? super TaskInternal> getUpToDateSpec();
 
@@ -52,4 +56,11 @@ public interface TaskOutputsInternal extends TaskOutputs {
     boolean hasDeclaredOutputs();
 
     void validate(TaskValidationContext context);
+
+    GetFilePropertiesVisitor getFilePropertiesVisitor();
+
+    interface GetFilePropertiesVisitor extends InputsOutputVisitor {
+        ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties();
+        FileCollection getFiles();
+    }
 }

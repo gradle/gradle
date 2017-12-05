@@ -77,6 +77,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     @Override
     public void accept(InputsOutputVisitor visitor) {
         propertiesWalker.visitInputs(specFactory, visitor, task);
+        acceptRuntimeOnly(visitor);
+    }
+
+    @Override
+    public void acceptRuntimeOnly(InputsOutputVisitor visitor) {
         ensurePropertiesHaveNames(runtimeFileProperties);
         for (DeclaredTaskInputFileProperty fileProperty : runtimeFileProperties) {
             visitor.visitInputFileProperty(fileProperty);

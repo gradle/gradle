@@ -57,6 +57,11 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
 
     public void accept(InputsOutputVisitor visitor) {
         propertiesWalker.visitInputs(specFactory, visitor, task);
+        acceptRuntimeOnly(visitor);
+    }
+
+    @Override
+    public void acceptRuntimeOnly(InputsOutputVisitor visitor) {
         for (Object path : paths) {
             visitor.visitLocalState(path);
         }
@@ -75,7 +80,12 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
         return new DefaultConfigurableFileCollection(task + " local state", resolver, null, objects);
     }
 
-    private static class GetFilesVisitor extends InputsOutputVisitor.Adapter {
+    @Override
+    public GetFilesVisitor getFilesVisitor() {
+        return new GetFilesVisitor();
+    }
+
+    public class GetFilesVisitor extends InputsOutputVisitor.Adapter implements TaskLocalStateInternal.GetFilesVisitor {
         private List<Object> localState = new ArrayList<Object>();
 
         @Override
@@ -85,6 +95,10 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
 
         public List<Object> getLocalState() {
             return localState;
+        }
+
+        public FileCollection getFiles() {
+            return new DefaultConfigurableFileCollection(task + " local state", resolver, null, getLocalState());
         }
     }
 }
