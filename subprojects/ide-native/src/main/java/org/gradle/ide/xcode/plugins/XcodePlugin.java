@@ -23,7 +23,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
@@ -62,8 +61,6 @@ import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * A plugin for creating a XCode project for a gradle project.
@@ -140,28 +137,6 @@ public class XcodePlugin extends IdePlugin {
 
         final GenerateXcodeProjectFileTask projectFileTask = project.getTasks().create("xcodeProject", GenerateXcodeProjectFileTask.class);
         projectFileTask.dependsOn(workspaceSettingsFileTask);
-        projectFileTask.dependsOn(new Callable<List<FileCollection>>() {
-            @Override
-            public List<FileCollection> call() throws Exception {
-                return CollectionUtils.collect(xcode.getProject().getTargets(), new Transformer<FileCollection, XcodeTarget>() {
-                    @Override
-                    public FileCollection transform(XcodeTarget xcodeTarget) {
-                        return xcodeTarget.getHeaderSearchPaths();
-                    }
-                });
-            }
-        });
-        projectFileTask.dependsOn(new Callable<List<FileCollection>>() {
-            @Override
-            public List<FileCollection> call() throws Exception {
-                return CollectionUtils.collect(xcode.getProject().getTargets(), new Transformer<FileCollection, XcodeTarget>() {
-                    @Override
-                    public FileCollection transform(XcodeTarget xcodeTarget) {
-                        return xcodeTarget.getCompileModules();
-                    }
-                });
-            }
-        });
         projectFileTask.setXcodeProject(xcode.getProject());
         projectFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.pbxproj"));
 
