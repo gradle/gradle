@@ -344,5 +344,60 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         server.stop()
     }
 
+    def 'can depend on a multi-project source dependency'() {
+        given:
+        settingsFile << """
+        sourceControl {
+            vcsMappings {
+                withModule("org.test:dep") {
+                    from vcs(GitVersionControlSpec) {
+                        url = "${repo.url}"
+                    }
+                }
+            }
+        }
+        """
+
+        depProject.with {
+            settingsFile << """
+                include 'bar'
+            """
+            file('bar/src/main/java/Bar.java') << "public interface Bar {}"
+            file('src/main/java/Foo.java') << "public class Foo implements Bar {}"
+            buildFile << """
+                project(':bar') {
+                    apply plugin: 'java'
+                }
+                
+                dependencies {
+                    compile project(':bar')
+                }
+            """
+        }
+
+        file('src/main/java/FooBar.java') << """
+            public class FooBar extends Dep {
+                Bar bar = null;
+            }
+        """
+        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+
+        when:
+        succeeds('assemble')
+
+        then:
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
+        gitCheckout.file('.git').assertExists()
+
+        and:
+        def hashedRepo = hashRepositoryId(repo.id)
+        file(".gradle/vcsWorkingDirs/${hashedRepo}").listFiles()*.name == [commit.id.name]
+
+        and:
+        executedAndNotSkipped(':dep:bar:compileJava', ':dep:bar:classes', ':dep:bar:jar',
+            ':dep:compileJava', ':dep:classes', ':dep:jar',
+            ':compileJava', ':classes', ':jar', ':assemble')
+    }
+
     // TODO: Use HTTP hosting for git repo
 }
