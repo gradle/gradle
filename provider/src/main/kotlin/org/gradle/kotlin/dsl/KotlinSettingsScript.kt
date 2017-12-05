@@ -46,6 +46,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.process.internal.ExecFactory
 
 import java.io.File
 import java.net.URI
@@ -394,5 +395,6 @@ fun fileOperationsFor(settings: Settings): DefaultFileOperations {
         fileLookup,
         settings.serviceOf<DirectoryFileTreeFactory>(),
         settings.serviceOf<StreamHasher>(),
-        settings.serviceOf<FileHasher>())
+        settings.serviceOf<FileHasher>(),
+        settings.serviceOf<ExecFactory>())
 }
