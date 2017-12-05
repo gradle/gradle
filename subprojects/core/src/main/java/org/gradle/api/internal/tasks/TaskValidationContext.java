@@ -52,8 +52,9 @@ public interface TaskValidationContext {
             public boolean report(Task task, List<String> messages, TaskStateInternal state) {
                 StringBuilder builder = new StringBuilder();
                 builder.append(getMainMessage(task, messages));
-                builder.append(" Defining invalid task inputs and outputs ");
-                builder.append(DeprecationLogger.getDeprecationMessage());
+                // FIXME wolfs: use deprecation message
+                builder.append(" Defining invalid task inputs and outputs is not good");
+//                builder.append(DeprecationLogger.getDeprecationMessage());
                 builder.append(".");
                 for (String message : messages) {
                     builder.append("\n - ");
