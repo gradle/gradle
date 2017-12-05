@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dependencies
 
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -139,6 +140,18 @@ class DefaultMutableVersionConstraintTest extends Specification {
         then:
         version.preferredVersion == '1.1'
         version.rejectedVersions == [']1.1,)']
+    }
+
+    def "cannot use an empty list of rejections"() {
+        given:
+        def version = new DefaultMutableVersionConstraint('1.0')
+
+        when:
+        version.reject()
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "The 'reject' clause requires at least one rejected version"
     }
 
 }
