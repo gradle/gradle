@@ -237,4 +237,52 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         }
         return false;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        IvyDependencyDescriptor that = (IvyDependencyDescriptor) o;
+
+        if (changing != that.changing) {
+            return false;
+        }
+        if (transitive != that.transitive) {
+            return false;
+        }
+        if (optional != that.optional) {
+            return false;
+        }
+        if (selector != null ? !selector.equals(that.selector) : that.selector != null) {
+            return false;
+        }
+        if (dynamicConstraintVersion != null ? !dynamicConstraintVersion.equals(that.dynamicConstraintVersion) : that.dynamicConstraintVersion != null) {
+            return false;
+        }
+        if (confs != null ? !confs.equals(that.confs) : that.confs != null) {
+            return false;
+        }
+        if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
+            return false;
+        }
+        return dependencyArtifacts != null ? dependencyArtifacts.equals(that.dependencyArtifacts) : that.dependencyArtifacts == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = selector != null ? selector.hashCode() : 0;
+        result = 31 * result + (dynamicConstraintVersion != null ? dynamicConstraintVersion.hashCode() : 0);
+        result = 31 * result + (changing ? 1 : 0);
+        result = 31 * result + (transitive ? 1 : 0);
+        result = 31 * result + (optional ? 1 : 0);
+        result = 31 * result + (confs != null ? confs.hashCode() : 0);
+        result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
+        result = 31 * result + (dependencyArtifacts != null ? dependencyArtifacts.hashCode() : 0);
+        return result;
+    }
 }

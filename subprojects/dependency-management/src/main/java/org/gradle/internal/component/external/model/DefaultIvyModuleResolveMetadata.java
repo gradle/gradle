@@ -230,4 +230,40 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     public ImmutableList<IvyDependencyDescriptor> getDependencies() {
         return dependencies;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DefaultIvyModuleResolveMetadata that = (DefaultIvyModuleResolveMetadata) o;
+
+        if (dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null) {
+            return false;
+        }
+        if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
+            return false;
+        }
+        if (extraAttributes != null ? !extraAttributes.equals(that.extraAttributes) : that.extraAttributes != null) {
+            return false;
+        }
+        return branch != null ? branch.equals(that.branch) : that.branch == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
+        result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
+        result = 31 * result + (extraAttributes != null ? extraAttributes.hashCode() : 0);
+        result = 31 * result + (branch != null ? branch.hashCode() : 0);
+        return result;
+    }
 }
