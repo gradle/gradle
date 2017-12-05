@@ -20,7 +20,7 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.strictlyEqual;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -125,5 +125,31 @@ public class RelativePathTest {
         assertPathContains(new RelativePath(true, "old").replaceLastName("new"), true, "new");
         assertPathContains(new RelativePath(false, "old").replaceLastName("new"), false, "new");
         assertPathContains(new RelativePath(true, "a", "b", "old").replaceLastName("new"), true, "a", "b", "new");
+    }
+
+    @Test
+    public void testLength() {
+        assertEquals(0, RelativePath.parse(true, "").length());
+        assertEquals(7, RelativePath.parse(true, "/one/two").length());
+    }
+
+    @Test
+    public void testExistingCharAt() {
+        RelativePath path = RelativePath.parse(true, "/one/two");
+        assertEquals('o', path.charAt(0));
+        assertEquals('/', path.charAt(3));
+        assertEquals('t', path.charAt(4));
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testNegativeCharAt() {
+        RelativePath path = RelativePath.parse(true, "/one/two");
+        path.charAt(-1);
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testTooLargeCharAt() {
+        RelativePath path = RelativePath.parse(true, "/one/two");
+        path.charAt(25);
     }
 }

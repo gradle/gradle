@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.file.FileType;
+import org.gradle.util.GUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -117,24 +118,20 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
 
     @VisibleForTesting
     static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-        String[] segments = fileSnapshot.getRelativePath().getSegments();
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0, len = segments.length; i < len; i++) {
-            if (i != 0) {
-                builder.append('/');
-            }
-            builder.append(segments[i]);
-        }
-        return getRelativeSnapshot(fileSnapshot, builder.toString(), stringInterner);
+        return getRelativeSnapshot(fileSnapshot, fileSnapshot.getRelativePath(), stringInterner);
     }
 
-    static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, String normalizedPath, StringInterner stringInterner) {
-        FileContentSnapshot contentSnapshot = fileSnapshot.getContent();
+    static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, CharSequence normalizedPath, StringInterner stringInterner) {
         String absolutePath = fileSnapshot.getPath();
-        if (absolutePath.endsWith(normalizedPath)) {
+        FileContentSnapshot contentSnapshot = fileSnapshot.getContent();
+        if (lineSeparatorsMatch(absolutePath, normalizedPath)) {
             return new IndexedNormalizedFileSnapshot(absolutePath, absolutePath.length() - normalizedPath.length(), contentSnapshot);
         } else {
-            return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath), contentSnapshot);
+            return new DefaultNormalizedFileSnapshot(stringInterner.intern(normalizedPath.toString()), contentSnapshot);
         }
+    }
+
+    private static boolean lineSeparatorsMatch(String absolutePath, CharSequence normalizedPath) {
+        return GUtil.endsWith(absolutePath, normalizedPath);
     }
 }
