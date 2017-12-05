@@ -72,6 +72,7 @@ public class ModuleMetadataSerializer {
     private static final byte TYPE_MAVEN = 2;
     private static final byte STRING_ATTRIBUTE = 1;
     private static final byte BOOLEAN_ATTRIBUTE = 2;
+
     private static final ModuleComponentSelectorSerializer COMPONENT_SELECTOR_SERIALIZER = new ModuleComponentSelectorSerializer();
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
