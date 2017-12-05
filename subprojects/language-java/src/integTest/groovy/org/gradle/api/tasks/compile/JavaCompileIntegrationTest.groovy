@@ -442,7 +442,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 ${mavenCentralRepository()}
 
                 dependencies {
-                    ${dependencies.collect { "compile ${it}"}.join('\n') }
+                    ${dependencies.collect { "compile ${it}" }.join('\n')}
                 }
             """
         }
@@ -522,12 +522,12 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains 'Malformed jar [foo.jar] found on compile classpath'
+        result.deprecationReport.contains('Malformed jar [foo.jar] found on compile classpath')
 
     }
 
@@ -547,12 +547,12 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains 'Malformed jar [broken-utf8.jar] found on classpath'
+        result.deprecationReport.contains('Malformed jar [broken-utf8.jar] found on classpath')
 
     }
 
@@ -578,12 +578,12 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
-        outputContains 'Malformed jar [foo.jar] found on classpath.'
+        result.deprecationReport.contains('Malformed jar [foo.jar] found on classpath.')
     }
 
     @Issue("gradle/gradle#1358")
@@ -600,12 +600,12 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
         run 'compileJava'
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains 'Malformed class file [foo.class] found on compile classpath'
+        result.deprecationReport.contains('Malformed class file [foo.class] found on compile classpath')
     }
 
     @Issue("gradle/gradle#1359")
@@ -775,7 +775,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('build/classes/java/main/Square.class').exists()
         file('build/classes/java/main/Rectangle.class').exists()
         file('build/classes/java/main/Shape.class').exists()
-        result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+        result.deprecationReport.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
     }
 
     def "sourcepath is respected even when exclusively specified from compilerArgs, but deprecation warning is emitted"() {
@@ -797,7 +797,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('build/classes/java/main/Square.class').exists()
         file('build/classes/java/main/Rectangle.class').exists()
         file('build/classes/java/main/Shape.class').exists()
-        result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+        result.deprecationReport.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() })
@@ -859,9 +859,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Main.java') << "public class Main {}"
 
         expect:
-        executer.withFullDeprecationStackTraceDisabled()
         executer.expectDeprecationWarning()
         succeeds "compileJava"
-        output.contains "The CompileOptions.bootClasspath property has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the CompileOptions.bootstrapClasspath property instead."
+        result.deprecationReport.contains "The CompileOptions.bootClasspath property has been deprecated and is scheduled to be removed in Gradle 5.0. Please use the CompileOptions.bootstrapClasspath property instead."
     }
 }

@@ -34,6 +34,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
 
     def setup() {
         javaProjectUnderTest.writeSourceFiles()
+        executer.noDeprecationReport()
     }
 
     void generatesHtmlReportOnlyAsDefault() {

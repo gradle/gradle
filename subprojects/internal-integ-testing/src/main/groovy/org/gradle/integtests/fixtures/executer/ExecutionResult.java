@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.integtests.fixtures.logging.DeprecationReport;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 
 import java.util.List;
@@ -102,4 +103,9 @@ public interface ExecutionResult {
      * Asserts that the given task has not been skipped. Note: ignores buildSrc tasks.
      */
     ExecutionResult assertTaskNotSkipped(String taskPath);
+
+    /**
+     * Extract deprecation report from generated HTML reports.
+     */
+    DeprecationReport getDeprecationReport();
 }

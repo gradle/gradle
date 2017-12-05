@@ -22,6 +22,9 @@ import org.gradle.util.GUtil
 import java.util.regex.Pattern
 
 abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
+    def setup() {
+        executer.noDeprecationReport()
+    }
 
     String getPluginName() {
         def matcher = Pattern.compile("(\\w+)Plugin(GoodBehaviour)?(Integ(ration)?)?Test").matcher(getClass().simpleName)

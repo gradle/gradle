@@ -65,6 +65,6 @@ class DeprecatedBuildIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def warningCount() {
-        return result.output.count(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING)
+        return result.deprecationReport.count(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING)
     }
 }

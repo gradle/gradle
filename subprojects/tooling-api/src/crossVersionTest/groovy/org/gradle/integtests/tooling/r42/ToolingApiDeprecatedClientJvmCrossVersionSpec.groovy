@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r42
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ScriptExecuter
+import org.gradle.integtests.fixtures.logging.DeprecationReport
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -55,10 +56,20 @@ mainClassName = 'TestClient'
 """
         file('src/main/java/TestClient.java') << """
 import org.gradle.tooling.GradleConnector;
+import java.io.File;
 
 public class TestClient {
-    public static void main(String[] args) {
-        GradleConnector.newConnector();
+    public static void main(String[] args) throws Exception {
+        GradleConnector.newConnector().forProjectDirectory(new File("."))
+            .useDistribution(new java.net.URI("${buildContext.currentDevDistribution().binDistribution.toURI()}"))
+            .useGradleUserHomeDir(new File("${buildContext.gradleUserHomeDir.toString().replace(File.separator,"/")}"))
+            .connect()
+            .newBuild()
+            .withArguments("-Dorg.gradle.internal.deprecation.report=true")
+            .forTasks("help")
+            .setStandardOutput(System.out)
+            .setStandardError(System.out)
+            .run();
         System.exit(0);
     }
 }
@@ -88,15 +99,16 @@ public class TestClient {
         out.count(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING) == 0
     }
 
-    String runScript(File javaHome) {
+    def runScript(File javaHome) {
         def outStr = new ByteArrayOutputStream()
         def executer = new ScriptExecuter()
         executer.environment(JAVA_HOME: javaHome)
         executer.workingDir(projectDir)
         executer.errorOutput = outStr // simple slf4j writes warnings to stderr
         executer.commandLine("build/install/test/bin/test")
+        projectDir.file('build/reports/deprecations.log').delete() // report will be generated under Java 7
         executer.run().assertNormalExitValue()
 
-        return outStr.toString()
+        return new DeprecationReport(projectDir.file('build/reports/deprecations.log'))
     }
 }

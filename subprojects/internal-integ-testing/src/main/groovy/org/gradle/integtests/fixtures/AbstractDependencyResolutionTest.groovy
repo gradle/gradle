@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
@@ -31,5 +33,15 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
 
     MavenFileRepository mavenRepo(String name = "repo") {
         return maven(name)
+    }
+
+    protected ExecutionResult succeeds(String... tasks) {
+        executer.noDeprecationReport()
+        return super.succeeds(tasks)
+    }
+
+    protected ExecutionFailure fails(String... tasks) {
+        executer.noDeprecationReport()
+        return super.fails(tasks)
     }
 }

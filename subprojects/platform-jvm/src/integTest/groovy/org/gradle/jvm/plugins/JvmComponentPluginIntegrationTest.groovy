@@ -23,6 +23,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not create library or binaries when not configured"() {
         when:
+        executer.noDeprecationReport()
         buildFile << '''
             plugins {
                 id 'jvm-component'

@@ -58,7 +58,7 @@ task noop{
         succeeds('noop')
 
         then:
-        outputContains("build.gradle' is using GradleVersion from the private org.gradle.util package without an explicit import. Please either stop using these internal classes (recommended) or import them explicitly at the top of your build file. The implicit import is deprecated and will be removed in Gradle 5.0")
+        result.deprecationReport.contains("build.gradle' is using GradleVersion from the private org.gradle.util package without an explicit import. Please either stop using these internal classes (recommended) or import them explicitly at the top of your build file. The implicit import is deprecated and will be removed in Gradle 5.0")
     }
 
     def "deprecation warning points to the offending file"() {
@@ -75,7 +75,7 @@ task noop{
         succeeds('noop')
 
         then:
-        outputContains("foo.gradle' is using GradleVersion from the private org.gradle.util package without an explicit import. Please either stop using these internal classes (recommended) or import them explicitly at the top of your build file. The implicit import is deprecated and will be removed in Gradle 5.0")
+        result.deprecationReport.contains("foo.gradle' is using GradleVersion from the private org.gradle.util package without an explicit import. Please either stop using these internal classes (recommended) or import them explicitly at the top of your build file. The implicit import is deprecated and will be removed in Gradle 5.0")
     }
 
     def "multiple implicit imports will only be warned once"() {
@@ -92,6 +92,6 @@ task noop{
         succeeds('noop')
 
         then:
-        outputContains("build.gradle' is using CollectionUtils and GradleVersion from the private org.gradle.util package without an explicit import. Please either stop using these internal classes (recommended) or import them explicitly at the top of your build file. The implicit import is deprecated and will be removed in Gradle 5.0")
+        result.deprecationReport.contains("build.gradle' is using CollectionUtils and GradleVersion from the private org.gradle.util package without an explicit import. Please either stop using these internal classes (recommended) or import them explicitly at the top of your build file. The implicit import is deprecated and will be removed in Gradle 5.0")
     }
 }

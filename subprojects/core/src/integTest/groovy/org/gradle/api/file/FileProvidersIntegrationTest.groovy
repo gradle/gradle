@@ -30,7 +30,7 @@ def p = $expr
         run()
 
         then:
-        output.contains(warning)
+        result.deprecationReport.contains(warning)
 
         where:
         expr                       | warning

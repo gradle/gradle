@@ -59,7 +59,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'this/is/a/hierarchy'
 
         then:
-        assertPrintsForbiddenCharacterDeprecationMessage('task name',"this/is/a/hierarchy")
+        assertPrintsForbiddenCharacterDeprecationMessage('task name', "this/is/a/hierarchy")
     }
 
     def "configuration names should not contain forbidden characters"() {
@@ -145,14 +145,14 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         //output.contains("_folder__name_")
-        assertPrintsForbiddenCharacterDeprecationMessage('project name','.folder: name.')
+        assertPrintsForbiddenCharacterDeprecationMessage('project name', '.folder: name.')
     }
 
     void assertPrintsForbiddenCharacterDeprecationMessage(String nameDescription, String deprecatedName, String suggestion = '') {
-        assert output.contains("The $nameDescription '$deprecatedName' contains at least one of the following characters: [ , /, \\, :, <, >, \", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0.$suggestion")
+        assert result.deprecationReport.contains("The $nameDescription '$deprecatedName' contains at least one of the following characters: [ , /, \\, :, <, >, \", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0.$suggestion")
     }
 
     void assertPrintsForbiddenStartOrEndCharacterDeprecationMessage(String nameDescription, String deprecatedName, String suggestion = '') {
-        assert output.contains("The $nameDescription '$deprecatedName' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0.$suggestion")
+        assert result.deprecationReport.contains("The $nameDescription '$deprecatedName' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0.$suggestion")
     }
 }

@@ -189,11 +189,6 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withNoExplicitNativeServicesDir();
 
     /**
-     * Disables the rendering of stack traces for deprecation logging.
-     */
-    GradleExecuter withFullDeprecationStackTraceDisabled();
-
-    /**
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
      * the build JVM and not attempt to provide any others.
      */
@@ -297,6 +292,11 @@ public interface GradleExecuter extends Stoppable {
      * Disable deprecation warning checks.
      */
     GradleExecuter noDeprecationChecks();
+
+    /**
+     * Disable deprecation report generation.
+     */
+    GradleExecuter noDeprecationReport();
 
     /**
      * Disables asserting that class loaders were not eagerly created, potentially leading to performance problems.

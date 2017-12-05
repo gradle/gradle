@@ -730,7 +730,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds "executer"
 
         then:
-        output.contains("The TaskInternal.execute() method has been deprecated and is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
+        result.deprecationReport.contains("The TaskInternal.execute() method has been deprecated and is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
     }
 
     def "#description `Task.executer` is deprecated"() {
@@ -745,7 +745,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds "myTask"
 
         then:
-        output.contains("The TaskInternal.executer property has been deprecated and is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
+        result.deprecationReport.contains("The TaskInternal.executer property has been deprecated and is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
 
         where:
         description | scriptSnippet

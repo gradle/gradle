@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -257,6 +258,15 @@ public class SingleMessageLogger {
                 message = message + "\n" + additionalWarning;
             }
             LOGGER.warn(message);
+        }
+    }
+
+    public static void renderDeprecationReport(File file) {
+        LOCK.lock();
+        try {
+            handler.renderDeprecationReport(file);
+        } finally {
+            LOCK.unlock();
         }
     }
 }

@@ -158,8 +158,11 @@ class UserGuideSamplesRunner extends Runner {
                 executer.withArgument("--no-daemon")
             }
 
-            if (run.allowDeprecation) {
-                executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
+            if (run.expectDeprecationWarning) {
+                executer.expectDeprecationWarning()
+            }
+            if (run.noDeprecationCheck) {
+                executer.noDeprecationChecks()
             }
 
             def result = run.expectFailure ? executer.runWithFailure() : executer.run()
@@ -297,18 +300,9 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/tasks/finalizersWithFailure')*.expectFailure = true
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
-        samplesByDir.get('userguide/tutorial/helloShortcut')*.allowDeprecation = true
-        samplesByDir.get('userguide/multiproject/dependencies/java').each {
-            if (it.args.contains('-a')) {
-                it.allowDeprecation = true
-                it.outputFormatter = new Transformer<String, String>() {
-                    @Override
-                    String transform(String s) {
-                        return '--no-rebuild/-a has been deprecated and is scheduled to be removed in Gradle 5.0.\n' + s
-                    }
-                }
-            }
-        }
+        samplesByDir.get('userguide/tutorial/helloShortcut')*.expectDeprecationWarning = true
+        // under java 7, a project can't be really "cleaned" because deprecation reports would be generated in build dir after the build finishes
+        samplesByDir.get('userguide/tasks/incrementalBuild/incrementalBuildAdvanced')*.noDeprecationCheck = true
         samplesByDir.values().findAll() { it.subDir.startsWith('buildCache/') }.each {
             it.args += ['--build-cache', 'help']
         }
@@ -372,7 +366,8 @@ Please run 'gradle docs:extractSamples' first"""
         boolean ignoreExtraLines
         boolean ignoreLineOrder
         boolean brokenForParallel
-        boolean allowDeprecation
+        boolean expectDeprecationWarning
+        boolean noDeprecationCheck
         List files = []
         List dirs = []
         int index

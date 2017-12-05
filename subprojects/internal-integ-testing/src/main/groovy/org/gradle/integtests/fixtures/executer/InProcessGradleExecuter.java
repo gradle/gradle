@@ -39,6 +39,7 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ReportedException;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.integtests.fixtures.logging.DeprecationReport;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
@@ -433,12 +434,14 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         private final List<String> plannedTasks;
         private final Set<String> skippedTasks;
         private final OutputScrapingExecutionResult outputResult;
+        private final DeprecationReport deprecationReport;
         private GroupedOutputFixture groupedOutputFixture;
 
         public InProcessExecutionResult(List<String> plannedTasks, Set<String> skippedTasks, OutputScrapingExecutionResult outputResult) {
             this.plannedTasks = plannedTasks;
             this.skippedTasks = skippedTasks;
             this.outputResult = outputResult;
+            this.deprecationReport = outputResult.getDeprecationReport();
         }
 
         public String getOutput() {
@@ -542,6 +545,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             assertThat(getNotSkippedTasks(), hasItem(taskPath));
             outputResult.assertTaskNotSkipped(taskPath);
             return this;
+        }
+
+        @Override
+        public DeprecationReport getDeprecationReport() {
+            return deprecationReport;
         }
 
         private Set<String> getNotSkippedTasks() {

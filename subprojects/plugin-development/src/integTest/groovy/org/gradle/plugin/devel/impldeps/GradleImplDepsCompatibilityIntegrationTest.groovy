@@ -87,7 +87,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
 
         then:
         def outputDir = temporaryFolder.testDirectory.file(outputDirName)
-        def jarFiles = outputDir.listFiles()
+        def jarFiles = outputDir.listFiles().findAll { it.name.endsWith('jar') }
         jarFiles.size() == 2
         def gradleApiJar = jarFiles.find { it.name.startsWith('gradle-api-') }
         def testKitJar = jarFiles.find { it.name.startsWith('gradle-test-kit-') }

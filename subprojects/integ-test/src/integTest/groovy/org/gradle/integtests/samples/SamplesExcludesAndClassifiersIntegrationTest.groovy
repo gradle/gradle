@@ -32,8 +32,8 @@ class SamplesExcludesAndClassifiersIntegrationTest extends AbstractIntegrationTe
     @Test
     public void checkExcludeAndClassifier() {
         File projectDir = sample.dir
-        String outputCompile = executer.inDirectory(projectDir).withTasks('clean', 'resolveCompile').run().getOutput()
-        String outputRuntime = executer.inDirectory(projectDir).withTasks('clean', 'resolveRuntime').run().getOutput()
+        String outputCompile = executer.inDirectory(projectDir).withTasks('clean', 'resolveCompile').run().normalizedOutput
+        String outputRuntime = executer.inDirectory(projectDir).withTasks('clean', 'resolveRuntime').run().normalizedOutput
         assertThat(outputCompile, not(containsString("commons")))
         assertThat(outputRuntime, not(containsString("commons")))
         assertThat(outputCompile, not(containsString("reports")))

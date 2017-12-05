@@ -20,8 +20,9 @@ import com.google.common.io.CharSource;
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.integtests.fixtures.logging.DeprecationReport;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
@@ -30,12 +31,16 @@ import org.gradle.util.TextUtil;
 import org.hamcrest.core.StringContains;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
@@ -46,6 +51,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[\\w.$_]+\\.[\\w$_ =\\+\'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
     private final String output;
     private final String error;
+    private final DeprecationReport deprecationReport;
 
     private static final String TASK_LOGGER_DEBUG_PATTERN = "(?:.*\\s+\\[LIFECYCLE\\]\\s+\\[class org\\.gradle\\.TaskExecutionLogger\\]\\s+)?";
 
@@ -57,6 +63,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private static final Pattern BUILD_RESULT_PATTERN = Pattern.compile("BUILD (SUCCESSFUL|FAILED)( \\d+[smh])+");
 
+    public static final Pattern DEPRECATION_REPORT_PATTERN = Pattern.compile("There are \\d+ deprecation warnings\\.( See the detailed report at: file://(.*))?$");
+
     public static List<String> flattenTaskPaths(Object[] taskPaths) {
         return org.gradle.util.CollectionUtils.toStringList(GUtil.flatten(taskPaths, Lists.newArrayList()));
     }
@@ -64,6 +72,20 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public OutputScrapingExecutionResult(String output, String error) {
         this.output = TextUtil.normaliseLineSeparators(output);
         this.error = TextUtil.normaliseLineSeparators(error);
+        this.deprecationReport = new DeprecationReport(extractFileLocation(output));
+    }
+
+    private File extractFileLocation(String output) {
+        Matcher matcher = DEPRECATION_REPORT_PATTERN.matcher(output);
+        if (!matcher.find() || matcher.group(2) == null) {
+            return null;
+        }
+        try {
+            String decoded = URLDecoder.decode(matcher.group(2), "UTF-8");
+            return new File(decoded);
+        } catch (UnsupportedEncodingException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public String getOutput() {
@@ -105,12 +127,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             } else if (line.contains(LowTenuredSpaceDaemonExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
                 // Remove the "Expiring Daemon" message
                 i++;
-            } else if (line.contains(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING)) {
-                // Remove the Java 7 deprecation warning. This should be removed after 5.0
+            } else if (DEPRECATION_REPORT_PATTERN.matcher(line).matches()) {
+                // remove the new line before deprecation warning
+                result.deleteCharAt(result.length() - 1);
                 i++;
-                while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
-                    i++;
-                }
             } else if (i == lines.size() - 1 && BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.append(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 result.append('\n');
@@ -200,6 +220,11 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         Set<String> tasks = new HashSet<String>(getNotSkippedTasks());
         assertThat(String.format("Expected executed task %s not found in process output:%n%s", taskPath, getOutput()), tasks, hasItem(taskPath));
         return this;
+    }
+
+    @Override
+    public DeprecationReport getDeprecationReport() {
+        return deprecationReport;
     }
 
     private List<String> grepTasks(final Pattern pattern) {

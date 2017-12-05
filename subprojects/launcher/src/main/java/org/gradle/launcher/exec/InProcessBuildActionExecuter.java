@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -26,6 +27,9 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.util.SingleMessageLogger;
+
+import java.io.File;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -48,9 +52,19 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
                 return buildController.getResult();
             } finally {
                 buildLifecycleListener.beforeComplete();
+                renderDeprecationReport(gradleLauncher);
             }
         } finally {
             buildController.stop();
+        }
+    }
+
+    private void renderDeprecationReport(GradleLauncher launcher) {
+        try {
+            ProjectInternal project = launcher.getGradle().getRootProject();
+            SingleMessageLogger.renderDeprecationReport(new File(project.getBuildDir(), "reports/deprecations.log"));
+        } catch (IllegalStateException e) {
+            // root project is not ready, e.g. in case of failure in init script
         }
     }
 }

@@ -24,7 +24,7 @@ import java.util.regex.Pattern
 
 abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrationSpec {
 
-    abstract String getSourceSetTypeName();
+    abstract String getSourceSetTypeName()
 
     String getLanguageName() {
         def matcher = Pattern.compile("(\\w+)LanguagePluginIntegrationTest").matcher(getClass().simpleName)
@@ -40,6 +40,7 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
             id 'jvm-component'
             id '${languageName}-lang'
         }"""
+        executer.noDeprecationReport()
     }
 
     def "creates default source sets"() {
