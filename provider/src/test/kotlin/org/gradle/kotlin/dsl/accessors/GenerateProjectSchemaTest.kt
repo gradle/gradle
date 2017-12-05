@@ -25,20 +25,43 @@ class GenerateProjectSchemaTest : AbstractIntegrationTest() {
         val expectedSchema =
             mapOf(
                 ":" to ProjectSchema(
-                        extensions = mapOf(
-                            "defaultArtifacts" to "org.gradle.api.internal.plugins.DefaultArtifactPublicationSet",
-                            "ext" to "org.gradle.api.plugins.ExtraPropertiesExtension",
-                            "reporting" to "org.gradle.api.reporting.ReportingExtension"),
-                        conventions = mapOf(
-                            "base" to "org.gradle.api.plugins.BasePluginConvention",
-                            "java" to "org.gradle.api.plugins.JavaPluginConvention"),
-                        configurations = listOf(
-                            "annotationProcessor",
-                            "apiElements", "archives", "compile", "compileClasspath", "compileOnly", "default",
-                            "implementation", "runtime", "runtimeClasspath", "runtimeElements", "runtimeOnly",
-                            "testAnnotationProcessor",
-                            "testCompile", "testCompileClasspath", "testCompileOnly", "testImplementation",
-                            "testRuntime", "testRuntimeClasspath", "testRuntimeOnly")))
+                    extensions = listOf(
+                        ProjectSchemaEntry(
+                            "org.gradle.api.Project",
+                            "ext",
+                            "org.gradle.api.plugins.ExtraPropertiesExtension"),
+                        ProjectSchemaEntry(
+                            "org.gradle.api.Project",
+                            "defaultArtifacts",
+                            "org.gradle.api.internal.plugins.DefaultArtifactPublicationSet"),
+                        ProjectSchemaEntry(
+                            "org.gradle.api.internal.plugins.DefaultArtifactPublicationSet",
+                            "ext",
+                            "org.gradle.api.plugins.ExtraPropertiesExtension"),
+                        ProjectSchemaEntry(
+                            "org.gradle.api.Project",
+                            "reporting",
+                            "org.gradle.api.reporting.ReportingExtension"),
+                        ProjectSchemaEntry(
+                            "org.gradle.api.reporting.ReportingExtension",
+                            "ext",
+                            "org.gradle.api.plugins.ExtraPropertiesExtension")),
+                    conventions = listOf(
+                        ProjectSchemaEntry(
+                            "org.gradle.api.Project",
+                            "base",
+                            "org.gradle.api.plugins.BasePluginConvention"),
+                        ProjectSchemaEntry(
+                            "org.gradle.api.Project",
+                            "java",
+                            "org.gradle.api.plugins.JavaPluginConvention")),
+                    configurations = listOf(
+                        "annotationProcessor",
+                        "apiElements", "archives", "compile", "compileClasspath", "compileOnly", "default",
+                        "implementation", "runtime", "runtimeClasspath", "runtimeElements", "runtimeOnly",
+                        "testAnnotationProcessor",
+                        "testCompile", "testCompileClasspath", "testCompileOnly", "testImplementation",
+                        "testRuntime", "testRuntimeClasspath", "testRuntimeOnly")))
 
         assertThat(
             generatedSchema,

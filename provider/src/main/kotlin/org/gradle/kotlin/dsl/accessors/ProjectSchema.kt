@@ -19,10 +19,12 @@ package org.gradle.kotlin.dsl.accessors
 import groovy.json.JsonOutput.toJson
 
 import org.gradle.api.Project
+import org.gradle.api.internal.HasConvention
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionsSchema
 
 import org.gradle.api.reflect.TypeOf
-import org.gradle.api.reflect.TypeOf.typeOf
+import org.gradle.kotlin.dsl.getPluginByName
 
 import java.io.File
 import java.io.Serializable
@@ -30,16 +32,28 @@ import java.io.Serializable
 
 internal
 data class ProjectSchema<out T>(
-    val extensions: Map<String, T>,
-    val conventions: Map<String, T>,
+    val extensions: List<ProjectSchemaEntry<T>>,
+    val conventions: List<ProjectSchemaEntry<T>>,
     val configurations: List<String>
 ) : Serializable {
 
     fun <U> map(f: (T) -> U) =
         ProjectSchema(
-            extensions.mapValues { f(it.value) },
-            conventions.mapValues { f(it.value) },
+            extensions.map { it.map(f) },
+            conventions.map { it.map(f) },
             configurations.toList())
+}
+
+
+internal
+data class ProjectSchemaEntry<out T>(
+    val target: T,
+    val name: String,
+    val type: T
+) : Serializable {
+
+    fun <U> map(f: (T) -> U) =
+        ProjectSchemaEntry(f(target), name, f(type))
 }
 
 
@@ -48,36 +62,71 @@ fun multiProjectKotlinStringSchemaFor(root: Project): Map<String, ProjectSchema<
     multiProjectSchemaFor(root).mapValues { it.value.withKotlinTypeStrings() }
 
 
-internal
+private
 fun multiProjectSchemaFor(root: Project): Map<String, ProjectSchema<TypeOf<*>>> =
     root.allprojects.map { it.path to schemaFor(it) }.toMap()
 
 
 internal
 fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
-    accessibleProjectSchemaFrom(
-        project.extensions.extensionsSchema,
-        project.convention.plugins,
-        project.configurations.names.toList())
+    targetSchemaFor(project, TypeOf.typeOf(Project::class.java)).let { targetSchema ->
+        ProjectSchema(
+            targetSchema.extensions,
+            targetSchema.conventions,
+            accessibleConfigurations(project.configurations.names.toList()))
+    }
+
+
+private
+data class ExtensionConventionSchema(
+    val extensions: List<ProjectSchemaEntry<TypeOf<*>>>,
+    val conventions: List<ProjectSchemaEntry<TypeOf<*>>>
+)
+
+
+private
+fun targetSchemaFor(target: Any, targetType: TypeOf<*>): ExtensionConventionSchema {
+    val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+    if (target is ExtensionAware) {
+        accessibleExtensionsSchema(target.extensions.extensionsSchema).forEach { schema ->
+            val schemaEntry = ProjectSchemaEntry(targetType, schema.name, schema.publicType)
+            extensions.add(schemaEntry)
+            if (!schema.isDeferredConfigurable) {
+                targetSchemaFor(target.extensions.getByName(schema.name), schema.publicType).let { nestedSchema ->
+                    extensions += nestedSchema.extensions
+                    conventions += nestedSchema.conventions
+                }
+            }
+        }
+    }
+    if (target is HasConvention) {
+        accessibleConventionsSchema(target.convention.plugins).forEach { (name, type) ->
+            val schemaEntry = ProjectSchemaEntry<TypeOf<*>>(targetType, name, type)
+            conventions.add(schemaEntry)
+            targetSchemaFor(target.convention.getPluginByName(name), type).let { nestedSchema ->
+                extensions += nestedSchema.extensions
+                conventions += nestedSchema.conventions
+            }
+        }
+    }
+    return ExtensionConventionSchema(extensions.distinct(), conventions.distinct())
+}
+
+
+private
+fun accessibleExtensionsSchema(extensionsSchema: ExtensionsSchema) =
+    extensionsSchema.filter { isPublic(it.name) }
+
+
+private
+fun accessibleConventionsSchema(plugins: Map<String, Any>) =
+    plugins.filterKeys(::isPublic).mapValues { TypeOf.typeOf(it.value::class.java) }
 
 
 internal
-fun accessibleProjectSchemaFrom(
-    extensionSchema: ExtensionsSchema,
-    conventionPlugins: Map<String, Any>,
-    configurationNames: List<String>
-): ProjectSchema<TypeOf<*>> =
-
-    ProjectSchema(
-        extensions = extensionSchema
-            .filter { isPublic(it.name) }
-            .associateBy { it.name }
-            .mapValues { it.value.publicType },
-        conventions = conventionPlugins
-            .filterKeys(::isPublic)
-            .mapValues { typeOf(it.value::class.java) },
-        configurations = configurationNames
-            .filter(::isPublic))
+fun accessibleConfigurations(configurations: List<String>) =
+    configurations.filter(::isPublic)
 
 
 internal
@@ -98,11 +147,33 @@ fun ProjectSchema<TypeOf<*>>.withKotlinTypeStrings() =
 @Suppress("unchecked_cast")
 internal
 fun loadMultiProjectSchemaFrom(file: File) =
-    (groovy.json.JsonSlurper().parse(file) as Map<String, Map<String, *>>).mapValues {
+    (groovy.json.JsonSlurper().parse(file) as Map<String, Map<String, *>>).mapValues { (_, value) ->
         ProjectSchema(
-            extensions = it.value["extensions"] as? Map<String, String> ?: emptyMap(),
-            conventions = it.value["conventions"] as? Map<String, String> ?: emptyMap(),
-            configurations = it.value["configurations"] as? List<String> ?: emptyList())
+            extensions = loadSchemaEntryListFrom(value["extensions"]),
+            conventions = loadSchemaEntryListFrom(value["conventions"]),
+            configurations = value["configurations"] as? List<String> ?: emptyList())
+    }
+
+
+@Suppress("unchecked_cast")
+private
+fun loadSchemaEntryListFrom(extensions: Any?): List<ProjectSchemaEntry<String>> =
+    when (extensions) {
+        is Map<*, *> -> // <0.17 format
+            (extensions as? Map<String, String>)?.map {
+                ProjectSchemaEntry(
+                    Project::class.java.name,
+                    it.key,
+                    it.value)
+            } ?: emptyList()
+        is List<*> -> // >=0.17 format
+            (extensions as? List<Map<String, String>>)?.map {
+                ProjectSchemaEntry(
+                    it.getValue("target"),
+                    it.getValue("name"),
+                    it.getValue("type"))
+            } ?: emptyList()
+        else -> emptyList()
     }
 
 
