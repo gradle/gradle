@@ -718,7 +718,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         macros.append(sourceFile, directives)
         def result = resolver.resolveInclude(sourceFile, directives.all.first(), macros)
         assert result.complete
-        result.files.keySet() as List
+        result.files.file as List
     }
 
     void doesNotResolve(String reportedAs) {
@@ -729,6 +729,6 @@ class SourceParseAndResolutionTest extends SerializerSpec {
         def result = resolver.resolveInclude(sourceFile, directives.all.first(), macros)
         assert directives.all.first().asSourceText == reportedAs
         assert !result.complete
-        assert result.files.keySet().empty
+        assert result.files.empty
     }
 }

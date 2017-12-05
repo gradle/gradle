@@ -418,7 +418,12 @@ class IncrementalCompileProcessorTest extends Specification {
     SourceIncludesResolver.IncludeResolutionResult resolveDeps(Collection<File> deps) {
         SourceIncludesResolver.IncludeResolutionResult includes = Stub(SourceIncludesResolver.IncludeResolutionResult)
         _ * includes.complete >> true
-        _ * includes.files >> deps.collectEntries { [it, fileSystemSnapshotter.snapshotSelf(it)] }
+        _ * includes.files >> deps.collect {
+            def include = Stub(SourceIncludesResolver.IncludeFile)
+            _ * include.file >> it
+            _ * include.snapshot >> fileSystemSnapshotter.snapshotSelf(it)
+            include
+        }
         _ * includes.checkedLocations >> deps
         return includes
     }
@@ -427,7 +432,7 @@ class IncrementalCompileProcessorTest extends Specification {
         SourceIncludesResolver.IncludeResolutionResult includes = Stub(SourceIncludesResolver.IncludeResolutionResult)
         _ * includes.complete >> false
         _ * includes.checkedLocations >> []
-        _ * includes.files >> [:]
+        _ * includes.files >> []
         return includes
     }
 

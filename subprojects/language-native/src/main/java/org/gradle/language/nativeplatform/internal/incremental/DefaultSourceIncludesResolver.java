@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
@@ -35,7 +36,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -44,12 +44,12 @@ import java.util.Set;
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private final List<File> includePaths;
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final Map<File, Map<String, FileSnapshot>> includeRoots;
+    private final Map<File, Map<String, IncludeFileImpl>> includeRoots;
 
     public DefaultSourceIncludesResolver(List<File> includePaths, FileSystemSnapshotter fileSystemSnapshotter) {
         this.includePaths = includePaths;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
-        this.includeRoots = new HashMap<File, Map<String, FileSnapshot>>();
+        this.includeRoots = new HashMap<File, Map<String, IncludeFileImpl>>();
     }
 
     @Override
@@ -264,30 +264,66 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
     private void searchForDependency(List<File> searchPath, String include, BuildableResult dependencies) {
         for (File searchDir : searchPath) {
-            File candidate = new File(searchDir, include);
-
-            Map<String, FileSnapshot> searchedIncludes = includeRoots.get(searchDir);
+            Map<String, IncludeFileImpl> searchedIncludes = includeRoots.get(searchDir);
             if (searchedIncludes == null) {
-                searchedIncludes = new HashMap<String, FileSnapshot>();
+                searchedIncludes = new HashMap<String, IncludeFileImpl>();
                 includeRoots.put(searchDir, searchedIncludes);
             }
-            dependencies.searched(candidate);
             if (searchedIncludes.containsKey(include)) {
-                FileSnapshot fileSnapshot = searchedIncludes.get(include);
-                if (fileSnapshot.getType() == FileType.RegularFile) {
-                    dependencies.resolved(candidate, fileSnapshot);
+                IncludeFileImpl includeFile = searchedIncludes.get(include);
+                if (includeFile.snapshot.getType() == FileType.RegularFile) {
+                    dependencies.resolved(includeFile);
                     return;
                 }
                 continue;
             }
 
+            File candidate = new File(searchDir, include);
             FileSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(candidate);
-            searchedIncludes.put(include, fileSnapshot);
+            IncludeFileImpl includeFile = fileSnapshot.getType() == FileType.RegularFile ? new IncludeFileImpl(candidate, fileSnapshot) : new IncludeFileImpl(null, fileSnapshot);
+            searchedIncludes.put(include, includeFile);
 
             if (fileSnapshot.getType() == FileType.RegularFile) {
-                dependencies.resolved(candidate, fileSnapshot);
+                dependencies.resolved(includeFile);
                 return;
             }
+        }
+    }
+
+    private static class IncludeFileImpl implements IncludeFile {
+        final File file;
+        final FileSnapshot snapshot;
+
+        IncludeFileImpl(File file, FileSnapshot snapshot) {
+            this.file = file;
+            this.snapshot = snapshot;
+        }
+
+        @Override
+        public File getFile() {
+            return file;
+        }
+
+        @Override
+        public FileSnapshot getSnapshot() {
+            return snapshot;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            IncludeFileImpl other = (IncludeFileImpl) obj;
+            return Objects.equal(file, other.file) && snapshot.equals(other.snapshot);
+        }
+
+        @Override
+        public int hashCode() {
+            return snapshot.hashCode();
         }
     }
 
@@ -331,16 +367,11 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     private static class BuildableResult implements IncludeResolutionResult {
-        private final Map<File, FileSnapshot> files = new LinkedHashMap<File, FileSnapshot>();
-        private final Set<File> candidates = new LinkedHashSet<File>();
+        private final Set<IncludeFile> files = new LinkedHashSet<IncludeFile>();
         private boolean missing;
 
-        void searched(File candidate) {
-            candidates.add(candidate);
-        }
-
-        void resolved(File file, FileSnapshot fileSnapshot) {
-            files.put(file, fileSnapshot);
+        void resolved(IncludeFile includeFile) {
+            files.add(includeFile);
         }
 
         void unresolved() {
@@ -353,13 +384,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         @Override
-        public Map<File, FileSnapshot> getFiles() {
+        public Set<IncludeFile> getFiles() {
             return files;
-        }
-
-        @Override
-        public Collection<File> getCheckedLocations() {
-            return candidates;
         }
     }
 

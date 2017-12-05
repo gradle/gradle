@@ -20,7 +20,6 @@ import org.gradle.language.nativeplatform.internal.Include;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Map;
 
 public interface SourceIncludesResolver {
     interface IncludeResolutionResult {
@@ -31,12 +30,12 @@ public interface SourceIncludesResolver {
          */
         boolean isComplete();
 
-        Map<File, FileSnapshot> getFiles();
+        Collection<IncludeFile> getFiles();
+    }
 
-        /**
-         * Every file path searched as part of resolution.
-         */
-        Collection<File> getCheckedLocations();
+    interface IncludeFile {
+        File getFile();
+        FileSnapshot getSnapshot();
     }
 
     /**

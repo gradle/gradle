@@ -65,7 +65,6 @@ public class IncrementalCompileFilesFactory {
         private final CompilationState previous;
         private final BuildableCompilationState current = new BuildableCompilationState();
         private final List<File> toRecompile = new ArrayList<File>();
-        private final Set<File> discoveredInputs = Sets.newHashSet();
         private final Set<File> existingHeaders = Sets.newHashSet();
         private final Map<File, IncludeDirectives> includeDirectivesMap = new HashMap<File, IncludeDirectives>();
         private final Map<File, FileDetails> visitedFiles = new HashMap<File, FileDetails>();
@@ -77,7 +76,7 @@ public class IncrementalCompileFilesFactory {
 
         @Override
         public IncrementalCompilation getResult() {
-            return new DefaultIncrementalCompilation(current.snapshot(), toRecompile, getRemovedSources(), discoveredInputs, existingHeaders, hasUnresolvedHeaders, includeDirectivesMap);
+            return new DefaultIncrementalCompilation(current.snapshot(), toRecompile, getRemovedSources(), existingHeaders, hasUnresolvedHeaders, includeDirectivesMap);
         }
 
         @Override
@@ -139,7 +138,6 @@ public class IncrementalCompileFilesFactory {
                     result = IncludeFileResolutionResult.HasMacroIncludes;
                 }
                 SourceIncludesResolver.IncludeResolutionResult resolutionResult = sourceIncludesResolver.resolveInclude(file, include, visibleMacros);
-                discoveredInputs.addAll(resolutionResult.getCheckedLocations());
                 if (!resolutionResult.isComplete()) {
                     LOGGER.info("Cannot locate header file for '{}' in source file '{}'. Assuming changed.", include.getAsSourceText(), file.getName());
                     if (isSourceFile || !ignoreUnresolvedHeadersInDependencies) {
@@ -147,9 +145,9 @@ public class IncrementalCompileFilesFactory {
                         result = IncludeFileResolutionResult.UnresolvedMacroIncludes;
                     }
                 }
-                for (Map.Entry<File, FileSnapshot> entry : resolutionResult.getFiles().entrySet()) {
-                    existingHeaders.add(entry.getKey());
-                    FileVisitResult includeVisitResult = visitFile(entry.getKey(), entry.getValue(), visibleMacros, visited, false);
+                for (SourceIncludesResolver.IncludeFile includeFile : resolutionResult.getFiles()) {
+                    existingHeaders.add(includeFile.getFile());
+                    FileVisitResult includeVisitResult = visitFile(includeFile.getFile(), includeFile.getSnapshot(), visibleMacros, visited, false);
                     if (includeVisitResult.result.ordinal() > result.ordinal()) {
                         result = includeVisitResult.result;
                     }
