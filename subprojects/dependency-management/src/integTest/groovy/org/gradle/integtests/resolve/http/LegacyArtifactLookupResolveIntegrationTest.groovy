@@ -23,8 +23,8 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class LegacyArtifactLookupResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
     @RequiredFeatures(
-        // if experimental features is off, we don't look for the artifacts anymore
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+        // if experimental features is on, we don't look for the artifacts anymore
+        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "false")
     )
     def "tries to fetch the jar whenever the metadata artifact isn't found"() {
         buildFile << """
@@ -50,7 +50,7 @@ class LegacyArtifactLookupResolveIntegrationTest extends AbstractModuleDependenc
         buildFile << """
             repositories.all {
                 metadataSources {
-                    ${GradleMetadataResolveRunner.gradleMetadataEnabled?'gradleMetadata()':''}
+                    ${GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled?'gradleMetadata()':''}
                     ${source}()
                 }
             }

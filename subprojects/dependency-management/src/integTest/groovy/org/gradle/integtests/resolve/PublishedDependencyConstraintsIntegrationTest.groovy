@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve
-
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
-
 /**
  * This also tests maven's optional dependencies for the cases where we only have pom metadata available.
  */
 class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     boolean featureAvailable() {
-        !useIvy() || gradleMetadataEnabled
-    }
-
-    def setup() {
-        if (featureAvailable()) {
-            ExperimentalFeaturesFixture.enable(settingsFile)
-        }
+        gradleMetadataEnabled || (/*maven optional:*/ useMaven() && experimentalEnabled)
     }
 
     void "dependency constraint is ignored when feature is not enabled"() {
@@ -95,7 +86,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
         repositoryInteractions {
             'org:first-level:1.0' {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 expectGetArtifact()
             }
         }
@@ -131,19 +122,19 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
         repositoryInteractions {
             'org:foo:1.0' {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 if (!available) {
                     expectGetArtifact()
                 }
             }
             'org:foo:1.1' {
                 if (available) {
-                    expectGetMetadata(available)
+                    expectGetMetadata()
                     expectGetArtifact()
                 }
             }
             'org:first-level:1.0' {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 expectGetArtifact()
             }
         }
@@ -191,23 +182,23 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
         repositoryInteractions {
             'org:foo:1.0' {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 if (!available) {
                     expectGetArtifact()
                 }
             }
             'org:foo:1.1' {
                 if (available) {
-                    expectGetMetadata(available)
+                    expectGetMetadata()
                     expectGetArtifact()
                 }
             }
             'org:first-level1:1.0' {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 expectGetArtifact()
             }
             'org:first-level2:1.0' {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 expectGetArtifact()
             }
         }
@@ -261,23 +252,23 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
                 expectGetMetadata()
             }
             'org:foo:1.2' {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 if (!available) {
                     expectGetArtifact()
                 }
             }
             'org:foo:1.1' {
                 if (available) {
-                    expectGetMetadata(true)
+                    expectGetMetadata()
                     expectGetArtifact()
                 }
             }
             'org:bar:1.0' {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 expectGetArtifact()
             }
             'org:first-level:1.0' {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 expectGetArtifact()
             }
         }
@@ -327,11 +318,11 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
         repositoryInteractions {
             'org:bar:1.0' {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 expectGetArtifact()
             }
             'org:first-level:1.0' {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 expectGetArtifact()
             }
         }
@@ -381,11 +372,11 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
         repositoryInteractions {
             "org:foo:${available? '1.1' : '1.0'}" {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 expectGetArtifact()
             }
             'org:first-level:1.0' {
-                expectGetMetadata(available)
+                expectGetMetadata()
                 expectGetArtifact()
             }
         }

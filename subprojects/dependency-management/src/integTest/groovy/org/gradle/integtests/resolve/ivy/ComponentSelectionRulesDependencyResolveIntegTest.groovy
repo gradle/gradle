@@ -220,9 +220,9 @@ Versions rejected by component selection rules:
     1.0
 Searched in the following locations:
     ${versionListingURI('org.utils', 'api')}
-${triedMetadata('org.utils', 'api', "1.2", false, true)}
-${triedMetadata('org.utils', 'api', "1.1", false, true)}
-${triedMetadata('org.utils', 'api', "1.0", false, true)}
+${triedMetadata('org.utils', 'api', "1.2", false, gradleMetadataEnabled || !experimentalEnabled)}
+${triedMetadata('org.utils', 'api', "1.1", false, gradleMetadataEnabled || !experimentalEnabled)}
+${triedMetadata('org.utils', 'api', "1.0", false, gradleMetadataEnabled || !experimentalEnabled)}
 Required by:
 """)
 

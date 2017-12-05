@@ -15,7 +15,9 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Unroll
 
@@ -365,9 +367,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         }
     }
 
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
+    )
     def "attribute matching is used to select a variant of the dependency's target if the dependency was added by a rule"() {
         given:
-        ExperimentalFeaturesFixture.enable(settingsFile)
         repository {
             'org.test:moduleA:1.0' {
                 dependsOn 'org.test:moduleB:1.0'
@@ -414,19 +418,18 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         """
         repositoryInteractions {
             'org.test:moduleA:1.0' {
-                expectGetMetadata(true)
+                expectGetMetadata()
                 expectGetArtifact()
             }
             'org.test:moduleB:1.0'() {
-                expectGetMetadata(true)
+                expectGetMetadata()
                 expectGetArtifact()
             }
             'org.test:moduleC:1.0'() {
-                expectGetMetadata(true)
-                expectHeadArtifact()
+                expectGetMetadataMissing()
             }
             'org.test:moduleD:1.0'() {
-                expectGetMetadata(true)
+                expectGetMetadata()
                 expectGetArtifact()
             }
         }
