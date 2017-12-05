@@ -42,13 +42,26 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
     git config user.name 'First Last'
     git config user.email user@example.com
 
+### IntelliJ IDEA
+
 You can generate the IntelliJ project by running
 
     ./gradlew idea
 
+    
+### Eclipse
+
 You can generate the Eclipse projects by running
 
     ./gradlew eclipse
+
+1. You will need Eclipse 4.5 (Mars) at least
+2. Install the Groovy Eclipse plugin from http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/
+3. Make sure you have a Java 8 compatible JRE configured in your workspace
+4. In `Window->Preferences->Groovy->Compiler`, check `Enable Script folder support` and add `**/*.gradle`
+5. Run `./gradlew eclipse` from the root directory
+6. Import all projects using the "Import Existing Projects into Workspace" wizard
+   
 
 ### Code Change Guidelines
 
