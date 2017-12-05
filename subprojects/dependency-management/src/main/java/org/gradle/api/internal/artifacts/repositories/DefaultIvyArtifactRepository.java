@@ -100,6 +100,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final FileResourceRepository fileResourceRepository;
     private final ModuleMetadataParser moduleMetadataParser;
     private final ExperimentalFeatures experimentalFeatures;
+    private final IvyMetadataSources metadataSources = new IvyMetadataSources();
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -128,6 +129,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.instantiator = instantiatorFactory.decorate();
         this.ivyContextManager = ivyContextManager;
         this.experimentalFeatures = experimentalFeatures;
+        this.metadataSources.setDefaults(experimentalFeatures);
     }
 
     @Override
@@ -174,14 +176,24 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new IvyResolver(getName(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, moduleIdentifierFactory, supplierFactory, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE);
     }
 
+    @Override
+    public void metadataSources(Action<? super MetadataSources> configureAction) {
+        metadataSources.reset();
+        configureAction.execute(metadataSources);
+    }
+
     private ImmutableMetadataSources createMetadataSources() {
         IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory);
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
-        if (experimentalFeatures.isEnabled()) {
+        if (metadataSources.gradleMetadata) {
             sources.add(new DefaultGradleModuleMetadataSource(moduleMetadataParser, metadataFactory));
         }
-        sources.add(new DefaultIvyDescriptorMetadataSource(IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, moduleIdentifierFactory));
-        sources.add(new DefaultArtifactMetadataSource(metadataFactory));
+        if (metadataSources.ivyDescriptor) {
+            sources.add(new DefaultIvyDescriptorMetadataSource(IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, moduleIdentifierFactory));
+        }
+        if (metadataSources.artifact) {
+            sources.add(new DefaultArtifactMetadataSource(metadataFactory));
+        }
         return new DefaultImmutableMetadataSources(sources.build());
     }
 
@@ -326,6 +338,42 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
         public void setDynamicMode(boolean mode) {
             this.dynamicResolve = mode;
+        }
+    }
+
+    private static class IvyMetadataSources implements MetadataSources {
+        boolean gradleMetadata;
+        boolean ivyDescriptor;
+        boolean artifact;
+
+        void setDefaults(ExperimentalFeatures experimentalFeatures) {
+            ivyDescriptor();
+            if (experimentalFeatures.isEnabled()) {
+                gradleMetadata();
+            } else {
+                artifact();
+            }
+        }
+
+        void reset() {
+            gradleMetadata = false;
+            ivyDescriptor = false;
+            artifact = false;
+        }
+
+        @Override
+        public void gradleMetadata() {
+            gradleMetadata = true;
+        }
+
+        @Override
+        public void ivyDescriptor() {
+            ivyDescriptor = true;
+        }
+
+        @Override
+        public void artifact() {
+            artifact = true;
         }
     }
 

@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
@@ -75,6 +76,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileStore<String> resourcesFileStore;
     private final FileResourceRepository fileResourceRepository;
     private final ExperimentalFeatures experimentalFeatures;
+    private final MavenMetadataSources metadataSources = new MavenMetadataSources();
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
@@ -116,6 +118,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.resourcesFileStore = resourcesFileStore;
         this.fileResourceRepository = fileResourceRepository;
         this.experimentalFeatures = experimentalFeatures;
+        this.metadataSources.setDefaults(experimentalFeatures);
     }
 
     @Override
@@ -188,14 +191,24 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, transport.getResourceAccessor(), resourcesFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE);
     }
 
-    protected ImmutableMetadataSources createMetadataSources() {
+    @Override
+    public void metadataSources(Action<? super MetadataSources> configureAction) {
+        metadataSources.reset();
+        configureAction.execute(metadataSources);
+    }
+
+    ImmutableMetadataSources createMetadataSources() {
         MavenMutableModuleMetadataFactory metadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory);
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
-        if (experimentalFeatures.isEnabled()) {
+        if (metadataSources.gradleMetadata) {
             sources.add(new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory));
         }
-        sources.add(new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices()));
-        sources.add(new DefaultArtifactMetadataSource(metadataFactory));
+        if (metadataSources.mavenPom) {
+            sources.add(new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices()));
+        }
+        if (metadataSources.artifact) {
+            sources.add(new DefaultArtifactMetadataSource(metadataFactory));
+        }
         return new DefaultImmutableMetadataSources(sources.build());
     }
 
@@ -203,23 +216,23 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return NO_OP_VALIDATION_SERVICES;
     }
 
-    protected MetaDataParser<MutableMavenModuleResolveMetadata> getPomParser() {
+    private MetaDataParser<MutableMavenModuleResolveMetadata> getPomParser() {
         return pomParser;
     }
 
-    protected ModuleMetadataParser getMetadataParser() {
+    private ModuleMetadataParser getMetadataParser() {
         return metadataParser;
     }
 
-    protected FileStore<ModuleComponentArtifactIdentifier> getArtifactFileStore() {
+    FileStore<ModuleComponentArtifactIdentifier> getArtifactFileStore() {
         return artifactFileStore;
     }
 
-    protected FileStore<String> getResourcesFileStore() {
+    FileStore<String> getResourcesFileStore() {
         return resourcesFileStore;
     }
 
-    protected RepositoryTransport getTransport(String scheme) {
+    RepositoryTransport getTransport(String scheme) {
         return transportFactory.createTransport(scheme, getName(), getConfiguredAuthentication());
     }
 
@@ -235,6 +248,42 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                 return repository.getName();
             }
             return repository.getName() + '(' + url + ')';
+        }
+    }
+
+    private static class MavenMetadataSources implements MetadataSources {
+        boolean gradleMetadata;
+        boolean mavenPom;
+        boolean artifact;
+
+        void setDefaults(ExperimentalFeatures experimentalFeatures) {
+            mavenPom();
+            if (experimentalFeatures.isEnabled()) {
+                gradleMetadata();
+            } else {
+                artifact();
+            }
+        }
+
+        void reset() {
+            gradleMetadata = false;
+            mavenPom = false;
+            artifact = false;
+        }
+
+        @Override
+        public void gradleMetadata() {
+            gradleMetadata = true;
+        }
+
+        @Override
+        public void mavenPom() {
+            mavenPom = true;
+        }
+
+        @Override
+        public void artifact() {
+            artifact = true;
         }
     }
 

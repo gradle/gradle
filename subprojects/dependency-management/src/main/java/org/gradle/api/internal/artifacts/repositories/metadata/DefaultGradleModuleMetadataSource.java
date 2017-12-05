@@ -45,7 +45,8 @@ public class DefaultGradleModuleMetadataSource extends AbstractMetadataSource<Mu
 
     @Override
     public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult result) {
-        LocallyAvailableExternalResource gradleMetadataArtifact = artifactResolver.resolveArtifact(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "module", "module")), result);
+        DefaultIvyArtifactName moduleMetadataArtifact = new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "module", "module");
+        LocallyAvailableExternalResource gradleMetadataArtifact = artifactResolver.resolveArtifact(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, moduleMetadataArtifact), result);
         if (gradleMetadataArtifact != null) {
             MutableModuleComponentResolveMetadata metaDataFromResource = mutableModuleMetadataFactory.create(moduleComponentIdentifier);
             metadataParser.parse(gradleMetadataArtifact, (MutableComponentVariantResolveMetadata) metaDataFromResource);

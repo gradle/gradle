@@ -34,7 +34,7 @@ public interface MetadataSource<S extends MutableModuleComponentResolveMetadata>
              ModuleComponentIdentifier moduleComponentIdentifier,
              ComponentOverrideMetadata prescribedMetaData,
              ExternalResourceArtifactResolver artifactResolver, // Required for MavenLocal to verify the presence of the artifact
-             BuildableModuleComponentMetaDataResolveResult result); // TODO:DAZ Not required
+             BuildableModuleComponentMetaDataResolveResult result);
 
     void appendId(BuildCacheHasher hasher);
 }

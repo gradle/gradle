@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
@@ -24,16 +23,10 @@ import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
-import org.gradle.api.internal.artifacts.repositories.metadata.DefaultGradleModuleMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultImmutableMetadataSources;
-import org.gradle.api.internal.artifacts.repositories.metadata.DefaultIvyDescriptorMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
@@ -44,7 +37,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -139,22 +131,9 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
         return resolver;
     }
 
-    // TODO:DAZ This is copied from DefaultIvyArtifactRepository, and not really appropriate for a flatdir repository...
     private ImmutableMetadataSources createMetadataSources() {
         IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory);
-        ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
-        if (experimentalFeatures.isEnabled()) {
-            sources.add(new DefaultGradleModuleMetadataSource(moduleMetadataParser, metadataFactory));
-        }
-        sources.add(new DefaultIvyDescriptorMetadataSource(IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, moduleIdentifierFactory));
-        if (!experimentalFeatures.isEnabled()) {
-            sources.add(new DefaultArtifactMetadataSource(metadataFactory));
-        }
-        return new DefaultImmutableMetadataSources(sources.build());
+        MetadataSource artifactMetadataSource = new DefaultArtifactMetadataSource(metadataFactory);
+        return new DefaultImmutableMetadataSources(Collections.<MetadataSource<?>>singletonList(artifactMetadataSource));
     }
-
-    private MetaDataParser<MutableIvyModuleResolveMetadata> createIvyDescriptorParser() {
-        return new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository));
-    }
-
 }
