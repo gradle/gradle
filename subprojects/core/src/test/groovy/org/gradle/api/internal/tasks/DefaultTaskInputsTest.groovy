@@ -46,7 +46,7 @@ class DefaultTaskInputsTest extends Specification {
         getName() >> "task"
         toString() >> "task 'task'"
     }
-    def walker = new DefaultTaskPropertiesWalker([])
+    def walker = new DefaultTaskPropertiesWalker(new DefaultInputsOutputsInfoStore([]))
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, new DefaultPropertySpecFactory(task, resolver))
 
     def "default values"() {

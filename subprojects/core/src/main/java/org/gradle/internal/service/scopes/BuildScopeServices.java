@@ -62,7 +62,9 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.internal.tasks.DefaultInputsOutputsInfoStore;
 import org.gradle.api.internal.tasks.DefaultTaskPropertiesWalker;
+import org.gradle.api.internal.tasks.InputsOutputsInfoStore;
 import org.gradle.api.internal.tasks.TaskPropertiesWalker;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
@@ -233,8 +235,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator);
     }
 
-    protected TaskPropertiesWalker createTaskPropertiesWalker(List<PropertyAnnotationHandler> annotationHandlers) {
-        return new DefaultTaskPropertiesWalker(annotationHandlers);
+    protected InputsOutputsInfoStore createInputsOutputsInfoStrore(List<PropertyAnnotationHandler> annotationHandlers) {
+        return new DefaultInputsOutputsInfoStore(annotationHandlers);
+    }
+
+    protected TaskPropertiesWalker createTaskPropertiesWalker(InputsOutputsInfoStore inputsOutputsInfoStore) {
+        return new DefaultTaskPropertiesWalker(inputsOutputsInfoStore);
     }
 
     protected TaskClassInfoStore createTaskClassInfoStore() {

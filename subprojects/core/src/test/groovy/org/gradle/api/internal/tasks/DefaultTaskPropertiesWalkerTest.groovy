@@ -72,7 +72,7 @@ class DefaultTaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
 
     private visitInputs(MyTask task) {
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
-        new DefaultTaskPropertiesWalker([]).visitInputsAndOutputs(specFactory, visitor, task)
+        new DefaultTaskPropertiesWalker(new DefaultInputsOutputsInfoStore([])).visitInputsAndOutputs(specFactory, visitor, task)
     }
 
     static class MyTask extends DefaultTask {

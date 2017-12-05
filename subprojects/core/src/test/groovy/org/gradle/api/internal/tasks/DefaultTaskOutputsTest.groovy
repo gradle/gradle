@@ -55,7 +55,7 @@ class DefaultTaskOutputsTest extends Specification {
             new SimpleFileCollection(it*.call().flatten().collect { new File((String) it) })
         }
     ]   as FileResolver
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultTaskPropertiesWalker([]), new DefaultPropertySpecFactory(task, resolver))
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultTaskPropertiesWalker(new DefaultInputsOutputsInfoStore([])), new DefaultPropertySpecFactory(task, resolver))
 
     void hasNoOutputsByDefault() {
         setup:

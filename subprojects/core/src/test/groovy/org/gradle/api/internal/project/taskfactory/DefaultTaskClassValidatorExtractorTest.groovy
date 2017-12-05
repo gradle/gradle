@@ -19,6 +19,7 @@ package org.gradle.api.internal.project.taskfactory
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.tasks.DefaultInputsOutputsInfoStore
 import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
 import org.gradle.api.internal.tasks.DefaultTaskPropertiesWalker
 import org.gradle.api.internal.tasks.InputsOutputVisitor
@@ -82,7 +83,7 @@ class DefaultTaskClassValidatorExtractorTest extends AbstractProjectBuilderSpec 
             annotatedProperties << propertyInfo.propertyName
         }
         def annotationHandler = new SearchPathAnnotationHandler(configureAction)
-        def walker = new DefaultTaskPropertiesWalker([annotationHandler])
+        def walker = new DefaultTaskPropertiesWalker(new DefaultInputsOutputsInfoStore([annotationHandler]))
         def visitor = Mock(InputsOutputVisitor)
 
         when:
@@ -92,7 +93,7 @@ class DefaultTaskClassValidatorExtractorTest extends AbstractProjectBuilderSpec 
         annotatedProperties == ["searchPath"]
     }
 
-    private void visitTask(DefaultTaskPropertiesWalker walker = new DefaultTaskPropertiesWalker([]), Class taskClass, InputsOutputVisitor visitor) {
+    private void visitTask(DefaultTaskPropertiesWalker walker = new DefaultTaskPropertiesWalker(new DefaultInputsOutputsInfoStore([])), Class taskClass, InputsOutputVisitor visitor) {
         def task = project.tasks.create(taskClass.simpleName, taskClass)
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
         walker.visitInputsAndOutputs(specFactory, visitor, task)
