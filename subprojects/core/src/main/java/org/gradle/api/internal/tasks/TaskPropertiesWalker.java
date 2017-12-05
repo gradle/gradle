@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -35,6 +36,9 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.HasConvention;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.taskfactory.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.InputFilePropertyAnnotationHandler;
@@ -50,7 +54,9 @@ import org.gradle.api.internal.project.taskfactory.OutputFilesPropertyAnnotation
 import org.gradle.api.internal.project.taskfactory.OverridingPropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.options.OptionValues;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -62,6 +68,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.Types;
+import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.util.DeferredUtil;
 import org.gradle.util.DeprecationLogger;
 
@@ -72,6 +79,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
@@ -83,6 +91,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
+import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.INFO;
 
 @NonNullApi
 public class TaskPropertiesWalker {
@@ -90,7 +99,7 @@ public class TaskPropertiesWalker {
     // Avoid reflecting on classes we know we don't need to look at
     @SuppressWarnings("RedundantTypeArguments")
     private static final Collection<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.<Class<?>>of(
-        ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class
+        ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class
     );
 
     private final static List<? extends PropertyAnnotationHandler> HANDLERS = Arrays.asList(
@@ -150,24 +159,34 @@ public class TaskPropertiesWalker {
     public void visitInputs(PropertySpecFactory specFactory, InputsOutputVisitor visitor, Object instance) {
         Queue<PropertyContainer> queue = new ArrayDeque<PropertyContainer>();
         queue.add(new PropertyContainer(null, instance));
+        boolean cacheable = instance.getClass().isAnnotationPresent(CacheableTask.class);
         while (!queue.isEmpty()) {
             PropertyContainer container = queue.remove();
-            detectProperties(container, container.getInstance().getClass(), queue, visitor, specFactory);
+            detectProperties(container, container.getInstance().getClass(), queue, visitor, specFactory, cacheable);
         }
     }
 
-    private <T> void detectProperties(PropertyContainer container, Class<T> type, Queue<PropertyContainer> queue, InputsOutputVisitor visitor, PropertySpecFactory inputs) {
+    private <T> void detectProperties(PropertyContainer container, Class<T> type, Queue<PropertyContainer> queue, InputsOutputVisitor visitor, PropertySpecFactory inputs, boolean cacheable) {
         final Set<Class<? extends Annotation>> propertyTypeAnnotations = annotationHandlers.keySet();
         final Map<String, DefaultPropertyContext> propertyContexts = Maps.newLinkedHashMap();
         Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {
             @Override
             public void visitType(Class<? super T> type) {
+                if (type.isSynthetic()) {
+                    return;
+                }
                 Map<String, Field> fields = getFields(type);
                 List<Getter> getters = getGetters(type);
                 for (Getter getter : getters) {
                     Method method = getter.getMethod();
+                    if (method.isSynthetic()) {
+                        continue;
+                    }
                     String fieldName = getter.getName();
                     Field field = fields.get(fieldName);
+                    if (field != null && field.isSynthetic()) {
+                        continue;
+                    }
 
                     DefaultPropertyContext propertyContext = propertyContexts.get(fieldName);
                     if (propertyContext == null) {
@@ -175,7 +194,7 @@ public class TaskPropertiesWalker {
                         propertyContexts.put(fieldName, propertyContext);
                     }
 
-                    Iterable<Annotation> declaredAnnotations = mergeDeclaredAnnotations(method, field);
+                    Iterable<Annotation> declaredAnnotations = mergeDeclaredAnnotations(method, field, propertyContext);
 
                     // Discard overridden property type annotations when an overriding annotation is also present
                     Iterable<Annotation> overriddenAnnotations = filterOverridingAnnotations(declaredAnnotations, propertyTypeAnnotations);
@@ -186,30 +205,38 @@ public class TaskPropertiesWalker {
         });
         for (DefaultPropertyContext propertyContext : propertyContexts.values()) {
             Class<? extends Annotation> propertyType = propertyContext.propertyType;
-            if (propertyType != null) {
-                PropertyAnnotationHandler annotationHandler = annotationHandlers.get(propertyType);
-                Object instance = container.getInstance();
-                String propertyName = container.getRelativePropertyName(propertyContext.fieldName);
-                PropertyInfo propertyInfo = propertyContext.createPropertyInfo(propertyName, instance);
-                annotationHandler.accept(propertyInfo, visitor, inputs);
-                if (propertyInfo.isAnnotationPresent(Nested.class)) {
-                    try {
-                        Object nestedBean = propertyInfo.getValue();
-                        if (nestedBean != null) {
-                            queue.add(new PropertyContainer(propertyName, nestedBean));
-                        }
-                    } catch (Exception e) {
-                        // No nested bean
+            String propertyName = container.getRelativePropertyName(propertyContext.fieldName);
+            if (propertyType == null) {
+                if (!Modifier.isPrivate(propertyContext.method.getModifiers())) {
+                    visitor.visitValidationMessage(INFO, propertyValidationMessage(propertyName, "is not annotated with an input or output annotation"));
+                }
+                continue;
+            }
+            PropertyAnnotationHandler annotationHandler = annotationHandlers.get(propertyType);
+            Object instance = container.getInstance();
+            PropertyInfo propertyInfo = propertyContext.createPropertyInfo(propertyName, instance, cacheable);
+            annotationHandler.accept(propertyInfo, visitor, inputs);
+            for (String validationMessage : propertyContext.getValidationMessages()) {
+                visitor.visitValidationMessage(INFO, propertyInfo.validationMessage(validationMessage));
+            }
+            if (propertyInfo.isAnnotationPresent(Nested.class)) {
+                try {
+                    Object nestedBean = propertyInfo.getValue();
+                    if (nestedBean != null) {
+                        queue.add(new PropertyContainer(propertyName, nestedBean));
                     }
+                } catch (Exception e) {
+                    // No nested bean
                 }
             }
         }
     }
-    private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field) {
+
+    private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, DefaultPropertyContext propertyContext) {
         Collection<Annotation> methodAnnotations = collectRelevantAnnotations(method.getDeclaredAnnotations());
-//        if (Modifier.isPrivate(method.getModifiers()) && !methodAnnotations.isEmpty()) {
-// FIXME           propertyContext.validationMessage("is private and annotated with an input or output annotation");
-//        }
+        if (Modifier.isPrivate(method.getModifiers()) && !methodAnnotations.isEmpty()) {
+            propertyContext.validationMessage("is private and annotated with an input or output annotation");
+        }
         if (field == null) {
             return methodAnnotations;
         }
@@ -226,7 +253,7 @@ public class TaskPropertiesWalker {
             while (iFieldAnnotation.hasNext()) {
                 Annotation fieldAnnotation = iFieldAnnotation.next();
                 if (methodAnnotation.annotationType().equals(fieldAnnotation.annotationType())) {
-// FIXME                   propertyContext.validationMessage("has both a getter and field declared with annotation @" + methodAnnotation.annotationType().getSimpleName());
+                    propertyContext.validationMessage("has both a getter and field declared with annotation @" + methodAnnotation.annotationType().getSimpleName());
                     iFieldAnnotation.remove();
                 }
             }
@@ -264,16 +291,16 @@ public class TaskPropertiesWalker {
             propertyContext.addAnnotation(annotation);
         }
 
-//        if (declaredPropertyTypes.size() > 1) {
-// FIXME           propertyContext.validationMessage("has conflicting property types declared: "
-//                    + Joiner.on(", ").join(Iterables.transform(declaredPropertyTypes, new Function<Class<? extends Annotation>, String>() {
-//                    @Override
-//                    public String apply(Class<? extends Annotation> annotationType) {
-//                        return "@" + annotationType.getSimpleName();
-//                    }
-//                }))
-//            );
-//        }
+        if (declaredPropertyTypes.size() > 1) {
+            propertyContext.validationMessage("has conflicting property types declared: "
+                    + Joiner.on(", ").join(Iterables.transform(declaredPropertyTypes, new Function<Class<? extends Annotation>, String>() {
+                    @Override
+                    public String apply(Class<? extends Annotation> annotationType) {
+                        return "@" + annotationType.getSimpleName();
+                    }
+                }))
+            );
+        }
     }
 
 
@@ -285,6 +312,10 @@ public class TaskPropertiesWalker {
             }
         }
         return relevantAnnotations;
+    }
+
+    public static String propertyValidationMessage(String propertyName, String message) {
+        return String.format("property '%s' %s", propertyName, message);
     }
 
     private class PropertyContainer {
@@ -312,6 +343,7 @@ public class TaskPropertiesWalker {
         private final Method method;
         private Class<? extends Annotation> propertyType;
         private final List<Annotation> annotations = Lists.newArrayList();
+        private final List<String> validationMessages = Lists.newArrayList();
 
         public DefaultPropertyContext(Set<Class<? extends Annotation>> propertyTypeAnnotations, String fieldName, Method method) {
             this.propertyTypeAnnotations = propertyTypeAnnotations;
@@ -349,10 +381,17 @@ public class TaskPropertiesWalker {
             return null;
         }
 
-        public PropertyInfo createPropertyInfo(String propertyName, Object instance) {
-            return new DefaultPropertyInfo(propertyName, annotations, instance, method);
+        public PropertyInfo createPropertyInfo(String propertyName, Object instance, boolean cacheable) {
+            return new DefaultPropertyInfo(propertyName, annotations, instance, method, cacheable);
         }
 
+        public void validationMessage(String message) {
+            validationMessages.add(message);
+        }
+
+        public List<String> getValidationMessages() {
+            return validationMessages;
+        }
     }
 
     private static class DefaultPropertyInfo implements PropertyInfo {
@@ -360,6 +399,7 @@ public class TaskPropertiesWalker {
         private final List<Annotation> annotations;
         private final Object instance;
         private final Method method;
+        private final boolean cacheable;
         private final Supplier<Object> valueSupplier = Suppliers.memoize(new Supplier<Object>() {
             @Override
             public Object get() {
@@ -378,11 +418,12 @@ public class TaskPropertiesWalker {
             }
         });
 
-        public DefaultPropertyInfo(String propertyName, List<Annotation> annotations, Object instance, Method method) {
+        public DefaultPropertyInfo(String propertyName, List<Annotation> annotations, Object instance, Method method, boolean cacheable) {
             this.propertyName = propertyName;
             this.annotations = ImmutableList.copyOf(annotations);
             this.instance = instance;
             this.method = method;
+            this.cacheable = cacheable;
             method.setAccessible(true);
         }
 
@@ -416,6 +457,21 @@ public class TaskPropertiesWalker {
         @Override
         public Object getValue() {
             return valueSupplier.get();
+        }
+
+        @Override
+        public Class<?> getDeclaredType() {
+            return method.getReturnType();
+        }
+
+        @Override
+        public boolean isCacheable() {
+            return cacheable;
+        }
+
+        @Override
+        public String validationMessage(String message) {
+            return propertyValidationMessage(getPropertyName(), message);
         }
 
         @Nullable

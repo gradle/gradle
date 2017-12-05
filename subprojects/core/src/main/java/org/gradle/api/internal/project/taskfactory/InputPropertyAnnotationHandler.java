@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
 import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.internal.tasks.TaskValidationContext.Severity;
 import org.gradle.api.tasks.Input;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -29,17 +32,17 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
     }
 
     @Override
+    @SuppressWarnings("Since15")
     public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
         DefaultTaskInputPropertySpec declaration = specFactory.createInputPropertySpec(propertyInfo.getPropertyName(), propertyInfo);
         declaration.optional(propertyInfo.isOptional());
         visitor.visitInputProperty(declaration);
-//        FIXME wolfs
-//        Class<?> valueType = context.getValueType();
-//        if (File.class.isAssignableFrom(valueType)
-//            || java.nio.file.Path.class.isAssignableFrom(valueType)
-//            || FileCollection.class.isAssignableFrom(valueType)) {
-//            context.validationMessage("has @Input annotation used on property of type " + valueType.getName());
-//        }
+        Class<?> valueType = propertyInfo.getDeclaredType();
+        if (File.class.isAssignableFrom(valueType)
+            || java.nio.file.Path.class.isAssignableFrom(valueType)
+            || FileCollection.class.isAssignableFrom(valueType)) {
+            visitor.visitValidationMessage(Severity.INFO, propertyInfo.validationMessage("has @Input annotation used on property of type " + valueType.getName()));
+        }
     }
 
 }

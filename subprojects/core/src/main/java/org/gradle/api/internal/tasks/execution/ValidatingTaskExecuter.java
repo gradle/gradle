@@ -63,6 +63,11 @@ public class ValidatingTaskExecuter implements TaskExecuter {
                 public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
                     outputFileProperty.validate(validationContext);
                 }
+
+                @Override
+                public void visitValidationMessage(TaskValidationContext.Severity severity, String message) {
+                    validationContext.recordValidationMessage(severity, message);
+                }
             });
         } catch (Exception ex) {
             throw new TaskExecutionException(task, ex);

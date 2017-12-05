@@ -28,6 +28,8 @@ public interface InputsOutputVisitor {
 
     void visitLocalState(Object path);
 
+    void visitValidationMessage(TaskValidationContext.Severity severity, String message);
+
     class Adapter implements InputsOutputVisitor {
 
         @Override
@@ -48,6 +50,10 @@ public interface InputsOutputVisitor {
 
         @Override
         public void visitLocalState(Object path) {
+        }
+
+        @Override
+        public void visitValidationMessage(TaskValidationContext.Severity severity, String message) {
         }
     }
 

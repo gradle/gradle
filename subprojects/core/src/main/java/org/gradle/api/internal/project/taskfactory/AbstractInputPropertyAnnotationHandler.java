@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.api.internal.tasks.TaskValidationContext.Severity;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -34,10 +35,9 @@ abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotat
         PathSensitive pathSensitive = propertyInfo.getAnnotation(PathSensitive.class);
         final PathSensitivity pathSensitivity;
         if (pathSensitive == null) {
-//            FIXME wolfs
-//            if (context.isCacheable()) {
-//                context.validationMessage("is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE");
-//            }
+            if (propertyInfo.isCacheable()) {
+                visitor.visitValidationMessage(Severity.INFO, propertyInfo.validationMessage("is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE"));
+            }
             pathSensitivity = PathSensitivity.ABSOLUTE;
         } else {
             pathSensitivity = pathSensitive.value();

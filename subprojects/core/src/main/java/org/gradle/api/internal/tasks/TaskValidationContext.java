@@ -22,6 +22,8 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.util.DeprecationLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -40,6 +42,24 @@ public interface TaskValidationContext {
                     builder.append(message);
                 }
                 DeprecationLogger.nagUserWith(builder.toString());
+                return true;
+            }
+        },
+        INFO() {
+            private Logger logger = LoggerFactory.getLogger(TaskValidationContext.class);
+
+            @Override
+            public boolean report(Task task, List<String> messages, TaskStateInternal state) {
+                StringBuilder builder = new StringBuilder();
+                builder.append(getMainMessage(task, messages));
+                builder.append(" Defining invalid task inputs and outputs ");
+                builder.append(DeprecationLogger.getDeprecationMessage());
+                builder.append(".");
+                for (String message : messages) {
+                    builder.append("\n - ");
+                    builder.append(message);
+                }
+                logger.info(builder.toString());
                 return true;
             }
         },

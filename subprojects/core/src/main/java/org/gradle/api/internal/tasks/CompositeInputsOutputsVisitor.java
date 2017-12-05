@@ -58,4 +58,11 @@ public class CompositeInputsOutputsVisitor implements InputsOutputVisitor {
             visitor.visitLocalState(path);
         }
     }
+
+    @Override
+    public void visitValidationMessage(TaskValidationContext.Severity severity, String message) {
+        for (InputsOutputVisitor visitor : visitors) {
+            visitor.visitValidationMessage(severity, message);
+        }
+    }
 }
