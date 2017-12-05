@@ -61,8 +61,8 @@ class CCompileTest extends AbstractProjectBuilderSpec {
         platform.getName() >> "testPlatform"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
-        9 * toolChain.select(platform) >> platformToolChain
-        9 * platformToolChain.newCompiler({CCompileSpec.class.isAssignableFrom(it)}) >> cCompiler
+        12 * toolChain.select(platform) >> platformToolChain
+        12 * platformToolChain.newCompiler({CCompileSpec.class.isAssignableFrom(it)}) >> cCompiler
         pch.objectFile >> temporaryFolder.file("pchObjectFile").createFile()
         pch.name >> "testPch"
         pch.projectPath >> ":"
