@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.GradleBuild
 
 fun isProjectDir(candidate: File) =
-    File(candidate, "settings.gradle.kts").isFile
+    File(candidate, "settings.gradle").isFile
 
 fun isCompatibleWithJDK(candidate: File) =
     candidate.name.endsWith("kotlin-1.0") && JavaVersion.current() < JavaVersion.VERSION_1_9
