@@ -182,6 +182,9 @@ public class TaskPropertiesWalker {
                     if (method.isSynthetic()) {
                         continue;
                     }
+                    if (method.getName().equals("getContentHash") || method.getName().equals("getOriginalClassName")) {
+                        continue;
+                    }
                     String fieldName = getter.getName();
                     Field field = fields.get(fieldName);
                     if (field != null && field.isSynthetic()) {

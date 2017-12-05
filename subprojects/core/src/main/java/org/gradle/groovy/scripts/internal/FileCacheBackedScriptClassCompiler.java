@@ -237,7 +237,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         private static void addOriginalClassName(ClassVisitor cv, String owner, String originalClassName) {
             cv.visitField(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC | ACC_FINAL, "__originalClassName", Type.getDescriptor(String.class), "", originalClassName);
-            MethodVisitor mv = cv.visitMethod(ACC_PUBLIC | ACC_SYNTHETIC, "getOriginalClassName", Type.getMethodDescriptor(Type.getType(String.class)), null, null);
+            MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "getOriginalClassName", Type.getMethodDescriptor(Type.getType(String.class)), null, null);
             mv.visitCode();
             mv.visitFieldInsn(GETSTATIC, owner, "__originalClassName", Type.getDescriptor(String.class));
             mv.visitInsn(ARETURN);
@@ -247,7 +247,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         private static void addContentHash(ClassVisitor cv, String owner, String contentHash) {
             cv.visitField(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC | ACC_FINAL, "__signature", Type.getDescriptor(String.class), "", contentHash);
-            MethodVisitor mv = cv.visitMethod(ACC_PUBLIC | ACC_SYNTHETIC, "getContentHash", Type.getMethodDescriptor(Type.getType(String.class)), null, null);
+            MethodVisitor mv = cv.visitMethod(ACC_PUBLIC, "getContentHash", Type.getMethodDescriptor(Type.getType(String.class)), null, null);
             mv.visitCode();
             mv.visitFieldInsn(GETSTATIC, owner, "__signature", Type.getDescriptor(String.class));
             mv.visitInsn(ARETURN);
