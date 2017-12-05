@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.accessors
 import groovy.json.JsonOutput.toJson
 
 import org.gradle.api.Project
+import org.gradle.api.plugins.ExtensionsSchema
 
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.reflect.TypeOf.typeOf
@@ -54,20 +55,22 @@ fun multiProjectSchemaFor(root: Project): Map<String, ProjectSchema<TypeOf<*>>> 
 internal
 fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
     accessibleProjectSchemaFrom(
-        project.extensions.schema,
+        project.extensions.extensionsSchema,
         project.convention.plugins,
         project.configurations.names.toList())
 
 
 internal
 fun accessibleProjectSchemaFrom(
-    extensionSchema: Map<String, TypeOf<*>>,
+    extensionSchema: ExtensionsSchema,
     conventionPlugins: Map<String, Any>,
     configurationNames: List<String>): ProjectSchema<TypeOf<*>> =
 
     ProjectSchema(
         extensions = extensionSchema
-            .filterKeys(::isPublic),
+            .filter { isPublic(it.name) }
+            .associateBy { it.name }
+            .mapValues { it.value.publicType },
         conventions = conventionPlugins
             .filterKeys(::isPublic)
             .mapValues { typeOf(it.value::class.java) },
