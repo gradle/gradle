@@ -17,7 +17,6 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.PersistentCache
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -28,7 +27,12 @@ class FixedSizeOldestCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def persistentCache = Mock(PersistentCache)
-    def cleanupAction = new FixedSizeOldestCacheCleanup(new TestBuildOperationExecutor(),10)
+    def cleanupAction = new FixedSizeOldestCacheCleanup(10L)
+
+    def setup() {
+        persistentCache.getBaseDir() >> cacheDir
+        persistentCache.reservedCacheFiles >> Collections.emptyList()
+    }
 
     def "finds eligible files"() {
         def cacheEntries = [
@@ -36,9 +40,8 @@ class FixedSizeOldestCacheCleanupTest extends Specification {
             createCacheEntry(1024*1024), // 1MB
             createCacheEntry(1024*1024*10), // 10MB
         ]
-        cacheDir.file("cache.lock").touch()
         expect:
-        def eligibleFiles = Arrays.asList(cleanupAction.findEligibleFiles(cacheDir))
+        def eligibleFiles = Arrays.asList(cleanupAction.findEligibleFiles(persistentCache))
         eligibleFiles.size() == cacheEntries.size()
         eligibleFiles.containsAll(cacheEntries)
     }

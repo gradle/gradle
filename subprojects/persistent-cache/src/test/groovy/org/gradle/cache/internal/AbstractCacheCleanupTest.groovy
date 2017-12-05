@@ -17,7 +17,6 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.PersistentCache
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -26,7 +25,7 @@ class AbstractCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def persistentCache = Mock(PersistentCache)
-    def cleanupAction = new AbstractCacheCleanup(new TestBuildOperationExecutor()) {
+    def cleanupAction = new AbstractCacheCleanup() {
         @Override
         protected List<File> findFilesToDelete(PersistentCache persistentCache, File[] filesEligibleForCleanup) {
             // pass through everything
@@ -34,15 +33,20 @@ class AbstractCacheCleanupTest extends Specification {
         }
     }
 
+    def setup() {
+        persistentCache.getBaseDir() >> cacheDir
+        persistentCache.reservedCacheFiles >> Arrays.asList(cacheDir.file("cache.properties"), cacheDir.file("gc.properties"), cacheDir.file("cache.lock"))
+    }
+
     def "filters for cache entry files"() {
         expect:
-        !cleanupAction.canBeDeleted("cache.properties")
-        !cleanupAction.canBeDeleted("gc.properties")
-        !cleanupAction.canBeDeleted("cache.lock")
+        cleanupAction.isReserved(persistentCache, cacheDir.file("cache.properties").touch())
+        cleanupAction.isReserved(persistentCache, cacheDir.file("gc.properties").touch())
+        cleanupAction.isReserved(persistentCache, cacheDir.file("cache.lock").touch())
 
-        cleanupAction.canBeDeleted("0"*32)
-        cleanupAction.canBeDeleted("ABCDEFABCDEFABCDEFABCDEFABCDEF00")
-        cleanupAction.canBeDeleted("abcdefabcdefabcdefabcdefabcdef00")
+        !cleanupAction.isReserved(persistentCache, cacheDir.file("0"*32).touch())
+        !cleanupAction.isReserved(persistentCache, cacheDir.file("ABCDEFABCDEFABCDEFABCDEFABCDEF00").touch())
+        !cleanupAction.isReserved(persistentCache, cacheDir.file("abcdefabcdefabcdefabcdefabcdef00").touch())
     }
 
     def "deletes files"() {

@@ -17,102 +17,46 @@
 package org.gradle.cache.internal;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.Action;
+import org.gradle.cache.CleanupAction;
 import org.gradle.cache.PersistentCache;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FilenameFilter;
+import java.io.FileFilter;
 import java.util.List;
 
-abstract class AbstractCacheCleanup implements Action<PersistentCache> {
+abstract class AbstractCacheCleanup implements CleanupAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCacheCleanup.class);
 
-    private final BuildOperationExecutor buildOperationExecutor;
-
-    public AbstractCacheCleanup(BuildOperationExecutor buildOperationExecutor) {
-        this.buildOperationExecutor = buildOperationExecutor;
-    }
-
     @Override
-    public void execute(final PersistentCache persistentCache) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
-            @Override
-            public void run(BuildOperationContext context) {
-                cleanup(persistentCache);
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Clean up " + persistentCache);
-            }
-        });
-
-    }
-
-    private void cleanup(final PersistentCache persistentCache) {
-        final File[] filesEligibleForCleanup = buildOperationExecutor.call(new CallableBuildOperation<File[]>() {
-            @Override
-            public File[] call(BuildOperationContext context) {
-                return findEligibleFiles(persistentCache.getBaseDir());
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Scan " + persistentCache.getBaseDir());
-            }
-        });
+    public void clean(final PersistentCache persistentCache) {
+        final File[] filesEligibleForCleanup = findEligibleFiles(persistentCache);
 
         if (filesEligibleForCleanup.length > 0) {
-            final List<File> filesForDeletion = buildOperationExecutor.call(new CallableBuildOperation<List<File>>() {
-                @Override
-                public List<File> call(BuildOperationContext context) {
-                    return findFilesToDelete(persistentCache, filesEligibleForCleanup);
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Choose files to delete from " + persistentCache);
-                }
-            });
+            final List<File> filesForDeletion = findFilesToDelete(persistentCache, filesEligibleForCleanup);
 
             if (!filesForDeletion.isEmpty()) {
-                buildOperationExecutor.run(new RunnableBuildOperation() {
-                    @Override
-                    public void run(BuildOperationContext context) {
-                        cleanupFiles(persistentCache, filesForDeletion);
-                    }
-
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName("Delete files for " + persistentCache);
-                    }
-                });
+                cleanupFiles(persistentCache, filesForDeletion);
             }
         }
     }
 
     protected abstract List<File> findFilesToDelete(final PersistentCache persistentCache, File[] filesEligibleForCleanup);
 
-    File[] findEligibleFiles(File cacheDir) {
+    File[] findEligibleFiles(final PersistentCache persistentCache) {
         // TODO: This doesn't descend subdirectories.
-        return cacheDir.listFiles(new FilenameFilter() {
+        return persistentCache.getBaseDir().listFiles(new FileFilter() {
             @Override
-            public boolean accept(File dir, String name) {
-                return canBeDeleted(name);
+            public boolean accept(File file) {
+                return !isReserved(persistentCache, file);
             }
         });
     }
 
-    protected boolean canBeDeleted(String name) {
-        return !(name.endsWith(".properties") || name.endsWith(".lock"));
+    protected boolean isReserved(final PersistentCache persistentCache, File file) {
+        return persistentCache.getReservedCacheFiles().contains(file);
     }
 
     void cleanupFiles(final PersistentCache persistentCache, final List<File> filesForDeletion) {

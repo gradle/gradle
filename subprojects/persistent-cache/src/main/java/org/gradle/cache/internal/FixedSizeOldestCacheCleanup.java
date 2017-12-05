@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.PersistentCache;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +29,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-public final class FixedSizeOldestCacheCleanup extends AbstractCacheCleanup {
+public class FixedSizeOldestCacheCleanup extends AbstractCacheCleanup {
     private static final Logger LOGGER = LoggerFactory.getLogger(FixedSizeOldestCacheCleanup.class);
     private static final Comparator<File> NEWEST_FIRST = Ordering.natural().onResultOf(new Function<File, Comparable<Long>>() {
         @Override
@@ -41,8 +40,7 @@ public final class FixedSizeOldestCacheCleanup extends AbstractCacheCleanup {
 
     private final long targetSizeInMB;
 
-    public FixedSizeOldestCacheCleanup(BuildOperationExecutor buildOperationExecutor, long targetSizeInMB) {
-        super(buildOperationExecutor);
+    public FixedSizeOldestCacheCleanup(long targetSizeInMB) {
         this.targetSizeInMB = targetSizeInMB;
     }
 

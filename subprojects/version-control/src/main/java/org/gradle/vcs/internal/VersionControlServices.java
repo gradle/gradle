@@ -18,8 +18,8 @@ package org.gradle.vcs.internal;
 
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -62,8 +62,8 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildSessionServices {
-        VersionControlSystemFactory createVersionControlSystemFactory(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, BuildOperationExecutor buildOperationExecutor, CacheRepository cacheRepository) {
-            return new DefaultVersionControlSystemFactory(vcsWorkingDirectoryRoot, buildOperationExecutor, cacheRepository);
+        VersionControlSystemFactory createVersionControlSystemFactory(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, CleanupActionFactory cleanupActionFactory, CacheRepository cacheRepository) {
+            return new DefaultVersionControlSystemFactory(vcsWorkingDirectoryRoot, cacheRepository, cleanupActionFactory);
         }
         VcsWorkingDirectoryRoot createVcsWorkingDirectoryRoot(ProjectCacheDir projectCacheDir) {
             return new VcsWorkingDirectoryRoot(new File(projectCacheDir.getDir(), "vcsWorkingDirs"));

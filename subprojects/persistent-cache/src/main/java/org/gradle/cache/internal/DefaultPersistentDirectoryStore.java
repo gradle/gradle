@@ -28,6 +28,8 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
 
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
     private final File dir;
@@ -120,6 +122,20 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     @Override
     public File getBaseDir() {
         return dir;
+    }
+
+    @Override
+    public Collection<File> getReservedCacheFiles() {
+        return Arrays.asList(propertiesFile, gcFile, determineLockTargetFile(getLockTarget()));
+    }
+
+    // TODO: Duplicated in DefaultFileLockManager
+    static File determineLockTargetFile(File target) {
+        if (target.isDirectory()) {
+            return new File(target, target.getName() + ".lock");
+        } else {
+            return new File(target.getParentFile(), target.getName() + ".lock");
+        }
     }
 
     @Override

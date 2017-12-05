@@ -17,7 +17,6 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.PersistentCache
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -30,7 +29,7 @@ class FixedAgeOldestCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def persistentCache = Mock(PersistentCache)
-    def cleanupAction = new FixedAgeOldestCacheCleanup(new TestBuildOperationExecutor(), 1, TimeUnit.DAYS)
+    def cleanupAction = new FixedAgeOldestCacheCleanup(1)
 
     def "finds files to delete when files are old"() {
         long now = System.currentTimeMillis()

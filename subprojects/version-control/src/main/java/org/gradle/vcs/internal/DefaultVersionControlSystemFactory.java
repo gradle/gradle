@@ -21,10 +21,10 @@ import org.gradle.cache.CacheAccess;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
@@ -35,19 +35,18 @@ import org.gradle.vcs.internal.spec.DirectoryRepositorySpec;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultVersionControlSystemFactory implements VersionControlSystemFactory, Stoppable {
     private final PersistentCache vcsWorkingDirCache;
 
-    DefaultVersionControlSystemFactory(VcsWorkingDirectoryRoot workingDirectoryRoot, BuildOperationExecutor buildOperationExecutor, CacheRepository cacheRepository) {
+    DefaultVersionControlSystemFactory(VcsWorkingDirectoryRoot workingDirectoryRoot, CacheRepository cacheRepository, CleanupActionFactory cleanupActionFactory) {
         this.vcsWorkingDirCache = cacheRepository
             .cache(workingDirectoryRoot.getDir())
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .withDisplayName("VCS Checkout Cache")
-            .withCleanup(new FixedAgeOldestCacheCleanup(buildOperationExecutor, 7, TimeUnit.DAYS))
+            .withCleanup(cleanupActionFactory.create(FixedAgeOldestCacheCleanup.class, 7L))
             .open();
     }
 
