@@ -20,10 +20,10 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
+import org.gradle.api.internal.tasks.DefaultTaskPropertiesWalker
 import org.gradle.api.internal.tasks.InputsOutputVisitor
 import org.gradle.api.internal.tasks.PropertyInfo
 import org.gradle.api.internal.tasks.PropertySpecFactory
-import org.gradle.api.internal.tasks.TaskPropertiesWalker
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -82,7 +82,7 @@ class DefaultTaskClassValidatorExtractorTest extends AbstractProjectBuilderSpec 
             annotatedProperties << propertyInfo.propertyName
         }
         def annotationHandler = new SearchPathAnnotationHandler(configureAction)
-        def walker = new TaskPropertiesWalker([annotationHandler])
+        def walker = new DefaultTaskPropertiesWalker([annotationHandler])
         def visitor = Mock(InputsOutputVisitor)
 
         when:
@@ -92,10 +92,10 @@ class DefaultTaskClassValidatorExtractorTest extends AbstractProjectBuilderSpec 
         annotatedProperties == ["searchPath"]
     }
 
-    private void visitTask(TaskPropertiesWalker walker = new TaskPropertiesWalker([]), Class taskClass, InputsOutputVisitor visitor) {
+    private void visitTask(DefaultTaskPropertiesWalker walker = new DefaultTaskPropertiesWalker([]), Class taskClass, InputsOutputVisitor visitor) {
         def task = project.tasks.create(taskClass.simpleName, taskClass)
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
-        walker.visitInputs(specFactory, visitor, task)
+        walker.visitInputsAndOutputs(specFactory, visitor, task)
     }
 
     static class TaskWithInputFile extends DefaultTask {

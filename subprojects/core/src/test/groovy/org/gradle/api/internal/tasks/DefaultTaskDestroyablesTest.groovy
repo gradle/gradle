@@ -49,7 +49,7 @@ class DefaultTaskDestroyablesTest extends Specification {
     }
 
     def specFactory = new DefaultPropertySpecFactory(task, resolver)
-    TaskDestroyables taskDestroys = new DefaultTaskDestroyables(resolver, task, taskMutator, new TaskPropertiesWalker([]), specFactory)
+    TaskDestroyables taskDestroys = new DefaultTaskDestroyables(resolver, task, taskMutator, new DefaultTaskPropertiesWalker([]), specFactory)
 
     def "empty destroys by default"() {
         expect:

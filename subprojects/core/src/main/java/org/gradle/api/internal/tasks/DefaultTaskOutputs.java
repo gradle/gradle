@@ -73,7 +73,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public void accept(InputsOutputVisitor visitor) {
-        propertiesWalker.visitInputs(specFactory, visitor, task);
+        propertiesWalker.visitInputsAndOutputs(specFactory, visitor, task);
         acceptRuntimeOnly(visitor);
     }
 

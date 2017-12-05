@@ -79,7 +79,7 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
     }
 
     public void accept(InputsOutputVisitor visitor) {
-        propertiesWalker.visitInputs(specFactory, visitor, task);
+        propertiesWalker.visitInputsAndOutputs(specFactory, visitor, task);
         acceptRuntimeOnly(visitor);
     }
 

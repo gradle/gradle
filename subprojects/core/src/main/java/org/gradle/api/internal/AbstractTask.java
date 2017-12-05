@@ -197,7 +197,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public void acceptInputsOutputsVisitor(InputsOutputVisitor visitor) {
-        propertiesWalker.visitInputs(specFactory, visitor, this);
+        propertiesWalker.visitInputsAndOutputs(specFactory, visitor, this);
         getInputs().acceptRuntimeOnly(visitor);
         getOutputs().acceptRuntimeOnly(visitor);
         ((TaskDestroyablesInternal) getDestroyables()).acceptRuntimeOnly(visitor);

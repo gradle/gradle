@@ -56,7 +56,7 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
     }
 
     public void accept(InputsOutputVisitor visitor) {
-        propertiesWalker.visitInputs(specFactory, visitor, task);
+        propertiesWalker.visitInputsAndOutputs(specFactory, visitor, task);
         acceptRuntimeOnly(visitor);
     }
 

@@ -31,7 +31,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
+class DefaultTaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
 
     def visitor = Mock(InputsOutputVisitor)
 
@@ -72,7 +72,7 @@ class TaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
 
     private visitInputs(MyTask task) {
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
-        new TaskPropertiesWalker([]).visitInputs(specFactory, visitor, task)
+        new DefaultTaskPropertiesWalker([]).visitInputsAndOutputs(specFactory, visitor, task)
     }
 
     static class MyTask extends DefaultTask {
