@@ -51,8 +51,8 @@ import org.gradle.language.jvm.tasks.ProcessResources;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
@@ -432,12 +432,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             this.convention = convention;
         }
 
-        public Collection<String> getRebuildTasks() {
-            return Arrays.asList(BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME);
-        }
-
         public Collection<String> getBuildTasks() {
-            return Arrays.asList(JavaBasePlugin.BUILD_TASK_NAME);
+            return Collections.singleton(JavaBasePlugin.BUILD_TASK_NAME);
         }
 
         public FileCollection getRuntimeClasspath() {
