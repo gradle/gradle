@@ -189,7 +189,9 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     }
 
     @Override
-    public void addDependencyConstraintMetadataRule(String variantName, Action<DependencyConstraintsMetadata> action, Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
+    public void addDependencyConstraintMetadataRule(String variantName, Action<DependencyConstraintsMetadata> action, Instantiator instantiator,
+                                                    NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
+                                                    NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
         maybeCreateRulesContainer(variantName, instantiator, dependencyNotationParser, dependencyConstraintNotationParser);
         dependencyMetadataRules.get(variantName).addDependencyConstraintAction(action);
     }
