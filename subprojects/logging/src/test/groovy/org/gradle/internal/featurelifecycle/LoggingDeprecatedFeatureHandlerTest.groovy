@@ -30,7 +30,7 @@ import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandl
 
 @Subject(LoggingDeprecatedFeatureHandler)
 class LoggingDeprecatedFeatureHandlerTest extends Specification {
-    private static final String REPORT_LOCATION = "build/reports/deprecations/report.html"
+    private static final String REPORT_LOCATION = "build/reports/deprecations.log"
     final outputEventListener = new CollectingTestOutputEventListener()
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
@@ -104,21 +104,9 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         assertWarning(2)
 
         and:
-        def html = temporaryFolder.file(REPORT_LOCATION).readLines()*.trim().join('\n')
+        def file = temporaryFolder.file(REPORT_LOCATION).readLines()*.trim().join('\n')
 
-        html.contains('''
-<h4 class="panel-title">
-gradle
-<br>
-''')
-        html.contains('''
-<h4 class="panel-title">
-kotlin
-<br>
-''')
-        html.contains('''
-<pre>
-gradle
+        file.contains('''gradle
 at org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation.create(SimulatedJavaCallLocation.java:25)
 at java.lang.reflect.Method.invoke(Method.java:498)
 at some.Class.withoutSource(Unknown Source)
@@ -127,10 +115,7 @@ at some.GradleScript.foo(GradleScript.gradle:1337)
 at java.lang.reflect.Method.invoke(Method.java:498)
 at some.KotlinGradleScript.foo(GradleScript.gradle.kts:31337)
 at java.lang.reflect.Method.invoke(Method.java:498)
-</pre>
-''')
-        html.contains('''
-<pre>
+----------
 kotlin
 at org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation.create(SimulatedJavaCallLocation.java:25)
 at java.lang.reflect.Method.invoke(Method.java:498)
@@ -139,9 +124,7 @@ at some.Class.withNativeMethod(Native Method)
 at some.KotlinGradleScript.foo(GradleScript.gradle.kts:31337)
 at java.lang.reflect.Method.invoke(Method.java:498)
 at some.GradleScript.foo(GradleScript.gradle:1337)
-at java.lang.reflect.Method.invoke(Method.java:498)
-</pre>
-''')
+at java.lang.reflect.Method.invoke(Method.java:498)''')
     }
 
     static gradleScriptStacktrace() {

@@ -25,17 +25,17 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler {
     public static final String RENDER_REPORT_SYSTEM_PROPERTY = "org.gradle.internal.deprecation.report";
+    public static final String BLOCK_SEPARATOR = "\n----------\n";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
-    private final Map<String, DeprecatedFeatureUsage> deprecationUsages = new HashMap<String, DeprecatedFeatureUsage>();
+    private final Map<String, DeprecatedFeatureUsage> deprecationUsages = new LinkedHashMap<String, DeprecatedFeatureUsage>();
     private UsageLocationReporter locationReporter;
 
     public LoggingDeprecatedFeatureHandler() {
@@ -69,12 +69,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             return;
         }
 
-        StringBuilder report = new StringBuilder(load("/templates/deprecation-report.template"));
-        String div = load("/templates/deprecation-report-div.template");
-
-        replace(report, "${warnings}", renderWarnings(div));
-
-        writeToFile(report.toString(), reportLocation);
+        writeToFile(renderWarnings(), reportLocation);
         LOGGER.warn("\nThere are {} deprecation warnings. See the detailed report at: {}", deprecationUsages.size(), new ConsoleRenderer().asClickableFileUrl(reportLocation));
     }
 
@@ -91,19 +86,17 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         return "true".equals(System.getProperty(RENDER_REPORT_SYSTEM_PROPERTY, "true"));
     }
 
-    private String renderWarnings(String divTemplate) {
-        StringBuilder sb = new StringBuilder();
-        int index = 1;
-        for (Map.Entry<String, DeprecatedFeatureUsage> entry : deprecationUsages.entrySet()) {
-            StringBuilder div = new StringBuilder(divTemplate);
-            replace(div, "${message}", entry.getKey());
-            replace(div, "${index}", index);
-            replace(div, "${index}", index);
-            replace(div, "${stacktrace}", getStacktrace(entry.getValue()));
-            index++;
-            sb.append(div.toString());
+    private String renderWarnings() {
+        StringBuilder result = new StringBuilder();
+        int i = 0;
+        for (DeprecatedFeatureUsage usage : deprecationUsages.values()) {
+            result.append(getStacktrace(usage));
+            i++;
+            if (i != deprecationUsages.size()) {
+                result.append(BLOCK_SEPARATOR);
+            }
         }
-        return sb.toString();
+        return result.toString();
     }
 
     private String getStacktrace(DeprecatedFeatureUsage usage) {
@@ -121,20 +114,6 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         }
     }
 
-    private void replace(StringBuilder sb, String target, Object replacement) {
-        int startIndex = sb.indexOf(target);
-        int endIndex = startIndex + target.length();
-        sb.replace(startIndex, endIndex, replacement.toString());
-    }
-
-    private String load(String resourceName) {
-        try {
-            return new Scanner(getClass().getResourceAsStream(resourceName)).useDelimiter("\\A").next();
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
     private static void appendLogTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
         final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
@@ -142,7 +121,6 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         for (StackTraceElement frame : stack) {
             appendStackTraceElement(frame, message, lineSeparator);
         }
-        return;
     }
 
     private static void appendStackTraceElement(StackTraceElement frame, StringBuilder message, String lineSeparator) {

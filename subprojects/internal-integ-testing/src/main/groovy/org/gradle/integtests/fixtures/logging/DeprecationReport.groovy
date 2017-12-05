@@ -16,9 +16,7 @@
 
 package org.gradle.integtests.fixtures.logging
 
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import org.jsoup.select.Elements
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 
 class DeprecationReport {
     static class Deprecation {
@@ -35,13 +33,11 @@ class DeprecationReport {
     }
 
     def extractDeprecations(File file) {
-        Document document = Jsoup.parse(file, "UTF-8")
-        Elements messageElements = document.select(".panel-title")
-        Elements stacktraceElements = document.select(".panel-body")
-        assert messageElements.size() == stacktraceElements.size()
+        List<String> deprecationBlocks = file.text.split(LoggingDeprecatedFeatureHandler.BLOCK_SEPARATOR)
 
-        (0..<messageElements.size()).each {
-            deprecations.add(new Deprecation(message: messageElements[it].text(), stacktrace: stacktraceElements[it].text()))
+        deprecationBlocks.each {
+            def firstLine = it.split("\n")[0]
+            deprecations.add(new Deprecation(message: firstLine, stacktrace: it))
         }
     }
 
