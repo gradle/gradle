@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskExecutionHistory
+import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
@@ -33,6 +34,7 @@ import spock.lang.Subject
 class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
     final delegate = Mock(TaskExecuter)
     final outputs = Mock(TaskOutputsInternal)
+    final inputs = Mock(TaskInputsInternal)
     final task = Mock(TaskInternal)
     final taskState = Mock(TaskStateInternal)
     final taskContext = Mock(TaskExecutionContext)
@@ -51,8 +53,13 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
         1 * repository.getStateFor(task) >> taskArtifactState
         1 * taskContext.setTaskArtifactState(taskArtifactState)
         1 * taskArtifactState.getExecutionHistory() >> taskExecutionhistory
-        1 * task.getOutputs() >> outputs
+        2 * task.getOutputs() >> outputs
+        1 * task.getInputs() >> inputs
+        1 * task.setInputsAndOutputs(_)
         1 * outputs.setHistory(taskExecutionhistory)
+        1 * outputs.getFilePropertiesVisitor() >> Mock(TaskOutputsInternal.GetFilePropertiesVisitor)
+        1 * inputs.getFilePropertiesVisitor() >> Mock(TaskInputsInternal.GetFilePropertiesVisitor)
+        1 * task.acceptInputsOutputsVisitor(_)
 
         then: 'delegate is executed'
         1 * delegate.execute(task, taskState, taskContext)
@@ -60,6 +67,7 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
         then: 'task artifact state is removed from taskContext'
         1 * outputs.setHistory(null)
         1 * taskContext.setTaskArtifactState(null)
+        1 * task.setInputsAndOutputs(null)
 
         and: 'nothing else'
         0 * _

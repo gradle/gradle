@@ -98,9 +98,14 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
-        FilePropertiesVisitor visitor = new FilePropertiesVisitor();
+        GetFilePropertiesVisitor visitor = new GetFilePropertiesVisitor();
         accept(visitor);
         return visitor.getFileProperties();
+    }
+
+    @Override
+    public GetFilePropertiesVisitor getFilePropertiesVisitor() {
+        return new GetFilePropertiesVisitor();
     }
 
     @Override
@@ -282,9 +287,12 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private static class FilePropertiesVisitor extends InputsOutputVisitor.Adapter {
-        ImmutableSortedSet.Builder<TaskInputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
-        Set<String> names = Sets.newHashSet();
+    private class GetFilePropertiesVisitor extends InputsOutputVisitor.Adapter implements TaskInputsInternal.GetFilePropertiesVisitor {
+        private ImmutableSortedSet.Builder<TaskInputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
+        private Set<String> names = Sets.newHashSet();
+        private boolean hasSourceFiles;
+
+        private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
 
         @Override
         public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
@@ -293,10 +301,58 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", "input", propertyName));
             }
             builder.add(inputFileProperty);
+            if (inputFileProperty.isSkipWhenEmpty()) {
+                hasSourceFiles = true;
+            }
         }
 
+        @Override
         public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
-            return builder.build();
+            if (fileProperties == null) {
+                fileProperties = builder.build();
+            }
+            return fileProperties;
+        }
+
+        @Override
+        public FileCollection getFiles() {
+            return new CompositeFileCollection() {
+                @Override
+                public String getDisplayName() {
+                    return "task '" + task.getName() + "' input files";
+                }
+
+                @Override
+                public void visitContents(FileCollectionResolveContext context) {
+                    for (TaskInputFilePropertySpec filePropertySpec : getFileProperties()) {
+                        context.add(filePropertySpec.getPropertyFiles());
+                    }
+                }
+            };
+        }
+
+        @Override
+        public FileCollection getSourceFiles() {
+            return new CompositeFileCollection() {
+                @Override
+                public String getDisplayName() {
+                    return "task '" + task.getName() + "' source files";
+                }
+
+                @Override
+                public void visitContents(FileCollectionResolveContext context) {
+                    for (TaskInputFilePropertySpec filePropertySpec : getFileProperties()) {
+                        if (filePropertySpec.isSkipWhenEmpty()) {
+                            context.add(filePropertySpec.getPropertyFiles());
+                        }
+                    }
+                }
+            };
+        }
+
+        @Override
+        public boolean hasSourceFiles() {
+            return hasSourceFiles;
         }
     }
 

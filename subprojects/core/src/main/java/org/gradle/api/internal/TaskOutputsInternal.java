@@ -59,5 +59,6 @@ public interface TaskOutputsInternal extends TaskOutputs {
     interface GetFilePropertiesVisitor extends InputsOutputVisitor {
         ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties();
         FileCollection getFiles();
+        boolean hasDeclaredOutputs();
     }
 }

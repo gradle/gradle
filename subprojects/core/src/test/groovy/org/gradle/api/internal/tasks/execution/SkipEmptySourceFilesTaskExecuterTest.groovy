@@ -36,6 +36,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final target = Mock(TaskExecuter)
     final task = Mock(TaskInternal)
     final state = Mock(TaskStateInternal)
+    final inputsAndOutputs = Mock(TaskInputsAndOutputs)
     final taskInputs = Mock(TaskInputsInternal)
     final sourceFiles = Mock(FileCollectionInternal)
     final taskFiles = Mock(FileCollectionInternal)
@@ -52,9 +53,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * inputsAndOutputs.sourceFiles >> sourceFiles
+        1 * inputsAndOutputs.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -83,9 +84,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * inputsAndOutputs.sourceFiles >> sourceFiles
+        1 * inputsAndOutputs.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -121,9 +122,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * inputsAndOutputs.sourceFiles >> sourceFiles
+        1 * inputsAndOutputs.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -158,9 +159,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * inputsAndOutputs.sourceFiles >> sourceFiles
+        1 * inputsAndOutputs.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -201,9 +202,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * inputsAndOutputs.sourceFiles >> sourceFiles
+        1 * inputsAndOutputs.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -230,13 +231,13 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.sourceFiles >> sourceFiles
-        1 * taskInputs.hasSourceFiles >> true
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * inputsAndOutputs.sourceFiles >> sourceFiles
+        1 * inputsAndOutputs.hasSourceFiles() >> true
         1 * sourceFiles.empty >> false
 
         then:
-        1 * taskInputs.files >> taskFiles
+        1 * inputsAndOutputs.getInputFiles() >> taskFiles
         1 * target.execute(task, state, taskContext)
         1 * taskInputsListener.onExecute(task, taskFiles)
 
@@ -249,12 +250,12 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        _ * task.inputs >> taskInputs
-        1 * taskInputs.hasSourceFiles >> false
-        1 * taskInputs.getSourceFiles() >> sourceFiles
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * inputsAndOutputs.sourceFiles >> sourceFiles
+        1 * inputsAndOutputs.hasSourceFiles() >> false
 
         then:
-        1 * taskInputs.files >> taskFiles
+        1 * inputsAndOutputs.getInputFiles() >> taskFiles
         1 * target.execute(task, state, taskContext)
         1 * taskInputsListener.onExecute(task, taskFiles)
 

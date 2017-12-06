@@ -41,7 +41,7 @@ public class OutputDirectoryCreatingTaskExecuter implements TaskExecuter {
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        for (TaskOutputFilePropertySpec outputProperty : task.getOutputs().getFileProperties()) {
+        for (TaskOutputFilePropertySpec outputProperty : task.getInputsAndOutputs().getOutputFileProperties()) {
             OutputType type = outputProperty.getOutputType();
             for (File output : outputProperty.getPropertyFiles()) {
                 ensureOutput(outputProperty, output, type);

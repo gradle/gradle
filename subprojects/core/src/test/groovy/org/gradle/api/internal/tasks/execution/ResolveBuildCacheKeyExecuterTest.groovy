@@ -40,6 +40,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
     def taskOutputs = Mock(TaskOutputsInternal)
+    def inputsAndOutputs = Mock(TaskInputsAndOutputs)
     def delegate = Mock(TaskExecuter)
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def executer = new ResolveBuildCacheKeyExecuter(delegate, buildOperationExecutor)
@@ -55,13 +56,13 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         }
 
         then:
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
 
         then:
-        1 * task.getOutputs() >> taskOutputs
-        1 * taskOutputs.getHasOutput() >> true
+        1 * inputsAndOutputs.hasDeclaredOutputs() >> true
         1 * cacheKey.isValid() >> true
         1 * cacheKey.getHashCode() >> "0123456789abcdef"
 
@@ -103,8 +104,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskArtifactState.calculateCacheKey() >> noCacheKey
 
         then:
-        1 * task.getOutputs() >> taskOutputs
-        1 * taskOutputs.getHasOutput() >> false
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * inputsAndOutputs.hasDeclaredOutputs() >> false
 
         then:
         1 * taskContext.setBuildCacheKey(noCacheKey)

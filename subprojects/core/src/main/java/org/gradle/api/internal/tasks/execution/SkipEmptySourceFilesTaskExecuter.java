@@ -52,8 +52,9 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        FileCollection sourceFiles = task.getInputs().getSourceFiles();
-        if (task.getInputs().getHasSourceFiles() && sourceFiles.isEmpty()) {
+        TaskInputsAndOutputs taskInputsOutputs = task.getInputsAndOutputs();
+        FileCollection sourceFiles = taskInputsOutputs.getSourceFiles();
+        if (taskInputsOutputs.hasSourceFiles() && sourceFiles.isEmpty()) {
             TaskArtifactState taskArtifactState = context.getTaskArtifactState();
             TaskExecutionHistory executionHistory = taskArtifactState.getExecutionHistory();
             Set<File> outputFiles = executionHistory.getOutputFiles();
@@ -92,7 +93,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
             return;
         } else {
-            taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, task.getInputs().getFiles()));
+            taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, taskInputsOutputs.getInputFiles()));
         }
         executer.execute(task, state, context);
     }

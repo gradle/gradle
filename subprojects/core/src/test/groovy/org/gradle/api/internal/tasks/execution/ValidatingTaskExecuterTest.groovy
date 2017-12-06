@@ -22,7 +22,6 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty
-import org.gradle.api.internal.tasks.InputsOutputVisitor
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -36,6 +35,7 @@ import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.WARNI
 class ValidatingTaskExecuterTest extends Specification {
     def target = Mock(TaskExecuter)
     def task = Mock(TaskInternal)
+    def inputsAndOutputs = Mock(TaskInputsAndOutputs)
     def project = Stub(ProjectInternal)
     def state = Mock(TaskStateInternal)
     def inputs = Mock(TaskInputsInternal)
@@ -49,7 +49,8 @@ class ValidatingTaskExecuterTest extends Specification {
 
         then:
         1 * task.getProject() >> project
-        1 * task.acceptInputsOutputsVisitor(_)
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * inputsAndOutputs.validate(_)
         1 * target.execute(task, state, executionContext)
         0 * _
     }
@@ -63,10 +64,8 @@ class ValidatingTaskExecuterTest extends Specification {
 
         then:
         1 * task.getProject() >> project
-        1 * task.acceptInputsOutputsVisitor(_)  >> { InputsOutputVisitor visitor ->
-            visitor.visitOutputFileProperty(outputFile)
-        }
-        1 * outputFile.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(ERROR,'failure') }
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * inputsAndOutputs.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(ERROR,'failure') }
         1 * state.setOutcome(!null as Throwable) >> {
             def failure = it[0]
             assert failure instanceof TaskValidationException
@@ -83,12 +82,11 @@ class ValidatingTaskExecuterTest extends Specification {
 
         then:
         1 * task.getProject() >> project
-        1 * task.acceptInputsOutputsVisitor(_)  >> { InputsOutputVisitor visitor ->
-            visitor.visitInputFileProperty(inputFile)
-            visitor.visitOutputFileProperty(outputFile)
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * inputsAndOutputs.validate(_) >> { TaskValidationContext context ->
+            context.recordValidationMessage(ERROR, 'failure1')
+            context.recordValidationMessage(ERROR, 'failure2')
         }
-        1 * inputFile.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(ERROR, 'failure1') }
-        1 * outputFile.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(ERROR, 'failure2') }
         1 * state.setOutcome(!null as Throwable) >> {
             def failure = it[0]
             assert failure instanceof TaskValidationException
@@ -107,12 +105,11 @@ class ValidatingTaskExecuterTest extends Specification {
 
         then:
         1 * task.getProject() >> project
-        1 * task.acceptInputsOutputsVisitor(_)  >> { InputsOutputVisitor visitor ->
-            visitor.visitInputFileProperty(inputFile)
-            visitor.visitOutputFileProperty(outputFile)
+        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * inputsAndOutputs.validate(_) >> { TaskValidationContext context ->
+            context.recordValidationMessage(WARNING, 'warning1')
+            context.recordValidationMessage(WARNING, 'warning2')
         }
-        1 * inputFile.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(WARNING, 'warning1') }
-        1 * outputFile.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(WARNING, 'warning2') }
         1 * target.execute(task, state, executionContext)
         0 * _
     }

@@ -52,6 +52,7 @@ import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskPropertiesWalker;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
+import org.gradle.api.internal.tasks.execution.TaskInputsAndOutputs;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -142,6 +143,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private String toStringValue;
     private final TaskPropertiesWalker propertiesWalker;
     private final PropertySpecFactory specFactory;
+    private TaskInputsAndOutputs inputsAndOutputs;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -207,6 +209,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public TaskStateInternal getState() {
         return state;
+    }
+
+    @Override
+    public void setInputsAndOutputs(@Nullable TaskInputsAndOutputs inputsAndOutputs) {
+        this.inputsAndOutputs = inputsAndOutputs;
+    }
+
+    @Override
+    public TaskInputsAndOutputs getInputsAndOutputs() {
+        return inputsAndOutputs;
     }
 
     @Override

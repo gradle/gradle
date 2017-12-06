@@ -298,10 +298,13 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public class GetFilePropertiesVisitor extends InputsOutputVisitor.Adapter implements TaskOutputsInternal.GetFilePropertiesVisitor {
-        List<TaskOutputFilePropertySpec> specs = new ArrayList<TaskOutputFilePropertySpec>();
+        private List<TaskOutputFilePropertySpec> specs = new ArrayList<TaskOutputFilePropertySpec>();
+        private ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties;
+        private boolean hasDeclaredOutputs;
 
         @Override
         public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
+            hasDeclaredOutputs = true;
             if (outputFileProperty instanceof CompositeTaskOutputPropertySpec) {
                 Iterators.addAll(specs, ((CompositeTaskOutputPropertySpec) outputFileProperty).resolveToOutputProperties());
             } else {
@@ -317,7 +320,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         @Override
         public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
-            return TaskPropertyUtils.collectFileProperties("output", specs.iterator());
+            if (fileProperties == null) {
+                fileProperties = TaskPropertyUtils.collectFileProperties("output", specs.iterator());
+            }
+            return fileProperties;
         }
 
         @Override
@@ -341,6 +347,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                     super.visitDependencies(context);
                 }
             };
+        }
+
+        @Override
+        public boolean hasDeclaredOutputs() {
+            return hasDeclaredOutputs;
         }
     }
 

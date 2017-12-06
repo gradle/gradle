@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskValidationContext;
 
-public interface TaskInputsInternal extends TaskInputs {
-    void accept(InputsOutputVisitor visitor);
+public interface TaskInputsAndOutputs {
 
-    void acceptRuntimeOnly(InputsOutputVisitor visitor);
+    boolean hasSourceFiles();
 
-    ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
+    FileCollection getInputFiles();
 
-    GetFilePropertiesVisitor getFilePropertiesVisitor();
+    ImmutableSortedSet<TaskOutputFilePropertySpec> getOutputFileProperties();
 
-    interface GetFilePropertiesVisitor extends InputsOutputVisitor {
-        ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
-        FileCollection getFiles();
-        FileCollection getSourceFiles();
+    FileCollection getOutputFiles();
 
-        boolean hasSourceFiles();
-    }
+    FileCollection getSourceFiles();
+
+    ImmutableSortedSet<TaskInputFilePropertySpec> getInputFileProperties();
+
+    void validate(TaskValidationContext validationContext);
+
+    boolean hasDeclaredOutputs();
 }

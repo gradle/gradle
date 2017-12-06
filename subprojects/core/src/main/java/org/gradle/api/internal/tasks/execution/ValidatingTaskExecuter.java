@@ -19,11 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
-import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -48,27 +44,7 @@ public class ValidatingTaskExecuter implements TaskExecuter {
         final TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, messages);
 
         try {
-            task.acceptInputsOutputsVisitor(new InputsOutputVisitor.Adapter() {
-                @Override
-                public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
-                    inputFileProperty.validate(validationContext);
-                }
-
-                @Override
-                public void visitInputProperty(DeclaredTaskInputProperty inputProperty) {
-                    inputProperty.validate(validationContext);
-                }
-
-                @Override
-                public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
-                    outputFileProperty.validate(validationContext);
-                }
-
-                @Override
-                public void visitValidationMessage(TaskValidationContext.Severity severity, String message) {
-                    validationContext.recordValidationMessage(severity, message);
-                }
-            });
+            task.getInputsAndOutputs().validate(validationContext);
         } catch (Exception ex) {
             throw new TaskExecutionException(task, ex);
         }

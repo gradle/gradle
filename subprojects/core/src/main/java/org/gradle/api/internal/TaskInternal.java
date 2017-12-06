@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.execution.TaskInputsAndOutputs;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -30,6 +31,7 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -77,6 +79,10 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Override
     TaskStateInternal getState();
+
+    void setInputsAndOutputs(@Nullable TaskInputsAndOutputs inputsAndOutputs);
+
+    TaskInputsAndOutputs getInputsAndOutputs();
 
     @Internal
     boolean getImpliesSubProjects();
