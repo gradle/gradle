@@ -28,7 +28,7 @@ class FixedSizeOldestCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def persistentCache = Mock(PersistentCache)
-    def cleanupAction = new FixedSizeOldestCacheCleanup(new TestBuildOperationExecutor(),10, ".part")
+    def cleanupAction = new FixedSizeOldestCacheCleanup(new TestBuildOperationExecutor(),10)
 
     def "filters for cache entry files"() {
         expect:
