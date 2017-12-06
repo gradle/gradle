@@ -187,4 +187,44 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
     public boolean isOptional() {
         return optional;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        MavenDependencyDescriptor that = (MavenDependencyDescriptor) o;
+
+        if (optional != that.optional) {
+            return false;
+        }
+        if (selector != null ? !selector.equals(that.selector) : that.selector != null) {
+            return false;
+        }
+        if (scope != that.scope) {
+            return false;
+        }
+        if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
+            return false;
+        }
+        if (dependencyArtifact != null ? !dependencyArtifact.equals(that.dependencyArtifact) : that.dependencyArtifact != null) {
+            return false;
+        }
+        return moduleConfigurations != null ? moduleConfigurations.equals(that.moduleConfigurations) : that.moduleConfigurations == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = selector != null ? selector.hashCode() : 0;
+        result = 31 * result + (scope != null ? scope.hashCode() : 0);
+        result = 31 * result + (optional ? 1 : 0);
+        result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
+        result = 31 * result + (dependencyArtifact != null ? dependencyArtifact.hashCode() : 0);
+        result = 31 * result + (moduleConfigurations != null ? moduleConfigurations.hashCode() : 0);
+        return result;
+    }
 }

@@ -230,4 +230,52 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     public synchronized ConfigurationMetadata getConfiguration(final String name) {
         return populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AbstractModuleComponentResolveMetadata that = (AbstractModuleComponentResolveMetadata) o;
+
+        if (changing != that.changing) {
+            return false;
+        }
+        if (missing != that.missing) {
+            return false;
+        }
+        if (moduleVersionIdentifier != null ? !moduleVersionIdentifier.equals(that.moduleVersionIdentifier) : that.moduleVersionIdentifier != null) {
+            return false;
+        }
+        if (componentIdentifier != null ? !componentIdentifier.equals(that.componentIdentifier) : that.componentIdentifier != null) {
+            return false;
+        }
+        if (status != null ? !status.equals(that.status) : that.status != null) {
+            return false;
+        }
+        if (statusScheme != null ? !statusScheme.equals(that.statusScheme) : that.statusScheme != null) {
+            return false;
+        }
+        if (variants != null ? !variants.equals(that.variants) : that.variants != null) {
+            return false;
+        }
+        return contentHash != null ? contentHash.equals(that.contentHash) : that.contentHash == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = moduleVersionIdentifier != null ? moduleVersionIdentifier.hashCode() : 0;
+        result = 31 * result + (componentIdentifier != null ? componentIdentifier.hashCode() : 0);
+        result = 31 * result + (changing ? 1 : 0);
+        result = 31 * result + (missing ? 1 : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (statusScheme != null ? statusScheme.hashCode() : 0);
+        result = 31 * result + (variants != null ? variants.hashCode() : 0);
+        result = 31 * result + (contentHash != null ? contentHash.hashCode() : 0);
+        return result;
+    }
 }

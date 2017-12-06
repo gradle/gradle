@@ -295,6 +295,30 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         public String getUri() {
             return uri;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            FileImpl file = (FileImpl) o;
+
+            if (name != null ? !name.equals(file.name) : file.name != null) {
+                return false;
+            }
+            return uri != null ? uri.equals(file.uri) : file.uri == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = name != null ? name.hashCode() : 0;
+            result = 31 * result + (uri != null ? uri.hashCode() : 0);
+            return result;
+        }
     }
 
     protected static class DependencyImpl implements ComponentVariant.Dependency {
@@ -329,6 +353,38 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         public ImmutableList<ExcludeMetadata> getExcludes() {
             return excludes;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            DependencyImpl that = (DependencyImpl) o;
+
+            if (group != null ? !group.equals(that.group) : that.group != null) {
+                return false;
+            }
+            if (module != null ? !module.equals(that.module) : that.module != null) {
+                return false;
+            }
+            if (versionConstraint != null ? !versionConstraint.equals(that.versionConstraint) : that.versionConstraint != null) {
+                return false;
+            }
+            return excludes != null ? excludes.equals(that.excludes) : that.excludes == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = group != null ? group.hashCode() : 0;
+            result = 31 * result + (module != null ? module.hashCode() : 0);
+            result = 31 * result + (versionConstraint != null ? versionConstraint.hashCode() : 0);
+            result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
+            return result;
+        }
     }
 
     protected static class DependencyConstraintImpl implements ComponentVariant.DependencyConstraint {
@@ -355,6 +411,34 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         @Override
         public VersionConstraint getVersionConstraint() {
             return versionConstraint;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            DependencyConstraintImpl that = (DependencyConstraintImpl) o;
+
+            if (group != null ? !group.equals(that.group) : that.group != null) {
+                return false;
+            }
+            if (module != null ? !module.equals(that.module) : that.module != null) {
+                return false;
+            }
+            return versionConstraint != null ? versionConstraint.equals(that.versionConstraint) : that.versionConstraint == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = group != null ? group.hashCode() : 0;
+            result = 31 * result + (module != null ? module.hashCode() : 0);
+            result = 31 * result + (versionConstraint != null ? versionConstraint.hashCode() : 0);
+            return result;
         }
     }
 
@@ -414,5 +498,44 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             return artifacts;
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ImmutableVariantImpl that = (ImmutableVariantImpl) o;
+
+            if (componentId != null ? !componentId.equals(that.componentId) : that.componentId != null) {
+                return false;
+            }
+            if (name != null ? !name.equals(that.name) : that.name != null) {
+                return false;
+            }
+            if (attributes != null ? !attributes.equals(that.attributes) : that.attributes != null) {
+                return false;
+            }
+            if (dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null) {
+                return false;
+            }
+            if (dependencyConstraints != null ? !dependencyConstraints.equals(that.dependencyConstraints) : that.dependencyConstraints != null) {
+                return false;
+            }
+            return files != null ? files.equals(that.files) : that.files == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = componentId != null ? componentId.hashCode() : 0;
+            result = 31 * result + (name != null ? name.hashCode() : 0);
+            result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
+            result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
+            result = 31 * result + (dependencyConstraints != null ? dependencyConstraints.hashCode() : 0);
+            result = 31 * result + (files != null ? files.hashCode() : 0);
+            return result;
+        }
     }
 }

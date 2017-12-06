@@ -140,4 +140,40 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     public ImmutableList<MavenDependencyDescriptor> getDependencies() {
         return dependencies;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DefaultMavenModuleResolveMetadata that = (DefaultMavenModuleResolveMetadata) o;
+
+        if (relocated != that.relocated) {
+            return false;
+        }
+        if (dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null) {
+            return false;
+        }
+        if (packaging != null ? !packaging.equals(that.packaging) : that.packaging != null) {
+            return false;
+        }
+        return snapshotTimestamp != null ? snapshotTimestamp.equals(that.snapshotTimestamp) : that.snapshotTimestamp == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
+        result = 31 * result + (packaging != null ? packaging.hashCode() : 0);
+        result = 31 * result + (relocated ? 1 : 0);
+        result = 31 * result + (snapshotTimestamp != null ? snapshotTimestamp.hashCode() : 0);
+        return result;
+    }
 }
