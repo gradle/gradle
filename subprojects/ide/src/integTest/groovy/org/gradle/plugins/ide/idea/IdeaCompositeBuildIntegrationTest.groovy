@@ -16,62 +16,64 @@
 
 package org.gradle.plugins.ide.idea
 
-import org.gradle.plugins.ide.AbstractIdeIntegrationTest
-import org.junit.Test
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class IdeaCompositeBuildIntegrationTest extends AbstractIdeIntegrationTest {
-    @Test
-    void "handle composite build"() {
-        def settingsFile = file("settings.gradle")
+import static org.gradle.plugins.ide.fixtures.IdeaFixtures.*
+
+class IdeaCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
+    def "handle composite build"() {
+        given:
         settingsFile << """
-include 'api'
-include 'shared:api', 'shared:model'
-includeBuild 'util'
-rootProject.name = 'root'
+            include 'api'
+            include 'shared:api', 'shared:model'
+            includeBuild 'util'
+            rootProject.name = 'root'
         """
 
-        def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
 
-project(':api') {
-    dependencies {
-        compile project(':shared:api')
-        testCompile project(':shared:model')
-    }
-}
+            project(':api') {
+                dependencies {
+                    compile project(':shared:api')
+                    testCompile project(':shared:model')
+                }
+            }
 
-project(':shared:model') {
-    dependencies {
-        testCompile "test:util:1.3"
-    }
-}
-"""
-        file('util/settings.gradle') << "rootProject.name = 'util'"
-        file('util/build.gradle') << """
-apply plugin: 'java'
-apply plugin: 'idea'
-group = 'test'
-version = '1.3'
-"""
+            project(':shared:model') {
+                dependencies {
+                    testCompile "test:util:1.3"
+                }
+            }
+        """
+        buildTestFixture.withBuildInSubDir()
+        singleProjectBuild("util") {
+            settingsFile << "rootProject.name = '${rootProjectName}'"
+            buildFile << """
+                apply plugin: 'java'
+                apply plugin: 'idea'
+                group = 'test'
+                version = '1.3'
+            """
+        }
 
-        //when
-        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("idea").run()
+        when:
+        succeeds 'idea'
 
-        //then
-        def dependencies = parseIml("api/root-api.iml").dependencies
-        assert dependencies.modules.size() == 2
-        dependencies.assertHasModule('COMPILE', "shared-api")
-        dependencies.assertHasModule("TEST", "model")
+        then:
+        def apiDependencies = parseIml(file('api/root-api.iml')).dependencies
+        apiDependencies.modules.size() == 2
+        apiDependencies.assertHasModule('COMPILE', 'shared-api')
+        apiDependencies.assertHasModule('TEST', 'model')
 
-        dependencies = parseIml("shared/model/model.iml").dependencies
-        assert dependencies.modules.size() == 1
-        dependencies.assertHasModule("TEST", "util")
+        def modelDependencies = parseIml(file('shared/model/model.iml')).dependencies
+        modelDependencies.modules.size() == 1
+        modelDependencies.assertHasModule('TEST', 'util')
 
-        def ipr = parseIpr('root.ipr')
+        def ipr = parseIpr(file('root.ipr'))
         ipr.modules.assertHasModules('$PROJECT_DIR$/root.iml', '$PROJECT_DIR$/api/root-api.iml', '$PROJECT_DIR$/shared/shared.iml',
             '$PROJECT_DIR$/shared/api/shared-api.iml', '$PROJECT_DIR$/shared/model/model.iml', '$PROJECT_DIR$/util/util.iml')
     }
