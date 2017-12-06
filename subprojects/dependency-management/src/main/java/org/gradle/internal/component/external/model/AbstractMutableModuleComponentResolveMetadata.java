@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -306,18 +307,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             }
 
             FileImpl file = (FileImpl) o;
-
-            if (name != null ? !name.equals(file.name) : file.name != null) {
-                return false;
-            }
-            return uri != null ? uri.equals(file.uri) : file.uri == null;
+            return Objects.equal(name, file.name)
+                && Objects.equal(uri, file.uri);
         }
 
         @Override
         public int hashCode() {
-            int result = name != null ? name.hashCode() : 0;
-            result = 31 * result + (uri != null ? uri.hashCode() : 0);
-            return result;
+            return Objects.hashCode(name, uri);
         }
     }
 
@@ -364,26 +360,15 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             }
 
             DependencyImpl that = (DependencyImpl) o;
-
-            if (group != null ? !group.equals(that.group) : that.group != null) {
-                return false;
-            }
-            if (module != null ? !module.equals(that.module) : that.module != null) {
-                return false;
-            }
-            if (versionConstraint != null ? !versionConstraint.equals(that.versionConstraint) : that.versionConstraint != null) {
-                return false;
-            }
-            return excludes != null ? excludes.equals(that.excludes) : that.excludes == null;
+            return Objects.equal(group, that.group)
+                && Objects.equal(module, that.module)
+                && Objects.equal(versionConstraint, that.versionConstraint)
+                && Objects.equal(excludes, that.excludes);
         }
 
         @Override
         public int hashCode() {
-            int result = group != null ? group.hashCode() : 0;
-            result = 31 * result + (module != null ? module.hashCode() : 0);
-            result = 31 * result + (versionConstraint != null ? versionConstraint.hashCode() : 0);
-            result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
-            return result;
+            return Objects.hashCode(group, module, versionConstraint, excludes);
         }
     }
 
@@ -423,22 +408,14 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             }
 
             DependencyConstraintImpl that = (DependencyConstraintImpl) o;
-
-            if (group != null ? !group.equals(that.group) : that.group != null) {
-                return false;
-            }
-            if (module != null ? !module.equals(that.module) : that.module != null) {
-                return false;
-            }
-            return versionConstraint != null ? versionConstraint.equals(that.versionConstraint) : that.versionConstraint == null;
+            return Objects.equal(group, that.group)
+                && Objects.equal(module, that.module)
+                && Objects.equal(versionConstraint, that.versionConstraint);
         }
 
         @Override
         public int hashCode() {
-            int result = group != null ? group.hashCode() : 0;
-            result = 31 * result + (module != null ? module.hashCode() : 0);
-            result = 31 * result + (versionConstraint != null ? versionConstraint.hashCode() : 0);
-            return result;
+            return Objects.hashCode(group, module, versionConstraint);
         }
     }
 
@@ -508,34 +485,22 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             }
 
             ImmutableVariantImpl that = (ImmutableVariantImpl) o;
-
-            if (componentId != null ? !componentId.equals(that.componentId) : that.componentId != null) {
-                return false;
-            }
-            if (name != null ? !name.equals(that.name) : that.name != null) {
-                return false;
-            }
-            if (attributes != null ? !attributes.equals(that.attributes) : that.attributes != null) {
-                return false;
-            }
-            if (dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null) {
-                return false;
-            }
-            if (dependencyConstraints != null ? !dependencyConstraints.equals(that.dependencyConstraints) : that.dependencyConstraints != null) {
-                return false;
-            }
-            return files != null ? files.equals(that.files) : that.files == null;
+            return Objects.equal(componentId, that.componentId)
+                && Objects.equal(name, that.name)
+                && Objects.equal(attributes, that.attributes)
+                && Objects.equal(dependencies, that.dependencies)
+                && Objects.equal(dependencyConstraints, that.dependencyConstraints)
+                && Objects.equal(files, that.files);
         }
 
         @Override
         public int hashCode() {
-            int result = componentId != null ? componentId.hashCode() : 0;
-            result = 31 * result + (name != null ? name.hashCode() : 0);
-            result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
-            result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
-            result = 31 * result + (dependencyConstraints != null ? dependencyConstraints.hashCode() : 0);
-            result = 31 * result + (files != null ? files.hashCode() : 0);
-            return result;
+            return Objects.hashCode(componentId,
+                name,
+                attributes,
+                dependencies,
+                dependencyConstraints,
+                files);
         }
     }
 }

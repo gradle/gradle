@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -248,41 +249,25 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         }
 
         IvyDependencyDescriptor that = (IvyDependencyDescriptor) o;
-
-        if (changing != that.changing) {
-            return false;
-        }
-        if (transitive != that.transitive) {
-            return false;
-        }
-        if (optional != that.optional) {
-            return false;
-        }
-        if (selector != null ? !selector.equals(that.selector) : that.selector != null) {
-            return false;
-        }
-        if (dynamicConstraintVersion != null ? !dynamicConstraintVersion.equals(that.dynamicConstraintVersion) : that.dynamicConstraintVersion != null) {
-            return false;
-        }
-        if (confs != null ? !confs.equals(that.confs) : that.confs != null) {
-            return false;
-        }
-        if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
-            return false;
-        }
-        return dependencyArtifacts != null ? dependencyArtifacts.equals(that.dependencyArtifacts) : that.dependencyArtifacts == null;
+        return changing == that.changing
+            && transitive == that.transitive
+            && optional == that.optional
+            && Objects.equal(selector, that.selector)
+            && Objects.equal(dynamicConstraintVersion, that.dynamicConstraintVersion)
+            && Objects.equal(confs, that.confs)
+            && Objects.equal(excludes, that.excludes)
+            && Objects.equal(dependencyArtifacts, that.dependencyArtifacts);
     }
 
     @Override
     public int hashCode() {
-        int result = selector != null ? selector.hashCode() : 0;
-        result = 31 * result + (dynamicConstraintVersion != null ? dynamicConstraintVersion.hashCode() : 0);
-        result = 31 * result + (changing ? 1 : 0);
-        result = 31 * result + (transitive ? 1 : 0);
-        result = 31 * result + (optional ? 1 : 0);
-        result = 31 * result + (confs != null ? confs.hashCode() : 0);
-        result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
-        result = 31 * result + (dependencyArtifacts != null ? dependencyArtifacts.hashCode() : 0);
-        return result;
+        return Objects.hashCode(selector,
+            dynamicConstraintVersion,
+            changing,
+            transitive,
+            optional,
+            confs,
+            excludes,
+            dependencyArtifacts);
     }
 }

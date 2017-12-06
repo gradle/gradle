@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -198,33 +199,22 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
         }
 
         MavenDependencyDescriptor that = (MavenDependencyDescriptor) o;
-
-        if (optional != that.optional) {
-            return false;
-        }
-        if (selector != null ? !selector.equals(that.selector) : that.selector != null) {
-            return false;
-        }
-        if (scope != that.scope) {
-            return false;
-        }
-        if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
-            return false;
-        }
-        if (dependencyArtifact != null ? !dependencyArtifact.equals(that.dependencyArtifact) : that.dependencyArtifact != null) {
-            return false;
-        }
-        return moduleConfigurations != null ? moduleConfigurations.equals(that.moduleConfigurations) : that.moduleConfigurations == null;
+        return optional == that.optional
+            && Objects.equal(selector, that.selector)
+            && scope == that.scope
+            && Objects.equal(excludes, that.excludes)
+            && Objects.equal(dependencyArtifact, that.dependencyArtifact)
+            && Objects.equal(moduleConfigurations, that.moduleConfigurations);
     }
 
     @Override
     public int hashCode() {
-        int result = selector != null ? selector.hashCode() : 0;
-        result = 31 * result + (scope != null ? scope.hashCode() : 0);
-        result = 31 * result + (optional ? 1 : 0);
-        result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
-        result = 31 * result + (dependencyArtifact != null ? dependencyArtifact.hashCode() : 0);
-        result = 31 * result + (moduleConfigurations != null ? moduleConfigurations.hashCode() : 0);
-        return result;
+        return Objects.hashCode(
+            selector,
+            scope,
+            optional,
+            excludes,
+            dependencyArtifact,
+            moduleConfigurations);
     }
 }

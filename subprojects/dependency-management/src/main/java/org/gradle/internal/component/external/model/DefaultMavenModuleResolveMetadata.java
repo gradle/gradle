@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -154,26 +155,18 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         }
 
         DefaultMavenModuleResolveMetadata that = (DefaultMavenModuleResolveMetadata) o;
-
-        if (relocated != that.relocated) {
-            return false;
-        }
-        if (dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null) {
-            return false;
-        }
-        if (packaging != null ? !packaging.equals(that.packaging) : that.packaging != null) {
-            return false;
-        }
-        return snapshotTimestamp != null ? snapshotTimestamp.equals(that.snapshotTimestamp) : that.snapshotTimestamp == null;
+        return relocated == that.relocated
+            && Objects.equal(dependencies, that.dependencies)
+            && Objects.equal(packaging, that.packaging)
+            && Objects.equal(snapshotTimestamp, that.snapshotTimestamp);
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
-        result = 31 * result + (packaging != null ? packaging.hashCode() : 0);
-        result = 31 * result + (relocated ? 1 : 0);
-        result = 31 * result + (snapshotTimestamp != null ? snapshotTimestamp.hashCode() : 0);
-        return result;
+        return Objects.hashCode(super.hashCode(),
+            dependencies,
+            packaging,
+            relocated,
+            snapshotTimestamp);
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -241,41 +242,30 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         AbstractModuleComponentResolveMetadata that = (AbstractModuleComponentResolveMetadata) o;
-
-        if (changing != that.changing) {
-            return false;
-        }
-        if (missing != that.missing) {
-            return false;
-        }
-        if (moduleVersionIdentifier != null ? !moduleVersionIdentifier.equals(that.moduleVersionIdentifier) : that.moduleVersionIdentifier != null) {
-            return false;
-        }
-        if (componentIdentifier != null ? !componentIdentifier.equals(that.componentIdentifier) : that.componentIdentifier != null) {
-            return false;
-        }
-        if (status != null ? !status.equals(that.status) : that.status != null) {
-            return false;
-        }
-        if (statusScheme != null ? !statusScheme.equals(that.statusScheme) : that.statusScheme != null) {
-            return false;
-        }
-        if (variants != null ? !variants.equals(that.variants) : that.variants != null) {
-            return false;
-        }
-        return contentHash != null ? contentHash.equals(that.contentHash) : that.contentHash == null;
+        return changing == that.changing
+            && missing == that.missing
+            && Objects.equal(moduleVersionIdentifier, that.moduleVersionIdentifier)
+            && Objects.equal(componentIdentifier, that.componentIdentifier)
+            && Objects.equal(status, that.status)
+            && Objects.equal(statusScheme, that.statusScheme)
+            && Objects.equal(moduleSource, that.moduleSource)
+            && Objects.equal(configurationDefinitions, that.configurationDefinitions)
+            && Objects.equal(variants, that.variants)
+            && Objects.equal(contentHash, that.contentHash);
     }
 
     @Override
     public int hashCode() {
-        int result = moduleVersionIdentifier != null ? moduleVersionIdentifier.hashCode() : 0;
-        result = 31 * result + (componentIdentifier != null ? componentIdentifier.hashCode() : 0);
-        result = 31 * result + (changing ? 1 : 0);
-        result = 31 * result + (missing ? 1 : 0);
-        result = 31 * result + (status != null ? status.hashCode() : 0);
-        result = 31 * result + (statusScheme != null ? statusScheme.hashCode() : 0);
-        result = 31 * result + (variants != null ? variants.hashCode() : 0);
-        result = 31 * result + (contentHash != null ? contentHash.hashCode() : 0);
-        return result;
+        return Objects.hashCode(
+            moduleVersionIdentifier,
+            componentIdentifier,
+            changing,
+            missing,
+            status,
+            statusScheme,
+            moduleSource,
+            configurationDefinitions,
+            variants,
+            contentHash);
     }
 }

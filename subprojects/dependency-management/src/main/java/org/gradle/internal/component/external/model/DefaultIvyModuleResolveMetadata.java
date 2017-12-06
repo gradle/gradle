@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
@@ -244,26 +245,22 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         }
 
         DefaultIvyModuleResolveMetadata that = (DefaultIvyModuleResolveMetadata) o;
-
-        if (dependencies != null ? !dependencies.equals(that.dependencies) : that.dependencies != null) {
-            return false;
-        }
-        if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
-            return false;
-        }
-        if (extraAttributes != null ? !extraAttributes.equals(that.extraAttributes) : that.extraAttributes != null) {
-            return false;
-        }
-        return branch != null ? branch.equals(that.branch) : that.branch == null;
+        return Objects.equal(dependencies, that.dependencies)
+            && Objects.equal(artifactDefinitions, that.artifactDefinitions)
+            && Objects.equal(excludes, that.excludes)
+            && Objects.equal(extraAttributes, that.extraAttributes)
+            && Objects.equal(branch, that.branch)
+            && Objects.equal(artifacts, that.artifacts);
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
-        result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
-        result = 31 * result + (extraAttributes != null ? extraAttributes.hashCode() : 0);
-        result = 31 * result + (branch != null ? branch.hashCode() : 0);
-        return result;
+        return Objects.hashCode(super.hashCode(),
+            dependencies,
+            artifactDefinitions,
+            excludes,
+            extraAttributes,
+            branch,
+            artifacts);
     }
 }
