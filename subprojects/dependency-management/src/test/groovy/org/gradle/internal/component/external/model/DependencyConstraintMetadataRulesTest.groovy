@@ -18,6 +18,9 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependenciesMetadata
+import org.gradle.internal.component.external.descriptor.MavenScope
+
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRulesTest {
     @Override
@@ -28,5 +31,29 @@ class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRu
     @Override
     void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName, Action<DependenciesMetadata> action) {
         metadataImplementation.addDependencyConstraintMetadataRule(variantName, action, instantiator, notationParser, constraintNotationParser)
+    }
+
+    def "maven optional dependencies are accessible as dependency constraints"() {
+        given:
+        def mavenMetadata = new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, [
+            new MavenDependencyDescriptor(MavenScope.Compile, false, newSelector("org", "notOptional", "1.0"), null, []),
+            new MavenDependencyDescriptor(MavenScope.Compile, true, newSelector("org", "optional", "1.0"), null, [])
+        ])
+
+        when:
+        mavenMetadata.addDependencyMetadataRule("default", {
+            assert it.size() == 1
+            assert it[0].name == "notOptional"
+        }, instantiator, notationParser, constraintNotationParser)
+        mavenMetadata.addDependencyConstraintMetadataRule("default", {
+            assert it.size() == 1
+            assert it[0].name == "optional"
+        }, instantiator, notationParser, constraintNotationParser)
+
+        then:
+        def dependencies = selectTargetConfigurationMetadata(mavenMetadata).dependencies
+        dependencies.size() == 2
+        !dependencies[0].pending
+        dependencies[1].pending
     }
 }

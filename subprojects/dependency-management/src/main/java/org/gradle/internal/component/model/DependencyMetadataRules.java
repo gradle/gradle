@@ -34,8 +34,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A set of rules provided by the build script author (as {@link Action< DirectDependenciesMetadata >}) that
- * are applied on the dependencies defined in variant/configuration metadata. The rules are applied
+ * A set of rules provided by the build script author
+ * (as {@link Action<DirectDependenciesMetadata>} or {@link Action<DependencyConstraintsMetadata>})
+ * that are applied on the dependencies defined in variant/configuration metadata. The rules are applied
  * in the {@link #execute(List)} method when the dependencies of a variant are needed during dependency resolution.
  */
 public class DependencyMetadataRules {

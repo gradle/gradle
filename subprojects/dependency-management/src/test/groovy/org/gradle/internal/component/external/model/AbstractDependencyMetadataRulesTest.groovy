@@ -249,11 +249,11 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata("toRemove")
     }
 
-    private selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
+    def selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
         selectTargetConfigurationMetadata(targetComponent.asImmutable())
     }
 
-    private selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
+    def selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "consumer", "1.0")
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultMutableVersionConstraint(consumerIdentifier.version))
