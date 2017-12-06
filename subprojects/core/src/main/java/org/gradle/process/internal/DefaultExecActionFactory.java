@@ -30,7 +30,7 @@ public class DefaultExecActionFactory implements ExecFactory, Stoppable {
 
     public DefaultExecActionFactory(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
-        executor = executorFactory.create("exec process");
+        executor = executorFactory.create("Exec process");
     }
 
     @Override
