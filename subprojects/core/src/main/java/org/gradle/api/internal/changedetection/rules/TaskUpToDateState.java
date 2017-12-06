@@ -33,7 +33,7 @@ public class TaskUpToDateState {
 
     public TaskUpToDateState(TaskExecution lastExecution, TaskExecution thisExecution, TaskInternal task) {
         TaskStateChanges noHistoryState = new NoHistoryTaskStateChanges(lastExecution);
-        TaskStateChanges previousSuccessState = new PreviousSuccessTaskStateChanges(lastExecution, thisExecution, task);
+        TaskStateChanges previousSuccessState = new PreviousSuccessTaskStateChanges(lastExecution);
         TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task);
         TaskStateChanges inputPropertiesState = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task);
 
