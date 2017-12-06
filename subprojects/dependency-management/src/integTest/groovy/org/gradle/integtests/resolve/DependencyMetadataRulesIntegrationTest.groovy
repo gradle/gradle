@@ -15,43 +15,44 @@
  */
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.test.fixtures.HttpRepository
-import org.gradle.test.fixtures.Module
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Unroll
 
-abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile, variantToTest)
-    def moduleA, moduleB
+import static org.gradle.util.GUtil.toCamelCase
 
-    abstract HttpRepository getRepo()
-
-    abstract String getRepoDeclaration()
-
-    abstract Module setupCustomVariantsForModule(Module module)
-
-    abstract String getVariantToTest()
+@RequiredFeatures(
+    @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
+)
+class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
+    @Override
+    String getTestConfiguration() { variantToTest }
 
     /**
      * Does the published metadata provide variants with attributes? Eventually all metadata should do that.
      * For Ivy and Maven POM metadata, the variants and attributes should be derived from configurations and scopes.
      */
-    abstract boolean getPublishedModulesHaveAttributes()
+    boolean getPublishedModulesHaveAttributes() { gradleMetadataEnabled }
+
+    String getVariantToTest() {
+        if (gradleMetadataEnabled || useIvy()) {
+            'customVariant'
+        } else {
+            'compile'
+        }
+    }
 
     def setup() {
-        resolve.prepare()
-        moduleA = setupCustomVariantsForModule(repo.module("org.test", "moduleA").allowAll()).publish()
-        moduleB = repo.module("org.test", "moduleB").allowAll().publish()
+        repository {
+            'org.test:moduleA:1.0'() {
+                variant 'customVariant', [format: 'custom']
+            }
+            'org.test:moduleB:1.0'()
+        }
 
-        settingsFile << """
-            rootProject.name = 'testproject'
-        """
         buildFile << """
-            $repoDeclaration
-            
             configurations { $variantToTest { attributes { attribute(Attribute.of('format', String), 'custom') } } }
             
             dependencies {
@@ -59,29 +60,40 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
             }
         """
     }
-
     @Unroll
-    def "a dependency can be added using #notation notation"() {
+    def "#thing can be added using #notation notation"() {
         when:
         buildFile << """
             dependencies {
+                $variantToTest 'org.test:moduleB'
                 components {
                     withModule('org.test:moduleA') {
                         withVariant("$variantToTest") { 
-                            withDependencies {
-                                add $dependency
+                            with${toCamelCase(thing)} {
+                                add $declaration
                             }
                         }
                     }
                 }
             }
         """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
 
         then:
         succeeds 'checkDep'
         def variantToTest = variantToTest
         resolve.expectGraph {
-            root(':', ':testproject:') {
+            root(':', ':test:') {
+                edge('org.test:moduleB:', 'org.test:moduleB:1.0')
                 module("org.test:moduleA:1.0:$variantToTest") {
                     module('org.test:moduleB:1.0')
                 }
@@ -89,21 +101,24 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
         }
 
         where:
-        notation | dependency
-        "string" | "'org.test:moduleB:1.0'"
-        "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
+        thing                    | notation | declaration
+        "dependency constraints" | "string" | "'org.test:moduleB:1.0'"
+        "dependency constraints" | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
+        "dependencies"           | "string" | "'org.test:moduleB:1.0'"
+        "dependencies"           | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
     }
 
     @Unroll
-    def "a dependency can be added and configured using #notation notation"() {
+    def "#thing can be added and configured using #notation notation"() {
         when:
         buildFile << """
             dependencies {
+                $variantToTest 'org.test:moduleB'
                 components {
                     withModule('org.test:moduleA') {
                         withVariant("$variantToTest") {
-                            withDependencies {
-                                add($dependency) {
+                            with${toCamelCase(thing)} {
+                                add($declaration) {
                                     it.version { strictly '1.0' }
                                 }
                             }
@@ -112,12 +127,23 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
 
         then:
         succeeds 'checkDep'
         def variantToTest = variantToTest
         resolve.expectGraph {
-            root(':', ':testproject:') {
+            root(':', ':test:') {
+                edge('org.test:moduleB:', 'org.test:moduleB:1.0')
                 module("org.test:moduleA:1.0:$variantToTest") {
                     module('org.test:moduleB:1.0')
                 }
@@ -125,20 +151,26 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
         }
 
         where:
-        notation | dependency
-        "string" | "'org.test:moduleB'"
-        "map"    | "group: 'org.test', name: 'moduleB'"
+        thing                    | notation | declaration
+        "dependency constraints" | "string" | "'org.test:moduleB:1.0'"
+        "dependency constraints" | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
+        "dependencies"           | "string" | "'org.test:moduleB:1.0'"
+        "dependencies"           | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
     }
 
-    def "a dependency can be removed"() {
+    def "dependencies can be removed"() {
         given:
-        moduleA.dependsOn(moduleB).publish()
+        repository {
+            'org.test:moduleA:1.0' {
+                dependsOn 'org.test:moduleB:1.0'
+            }
+        }
 
         when:
         buildFile << """
             dependencies {
                 components {
-                    all {
+                    withModule('org.test:moduleA') {
                         withVariant("$variantToTest") {
                             withDependencies {
                                 removeAll { it.versionConstraint.preferredVersion == '1.0' }
@@ -148,62 +180,132 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
 
         then:
         succeeds 'checkDep'
         def variantToTest = variantToTest
         resolve.expectGraph {
-            root(':', ':testproject:') {
+            root(':', ':test:') {
                 module("org.test:moduleA:1.0:$variantToTest")
             }
         }
     }
 
-    def "dependency modifications are visible in the next rule"() {
+    def "dependency constraints can be removed"() {
+        given:
+        repository {
+            'org.test:moduleA:1.0' {
+                constraint 'org.test:moduleB:2.0'
+            }
+        }
+
         when:
         buildFile << """
             dependencies {
+                $variantToTest 'org.test:moduleB:1.0'
                 components {
                     withModule('org.test:moduleA') {
-                        withVariant("$variantToTest") { 
-                            withDependencies { dependencies ->
-                                assert dependencies.size() == 0
-                                dependencies.add 'org.test:moduleB:1.0'
-                            }
-                        }
-                    }
-                    withModule('org.test:moduleA') {
                         withVariant("$variantToTest") {
-                            withDependencies { dependencies ->
-                                assert dependencies.size() == 1
-                                dependencies.removeAll { true }
-                            }
-                        }
-                    }
-                    all {
-                        withVariant("$variantToTest") { 
-                            withDependencies { dependencies ->
-                                assert dependencies.size() == 0
+                            withDependencyConstraints {
+                                removeAll { it.versionConstraint.preferredVersion == '2.0' }
                             }
                         }
                     }
                 }
             }
         """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+
+            }
+            'org.test:moduleB'() {
+                version('1.0') {
+                    expectGetMetadata()
+                    expectGetArtifact()
+                }
+            }
+        }
 
         then:
         succeeds 'checkDep'
         def variantToTest = variantToTest
         resolve.expectGraph {
-            root(':', ':testproject:') {
+            root(':', ':test:') {
+                module("org.test:moduleB:1.0")
                 module("org.test:moduleA:1.0:$variantToTest")
             }
         }
     }
 
+    @Unroll
+    def "#thing modifications are visible in the next rule"() {
+        when:
+        buildFile << """
+            dependencies {
+                components {
+                    withModule('org.test:moduleA') {
+                        withVariant("$variantToTest") { 
+                            with${toCamelCase(thing)} { d ->
+                                assert d.size() == 0
+                                d.add 'org.test:moduleB:1.0'
+                            }
+                        }
+                    }
+                    withModule('org.test:moduleA') {
+                        withVariant("$variantToTest") {
+                            with${toCamelCase(thing)} { d ->
+                                assert d.size() == 1
+                                d.removeAll { true }
+                            }
+                        }
+                    }
+                    all {
+                        withVariant("$variantToTest") { 
+                            with${toCamelCase(thing)} { d ->
+                                assert d.size() == 0
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def variantToTest = variantToTest
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org.test:moduleA:1.0:$variantToTest")
+            }
+        }
+
+        where:
+        thing                    | _
+        "dependencies"           | _
+        "dependency constraints" | _
+    }
+
     def "can set version on dependency"() {
         given:
-        moduleA.dependsOn('org.test', 'moduleB', '2.0').publish()
+        repository {
+            'org.test:moduleA:1.0'() {
+                dependsOn 'org.test:moduleB:2.0'
+            }
+        }
 
         when:
         buildFile << """
@@ -221,18 +323,81 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
 
         then:
         succeeds 'checkDep'
         def variantToTest = variantToTest
         resolve.expectGraph {
-            root(':', ':testproject:') {
+            root(':', ':test:') {
                 module("org.test:moduleA:1.0:$variantToTest") {
                     module('org.test:moduleB:1.0')
                 }
             }
         }
     }
+
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    )
+    def "can set version on dependency constraint"() {
+        given:
+        repository {
+            'org.test:moduleA:1.0'() {
+                constraint 'org.test:moduleB:0.1'
+            }
+        }
+
+        when:
+        buildFile << """
+            dependencies {
+                $variantToTest 'org.test:moduleB'
+                components {
+                    withModule('org.test:moduleA') {
+                        withVariant("$variantToTest") { 
+                            withDependencyConstraints {
+                                it.each {
+                                    it.version { prefer '1.0' }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def variantToTest = variantToTest
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org.test:moduleB:', 'org.test:moduleB:1.0')
+                module("org.test:moduleA:1.0:$variantToTest") {
+                    module('org.test:moduleB:1.0')
+                }
+            }
+        }
+    }
+
 
     def "changing dependencies in one variant leaves other variants untouched"() {
         when:
@@ -249,30 +414,44 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
 
         then:
         succeeds 'checkDep'
         def variantToTest = variantToTest
         resolve.expectGraph {
-            root(':', ':testproject:') {
+            root(':', ':test:') {
                 module("org.test:moduleA:1.0:$variantToTest")
             }
         }
     }
 
-    def "dependencies of transitive dependencies can be changed"() {
+    @Unroll
+    def "#thing of transitive dependencies can be changed"() {
         given:
-        setupCustomVariantsForModule(moduleB).publish()
-        moduleA.dependsOn(moduleB).publish()
-        repo.module("org.test", "moduleC").allowAll().publish()
+        repository {
+            'org.test:moduleA:1.0' {
+                dependsOn 'org.test:moduleB:1.0'
+            }
+            'org.test:moduleB:1.0' {
+                variant 'customVariant', [format: 'custom']
+            }
+            'org.test:moduleC:1.0'()
+        }
 
         when:
         buildFile << """
             dependencies {
+                $variantToTest 'org.test:moduleC'
                 components {
                     withModule('org.test:moduleB') {
                         withVariant('$variantToTest') {
-                            withDependencies {
+                            with${toCamelCase(thing)} { d ->
                                 add('org.test:moduleC:1.0')
                             }
                         }
@@ -280,12 +459,27 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleC:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
 
         then:
         succeeds 'checkDep'
         def variantToTest = variantToTest
         resolve.expectGraph {
-            root(':', ':testproject:') {
+            root(':', ':test:') {
+                edge('org.test:moduleC:', 'org.test:moduleC:1.0')
                 module("org.test:moduleA:1.0:$variantToTest") {
                     module("org.test:moduleB:1.0") {
                         module('org.test:moduleC:1.0')
@@ -293,16 +487,24 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 }
             }
         }
+
+        where:
+        thing                    | _
+        "dependencies"           | _
+        "dependency constraints" | _
     }
 
     def "attribute matching is used to select a variant of the dependency's target if the dependency was added by a rule"() {
         given:
-        ExperimentalFeaturesFixture.enable(settingsFile)
-
-        setupCustomVariantsForModule(moduleB).publish()
-        moduleA.dependsOn(moduleB).publish()
-        repo.module("org.test", "moduleC").allowAll()
-        repo.module("org.test", "moduleD").allowAll().publish()
+        repository {
+            'org.test:moduleA:1.0' {
+                dependsOn 'org.test:moduleB:1.0'
+            }
+            'org.test:moduleB:1.0' {
+                variant 'customVariant', [format: 'custom']
+            }
+            'org.test:moduleD:1.0'()
+        }
 
         def mavenGradleRepo = new MavenFileRepository(file("maven-gradle-repo"))
         buildFile << """
@@ -312,7 +514,6 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
-
         //All dependencies added by rules are of type GradleDependencyMetadata and thus attribute matching is used for selecting the variant/configuration of the dependency's target.
         //Here we add a module with Gradle metadata which defines a variant that uses the same attributes declared in the build script (format: "custom").
         //The dependency to this module is then added using the rule and thus is matched correctly.
@@ -339,12 +540,29 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleC:1.0'() {
+                expectGetMetadataMissing()
+            }
+            'org.test:moduleD:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
 
         then:
         succeeds 'checkDep'
         def variantToTest = variantToTest
         resolve.expectGraph {
-            root(':', ':testproject:') {
+            root(':', ':test:') {
                 module("org.test:moduleA:1.0:$variantToTest") {
                     module("org.test:moduleB:1.0") {
                         module('org.test:moduleC:1.0') {
@@ -367,6 +585,11 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+            }
+        }
 
         then:
         fails 'checkDep'
@@ -375,12 +598,14 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
 
     def "resolving one configuration does not influence the result of resolving another configuration."() {
         given:
-        moduleA.dependsOn(moduleB).publish()
+        repository {
+            'org.test:moduleA:1.0'() {
+                dependsOn 'org.test:moduleB:1.0'
+            }
+        }
 
         when:
         buildFile << """
-            $repoDeclaration
-            
             configurations { anotherConfiguration { attributes { attribute(Attribute.of('format', String), 'custom') } } }
             
             dependencies {
@@ -401,15 +626,29 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+            }
+        }
 
         then:
         succeeds 'dependencies'
     }
 
-    def "can make a dependency strict"() {
+    @Unroll
+    def "can make #thing strict"() {
         given:
-        moduleB = repo.module("org.test", "moduleB", "1.1").allowAll().publish()
-        moduleA.dependsOn(moduleB).publish()
+        repository {
+            'org.test:moduleB:1.1'()
+            'org.test:moduleA:1.0'() {
+                if (defineAsConstraint) {
+                    constraint 'org.test:moduleB:1.1'
+                } else {
+                    dependsOn 'org.test:moduleB:1.1'
+                }
+            }
+        }
 
         when:
         buildFile << """
@@ -419,8 +658,8 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 components {
                     withModule('org.test:moduleA') {
                         withVariant("$variantToTest") {
-                            withDependencies { dependencies ->
-                                dependencies.findAll { it.name == 'moduleB' }.each {
+                            with${toCamelCase(thing)} { d ->
+                                d.findAll { it.name == 'moduleB' }.each {
                                     it.version { strictly '1.0' }
                                 }
                             }
@@ -429,18 +668,45 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+        if (defineAsConstraint && !gradleMetadataEnabled && useIvy()) {
+            //in plain ivy, we do not have the constraint published. But we can add still add it.
+            buildFile.text = buildFile.text.replace("d ->", "d -> d.add('org.test:moduleB:1.0')")
+        }
+
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+            }
+            'org.test:moduleB:1.1'() {
+                expectGetMetadata()
+            }
+        }
 
         then:
         fails 'checkDep'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints: 
-   Dependency path ':testproject:unspecified' --> 'org.test:moduleB' prefers '1.1'
-   Dependency path ':testproject:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' prefers '1.0', rejects ']1.0,)'"""
+   Dependency path ':test:unspecified' --> 'org.test:moduleB' prefers '1.1'
+   ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' prefers '1.0', rejects ']1.0,)'"""
+
+        where:
+        thing                    | defineAsConstraint
+        "dependencies"           | false
+        "dependency constraints" | true
     }
 
-    def "can make add rejections to a dependency"() {
+    @Unroll
+    def "can add rejections to #thing"() {
         given:
-        moduleB = repo.module("org.test", "moduleB", "1.1").allowAll().publish()
-        moduleA.dependsOn(moduleB).publish()
+        repository {
+            'org.test:moduleB:1.1'()
+            'org.test:moduleA:1.0'() {
+                if (defineAsConstraint) {
+                    constraint 'org.test:moduleB:1.1'
+                } else {
+                    dependsOn 'org.test:moduleB:1.1'
+                }
+            }
+        }
 
         when:
         buildFile << """
@@ -450,8 +716,8 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 components {
                     withModule('org.test:moduleA') {
                         withVariant("$variantToTest") {
-                            withDependencies { dependencies ->
-                                dependencies.findAll { it.name == 'moduleB' }.each {
+                            with${toCamelCase(thing)} { d ->
+                                d.findAll { it.name == 'moduleB' }.each {
                                     it.version { 
                                         prefer '1.0'
                                         reject '1.1', '1.2'
@@ -463,11 +729,29 @@ abstract class DependencyMetadataRulesIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+        if (defineAsConstraint && !gradleMetadataEnabled && useIvy()) {
+            //in plain ivy, we do not have the constraint published. But we can add still add it.
+            buildFile.text = buildFile.text.replace("d ->", "d -> d.add('org.test:moduleB') { version { prefer '1.0'; reject '1.1', '1.2' }}")
+        }
+
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+            }
+            'org.test:moduleB:1.1'() {
+                expectGetMetadata()
+            }
+        }
 
         then:
         fails 'checkDep'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints: 
-   Dependency path ':testproject:unspecified' --> 'org.test:moduleB' prefers '1.1'
-   Dependency path ':testproject:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' prefers '1.0', rejects any of "'1.1', '1.2'\""""
+   Dependency path ':test:unspecified' --> 'org.test:moduleB' prefers '1.1'
+   ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' --> 'org.test:moduleB' prefers '1.0', rejects any of "'1.1', '1.2'\""""
+
+        where:
+        thing                    | defineAsConstraint
+        "dependencies"           | false
+        "dependency constraints" | true
     }
 }

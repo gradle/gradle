@@ -188,8 +188,13 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
         return t();
     }
 
-   public T configuration(String name) {
+    public T configuration(String name) {
         backingModule.configuration(Collections.<String, Object>emptyMap(), name);
+        return t();
+    }
+
+    public IvyModule variant(String variant, Map<String, String> attributes) {
+        backingModule.variant(variant, attributes);
         return t();
     }
 

@@ -17,31 +17,28 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
- * Describes a dependency declared in a resolved component's metadata, which typically originates from
- * a component descriptor (Gradle metadata file, Ivy file, Maven POM). This interface can be used to adjust
- * a dependency's properties via metadata rules (see {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler}.
+ * Describes a metadata about a dependency - direct dependency or dependency constraint - declared in a resolved component's metadata.
  *
+ * @param <SELF> type extending this interface
  * @since 4.4
  */
-@Incubating
-public interface DependencyMetadata {
+public interface DependencyMetadata<SELF extends DependencyMetadata> {
 
     /**
-     * Returns the group of the module that is targeted by this dependency.
+     * Returns the group of the module that is targeted by this dependency or dependency constraint.
      * The group allows the definition of modules of the same name in different organizations or contexts.
      */
     String getGroup();
 
     /**
-     * Returns the name of the module that is targeted by this dependency.
+     * Returns the name of the module that is targeted by this dependency or dependency constraint.
      */
     String getName();
 
     /**
-     * Returns the version of the module that is targeted by this dependency,
+     * Returns the version of the module that is targeted by this dependency or dependency constraint.
      * which usually expresses what API level of the module you are compatible with.
      *
      * @since 4.5
@@ -49,10 +46,10 @@ public interface DependencyMetadata {
     VersionConstraint getVersionConstraint();
 
     /**
-     * Adjust the version constraints of the dependency.
+     * Adjust the version constraints of the dependency or dependency constraint.
      *
      * @param configureAction modify version details
      * @since 4.5
      */
-    DependencyMetadata version(Action<? super MutableVersionConstraint> configureAction);
+    SELF version(Action<? super MutableVersionConstraint> configureAction);
 }

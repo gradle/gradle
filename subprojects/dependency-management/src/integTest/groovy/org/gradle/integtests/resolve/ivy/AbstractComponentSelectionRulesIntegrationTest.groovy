@@ -70,7 +70,7 @@ abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractMo
         def repo = GradleMetadataResolveRunner.useIvy() ? ivyHttpRepo : mavenHttpRepo
         def desc = GradleMetadataResolveRunner.useIvy() ? 'ivy' : 'pom'
         def resolve = repo.module(group, module, version)
-        if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+        if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
             uris << resolve.moduleMetadata.uri
         }
         uris << resolve."$desc".uri

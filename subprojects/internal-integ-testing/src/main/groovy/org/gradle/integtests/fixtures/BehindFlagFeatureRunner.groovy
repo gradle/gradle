@@ -52,6 +52,10 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
         required
     }
 
+    def isInvalidCombination(Map<String, String> values) {
+        false
+    }
+
     @Override
     protected void createExecutions() {
         def requiredFeatures = requiredFeatures()
@@ -67,7 +71,7 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
                     skip = true
                 }
             }
-            if (!skip) {
+            if (!skip && !isInvalidCombination(executionValues)) {
                 add(new FeatureExecution(features, executionValues))
             }
         }

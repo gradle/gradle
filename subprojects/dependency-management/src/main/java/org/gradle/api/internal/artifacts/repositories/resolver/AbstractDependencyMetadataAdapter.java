@@ -21,15 +21,16 @@ import org.gradle.api.artifacts.DependencyMetadata;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 
 import java.util.List;
 
-public class DependencyMetadataAdapter implements DependencyMetadata {
+public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMetadata> implements DependencyMetadata<T> {
     private final List<ModuleDependencyMetadata> container;
     private final int originalIndex;
 
-    public DependencyMetadataAdapter(List<ModuleDependencyMetadata> container, int originalIndex) {
+    public AbstractDependencyMetadataAdapter(List<ModuleDependencyMetadata> container, int originalIndex) {
         this.container = container;
         this.originalIndex = originalIndex;
     }
@@ -58,11 +59,11 @@ public class DependencyMetadataAdapter implements DependencyMetadata {
     }
 
     @Override
-    public DependencyMetadata version(Action<? super MutableVersionConstraint> configureAction) {
+    public T version(Action<? super MutableVersionConstraint> configureAction) {
         DefaultMutableVersionConstraint mutableVersionConstraint = new DefaultMutableVersionConstraint(getVersionConstraint());
         configureAction.execute(mutableVersionConstraint);
         ModuleDependencyMetadata dependencyMetadata = getOriginalMetadata().withRequestedVersion(mutableVersionConstraint);
         updateMetadata(dependencyMetadata);
-        return this;
+        return Cast.uncheckedCast(this);
     }
 }
