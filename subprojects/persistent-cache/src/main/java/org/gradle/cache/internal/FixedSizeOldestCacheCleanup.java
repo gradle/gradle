@@ -47,12 +47,10 @@ public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final long targetSizeInMB;
-    private final String partialFileSuffix;
 
-    public FixedSizeOldestCacheCleanup(BuildOperationExecutor buildOperationExecutor, long targetSizeInMB, String partialFileSuffix) {
+    public FixedSizeOldestCacheCleanup(BuildOperationExecutor buildOperationExecutor, long targetSizeInMB) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.targetSizeInMB = targetSizeInMB;
-        this.partialFileSuffix = partialFileSuffix;
     }
 
     @Override
@@ -167,6 +165,6 @@ public final class FixedSizeOldestCacheCleanup implements Action<PersistentCache
     }
 
     boolean canBeDeleted(String name) {
-        return !(name.endsWith(".properties") || name.endsWith(".lock") || name.endsWith(partialFileSuffix));
+        return !(name.endsWith(".properties") || name.endsWith(".lock"));
     }
 }

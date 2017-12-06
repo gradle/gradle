@@ -35,7 +35,7 @@ class DirectoryBuildCacheServiceTest extends Specification {
     def persistentCache = Mock(PersistentCache) {
         getBaseDir() >> cacheDir
     }
-    def tempFileStore = new DefaultBuildCacheTempFileStore(cacheDir, ".part")
+    def tempFileStore = new DefaultBuildCacheTempFileStore(cacheDir)
     def service = new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, ".failed")
     def key = Mock(BuildCacheKey)
 
@@ -51,7 +51,7 @@ class DirectoryBuildCacheServiceTest extends Specification {
 
                 def partialCacheFile = cacheDirFiles[0]
                 assert partialCacheFile.name.startsWith(hashCode)
-                assert partialCacheFile.name.endsWith(".part")
+                assert partialCacheFile.name.endsWith(BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX)
 
                 output << "abcd"
                 throw new RuntimeException("Simulated write error")
