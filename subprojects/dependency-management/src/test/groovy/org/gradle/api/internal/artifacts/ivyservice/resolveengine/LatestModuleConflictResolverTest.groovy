@@ -75,6 +75,21 @@ class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
 """
     }
 
+    def "recognizes a rejectAll clause"() {
+        given:
+        prefer('1.2', module('org', 'bar', '1.0', module('org', 'baz', '1.0')))
+        participants << module('org', 'foo', '', module('com', 'other', '15')).rejectAll()
+
+        when:
+        resolveConflicts()
+
+        then:
+        resolutionFailedWith """Module 'org:foo' has been rejected:
+   Dependency path ':root:' --> 'org:baz:1.0' --> 'org:bar:1.0' --> 'org:foo' prefers '1.2'
+   Dependency path ':root:' --> 'com:other:15' --> 'org:foo' rejects all versions
+"""
+    }
+
     def "can upgrade non strict version"() {
         given:
         prefer('1.0')

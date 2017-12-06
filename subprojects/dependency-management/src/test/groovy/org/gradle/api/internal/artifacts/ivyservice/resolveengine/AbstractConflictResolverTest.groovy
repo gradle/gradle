@@ -101,6 +101,11 @@ abstract class AbstractConflictResolverTest extends Specification {
             this
         }
 
+        TestComponent rejectAll() {
+            constraint.rejectAll()
+            this
+        }
+
         TestComponent release() {
             metaData = ['getStatus': {'release'}] as ComponentResolveMetadata
             this
