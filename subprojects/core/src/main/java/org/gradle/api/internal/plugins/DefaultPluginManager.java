@@ -29,6 +29,7 @@ import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -36,7 +37,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
@@ -54,7 +54,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final PluginRegistry pluginRegistry;
     private final DefaultPluginContainer pluginContainer;
     private final Map<Class<?>, PluginImplementation<?>> plugins = Maps.newHashMap();
-    private final Map<Class<?>, Plugin<?>> instances = Maps.newHashMap();
+    private final Map<Class<?>, Plugin> instances = Maps.newLinkedHashMap();
     private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
 
     private final BuildOperationExecutor buildOperationExecutor;
@@ -63,7 +63,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         this.instantiator = instantiator;
         this.target = target;
         this.pluginRegistry = pluginRegistry;
-        this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this);
+        this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this, instances.values());
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -157,7 +157,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
         boolean imperative = plugin.isImperative();
         if (imperative) {
             Plugin<?> pluginInstance = producePluginInstance(pluginClass);
-            instances.put(pluginClass, pluginInstance);
 
             if (plugin.isHasRules()) {
                 target.applyImperativeRulesHybrid(pluginId, pluginInstance);
@@ -167,7 +166,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
             // Important not to add until after it has been applied as there can be
             // plugins.withType() callbacks waiting to build on what the plugin did
-            pluginContainer.add(pluginInstance);
+            instances.put(pluginClass, pluginInstance);
+            pluginContainer.pluginAddded(pluginInstance);
         } else {
             target.applyRules(pluginId, pluginClass);
         }
