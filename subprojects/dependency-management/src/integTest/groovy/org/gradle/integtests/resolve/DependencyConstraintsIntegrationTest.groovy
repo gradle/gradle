@@ -136,7 +136,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause("""Module 'org:foo' has been rejected:
    Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' prefers '1.1'
    Constraint path ':test:unspecified' --> 'org:foo' rejects all versions""")
     }
