@@ -23,7 +23,9 @@ ext {
     jarTasks = tasks.withType(Jar)
 }
 
-def testJavaHome = System.getenv('TEST_JAVA_HOME')
+if(!hasProperty("testJavaHome")) {
+    ext.testJavaHome = System.getProperty("testJavaHome")
+}
 if (testJavaHome) {
     def testJavaHomeFile = new File(testJavaHome)
     javaInstallationForTest.javaHome = testJavaHomeFile
