@@ -27,23 +27,20 @@ import org.gradle.api.Incubating;
 public interface ComponentSelectionReason {
 
     /**
-     * Informs whether the component was forced.
-     * Users can force components via {@link org.gradle.api.artifacts.ResolutionStrategy}
-     * or when declaring dependencies (see {@link org.gradle.api.artifacts.dsl.DependencyHandler}).
+     * Informs whether the component was forced. Users can force components via {@link org.gradle.api.artifacts.ResolutionStrategy} or when declaring dependencies (see {@link
+     * org.gradle.api.artifacts.dsl.DependencyHandler}).
      */
     boolean isForced();
 
     /**
-     * Informs whether the component was selected by conflict resolution.
-     * For more information about Gradle's conflict resolution please refer to the user
-     * guide. {@link org.gradle.api.artifacts.ResolutionStrategy} contains information
-     * about conflict resolution and includes means to configure it.
+     * Informs whether the component was selected by conflict resolution. For more information about Gradle's conflict resolution please refer to the user guide. {@link
+     * org.gradle.api.artifacts.ResolutionStrategy} contains information about conflict resolution and includes means to configure it.
      */
     boolean isConflictResolution();
 
     /**
-     * Informs whether the component was selected by the dependency substitution rule.
-     * Users can configure dependency substitution rules via {@link org.gradle.api.artifacts.ResolutionStrategy#getDependencySubstitution()}
+     * Informs whether the component was selected by the dependency substitution rule. Users can configure dependency substitution rules via {@link
+     * org.gradle.api.artifacts.ResolutionStrategy#getDependencySubstitution()}
      *
      * @since 1.4
      */
@@ -55,6 +52,13 @@ public interface ComponentSelectionReason {
      * @since 1.11
      */
     boolean isExpected();
+
+    /**
+     * Informs whether the component is selected due to being a composite build.
+     *
+     * @since 4.5
+     */
+    boolean isCompositeBuild();
 
     /**
      * Returns a human-consumable description of this selection reason.

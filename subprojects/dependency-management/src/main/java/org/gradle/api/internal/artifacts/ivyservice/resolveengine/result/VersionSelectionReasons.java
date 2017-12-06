@@ -19,13 +19,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 public class VersionSelectionReasons {
-    public static final ComponentSelectionReason REQUESTED = new DefaultComponentSelectionReason(false, false, false, true, "requested");
-    public static final ComponentSelectionReason ROOT = new DefaultComponentSelectionReason(false, false, false, true, "root");
-    public static final ComponentSelectionReason FORCED = new DefaultComponentSelectionReason(true, false, false, false, "forced");
-    public static final ComponentSelectionReason CONFLICT_RESOLUTION = new DefaultComponentSelectionReason(false, true, false, false, "conflict resolution");
-    public static final ComponentSelectionReason SELECTED_BY_RULE = new DefaultComponentSelectionReason(false, false, true, false, "selected by rule");
-    public static final ComponentSelectionReason CONFLICT_RESOLUTION_BY_RULE = new DefaultComponentSelectionReason(false, true, true, false, "selected by rule and conflict resolution");
-    public static final ComponentSelectionReason COMPOSITE_BUILD = new DefaultComponentSelectionReason(false, false, false, false, "composite build substitution");
+    public static final ComponentSelectionReason REQUESTED = new DefaultComponentSelectionReason(false, false, false, true, false, "requested");
+    public static final ComponentSelectionReason ROOT = new DefaultComponentSelectionReason(false, false, false, true, false, "root");
+    public static final ComponentSelectionReason FORCED = new DefaultComponentSelectionReason(true, false, false, false, false, "forced");
+    public static final ComponentSelectionReason CONFLICT_RESOLUTION = new DefaultComponentSelectionReason(false, true, false, false, false, "conflict resolution");
+    public static final ComponentSelectionReason SELECTED_BY_RULE = new DefaultComponentSelectionReason(false, false, true, false, false, "selected by rule");
+    public static final ComponentSelectionReason CONFLICT_RESOLUTION_BY_RULE = new DefaultComponentSelectionReason(false, true, true, false, false, "selected by rule and conflict resolution");
+    public static final ComponentSelectionReason COMPOSITE_BUILD = new DefaultComponentSelectionReason(false, false, false, false, true, "composite build substitution");
 
     public static ComponentSelectionReason withConflictResolution(ComponentSelectionReason reason) {
         if (reason.isConflictResolution()) {
@@ -48,16 +48,19 @@ public class VersionSelectionReasons {
         private final boolean conflictResolution;
         private final boolean selectedByRule;
         private final boolean expected;
+        private final boolean compositeBuild;
         private final String description;
 
-        private DefaultComponentSelectionReason(boolean forced, boolean conflictResolution, boolean selectedByRule, boolean expected, String description) {
+        private DefaultComponentSelectionReason(boolean forced, boolean conflictResolution, boolean selectedByRule, boolean expected, boolean compositeBuild, String description) {
             this.forced = forced;
             this.conflictResolution = conflictResolution;
             this.selectedByRule = selectedByRule;
             this.expected = expected;
+            this.compositeBuild = compositeBuild;
             assert description != null;
             this.description = description;
         }
+
 
         public boolean isForced() {
             return forced;
@@ -73,6 +76,11 @@ public class VersionSelectionReasons {
 
         public boolean isExpected() {
             return expected;
+        }
+
+        @Override
+        public boolean isCompositeBuild() {
+            return compositeBuild;
         }
 
         public String getDescription() {
