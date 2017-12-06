@@ -2,6 +2,7 @@ import org.gradle.build.ClasspathManifest
 import org.gradle.build.DefaultJavaInstallation
 import org.gradle.testing.DistributionTest
 
+import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 
 import java.util.jar.Attributes
@@ -67,7 +68,7 @@ testTasks.all { task ->
             }
         }
     }
-    executable = file("${javaInstallationForTest.javaHome}/bin/java")
+    executable = Jvm.forHome(javaInstallationForTest.javaHome).javaExecutable
     environment['JAVA_HOME'] = javaInstallationForTest.javaHome.absolutePath
     if (javaInstallationForTest.javaVersion.java7) {
         // enable class unloading
