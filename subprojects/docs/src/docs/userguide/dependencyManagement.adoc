@@ -146,8 +146,40 @@ To configure a configuration:
 ++++
 
 
-[[sec:how_to_declare_your_dependencies]]
-=== How to declare your dependencies
+[[sec:declaring_dependencies]]
+=== Declaring dependencies
+
+==== Declaring a binary dependency
+
+Modern software projects rarely build code in isolation. Projects reuse external libraries for the purpose of reusing existing and proven functionality. A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework] for the purpose of supporting dependency injection and web functionality out-of-the-box.
+
+The code snippet below declares a compile-time dependency on the Spring web module by its coordinates `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the dependency at runtime from the Maven Central repository and uses it to compile Java source code.
+
+++++
+<sample id="binary-dependencies" dir="userguide/dependencies/declaringBinaryDependencies" title="Declaring a binary dependencies">
+    <sourcefile file="build.gradle" snippet="binary-dependencies"/>
+</sample>
+++++
+
+A Gradle project can define other target repositories hosting binary dependencies. You can learn more about the syntax and API for <<sec:repositories,declaring repositories>>. For a deep dive on declaring dependencies for a Java project please refer to <<java_plugin>>.
+
+==== Declaring a file dependency
+
+For historical reasons legacy projects often times do not rely on a binary repository product e.g. link:https://www.jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/nexus-repository-sonatype/[Sonatype Nexus] for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_ the reason being that they represent a file without any metadata (like information about transitive dependencies, the origin or its author) attached to it.
+
+Gradle is not limited to resolving module or project dependencies. It can also declare a dependency on just a file. The following example resolves multiple file dependencies from the `libs` directory.
+
+++++
+<sample id="file-dependencies" dir="userguide/dependencies/declaringFileDependencies" title="Declaring multiple file dependencies">
+    <sourcefile file="build.gradle" snippet="file-dependencies"/>
+</sample>
+++++
+
+As you can see in the code example, every dependency has to define its exact location in the file system. An alternative, you can also define the target directory of one or many file dependencies in the form of a <<sec:flat_dir_resolver,flat directory repository>>.
+
+==== Declaring a project dependency
+
+==== What happens under the cover?
 
 There are several different types of dependencies that you can declare:
 
@@ -157,43 +189,24 @@ There are several different types of dependencies that you can declare:
 | Type
 | Description
 
+| <<sub:file_dependencies,File dependency>>
+| A dependency on a set of files on the local filesystem.
+
 | <<sub:module_dependencies,External module dependency>>
 | A dependency on an external module in some repository.
 
 | <<sub:project_dependencies,Project dependency>>
 | A dependency on another project in the same build.
 
-| <<sub:file_dependencies,File dependency>>
-| A dependency on a set of files on the local filesystem.
-
-| <<sub:client_module_dependencies,Client module dependency>>
-| A dependency on an external module, where the artifacts are located in some repository but the module meta-data is specified by the local build. You use this kind of dependency when you want to override the meta-data for the module.
-
 | <<sub:api_dependencies,Gradle API dependency>>
 | A dependency on the API of the current Gradle version. You use this kind of dependency when you are developing custom Gradle plugins and task types.
 
+| <<sub:testkit_dependencies,Gradle TestKit dependency>>
+| A dependency on the TestKit API of the current Gradle version. You use this kind of dependency when you are developing custom Gradle plugins and task types.
+
 | <<sub:groovy_dependencies,Local Groovy dependency>>
-| A dependency on the Groovy version used by the current Gradle version. You use this kind of dependency when you are developing custom Gradle plugins and task types.
+| A dependency on the Groovy version used by the current Gradle version. You use this kind of dependency for writing and executing functional tests for Gradle plugins and build scripts.
 |===
-
-
-[[sub:module_dependencies]]
-==== External module dependencies
-
-External module dependencies are the most common dependencies. They refer to a module in an external repository.
-
-++++
-<sample id="moduleDependencies" dir="userguide/artifacts/externalDependencies" title="Module dependencies">
-                <sourcefile file="build.gradle" snippet="module-dependencies"/>
-            </sample>
-++++
-
-See the api:org.gradle.api.artifacts.dsl.DependencyHandler[] class in the API documentation for more examples and a complete reference.
-
-Gradle provides different notations for module dependencies. There is a string notation and a map notation. A module dependency has an API which allows further configuration. Have a look at api:org.gradle.api.artifacts.ExternalModuleDependency[] to learn all about the API. This API provides properties and configuration methods. Via the string notation you can define a subset of the properties. With the map notation you can define all properties. To have access to the complete API, either with the map or with the string notation, you can assign a single dependency to a configuration together with a closure.
-
-If you declare a module dependency, Gradle looks for a module descriptor file (`pom.xml` or `ivy.xml`) in the repositories. If such a module descriptor file exists, it is parsed and the artifacts of this module (e.g. `hibernate-3.0.5.jar`) as well as its dependencies (e.g. cglib) are downloaded. If no such module descriptor file exists, Gradle looks for a file called `hibernate-3.0.5.jar` to retrieve. In Maven, a module can have one and only one artifact. In Gradle and Ivy, a module can have multiple artifacts. Each artifact can have a different set of dependencies.
-
 
 [[ssub:multi_artifact_dependencies]]
 ===== Depending on modules with multiple artifacts
@@ -244,85 +257,6 @@ It is easy to iterate over the dependency artifacts of a configuration:
                 <output args="-q listJars"/>
             </sample>
 ++++
-
-[[sub:client_module_dependencies]]
-==== Client module dependencies
-
-Client module dependencies allow you to declare _transitive_ dependencies directly in the build script. They are a replacement for a module descriptor in an external repository.
-
-++++
-<sample id="client-modules" dir="userguide/artifacts/externalDependencies" title="Client module dependencies - transitive dependencies">
-                <sourcefile file="build.gradle" snippet="client-modules"/>
-            </sample>
-++++
-
-This declares a dependency on Groovy. Groovy itself has dependencies. But Gradle does not look for an XML descriptor to figure them out but gets the information from the build file. The dependencies of a client module can be normal module dependencies or artifact dependencies or another client module. Also look at the API documentation for the api:org.gradle.api.artifacts.ClientModule[] class.
-
-In the current release client modules have one limitation. Let's say your project is a library and you want this library to be uploaded to your company's Maven or Ivy repository. Gradle uploads the jars of your project to the company repository together with the XML descriptor file of the dependencies. If you use client modules the dependency declaration in the XML descriptor file is not correct. We will improve this in a future release of Gradle.
-
-[[sub:project_dependencies]]
-==== Project dependencies
-
-Gradle distinguishes between external dependencies and dependencies on projects which are part of the same multi-project build. For the latter you can declare _Project Dependencies_.
-
-++++
-<sample id="project-dependencies" dir="java/multiproject/api" title="Project dependencies">
-                <sourcefile file="build.gradle" snippet="project-dependencies"/>
-            </sample>
-++++
-
-For more information see the API documentation for api:org.gradle.api.artifacts.ProjectDependency[].
-
-Multi-project builds are discussed in <<multi_project_builds>>.
-
-[[sub:file_dependencies]]
-==== File dependencies
-
-File dependencies allow you to directly add a set of files to a configuration, without first adding them to a repository. This can be useful if you cannot, or do not want to, place certain files in a repository. Or if you do not want to use any repositories at all for storing your dependencies.
-
-To add some files as a dependency for a configuration, you simply pass a <<sec:file_collections,file collection>> as a dependency:
-
-++++
-<sample id="file-dependencies" dir="userguide/artifacts/externalDependencies" title="File dependencies">
-                <sourcefile file="build.gradle" snippet="file-dependencies"/>
-            </sample>
-++++
-
-File dependencies are not included in the published dependency descriptor for your project. However, file dependencies are included in transitive project dependencies within the same build. This means they cannot be used outside the current build, but they can be used with the same build.
-
-You can declare which tasks produce the files for a file dependency. You might do this when, for example, the files are generated by the build.
-
-++++
-<sample id="generatedFileDependencies" dir="userguide/artifacts/generatedFileDependencies" title="Generated file dependencies">
-                <sourcefile file="build.gradle" snippet="generated-file-dependencies"/>
-                <output args="-q list"/>
-            </sample>
-++++
-
-
-[[sub:api_dependencies]]
-==== Gradle API Dependency
-
-You can declare a dependency on the API of the current version of Gradle by using the api:org.gradle.api.artifacts.dsl.DependencyHandler#gradleApi[] method. This is useful when you are developing custom Gradle tasks or plugins.
-
-++++
-<sample id="gradle-api-dependencies" dir="customPlugin/plugin" title="Gradle API dependencies">
-                <sourcefile file="build.gradle" snippet="gradle-api-dependencies"/>
-            </sample>
-++++
-
-
-[[sub:groovy_dependencies]]
-==== Local Groovy Dependency
-
-You can declare a dependency on the Groovy that is distributed with Gradle by using the api:org.gradle.api.artifacts.dsl.DependencyHandler#localGroovy[] method. This is useful when you are developing custom Gradle tasks or plugins in Groovy.
-
-++++
-<sample id="local-groovy-dependencies" dir="customPlugin/plugin" title="Gradle's Groovy dependencies">
-                <sourcefile file="build.gradle" snippet="local-groovy-dependencies"/>
-            </sample>
-++++
-
 
 [[sub:exclude_transitive_dependencies]]
 ==== Excluding transitive dependencies

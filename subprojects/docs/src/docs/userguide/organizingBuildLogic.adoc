@@ -136,7 +136,7 @@ If your build script needs to use external libraries, you can add them to the sc
         </sample>
 ++++
 
-The closure passed to the `buildscript()` method configures a api:org.gradle.api.initialization.dsl.ScriptHandler[] instance. You declare the build script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the dependency types described in <<sec:how_to_declare_your_dependencies>>, except project dependencies.
+The closure passed to the `buildscript()` method configures a api:org.gradle.api.initialization.dsl.ScriptHandler[] instance. You declare the build script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the dependency types described in <<sec:dependency_types>>, except project dependencies.
 
 Having declared the build script classpath, you can use the classes in your build script as you would any other classes on the classpath. The following example adds to the previous example, and uses classes from the build script classpath.
 

@@ -122,6 +122,10 @@
         <xi:include href='../../../build/asciidoc/userguide/softwareModelExtend.xml'/>
     </part>
     <part>
+        <title>Glossary</title>
+        <xi:include href='../../../build/asciidoc/userguide/dependencyTypes.xml'/>
+    </part>
+    <part>
         <title>Appendix</title>
         <!-- this is generated -->
         <xi:include href='../../../build/src/samplesList.xml'/>

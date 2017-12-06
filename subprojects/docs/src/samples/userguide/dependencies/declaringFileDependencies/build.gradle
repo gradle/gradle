@@ -1,0 +1,15 @@
+//START SNIPPET file-dependencies
+configurations {
+    antContrib
+    externalLibs
+    deploymentTools
+}
+
+dependencies {
+    antContrib file('ant/antcontrib.jar')
+    externalLibs files('libs/commons-lang.jar', 'libs/log4j.jar')
+    deploymentTools fileTree(dir: 'tools', include: '*.exe')
+}
+//END SNIPPET file-dependencies
+
+
