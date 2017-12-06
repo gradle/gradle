@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.internal.Cast;
 
-abstract public class AbstractDependencyImpl<T extends DirectDependencyMetadata> implements DependencyMetadata<T> {
+public abstract class AbstractDependencyImpl<T extends DirectDependencyMetadata> implements DependencyMetadata<T> {
     private final String group;
     private final String name;
     private MutableVersionConstraint versionConstraint;

@@ -32,7 +32,7 @@ import java.util.AbstractList;
 import java.util.List;
 import java.util.Map;
 
-abstract public class AbstractDependenciesMetadataAdapter<T extends DependencyMetadata> extends AbstractList<T> implements DependenciesMetadata<T> {
+public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMetadata> extends AbstractList<T> implements DependenciesMetadata<T> {
     private final List<org.gradle.internal.component.model.DependencyMetadata> dependenciesMetadata;
     protected final Map<Integer, T> dependencyMetadataAdapters;
     private final Instantiator instantiator;

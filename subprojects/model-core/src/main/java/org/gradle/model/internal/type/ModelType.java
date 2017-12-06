@@ -272,7 +272,7 @@ public abstract class ModelType<T> {
         return wrapper.hashCode();
     }
 
-    abstract public static class Builder<T> {
+    public abstract static class Builder<T> {
         private ParameterizedTypeWrapper wrapper;
 
         public Builder() {
@@ -292,7 +292,7 @@ public abstract class ModelType<T> {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    abstract public static class Parameter<T> {
+    public abstract static class Parameter<T> {
         private final TypeVariable<?> typeVariable;
 
         public Parameter() {

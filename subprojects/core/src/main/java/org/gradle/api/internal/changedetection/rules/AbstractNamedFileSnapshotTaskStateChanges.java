@@ -32,7 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-abstract public class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
+public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
     protected final TaskExecution previous;
     protected final TaskExecution current;
     private final TaskInternal task;
