@@ -27,8 +27,6 @@ class BaselineVersion implements VersionResults {
     // Multiply standard error of mean by this factor to reduce the number of a falsely identified regressions.
     // https://en.wikipedia.org/wiki/Standard_deviation#Rules_for_normally_distributed_data
     static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN_FOR_REGRESSION = new BigDecimal("3")
-    // Multiply standard error of mean by this factor to reduce the number of a falsely identified improvements.
-    static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN_FOR_IMPROVEMENT = new BigDecimal("9")
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
 
@@ -69,14 +67,10 @@ class BaselineVersion implements VersionResults {
     }
 
     Amount<Duration> getMaxExecutionTimeRegression(MeasuredOperationList current) {
-        getAverageStandardErrorOfMean(current) * NUM_STANDARD_ERRORS_FROM_MEAN_FOR_REGRESSION
+        (results.totalTime.standardErrorOfMean + current.totalTime.standardErrorOfMean) / 2 * NUM_STANDARD_ERRORS_FROM_MEAN_FOR_REGRESSION
     }
 
     Amount<Duration> getMinExecutionTimeImprovement(MeasuredOperationList current) {
-        getAverageStandardErrorOfMean(current) * NUM_STANDARD_ERRORS_FROM_MEAN_FOR_IMPROVEMENT
-    }
-
-    private Amount<Duration> getAverageStandardErrorOfMean(MeasuredOperationList current) {
-        (results.totalTime.standardErrorOfMean + current.totalTime.standardErrorOfMean) / 2
+        (results.totalTime.standardError + current.totalTime.standardError) / 2
     }
 }
