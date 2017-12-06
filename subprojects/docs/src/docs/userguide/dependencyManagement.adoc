@@ -167,7 +167,7 @@ A Gradle project can define other target repositories hosting binary dependencie
 
 For historical reasons legacy projects often times do not rely on a binary repository product e.g. link:https://www.jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/nexus-repository-sonatype/[Sonatype Nexus] for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_ the reason being that they represent a file without any metadata (like information about transitive dependencies, the origin or its author) attached to it.
 
-Gradle is not limited to resolving module or project dependencies. It can also declare a dependency on just a file. The following example resolves multiple file dependencies from the `libs` directory.
+Gradle is not limited to resolving module or project dependencies. It can also declare a dependency on just a file. The following example resolves file dependencies from the directories `ant`, `libs` and `tools`.
 
 ++++
 <sample id="file-dependencies" dir="userguide/dependencies/declaringFileDependencies" title="Declaring multiple file dependencies">
@@ -178,6 +178,18 @@ Gradle is not limited to resolving module or project dependencies. It can also d
 As you can see in the code example, every dependency has to define its exact location in the file system. An alternative, you can also define the target directory of one or many file dependencies in the form of a <<sec:flat_dir_resolver,flat directory repository>>.
 
 ==== Declaring a project dependency
+
+Software projects often break down software components into modules to support maintainability and prevent strong coupling. Modules can define dependencies between each other to reuse code within the same project.
+
+Gradle can module dependencies between modules as so-called project dependencies. At runtime, the build automatically ensures that project dependencies are built in the correct order and added to the classpath for compilation.
+
+The following example declares the dependencies on the `utils` and `api` project for the `web-service` project.
+
+++++
+<sample id="project-dependencies" dir="userguide/dependencies/declaringProjectDependencies" title="Declaring project dependencies">
+    <sourcefile file="build.gradle" snippet="project-dependencies"/>
+</sample>
+++++
 
 ==== What happens under the cover?
 
