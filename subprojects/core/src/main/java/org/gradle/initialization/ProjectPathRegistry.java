@@ -29,13 +29,11 @@ public interface ProjectPathRegistry {
 
     /**
      * Returns an path for every implicit project in a build, including projects from included builds.
-     * Always returns the same set for the lifetime of the build.
      */
     Set<Path> getAllImplicitProjectPaths();
 
     /**
      * Returns an path for every explicit project in a build, including projects from included builds.
-     * Always returns the same set for the lifetime of the build.
      */
     Set<Path> getAllExplicitProjectPaths();
 
