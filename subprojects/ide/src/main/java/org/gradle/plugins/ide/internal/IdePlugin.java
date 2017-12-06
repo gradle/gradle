@@ -124,19 +124,19 @@ public abstract class IdePlugin implements Plugin<Project> {
 
     public List<LocalComponentArtifactMetadata> getIdeArtifactMetadata(String type) {
         ServiceRegistry serviceRegistry = ((ProjectInternal)project).getServices();
-        List<LocalComponentArtifactMetadata> artifactMetadata = Lists.newArrayList();
+        List<LocalComponentArtifactMetadata> result = Lists.newArrayList();
         ProjectPathRegistry projectPathRegistry = serviceRegistry.get(ProjectPathRegistry.class);
         LocalComponentRegistry localComponentRegistry = serviceRegistry.get(LocalComponentRegistry.class);
 
         for (Path projectPath : projectPathRegistry.getAllExplicitProjectPaths()) {
             ProjectComponentIdentifier projectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
-            LocalComponentArtifactMetadata xcodeprojArtifact = localComponentRegistry.findAdditionalArtifact(projectId, type);
-            if (xcodeprojArtifact != null) {
-                artifactMetadata.add(xcodeprojArtifact);
+            LocalComponentArtifactMetadata artifactMetadata = localComponentRegistry.findAdditionalArtifact(projectId, type);
+            if (artifactMetadata != null) {
+                result.add(artifactMetadata);
             }
         }
 
-        return artifactMetadata;
+        return result;
     }
 
     public FileCollection getIdeArtifacts(final String type) {
