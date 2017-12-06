@@ -15,7 +15,7 @@
  */
 
 apply {
-    from(File(settingsDir, "gradle/remoteHttpCacheSettings.gradle"))
+    from("gradle/remoteHttpCacheSettings.gradle")
 }
 
 include("distributions")
@@ -96,12 +96,16 @@ include("buildCache")
 include("coreApi")
 include("versionControl")
 
+val upperCaseLetters = "\\p{Upper}".toRegex()
+
+fun String.toKebabCase() =
+    replace(upperCaseLetters) { "-${it.value.toLowerCase()}" }
+
 rootProject.name = "gradle"
 for (project in rootProject.children) {
-    val fileBaseName = project.name.replace("\\p{Upper}".toRegex()) { "-${it.value.toLowerCase()}" }
-    val projectDirName = "subprojects/$fileBaseName"
-    project.projectDir = File(settingsDir, projectDirName)
-    project.buildFileName = "${fileBaseName}.gradle"
+    val projectDirName = project.name.toKebabCase()
+    project.projectDir = file("subprojects/$projectDirName")
+    project.buildFileName = "$projectDirName.gradle"
     assert(project.projectDir.isDirectory)
     assert(project.buildFile.isFile)
 }
