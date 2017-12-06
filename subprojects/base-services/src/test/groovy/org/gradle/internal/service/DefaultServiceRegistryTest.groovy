@@ -269,7 +269,8 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         e = thrown()
-        e.message == "Cannot create service of type String using StringProvider.createString() as required service of type Runnable is not available."
+        e.message == "Cannot create service of type Integer using StringProvider.createInteger() as there is a problem with parameter #1 of type String."
+        e.cause.message == "Cannot create service of type String using StringProvider.createString() as required service of type Runnable is not available."
     }
 
     def failsWhenProviderFactoryMethodThrowsException() {
@@ -437,16 +438,19 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String."
-        e.cause.message == 'A service dependency cycle was detected: Integer > String > String.'
+        e.message == 'Cannot create service of type String using ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
+        e.cause.message == 'Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
+        e.cause.cause.message == 'This service depends on itself'
 
         when:
         registry.getAll(Number)
 
         then:
         e = thrown()
-        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String."
-        e.cause.message == 'A service dependency cycle was detected: Integer > String > String.'
+
+        e.message == 'Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
+        e.cause.message == 'Cannot create service of type String using ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
+        e.cause.cause.message == 'This service depends on itself'
     }
 
     def failsWhenAProviderFactoryMethodReturnsNull() {

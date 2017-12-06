@@ -31,11 +31,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.AbstractList;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.Formatter;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -643,12 +641,13 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private static abstract class SingletonService extends ManagedObjectProvider<Object> implements ServiceProvider {
+        private enum BindState { UNBOUND, BINDING, BOUND }
         final Type serviceType;
         final Class serviceClass;
 
         // cached for performance
         Class factoryElementType;
-        boolean bound;
+        BindState state = BindState.UNBOUND;
 
         SingletonService(Type serviceType) {
             this.serviceType = serviceType;
@@ -666,9 +665,18 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         private ServiceProvider prepare(LookupContext context) {
-            if (!bound) {
-                bind(context);
-                bound = true;
+            if (state == BindState.BINDING) {
+                throw new ServiceValidationException("This service depends on itself");
+            }
+            if (state == BindState.UNBOUND) {
+                state = BindState.BINDING;
+                try {
+                    bind(context);
+                    state = BindState.BOUND;
+                } catch (RuntimeException e) {
+                    state = BindState.UNBOUND;
+                    throw e;
+                }
             }
             return this;
         }
@@ -752,29 +760,30 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             paramProviders = new ServiceProvider[parameterTypes.length];
             for (int i = 0; i < parameterTypes.length; i++) {
                 Type paramType = parameterTypes[i];
-                try {
-                    if (paramType.equals(ServiceRegistry.class)) {
-                        paramProviders[i] = getThisAsProvider();
-                    } else {
-                        ServiceProvider paramProvider = context.find(paramType, allServices);
-                        if (paramProvider == null) {
-                            throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available.",
-                                format(serviceType),
-                                getFactory().getDeclaringClass().getSimpleName(),
-                                getFactory().getName(),
-                                format(paramType)));
-
-                        }
-                        paramProviders[i] = paramProvider;
-                        paramProvider.requiredBy(this);
+                if (paramType.equals(ServiceRegistry.class)) {
+                    paramProviders[i] = getThisAsProvider();
+                } else {
+                    ServiceProvider paramProvider;
+                    try {
+                        paramProvider = context.find(paramType, allServices);
+                    } catch (ServiceLookupException e) {
+                        throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as there is a problem with parameter #%s of type %s.",
+                            format(serviceType),
+                            getFactory().getDeclaringClass().getSimpleName(),
+                            getFactory().getName(),
+                            i + 1,
+                            format(paramType)), e);
                     }
-                } catch (ServiceValidationException e) {
-                    throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as there is a problem with parameter #%s of type %s.",
-                        format(serviceType),
-                        getFactory().getDeclaringClass().getSimpleName(),
-                        getFactory().getName(),
-                        i + 1,
-                        format(paramType)), e);
+                    if (paramProvider == null) {
+                        throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available.",
+                            format(serviceType),
+                            getFactory().getDeclaringClass().getSimpleName(),
+                            getFactory().getName(),
+                            format(paramType)));
+
+                    }
+                    paramProviders[i] = paramProvider;
+                    paramProvider.requiredBy(this);
                 }
             }
         }
@@ -1251,31 +1260,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private static class DefaultLookupContext implements LookupContext {
-        private final Deque<Type> visiting = new ArrayDeque<Type>(3);
 
         public ServiceProvider find(Type serviceType, Provider provider) {
-            if (visiting.contains(serviceType)) {
-                cycleDetected(serviceType);
-            }
-            visiting.push(serviceType);
-            try {
-                return getServiceProvider(serviceType, provider);
-            } finally {
-                visiting.pop();
-            }
-        }
-
-        private void cycleDetected(Type serviceType) {
-            StringBuilder cycle = new StringBuilder();
-            for (Type visited : visiting) {
-                cycle.append(format(visited)).append(" > ");
-            }
-            cycle.append(format(serviceType));
-
-            throw new ServiceValidationException(String.format("A service dependency cycle was detected: %s.", cycle));
-        }
-
-        public ServiceProvider getServiceProvider(Type serviceType, Provider provider) {
             BiFunction<ServiceProvider, LookupContext, Provider> function = SERVICE_TYPE_PROVIDER_CACHE.get(serviceType);
             if (function == null) {
                 function = createServiceProviderFactory(serviceType);
