@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.util.internal.LimitedDescription;
 
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -159,7 +160,7 @@ public class GFileUtils {
         }
     }
 
-    public static boolean deleteQuietly(File file) {
+    public static boolean deleteQuietly(@Nullable File file) {
         return FileUtils.deleteQuietly(file);
     }
 
