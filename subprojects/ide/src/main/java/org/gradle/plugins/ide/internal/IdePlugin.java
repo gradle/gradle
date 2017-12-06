@@ -144,7 +144,7 @@ public abstract class IdePlugin implements Plugin<Project> {
             @Override
             public List<FileCollection> call() throws Exception {
                 return CollectionUtils.collect(
-                    getIdeArtifactMetadata("xcodeproj"),
+                    getIdeArtifactMetadata(type),
                     new Transformer<FileCollection, LocalComponentArtifactMetadata>() {
                         @Override
                         public FileCollection transform(LocalComponentArtifactMetadata metadata) {
