@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory
 
 class SlackReporter implements DataReporter<CrossVersionPerformanceResults> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SlackReporter)
+    private static final String[] NOTIFY_BRANCHES = ["master", "release"]
     private static final String SLACK_WEBHOOK_URL_ENV = "SLACK_WEBHOOK_URL"
     private static final String SLACK_PERFORMANCE_REPORT_CHANNEL_ENV = "SLACK_PERFORMANCE_REPORT_CHANNEL"
     private static final String BUILD__URL_ENV = "BUILD_URL"
@@ -50,6 +51,10 @@ class SlackReporter implements DataReporter<CrossVersionPerformanceResults> {
     @Override
     void report(CrossVersionPerformanceResults results) {
         delegate.report(results)
+
+        if (!NOTIFY_BRANCHES.contains(results.vcsBranch)) {
+            return
+        }
 
         def significantlyFasterThanBaselines = results.baselineVersions.every { it.significantlySlowerThan(results.current) }
         if (!significantlyFasterThanBaselines) {
