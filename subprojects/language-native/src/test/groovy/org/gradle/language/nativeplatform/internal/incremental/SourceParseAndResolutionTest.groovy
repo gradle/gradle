@@ -714,7 +714,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
     def resolve() {
         def directives = parser.parseSource(sourceFile)
         directives = serialize(directives, serializer)
-        def macros = new MacroLookup()
+        def macros = new CollectingMacroLookup()
         macros.append(sourceFile, directives)
         def result = resolver.resolveInclude(sourceFile, directives.all.first(), macros)
         assert result.complete
@@ -724,7 +724,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
     void doesNotResolve(String reportedAs) {
         def directives = parser.parseSource(sourceFile)
         directives = serialize(directives, serializer)
-        def macros = new MacroLookup()
+        def macros = new CollectingMacroLookup()
         macros.append(sourceFile, directives)
         def result = resolver.resolveInclude(sourceFile, directives.all.first(), macros)
         assert directives.all.first().asSourceText == reportedAs

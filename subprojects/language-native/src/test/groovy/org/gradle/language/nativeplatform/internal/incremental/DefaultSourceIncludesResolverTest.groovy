@@ -47,7 +47,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
     }
 
     def resolve(Include include) {
-        def macros = new MacroLookup()
+        def macros = new CollectingMacroLookup()
         macros.append(sourceFile, included)
         return new DefaultSourceIncludesResolver(includePaths, fileSystemSnapshotter).resolveInclude(sourceFile, include, macros)
     }
