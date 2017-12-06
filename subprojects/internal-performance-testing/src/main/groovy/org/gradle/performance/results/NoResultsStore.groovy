@@ -16,10 +16,10 @@
 
 package org.gradle.performance.results
 
-public class NoResultsStore<T> implements DataReporter<T>, ResultsStore, Closeable {
+class NoResultsStore<T extends PerformanceTestResult> implements DataReporter<T>, ResultsStore {
 
     @Override
-    void close() throws IOException {
+    void close() {
 
     }
 

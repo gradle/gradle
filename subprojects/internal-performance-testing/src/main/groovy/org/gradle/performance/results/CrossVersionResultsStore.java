@@ -25,7 +25,6 @@ import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.util.GradleVersion;
 import org.joda.time.LocalDate;
 
-import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -49,7 +48,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 /**
  * A {@link DataReporter} implementation that stores results in an H2 relational database.
  */
-public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore, Closeable {
+public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore {
     private final long ignoreV17Before;
     private final PerformanceDatabase db;
     private final Map<String, GradleVersion> gradleVersionCache = new HashMap<String, GradleVersion>();

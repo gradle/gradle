@@ -41,6 +41,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     GradleDistribution current
     final IntegrationTestBuildContext buildContext
+    final ResultsStore resultsStore
     final DataReporter<CrossVersionPerformanceResults> reporter
     TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
@@ -63,7 +64,8 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private CompositeBuildExperimentListener buildExperimentListeners = new CompositeBuildExperimentListener()
     private CompositeInvocationCustomizer invocationCustomizers = new CompositeInvocationCustomizer()
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
+        this.resultsStore = resultsStore
         this.reporter = reporter
         this.experimentRunner = experimentRunner
         this.releases = releases
@@ -82,7 +84,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
 
         def scenarioSelector = new TestScenarioSelector()
-        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), (ResultsStore) reporter))
+        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), resultsStore))
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
