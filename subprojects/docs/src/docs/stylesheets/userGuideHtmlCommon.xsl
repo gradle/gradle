@@ -26,9 +26,14 @@
     <xsl:param name="use.extensions">1</xsl:param>
     <xsl:param name="toc.section.depth">1</xsl:param>
     <xsl:param name="toc.max.depth">2</xsl:param>
-    <xsl:param name="section.autolabel">1</xsl:param>
-    <xsl:param name="section.autolabel.max.depth">2</xsl:param>
-    <xsl:param name="section.label.includes.component.label">1</xsl:param>
+    <xsl:param name="part.autolabel">0</xsl:param>
+    <xsl:param name="chapter.autolabel">0</xsl:param>
+    <xsl:param name="section.autolabel">0</xsl:param>
+    <xsl:param name="preface.autolabel">0</xsl:param>
+    <xsl:param name="figure.autolabel">0</xsl:param>
+    <xsl:param name="example.autolabel">0</xsl:param>
+    <xsl:param name="table.autolabel">0</xsl:param>
+    <xsl:param name="xref.with.number.and.title">0</xsl:param>
     <xsl:param name="css.decoration">0</xsl:param>
     <xsl:param name="highlight.source" select="1"/>
 
