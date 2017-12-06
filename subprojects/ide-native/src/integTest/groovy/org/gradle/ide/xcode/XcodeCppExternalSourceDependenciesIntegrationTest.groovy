@@ -129,7 +129,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
         appProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file('src/main/headers'), checkoutDir(repo.name, commit.id.name, repo.id).file('src/main/public'))
     }
 
-    def "adds source dependencies Swift module of main component to Xcode indexer search path when no component in root project"() {
+    def "adds source dependencies C++ module of main component to Xcode indexer search path when no component in root project"() {
         def fixture = new CppAppWithLibrary()
 
         given:
