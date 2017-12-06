@@ -114,44 +114,22 @@ The main difference between a _dynamic version_ and a _changing module_ is that 
 
 By default, Gradle caches dynamic versions and changing modules for 24 hours. You can override the default cache modes using <<sec:cache_command_line_options,command line options>>. You can change the cache expiry times in your build using the resolution strategy (see <<sec:controlling_caching>>).
 
-[[sub:configurations]]
-=== Dependency configurations
-
-In Gradle dependencies are grouped into configurations. Configurations have a name, a number of other properties, and they can extend each other. Many Gradle plugins add pre-defined configurations to your project. The Java plugin, for example, adds some configurations to represent the various classpaths it needs. see <<sec:java_plugin_and_dependency_management>> for details. Of course you can add custom configurations on top of that. There are many use cases for custom configurations. This is very handy for example for adding dependencies not needed for building or testing your software (e.g. additional JDBC drivers to be shipped with your distribution).
-
-A project's configurations are managed by a `configurations` object. The closure you pass to the configurations object is applied against its API. To learn more about this API have a look at api:org.gradle.api.artifacts.ConfigurationContainer[].
-
-To define a configuration:
-
-++++
-<sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Definition of a configuration">
-            <sourcefile file="build.gradle" snippet="define-configuration"/>
-        </sample>
-++++
-
-To access a configuration:
-
-++++
-<sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Accessing a configuration">
-            <sourcefile file="build.gradle" snippet="lookup-configuration"/>
-        </sample>
-++++
-
-To configure a configuration:
-
-++++
-<sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Configuration of a configuration">
-            <sourcefile file="build.gradle" snippet="configure-configuration"/>
-        </sample>
-++++
-
-
 [[sec:declaring_dependencies]]
 === Declaring dependencies
 
+[[sec:declaring_binary_dependency]]
 ==== Declaring a binary dependency
 
-Modern software projects rarely build code in isolation. Projects reuse external libraries for the purpose of reusing existing and proven functionality. A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework] for the purpose of supporting dependency injection and web functionality out-of-the-box.
+Modern software projects rarely build code in isolation. Projects reference external libraries for the purpose of reusing existing and proven functionality, so-called _binary dependencies_. A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework] for the purpose of supporting dependency injection and web functionality out-of-the-box. Upon resolution binary dependencies are downloaded from dedicated repositories and stored in a cache to avoid unnecessary network access.
+
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Resolving binary dependencies from remote repositories</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-binary-dependencies.png" width="150mm" />
+    </imageobject>
+</figure>
++++++
 
 The code snippet below declares a compile-time dependency on the Spring web module by its coordinates `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the dependency at runtime from the Maven Central repository and uses it to compile Java source code.
 
@@ -161,11 +139,21 @@ The code snippet below declares a compile-time dependency on the Spring web modu
 </sample>
 ++++
 
-A Gradle project can define other target repositories hosting binary dependencies. You can learn more about the syntax and API for <<sec:repositories,declaring repositories>>. For a deep dive on declaring dependencies for a Java project please refer to <<java_plugin>>.
+A Gradle project can define other types of repositories hosting binary dependencies. You can learn more about the syntax and API for <<sec:repositories,declaring repositories>>. Please refer to <<java_plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for binary dependencies declarations is <<sec:customizing_dependencies,highly customizable>>.
 
+[[sec:declaring_file_dependency]]
 ==== Declaring a file dependency
 
 For historical reasons legacy projects often times do not rely on a binary repository product e.g. link:https://www.jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/nexus-repository-sonatype/[Sonatype Nexus] for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_ the reason being that they represent a file without any metadata (like information about transitive dependencies, the origin or its author) attached to it.
+
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Resolving binary dependencies from remote repositories</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-file-dependencies.png" width="140mm" />
+    </imageobject>
+</figure>
++++++
 
 Gradle is not limited to resolving module or project dependencies. It can also declare a dependency on just a file. The following example resolves file dependencies from the directories `ant`, `libs` and `tools`.
 
@@ -175,15 +163,25 @@ Gradle is not limited to resolving module or project dependencies. It can also d
 </sample>
 ++++
 
-As you can see in the code example, every dependency has to define its exact location in the file system. An alternative, you can also define the target directory of one or many file dependencies in the form of a <<sec:flat_dir_resolver,flat directory repository>>.
+As you can see in the code example, every dependency has to define its exact location in the file system. The most prominent methods for creating a file reference are api:org.gradle.api.Project#file(java.lang.Object)[], api:org.gradle.api.Project#files(java.lang.Object...)[] and api:org.gradle.api.Project#fileTree(java.lang.Object)[]. Alternatively, you can also define the target directory of one or many file dependencies in the form of a <<sec:flat_dir_resolver,flat directory repository>>.
 
+[[sec:declaring_project_dependency]]
 ==== Declaring a project dependency
 
 Software projects often break down software components into modules to support maintainability and prevent strong coupling. Modules can define dependencies between each other to reuse code within the same project.
 
-Gradle can module dependencies between modules as so-called project dependencies. At runtime, the build automatically ensures that project dependencies are built in the correct order and added to the classpath for compilation.
+Gradle can model dependencies between modules. Gradle calls those dependencies _project dependencies_ because each module is represented by a Gradle project. At runtime, the build automatically ensures that project dependencies are built in the correct order and added to the classpath for compilation. <<multi_project_builds>> discusses setting up and configuring multi-project builds in more detail.
 
-The following example declares the dependencies on the `utils` and `api` project for the `web-service` project.
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Dependencies between projects</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-project-dependencies.png" width="100mm" />
+    </imageobject>
+</figure>
++++++
+
+The following example declares the dependencies on the `utils` and `api` project for the `web-service` project. The method api:org.gradle.api.Project#project(java.lang.String)[] creates a reference to a specific subproject by path.
 
 ++++
 <sample id="project-dependencies" dir="userguide/dependencies/declaringProjectDependencies" title="Declaring project dependencies">
@@ -191,37 +189,46 @@ The following example declares the dependencies on the `utils` and `api` project
 </sample>
 ++++
 
-==== What happens under the cover?
+[[sub:configurations]]
+==== Defining the scope of a dependency
 
-There are several different types of dependencies that you can declare:
+In Gradle dependencies are grouped into configurations. Configurations have a name, a number of other properties, and they can extend each other. Many Gradle plugins add pre-defined configurations to your project. The Java plugin, for example, adds some configurations to represent the various classpaths it needs. see <<sec:java_plugin_and_dependency_management>> for details. Of course you can add custom configurations on top of that. There are many use cases for custom configurations. This is very handy for example for adding dependencies not needed for building or testing your software (e.g. additional JDBC drivers to be shipped with your distribution).
 
-.Dependency types
-[cols="a,a", options="header"]
-|===
-| Type
-| Description
+A project's configurations are managed by a `configurations` object. The closure you pass to the configurations object is applied against its API. To learn more about this API have a look at api:org.gradle.api.artifacts.ConfigurationContainer[].
 
-| <<sub:file_dependencies,File dependency>>
-| A dependency on a set of files on the local filesystem.
+To define a configuration:
 
-| <<sub:module_dependencies,External module dependency>>
-| A dependency on an external module in some repository.
+++++
+<sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Definition of a configuration">
+    <sourcefile file="build.gradle" snippet="define-configuration"/>
+</sample>
+++++
 
-| <<sub:project_dependencies,Project dependency>>
-| A dependency on another project in the same build.
+To access a configuration:
 
-| <<sub:api_dependencies,Gradle API dependency>>
-| A dependency on the API of the current Gradle version. You use this kind of dependency when you are developing custom Gradle plugins and task types.
+++++
+<sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Accessing a configuration">
+    <sourcefile file="build.gradle" snippet="lookup-configuration"/>
+</sample>
+++++
 
-| <<sub:testkit_dependencies,Gradle TestKit dependency>>
-| A dependency on the TestKit API of the current Gradle version. You use this kind of dependency when you are developing custom Gradle plugins and task types.
+To configure a configuration:
 
-| <<sub:groovy_dependencies,Local Groovy dependency>>
-| A dependency on the Groovy version used by the current Gradle version. You use this kind of dependency for writing and executing functional tests for Gradle plugins and build scripts.
-|===
+++++
+<sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Configuration of a configuration">
+    <sourcefile file="build.gradle" snippet="configure-configuration"/>
+</sample>
+++++
+
+==== Going further
+
+Gradle is not limited to declaring binary, file or project dependencies. Check out the <<dependency_types,full reference on all types of dependencies>> for more information.
+
+[[sec:customizing_dependencies]]
+=== Customizing dependency declarations
 
 [[ssub:multi_artifact_dependencies]]
-===== Depending on modules with multiple artifacts
+==== Depending on modules with multiple artifacts
 
 As mentioned earlier, a Maven module has only one artifact. Hence, when your project depends on a Maven module, it's obvious what its artifact is.
 With Gradle or Ivy, the case is different. Ivy's dependency descriptor (`ivy.xml`) can declare multiple artifacts.
@@ -237,7 +244,7 @@ There are other situations where it is necessary to fine-tune dependency declara
 Please see the api:org.gradle.api.artifacts.dsl.DependencyHandler[] class in the API documentation for examples and a complete reference for declaring dependencies.
 
 [[ssub:artifact_dependencies]]
-===== Artifact only notation
+==== Artifact only notation
 
 As said above, if no module descriptor file can be found, Gradle by default downloads a jar with the name of the module. But sometimes, even if the repository contains module descriptors, you want to download only the artifact jar, without the dependencies.footnote:[Gradle supports partial multiproject builds (see <<multi_project_builds>>).] And sometimes you want to download a zip from a repository, that does not have module descriptors. Gradle provides an _artifact only_ notation for those use cases - simply prefix the extension that you want to be downloaded with `'@'` sign:
 ++++
@@ -249,7 +256,7 @@ As said above, if no module descriptor file can be found, Gradle by default down
 An artifact only notation creates a module dependency which downloads only the artifact file with the specified extension. Existing module descriptors are ignored.
 
 [[sub:classifiers]]
-===== Classifiers
+==== Classifiers
 
 The Maven dependency management has the notion of classifiers.footnote:[ http://books.sonatype.com/mvnref-book/reference/pom-relationships-sect-project-relationships.html[] ] Gradle supports this. To retrieve classified dependencies from a Maven repository you can write:
 
@@ -315,31 +322,13 @@ You can also assign collections or arrays of dependency notations to a configura
             </sample>
 ++++
 
-
-[[sec:dependency_configurations]]
-==== Dependency configurations
-
-In Gradle a dependency can have different configurations (as your project can have different configurations). If you don't specify anything explicitly, Gradle uses the default configuration of the dependency. For dependencies from a Maven repository, the default configuration is the only possibility anyway. If you work with Ivy repositories and want to declare a non-default configuration for your dependency you have to use the map notation and declare:
-
-++++
-<sample id="dependencyConfigurations" dir="userguide/artifacts/externalDependencies" title="Dependency configurations">
-                <sourcefile file="build.gradle" snippet="dependency-configurations"/>
-            </sample>
-++++
-
-To do the same for project dependencies you need to declare:
-
-++++
-<sample id="dependencyConfigurationsProjects" dir="/java/multiproject/services/webservice" title="Dependency configurations for project">
-                <sourcefile file="build.gradle" snippet="dependency-configurations"/>
-            </sample>
-++++
-
+[[sec:inspecting_dependencies]]
+=== Inspecting dependencies
 
 [[sec:dependency_reports]]
 ==== Dependency reports
 
-You can generate dependency reports from the command line (see <<sec:listing_dependencies>>). With the help of the Project report plugin (see <<project_reports_plugin>>) such a report can be created by your build.
+You can generate dependency reports from the command line (see <<sec:listing_dependencies>>). With the help of the Project report plugin (see <<project_report_plugin>>) such a report can be created by your build.
 
 Since Gradle 1.2 there is also a new programmatic API to access the resolved dependency information. The dependency reports (see the previous paragraph) are using this API under the covers. The API lets you walk the resolved dependency graph and provides information about the dependencies. In future releases the API will grow to provide more information about the resolution result. For more information about the API please refer to the Javadocs on api:org.gradle.api.artifacts.ResolvableDependencies#getResolutionResult[]. Potential usages of the api:org.gradle.api.artifacts.result.ResolutionResult[] API:
 
