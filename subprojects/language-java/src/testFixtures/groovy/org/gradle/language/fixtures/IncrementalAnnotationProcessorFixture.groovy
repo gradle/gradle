@@ -25,19 +25,24 @@ import org.gradle.test.fixtures.file.TestFile
  */
 class IncrementalAnnotationProcessorFixture {
 
-    final String INCAP_VERSION = 'org.gradle.incap:incap-ap-client:0.0.4'
+    // TODO:  Can we query this somehow, from our actual project dependencies?
+    final String INCAP_VERSION = 'org.gradle.incap:incap-ap-client:0.0.7-SNAPSHOT'
 
-    String annotationFileName = 'src/main/java/Incremental.java'
-    String processorClassName = 'src/main/java/IncapProcessor.java'
-    String serviceFileName = 'src/main/resources/META-INF/services/javax.annotation.processing.Processor'
-    String incapTagFileName = 'src/main/resources/META-INF/org.gradle.incap'
+    final String annotationFileName = 'src/main/java/Incremental.java'
+    final String processorClassName = 'src/main/java/IncapProcessor.java'
+    final String serviceFileName = 'src/main/resources/META-INF/services/javax.annotation.processing.Processor'
+    public final String INCAP_TAG_FILE_NAME = 'src/main/resources/META-INF/org.gradle.incap'
 
     def writeLibraryTo(TestFile projectDir) {
         writeBuildFile(projectDir)
         projectDir.file(annotationFileName).text = "public @interface Incremental { }"
         projectDir.file(processorClassName).text = incapProcessorClass()
         projectDir.file(serviceFileName).text = "IncapProcessor"
-        projectDir.file(incapTagFileName).text = ""
+        writeIncapSupportLevel(projectDir)
+    }
+
+    protected void writeIncapSupportLevel(TestFile projectDir) {
+        projectDir.file(INCAP_TAG_FILE_NAME).text = "simple"
     }
 
     private void writeBuildFile(TestFile projectDir) {
@@ -47,6 +52,7 @@ class IncrementalAnnotationProcessorFixture {
         repositories {
           maven {
             url 'https://dl.bintray.com/incap/incap'
+            url 'https://repo.gradle.org/gradle/libs-snapshots'
           }
         }
 
@@ -67,6 +73,8 @@ class IncrementalAnnotationProcessorFixture {
         import javax.annotation.processing.Messager;
         import javax.lang.model.element.Element;
         import javax.lang.model.element.TypeElement;
+        import javax.lang.model.element.ExecutableElement;
+        import javax.lang.model.util.ElementFilter;
         import javax.tools.JavaFileObject;
         import javax.annotation.processing.ProcessingEnvironment;
         import javax.annotation.processing.RoundEnvironment;
@@ -107,7 +115,10 @@ class IncrementalAnnotationProcessorFixture {
                                 JavaFileObject sourceFile = filer.createSourceFile(helperName, element);
                                 Writer writer = sourceFile.openWriter();
                                 try {
-                                    writer.write("class " + helperName + " {}");
+                                    writer.write("class " + helperName + " {\\n");
+                                    writer.write("    String getValue() { return \\"incremental\\"; }\\n");
+                                    writeTargetMethods(writer, typeElement);
+                                    writer.write("\\n}\\n");
                                 } finally {
                                     writer.close();
                                 }
@@ -119,6 +130,15 @@ class IncrementalAnnotationProcessorFixture {
                     }
                 }
                 return true;
+            }
+
+            private void writeTargetMethods(Writer writer, TypeElement root) throws Exception {
+                for (ExecutableElement method : ElementFilter.methodsIn(root.getEnclosedElements())) {
+                    // foo() -> generatedFoo()
+                    String name = method.getSimpleName().toString();
+                    String capName = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+                    writer.write("    public void generated" + capName + "() {}\\n");
+                }
             }
         }
         """

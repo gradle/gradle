@@ -30,8 +30,10 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 class AnnotationProcessorDetectorTest extends Specification {
+
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
     def detector = new AnnotationProcessorDetector(TestFiles.fileCollectionFactory(), new TestFileContentCacheFactory())
     def options = new CompileOptions(Mock(ObjectFactory))
 

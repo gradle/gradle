@@ -28,22 +28,20 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.cache.internal.FileContentCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
-import org.gradle.internal.serialize.BaseSerializerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class AnnotationProcessorDetector {
     private final FileCollectionFactory fileCollectionFactory;
-    private final FileContentCache<Map<String, String>> cache;
+    private final FileContentCache<AnnotationProcessorInfo> cache;
 
     public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileContentCacheFactory cacheFactory) {
         this.fileCollectionFactory = fileCollectionFactory;
-        cache = cacheFactory.newCache("annotation-processors-info", 20000, new AnnotationProcessorScanner(), BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER);
+        cache = cacheFactory.newCache("annotation-processors-info", 20000, new AnnotationProcessorScanner(), AnnotationProcessorInfo.SERIALIZER);
     }
 
     /**
@@ -72,7 +70,7 @@ public class AnnotationProcessorDetector {
         if (compileClasspath == null) {
             return null;
         }
-        if (checkExplicitProcessorOption(compileOptions)) {
+        if (hasExplicitProcessorOption(compileOptions)) {
             return compileClasspath;
         }
         return makeCachingFileCollectionForPath(compileClasspath);
@@ -87,12 +85,9 @@ public class AnnotationProcessorDetector {
         }, new MinimalFileSet() {
             @Override
             public Set<File> getFiles() {
-                // TODO:  This currently only scans until it finds one AP.
-                // Might want to get rid of this code entirely, and just return the compile classpath
-                // from getEffectiveAnnotationProcessorClasspath.  In IncrementalCompilerDecorator we
-                // look in the cache, which should trigger the calculator.
                 for (File file : inputPath) {
-                    if ((new AnnotationProcessorInfo(cache.get(file))).isProcessor()) {
+                    AnnotationProcessorInfo info = cache.get(file);
+                    if (info != null && info.isProcessor()) {
                         return inputPath.getFiles();
                     }
                 }
@@ -110,18 +105,15 @@ public class AnnotationProcessorDetector {
         FileCollection effectiveAnnotationProcessorPath = getEffectiveAnnotationProcessorClasspath(compileOptions, compileClasspath);
         Set<AnnotationProcessorInfo> result = Sets.newHashSet();
         for (File file : effectiveAnnotationProcessorPath) {
-            Map<String, String> props = cache.get(file);
-            if (props != null) {
-                AnnotationProcessorInfo info = new AnnotationProcessorInfo(props);
-                if (info.isProcessor()) {
-                    result.add(info);
-                }
+            AnnotationProcessorInfo info = cache.get(file);;
+            if (info != null && info.isProcessor()) {
+                result.add(info);
             }
         }
         return result;
     }
 
-    public boolean checkExplicitProcessorOption(CompileOptions compileOptions) {
+    public boolean hasExplicitProcessorOption(CompileOptions compileOptions) {
         boolean hasExplicitProcessor = false;
         int pos = compileOptions.getCompilerArgs().indexOf("-processor");
         if (pos >= 0) {

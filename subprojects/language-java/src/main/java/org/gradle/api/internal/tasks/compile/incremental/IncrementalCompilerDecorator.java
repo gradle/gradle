@@ -29,7 +29,6 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotMaker;
 import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.CompileOptions;
@@ -105,7 +104,7 @@ public class IncrementalCompilerDecorator {
         }
         FileCollection classPath = new SimpleFileCollection(javaCompileSpec.getCompileClasspath());
         Set<AnnotationProcessorInfo> cachedInfo = annotationProcessorDetector.getAnnotationProcessorInfo(compileOptions, classPath);
-        if (annotationProcessorDetector.checkExplicitProcessorOption(compileOptions)) {
+        if (annotationProcessorDetector.hasExplicitProcessorOption(compileOptions)) {
             LOG.info("{} is not incremental:  The explicit -processor compiler option is not supported for incremental annotation processing.", displayName);
             return false;
         }
@@ -124,9 +123,9 @@ public class IncrementalCompilerDecorator {
             return false;
         }
         if (foundProcessors) {
-            LOG.warn("{} - all annotation processors are incremental.", displayName);
+            LOG.info("{} - all annotation processors are incremental.", displayName);
         } else {
-            LOG.warn("{} - no annotation processors were found.", displayName);
+            LOG.info("{} - no annotation processors were found.", displayName);
         }
         return true;
     }
@@ -135,12 +134,12 @@ public class IncrementalCompilerDecorator {
         StringBuilder sb = new StringBuilder(500);
         sb.append(displayName);
         sb.append(" - is not incremental.  ");
-        sb.append("The following annotation processor(s) do not support incremental builds:\n");
+        sb.append("The following annotation processor(s) do not support incremental compilation:\n");
         for (String processor : nonIncrementalProcessors) {
             sb.append("  ");
             sb.append(processor);
             sb.append("\n");
         }
-        LOG.warn(sb.toString().trim());
+        LOG.info(sb.toString().trim());
     }
 }

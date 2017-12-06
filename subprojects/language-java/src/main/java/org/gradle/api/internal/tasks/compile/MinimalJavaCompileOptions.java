@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.DebugOptions;
@@ -190,7 +189,6 @@ public class MinimalJavaCompileOptions implements Serializable {
      * Returns {@code true} if incremental annotation processing is enabled for this build.
      * @since 4.4
      */
-    @Incubating
     public boolean isIncrementalAnnotationProcessing() {
         return incrementalAnnotationProcessing;
     }

@@ -223,7 +223,7 @@ public class JavaCompile extends AbstractCompile {
         spec.setCompileOptions(compileOptions);
         if (compileOptions.isIncrementalAnnotationProcessing()) {
             File incrementalAnnotationProcessorWorkingDir
-                    = new File(getProject().getBuildDir(), "intermediates/annotationProcessing");
+                    = new File(getProject().getBuildDir(), "tmp/annotationProcessing");
             GFileUtils.mkdirs(incrementalAnnotationProcessorWorkingDir);
             spec.setIncrementalAnnotationProcessorWorkingDir(incrementalAnnotationProcessorWorkingDir);
         }

@@ -16,6 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.base.Objects;
+
+import org.gradle.incap.ProcessorType;
+import org.gradle.internal.serialize.AbstractSerializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
+
 import java.util.Map;
 
 /**
@@ -23,42 +31,111 @@ import java.util.Map;
  */
 public class AnnotationProcessorInfo {
 
-    static final String NAME_KEY = "name";
-    static final String PROCESSOR_KEY = "processor";
-    static final String INCREMENTAL_KEY = "incremental";
-    static final String UNKNOWN_NAME = "(unknown processor)";
+    static final Serializer<AnnotationProcessorInfo> SERIALIZER = new AnnotationProcessorInfoSerializer();
 
-    private Map<String, String> properties;
+    private static final String UNKNOWN_NAME = "(unknown processor)";
 
-    AnnotationProcessorInfo(Map<String, String> data) {
-        properties = data;
+    // Need this flag to mark processors as such, even if not incap-compliant.
+    private boolean isProcessor;
+    
+    private ProcessorType processorType = ProcessorType.UNSPECIFIED;
+    
+    private String processorName;
+
+    public AnnotationProcessorInfo() {
     }
 
     /**
-     * True if the annotation processor adheres to the INCAP incremental AP spec.
+     * Sets the incap support level.
+     */
+    public void setIncapSupportType(ProcessorType type) {
+        processorType = type;
+    }
+
+    public ProcessorType getIncapSupportType() {
+        return processorType;
+    }
+
+    /**
+     * Returns {@code true} if the annotation processor adheres to the INCAP incremental AP spec.
      */
     public boolean isIncrementalEnabled() {
-        return properties == null ? false : Boolean.valueOf(properties.get(INCREMENTAL_KEY));
+        return isProcessor && (processorType == ProcessorType.SIMPLE
+                               || processorType == ProcessorType.AGGREGATING);
+    }
+    
+    /**
+     * Sets the user-visible name of the processor.
+     */
+    public void setName(String name) {
+        processorName = name;
     }
 
     /**
      * Returns a user-presentable name for the processor.
      */
     public String getName() {
-        return properties == null ? null : properties.get(NAME_KEY);
+        return processorName != null ? processorName : UNKNOWN_NAME;
+    }
+
+    /**
+     * Flags this cache entry as an annotation processor.
+     */
+    public void setProcessor(boolean processor) {
+        isProcessor = processor;
     }
 
     /**
      * Returns true if processor services were found in this file.
      */
     public boolean isProcessor() {
-        return properties == null ? false : Boolean.valueOf(properties.get(PROCESSOR_KEY));
+        return isProcessor;
+    }
+
+    /**
+     * Returns true if this cache entry's name has been set.
+     */
+    public boolean isNamed() {
+        return processorName != null;
+    }
+
+    private static class AnnotationProcessorInfoSerializer extends AbstractSerializer<AnnotationProcessorInfo> {
+        public AnnotationProcessorInfo read(Decoder decoder) throws Exception {
+            AnnotationProcessorInfo result = new AnnotationProcessorInfo();
+            result.isProcessor = decoder.readBoolean();
+            result.processorName = decoder.readString();
+            result.processorType = ProcessorType.valueOf(decoder.readString());
+            return result;
+        }
+
+        public void write(Encoder encoder, AnnotationProcessorInfo value) throws Exception {
+            encoder.writeBoolean(value.isProcessor);
+            encoder.writeString(value.getName());
+            encoder.writeString(value.getIncapSupportType().toString());
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(isProcessor, getName(), getIncapSupportType());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof AnnotationProcessorInfo)) {
+            return false;
+        }
+        AnnotationProcessorInfo other = (AnnotationProcessorInfo)obj;
+        return other.isProcessor == this.isProcessor
+                && Objects.equal(other.processorName, this.processorName)
+                && Objects.equal(other.processorType, this.processorType);
     }
 
     @Override
     public String toString() {
         return "AnnotationProcessorInfo{processor=" + isProcessor() +
             ", name=" + getName() +
+            ", type=" + getIncapSupportType() +
             ", incremental=" + isIncrementalEnabled() + "}";
     }
 }

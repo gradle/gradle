@@ -30,6 +30,9 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.incap.IncapBuildClientFactory;
+import org.gradle.incap.IncapVersionDetector;
+import org.gradle.incap.ProcessorType;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
@@ -38,74 +41,58 @@ import org.gradle.util.DeprecationLogger;
 /**
  * Discovers relevant properties of annotation processors.
  */
-class AnnotationProcessorScanner implements FileContentCacheFactory.Calculator<Map<String, String>> {
+class AnnotationProcessorScanner implements FileContentCacheFactory.Calculator<AnnotationProcessorInfo> {
 
     private static final Pattern CLASSNAME = Pattern.compile("([\\p{L}_$][\\p{L}\\p{N}_$]*\\.)*[\\p{L}_$][\\p{L}\\p{N}_$]*");
 
-    public static final String META_INF_INCAP = "META-INF/org.gradle.incap";
-
-    // Per the JSR-269 spec, you can have multiple Annotation Processor classes declared in
-    // META-INF/services/javax.annotation.processing.Processor
-    //
-    //   my.annotation.processor.Processor1
-    //   my.annotation.processor.Processor2
-    //
-    // As a policy decision (for now), we require all processors in the file to be incremental,
-    // if any are.  If we find a "META-INF/incap" file, we consider them all to be incremental.
-    // We only record one processor class name from each classpath artifact.  It's only used
-    // for logging, so it doesn't really matter which one we record.
-
     @Override
-    public Map<String, String> calculate(File dirOrJar, FileType fileType) {
-        Map<String, String> result = Maps.newHashMap();
-        result.put(AnnotationProcessorInfo.PROCESSOR_KEY, "false");
-        result.put(AnnotationProcessorInfo.INCREMENTAL_KEY, "false");
+    public AnnotationProcessorInfo calculate(File dirOrJar, FileType fileType) {
+        AnnotationProcessorInfo result = new AnnotationProcessorInfo();
         // Set the cache entry's default name to the dir/jar path, for debugging.
         // If we discover that this is an annotation processor, we will set it to the class name.
-        result.put(AnnotationProcessorInfo.NAME_KEY, dirOrJar.getPath());
+        result.setName(dirOrJar.getPath());
 
-        if (fileType == FileType.Directory) {
-            File spec = new File(dirOrJar, "META-INF/services/javax.annotation.processing.Processor");
-            if (spec.isFile()) {
-                markAsProcessor(result);
-                scanFile(spec, result);
-                if (new File(dirOrJar, META_INF_INCAP).isFile()) {
-                    setIncremental(result);
+        try {
+            if (fileType == FileType.Directory) {
+                File spec = new File(dirOrJar, "META-INF/services/javax.annotation.processing.Processor");
+                if (spec.isFile()) {
+                    result.setProcessor(true);
+                    scanFileForClassname(spec, result);
+                    scanDirOrJarForIncap(dirOrJar, result);
                 }
+                return result;
             }
-            return result;
-        }
 
-        if (fileType == FileType.RegularFile && FileUtils.hasExtension(dirOrJar, "jar")) {
-            try {
+            if (fileType == FileType.RegularFile && FileUtils.hasExtension(dirOrJar, "jar")) {
                 ZipFile zipFile = new ZipFile(dirOrJar);
                 try {
                     ZipEntry entry = zipFile.getEntry("META-INF/services/javax.annotation.processing.Processor");
                     if (entry != null) {
-                        markAsProcessor(result);
-                        scanZipEntry(zipFile, entry, result);
-                        if (zipFile.getEntry(META_INF_INCAP) != null) {
-                            setIncremental(result);
-                        }
+                        result.setProcessor(true);
+                        scanZipEntryForClassname(zipFile, entry, result);
+                        scanDirOrJarForIncap(dirOrJar, result);
                     }
                 } finally {
                     zipFile.close();
                 }
-            } catch (IOException e) {
-                DeprecationLogger.nagUserWith("Malformed jar [" + dirOrJar.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
             }
+        } catch (IOException e) {
+            DeprecationLogger.nagUserWith("Malformed jar [" + dirOrJar.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
         }
 
         return result;
     }
 
-    private void scanFile(File spec, final Map<String, String> result) {
+    private void scanFileForClassname(File spec, final AnnotationProcessorInfo result) {
         try {
+            // TODO:  Clean this up.  It's ugly.
             Files.asCharSource(spec, Charsets.UTF_8)
                 .readLines(new LineProcessor<Void>() {
                     @Override
                     public boolean processLine(String line) throws IOException {
-                        scanLineForClassName(line, result);
+                        if (CLASSNAME.matcher(line).matches()) {
+                            result.setName(line);
+                        }
                         return true;
                     }
 
@@ -114,47 +101,30 @@ class AnnotationProcessorScanner implements FileContentCacheFactory.Calculator<M
                         return null;
                     }
                 });
-            if (!isNamed(result)) {
-                result.put(AnnotationProcessorInfo.NAME_KEY, spec.getName());
+            if (!result.isNamed()) {
+                result.setName(spec.getPath());
             }
         } catch (IOException iox) {
             throw UncheckedException.throwAsUncheckedException(iox);
         }
     }
 
-    private void scanZipEntry(ZipFile zipFile, ZipEntry entry, Map<String, String> result) {
+    private void scanDirOrJarForIncap(File dirOrJar, AnnotationProcessorInfo result) {
         try {
-            for (String line : CharStreams.toString(new InputStreamReader(zipFile.getInputStream(entry))).split("\\r?\\n")) {
-                scanLineForClassName(line, result);
+            ProcessorType type = new IncapVersionDetector().detectProcessorType(dirOrJar);
+            if (type == ProcessorType.SIMPLE || type == ProcessorType.AGGREGATING) {
+                result.setIncapSupportType(type);
             }
-        } catch (Exception x) {
-            throw UncheckedException.throwAsUncheckedException(x);
+        } catch (IOException iox) {
+            result.setIncapSupportType(ProcessorType.UNSPECIFIED);
         }
     }
 
-    private void scanLineForClassName(String line, Map<String, String> result) {
-        if (CLASSNAME.matcher(line).matches()) {
-            result.put(AnnotationProcessorInfo.NAME_KEY, line);
+    private void scanZipEntryForClassname(ZipFile zipFile, ZipEntry entry, AnnotationProcessorInfo result) throws IOException {
+        for (String line : CharStreams.toString(new InputStreamReader(zipFile.getInputStream(entry))).split("\\r?\\n")) {
+            if (CLASSNAME.matcher(line).matches()) {
+                result.setName(line);
+            }         
         }
-    }
-
-    private Boolean isNamed(Map<String, String> result) {
-        return !result.get(AnnotationProcessorInfo.NAME_KEY).equals(AnnotationProcessorInfo.UNKNOWN_NAME);
-    }
-
-    private Boolean isProcessor(Map<String, String> result) {
-        return !"true".equals(result.get(AnnotationProcessorInfo.PROCESSOR_KEY));
-    }
-
-    private void setIncremental(Map<String, String> result) {
-        result.put(AnnotationProcessorInfo.INCREMENTAL_KEY, "true");
-    }
-
-    private void markAsProcessor(Map<String, String> result) {
-        result.put(AnnotationProcessorInfo.PROCESSOR_KEY, "true");
-    }
-
-    private void setName(Map<String, String> result, String name) {
-        result.put(AnnotationProcessorInfo.NAME_KEY, name);
     }
 }

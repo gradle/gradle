@@ -86,7 +86,6 @@ public class CompileOptions extends AbstractOptions {
 
     private final Property<File> annotationProcessorGeneratedSourcesDirectory;
 
-    @Incubating
     private boolean incrementalAnnotationProcessing;
 
     @Inject
@@ -510,7 +509,7 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns {@code true} if incremental annotation processing is enabled for this build.
+     * Returns {@code true} if incremental annotation processing is enabled.
      * @since 4.4
      */
     @Incubating

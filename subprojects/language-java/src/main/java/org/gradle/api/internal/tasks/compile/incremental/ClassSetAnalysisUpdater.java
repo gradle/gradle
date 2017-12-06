@@ -38,6 +38,7 @@ import org.gradle.incap.impl.data.GeneratedClassFile;
 import org.gradle.incap.impl.data.GeneratedFile;
 import org.gradle.incap.impl.data.GeneratedSourceFile;
 import org.gradle.incap.impl.data.InputType;
+import org.gradle.incap.mapping.Version1MappingFileWriter;
 import org.gradle.internal.time.Timer;
 
 
@@ -81,15 +82,12 @@ public class ClassSetAnalysisUpdater {
     }
 
     private void recordGeneratedTypeDependencies(ClassFilesAnalyzer analyzer, JavaCompileSpec spec) {
+        File workingDir = spec.getIncrementalAnnotationProcessorWorkingDir();
+        File mappingFile = new Version1MappingFileWriter(workingDir).getMappingFile();
+        if (!(mappingFile.exists() && mappingFile.isFile() && mappingFile.canRead())) {
+            return;
+        }
         try {
-            File workingDir = spec.getIncrementalAnnotationProcessorWorkingDir();
-            // Create the incap working dir if necessary.  Incap will throw if the dir doesn't exist.
-            if (!workingDir.exists()) {
-                workingDir.mkdirs();
-            }
-            if (!workingDir.exists()) {
-                throw new IllegalStateException("Error creating: " + workingDir);
-            }
             Map<InputType, Set<GeneratedFile>> mappings
                 = IncapBuildClientFactory.getBuildClient(workingDir).readMappingFile().getMapInputTypeToGeneratedFiles();
             for (Map.Entry<InputType, Set<GeneratedFile>> entry : mappings.entrySet()) {
@@ -114,9 +112,12 @@ public class ClassSetAnalysisUpdater {
                 }
             }
         } catch (IOException iox) {
-            // We don't currently have a way to ask the Incap library whether the mappings file exists.
-            // So the only way to check for it is to try to read it, and get an exception.
-            // https://github.com/gradle/incap/issues/111
+            // If we get an exception, we need to make sure the next build is non-incremental.
+            try {
+                mappingFile.delete();
+            } catch (Exception x) {
+            }
+            throw new IllegalStateException("Unable to read Incap mapping file: " + iox);
         }
     }
 }
