@@ -18,11 +18,9 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.internal.tasks.ValidationActions;
 import org.gradle.api.tasks.InputFile;
 
-import java.io.File;
 import java.lang.annotation.Annotation;
 
 public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
@@ -32,18 +30,6 @@ public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnn
 
     @Override
     protected DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, PropertySpecFactory specFactory) {
-        return specFactory.createInputFileSpec(propertyInfo, INPUT_FILE_VALIDATOR);
+        return specFactory.createInputFileSpec(propertyInfo, ValidationActions.INPUT_FILE_VALIDATOR);
     }
-
-    public static final ValidationAction INPUT_FILE_VALIDATOR = new ValidationAction() {
-        @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
-            File file = toFile(context, value);
-            if (!file.exists()) {
-                context.recordValidationMessage(severity, String.format("File '%s' specified for property '%s' does not exist.", file, propertyName));
-            } else if (!file.isFile()) {
-                context.recordValidationMessage(severity, String.format("File '%s' specified for property '%s' is not a file.", file, propertyName));
-            }
-        }
-    };
 }

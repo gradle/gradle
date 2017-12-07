@@ -58,7 +58,7 @@ public class DefaultTaskInputPropertySpec extends LenientTaskInputsDeprecationSu
 
     @Override
     public void validate(TaskValidationContext context) {
-        value.validate(getPropertyName(), optional, ValidationAction.NO_OP, context);
+        value.validate(getPropertyName(), optional, ValidationActions.NO_OP, context);
     }
 
     @Override

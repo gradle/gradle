@@ -27,8 +27,6 @@ import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.project.taskfactory.InputDirectoryPropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.InputFilePropertyAnnotationHandler;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
@@ -120,7 +118,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(unpackVarargs(paths));
-                DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(value, ValidationAction.NO_OP);
+                DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(value, ValidationActions.NO_OP);
                 runtimeFileProperties.add(fileSpec);
                 return fileSpec;
             }
@@ -257,9 +255,9 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private static final ValidationAction RUNTIME_INPUT_FILE_VALIDATOR = wrapRuntimeApiValidator("file", InputFilePropertyAnnotationHandler.INPUT_FILE_VALIDATOR);
+    private static final ValidationAction RUNTIME_INPUT_FILE_VALIDATOR = wrapRuntimeApiValidator("file", ValidationActions.INPUT_FILE_VALIDATOR);
 
-    private static final ValidationAction RUNTIME_INPUT_DIRECTORY_VALIDATOR = wrapRuntimeApiValidator("dir", InputDirectoryPropertyAnnotationHandler.INPUT_DIRECTORY_VALIDATOR);
+    private static final ValidationAction RUNTIME_INPUT_DIRECTORY_VALIDATOR = wrapRuntimeApiValidator("dir", ValidationActions.INPUT_DIRECTORY_VALIDATOR);
 
     private static ValidationAction wrapRuntimeApiValidator(final String method, final ValidationAction validator) {
         return new ValidationAction() {
