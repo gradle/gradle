@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project.taskfactory;
+package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
-import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
 import java.lang.annotation.Annotation;
 
@@ -32,5 +32,5 @@ public interface PropertyAnnotationHandler {
      */
     Class<? extends Annotation> getAnnotationType();
 
-    void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory);
+    void accept(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory);
 }

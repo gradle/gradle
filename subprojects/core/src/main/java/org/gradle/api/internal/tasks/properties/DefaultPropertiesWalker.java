@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
@@ -45,47 +48,47 @@ import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR
 import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.INFO;
 
 @NonNullApi
-public class DefaultTaskPropertiesWalker implements TaskPropertiesWalker {
+public class DefaultPropertiesWalker implements PropertiesWalker {
 
-    private final InputsOutputsInfoStore inputsOutputsInfoStore;
+    private final PropertyMetadataStore propertyMetadataStore;
 
-    public DefaultTaskPropertiesWalker(InputsOutputsInfoStore inputsOutputsInfoStore) {
-        this.inputsOutputsInfoStore = inputsOutputsInfoStore;
+    public DefaultPropertiesWalker(PropertyMetadataStore propertyMetadataStore) {
+        this.propertyMetadataStore = propertyMetadataStore;
     }
 
     @Override
-    public void visitInputsAndOutputs(PropertySpecFactory specFactory, InputsOutputVisitor visitor, Object instance) {
-        Queue<PropertyContainer> queue = new ArrayDeque<PropertyContainer>();
-        queue.add(new PropertyContainer(null, instance));
-        boolean cacheable = instance.getClass().isAnnotationPresent(CacheableTask.class);
+    public void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object bean) {
+        Queue<PropertyNode> queue = new ArrayDeque<PropertyNode>();
+        queue.add(new PropertyNode(null, bean));
+        boolean cacheable = bean.getClass().isAnnotationPresent(CacheableTask.class);
         while (!queue.isEmpty()) {
-            PropertyContainer container = queue.remove();
-            detectProperties(container, container.getInstance().getClass(), queue, visitor, specFactory, cacheable);
+            PropertyNode node = queue.remove();
+            detectProperties(node, node.getBean().getClass(), queue, visitor, specFactory, cacheable);
         }
     }
 
-    private <T> void detectProperties(PropertyContainer container, Class<T> type, Queue<PropertyContainer> queue, InputsOutputVisitor visitor, PropertySpecFactory inputs, boolean cacheable) {
-        final Set<PropertyContext> propertyContexts = inputsOutputsInfoStore.getTypeMetadata(type);
-        for (PropertyContext propertyContext : propertyContexts) {
-            PropertyAnnotationHandler annotationHandler = propertyContext.getAnnotationHandler();
-            String propertyName = container.getRelativePropertyName(propertyContext.getFieldName());
+    private <T> void detectProperties(PropertyNode node, Class<T> type, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory inputs, boolean cacheable) {
+        final Set<PropertyMetadata> typeMetadata = propertyMetadataStore.getTypeMetadata(type);
+        for (PropertyMetadata propertyMetadata : typeMetadata) {
+            PropertyAnnotationHandler annotationHandler = propertyMetadata.getAnnotationHandler();
+            String propertyName = node.getRelativePropertyName(propertyMetadata.getFieldName());
             if (annotationHandler == null) {
-                if (!Modifier.isPrivate(propertyContext.getMethod().getModifiers())) {
+                if (!Modifier.isPrivate(propertyMetadata.getMethod().getModifiers())) {
                     visitor.visitValidationMessage(INFO, propertyValidationMessage(propertyName, "is not annotated with an input or output annotation"));
                 }
                 continue;
             }
-            Object instance = container.getInstance();
-            PropertyInfo propertyInfo = DefaultPropertyInfo.create(propertyName, instance, cacheable, propertyContext);
-            annotationHandler.accept(propertyInfo, visitor, inputs);
-            for (String validationMessage : propertyContext.getValidationMessages()) {
-                visitor.visitValidationMessage(INFO, propertyInfo.validationMessage(validationMessage));
+            Object bean = node.getBean();
+            PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata.getAnnotations(), bean, propertyMetadata.getMethod(), cacheable);
+            annotationHandler.accept(propertyValue, visitor, inputs);
+            for (String validationMessage : propertyMetadata.getValidationMessages()) {
+                visitor.visitValidationMessage(INFO, propertyValue.validationMessage(validationMessage));
             }
-            if (propertyInfo.isAnnotationPresent(Nested.class)) {
+            if (propertyValue.isAnnotationPresent(Nested.class)) {
                 try {
-                    Object nestedBean = propertyInfo.getValue();
+                    Object nestedBean = propertyValue.getValue();
                     if (nestedBean != null) {
-                        queue.add(new PropertyContainer(propertyName, nestedBean));
+                        queue.add(new PropertyNode(propertyName, nestedBean));
                     }
                 } catch (Exception e) {
                     // No nested bean
@@ -98,17 +101,17 @@ public class DefaultTaskPropertiesWalker implements TaskPropertiesWalker {
         return String.format("property '%s' %s", propertyName, message);
     }
 
-    private class PropertyContainer {
+    private class PropertyNode {
         private final String parentPropertyName;
-        private final Object object;
+        private final Object bean;
 
-        public PropertyContainer(@Nullable String parentPropertyName, Object object) {
+        public PropertyNode(@Nullable String parentPropertyName, Object bean) {
             this.parentPropertyName = parentPropertyName;
-            this.object = object;
+            this.bean = bean;
         }
 
-        public Object getInstance() {
-            return object;
+        public Object getBean() {
+            return bean;
         }
 
         public String getRelativePropertyName(String propertyName) {
@@ -116,7 +119,7 @@ public class DefaultTaskPropertiesWalker implements TaskPropertiesWalker {
         }
     }
 
-    private static class DefaultPropertyInfo implements PropertyInfo {
+    private static class DefaultPropertyValue implements PropertyValue {
         private final String propertyName;
         private final List<Annotation> annotations;
         private final Object instance;
@@ -141,11 +144,7 @@ public class DefaultTaskPropertiesWalker implements TaskPropertiesWalker {
             }
         });
 
-        public static PropertyInfo create(String propertyName, Object instance, boolean cacheable, PropertyContext propertyContext) {
-            return new DefaultTaskPropertiesWalker.DefaultPropertyInfo(propertyName, propertyContext.getAnnotations(), instance, propertyContext.getMethod(), cacheable);
-        }
-
-        public DefaultPropertyInfo(String propertyName, List<Annotation> annotations, Object instance, Method method, boolean cacheable) {
+        public DefaultPropertyValue(String propertyName, List<Annotation> annotations, Object instance, Method method, boolean cacheable) {
             this.propertyName = propertyName;
             this.annotations = ImmutableList.copyOf(annotations);
             this.instance = instance;

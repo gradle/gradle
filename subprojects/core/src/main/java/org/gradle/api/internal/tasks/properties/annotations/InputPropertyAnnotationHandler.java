@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project.taskfactory;
+package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
-import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext.Severity;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Input;
 
 import java.io.File;
@@ -33,15 +33,15 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
 
     @Override
     @SuppressWarnings("Since15")
-    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
-        DefaultTaskInputPropertySpec declaration = specFactory.createInputPropertySpec(propertyInfo.getPropertyName(), propertyInfo);
-        declaration.optional(propertyInfo.isOptional());
+    public void accept(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+        DefaultTaskInputPropertySpec declaration = specFactory.createInputPropertySpec(propertyValue.getPropertyName(), propertyValue);
+        declaration.optional(propertyValue.isOptional());
         visitor.visitInputProperty(declaration);
-        Class<?> valueType = propertyInfo.getDeclaredType();
+        Class<?> valueType = propertyValue.getDeclaredType();
         if (File.class.isAssignableFrom(valueType)
             || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
-            visitor.visitValidationMessage(Severity.INFO, propertyInfo.validationMessage("has @Input annotation used on property of type " + valueType.getName()));
+            visitor.visitValidationMessage(Severity.INFO, propertyValue.validationMessage("has @Input annotation used on property of type " + valueType.getName()));
         }
     }
 

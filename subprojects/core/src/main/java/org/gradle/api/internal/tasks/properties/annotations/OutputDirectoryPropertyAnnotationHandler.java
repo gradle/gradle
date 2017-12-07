@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project.taskfactory;
+package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.PropertyInfo;
+import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.ValidationActions;
-import org.gradle.api.tasks.InputFile;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.tasks.OutputDirectory;
 
 import java.lang.annotation.Annotation;
 
-public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
+public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
+
+    @Override
     public Class<? extends Annotation> getAnnotationType() {
-        return InputFile.class;
+        return OutputDirectory.class;
     }
 
     @Override
-    protected DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, PropertySpecFactory specFactory) {
-        return specFactory.createInputFileSpec(propertyInfo, ValidationActions.INPUT_FILE_VALIDATOR);
+    protected DeclaredTaskOutputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory) {
+        return specFactory.createOutputDirSpec(propertyValue);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project.taskfactory;
+package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
-import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.tasks.LocalState;
 
 import java.lang.annotation.Annotation;
 
-@SuppressWarnings("deprecation")
-public class OutputFilesPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
-
-    @Override
+public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
-        return OutputFiles.class;
+        return LocalState.class;
     }
 
     @Override
-    protected DeclaredTaskOutputFileProperty createFileSpec(PropertyInfo propertyInfo, PropertySpecFactory specFactory) {
-        return specFactory.createOutputFilesSpec(propertyInfo);
+    public void accept(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+        visitor.visitLocalState(propertyValue);
     }
 }

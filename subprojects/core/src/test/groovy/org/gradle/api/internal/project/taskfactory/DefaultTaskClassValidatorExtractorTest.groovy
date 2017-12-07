@@ -19,12 +19,13 @@ package org.gradle.api.internal.project.taskfactory
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.DefaultInputsOutputsInfoStore
 import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
-import org.gradle.api.internal.tasks.DefaultTaskPropertiesWalker
-import org.gradle.api.internal.tasks.InputsOutputVisitor
-import org.gradle.api.internal.tasks.PropertyInfo
 import org.gradle.api.internal.tasks.PropertySpecFactory
+import org.gradle.api.internal.tasks.properties.DefaultPropertiesWalker
+import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
+import org.gradle.api.internal.tasks.properties.PropertyValue
+import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -72,7 +73,7 @@ class DefaultTaskClassValidatorExtractorTest extends AbstractProjectBuilderSpec 
 
 
         @Override
-        void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
+        void accept(PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory) {
             visitorAction.call(propertyInfo, visitor)
         }
     }
@@ -83,8 +84,8 @@ class DefaultTaskClassValidatorExtractorTest extends AbstractProjectBuilderSpec 
             annotatedProperties << propertyInfo.propertyName
         }
         def annotationHandler = new SearchPathAnnotationHandler(configureAction)
-        def walker = new DefaultTaskPropertiesWalker(new DefaultInputsOutputsInfoStore([annotationHandler]))
-        def visitor = Mock(InputsOutputVisitor)
+        def walker = new DefaultPropertiesWalker(new DefaultPropertyMetadataStore([annotationHandler]))
+        def visitor = Mock(PropertyVisitor)
 
         when:
         visitTask(walker, TaskWithCustomAnnotation, visitor)
@@ -93,10 +94,10 @@ class DefaultTaskClassValidatorExtractorTest extends AbstractProjectBuilderSpec 
         annotatedProperties == ["searchPath"]
     }
 
-    private void visitTask(DefaultTaskPropertiesWalker walker = new DefaultTaskPropertiesWalker(new DefaultInputsOutputsInfoStore([])), Class taskClass, InputsOutputVisitor visitor) {
+    private void visitTask(DefaultPropertiesWalker walker = new DefaultPropertiesWalker(new DefaultPropertyMetadataStore([])), Class taskClass, PropertyVisitor visitor) {
         def task = project.tasks.create(taskClass.simpleName, taskClass)
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
-        walker.visitInputsAndOutputs(specFactory, visitor, task)
+        walker.visitProperties(specFactory, visitor, task)
     }
 
     static class TaskWithInputFile extends DefaultTask {
@@ -112,7 +113,7 @@ class DefaultTaskClassValidatorExtractorTest extends AbstractProjectBuilderSpec 
     }
 
     def "can make property internal and then make it into another type of property"() {
-        def visitor = Mock(InputsOutputVisitor)
+        def visitor = Mock(PropertyVisitor)
 
         when:
         visitTask(TaskWithInputFile, visitor)

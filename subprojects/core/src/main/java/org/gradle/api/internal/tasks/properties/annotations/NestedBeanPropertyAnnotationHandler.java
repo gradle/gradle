@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project.taskfactory;
+package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
-import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Nested;
 
 import javax.annotation.Nullable;
@@ -37,29 +37,29 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     @Override
-    public void accept(final PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
-        DefaultTaskInputPropertySpec propertySpec = specFactory.createInputPropertySpec(propertyInfo.getPropertyName() + ".class", new NestedPropertyValue(propertyInfo));
-        propertySpec.optional(propertyInfo.isOptional());
+    public void accept(final PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+        DefaultTaskInputPropertySpec propertySpec = specFactory.createInputPropertySpec(propertyValue.getPropertyName() + ".class", new NestedPropertyValue(propertyValue));
+        propertySpec.optional(propertyValue.isOptional());
         visitor.visitInputProperty(propertySpec);
     }
 
     private static class NestedPropertyValue implements ValidatingValue {
-        private final PropertyInfo propertyInfo;
+        private final PropertyValue propertyValue;
 
-        public NestedPropertyValue(PropertyInfo propertyInfo) {
-            this.propertyInfo = propertyInfo;
+        public NestedPropertyValue(PropertyValue propertyValue) {
+            this.propertyValue = propertyValue;
         }
 
         @Nullable
         @Override
         public Object call() {
-            Object value = propertyInfo.getValue();
+            Object value = propertyValue.getValue();
             return value == null ? null : value.getClass().getName();
         }
 
         @Override
         public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-            Object value = propertyInfo.getValue();
+            Object value = propertyValue.getValue();
             if (value == null) {
                 if (!optional) {
                     context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", propertyName));

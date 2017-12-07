@@ -18,8 +18,12 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.tasks.properties.DefaultPropertiesWalker
+import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
+import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
@@ -31,15 +35,15 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class DefaultTaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
+class DefaultPropertiesWalkerTest extends AbstractProjectBuilderSpec {
 
-    def visitor = Mock(InputsOutputVisitor)
+    def visitor = Mock(PropertyVisitor)
 
-    def "visits inputs"() {
+    def "visits properties"() {
         def task = project.tasks.create("myTask", MyTask)
 
         when:
-        visitInputs(task)
+        visitProperties(task)
 
         then:
         1 * visitor.visitInputProperty({ it.propertyName == 'myProperty' && it.value == 'myValue' })
@@ -64,15 +68,15 @@ class DefaultTaskPropertiesWalkerTest extends AbstractProjectBuilderSpec {
         task.bean = null
 
         when:
-        visitInputs(task)
+        visitProperties(task)
 
         then:
         1 * visitor.visitInputProperty({ it.propertyName == 'bean.class' && it.value == null })
     }
 
-    private visitInputs(MyTask task) {
+    private visitProperties(TaskInternal task) {
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
-        new DefaultTaskPropertiesWalker(new DefaultInputsOutputsInfoStore([])).visitInputsAndOutputs(specFactory, visitor, task)
+        new DefaultPropertiesWalker(new DefaultPropertyMetadataStore([])).visitProperties(specFactory, visitor, task)
     }
 
     static class MyTask extends DefaultTask {

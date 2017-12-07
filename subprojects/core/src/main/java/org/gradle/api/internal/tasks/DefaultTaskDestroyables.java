@@ -22,6 +22,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.tasks.properties.PropertiesWalker;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.ArrayList;
@@ -34,11 +36,11 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
     private final FileResolver resolver;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
-    private final TaskPropertiesWalker propertiesWalker;
+    private final PropertiesWalker propertiesWalker;
     private final PropertySpecFactory specFactory;
     private final List<Object> paths = Lists.newArrayList();
 
-    public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, TaskPropertiesWalker propertiesWalker, PropertySpecFactory specFactory) {
+    public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, PropertiesWalker propertiesWalker, PropertySpecFactory specFactory) {
         this.resolver = resolver;
         this.task = task;
         this.taskMutator = taskMutator;
@@ -78,13 +80,13 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
         });
     }
 
-    public void accept(InputsOutputVisitor visitor) {
-        propertiesWalker.visitInputsAndOutputs(specFactory, visitor, task);
-        acceptRuntimeOnly(visitor);
+    private void visitAllProperties(PropertyVisitor visitor) {
+        propertiesWalker.visitProperties(specFactory, visitor, task);
+        visitRuntimeProperties(visitor);
     }
 
     @Override
-    public void acceptRuntimeOnly(InputsOutputVisitor visitor) {
+    public void visitRuntimeProperties(PropertyVisitor visitor) {
         for (Object path : paths) {
             visitor.visitDestroyable(path);
         }
@@ -96,7 +98,7 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
             @Override
             public Iterator<Object> iterator() {
                 GetFilesVisitor visitor = new GetFilesVisitor();
-                accept(visitor);
+                visitAllProperties(visitor);
                 return visitor.getDestroyables().iterator();
             }
         };
@@ -108,7 +110,7 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
         return new GetFilesVisitor();
     }
 
-    public class GetFilesVisitor extends InputsOutputVisitor.Adapter implements TaskDestroyablesInternal.GetFilesVisitor {
+    public class GetFilesVisitor extends PropertyVisitor.Adapter implements TaskDestroyablesInternal.GetFilesVisitor {
         private List<Object> destroyables = new ArrayList<Object>();
 
         @Override

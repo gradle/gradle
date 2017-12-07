@@ -27,6 +27,8 @@ import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.tasks.properties.PropertiesWalker;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
@@ -49,13 +51,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileCollection allSourceFiles;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
-    private final TaskPropertiesWalker propertiesWalker;
+    private final PropertiesWalker propertiesWalker;
     private final List<DeclaredTaskInputProperty> runtimeProperties = Lists.newArrayList();
     private final List<DeclaredTaskInputFileProperty> runtimeFileProperties = Lists.newArrayList();
     private final TaskInputs deprecatedThis;
     private final PropertySpecFactory specFactory;
 
-    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, TaskPropertiesWalker propertiesWalker, PropertySpecFactory specFactory) {
+    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertiesWalker propertiesWalker, PropertySpecFactory specFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.propertiesWalker = propertiesWalker;
@@ -74,13 +76,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public void accept(InputsOutputVisitor visitor) {
-        propertiesWalker.visitInputsAndOutputs(specFactory, visitor, task);
+    public void accept(PropertyVisitor visitor) {
+        propertiesWalker.visitProperties(specFactory, visitor, task);
         acceptRuntimeOnly(visitor);
     }
 
     @Override
-    public void acceptRuntimeOnly(InputsOutputVisitor visitor) {
+    public void acceptRuntimeOnly(PropertyVisitor visitor) {
         ensurePropertiesHaveNames(runtimeFileProperties);
         for (DeclaredTaskInputFileProperty fileProperty : runtimeFileProperties) {
             visitor.visitInputFileProperty(fileProperty);
@@ -244,7 +246,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
         @Override
         public void visitContents(final FileCollectionResolveContext context) {
-            taskInputs.accept(new InputsOutputVisitor.Adapter() {
+            taskInputs.accept(new PropertyVisitor.Adapter() {
                 @Override
                 public void visitInputFileProperty(DeclaredTaskInputFileProperty fileProperty) {
                     if (!skipWhenEmptyOnly || fileProperty.isSkipWhenEmpty()) {
@@ -273,7 +275,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
 
-    private static class HasInputsVisitor extends InputsOutputVisitor.Adapter {
+    private static class HasInputsVisitor extends PropertyVisitor.Adapter {
         private boolean hasInputs;
 
         public boolean hasInputs() {
@@ -291,7 +293,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private class GetFilePropertiesVisitor extends InputsOutputVisitor.Adapter implements TaskInputsInternal.GetFilePropertiesVisitor {
+    private class GetFilePropertiesVisitor extends PropertyVisitor.Adapter implements TaskInputsInternal.GetFilePropertiesVisitor {
         private ImmutableSortedSet.Builder<TaskInputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
         private Set<String> names = Sets.newHashSet();
         private boolean hasSourceFiles;
@@ -360,7 +362,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private static class HasSourceFilesVisitor extends InputsOutputVisitor.Adapter {
+    private static class HasSourceFilesVisitor extends PropertyVisitor.Adapter {
         private boolean hasSourceFiles;
 
         @Override
@@ -375,7 +377,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private class GetInputPropertiesVisitor extends InputsOutputVisitor.Adapter implements TaskInputsInternal.GetInputPropertiesVisitor {
+    private class GetInputPropertiesVisitor extends PropertyVisitor.Adapter implements TaskInputsInternal.GetInputPropertiesVisitor {
         private Map<String, Object> actualProperties;
         private List<DeclaredTaskInputProperty> declaredTaskInputProperties = new ArrayList<DeclaredTaskInputProperty>();
 

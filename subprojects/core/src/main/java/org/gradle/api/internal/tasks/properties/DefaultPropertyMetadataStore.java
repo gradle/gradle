@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -37,21 +37,21 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.project.taskfactory.DestroysPropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.InputDirectoryPropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.InputFilePropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.InputFilesPropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.InputPropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.LocalStatePropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.NestedBeanPropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.NoOpPropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.OutputDirectoriesPropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.OutputDirectoryPropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.OutputFilePropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.OutputFilesPropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.OverridingPropertyAnnotationHandler;
-import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.options.OptionValues;
+import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.InputFilesPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.LocalStatePropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.NestedBeanPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoriesPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoryPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.OverridingPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Internal;
@@ -78,7 +78,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultInputsOutputsInfoStore implements InputsOutputsInfoStore {
+public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
     // Avoid reflecting on classes we know we don't need to look at
     @SuppressWarnings("RedundantTypeArguments")
     private static final Collection<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.<Class<?>>of(
@@ -106,16 +106,16 @@ public class DefaultInputsOutputsInfoStore implements InputsOutputsInfoStore {
     private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
     private final Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides;
     private final Set<Class<? extends Annotation>> relevantAnnotationTypes;
-    private final LoadingCache<Class<?>, Set<PropertyContext>> inputsOutputsMetadata = CacheBuilder.newBuilder()
+    private final LoadingCache<Class<?>, Set<PropertyMetadata>> cache = CacheBuilder.newBuilder()
         .weakKeys()
-        .build(new CacheLoader<Class<?>, Set<PropertyContext>>() {
+        .build(new CacheLoader<Class<?>, Set<PropertyMetadata>>() {
             @Override
-            public Set<PropertyContext> load(@Nonnull Class<?> type) throws Exception {
+            public Set<PropertyMetadata> load(@Nonnull Class<?> type) throws Exception {
                 return createTypeMetadata(type);
             }
         });
 
-    public DefaultInputsOutputsInfoStore(Iterable<? extends PropertyAnnotationHandler> customAnnotationHandlers) {
+    public DefaultPropertyMetadataStore(Iterable<? extends PropertyAnnotationHandler> customAnnotationHandlers) {
         Iterable<PropertyAnnotationHandler> allAnnotationHandlers = Iterables.concat(HANDLERS, customAnnotationHandlers);
         Map<Class<? extends Annotation>, PropertyAnnotationHandler> annotationsHandlers = Maps.uniqueIndex(allAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
@@ -148,13 +148,13 @@ public class DefaultInputsOutputsInfoStore implements InputsOutputsInfoStore {
     }
 
     @Override
-    public <T> Set<PropertyContext> getTypeMetadata(Class<T> type) {
-        return inputsOutputsMetadata.getUnchecked(type);
+    public <T> Set<PropertyMetadata> getTypeMetadata(Class<T> type) {
+        return cache.getUnchecked(type);
     }
 
-    private <T> Set<PropertyContext> createTypeMetadata(Class<T> type) {
+    private <T> Set<PropertyMetadata> createTypeMetadata(Class<T> type) {
         final Set<Class<? extends Annotation>> propertyTypeAnnotations = annotationHandlers.keySet();
-        final Map<String, DefaultPropertyContext> propertyContexts = Maps.newLinkedHashMap();
+        final Map<String, DefaultPropertyMetadata> propertyContexts = Maps.newLinkedHashMap();
         Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {
             @Override
             public void visitType(Class<? super T> type) {
@@ -177,25 +177,25 @@ public class DefaultInputsOutputsInfoStore implements InputsOutputsInfoStore {
                         continue;
                     }
 
-                    DefaultPropertyContext propertyContext = propertyContexts.get(fieldName);
-                    if (propertyContext == null) {
-                        propertyContext = new DefaultPropertyContext(propertyTypeAnnotations, fieldName, method);
-                        propertyContexts.put(fieldName, propertyContext);
+                    DefaultPropertyMetadata propertyMetadata = propertyContexts.get(fieldName);
+                    if (propertyMetadata == null) {
+                        propertyMetadata = new DefaultPropertyMetadata(propertyTypeAnnotations, fieldName, method);
+                        propertyContexts.put(fieldName, propertyMetadata);
                     }
 
-                    Iterable<Annotation> declaredAnnotations = mergeDeclaredAnnotations(method, field, propertyContext);
+                    Iterable<Annotation> declaredAnnotations = mergeDeclaredAnnotations(method, field, propertyMetadata);
 
                     // Discard overridden property type annotations when an overriding annotation is also present
                     Iterable<Annotation> overriddenAnnotations = filterOverridingAnnotations(declaredAnnotations, propertyTypeAnnotations);
 
-                    recordAnnotations(propertyContext, overriddenAnnotations, propertyTypeAnnotations);
+                    recordAnnotations(propertyMetadata, overriddenAnnotations, propertyTypeAnnotations);
                 }
             }
         });
-        return ImmutableSet.<PropertyContext>builder().addAll(propertyContexts.values()).build();
+        return ImmutableSet.<PropertyMetadata>builder().addAll(propertyContexts.values()).build();
     }
 
-    private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, DefaultPropertyContext propertyContext) {
+    private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, DefaultPropertyMetadata propertyContext) {
         Collection<Annotation> methodAnnotations = collectRelevantAnnotations(method.getDeclaredAnnotations());
         if (Modifier.isPrivate(method.getModifiers()) && !methodAnnotations.isEmpty()) {
             propertyContext.validationMessage("is private and annotated with an input or output annotation");
@@ -245,7 +245,7 @@ public class DefaultInputsOutputsInfoStore implements InputsOutputsInfoStore {
         });
     }
 
-    private void recordAnnotations(DefaultPropertyContext propertyContext, Iterable<Annotation> annotations, Set<Class<? extends Annotation>> propertyTypeAnnotations) {
+    private void recordAnnotations(DefaultPropertyMetadata propertyContext, Iterable<Annotation> annotations, Set<Class<? extends Annotation>> propertyTypeAnnotations) {
         Set<Class<? extends Annotation>> declaredPropertyTypes = Sets.newLinkedHashSet();
         for (Annotation annotation : annotations) {
             if (propertyTypeAnnotations.contains(annotation.annotationType())) {
@@ -327,7 +327,7 @@ public class DefaultInputsOutputsInfoStore implements InputsOutputsInfoStore {
         }
     }
 
-    public class DefaultPropertyContext implements PropertyContext {
+    public class DefaultPropertyMetadata implements PropertyMetadata {
         private final Set<Class<? extends Annotation>> propertyTypeAnnotations;
         private final String fieldName;
         private final Method method;
@@ -335,7 +335,7 @@ public class DefaultInputsOutputsInfoStore implements InputsOutputsInfoStore {
         private final List<Annotation> annotations = Lists.newArrayList();
         private final List<String> validationMessages = Lists.newArrayList();
 
-        public DefaultPropertyContext(Set<Class<? extends Annotation>> propertyTypeAnnotations, String fieldName, Method method) {
+        public DefaultPropertyMetadata(Set<Class<? extends Annotation>> propertyTypeAnnotations, String fieldName, Method method) {
             this.propertyTypeAnnotations = propertyTypeAnnotations;
             this.fieldName = fieldName;
             this.method = method;

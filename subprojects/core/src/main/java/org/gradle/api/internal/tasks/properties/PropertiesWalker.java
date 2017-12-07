@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project.taskfactory;
+package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.tasks.PropertySpecFactory;
 
-public interface FileSnapshottingPropertyAnnotationHandler extends PropertyAnnotationHandler {
-    Class<? extends FileCollectionSnapshotter> getSnapshotterImplementationType();
+public interface PropertiesWalker {
+    void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object instance);
 }

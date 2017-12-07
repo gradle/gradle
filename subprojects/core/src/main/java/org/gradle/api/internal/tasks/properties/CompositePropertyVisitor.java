@@ -14,54 +14,58 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
-public class CompositeInputsOutputsVisitor implements InputsOutputVisitor {
-    private final InputsOutputVisitor[] visitors;
+import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
+import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
+import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
+import org.gradle.api.internal.tasks.TaskValidationContext;
 
-    public CompositeInputsOutputsVisitor(InputsOutputVisitor... visitors) {
+public class CompositePropertyVisitor implements PropertyVisitor {
+    private final PropertyVisitor[] visitors;
+
+    public CompositePropertyVisitor(PropertyVisitor... visitors) {
         this.visitors = visitors;
     }
 
-
     @Override
     public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
-        for (InputsOutputVisitor visitor : visitors) {
+        for (PropertyVisitor visitor : visitors) {
             visitor.visitInputFileProperty(inputFileProperty);
         }
     }
 
     @Override
     public void visitInputProperty(DeclaredTaskInputProperty inputProperty) {
-        for (InputsOutputVisitor visitor : visitors) {
+        for (PropertyVisitor visitor : visitors) {
             visitor.visitInputProperty(inputProperty);
         }
     }
 
     @Override
     public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
-        for (InputsOutputVisitor visitor : visitors) {
+        for (PropertyVisitor visitor : visitors) {
             visitor.visitOutputFileProperty(outputFileProperty);
         }
     }
 
     @Override
     public void visitDestroyable(Object path) {
-        for (InputsOutputVisitor visitor : visitors) {
+        for (PropertyVisitor visitor : visitors) {
             visitor.visitDestroyable(path);
         }
     }
 
     @Override
     public void visitLocalState(Object path) {
-        for (InputsOutputVisitor visitor : visitors) {
+        for (PropertyVisitor visitor : visitors) {
             visitor.visitLocalState(path);
         }
     }
 
     @Override
     public void visitValidationMessage(TaskValidationContext.Severity severity, String message) {
-        for (InputsOutputVisitor visitor : visitors) {
+        for (PropertyVisitor visitor : visitors) {
             visitor.visitValidationMessage(severity, message);
         }
     }

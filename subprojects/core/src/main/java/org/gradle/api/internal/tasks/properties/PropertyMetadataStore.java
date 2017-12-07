@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
-public interface TaskPropertiesWalker {
-    void visitInputsAndOutputs(PropertySpecFactory specFactory, InputsOutputVisitor visitor, Object instance);
+import java.util.Set;
+
+public interface PropertyMetadataStore {
+    <T> Set<PropertyMetadata> getTypeMetadata(Class<T> type);
 }

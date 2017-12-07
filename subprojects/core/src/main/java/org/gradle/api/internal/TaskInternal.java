@@ -19,11 +19,11 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.TaskInputsAndOutputs;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Factory;
@@ -75,7 +75,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Deprecated
     void addValidator(TaskValidator validator);
 
-    void acceptInputsOutputsVisitor(InputsOutputVisitor visitor);
+    void visitProperties(PropertyVisitor visitor);
 
     @Override
     TaskStateInternal getState();

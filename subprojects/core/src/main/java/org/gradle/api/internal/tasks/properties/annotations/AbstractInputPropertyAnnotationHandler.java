@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,44 +14,44 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project.taskfactory;
+package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
-import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.TaskValidationContext.Severity;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 
 import java.io.File;
 
-abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotationHandler {
+public abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
-        PathSensitive pathSensitive = propertyInfo.getAnnotation(PathSensitive.class);
+    public void accept(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+        PathSensitive pathSensitive = propertyValue.getAnnotation(PathSensitive.class);
         final PathSensitivity pathSensitivity;
         if (pathSensitive == null) {
-            if (propertyInfo.isCacheable()) {
-                visitor.visitValidationMessage(Severity.INFO, propertyInfo.validationMessage("is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE"));
+            if (propertyValue.isCacheable()) {
+                visitor.visitValidationMessage(Severity.INFO, propertyValue.validationMessage("is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE"));
             }
             pathSensitivity = PathSensitivity.ABSOLUTE;
         } else {
             pathSensitivity = pathSensitive.value();
         }
-        DeclaredTaskInputFileProperty fileSpec = createFileSpec(propertyInfo, specFactory);
+        DeclaredTaskInputFileProperty fileSpec = createFileSpec(propertyValue, specFactory);
         fileSpec
-            .withPropertyName(propertyInfo.getPropertyName()).optional(propertyInfo.isOptional())
+            .withPropertyName(propertyValue.getPropertyName()).optional(propertyValue.isOptional())
             .withPathSensitivity(pathSensitivity)
-            .skipWhenEmpty(propertyInfo.isAnnotationPresent(SkipWhenEmpty.class))
-            .optional(propertyInfo.isOptional());
+            .skipWhenEmpty(propertyValue.isAnnotationPresent(SkipWhenEmpty.class))
+            .optional(propertyValue.isOptional());
         visitor.visitInputFileProperty(fileSpec);
     }
 
-    protected abstract DeclaredTaskInputFileProperty createFileSpec(PropertyInfo propertyInfo, PropertySpecFactory specFactory);
+    protected abstract DeclaredTaskInputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory);
 
     protected static File toFile(TaskValidationContext context, Object value) {
         return context.getResolver().resolve(value);

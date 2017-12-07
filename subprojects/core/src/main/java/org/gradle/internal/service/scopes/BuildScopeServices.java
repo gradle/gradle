@@ -59,15 +59,15 @@ import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
-import org.gradle.api.internal.tasks.DefaultInputsOutputsInfoStore;
-import org.gradle.api.internal.tasks.DefaultTaskPropertiesWalker;
-import org.gradle.api.internal.tasks.InputsOutputsInfoStore;
-import org.gradle.api.internal.tasks.TaskPropertiesWalker;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
+import org.gradle.api.internal.tasks.properties.DefaultPropertiesWalker;
+import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.PropertiesWalker;
+import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
@@ -235,12 +235,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator);
     }
 
-    protected InputsOutputsInfoStore createInputsOutputsInfoStrore(List<PropertyAnnotationHandler> annotationHandlers) {
-        return new DefaultInputsOutputsInfoStore(annotationHandlers);
+    protected PropertyMetadataStore createPropertyMetadataStore(List<PropertyAnnotationHandler> annotationHandlers) {
+        return new DefaultPropertyMetadataStore(annotationHandlers);
     }
 
-    protected TaskPropertiesWalker createTaskPropertiesWalker(InputsOutputsInfoStore inputsOutputsInfoStore) {
-        return new DefaultTaskPropertiesWalker(inputsOutputsInfoStore);
+    protected PropertiesWalker createPropertiesWalker(PropertyMetadataStore propertyMetadataStore) {
+        return new DefaultPropertiesWalker(propertyMetadataStore);
     }
 
     protected TaskClassInfoStore createTaskClassInfoStore() {

@@ -64,7 +64,7 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
         1 * inputs.getFilePropertiesVisitor() >> Mock(TaskInputsInternal.GetFilePropertiesVisitor)
         1 * inputs.getInputPropertiesVisitor() >> Mock(TaskInputsInternal.GetInputPropertiesVisitor)
         1 * localState.getFilesVisitor() >> Mock(TaskLocalStateInternal.GetFilesVisitor)
-        1 * task.acceptInputsOutputsVisitor(_)
+        1 * task.visitProperties(_)
 
         then: 'delegate is executed'
         1 * delegate.execute(task, taskState, taskContext)

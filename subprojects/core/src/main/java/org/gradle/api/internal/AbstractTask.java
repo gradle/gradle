@@ -40,7 +40,6 @@ import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.InputsAwareTaskDependency;
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -49,11 +48,12 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
-import org.gradle.api.internal.tasks.TaskPropertiesWalker;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskInputsAndOutputs;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
+import org.gradle.api.internal.tasks.properties.PropertiesWalker;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
@@ -141,7 +141,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private LoggingManagerInternal loggingManager;
 
     private String toStringValue;
-    private final TaskPropertiesWalker propertiesWalker;
+    private final PropertiesWalker propertiesWalker;
     private final PropertySpecFactory specFactory;
     private TaskInputsAndOutputs inputsAndOutputs;
 
@@ -171,7 +171,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         services = project.getServices();
 
         FileResolver fileResolver = project.getFileResolver();
-        propertiesWalker = services.get(TaskPropertiesWalker.class);
+        propertiesWalker = services.get(PropertiesWalker.class);
         taskMutator = new TaskMutator(this);
         specFactory = new DefaultPropertySpecFactory(this, fileResolver);
         taskInputs = new DefaultTaskInputs(this, taskMutator, propertiesWalker, specFactory);
@@ -198,11 +198,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public void acceptInputsOutputsVisitor(InputsOutputVisitor visitor) {
-        propertiesWalker.visitInputsAndOutputs(specFactory, visitor, this);
+    public void visitProperties(PropertyVisitor visitor) {
+        propertiesWalker.visitProperties(specFactory, visitor, this);
         getInputs().acceptRuntimeOnly(visitor);
         getOutputs().acceptRuntimeOnly(visitor);
-        ((TaskDestroyablesInternal) getDestroyables()).acceptRuntimeOnly(visitor);
+        ((TaskDestroyablesInternal) getDestroyables()).visitRuntimeProperties(visitor);
         ((TaskLocalStateInternal) getLocalState()).acceptRuntimeOnly(visitor);
     }
 

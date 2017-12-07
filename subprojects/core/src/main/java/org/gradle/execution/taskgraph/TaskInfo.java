@@ -19,11 +19,11 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.tasks.CompositeInputsOutputsVisitor;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
+import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
 import java.util.TreeSet;
 
@@ -233,7 +233,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
             localStateVisitor = ((TaskLocalStateInternal) task.getLocalState()).getFilesVisitor();
             destroyablesVisitor = ((TaskDestroyablesInternal) task.getDestroyables()).getFilesVisitor();
             hasFileInputsVisitor = new HasFileInputsVisitor();
-            task.acceptInputsOutputsVisitor(new CompositeInputsOutputsVisitor(outputFilesVisitor, destroyablesVisitor, localStateVisitor, hasFileInputsVisitor));
+            task.visitProperties(new CompositePropertyVisitor(outputFilesVisitor, destroyablesVisitor, localStateVisitor, hasFileInputsVisitor));
         }
     }
 
@@ -265,7 +265,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
         return task.getPath();
     }
 
-    private static class HasFileInputsVisitor extends InputsOutputVisitor.Adapter {
+    private static class HasFileInputsVisitor extends PropertyVisitor.Adapter {
         boolean hasFileInputs;
 
         @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project.taskfactory;
+package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
-import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
 public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
-    protected abstract DeclaredTaskOutputFileProperty createFileSpec(PropertyInfo propertyInfo, PropertySpecFactory specFactory);
+    protected abstract DeclaredTaskOutputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory);
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
-        DeclaredTaskOutputFileProperty fileSpec = createFileSpec(propertyInfo, specFactory);
+    public void accept(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+        DeclaredTaskOutputFileProperty fileSpec = createFileSpec(propertyValue, specFactory);
         fileSpec
-            .withPropertyName(propertyInfo.getPropertyName())
-            .optional(propertyInfo.isOptional());
+            .withPropertyName(propertyValue.getPropertyName())
+            .optional(propertyValue.isOptional());
         visitor.visitOutputFileProperty(fileSpec);
     }
 }

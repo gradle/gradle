@@ -14,10 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
-import java.util.Set;
+import org.gradle.api.internal.tasks.ValidatingValue;
 
-public interface InputsOutputsInfoStore {
-    <T> Set<PropertyContext> getTypeMetadata(Class<T> type);
+import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
+
+public interface PropertyValue extends ValidatingValue {
+
+    String getPropertyName();
+
+    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
+
+    @Nullable
+    <A extends Annotation> A getAnnotation(Class<A> annotationType);
+
+    boolean isOptional();
+
+    @Nullable
+    Object getValue();
+
+    Class<?> getDeclaredType();
+
+    boolean isCacheable();
+
+    String validationMessage(String message);
 }

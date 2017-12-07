@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.tasks.properties.annotations;
 
-package org.gradle.api.internal.project.taskfactory;
-
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
-import org.gradle.api.internal.tasks.PropertyInfo;
+import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.internal.tasks.ValidationActions;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.tasks.InputFile;
 
 import java.lang.annotation.Annotation;
 
-public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler {
-    private final Class<? extends Annotation> annotationType;
-
-    public NoOpPropertyAnnotationHandler(Class<? extends Annotation> annotationType) {
-        this.annotationType = annotationType;
-    }
-
+public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
-        return annotationType;
+        return InputFile.class;
     }
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
+    protected DeclaredTaskInputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory) {
+        return specFactory.createInputFileSpec(propertyValue, ValidationActions.INPUT_FILE_VALIDATOR);
     }
-
 }

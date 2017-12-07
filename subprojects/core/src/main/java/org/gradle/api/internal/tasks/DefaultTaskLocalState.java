@@ -22,6 +22,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.tasks.properties.PropertiesWalker;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,11 +35,11 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
     private final FileResolver resolver;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
-    private final TaskPropertiesWalker propertiesWalker;
+    private final PropertiesWalker propertiesWalker;
     private final PropertySpecFactory specFactory;
     private final List<Object> paths = Lists.newArrayList();
 
-    public DefaultTaskLocalState(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, TaskPropertiesWalker propertiesWalker, PropertySpecFactory specFactory) {
+    public DefaultTaskLocalState(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, PropertiesWalker propertiesWalker, PropertySpecFactory specFactory) {
         this.resolver = resolver;
         this.task = task;
         this.taskMutator = taskMutator;
@@ -55,13 +57,13 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
         });
     }
 
-    public void accept(InputsOutputVisitor visitor) {
-        propertiesWalker.visitInputsAndOutputs(specFactory, visitor, task);
+    public void accept(PropertyVisitor visitor) {
+        propertiesWalker.visitProperties(specFactory, visitor, task);
         acceptRuntimeOnly(visitor);
     }
 
     @Override
-    public void acceptRuntimeOnly(InputsOutputVisitor visitor) {
+    public void acceptRuntimeOnly(PropertyVisitor visitor) {
         for (Object path : paths) {
             visitor.visitLocalState(path);
         }
@@ -85,7 +87,7 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
         return new GetFilesVisitor();
     }
 
-    public class GetFilesVisitor extends InputsOutputVisitor.Adapter implements TaskLocalStateInternal.GetFilesVisitor {
+    public class GetFilesVisitor extends PropertyVisitor.Adapter implements TaskLocalStateInternal.GetFilesVisitor {
         private List<Object> localState = new ArrayList<Object>();
 
         @Override

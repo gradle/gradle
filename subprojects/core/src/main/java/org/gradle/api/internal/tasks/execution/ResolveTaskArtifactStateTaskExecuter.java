@@ -25,11 +25,9 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.tasks.CompositeInputsOutputsVisitor;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
@@ -38,6 +36,8 @@ import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec;
+import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -84,9 +84,9 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor = task.getInputs().getFilePropertiesVisitor();
         TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor = task.getInputs().getInputPropertiesVisitor();
         TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor = ((TaskLocalStateInternal) task.getLocalState()).getFilesVisitor();
-        TaskValidationVisitor taskValidationVisitor = new TaskValidationVisitor();
+        ValidatingPropertyVisitor taskValidationVisitor = new ValidatingPropertyVisitor();
         try {
-            task.acceptInputsOutputsVisitor(new CompositeInputsOutputsVisitor(
+            task.visitProperties(new CompositePropertyVisitor(
                 inputPropertiesVisitor,
                 inputFilePropertiesVisitor,
                 outputFilePropertiesVisitor,
@@ -105,10 +105,10 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         private final TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor;
         private final TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor;
         private final TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor;
-        private final ResolveTaskArtifactStateTaskExecuter.TaskValidationVisitor validationVisitor;
+        private final ValidatingPropertyVisitor validationVisitor;
         private final TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor;
 
-        public DefaultTaskInputsAndOutputs(TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor, TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor, TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor, TaskValidationVisitor validationVisitor, TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor) {
+        public DefaultTaskInputsAndOutputs(TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor, TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor, TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor, ValidatingPropertyVisitor validationVisitor, TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor) {
             this.inputPropertiesVisitor = inputPropertiesVisitor;
             this.inputFilePropertiesVisitor = inputFilePropertiesVisitor;
             this.outputFilesVisitor = outputFilesVisitor;
@@ -172,11 +172,11 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         }
     }
 
-    private static class TaskValidationVisitor extends InputsOutputVisitor.Adapter {
+    private static class ValidatingPropertyVisitor extends PropertyVisitor.Adapter {
         private final List<ValidatingTaskPropertySpec> taskPropertySpecs = new ArrayList<ValidatingTaskPropertySpec>();
         private final Multimap<TaskValidationContext.Severity, String> messages = ArrayListMultimap.create();
 
-        public TaskValidationVisitor() {
+        public ValidatingPropertyVisitor() {
         }
 
         @Override

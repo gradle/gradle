@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
-public interface InputsOutputVisitor {
+import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
+import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
+import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
+import org.gradle.api.internal.tasks.TaskValidationContext;
+
+public interface PropertyVisitor {
 
     void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty);
 
@@ -30,7 +35,7 @@ public interface InputsOutputVisitor {
 
     void visitValidationMessage(TaskValidationContext.Severity severity, String message);
 
-    class Adapter implements InputsOutputVisitor {
+    class Adapter implements PropertyVisitor {
 
         @Override
         public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {

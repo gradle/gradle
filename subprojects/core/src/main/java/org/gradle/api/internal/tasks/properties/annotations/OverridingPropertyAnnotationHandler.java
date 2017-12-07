@@ -13,22 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project.taskfactory;
-
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
-import org.gradle.api.internal.tasks.PropertyInfo;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.tasks.LocalState;
+package org.gradle.api.internal.tasks.properties.annotations;
 
 import java.lang.annotation.Annotation;
 
-public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHandler {
-    public Class<? extends Annotation> getAnnotationType() {
-        return LocalState.class;
-    }
-
-    @Override
-    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
-        visitor.visitLocalState(propertyInfo);
-    }
+public interface OverridingPropertyAnnotationHandler extends PropertyAnnotationHandler {
+    /**
+     * Returns the annotation type this annotation is allowed to override when declared on the same property.
+     */
+    Class<? extends Annotation> getOverriddenAnnotationType();
 }

@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.tasks.properties.annotations;
 
-package org.gradle.api.internal.project.taskfactory;
-
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
-import org.gradle.api.internal.tasks.PropertyInfo;
+import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.tasks.Destroys;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.tasks.OutputFiles;
 
 import java.lang.annotation.Annotation;
 
-public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHandler {
+public class OutputFilesPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
+
     @Override
     public Class<? extends Annotation> getAnnotationType() {
-        return Destroys.class;
+        return OutputFiles.class;
     }
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
-        visitor.visitDestroyable(propertyInfo);
+    protected DeclaredTaskOutputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory) {
+        return specFactory.createOutputFilesSpec(propertyValue);
     }
 }

@@ -32,6 +32,8 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
+import org.gradle.api.internal.tasks.properties.PropertiesWalker;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
@@ -54,7 +56,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
     private final FileCollection allOutputFiles;
-    private final TaskPropertiesWalker propertiesWalker;
+    private final PropertiesWalker propertiesWalker;
     private final PropertySpecFactory specFactory;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
@@ -64,7 +66,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, TaskPropertiesWalker propertiesWalker, PropertySpecFactory specFactory) {
+    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertiesWalker propertiesWalker, PropertySpecFactory specFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.allOutputFiles = new TaskOutputUnionFileCollection(task);
@@ -72,13 +74,13 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.specFactory = specFactory;
     }
 
-    public void accept(InputsOutputVisitor visitor) {
-        propertiesWalker.visitInputsAndOutputs(specFactory, visitor, task);
+    public void accept(PropertyVisitor visitor) {
+        propertiesWalker.visitProperties(specFactory, visitor, task);
         acceptRuntimeOnly(visitor);
     }
 
     @Override
-    public void acceptRuntimeOnly(InputsOutputVisitor visitor) {
+    public void acceptRuntimeOnly(PropertyVisitor visitor) {
         TaskPropertyUtils.ensurePropertiesHaveNames(declaredRuntimeFileProperties);
         for (DeclaredTaskOutputFileProperty fileProperty : declaredRuntimeFileProperties) {
             visitor.visitOutputFileProperty(fileProperty);
@@ -279,7 +281,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.history = history;
     }
 
-    private static class HasDeclaredOutputsVisitor extends InputsOutputVisitor.Adapter {
+    private static class HasDeclaredOutputsVisitor extends PropertyVisitor.Adapter {
         boolean hasDeclaredOutputs;
 
         @Override
@@ -297,7 +299,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return new GetFilePropertiesVisitor();
     }
 
-    public class GetFilePropertiesVisitor extends InputsOutputVisitor.Adapter implements TaskOutputsInternal.GetFilePropertiesVisitor {
+    public class GetFilePropertiesVisitor extends PropertyVisitor.Adapter implements TaskOutputsInternal.GetFilePropertiesVisitor {
         private List<TaskOutputFilePropertySpec> specs = new ArrayList<TaskOutputFilePropertySpec>();
         private ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties;
         private boolean hasDeclaredOutputs;

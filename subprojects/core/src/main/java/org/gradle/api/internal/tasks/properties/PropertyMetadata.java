@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
+
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.List;
 
-public interface PropertyInfo extends ValidatingValue {
-
-    String getPropertyName();
+public interface PropertyMetadata {
+    String getFieldName();
 
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 
     @Nullable
     <A extends Annotation> A getAnnotation(Class<A> annotationType);
 
-    boolean isOptional();
+    List<String> getValidationMessages();
+
+    List<Annotation> getAnnotations();
 
     @Nullable
-    Object getValue();
+    PropertyAnnotationHandler getAnnotationHandler();
 
-    Class<?> getDeclaredType();
-
-    boolean isCacheable();
-
-    String validationMessage(String message);
+    Method getMethod();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project.taskfactory;
+package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
+import org.gradle.api.internal.changedetection.state.CompileClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.InputsOutputVisitor;
-import org.gradle.api.internal.tasks.PropertyInfo;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.ValidationActions;
-import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.ClasspathNormalizer;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.InputFiles;
 
 import java.lang.annotation.Annotation;
 
-public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler, FileSnapshottingPropertyAnnotationHandler {
+public class CompileClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler, FileSnapshottingPropertyAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
-        return Classpath.class;
+        return CompileClasspath.class;
     }
 
     @Override
@@ -42,16 +42,16 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
 
     @Override
     public Class<? extends FileCollectionSnapshotter> getSnapshotterImplementationType() {
-        return ClasspathSnapshotter.class;
+        return CompileClasspathSnapshotter.class;
     }
 
     @Override
-    public void accept(PropertyInfo propertyInfo, InputsOutputVisitor visitor, PropertySpecFactory specFactory) {
-        DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(propertyInfo, ValidationActions.NO_OP);
+    public void accept(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+        DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(propertyValue, ValidationActions.NO_OP);
         fileSpec
-            .withPropertyName(propertyInfo.getPropertyName())
-            .withNormalizer(ClasspathNormalizer.class)
-            .optional(propertyInfo.isOptional());
+            .withPropertyName(propertyValue.getPropertyName())
+            .withNormalizer(CompileClasspathNormalizer.class)
+            .optional(propertyValue.isOptional());
         visitor.visitInputFileProperty(fileSpec);
     }
 }
