@@ -70,7 +70,7 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
         final Set<PropertyMetadata> typeMetadata = propertyMetadataStore.getTypeMetadata(type);
         for (PropertyMetadata propertyMetadata : typeMetadata) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
-            String propertyName = node.getRelativePropertyName(propertyMetadata.getFieldName());
+            String propertyName = node.getQualifiedPropertyName(propertyMetadata.getFieldName());
             if (propertyValueVisitor == null) {
                 if (!Modifier.isPrivate(propertyMetadata.getMethod().getModifiers())) {
                     visitor.visitValidationMessage(INFO, propertyValidationMessage(propertyName, "is not annotated with an input or output annotation"));
@@ -113,7 +113,7 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
             return bean;
         }
 
-        public String getRelativePropertyName(String propertyName) {
+        public String getQualifiedPropertyName(String propertyName) {
             return parentPropertyName == null ? propertyName : parentPropertyName + "." + propertyName;
         }
     }
