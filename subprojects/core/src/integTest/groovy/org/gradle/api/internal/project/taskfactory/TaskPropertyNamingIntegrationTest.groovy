@@ -107,7 +107,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
     def "nested input and output properties are discovered"() {
         buildFile << classesForNestedProperties()
         buildFile << """
-            task test(type: MyTask) {           
+            task test(type: TaskWithNestedObjectProperty) {           
                 input = "someString"
                 bean = new NestedProperty(
                     inputDir: file('input'),
@@ -159,13 +159,10 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
     def "input properties can be overridden"() {
         buildFile << classesForNestedProperties()
         buildFile << """
-            task test(type: MyTask) { 
+            task test(type: TaskWithNestedObjectProperty) { 
                 input = "someString"
                 bean = new NestedProperty(
-                    inputDir: file('input'),
                     input: 'someString',
-                    outputDir: file("\$buildDir/output"),  
-                    nestedBean: new AnotherNestedProperty(inputFile: file('inputFile'))
                 )                    
                 inputs.property("input", "someOtherString") 
                 inputs.property("bean.input", "otherNestedString")
@@ -182,12 +179,16 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output =~ /Input property 'input' : 'someOtherString'/
-        output =~ /Input property 'bean.input' : 'otherNestedString'/
+        output =~ /Input property 'bean\.input' : 'otherNestedString'/
+
+        output =~ /Input property 'bean\.class' : 'NestedProperty'/
+        output =~ /Input property 'bean\.nestedBean\.class' : 'null'/
+        output =~ /Input file property 'bean\.inputDir'/
     }
 
     String classesForNestedProperties() {
         """
-            class MyTask extends DefaultTask {
+            class TaskWithNestedObjectProperty extends DefaultTask {
                 @Nested
                 Object bean
                 @Input
@@ -199,14 +200,17 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             
             class NestedProperty {
                 @InputDirectory
+                @Optional
                 File inputDir
                 
                 @OutputDirectory
+                @Optional
                 File outputDir      
                         
                 @Input
                 String input
                 @Nested
+                @Optional
                 Object nestedBean
                 @Destroys File destroyedFile
             }                    
