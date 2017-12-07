@@ -16,12 +16,8 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.gradle.internal.classloader.ClasspathUtil.getClasspathForClass;
-import static org.gradle.internal.featurelifecycle.FeatureInvocationSource.SourceType;
 
 class StacktraceAnalyzer {
     static List<StackTraceElement> getCleansedStackTrace(Class<?> calledFrom) {
@@ -61,52 +57,6 @@ class StacktraceAnalyzer {
         return caller;
     }
 
-    static FeatureInvocationSource analyzeInvocation(FeatureUsage usage) {
-        for (StackTraceElement element : usage.getStack()) {
-            SourceType sourceType = getMethodSourceType(element);
-            if (isDecisive(sourceType)) {
-                return new FeatureInvocationSource(usage.getMessage(), sourceType);
-            }
-        }
-
-        return new FeatureInvocationSource(usage.getMessage(), SourceType.UNKNOWN);
-    }
-
-    private static boolean isDecisive(SourceType sourceType) {
-        return sourceType == SourceType.BUILD_SRC || sourceType == SourceType.THIRD_PARTY_JAR || sourceType == SourceType.SCRIPT;
-    }
-
-    private static SourceType getMethodSourceType(StackTraceElement element) {
-        if (element.getFileName() == null) {
-            return SourceType.UNKNOWN;
-        }
-        if (isGradleScript(element)) {
-            return SourceType.SCRIPT;
-        }
-        if (isGradleInternal(element.getClassName())) {
-            return SourceType.GRADLE_INTERNAL;
-        }
-        try {
-            File file = getClasspathForClass(element.getClassName());
-            if (file == null) {
-                return SourceType.UNKNOWN;
-            }
-            if (isBuildSrc(file)) {
-                return SourceType.BUILD_SRC;
-            }
-            if (isThirdPartyJar(file)) {
-                return SourceType.THIRD_PARTY_JAR;
-            }
-            return SourceType.UNKNOWN;
-        } catch (Throwable e) {
-            return SourceType.UNKNOWN;
-        }
-    }
-
-    private static boolean isBuildSrc(File file) {
-        return "buildSrc.jar".equals(file.getName());
-    }
-
     private static boolean isSystemInternal(String className) {
         return className.startsWith("org.codehaus.groovy.")
             || className.startsWith("org.gradle.internal.metaobject.")
@@ -114,19 +64,5 @@ class StacktraceAnalyzer {
             || className.startsWith("java.")
             || className.startsWith("sun.")
             || className.startsWith("jdk.internal.");
-    }
-
-    private static boolean isGradleInternal(String className) {
-        return className.startsWith("org.gradle") || isSystemInternal(className);
-    }
-
-    private static boolean isThirdPartyJar(File file) {
-        return file != null && file.getName().toLowerCase().endsWith(".jar");
-    }
-
-    private static boolean isGradleScript(StackTraceElement stackTraceElement) {
-        String className = stackTraceElement.getClassName();
-        String fileName = stackTraceElement.getFileName();
-        return className.startsWith("build_") || className.startsWith("http_") || fileName.endsWith(".gradle");
     }
 }

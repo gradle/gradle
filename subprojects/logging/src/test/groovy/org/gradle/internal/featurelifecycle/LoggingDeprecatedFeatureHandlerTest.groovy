@@ -16,13 +16,12 @@
 
 package org.gradle.internal.featurelifecycle
 
+import org.gradle.api.logging.configuration.WarningsType
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import static org.gradle.internal.featurelifecycle.FeatureUsage.FeatureType.DEPRECATED
 
 @Subject(LoggingDeprecatedFeatureHandler)
 class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerTest {
@@ -34,13 +33,20 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         new LoggingDeprecatedFeatureHandler()
     }
 
-    @Override
-    FeatureUsage.FeatureType getFeatureType() {
-        return DEPRECATED
+    def setup() {
+        handler.init(locationReporter, WarningsType.ALL)
     }
 
-    def setup() {
-        handler.locationReporter = locationReporter
+    def "no warnings should be displayed in #mode"() {
+        when:
+        handler.init(locationReporter, type)
+        handler.featureUsed(createFeatureUsage('feature1'))
+
+        then:
+        outputEventListener.events.empty
+
+        where:
+        type << [WarningsType.NO, WarningsType.AUTO]
     }
 
     @Unroll
@@ -217,7 +223,7 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.featureUsed(new FeatureUsage(new FeatureUsage('fake', FeatureUsageTest, DEPRECATED), fakeStackTrace))
+        handler.featureUsed(new FeatureUsage(new FeatureUsage('fake', FeatureUsageTest), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -242,7 +248,7 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
 
         when:
-        handler.featureUsed(new FeatureUsage('fake', FeatureUsageTest, DEPRECATED))
+        handler.featureUsed(new FeatureUsage('fake', FeatureUsageTest))
         def events = outputEventListener.events
 
         then:

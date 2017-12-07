@@ -24,43 +24,23 @@ import java.util.List;
  * An immutable description of the usage of a deprecated or incubating feature.
  */
 public class FeatureUsage {
-    public enum FeatureType {
-        INCUBATING,
-        DEPRECATED
-    }
-
     private final String message;
     private final List<StackTraceElement> stack;
     private final Class<?> calledFrom;
-    private final FeatureType type;
 
-    public static FeatureUsage deprecatedFeature(String message, Class<?> calledFrom) {
-        return new FeatureUsage(message, calledFrom, FeatureType.DEPRECATED);
-    }
-
-    public static FeatureUsage incubatingFeature(String message, Class<?> calledFrom) {
-        return new FeatureUsage(message, calledFrom, FeatureType.INCUBATING);
-    }
-
-    FeatureUsage(String message, Class<?> calledFrom, FeatureType type) {
+    public FeatureUsage(String message, Class<?> calledFrom) {
         this.message = message;
         this.calledFrom = calledFrom;
         this.stack = Collections.emptyList();
-        this.type = type;
     }
 
-    FeatureUsage(FeatureUsage usage, List<StackTraceElement> stack) {
+    public FeatureUsage(FeatureUsage usage, List<StackTraceElement> stack) {
         if (stack == null) {
             throw new NullPointerException("stack is null");
         }
         this.message = usage.message;
         this.calledFrom = usage.calledFrom;
         this.stack = Collections.unmodifiableList(new ArrayList<StackTraceElement>(stack));
-        this.type = usage.type;
-    }
-
-    public FeatureType getType() {
-        return type;
     }
 
     public String getMessage() {

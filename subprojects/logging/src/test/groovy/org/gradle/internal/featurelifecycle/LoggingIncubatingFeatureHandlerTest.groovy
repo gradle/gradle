@@ -16,30 +16,13 @@
 
 package org.gradle.internal.featurelifecycle
 
-import org.gradle.internal.featurelifecycle.FeatureUsage.FeatureType
 import spock.lang.Subject
 
 @Subject(LoggingIncubatingFeatureHandler)
 class LoggingIncubatingFeatureHandlerTest extends AbstractLoggingFeatureHandlerTest {
-    CollectingDeprecatedFeatureHandler delegate = Mock(CollectingDeprecatedFeatureHandler)
 
     @Override
     FeatureHandler createHandler() {
-        return new LoggingIncubatingFeatureHandler(delegate)
-    }
-
-    @Override
-    FeatureType getFeatureType() {
-        return FeatureType.INCUBATING
-    }
-
-    def 'only incubating feature would be logged'() {
-        when:
-        createHandler().featureUsed(new FeatureUsage('message', getClass(), FeatureType.DEPRECATED))
-
-        then:
-        outputEventListener.events.empty
-        1 * delegate.featureUsed(_)
-        0 * _._
+        return new LoggingIncubatingFeatureHandler()
     }
 }

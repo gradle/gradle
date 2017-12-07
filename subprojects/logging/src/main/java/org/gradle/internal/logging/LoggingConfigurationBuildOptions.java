@@ -21,6 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.logging.configuration.WarningsType;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.buildoption.AbstractBuildOption;
@@ -44,6 +45,7 @@ public class LoggingConfigurationBuildOptions {
         options.add(new LogLevelOption());
         options.add(new StacktraceOption());
         options.add(new ConsoleOption());
+        options.add(new WarningsOption());
         LoggingConfigurationBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -170,4 +172,24 @@ public class LoggingConfigurationBuildOptions {
             }
         }
     }
+
+    public static class WarningsOption extends StringBuildOption<LoggingConfiguration> {
+        public static final String LONG_OPTION = "warnings";
+        public static final String GRADLE_PROPERTY = "org.gradle.warnings";
+
+        public WarningsOption() {
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which type of warnings to generate. Values are 'all', 'auto' (default) or 'no'"));
+        }
+
+        @Override
+        public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
+            try {
+                WarningsType warningsType = WarningsType.valueOf(value.toUpperCase(Locale.ENGLISH));
+                settings.setWarningsType(warningsType);
+            } catch (IllegalArgumentException e) {
+                origin.handleInvalidValue(value);
+            }
+        }
+    }
+
 }

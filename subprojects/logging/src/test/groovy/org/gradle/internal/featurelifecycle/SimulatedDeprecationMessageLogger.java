@@ -16,8 +16,6 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import static org.gradle.internal.featurelifecycle.FeatureUsage.FeatureType.DEPRECATED;
-
 public class SimulatedDeprecationMessageLogger {
     public static final String DIRECT_CALL = "direct call";
     public static final String INDIRECT_CALL = "indirect call";
@@ -32,6 +30,6 @@ public class SimulatedDeprecationMessageLogger {
     }
 
     public static FeatureUsage nagUserWith(String message) {
-        return new FeatureUsage(message, SimulatedDeprecationMessageLogger.class, DEPRECATED).withStackTrace();
+        return new FeatureUsage(message, SimulatedDeprecationMessageLogger.class).withStackTrace();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.featurelifecycle;
+package org.gradle.api.logging.configuration;
+
+import org.gradle.api.Incubating;
 
 /**
- * Notified when a deprecated feature is used.
+ * Specifies the warning type a user wants to see
  *
- * <p>Implementations need not be thread-safe.
+ * @since 4.5
  */
-public interface FeatureHandler {
+@Incubating
+public enum WarningsType {
+    /**
+     * Show all warnings (e.g. deprecation warnings)
+     */
+    ALL,
 
-    void reset();
+    /**
+     * Default value. By default, all deprecation warnings will be suppressed and a single message will be displayed at the end of a build indicating how many deprecation warnings suppressed.
+     */
+    AUTO,
 
-    void featureUsed(FeatureUsage usage);
+    /**
+     * No warnings at all.
+     */
+    NO
 }

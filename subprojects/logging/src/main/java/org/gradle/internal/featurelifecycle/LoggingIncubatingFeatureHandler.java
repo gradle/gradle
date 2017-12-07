@@ -22,35 +22,19 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.gradle.internal.featurelifecycle.FeatureUsage.FeatureType.INCUBATING;
-
 public class LoggingIncubatingFeatureHandler implements FeatureHandler {
     public static final String INCUBATION_MESSAGE = "%s is an incubating feature.";
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingIncubatingFeatureHandler.class);
 
     private final Set<String> features = new HashSet<String>();
 
-    private final CollectingDeprecatedFeatureHandler delegate;
-
-    public LoggingIncubatingFeatureHandler(CollectingDeprecatedFeatureHandler delegate) {
-        this.delegate = delegate;
-    }
-
     @Override
-    public void init(UsageLocationReporter reporter) {
-        delegate.init(reporter);
+    public void reset() {
+        features.clear();
     }
 
     @Override
     public void featureUsed(FeatureUsage usage) {
-        if (usage.getType() == INCUBATING) {
-            incubatingFeatureUsed(usage);
-        } else {
-            delegate.featureUsed(usage);
-        }
-    }
-
-    private void incubatingFeatureUsed(FeatureUsage usage) {
         if (features.add(usage.getMessage())) {
             LOGGER.warn(String.format(INCUBATION_MESSAGE, usage.getMessage()));
         }
