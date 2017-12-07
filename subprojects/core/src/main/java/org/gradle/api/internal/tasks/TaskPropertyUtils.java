@@ -48,13 +48,11 @@ public class TaskPropertyUtils {
     public static <T extends TaskPropertySpec & TaskFilePropertyBuilder> void ensurePropertiesHaveNames(Iterable<T> properties) {
         int unnamedPropertyCounter = 0;
         for (T propertySpec : properties) {
-            int unnamedPropertyCounter1 = unnamedPropertyCounter;
             String propertyName = propertySpec.getPropertyName();
             if (propertyName == null) {
-                propertyName = "$" + (++unnamedPropertyCounter1);
+                propertyName = "$" + (++unnamedPropertyCounter);
                 propertySpec.withPropertyName(propertyName);
             }
-            unnamedPropertyCounter = unnamedPropertyCounter1;
         }
     }
 
