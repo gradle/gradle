@@ -117,6 +117,8 @@ By default, Gradle caches dynamic versions and changing modules for 24 hours. Yo
 [[sec:declaring_dependencies]]
 === Declaring dependencies
 
+Gradle builds can declare dependencies on external binaries, files and other Gradle projects as described below. Check out the <<dependency_types,full reference on all types of dependencies>> for more information.
+
 [[sec:declaring_binary_dependency]]
 ==== Declaring a binary dependency
 
@@ -189,40 +191,22 @@ The following example declares the dependencies on the `utils` and `api` project
 </sample>
 ++++
 
-[[sub:configurations]]
+[[sub:scope_of_dependency_configurations]]
 ==== Defining the scope of a dependency
 
-In Gradle dependencies are grouped into configurations. Configurations have a name, a number of other properties, and they can extend each other. Many Gradle plugins add pre-defined configurations to your project. The Java plugin, for example, adds some configurations to represent the various classpaths it needs. see <<sec:java_plugin_and_dependency_management>> for details. Of course you can add custom configurations on top of that. There are many use cases for custom configurations. This is very handy for example for adding dependencies not needed for building or testing your software (e.g. additional JDBC drivers to be shipped with your distribution).
+Every dependency declared for a Gradle project applies to a specific scope. For example some dependencies should be used for compiling source code whereas others only need to be available at runtime. Gradle represents the scope of a dependency with the help of a api:org.gradle.api.artifacts.Configuration[].
 
-A project's configurations are managed by a `configurations` object. The closure you pass to the configurations object is applied against its API. To learn more about this API have a look at api:org.gradle.api.artifacts.ConfigurationContainer[].
+Many Gradle plugins add pre-defined configurations to your project. The Java plugin, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests and the like. Please see <<sec:java_plugin_and_dependency_management>> for an overview. The sections above on <<sec:declaring_dependencies,declaring dependencies>> demonstrate the use of configurations for various use cases.
 
-To define a configuration:
+You can also define configurations yourself, so-called _custom configurations_. A custom configuration is useful for separating the scope of dependencies needed for a purpose. Let's say you wanted to declare a dependency on the link:https://tomcat.apache.org/tomcat-9.0-doc/jasper-howto.html[Jasper Ant task] for the purpose of pre-compiling JSP files that should not end up in the classpath for compiling your source code.
 
 ++++
-<sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Definition of a configuration">
-    <sourcefile file="build.gradle" snippet="define-configuration"/>
+<sample id="custom-configuration" dir="userguide/dependencies/declaringCustomConfigurations" title="Declaring and using a custom configuration">
+    <sourcefile file="build.gradle" snippet="custom-configuration"/>
 </sample>
 ++++
 
-To access a configuration:
-
-++++
-<sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Accessing a configuration">
-    <sourcefile file="build.gradle" snippet="lookup-configuration"/>
-</sample>
-++++
-
-To configure a configuration:
-
-++++
-<sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Configuration of a configuration">
-    <sourcefile file="build.gradle" snippet="configure-configuration"/>
-</sample>
-++++
-
-==== Going further
-
-Gradle is not limited to declaring binary, file or project dependencies. Check out the <<dependency_types,full reference on all types of dependencies>> for more information.
+A project's configurations are managed by a `configurations` object. Configurations have a name and can extend each other. To learn more about this API have a look at api:org.gradle.api.artifacts.ConfigurationContainer[].
 
 [[sec:customizing_dependencies]]
 === Customizing dependency declarations
