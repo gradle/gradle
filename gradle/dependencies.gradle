@@ -24,7 +24,7 @@ versions.commons_io = '2.2'
 versions.groovy = '2.4.12'
 versions.bouncycastle = '1.58'
 versions.maven = '3.0.4'
-versions.httpclient = '4.4.1'
+versions.httpclient = '4.5.4'
 
 libraries.ant = 'org.apache.ant:ant:1.9.9'
 libraries.asm =  'org.ow2.asm:asm-debug-all:6.0_BETA'
