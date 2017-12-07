@@ -1131,14 +1131,14 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "Cannot locate service of type String, as TestRegistry has been closed."
+        e.message == "TestRegistry has been closed."
 
         when:
         registry.getAll(String)
 
         then:
         e = thrown()
-        e.message == "Cannot locate service of type String, as TestRegistry has been closed."
+        e.message == "TestRegistry has been closed."
     }
 
     def cannotLookupFactoriesWhenClosed() {
@@ -1151,7 +1151,8 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "Cannot locate factory for objects of type BigDecimal, as TestRegistry has been closed."
+        e.message == "" +
+            "TestRegistry has been closed."
     }
 
     /*

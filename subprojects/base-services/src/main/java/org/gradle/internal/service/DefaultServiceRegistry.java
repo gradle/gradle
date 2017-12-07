@@ -37,10 +37,13 @@ import java.util.Formatter;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A hierarchical {@link ServiceRegistry} implementation.
@@ -72,20 +75,23 @@ import java.util.concurrent.ConcurrentMap;
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
  */
 public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
+    private enum State {INIT, IN_USE, CLOSING, CLOSED};
     private final static ServiceRegistry[] NO_PARENTS = new ServiceRegistry[0];
     private final static ServiceProvider[] NO_DEPENDENTS = new ServiceProvider[0];
     private final static Object[] NO_PARAMS = new Object[0];
+    private final static ServiceProvider NOT_FOUND = new NotFoundProvider();
 
     private static final ConcurrentMap<Type, Transformer<ServiceProvider, Provider>> SERVICE_TYPE_PROVIDER_CACHE = new ConcurrentHashMap<Type, Transformer<ServiceProvider, Provider>>();
-    private final Map<Type, ServiceProvider> providerCache = new IdentityHashMap<Type, ServiceProvider>();
+    private final ConcurrentMap<Type, ServiceProvider> providerCache = new ConcurrentHashMap<Type, ServiceProvider>();
 
-    private final Object lock = new Object();
     private final OwnServices ownServices;
     private final Provider allServices;
     private final Provider parentServices;
     private final String displayName;
-    private boolean closed;
-    private boolean mutable = true; // access under lock
+    private volatile State state = State.INIT;
+
+    private final Object stopLock = new Object();
+    private final AtomicInteger inProgress = new AtomicInteger(0);
 
     private Provider asParentServicesProvider;
 
@@ -215,7 +221,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private void assertMutable() {
-        if (!mutable) {
+        if (state != State.INIT) {
             throw new IllegalStateException("Cannot add provide to service registry " + this + " as it is no longer mutable");
         }
     }
@@ -258,17 +264,33 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
      * Closes all services for this registry. For each service, if the service has a public void close() or stop() method, that method is called to close the service.
      */
     public void close() {
-        synchronized (lock) {
+        if (state == State.CLOSED || state == State.CLOSING) {
+            return;
+        }
+
+        synchronized (stopLock) {
+            if (state == State.CLOSED || state == State.CLOSING) {
+                return;
+            }
+            state = State.CLOSING;
+            waitForPendingRequests();
+            CompositeStoppable.stoppable(allServices).stop();
+            state = State.CLOSED;
+        }
+    }
+
+    private void waitForPendingRequests() {
+        while (inProgress.get() != 0) {
             try {
-                CompositeStoppable.stoppable(allServices).stop();
-            } finally {
-                closed = true;
+                stopLock.wait();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }
     }
 
     public boolean isClosed() {
-        return closed;
+        return state == State.CLOSED;
     }
 
     private static String format(Type type) {
@@ -295,21 +317,18 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
-        synchronized (lock) {
-            noLongerMutable();
-            if (closed) {
-                throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.", format(serviceType), getDisplayName()));
-            }
-            assertValidServiceType(serviceType);
-            List<T> services = new ArrayList<T>();
-            collectInto(serviceType, services);
-            return services;
-        }
+        assertValidServiceType(serviceType);
+        List<T> services = new ArrayList<T>();
+        collectInto(serviceType, services);
+        return services;
     }
 
     private <T> void collectInto(Class<T> serviceType, List<T> results) {
-        synchronized (lock) {
+        try {
+            newRequestInProgress();
             allServices.getAll(serviceType, new UnpackingList<T>(serviceType, results));
+        } finally {
+            requestFinished();
         }
     }
 
@@ -343,56 +362,71 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
-        synchronized (lock) {
-            noLongerMutable();
-            if (closed) {
-                throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.", format(serviceType), getDisplayName()));
-            }
-            assertValidServiceType(unwrap(serviceType));
-            Object instance = doGet(serviceType);
-            if (instance == null) {
-                throw new UnknownServiceException(serviceType, String.format("No service of type %s available in %s.", format(serviceType), getDisplayName()));
-            }
-            return instance;
+        assertValidServiceType(unwrap(serviceType));
+        Object instance = doGet(serviceType);
+        if (instance == null) {
+            throw new UnknownServiceException(serviceType, String.format("No service of type %s available in %s.", format(serviceType), getDisplayName()));
         }
+        return instance;
     }
 
     private Object doGet(Type serviceType) {
-        synchronized (lock) {
+        try {
+            newRequestInProgress();
             ServiceProvider provider = providerCache.get(serviceType);
             if (provider == null) {
                 provider = find(serviceType, allServices);
-                providerCache.put(serviceType, provider);
+                if (provider == null) {
+                    provider = NOT_FOUND;
+                }
+                providerCache.putIfAbsent(serviceType, provider);
             }
-            return provider == null ? null : provider.get();
+            return provider.get();
+        } finally {
+            requestFinished();
+        }
+    }
+
+    private void newRequestInProgress() {
+
+        noLongerMutable();
+        if (state == State.CLOSED) {
+            throw new IllegalStateException(String.format("%s has been closed.", getDisplayName()));
+        }
+        inProgress.incrementAndGet();
+    }
+
+    private void requestFinished() {
+        boolean noMoreRequests = inProgress.decrementAndGet() == 0;
+        if (noMoreRequests && state == State.CLOSING) {
+            synchronized (stopLock) {
+                stopLock.notify();
+            }
         }
     }
 
     public <T> Factory<T> getFactory(Class<T> type) {
-        synchronized (lock) {
-            noLongerMutable();
-            if (closed) {
-                throw new IllegalStateException(String.format("Cannot locate factory for objects of type %s, as %s has been closed.", format(type), getDisplayName()));
-            }
-            assertValidServiceType(type);
-            Factory<T> factory = doGetFactory(type);
-            if (factory == null) {
-                throw new UnknownServiceException(type, String.format("No factory for objects of type %s available in %s.", format(type), getDisplayName()));
-            }
-            return factory;
+        assertValidServiceType(type);
+        Factory<T> factory = doGetFactory(type);
+        if (factory == null) {
+            throw new UnknownServiceException(type, String.format("No factory for objects of type %s available in %s.", format(type), getDisplayName()));
         }
+        return factory;
     }
 
     private <T> Factory<T> doGetFactory(Class<T> type) {
-        synchronized (lock) {
+        try {
+            newRequestInProgress();
             ServiceProvider provider = allServices.getFactory(type);
             return provider == null ? null : (Factory<T>) provider.get();
+        } finally {
+            requestFinished();
         }
     }
 
     private void noLongerMutable() {
-        if (mutable) {
-            mutable = false;
+        if (state == State.INIT) {
+            state = State.IN_USE;
             ownServices.noLongerMutable();
         }
     }
@@ -413,7 +447,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     /**
-     * Provides a set or zero or more services.
+     * Provides a set or zero or more services. The get-methods may be called concurrently. {@link #stop()} is guaranteed to be only called once,
+     * after all get-methods have completed.
      */
     interface Provider extends Stoppable {
         /**
@@ -430,6 +465,23 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
          * Collects all services of the given type.
          */
         void getAll(Class<?> serviceType, List<ServiceProvider> result);
+    }
+
+    private static class NotFoundProvider implements ServiceProvider {
+        @Override
+        public String getDisplayName() {
+            return "not found";
+        }
+
+        @Override
+        public Object get() {
+            return null;
+        }
+
+        @Override
+        public void requiredBy(Provider provider) {
+
+        }
     }
 
     private class OwnServices implements Provider {
@@ -597,31 +649,35 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private static abstract class ManagedObjectProvider<T> implements Provider {
-        private T instance;
-        private List<Provider> dependents;
+        private volatile T instance;
+        private Queue<Provider> dependents = new ConcurrentLinkedQueue<Provider>();
 
-        protected void setInstance(T instance) {
+        protected final void setInstance(T instance) {
             this.instance = instance;
         }
 
-        public T getInstance() {
+        public final T getInstance() {
             if (instance == null) {
-                instance = create();
-                assert instance != null : String.format("create() of %s returned null", toString());
+                synchronized (this) {
+                    if (instance == null) {
+                        instance = create();
+                        assert instance != null : String.format("create() of %s returned null", toString());
+                    }
+                }
             }
             return instance;
         }
 
+        /**
+         * Subclasses implement this method to create the service instance. It is never called concurrently and may not return null.
+         */
         protected abstract T create();
 
-        public void requiredBy(Provider provider) {
-            if (dependents == null) {
-                dependents = new ArrayList<Provider>(5);
-            }
+        public final void requiredBy(Provider provider) {
             dependents.add(provider);
         }
 
-        public void stop() {
+        public final synchronized void stop() {
             try {
                 if (instance != null) {
                     CompositeStoppable.stoppable(dependents == null ? Collections.emptyList() : dependents).add(instance).stop();
@@ -641,9 +697,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         final Type serviceType;
         final Class serviceClass;
 
-        // cached for performance
+        volatile BindState state = BindState.UNBOUND;
         Class factoryElementType;
-        BindState state = BindState.UNBOUND;
 
         SingletonService(Type serviceType) {
             this.serviceType = serviceType;
@@ -661,22 +716,31 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         private ServiceProvider prepare() {
-            if (state == BindState.BINDING) {
-                throw new ServiceValidationException("This service depends on itself");
+            if (state == BindState.BOUND) {
+                return this;
             }
-            if (state == BindState.UNBOUND) {
-                state = BindState.BINDING;
-                try {
-                    bind();
-                    state = BindState.BOUND;
-                } catch (RuntimeException e) {
-                    state = BindState.UNBOUND;
-                    throw e;
+            synchronized (this) {
+                if (state == BindState.BINDING) {
+                    throw new ServiceValidationException("This service depends on itself");
                 }
+                if (state == BindState.UNBOUND) {
+                    state = BindState.BINDING;
+                    try {
+                        bind();
+                        state = BindState.BOUND;
+                    } catch (RuntimeException e) {
+                        state = BindState.UNBOUND;
+                        throw e;
+                    }
+                }
+                return this;
             }
-            return this;
         }
 
+        /**
+         * Do any preparation work and validation to ensure that {@link #create()} ()} can be called later.
+         * This method is never called concurrently.
+         */
         protected void bind() {
         }
 
