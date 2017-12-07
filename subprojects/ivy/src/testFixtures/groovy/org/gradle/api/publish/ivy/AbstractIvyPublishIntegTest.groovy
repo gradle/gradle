@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.SingleArtifactResolutionResultSpec
 import org.gradle.test.fixtures.ivy.IvyFileModule
 import org.gradle.test.fixtures.ivy.IvyJavaModule
-import org.gradle.test.fixtures.ivy.IvyModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
@@ -33,13 +32,6 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
 
     def setup() {
         prepare()
-    }
-
-    @Override
-    void setResolveModuleMetadata(boolean resolveModuleMetadata) {
-        if (!resolveModuleMetadata) {
-            throw new IllegalStateException("Ivy test fixture doesn't need to disable resolving anymore. Use the appropriate 'resolveArtifact' expectations")
-        }
     }
 
     protected static IvyJavaModule javaLibrary(IvyFileModule module) {
@@ -138,22 +130,12 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         }
         if (params.expectFailure) {
             fails "resolveArtifacts"
-            return []
+            return failure
         } else {
             run "resolveArtifacts"
             def artifactsList = file("artifacts").exists() ? file("artifacts").list() : []
             return artifactsList.sort()
         }
-    }
-
-    private static String convertDependencyNotation(Object notation) {
-        if (notation instanceof CharSequence) {
-            return notation
-        }
-        if (notation instanceof IvyModule) {
-            return "group: '${sq(notation.organisation)}', name: '${sq(notation.module)}', version: '${sq(notation.revision)}'"
-        }
-        throw new UnsupportedOperationException("Unsupported dependency notation: $notation")
     }
 
     static class ResolveParams {
@@ -185,10 +167,16 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
                 expectFailure: !expectationSpec.expectSuccess
             )
             println "Checking ${additionalArtifacts?'additional artifacts':'artifacts'} when resolving ${withModuleMetadata?'with':'without'} Gradle module metadata"
-            def actualFileNames = doResolveArtifacts(params)
+            def resolutionResult = doResolveArtifacts(params)
             expectationSpec.with {
                 if (expectSuccess) {
-                    assert actualFileNames == expectedFileNames
+                    assert resolutionResult == expectedFileNames
+                } else {
+                    failureExpectations.each {
+                        it.resolveStrategy = Closure.DELEGATE_FIRST
+                        it.delegate = resolutionResult
+                        it()
+                    }
                 }
             }
         }

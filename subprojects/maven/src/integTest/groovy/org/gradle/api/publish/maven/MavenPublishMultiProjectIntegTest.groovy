@@ -63,7 +63,9 @@ project(":project3") {
         project3.assertNoDependencies()
 
         and:
-        resolveArtifacts(project1) == ['changed-artifact-id-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar']
+        resolveArtifacts(project1) {
+            expectFiles 'changed-artifact-id-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar'
+        }
     }
 
     def "reports failure when project dependency references a project with multiple publications"() {
@@ -183,7 +185,7 @@ project(":project2") {
         project3.assertPublished()
         project3.assertNoDependencies()
 
-        resolveArtifacts(project1) == ["project1-1.0.jar", "project2-2.0.jar", "project3-3.0.jar"]
+        resolveArtifacts(project1) { expectFiles "project1-1.0.jar", "project2-2.0.jar", "project3-3.0.jar" }
 
         return true
     }
@@ -310,9 +312,9 @@ project(":project2") {
 
     def "publish and resolve java-library with dependency on java-library-platform"() {
         given:
-        mavenRepo.module("org.test", "foo", "1.0").publish()
-        mavenRepo.module("org.test", "bar", "1.0").publish()
-        mavenRepo.module("org.test", "bar", "1.1").publish()
+        javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
 
         settingsFile << """
 include "platform", "library"
@@ -383,14 +385,15 @@ project(":library") {
         }
 
         and:
-        resolveArtifacts(platformModule) == ['foo-1.0.jar']
-        resolveArtifacts(libraryModule, false) == ['bar-1.1.jar', 'foo-1.0.jar', 'library-1.0.jar']
-
-        when:
-        resolveModuleMetadata = false
-
-        then: "constraints are not published to POM files"
-        resolveArtifacts(libraryModule) == ['bar-1.0.jar', 'foo-1.0.jar', 'library-1.0.jar']
+        resolveArtifacts(platformModule) { expectFiles 'foo-1.0.jar' }
+        resolveArtifacts(libraryModule) {
+            withModuleMetadata {
+                expectFiles 'bar-1.1.jar', 'foo-1.0.jar', 'library-1.0.jar'
+            }
+            withoutModuleMetadata {
+                expectFiles 'bar-1.0.jar', 'foo-1.0.jar', 'library-1.0.jar'
+            }
+        }
     }
 
     private void createBuildScripts(String append = "") {

@@ -84,7 +84,14 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         module.parsedPom.scopes.isEmpty()
 
         and:
-        resolveArtifacts(module) == []
+        resolveArtifacts(module) {
+            withModuleMetadata {
+                shouldFail()
+            }
+            withoutModuleMetadata {
+                expectFiles()
+            }
+        }
     }
 
     def "can publish simple component"() {
@@ -142,7 +149,9 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         localModule.assertPublished()
 
         and:
-        resolveArtifacts(repoModule) == ['root-1.0.jar']
+        resolveArtifacts(repoModule) {
+            expectFiles 'root-1.0.jar'
+        }
     }
 
     def "can publish to custom maven local repo defined in settings.xml"() {
