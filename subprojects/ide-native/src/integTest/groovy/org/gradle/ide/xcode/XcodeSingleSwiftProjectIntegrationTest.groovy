@@ -116,7 +116,7 @@ apply plugin: 'xctest'
             assertTargetIsTool(project.targets[0], 'App')
             assertTargetIsUnitTest(project.targets[1], 'AppTest')
             assertTargetIsIndexer(project.targets[2], 'App')
-            assertTargetIsIndexer(project.targets[3], 'AppTest', '"' + file('build/modules/main').absolutePath + '"')
+            assertTargetIsIndexer(project.targets[3], 'AppTest', '"' + file('build/modules/main/debug').absolutePath + '"')
 
             project.products.children.size() == 1
             project.products.children[0].path == exe("build/exe/main/debug/App").absolutePath
@@ -149,7 +149,7 @@ apply plugin: 'xctest'
             assertTargetIsDynamicLibrary(project.targets[0], 'App')
             assertTargetIsUnitTest(project.targets[1], 'AppTest')
             assertTargetIsIndexer(project.targets[2], 'App')
-            assertTargetIsIndexer(project.targets[3], 'AppTest', '"' + file('build/modules/main').absolutePath + '"')
+            assertTargetIsIndexer(project.targets[3], 'AppTest', '"' + file('build/modules/main/debug').absolutePath + '"')
 
             project.products.children.size() == 1
             project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath

@@ -16,15 +16,18 @@
 
 package org.gradle.ide.xcode.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.xcode.XcodeProject;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class DefaultXcodeProject implements XcodeProject {
     public static final String BUILD_DEBUG = "Debug";
@@ -46,6 +49,19 @@ public class DefaultXcodeProject implements XcodeProject {
 
     public List<XcodeTarget> getTargets() {
         return targets;
+    }
+
+    public Callable<List<TaskDependency>> getTaskDependencies() {
+        return new Callable<List<TaskDependency>>() {
+            @Override
+            public List<TaskDependency> call() throws Exception {
+                List<TaskDependency> result = Lists.newArrayList();
+                for (XcodeTarget xcodeTarget : getTargets()) {
+                    result.addAll(xcodeTarget.getTaskDependencies());
+                }
+                return result;
+            }
+        };
     }
 
     public void addTarget(XcodeTarget target) {

@@ -19,8 +19,12 @@ package org.gradle.ide.xcode.fixtures
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.test.fixtures.file.TestFile
+
+import static org.junit.Assume.assumeTrue
 
 class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -137,6 +141,26 @@ Actual: ${actual[key]}
                 }
             }
         '''
+    }
+
+    void useSwiftCompiler() {
+        def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFT)
+        assumeTrue(toolChain != null && toolChain.isAvailable())
+
+        File initScript = file("init.gradle") << """
+            allprojects { p ->
+                apply plugin: ${toolChain.pluginClass}
+
+                model {
+                      toolChains {
+                        ${toolChain.buildScriptConfig}
+                      }
+                }
+            }
+        """
+        executer.beforeExecute({
+            usingInitScript(initScript)
+        })
     }
 
     void assertTargetIsUnitTest(ProjectFile.PBXTarget target, String expectedProductName) {

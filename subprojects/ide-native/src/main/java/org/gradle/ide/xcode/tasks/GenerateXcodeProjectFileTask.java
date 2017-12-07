@@ -206,9 +206,9 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         NSDictionary testRunnerSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(TEST_DEBUG).getBuildSettings();
 
         if (!xcodeTarget.getCompileModules().isEmpty()) {
-            debugSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(xcodeTarget.getCompileModules()));
-            releaseSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(xcodeTarget.getCompileModules()));
-            testRunnerSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(xcodeTarget.getCompileModules()));
+            debugSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(parentDirs(xcodeTarget.getCompileModules())));
+            releaseSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(parentDirs(xcodeTarget.getCompileModules())));
+            testRunnerSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(parentDirs(xcodeTarget.getCompileModules())));
         }
 
         testRunnerSettings.put("SWIFT_VERSION", "3.0");  // TODO - Choose the right version for swift
@@ -256,7 +256,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         return target;
     }
 
-    private Iterable<File> parentDirs(Iterable<File> files) {
+    private static Iterable<File> parentDirs(Iterable<File> files) {
         List<File> parents = new ArrayList<File>();
         for (File file : files) {
             parents.add(file.getParentFile());

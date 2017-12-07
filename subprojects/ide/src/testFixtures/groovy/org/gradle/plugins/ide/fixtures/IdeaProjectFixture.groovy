@@ -71,6 +71,11 @@ class IdeaProjectFixture {
         void assertHasModule(String name) {
             assert modules.any { it.endsWith(name)} : "No module with $name found in ${modules}"
         }
+
+        void assertHasModules(String... name) {
+            List<String> modules = Arrays.asList(name)
+            assert modules.every { modules.contains(it) }
+        }
     }
 
 }

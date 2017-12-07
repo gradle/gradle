@@ -223,6 +223,8 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
     }
 
     def "can create xcode project for Swift application inside composite build"() {
+        useSwiftCompiler()
+
         given:
         settingsFile.text = """
             includeBuild 'greeter'
@@ -253,7 +255,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary",
+        executedAndNotSkipped(":greeter:compileDebugSwift", ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile
