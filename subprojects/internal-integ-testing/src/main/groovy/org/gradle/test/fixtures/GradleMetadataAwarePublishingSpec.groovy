@@ -19,12 +19,13 @@ package org.gradle.test.fixtures
 import groovy.transform.CompileStatic
 import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.ivy.IvyModule
+import org.gradle.test.fixtures.maven.MavenModule
 
 @CompileStatic
 @SelfType(AbstractIntegrationSpec)
 trait GradleMetadataAwarePublishingSpec {
     boolean publishModuleMetadata = true
-    boolean resolveModuleMetadata = true
 
     // cannot use "setup" because of a bug with Spock
     void prepare() {
@@ -37,7 +38,6 @@ trait GradleMetadataAwarePublishingSpec {
 
     void disableModuleMetadataPublishing() {
         publishModuleMetadata = false
-        resolveModuleMetadata = false
     }
 
     static String sq(String input) {
@@ -46,6 +46,19 @@ trait GradleMetadataAwarePublishingSpec {
 
     static String escapeForSingleQuoting(String input) {
         return input.replace('\\', '\\\\').replace('\'', '\\\'')
+    }
+
+    static String convertDependencyNotation(Object notation) {
+        if (notation instanceof CharSequence) {
+            return notation
+        }
+        if (notation instanceof IvyModule) {
+            return "group: '${sq(notation.organisation)}', name: '${sq(notation.module)}', version: '${sq(notation.revision)}'"
+        }
+        if (notation instanceof MavenModule) {
+            return "group: '${sq(notation.groupId)}', name: '${sq(notation.artifactId)}', version: '${sq(notation.version)}'"
+        }
+        throw new UnsupportedOperationException("Unsupported dependency notation: $notation")
     }
 
 }

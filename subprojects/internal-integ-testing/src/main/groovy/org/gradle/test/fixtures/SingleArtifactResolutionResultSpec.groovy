@@ -17,11 +17,13 @@
 package org.gradle.test.fixtures
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 
 @CompileStatic
 class SingleArtifactResolutionResultSpec {
     boolean expectSuccess = true
     List<String> expectedFileNames = []
+    List<Closure<?>> failureExpectations = []
 
     void expectFiles(String... fileNames) {
         expectFiles(fileNames as List<String>)
@@ -32,6 +34,13 @@ class SingleArtifactResolutionResultSpec {
     }
 
     void shouldFail() {
+        shouldFail(null)
+    }
+
+    void shouldFail(@DelegatesTo(value=ExecutionFailure, strategy = Closure.DELEGATE_FIRST) Closure<?> onFailure) {
         expectSuccess = false
+        if (onFailure) {
+            failureExpectations << onFailure
+        }
     }
 }

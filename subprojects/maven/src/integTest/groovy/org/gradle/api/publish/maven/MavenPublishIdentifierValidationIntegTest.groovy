@@ -62,7 +62,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         module.parsedPom.description == description
 
         and:
-        resolveArtifacts(module) == ["${artifactId}-${version}.jar"]
+        resolveArtifacts(module) { expectFiles "${artifactId}-${version}.jar" }
 
         where:
         identifier << Identifier.all
@@ -105,7 +105,11 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         module.assertPublished()
 
         and:
-        resolveArtifact(module, extension, classifier) == ["${artifactId}-${version}-${classifier}.${extension}"]
+        resolveArtifacts(module) {
+            setClassifier(classifier)
+            setExt(extension)
+            expectFiles "${artifactId}-${version}-${classifier}.${extension}"
+        }
 
         where:
         identifier << Identifier.all
