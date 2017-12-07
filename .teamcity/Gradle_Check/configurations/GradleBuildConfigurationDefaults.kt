@@ -10,14 +10,22 @@ import model.OS
 import model.TestCoverage
 import java.util.Arrays.asList
 
-private val java7Homes = hashMapOf(
+private val java7Homes = mapOf(
+        OS.windows to """"-Djava7Home=%windows.java7.oracle.64bit%"""",
+        OS.linux to "-Djava7Home=%linux.jdk.for.gradle.compile%",
+        // We only have Java 8 on macOS
+        OS.macos to "-Djava7Home=%macos.java8.oracle.64bit%"
+)
+
+// TODO remove once unused
+private val java7HomesOldName = mapOf(
         OS.windows to """"-Djava7.home=%windows.java7.oracle.64bit%"""",
         OS.linux to "-Djava7.home=%linux.jdk.for.gradle.compile%",
         // We only have Java 8 on macOS
         OS.macos to "-Djava7.home=%macos.java8.oracle.64bit%"
 )
 
-fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage) : Boolean {
+fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boolean {
     // TODO: Hacky. We should really be running all the subprojects on macOS
     // But we're restricting this to just a subset of projects for now
     // since we only have a small pool of macOS agents
@@ -30,7 +38,8 @@ val gradleParameters: List<String> = asList(
         "--daemon",
         "--continue",
         "-I ./gradle/buildScanInit.gradle",
-        java7Homes[OS.linux]!!
+        java7Homes[OS.linux]!!,
+        java7HomesOldName[OS.linux]!!
 )
 
 val m2CleanScriptUnixLike = """
@@ -101,7 +110,10 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
     applyDefaultSettings(buildType, os, timeout)
 
     val java7HomeParameter = java7Homes[os]!!
-    val gradleParameterString = gradleParameters.joinToString(separator = " ").replace(java7Homes[OS.linux]!!, java7HomeParameter)
+    val java7HomeParameterOldName = java7HomesOldName[os]!!
+    val gradleParameterString = gradleParameters.joinToString(separator = " ")
+            .replace(java7Homes[OS.linux]!!, java7HomeParameter)
+            .replace(java7HomesOldName[OS.linux]!!, java7HomeParameterOldName)
 
     buildType.steps {
         gradle {
