@@ -48,7 +48,7 @@ public class VersionSelectionReasons {
         private final boolean conflictResolution;
         private final boolean selectedByRule;
         private final boolean expected;
-        private final boolean compositeBuild;
+        private final boolean compositeParticipant;
         private final String description;
 
         private DefaultComponentSelectionReason(boolean forced, boolean conflictResolution, boolean selectedByRule, boolean expected, boolean compositeBuild, String description) {
@@ -56,7 +56,7 @@ public class VersionSelectionReasons {
             this.conflictResolution = conflictResolution;
             this.selectedByRule = selectedByRule;
             this.expected = expected;
-            this.compositeBuild = compositeBuild;
+            this.compositeParticipant = compositeBuild;
             assert description != null;
             this.description = description;
         }
@@ -78,9 +78,8 @@ public class VersionSelectionReasons {
             return expected;
         }
 
-        @Override
-        public boolean isCompositeBuild() {
-            return compositeBuild;
+        public boolean isCompositeParticipant() {
+            return compositeParticipant;
         }
 
         public String getDescription() {
