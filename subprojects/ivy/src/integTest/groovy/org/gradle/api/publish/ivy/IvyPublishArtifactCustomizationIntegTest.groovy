@@ -57,7 +57,13 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
         and:
         resolveArtifacts(module) {
-            expectFiles "ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.reg", "ivyPublish-2.4.txt"
+            withoutModuleMetadata {
+                expectFiles "ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.reg", "ivyPublish-2.4.txt"
+            }
+            withModuleMetadata {
+                // TODO: should we support custom artifacts?
+                shouldFail()
+            }
         }
     }
 
@@ -111,7 +117,13 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
         and:
         resolveArtifacts(module){
-            expectFiles "customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"
+            withoutModuleMetadata {
+                expectFiles "customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"
+            }
+            withModuleMetadata {
+                // TODO: should we support custom artifacts?
+                shouldFail()
+            }
         }
     }
 
@@ -150,7 +162,13 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
         and:
         resolveArtifacts(module) {
-            expectFiles "customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"
+            withoutModuleMetadata {
+                expectFiles "customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"
+            }
+            withModuleMetadata {
+                // TODO: should we support custom artifacts?
+                shouldFail()
+            }
         }
     }
 
@@ -232,7 +250,15 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.parsedIvy.expectArtifact("no-extension").hasAttributes("", "ext-less", null)
 
         and:
-        resolveArtifacts(module) { expectFiles "no-extension-2.4" }
+        resolveArtifacts(module) {
+            withoutModuleMetadata {
+                expectFiles "no-extension-2.4"
+            }
+            withModuleMetadata {
+                // TODO: should we support custom artifacts?
+                shouldFail()
+            }
+        }
     }
 
     def "can publish artifact with classifier"() {
@@ -253,7 +279,15 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.parsedIvy.expectArtifact("ivyPublish").hasAttributes("jar", "jar", null, "classy")
 
         and:
-        resolveArtifacts(module)  { expectFiles "ivyPublish-2.4-classy.jar" }
+        resolveArtifacts(module)  {
+            withoutModuleMetadata {
+                expectFiles "ivyPublish-2.4-classy.jar"
+            }
+            withModuleMetadata {
+                // TODO: should we support custom artifacts?
+                shouldFail()
+            }
+        }
     }
 
     def "can add custom configurations"() {

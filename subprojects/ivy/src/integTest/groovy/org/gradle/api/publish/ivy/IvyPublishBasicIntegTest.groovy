@@ -76,7 +76,15 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         and:
-        resolveArtifacts(module) { expectFiles() }
+        resolveArtifacts(module) {
+            withoutModuleMetadata {
+                expectFiles()
+            }
+            withModuleMetadata {
+                // TODO: this is the current behavior. Should check if it is the intended one.
+                shouldFail()
+            }
+        }
     }
 
     def "can publish simple jar"() {
