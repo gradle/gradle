@@ -310,7 +310,7 @@ task verifyIsProductionBuildEnvironment {
                     "Is currently ${javaInstallation.displayName} at $javaInstallationPath. Set -P$propertyName=/path/to/jvm/$javaVersion"
         }
 
-        assertJavaHomeVersion("java7.home", JavaVersion.VERSION_1_7)
+        assertJavaHomeVersion("java7Home", JavaVersion.VERSION_1_7)
         if (javaHomeProperty("testJavaHome")) {
             assertJavaHomeVersion("testJavaHome", JavaVersion.VERSION_1_8)
         }
