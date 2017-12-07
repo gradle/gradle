@@ -14,4 +14,8 @@ class BuildDistributions(model: CIBuildModel) : BaseGradleBuildType(model, {
         build/distributions/*.zip => distributions
         build/build-receipt.properties
     """.trimIndent()
+
+    params {
+        param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
+    }
 })
