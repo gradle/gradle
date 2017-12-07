@@ -18,15 +18,13 @@ package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.vcs.internal.spec.DirectoryRepositorySpec
-import spock.lang.Ignore
 
-@Ignore("none of this works yet")
 class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
-    def B
+    def buildB
 
     def setup() {
         buildTestFixture.withBuildInSubDir()
-        B = multiProjectBuild("B", ["foo", "bar"]) {
+        buildB = multiProjectBuild("B", ["foo", "bar"]) {
             buildFile << """
                 allprojects {
                     apply plugin: 'java'
@@ -98,7 +96,7 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
             }
         """
         expect:
-        assertResolvesTo("foo-1.0.jar", "bar-SNAPSHOT.jar")
+        assertResolvesTo("foo-1.0.jar", "bar-1.0-SNAPSHOT.jar")
     }
 
     void mappingFor(String... coords) {
@@ -110,9 +108,9 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
         """
         coords.each { coord ->
             settingsFile << """
-                    withModule(${coord}) {
+                    withModule("${coord}") {
                         from vcs(DirectoryRepositorySpec) {
-                            sourceDir = file("${B.name}")
+                            sourceDir = file("${buildB.name}")
                         }
                     }
             """
