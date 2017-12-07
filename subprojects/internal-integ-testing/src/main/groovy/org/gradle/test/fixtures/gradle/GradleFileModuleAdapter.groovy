@@ -90,8 +90,12 @@ class GradleFileModuleAdapter {
                             group dc.group
                             module dc.module
                             version {
-                                prefers dc.prefers
-                                rejects dc.rejects
+                                if (dc.prefers) {
+                                    prefers dc.prefers
+                                }
+                                if (dc.rejects) {
+                                    rejects dc.rejects
+                                }
                             }
                         }
                     })

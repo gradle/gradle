@@ -85,9 +85,9 @@ This value must contain an array with zero or more elements. Each element must b
 
 - `group`: The group of the dependency.
 - `module`: The module of the dependency.
-- `version`: The version constraint of the dependency. Has the same meaning as in the Gradle DSL. A version constraint consists of:
-   - `prefers`: The preferred version for this dependency
-   - `rejects`: An array of rejected versions for this dependency. Can be omitted.
+- `version`: optional. The version constraint of the dependency. Has the same meaning as in the Gradle DSL. A version constraint consists of:
+   - `prefers`: optional. The preferred version for this dependency
+   - `rejects`: optional. An array of rejected versions for this dependency.
 - `excludes`: optional. Defines the exclusions that apply to this dependency. 
 
 #### `excludes` value
@@ -107,9 +107,9 @@ This value must contain an array with zero or more elements. Each element must b
 
 - `group`: The group of the dependency constraint.
 - `module`: The module of the dependency constraint.
-- `version`: The version constraint of the dependency constraint. Has the same meaning as in the Gradle DSL. A version constraint consists of:
-   - `prefers`: The preferred version for this dependency constraint
-   - `rejects`: An array of rejected versions for this dependency constraint. Can be omitted.
+- `version`: optional. The version constraint of the dependency constraint. Has the same meaning as in the Gradle DSL. A version constraint consists of:
+   - `prefers`: optional. The preferred version for this dependency constraint
+   - `rejects`: optional. An array of rejected versions for this dependency constraint.
 
 ### `files` value
 
