@@ -30,6 +30,7 @@ sealed class ResolverEvent
 internal
 data class ResolutionFailure(
     val scriptFile: File?,
+    val environment: Map<String, Any?>?,
     val failure: Exception) : ResolverEvent()
 
 
