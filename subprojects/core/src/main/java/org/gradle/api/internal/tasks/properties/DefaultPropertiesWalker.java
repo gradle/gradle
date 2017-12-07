@@ -62,12 +62,12 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
         boolean cacheable = bean.getClass().isAnnotationPresent(CacheableTask.class);
         while (!queue.isEmpty()) {
             PropertyNode node = queue.remove();
-            detectProperties(node, node.getBean().getClass(), queue, visitor, specFactory, cacheable);
+            Set<PropertyMetadata> typeMetadata = propertyMetadataStore.getTypeMetadata(node.getBean().getClass());
+            visitProperties(node, typeMetadata, queue, visitor, specFactory, cacheable);
         }
     }
 
-    private <T> void detectProperties(PropertyNode node, Class<T> type, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory inputs, boolean cacheable) {
-        final Set<PropertyMetadata> typeMetadata = propertyMetadataStore.getTypeMetadata(type);
+    private static void visitProperties(PropertyNode node, Set<PropertyMetadata> typeMetadata, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory inputs, boolean cacheable) {
         for (PropertyMetadata propertyMetadata : typeMetadata) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
             String propertyName = node.getQualifiedPropertyName(propertyMetadata.getFieldName());
@@ -100,7 +100,7 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
         return String.format("property '%s' %s", propertyName, message);
     }
 
-    private class PropertyNode {
+    private static class PropertyNode {
         private final String parentPropertyName;
         private final Object bean;
 
