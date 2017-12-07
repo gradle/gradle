@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.io.Files;
 import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -60,18 +59,11 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
         TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
 
         for (File output : transformedFiles) {
-            IvyArtifactName artifactName = getArtifactName(sourceArtifact, output);
-            ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(sourceArtifact.getId().getComponentIdentifier(), artifactName.toString());
+            IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(output, sourceArtifact.getClassifier());
+            ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(sourceArtifact.getId().getComponentIdentifier(), artifactName);
             DefaultResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(sourceArtifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output);
             visitor.visitArtifact(target, resolvedArtifact);
         }
-    }
-
-    private IvyArtifactName getArtifactName(ResolvedArtifact sourceArtifact, File output) {
-        String name = Files.getNameWithoutExtension(output.getName());
-        String extension = Files.getFileExtension(output.getName());
-        String classifier = sourceArtifact.getClassifier();
-        return new DefaultIvyArtifactName(name, extension, extension, classifier);
     }
 
     @Override

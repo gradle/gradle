@@ -17,10 +17,12 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
+import com.google.common.io.Files;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
+import java.io.File;
 
 import static com.google.common.base.Objects.equal;
 
@@ -37,6 +39,13 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         }
         String classifier = GUtil.elvis(publishArtifact.getClassifier(), null);
         return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
+    }
+
+    public static DefaultIvyArtifactName forFile(File file, @Nullable String classifier) {
+        String fileName = file.getName();
+        String name = Files.getNameWithoutExtension(fileName);
+        String extension = Files.getFileExtension(fileName);
+        return new DefaultIvyArtifactName(name, extension, extension, classifier);
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension) {
