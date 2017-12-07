@@ -86,7 +86,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public Spec<? super TaskInternal> getUpToDateSpec() {
+    public AndSpec<? super TaskInternal> getUpToDateSpec() {
         return upToDateSpec;
     }
 

@@ -21,7 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.TaskOutputs;
 
 import javax.annotation.Nullable;
@@ -33,7 +33,7 @@ public interface TaskOutputsInternal extends TaskOutputs {
 
     void acceptRuntimeOnly(InputsOutputVisitor visitor);
 
-    Spec<? super TaskInternal> getUpToDateSpec();
+    AndSpec<? super TaskInternal> getUpToDateSpec();
 
     ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties();
 

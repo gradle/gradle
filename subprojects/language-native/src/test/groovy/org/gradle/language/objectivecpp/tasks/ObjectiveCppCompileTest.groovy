@@ -60,8 +60,8 @@ class ObjectiveCppCompileTest extends AbstractProjectBuilderSpec {
         platform.getName() >> "testPlatform"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
-        3 * toolChain.select(platform) >> platformToolChain
-        3 * platformToolChain.newCompiler({ ObjectiveCppCompileSpec.class.isAssignableFrom(it) }) >> objCppCompiler
+        2 * toolChain.select(platform) >> platformToolChain
+        2 * platformToolChain.newCompiler({ ObjectiveCppCompileSpec.class.isAssignableFrom(it) }) >> objCppCompiler
         pch.includeString >> "header"
         pch.prefixHeaderFile >> temporaryFolder.file("prefixHeader").createFile()
         pch.objectFile >> temporaryFolder.file("pchObjectFile").createFile()
