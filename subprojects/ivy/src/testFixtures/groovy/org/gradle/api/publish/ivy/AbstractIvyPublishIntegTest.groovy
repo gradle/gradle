@@ -18,48 +18,51 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.test.fixtures.ArtifactResolutionExpectationSpec
 import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
+import org.gradle.test.fixtures.ModuleArtifact
+import org.gradle.test.fixtures.SingleArtifactResolutionResultSpec
 import org.gradle.test.fixtures.ivy.IvyFileModule
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import org.gradle.test.fixtures.ivy.IvyModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
-class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
+abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
 
     def setup() {
         prepare()
     }
 
-    ResolveParams resolveParams(Map args = [:]) {
-        new ResolveParams(args)
+
+    @Override
+    void setResolveModuleMetadata(boolean resolveModuleMetadata) {
+        if (!resolveModuleMetadata) {
+            throw new IllegalStateException("Ivy test fixture doesn't need to disable resolving anymore. Use the appropriate 'resolveArtifact' expectations")
+        }
     }
 
     protected static IvyJavaModule javaLibrary(IvyFileModule module) {
         new IvyJavaModule(module)
     }
 
-    protected def resolveArtifacts(IvyModule module) {
-        doResolveArtifacts("group: '${sq(module.organisation)}', name: '${sq(module.module)}', version: '${sq(module.revision)}'")
+    void resolveArtifacts(Object dependencyNotation, @DelegatesTo(value = IvyArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {
+        IvyArtifactResolutionExpectation expectation = new IvyArtifactResolutionExpectation()
+        expectation.dependency = convertDependencyNotation(dependencyNotation)
+        expectationSpec.resolveStrategy = Closure.DELEGATE_FIRST
+        expectationSpec.delegate = expectation
+        expectationSpec()
+
+        expectation.validate()
+
     }
 
-    protected def resolveArtifacts(IvyModule module, String configuration) {
-        doResolveArtifacts("group: '${sq(module.organisation)}', name: '${sq(module.module)}', version: '${sq(module.revision)}', configuration: '${sq(configuration)}'")
-    }
-
-    protected def resolveAdditionalArtifacts(IvyJavaModule module) {
-        doResolveArtifacts("group: '${sq(module.organisation)}', name: '${sq(module.module)}', version: '${sq(module.revision)}'", resolveParams(additionalArtifacts: module.additionalArtifacts))
-    }
-
-    protected def resolveArtifactsWithStatus(IvyModule module, String status) {
-        doResolveArtifacts("group: '${sq(module.organisation)}', name: '${sq(module.module)}', version: '${sq(module.revision)}'", resolveParams(status:status))
-    }
-
-    private def doResolveArtifacts(String dependency, ResolveParams params = resolveParams()) {
+    private def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
 
-        if (resolveModuleMetadata) {
+        if (params.resolveModuleMetadata) {
             ExperimentalFeaturesFixture.enable(settingsFile)
         } else {
             executer.beforeExecute {
@@ -80,8 +83,8 @@ class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements Gra
         String extraArtifacts = ""
         if (params.additionalArtifacts) {
             String artifacts = params.additionalArtifacts.collect {
-                    def tokens = it.ivyTokens
-                    """
+                def tokens = it.ivyTokens
+                """
                     artifact {
                         name = '${sq(tokens.artifact)}'
                         classifier = '${sq(tokens.classifier)}'
@@ -96,6 +99,11 @@ class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements Gra
             """
         }
 
+        String dependencyNotation = params.dependency
+        if (params.configuration) {
+            dependencyNotation = "${dependencyNotation}, configuration: '${sq(params.configuration)}'"
+        }
+
         buildFile.text = """
             configurations {
                 resolve {
@@ -107,7 +115,7 @@ class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements Gra
                 ${mavenCentralRepositoryDefinition()}
             }
             dependencies {
-                resolve($dependency) $extraArtifacts
+                resolve($dependencyNotation) $extraArtifacts
             }
 
             task resolveArtifacts(type: Sync) {
@@ -124,23 +132,71 @@ class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements Gra
                 }
             """
         }
-
-        run "resolveArtifacts"
-        def artifactsList = file("artifacts").exists() ? file("artifacts").list() : []
-        return artifactsList.sort()
+        if (params.expectFailure) {
+            fails "resolveArtifacts"
+            return []
+        } else {
+            run "resolveArtifacts"
+            def artifactsList = file("artifacts").exists() ? file("artifacts").list() : []
+            return artifactsList.sort()
+        }
     }
 
-    String sq(String input) {
+    private static String convertDependencyNotation(Object notation) {
+        if (notation instanceof CharSequence) {
+            return notation
+        }
+        if (notation instanceof IvyModule) {
+            return "group: '${sq(notation.organisation)}', name: '${sq(notation.module)}', version: '${sq(notation.revision)}'"
+        }
+        throw new UnsupportedOperationException("Unsupported dependency notation: $notation")
+    }
+
+    static String sq(String input) {
         return escapeForSingleQuoting(input)
     }
 
-    String escapeForSingleQuoting(String input) {
+    static String escapeForSingleQuoting(String input) {
         return input.replace('\\', '\\\\').replace('\'', '\\\'')
     }
 
     static class ResolveParams {
-        List<IvyFileModule.IvyModuleArtifact> additionalArtifacts
+        String dependency
+        List<? extends ModuleArtifact> additionalArtifacts
+
+        String configuration
         String status
         String variant
+        boolean resolveModuleMetadata = GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
+        boolean expectFailure
     }
+
+    class IvyArtifactResolutionExpectation extends ResolveParams implements ArtifactResolutionExpectationSpec {
+
+        void validate() {
+            singleValidation(true, withModuleMetadataSpec)
+            singleValidation(false, withoutModuleMetadataSpec)
+        }
+
+        void singleValidation(boolean withModuleMetadata, SingleArtifactResolutionResultSpec expectationSpec) {
+            ResolveParams params = new ResolveParams(
+                dependency: dependency,
+                configuration: configuration,
+                additionalArtifacts: additionalArtifacts?.asImmutable(),
+                status: status,
+                variant: variant,
+                resolveModuleMetadata: withModuleMetadata,
+                expectFailure: !expectationSpec.expectSuccess
+            )
+            println "Checking ${additionalArtifacts?'additional artifacts':'artifacts'} when resolving ${withModuleMetadata?'with':'without'} Gradle module metadata"
+            def actualFileNames = doResolveArtifacts(params)
+            expectationSpec.with {
+                if (expectSuccess) {
+                    assert actualFileNames == expectedFileNames
+                }
+            }
+        }
+
+    }
+
 }

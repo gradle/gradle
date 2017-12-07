@@ -75,6 +75,6 @@ class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         and: "can resolve ear module"
-        resolveArtifacts(ivyModule) == ["publishEar-1.9.ear"]
+        resolveArtifacts(ivyModule) { expectFiles "publishEar-1.9.ear" }
     }
 }

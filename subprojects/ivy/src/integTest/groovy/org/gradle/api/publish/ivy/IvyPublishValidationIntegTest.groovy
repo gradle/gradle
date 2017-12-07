@@ -76,7 +76,10 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         ]
 
         and:
-        resolveArtifactsWithStatus(module, status) == [moduleName + '-' + version + '.jar']
+        resolveArtifacts(module) {
+            setStatus(status)
+            expectFiles "${moduleName}-${version}.jar"
+        }
 
         where:
         identifier << Identifier.all
@@ -125,7 +128,10 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         module.assertArtifactsPublished("ivy-${version}.xml", "${artifact}-${version}-${classifier}.${extension}")
 
         and:
-        resolveArtifacts(module, conf) == ["${artifact}-${version}-${classifier}.${extension}"]
+        resolveArtifacts(module) {
+            configuration = conf
+            expectFiles "${artifact}-${version}-${classifier}.${extension}"
+        }
 
         where:
         identifier << Identifier.all
