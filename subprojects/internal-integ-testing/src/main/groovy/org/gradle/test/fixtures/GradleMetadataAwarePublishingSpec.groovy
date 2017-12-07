@@ -40,4 +40,12 @@ trait GradleMetadataAwarePublishingSpec {
         resolveModuleMetadata = false
     }
 
+    static String sq(String input) {
+        return escapeForSingleQuoting(input)
+    }
+
+    static String escapeForSingleQuoting(String input) {
+        return input.replace('\\', '\\\\').replace('\'', '\\\'')
+    }
+
 }

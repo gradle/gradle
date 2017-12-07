@@ -156,14 +156,6 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         throw new UnsupportedOperationException("Unsupported dependency notation: $notation")
     }
 
-    static String sq(String input) {
-        return escapeForSingleQuoting(input)
-    }
-
-    static String escapeForSingleQuoting(String input) {
-        return input.replace('\\', '\\\\').replace('\'', '\\\'')
-    }
-
     static class ResolveParams {
         String dependency
         List<? extends ModuleArtifact> additionalArtifacts
