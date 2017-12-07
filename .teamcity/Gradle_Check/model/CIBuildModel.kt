@@ -36,7 +36,7 @@ data class CIBuildModel (
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
-                            TestCoverage(TestType.java9Smoke, OS.linux, JvmVersion.java8),
+                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java9),
                             TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
             Stage("Release Accept", "Once a day: Rerun tests in more environments",
                     trigger = Trigger.daily,
@@ -188,13 +188,13 @@ enum class OS(val agentRequirement: String, val ignoredSubprojects: List<String>
 }
 
 enum class JvmVersion {
-    java7, java8
+    java7, java8, java9
 }
 
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
     quick(true, true, false), platform(true, true, false),
     quickFeedbackCrossVersion(false, false, true), allVersionsCrossVersion(false, false, true),
-    parallel(false, true, false), noDaemon(false, true, false), java9Smoke(false, true, false),
+    parallel(false, true, false), noDaemon(false, true, false),
     soak(false, false, false)
 }
 
