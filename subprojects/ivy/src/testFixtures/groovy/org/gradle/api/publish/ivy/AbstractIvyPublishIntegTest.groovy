@@ -35,7 +35,6 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         prepare()
     }
 
-
     @Override
     void setResolveModuleMetadata(boolean resolveModuleMetadata) {
         if (!resolveModuleMetadata) {
@@ -111,7 +110,12 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
                 }
             }
             repositories {
-                ivy { url "${ivyRepo.uri}" }
+                ivy { 
+                    url "${ivyRepo.uri}"
+                    metadataSources {
+                       ${params.resolveModuleMetadata?'gradleMetadata':'ivyDescriptor'}()
+                    }
+                }
                 ${mavenCentralRepositoryDefinition()}
             }
             dependencies {

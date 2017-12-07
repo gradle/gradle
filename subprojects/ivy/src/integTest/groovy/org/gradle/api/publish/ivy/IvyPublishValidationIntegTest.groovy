@@ -130,7 +130,13 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         and:
         resolveArtifacts(module) {
             configuration = conf
-            expectFiles "${artifact}-${version}-${classifier}.${extension}"
+            withoutModuleMetadata {
+                expectFiles "${artifact}-${version}-${classifier}.${extension}"
+            }
+            withModuleMetadata {
+                // TODO: should we support custom artifacts?
+                shouldFail()
+            }
         }
 
         where:
