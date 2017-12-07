@@ -67,6 +67,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
             tasks = "createBuildReceipt"
             gradleParams = "-PtimestampedVersion -Djava7Home=%linux.jdk.for.gradle.compile% -Djava7.home=%linux.jdk.for.gradle.compile% --daemon"
             useGradleWrapper = true
+            params {
+                param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
+            }
         }
         script {
             name = "CHECK_CLEAN_M2"
@@ -81,6 +84,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
                 buildFile = "gradle/buildTagging.gradle"
                 gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
                 useGradleWrapper = true
+                params {
+                    param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
+                }
             }
         }
     }
