@@ -165,8 +165,16 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
     @Override
     IvyModule dependencyConstraint(Module target) {
-        dependencyConstraints << [group: target.group, module: target.module, version: target.version]
-        return null
+        dependencyConstraints << [organisation: target.group, module: target.module, revision: target.version]
+        return this
+    }
+
+    @Override
+    IvyModule dependencyConstraint(Map<String, ?> attributes, Module module) {
+        def allAttrs = [organisation: module.group, module: module.module, revision: module.version]
+        allAttrs.putAll(attributes)
+        dependencyConstraints << allAttrs
+        return this
     }
 
     IvyFileModule dependsOn(Map<String, ?> attributes) {
@@ -359,7 +367,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                         new DependencySpec(d.organisation, d.module, d.revision, d.rejects, d.exclusions)
                     },
                     dependencyConstraints.collect { d ->
-                        new DependencyConstraintSpec(d.group, d.module, d.version, d.rejects)
+                        new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.rejects)
                     },
                     artifacts.collect { moduleArtifact(it) }
                 )

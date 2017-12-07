@@ -154,6 +154,12 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
         return t();
     }
 
+    @Override
+    public IvyModule dependencyConstraint(Map<String, ?> attributes, Module module) {
+        backingModule.dependencyConstraint(attributes, module);
+        return t();
+    }
+
     /**
      * Adds an additional artifact to this module.
      * @param options Can specify any of name, type, ext or classifier

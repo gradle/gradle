@@ -138,6 +138,13 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     @Override
+    MavenModule dependencyConstraint(Map<String, ?> attributes, Module target) {
+        attributes['optional'] = true
+        dependsOn(attributes, target)
+        return this
+    }
+
+    @Override
     MavenModule hasPackaging(String packaging) {
         this.packaging = packaging
         return this
