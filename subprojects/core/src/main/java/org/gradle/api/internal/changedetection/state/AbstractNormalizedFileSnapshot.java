@@ -55,13 +55,13 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
         }
         AbstractNormalizedFileSnapshot that = (AbstractNormalizedFileSnapshot) o;
         return snapshot.equals(that.snapshot)
-            && getNormalizedPathSequence().equals(that.getNormalizedPathSequence());
+            && hasSameNormalizedPathAs(that);
     }
 
     @Override
     public final int hashCode() {
         int result = snapshot.hashCode();
-        result = 31 * result + getNormalizedPathSequence().hashCode();
+        result = 31 * result + hashNormalizedPath();
         return result;
     }
 
@@ -71,11 +71,23 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
     }
 
     /**
-     * This is a performance optimization for subclasses that
-     * can return the normalized path as a {@link CharSequence}
-     * more efficiently than as a {@link String}.
+     * This is a performance optimization and must return the same result as
+     * <pre>
+     *     getNormalizedPath().equals(other.getNormalizedPath());
+     * </pre>
      */
-    protected CharSequence getNormalizedPathSequence() {
-        return getNormalizedPath();
+    protected boolean hasSameNormalizedPathAs(AbstractNormalizedFileSnapshot other) {
+        return getNormalizedPath().equals(other.getNormalizedPath());
+    }
+
+
+    /**
+     * This is a performance optimization and must return the same result as
+     * <pre>
+     *     getNormalizedPath().hashCode();
+     * </pre>
+     */
+    protected int hashNormalizedPath() {
+        return getNormalizedPath().hashCode();
     }
 }
