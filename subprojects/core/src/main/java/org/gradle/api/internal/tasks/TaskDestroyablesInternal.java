@@ -24,6 +24,10 @@ import org.gradle.api.tasks.TaskDestroyables;
  * Note: this is currently not visible on {@link org.gradle.api.internal.TaskInternal} to avoid it leaking onto {@link org.gradle.api.internal.AbstractTask} and so on to the public API.
  */
 public interface TaskDestroyablesInternal extends TaskDestroyables {
+
+    /**
+     * Calls the corresponding visitor methods for all destroyables added via the runtime API.
+     */
     void visitRuntimeProperties(PropertyVisitor visitor);
 
     FileCollection getFiles();

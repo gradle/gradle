@@ -75,6 +75,11 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Deprecated
     void addValidator(TaskValidator validator);
 
+    /**
+     * Visit all inputs, outputs, destroyables and local state properties.
+     *
+     * Both the properties on the task class itself as well as the properties added via the runtime API are visited
+     */
     void visitProperties(PropertyVisitor visitor);
 
     @Override
@@ -82,6 +87,11 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     void setInputsAndOutputs(@Nullable TaskInputsAndOutputs inputsAndOutputs);
 
+    /**
+     * A snapshot of the inputs and outputs of the task.
+     *
+     * Available while the task is executing.
+     */
     TaskInputsAndOutputs getInputsAndOutputs();
 
     @Internal

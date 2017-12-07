@@ -31,6 +31,9 @@ import java.util.Set;
 @NonNullApi
 public interface TaskOutputsInternal extends TaskOutputs {
 
+    /**
+     * Calls the corresponding visitor methods for all outputs added via the runtime API.
+     */
     void visitRuntimeProperties(PropertyVisitor visitor);
 
     AndSpec<? super TaskInternal> getUpToDateSpec();

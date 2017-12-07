@@ -21,6 +21,9 @@ import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 
+/**
+ * Visits properties of beans which are inputs, outputs, destroyables or local state.
+ */
 public interface PropertyVisitor {
 
     void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty);

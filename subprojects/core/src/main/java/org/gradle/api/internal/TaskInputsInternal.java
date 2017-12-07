@@ -25,6 +25,10 @@ import org.gradle.api.tasks.TaskInputs;
 import java.util.Map;
 
 public interface TaskInputsInternal extends TaskInputs {
+
+    /**
+     * Calls the corresponding visitor methods for all inputs added via the runtime API.
+     */
     void visitRuntimeProperties(PropertyVisitor visitor);
 
     ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
