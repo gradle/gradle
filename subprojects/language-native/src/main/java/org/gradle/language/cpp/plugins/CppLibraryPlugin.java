@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -41,6 +42,7 @@ import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
+import org.gradle.nativeplatform.tasks.GenerateModuleMap;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -83,7 +85,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         ProviderFactory providers = project.getProviders();
 
         // Add the library extension
-        final CppLibrary library = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getLayout(), project.getObjects(), fileOperations, project.getConfigurations());
+        final DefaultCppLibrary library = (DefaultCppLibrary) project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getLayout(), project.getObjects(), fileOperations, project.getConfigurations());
         project.getComponents().add(library);
         project.getComponents().add(library.getDebugSharedLibrary());
         project.getComponents().add(library.getReleaseSharedLibrary());
@@ -95,6 +97,18 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
         // TODO - add lifecycle tasks
         // TODO - extract some common code to setup the configurations
+
+        Provider<RegularFile> moduleMapFile = project.getLayout().getBuildDirectory().file("map/module.modulemap");
+        GenerateModuleMap generateModuleMap = tasks.create("generateModuleMap", GenerateModuleMap.class);
+        generateModuleMap.getModuleMapFile().set(moduleMapFile);
+        generateModuleMap.getModuleName().set(library.getBaseName());
+        generateModuleMap.getPublicHeaderDirs().addAll(project.provider(new Callable<Iterable<File>>() {
+            @Override
+            public Iterable<File> call() throws Exception {
+                return library.getPublicHeaderDirs();
+            }
+        }));
+        library.getModuleMapFile().set(generateModuleMap.getModuleMapFile());
 
         // Define the outgoing artifacts
         // TODO - move this to the base plugin
@@ -116,6 +130,14 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
             }
         });
         apiElements.getOutgoing().artifact(publicHeaders);
+
+        final Usage swiftApiUsage = objectFactory.named(Usage.class, Usage.SWIFT_API);
+        final Configuration swiftApiElements = configurations.maybeCreate("swiftApiElements");
+        swiftApiElements.extendsFrom(library.getApiDependencies());
+        swiftApiElements.setCanBeResolved(false);
+        swiftApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, swiftApiUsage);
+        swiftApiElements.getOutgoing().artifact(library.getModuleMapFile());
+        swiftApiElements.getOutgoing().artifact(publicHeaders);
 
         Configuration implementation = library.getImplementationDependencies();
 

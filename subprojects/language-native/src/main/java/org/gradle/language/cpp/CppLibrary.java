@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
 
 /**
  * Configuration for a C++ library, defining the source files and header directories that make up the library plus other settings.
@@ -55,6 +57,13 @@ public interface CppLibrary extends CppComponent {
      * @since 4.3
      */
     FileTree getPublicHeaderFiles();
+
+    /**
+     * Returns the location of the module map file for this library.
+     *
+     * @since 4.5
+     */
+    Provider<RegularFile> getModuleMapFile();
 
     /**
      * Returns the API dependencies of this library.

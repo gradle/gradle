@@ -23,6 +23,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
@@ -34,6 +35,7 @@ import javax.inject.Inject;
 public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary {
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
+    private final RegularFileProperty moduleMapFile;
     private final DefaultCppSharedLibrary debug;
     private final DefaultCppSharedLibrary release;
     private final Configuration api;
@@ -43,6 +45,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         super(name, fileOperations, objectFactory, configurations);
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
+        moduleMapFile = projectLayout.fileProperty();
         debug = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Debug", projectLayout, objectFactory, getBaseName(), true, false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
         release = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Release", projectLayout, objectFactory, getBaseName(), true, true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
 
@@ -83,6 +86,11 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     @Override
     public FileCollection getAllHeaderDirs() {
         return publicHeadersWithConvention.plus(super.getAllHeaderDirs());
+    }
+
+    @Override
+    public RegularFileProperty getModuleMapFile() {
+        return moduleMapFile;
     }
 
     @Override
