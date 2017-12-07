@@ -516,6 +516,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         resolveArtifacts(javaLibrary) {
+            // Platform constraints are not published to Maven POM
             withModuleMetadata {
                 expectFiles "bar-1.1.jar", "foo-1.0.jar"
             }
@@ -523,6 +524,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 expectFiles "bar-1.0.jar", "foo-1.0.jar"
             }
         }
+        // Maven POM compile scope contains 'implementation' dependencies
         resolveApiArtifacts(javaLibrary)  {
             withModuleMetadata {
                 expectFiles "bar-1.0.jar"

@@ -390,6 +390,7 @@ project(":library") {
             withModuleMetadata {
                 expectFiles 'bar-1.1.jar', 'foo-1.0.jar', 'library-1.0.jar'
             }
+            // Platform constraints are not published to Maven POM
             withoutModuleMetadata {
                 expectFiles 'bar-1.0.jar', 'foo-1.0.jar', 'library-1.0.jar'
             }
