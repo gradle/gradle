@@ -121,7 +121,7 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
     private static class DefaultPropertyValue implements PropertyValue {
         private final String propertyName;
         private final List<Annotation> annotations;
-        private final Object instance;
+        private final Object bean;
         private final Method method;
         private final boolean cacheable;
         private final Supplier<Object> valueSupplier = Suppliers.memoize(new Supplier<Object>() {
@@ -131,11 +131,11 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
                 Object value = DeprecationLogger.whileDisabled(new Factory<Object>() {
                     public Object create() {
                         try {
-                            return method.invoke(instance);
+                            return method.invoke(bean);
                         } catch (InvocationTargetException e) {
                             throw UncheckedException.throwAsUncheckedException(e.getCause());
                         } catch (Exception e) {
-                            throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), instance), e);
+                            throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), bean), e);
                         }
                     }
                 });
@@ -143,10 +143,10 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
             }
         });
 
-        public DefaultPropertyValue(String propertyName, List<Annotation> annotations, Object instance, Method method, boolean cacheable) {
+        public DefaultPropertyValue(String propertyName, List<Annotation> annotations, Object bean, Method method, boolean cacheable) {
             this.propertyName = propertyName;
             this.annotations = ImmutableList.copyOf(annotations);
-            this.instance = instance;
+            this.bean = bean;
             this.method = method;
             this.cacheable = cacheable;
             method.setAccessible(true);
