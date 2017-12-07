@@ -22,6 +22,8 @@ import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.tasks.TaskInputs;
 
+import java.util.Map;
+
 public interface TaskInputsInternal extends TaskInputs {
     void accept(InputsOutputVisitor visitor);
 
@@ -31,11 +33,17 @@ public interface TaskInputsInternal extends TaskInputs {
 
     GetFilePropertiesVisitor getFilePropertiesVisitor();
 
+    GetInputPropertiesVisitor getInputPropertiesVisitor();
+
     interface GetFilePropertiesVisitor extends InputsOutputVisitor {
         ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
         FileCollection getFiles();
         FileCollection getSourceFiles();
 
         boolean hasSourceFiles();
+    }
+
+    interface GetInputPropertiesVisitor extends InputsOutputVisitor {
+        Map<String, Object> getProperties();
     }
 }

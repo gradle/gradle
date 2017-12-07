@@ -81,9 +81,11 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
     private static TaskInputsAndOutputs createTaskInputsAndOutputs(TaskInternal task) {
         TaskOutputsInternal.GetFilePropertiesVisitor outputFilePropertiesVisitor = task.getOutputs().getFilePropertiesVisitor();
         TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor = task.getInputs().getFilePropertiesVisitor();
+        TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor = task.getInputs().getInputPropertiesVisitor();
         TaskValidationVisitor taskValidationVisitor = new TaskValidationVisitor();
         try {
             task.acceptInputsOutputsVisitor(new CompositeInputsOutputsVisitor(
+                inputPropertiesVisitor,
                 inputFilePropertiesVisitor,
                 outputFilePropertiesVisitor,
                 taskValidationVisitor
@@ -92,16 +94,18 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
             throw new TaskExecutionException(task, e);
         }
 
-        return new DefaultTaskInputsAndOutputs(inputFilePropertiesVisitor, outputFilePropertiesVisitor, taskValidationVisitor);
+        return new DefaultTaskInputsAndOutputs(inputPropertiesVisitor, inputFilePropertiesVisitor, outputFilePropertiesVisitor, taskValidationVisitor);
     }
 
     private static class DefaultTaskInputsAndOutputs implements TaskInputsAndOutputs {
 
+        private final TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor;
         private final TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor;
         private final TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor;
         private final ResolveTaskArtifactStateTaskExecuter.TaskValidationVisitor validationVisitor;
 
-        public DefaultTaskInputsAndOutputs(TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor, TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor, TaskValidationVisitor validationVisitor) {
+        public DefaultTaskInputsAndOutputs(TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor, TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor, TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor, TaskValidationVisitor validationVisitor) {
+            this.inputPropertiesVisitor = inputPropertiesVisitor;
             this.inputFilePropertiesVisitor = inputFilePropertiesVisitor;
             this.outputFilesVisitor = outputFilesVisitor;
             this.validationVisitor = validationVisitor;
@@ -150,6 +154,11 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         @Override
         public boolean hasDeclaredOutputs() {
             return outputFilesVisitor.hasDeclaredOutputs();
+        }
+
+        @Override
+        public Map<String, Object> getInputProperties() {
+            return inputPropertiesVisitor.getProperties();
         }
     }
 

@@ -35,6 +35,7 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,6 +110,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
+    public TaskInputsInternal.GetInputPropertiesVisitor getInputPropertiesVisitor() {
+        return new GetInputPropertiesVisitor();
+    }
+
+    @Override
     public TaskInputFilePropertyBuilderInternal files(final Object... paths) {
         return taskMutator.mutate("TaskInputs.files(Object...)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
@@ -169,7 +175,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     public Map<String, Object> getProperties() {
         GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor();
         accept(visitor);
-        return visitor.getActualProperties();
+        return visitor.getProperties();
     }
 
     @Nullable
@@ -371,21 +377,30 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private class GetInputPropertiesVisitor extends InputsOutputVisitor.Adapter {
-        Map<String, Object> actualProperties = new HashMap<String, Object>();
+    private class GetInputPropertiesVisitor extends InputsOutputVisitor.Adapter implements TaskInputsInternal.GetInputPropertiesVisitor {
+        private Map<String, Object> actualProperties;
+        private List<DeclaredTaskInputProperty> declaredTaskInputProperties = new ArrayList<DeclaredTaskInputProperty>();
 
         @Override
         public void visitInputProperty(DeclaredTaskInputProperty inputProperty) {
-            String propertyName = inputProperty.getPropertyName();
-            try {
-                Object value = prepareValue(inputProperty.getValue());
-                actualProperties.put(propertyName, value);
-            } catch (Exception ex) {
-                throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, task), ex);
-            }
+            declaredTaskInputProperties.add(inputProperty);
         }
 
-        public Map<String, Object> getActualProperties() {
+        @Override
+        public Map<String, Object> getProperties() {
+            if (actualProperties == null) {
+                Map<String, Object> result = new HashMap<String, Object>();
+                for (DeclaredTaskInputProperty declaredTaskInputProperty : declaredTaskInputProperties) {
+                    String propertyName = declaredTaskInputProperty.getPropertyName();
+                    try {
+                        Object value = prepareValue(declaredTaskInputProperty.getValue());
+                        result.put(propertyName, value);
+                    } catch (Exception ex) {
+                        throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, task), ex);
+                    }
+                }
+                actualProperties = result;
+            }
             return actualProperties;
         }
     }

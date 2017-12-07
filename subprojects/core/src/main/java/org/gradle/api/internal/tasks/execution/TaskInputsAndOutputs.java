@@ -22,6 +22,8 @@ import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 
+import java.util.Map;
+
 public interface TaskInputsAndOutputs {
 
     boolean hasSourceFiles();
@@ -39,4 +41,6 @@ public interface TaskInputsAndOutputs {
     void validate(TaskValidationContext validationContext);
 
     boolean hasDeclaredOutputs();
+
+    Map<String, Object> getInputProperties();
 }
