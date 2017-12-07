@@ -65,7 +65,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
         gradle {
             name = "GRADLE_RUNNER"
             tasks = "createBuildReceipt"
-            gradleParams = "-PtimestampedVersion -Djava7.home=%linux.jdk.for.gradle.compile% --daemon"
+            gradleParams = "-PtimestampedVersion -Djava7Home=%linux.jdk.for.gradle.compile% -Djava7.home=%linux.jdk.for.gradle.compile% --daemon"
             useGradleWrapper = true
         }
         script {
