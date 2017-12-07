@@ -61,6 +61,10 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
 
     }
 
+    params {
+        param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
+    }
+
     steps {
         gradle {
             name = "GRADLE_RUNNER"
