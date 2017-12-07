@@ -74,13 +74,13 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.specFactory = specFactory;
     }
 
-    public void accept(PropertyVisitor visitor) {
+    private void visitAllProperties(PropertyVisitor visitor) {
         propertiesWalker.visitProperties(specFactory, visitor, task);
-        acceptRuntimeOnly(visitor);
+        visitRuntimeProperties(visitor);
     }
 
     @Override
-    public void acceptRuntimeOnly(PropertyVisitor visitor) {
+    public void visitRuntimeProperties(PropertyVisitor visitor) {
         TaskPropertyUtils.ensurePropertiesHaveNames(declaredRuntimeFileProperties);
         for (DeclaredTaskOutputFileProperty fileProperty : declaredRuntimeFileProperties) {
             visitor.visitOutputFileProperty(fileProperty);
@@ -195,7 +195,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public boolean hasDeclaredOutputs() {
         HasDeclaredOutputsVisitor visitor = new HasDeclaredOutputsVisitor();
-        accept(visitor);
+        visitAllProperties(visitor);
         return visitor.hasDeclaredOutputs();
     }
 
@@ -207,7 +207,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
         GetFilePropertiesVisitor visitor = new GetFilePropertiesVisitor();
-        accept(visitor);
+        visitAllProperties(visitor);
         return visitor.getFileProperties();
     }
 

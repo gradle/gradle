@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.tasks.TaskInputs;
 
 /**
  * A task dependency that is aware of the inputs of the task that owns it.
@@ -25,32 +24,16 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
  * depend on its own inputs.
  */
 public class InputsAwareTaskDependency extends DefaultTaskDependency {
-    private final TaskInternal task;
+    private final TaskInputs inputs;
 
-    public InputsAwareTaskDependency(TaskInternal task, TaskResolver resolver) {
+    public InputsAwareTaskDependency(TaskInputs inputs, TaskResolver resolver) {
         super(resolver);
-        this.task = task;
+        this.inputs = inputs;
     }
 
     @Override
-    public void visitDependencies(final TaskDependencyResolveContext context) {
-        InputFilesVisitor visitor = new InputFilesVisitor(context);
-        task.getInputs().accept(visitor);
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(inputs.getFiles());
         super.visitDependencies(context);
     }
-
-    private static class InputFilesVisitor extends PropertyVisitor.Adapter {
-        private final TaskDependencyResolveContext context;
-
-        public InputFilesVisitor(TaskDependencyResolveContext context) {
-            this.context = context;
-        }
-
-        @Override
-        public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
-            context.add(inputFileProperty.getPropertyFiles());
-        }
-
-    }
-
 }

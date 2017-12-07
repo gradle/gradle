@@ -57,16 +57,16 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
         });
     }
 
-    public void accept(PropertyVisitor visitor) {
-        propertiesWalker.visitProperties(specFactory, visitor, task);
-        acceptRuntimeOnly(visitor);
-    }
-
     @Override
-    public void acceptRuntimeOnly(PropertyVisitor visitor) {
+    public void visitRuntimeProperties(PropertyVisitor visitor) {
         for (Object path : paths) {
             visitor.visitLocalState(path);
         }
+    }
+
+    private void visitAllProperties(PropertyVisitor visitor) {
+        propertiesWalker.visitProperties(specFactory, visitor, task);
+        visitRuntimeProperties(visitor);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
             @Override
             public Iterator<Object> iterator() {
                 GetFilesVisitor visitor = new GetFilesVisitor();
-                accept(visitor);
+                visitAllProperties(visitor);
                 return visitor.getLocalState().iterator();
             }
         };

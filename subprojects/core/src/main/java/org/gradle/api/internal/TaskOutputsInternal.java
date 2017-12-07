@@ -31,7 +31,7 @@ import java.util.Set;
 @NonNullApi
 public interface TaskOutputsInternal extends TaskOutputs {
 
-    void acceptRuntimeOnly(PropertyVisitor visitor);
+    void visitRuntimeProperties(PropertyVisitor visitor);
 
     AndSpec<? super TaskInternal> getUpToDateSpec();
 

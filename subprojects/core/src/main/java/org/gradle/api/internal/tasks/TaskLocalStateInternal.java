@@ -22,7 +22,7 @@ import org.gradle.api.tasks.TaskLocalState;
 
 // Note: this is currently not visible on {@link org.gradle.api.internal.TaskInternal} to avoid it leaking onto AbstractTask and so on to the public API.
 public interface TaskLocalStateInternal extends TaskLocalState {
-    void acceptRuntimeOnly(PropertyVisitor visitor);
+    void visitRuntimeProperties(PropertyVisitor visitor);
 
     FileCollection getFiles();
 

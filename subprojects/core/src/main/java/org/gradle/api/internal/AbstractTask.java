@@ -179,7 +179,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskDestroyables = new DefaultTaskDestroyables(fileResolver, this, taskMutator, propertiesWalker, specFactory);
         taskLocalState = new DefaultTaskLocalState(fileResolver, this, taskMutator, propertiesWalker, specFactory);
 
-        dependencies = new InputsAwareTaskDependency(this, tasks);
+        dependencies = new InputsAwareTaskDependency(taskInputs, tasks);
     }
 
     private void assertDynamicObject() {
@@ -200,10 +200,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void visitProperties(PropertyVisitor visitor) {
         propertiesWalker.visitProperties(specFactory, visitor, this);
-        getInputs().acceptRuntimeOnly(visitor);
-        getOutputs().acceptRuntimeOnly(visitor);
+        getInputs().visitRuntimeProperties(visitor);
+        getOutputs().visitRuntimeProperties(visitor);
         ((TaskDestroyablesInternal) getDestroyables()).visitRuntimeProperties(visitor);
-        ((TaskLocalStateInternal) getLocalState()).acceptRuntimeOnly(visitor);
+        ((TaskLocalStateInternal) getLocalState()).visitRuntimeProperties(visitor);
     }
 
     @Override
