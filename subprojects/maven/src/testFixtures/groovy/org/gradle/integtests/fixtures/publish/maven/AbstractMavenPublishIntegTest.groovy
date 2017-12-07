@@ -68,15 +68,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
     private def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
-        if (params.resolveModuleMetadata) {
-            ExperimentalFeaturesFixture.enable(settingsFile)
-        } else {
-            executer.beforeExecute {
-                // Remove the experimental flag set earlier...
-                // TODO:DAZ Remove this once we support excludes and we can have a single flag to enable publish/resolve
-                withArguments()
-            }
-        }
+        ExperimentalFeaturesFixture.enable(settingsFile)
         def attributes = params.variant == null ?
             "" :
             """ 

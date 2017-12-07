@@ -307,7 +307,13 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
             ${jcenterRepository()}
 
             dependencies {
-                api "org.springframework:spring-core:2.5.6"
+                constraints {
+                    api("commons-logging:commons-logging") {
+                        version {
+                            rejectAll()
+                        }
+                    }
+                }
                 implementation("commons-collections:commons-collections") {
                     version { 
                         prefer '[3.2, 4)'
@@ -331,15 +337,13 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         then:
         javaLibrary.assertPublished()
 
-        javaLibrary.parsedPom.scopes.keySet() == ["compile", "runtime"] as Set
-        javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.springframework:spring-core:2.5.6")
+        javaLibrary.parsedPom.scopes.keySet() == ["runtime"] as Set
         javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:[3.2, 4)")
 
         and:
         javaLibrary.parsedModuleMetadata.variant('api') {
-            dependency('org.springframework:spring-core:2.5.6') {
-                noMoreExcludes()
-                rejects()
+            constraint('commons-logging:commons-logging:') {
+                rejects '+'
             }
             noMoreDependencies()
         }
@@ -349,9 +353,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 noMoreExcludes()
                 rejects '3.2.1', '[3.2.2,)'
             }
-            dependency('org.springframework:spring-core:2.5.6') {
-                noMoreExcludes()
-                rejects()
+            constraint('commons-logging:commons-logging:') {
+                rejects '+'
             }
             noMoreDependencies()
         }
@@ -359,10 +362,10 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         then:
         resolveArtifacts(javaLibrary) {
             withModuleMetadata {
-                expectFiles 'commons-collections-3.2.jar', 'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
+                expectFiles 'commons-collections-3.2.jar', 'publishTest-1.9.jar'
             }
             withoutModuleMetadata {
-                expectFiles 'commons-collections-3.2.2.jar', 'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
+                expectFiles 'commons-collections-3.2.2.jar', 'publishTest-1.9.jar'
             }
         }
 
