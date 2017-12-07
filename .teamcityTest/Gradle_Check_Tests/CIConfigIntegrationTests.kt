@@ -7,7 +7,6 @@ import projects.RootProject
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class CIConfigIntegrationTests {
@@ -72,18 +71,6 @@ class CIConfigIntegrationTests {
             } else {
                 assertEquals(2, it.dependencies.items.size) //Individual Performance Worker
             }
-        }
-    }
-
-    @Test
-    fun functionalTestsCanDependOnSpecificBuilds() {
-        val m = CIBuildModel()
-        val p = RootProject(m)
-        val quickFeedbackProject = p.subProjects.find { it.name == "Quick Feedback - Linux Only" }!!
-        val quickFeedbackFunctionalTests = quickFeedbackProject.subProjects.find { it.name == TestCoverage(TestType.quick, OS.linux, JvmVersion.java8).asName() }!!.buildTypes
-        assertTrue(quickFeedbackFunctionalTests.isNotEmpty())
-        quickFeedbackFunctionalTests.forEach {
-            assertNotNull(it.dependencies.items.find { it.extId == "${m.projectPrefix}SanityCheck" }, "No dependency on SanityCheck found")
         }
     }
 
