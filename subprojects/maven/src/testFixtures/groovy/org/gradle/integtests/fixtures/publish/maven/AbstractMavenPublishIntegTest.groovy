@@ -152,13 +152,4 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         def artifactsList = file("artifacts").exists() ? file("artifacts").list() : []
         return artifactsList.sort()
     }
-
-
-    String sq(String input) {
-        return escapeForSingleQuoting(input)
-    }
-
-    String escapeForSingleQuoting(String input) {
-        return input.replace('\\', '\\\\').replace('\'', '\\\'')
-    }
 }
