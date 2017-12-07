@@ -43,4 +43,6 @@ public interface TaskInputsAndOutputs {
     boolean hasDeclaredOutputs();
 
     Map<String, Object> getInputProperties();
+
+    FileCollection getLocalStateFiles();
 }

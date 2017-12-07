@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.Project
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputCachingState
-import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -41,9 +40,9 @@ class SkipCachedTaskExecuterTest extends Specification {
     def project = Mock(Project)
     def projectDir = Mock(File)
     def taskOutputCaching = Mock(TaskOutputCachingState)
-    def outputs = Mock(TaskOutputsInternal)
+    def inputsAndOutputs = Mock(TaskInputsAndOutputs)
     def task = Stub(TaskInternal) {
-        getOutputs() >> outputs
+        getInputsAndOutputs() >> inputsAndOutputs
     }
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)
@@ -70,7 +69,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
-        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
+        1 * inputsAndOutputs.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
         1 * cacheKey.isValid() >> true
@@ -96,7 +95,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
-        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
+        1 * inputsAndOutputs.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
         1 * cacheKey.isValid() >> true
@@ -131,7 +130,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
-        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
+        1 * inputsAndOutputs.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> false
         1 * cacheKey.isValid() >> true
@@ -162,7 +161,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
-        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
+        1 * inputsAndOutputs.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
         1 * cacheKey.isValid() >> true
@@ -222,7 +221,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
-        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
+        1 * inputsAndOutputs.getOutputFileProperties() >> ImmutableSortedSet.of()
 
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
@@ -257,7 +256,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
-        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
+        1 * inputsAndOutputs.getOutputFileProperties() >> ImmutableSortedSet.of()
 
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
@@ -280,7 +279,7 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * outputs.getFileProperties() >> ImmutableSortedSet.of()
+        1 * inputsAndOutputs.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * cacheKey.isValid() >> true
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 

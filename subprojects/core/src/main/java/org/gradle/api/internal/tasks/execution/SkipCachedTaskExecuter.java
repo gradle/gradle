@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
@@ -65,7 +64,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         LOGGER.debug("Determining if {} is cached already", task);
 
-        final TaskOutputsInternal taskOutputs = task.getOutputs();
+        TaskInputsAndOutputs inputsAndOutputs = task.getInputsAndOutputs();
         TaskOutputCachingBuildCacheKey cacheKey = context.getBuildCacheKey();
         boolean taskOutputCachingEnabled = state.getTaskOutputCaching().isEnabled();
 
@@ -78,7 +77,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 TaskArtifactState taskState = context.getTaskArtifactState();
                 // TODO: This is really something we should do at an earlier/higher level so that the input and output
                 // property values are locked in at this point.
-                outputProperties = TaskPropertyUtils.resolveFileProperties(taskOutputs.getFileProperties());
+                outputProperties = TaskPropertyUtils.resolveFileProperties(inputsAndOutputs.getOutputFileProperties());
                 if (taskState.isAllowedToUseCachedResults()) {
                     try {
                         TaskOutputOriginMetadata originMetadata = buildCache.load(

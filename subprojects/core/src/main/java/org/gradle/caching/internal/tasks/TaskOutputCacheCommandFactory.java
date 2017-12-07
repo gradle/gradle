@@ -37,7 +37,6 @@ import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
 import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -194,7 +193,7 @@ public class TaskOutputCacheCommandFactory {
         }
 
         private void cleanLocalState() {
-            for (File localStateFile : ((TaskLocalStateInternal) task.getLocalState()).getFiles()) {
+            for (File localStateFile : task.getInputsAndOutputs().getLocalStateFiles()) {
                 try {
                     remove(localStateFile);
                 } catch (IOException ex) {

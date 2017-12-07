@@ -33,6 +33,7 @@ import org.gradle.api.internal.tasks.InputsOutputVisitor;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.TaskValidationContext;
@@ -82,19 +83,21 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         TaskOutputsInternal.GetFilePropertiesVisitor outputFilePropertiesVisitor = task.getOutputs().getFilePropertiesVisitor();
         TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor = task.getInputs().getFilePropertiesVisitor();
         TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor = task.getInputs().getInputPropertiesVisitor();
+        TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor = ((TaskLocalStateInternal) task.getLocalState()).getFilesVisitor();
         TaskValidationVisitor taskValidationVisitor = new TaskValidationVisitor();
         try {
             task.acceptInputsOutputsVisitor(new CompositeInputsOutputsVisitor(
                 inputPropertiesVisitor,
                 inputFilePropertiesVisitor,
                 outputFilePropertiesVisitor,
-                taskValidationVisitor
+                taskValidationVisitor,
+                localStateFilesVisitor
             ));
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
         }
 
-        return new DefaultTaskInputsAndOutputs(inputPropertiesVisitor, inputFilePropertiesVisitor, outputFilePropertiesVisitor, taskValidationVisitor);
+        return new DefaultTaskInputsAndOutputs(inputPropertiesVisitor, inputFilePropertiesVisitor, outputFilePropertiesVisitor, taskValidationVisitor, localStateFilesVisitor);
     }
 
     private static class DefaultTaskInputsAndOutputs implements TaskInputsAndOutputs {
@@ -103,12 +106,14 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         private final TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor;
         private final TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor;
         private final ResolveTaskArtifactStateTaskExecuter.TaskValidationVisitor validationVisitor;
+        private final TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor;
 
-        public DefaultTaskInputsAndOutputs(TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor, TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor, TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor, TaskValidationVisitor validationVisitor) {
+        public DefaultTaskInputsAndOutputs(TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor, TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor, TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor, TaskValidationVisitor validationVisitor, TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor) {
             this.inputPropertiesVisitor = inputPropertiesVisitor;
             this.inputFilePropertiesVisitor = inputFilePropertiesVisitor;
             this.outputFilesVisitor = outputFilesVisitor;
             this.validationVisitor = validationVisitor;
+            this.localStateFilesVisitor = localStateFilesVisitor;
         }
 
         @Override
@@ -159,6 +164,11 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         @Override
         public Map<String, Object> getInputProperties() {
             return inputPropertiesVisitor.getProperties();
+        }
+
+        @Override
+        public FileCollection getLocalStateFiles() {
+            return localStateFilesVisitor.getFiles();
         }
     }
 

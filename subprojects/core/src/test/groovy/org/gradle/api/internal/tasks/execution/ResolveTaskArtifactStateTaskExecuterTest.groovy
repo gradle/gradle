@@ -26,6 +26,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
 import spock.lang.Subject
@@ -35,6 +36,7 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
     final delegate = Mock(TaskExecuter)
     final outputs = Mock(TaskOutputsInternal)
     final inputs = Mock(TaskInputsInternal)
+    final localState = Mock(TaskLocalStateInternal)
     final task = Mock(TaskInternal)
     final taskState = Mock(TaskStateInternal)
     final taskContext = Mock(TaskExecutionContext)
@@ -54,11 +56,14 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
         1 * taskContext.setTaskArtifactState(taskArtifactState)
         1 * taskArtifactState.getExecutionHistory() >> taskExecutionhistory
         2 * task.getOutputs() >> outputs
-        1 * task.getInputs() >> inputs
+        2 * task.getInputs() >> inputs
+        1 * task.getLocalState() >> localState
         1 * task.setInputsAndOutputs(_)
         1 * outputs.setHistory(taskExecutionhistory)
         1 * outputs.getFilePropertiesVisitor() >> Mock(TaskOutputsInternal.GetFilePropertiesVisitor)
         1 * inputs.getFilePropertiesVisitor() >> Mock(TaskInputsInternal.GetFilePropertiesVisitor)
+        1 * inputs.getInputPropertiesVisitor() >> Mock(TaskInputsInternal.GetInputPropertiesVisitor)
+        1 * localState.getFilesVisitor() >> Mock(TaskLocalStateInternal.GetFilesVisitor)
         1 * task.acceptInputsOutputsVisitor(_)
 
         then: 'delegate is executed'
