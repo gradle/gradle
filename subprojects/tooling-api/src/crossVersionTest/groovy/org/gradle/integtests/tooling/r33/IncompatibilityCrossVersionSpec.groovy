@@ -36,7 +36,7 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
         println "Building plugin with $gradleDist"
         def pluginDir = file("plugin")
         def pluginJar = pluginDir.file("plugin.jar")
-        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(gradleDist, temporaryFolder), pluginDir)
+        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(gradleDist, temporaryFolder).withWarnings(null), pluginDir)
         builder.sourceFile("com/example/MyTask.java") << """
             package com.example;
             

@@ -236,7 +236,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     public ExecHandle start() {
         LOGGER.info("Starting process '{}'. Working directory: {} Command: {}",
-                displayName, directory, command + ' ' + Joiner.on(' ').useForNull("null").join(arguments));
+            displayName, directory, command + ' ' + Joiner.on(' ').useForNull("null").join(arguments));
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Environment for process '{}': {}", displayName, environment);
         }

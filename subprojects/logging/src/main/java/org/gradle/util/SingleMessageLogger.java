@@ -16,11 +16,10 @@
 
 package org.gradle.util;
 
-import com.google.common.annotations.VisibleForTesting;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.logging.configuration.WarningsType;
 import org.gradle.internal.Factory;
-import org.gradle.internal.featurelifecycle.CollectingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.FeatureHandler;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
@@ -40,19 +39,19 @@ public class SingleMessageLogger {
         }
     };
 
-    @VisibleForTesting
-    static FeatureHandler handler = initHandlers();
-
-    private static FeatureHandler initHandlers() {
-        return new LoggingIncubatingFeatureHandler(new CollectingDeprecatedFeatureHandler(new LoggingDeprecatedFeatureHandler()));
-    }
+    private static LoggingIncubatingFeatureHandler incubatingFeatureHandler = new LoggingIncubatingFeatureHandler();
+    private static LoggingDeprecatedFeatureHandler deprecatedFeatureHandler = new LoggingDeprecatedFeatureHandler();
 
     public synchronized static void reset() {
-        handler = initHandlers();
+        incubatingFeatureHandler.reset();
+        deprecatedFeatureHandler.reset();
+    }
+    public synchronized static void initDeprecatedFeatureHandler(UsageLocationReporter reporter, WarningsType warningsType) {
+        deprecatedFeatureHandler.init(reporter, warningsType);
     }
 
-    public synchronized static void useLocationReporter(UsageLocationReporter reporter) {
-        handler.init(reporter);
+    public static void reportSuppressedDeprecations() {
+        deprecatedFeatureHandler.reportSuppressedDeprecations();
     }
 
     public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
@@ -151,10 +150,10 @@ public class SingleMessageLogger {
      * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
      */
     public static void nagUserWith(String message) {
-        nagUserWith(FeatureUsage.deprecatedFeature(message, SingleMessageLogger.class));
+        nagUserWith(deprecatedFeatureHandler, new FeatureUsage(message, SingleMessageLogger.class));
     }
 
-    private synchronized static void nagUserWith(FeatureUsage usage) {
+    private synchronized static void nagUserWith(FeatureHandler handler, FeatureUsage usage) {
         if (isEnabled()) {
             handler.featureUsed(usage);
         }
@@ -215,6 +214,6 @@ public class SingleMessageLogger {
     }
 
     public static void incubatingFeatureUsed(String incubatingFeature) {
-        nagUserWith(FeatureUsage.incubatingFeature(incubatingFeature, SingleMessageLogger.class));
+        nagUserWith(incubatingFeatureHandler, new FeatureUsage(incubatingFeature, SingleMessageLogger.class));
     }
 }

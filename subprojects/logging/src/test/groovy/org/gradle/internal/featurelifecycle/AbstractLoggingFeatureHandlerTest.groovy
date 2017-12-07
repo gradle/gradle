@@ -17,7 +17,6 @@
 package org.gradle.internal.featurelifecycle
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.featurelifecycle.FeatureUsage.FeatureType
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.junit.Rule
@@ -32,10 +31,8 @@ abstract class AbstractLoggingFeatureHandlerTest extends Specification {
 
     abstract FeatureHandler createHandler()
 
-    abstract FeatureType getFeatureType()
-
     def createFeatureUsage(String message) {
-        return new FeatureUsage(message, getClass(), getFeatureType())
+        return new FeatureUsage(message, getClass())
     }
 
     def 'logs each warning only once'() {

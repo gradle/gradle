@@ -49,7 +49,7 @@ class NameValidatorTest extends Specification {
     def loggingDeprecatedFeatureHandler = Mock(LoggingDeprecatedFeatureHandler)
 
     def setup() {
-        SingleMessageLogger.handler = loggingDeprecatedFeatureHandler
+        SingleMessageLogger.deprecatedFeatureHandler = loggingDeprecatedFeatureHandler
     }
 
     def cleanup() {

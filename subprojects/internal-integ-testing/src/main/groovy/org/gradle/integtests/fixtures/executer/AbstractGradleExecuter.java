@@ -31,6 +31,7 @@ import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.WarningsType;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
@@ -153,6 +154,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean requiresGradleDistribution;
     private boolean useOwnUserHomeServices;
     private ConsoleOutput consoleType;
+    protected WarningsType warningsType = WarningsType.ALL;
     private boolean showStacktrace = true;
 
     private int expectedDeprecationWarnings;
@@ -233,6 +235,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         checkDeprecations = true;
         durationMeasurement = null;
         consoleType = null;
+        warningsType = WarningsType.ALL;
         return this;
     }
 
@@ -382,6 +385,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (consoleType != null) {
             executer.withConsole(consoleType);
         }
+
+        executer.withWarnings(warningsType);
 
         if (!showStacktrace) {
             executer.withStacktraceDisabled();
@@ -736,6 +741,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
+    public GradleExecuter withWarnings(WarningsType warningsType) {
+        this.warningsType = warningsType;
+        return this;
+    }
+
+    @Override
     public GradleExecuter withConsole(ConsoleOutput consoleType) {
         this.consoleType = consoleType;
         return this;
@@ -858,6 +869,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (consoleType != null) {
             allArgs.add("--console=" + consoleType.toString().toLowerCase());
+        }
+
+        if (warningsType != null) {
+            allArgs.add("--warnings=" + warningsType.toString().toLowerCase());
         }
 
         allArgs.addAll(args);

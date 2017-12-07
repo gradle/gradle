@@ -54,7 +54,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
-        return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext);
+        return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext).withWarnings(null);
     }
 
     public boolean worksWith(Jvm jvm) {

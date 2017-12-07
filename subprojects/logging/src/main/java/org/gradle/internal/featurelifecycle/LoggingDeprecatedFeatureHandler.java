@@ -16,6 +16,7 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.api.logging.configuration.WarningsType;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -37,14 +38,20 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
 
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
+    private WarningsType warningsType;
 
     public LoggingDeprecatedFeatureHandler() {
         this.locationReporter = DoNothingReporter.INSTANCE;
     }
 
-    @Override
-    public void init(UsageLocationReporter reporter) {
+    public void init(UsageLocationReporter reporter, WarningsType warningsType) {
         this.locationReporter = reporter;
+        this.warningsType = warningsType;
+    }
+
+    @Override
+    public void reset() {
+        messages.clear();
     }
 
     public void featureUsed(FeatureUsage usage) {
@@ -56,7 +63,21 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
             messageBuilder.append(usage.getMessage());
             appendTraceIfNecessary(usage, messageBuilder);
 
-            LOGGER.warn(messageBuilder.toString());
+            if (warningsType == WarningsType.ALL) {
+                LOGGER.warn(messageBuilder.toString());
+            }
+        }
+    }
+
+    public static String getDeprecationMessage() {
+        return DEPRECATION_MESSAGE;
+    }
+
+    public void reportSuppressedDeprecations() {
+        if (warningsType == WarningsType.AUTO && !messages.isEmpty()) {
+            LOGGER.warn("\nThere're {} deprecation warnings, which may break the build in Gradle {}. Please run with --warnings=all to see them.",
+                messages.size(),
+                GradleVersion.current().getNextMajor().getVersion());
         }
     }
 
@@ -137,10 +158,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
         String when = String.format("Gradle %s", GradleVersion.current().getNextMajor().getVersion());
 
         return String.format("%s %s", messageBase, when);
-    }
-
-    public static String getDeprecationMessage() {
-        return DEPRECATION_MESSAGE;
     }
 
     private enum DoNothingReporter implements UsageLocationReporter {

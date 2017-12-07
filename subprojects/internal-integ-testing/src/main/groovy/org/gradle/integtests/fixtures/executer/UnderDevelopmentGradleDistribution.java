@@ -34,7 +34,7 @@ public class UnderDevelopmentGradleDistribution extends DefaultGradleDistributio
 
     @Override
     public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
-        return new GradleContextualExecuter(this, testDirectoryProvider, buildContext);
+        return new GradleContextualExecuter(this, testDirectoryProvider, buildContext).withWarnings(null);
     }
 }
 

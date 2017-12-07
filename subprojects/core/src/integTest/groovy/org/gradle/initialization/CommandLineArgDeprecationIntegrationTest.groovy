@@ -16,6 +16,8 @@
 
 package org.gradle.initialization
 
+import org.gradle.api.JavaVersion
+import org.gradle.api.logging.configuration.WarningsType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import spock.lang.Unroll
@@ -46,25 +48,31 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "deprecation warning appears when using #deprecatedArgs in Tooling API"() {
+    def "deprecation warning appears when using #deprecatedArgs and warningtype #warningsType in Tooling API"() {
         given:
         ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
         toolingApi.requireIsolatedDaemons()
 
         when:
         def stdOut = new ByteArrayOutputStream()
-        toolingApi.withConnection { connection -> connection.newBuild().withArguments(deprecatedArgs).forTasks('help').setStandardOutput(stdOut).run() }
+        toolingApi.withConnection { connection -> connection.newBuild().withArguments(deprecatedArgs, "--warnings=" + warningsType.toString().toLowerCase()).forTasks('help').setStandardOutput(stdOut).run() }
 
         then:
-        stdOut.toString().contains(message)
+        warningCountInConsole == stdOut.toString().count(message)
+        warningCountInSummary == stdOut.toString().count("There're ${incrementWarningCountIfJava7(warningCountInSummary)} deprecation warnings")
 
         where:
-        issue                                          | deprecatedArgs        | message
-        'https://github.com/gradle/gradle/issues/1425' | '--recompile-scripts' | RECOMPILE_SCRIPTS_MESSAGE
-        'https://github.com/gradle/gradle/issues/3077' | '--no-rebuild'        | NO_REBUILD_MESSAGE
-        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | NO_REBUILD_MESSAGE
-        'https://github.com/gradle/gradle/issues/3334' | '--no-search-upward'  | NO_SEARCH_UPWARD_MESSAGE
-        'https://github.com/gradle/gradle/issues/3334' | '-u'                  | NO_SEARCH_UPWARD_MESSAGE
+        issue                                          | deprecatedArgs        | warningsType      | warningCountInConsole | warningCountInSummary | message
+        'https://github.com/gradle/gradle/issues/1425' | '--recompile-scripts' | WarningsType.ALL  | 1                     | 0                     | RECOMPILE_SCRIPTS_MESSAGE
+        'https://github.com/gradle/gradle/issues/3077' | '--no-rebuild'        | WarningsType.ALL  | 1                     | 0                     | NO_REBUILD_MESSAGE
+        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | WarningsType.ALL  | 1                     | 0                     | NO_REBUILD_MESSAGE
+        'https://github.com/gradle/gradle/issues/3334' | '--no-search-upward'  | WarningsType.ALL  | 1                     | 0                     | NO_SEARCH_UPWARD_MESSAGE
+        'https://github.com/gradle/gradle/issues/3334' | '-u'                  | WarningsType.ALL  | 1                     | 0                     | NO_SEARCH_UPWARD_MESSAGE
+        'https://github.com/gradle/gradle/issues/3334' | '-u'                  | WarningsType.AUTO | 0                     | 1                     | NO_SEARCH_UPWARD_MESSAGE
+        'https://github.com/gradle/gradle/issues/3334' | '-u'                  | WarningsType.NO   | 0                     | 0                     | NO_SEARCH_UPWARD_MESSAGE
     }
 
+    def incrementWarningCountIfJava7(int warningCount) {
+        return JavaVersion.current().isJava7() ? warningCount + 1 : warningCount
+    }
 }

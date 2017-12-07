@@ -45,7 +45,7 @@ class DefaultSourceSetContainerTest extends Specification {
     def "source sets are not allowed to be named '#name'"() {
         given:
         def loggingDeprecatedFeatureHandler = Mock(LoggingDeprecatedFeatureHandler)
-        SingleMessageLogger.handler = loggingDeprecatedFeatureHandler
+        SingleMessageLogger.deprecatedFeatureHandler = loggingDeprecatedFeatureHandler
 
         when:
         container.create(name)

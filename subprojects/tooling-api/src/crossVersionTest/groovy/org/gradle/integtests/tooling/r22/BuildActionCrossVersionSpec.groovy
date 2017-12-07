@@ -36,7 +36,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         def workDir = temporaryFolder.file("work")
         def implJar = workDir.file("action-impl.jar")
-        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(dist, temporaryFolder), workDir)
+        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(dist, temporaryFolder).withWarnings(null), workDir)
 
         given:
         builder.sourceFile('ActionImpl.java') << """
