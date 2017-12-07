@@ -15,22 +15,18 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.PropertyValueVisitor;
 
 import java.lang.annotation.Annotation;
 
 /**
  * Handles validation, dependency handling, and skipping for a property marked with a given annotation.
  */
-public interface PropertyAnnotationHandler {
+public interface PropertyAnnotationHandler extends PropertyValueVisitor {
     /**
      * The annotation type which this handler is responsible for.
      *
      * @return The annotation.
      */
     Class<? extends Annotation> getAnnotationType();
-
-    void accept(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory);
 }

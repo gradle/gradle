@@ -31,7 +31,7 @@ import java.io.File;
 public abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
     @Override
-    public void accept(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
         PathSensitive pathSensitive = propertyValue.getAnnotation(PathSensitive.class);
         final PathSensitivity pathSensitivity;
         if (pathSensitive == null) {

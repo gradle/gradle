@@ -394,7 +394,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
 
         @Override
         @Nullable
-        public PropertyAnnotationHandler getAnnotationHandler() {
+        public PropertyAnnotationHandler getPropertyValueVisitor() {
             return annotationHandlers.get(propertyType);
         }
 

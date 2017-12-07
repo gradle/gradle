@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
-
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -36,7 +34,7 @@ public interface PropertyMetadata {
     List<Annotation> getAnnotations();
 
     @Nullable
-    PropertyAnnotationHandler getAnnotationHandler();
+    PropertyValueVisitor getPropertyValueVisitor();
 
     Method getMethod();
 }

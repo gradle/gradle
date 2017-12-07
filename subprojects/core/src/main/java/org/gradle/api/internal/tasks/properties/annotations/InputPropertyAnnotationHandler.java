@@ -33,7 +33,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
 
     @Override
     @SuppressWarnings("Since15")
-    public void accept(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
         DefaultTaskInputPropertySpec declaration = specFactory.createInputPropertySpec(propertyValue.getPropertyName(), propertyValue);
         declaration.optional(propertyValue.isOptional());
         visitor.visitInputProperty(declaration);

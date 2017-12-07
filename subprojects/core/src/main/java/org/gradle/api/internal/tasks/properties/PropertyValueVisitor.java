@@ -14,23 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties.annotations;
+package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.tasks.Destroys;
 
-import java.lang.annotation.Annotation;
-
-public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHandler {
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return Destroys.class;
-    }
-
-    @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
-        visitor.visitDestroyable(propertyValue);
-    }
+public interface PropertyValueVisitor {
+    void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory);
 }

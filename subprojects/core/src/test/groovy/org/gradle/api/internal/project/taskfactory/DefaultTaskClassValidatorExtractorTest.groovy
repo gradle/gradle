@@ -73,7 +73,7 @@ class DefaultTaskClassValidatorExtractorTest extends AbstractProjectBuilderSpec 
 
 
         @Override
-        void accept(PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+        void visitPropertyValue(PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory) {
             visitorAction.call(propertyInfo, visitor)
         }
     }

@@ -24,7 +24,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
-import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
@@ -70,9 +69,9 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
     private <T> void detectProperties(PropertyNode node, Class<T> type, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory inputs, boolean cacheable) {
         final Set<PropertyMetadata> typeMetadata = propertyMetadataStore.getTypeMetadata(type);
         for (PropertyMetadata propertyMetadata : typeMetadata) {
-            PropertyAnnotationHandler annotationHandler = propertyMetadata.getAnnotationHandler();
+            PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
             String propertyName = node.getRelativePropertyName(propertyMetadata.getFieldName());
-            if (annotationHandler == null) {
+            if (propertyValueVisitor == null) {
                 if (!Modifier.isPrivate(propertyMetadata.getMethod().getModifiers())) {
                     visitor.visitValidationMessage(INFO, propertyValidationMessage(propertyName, "is not annotated with an input or output annotation"));
                 }
@@ -80,7 +79,7 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
             }
             Object bean = node.getBean();
             PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata.getAnnotations(), bean, propertyMetadata.getMethod(), cacheable);
-            annotationHandler.accept(propertyValue, visitor, inputs);
+            propertyValueVisitor.visitPropertyValue(propertyValue, visitor, inputs);
             for (String validationMessage : propertyMetadata.getValidationMessages()) {
                 visitor.visitValidationMessage(INFO, propertyValue.validationMessage(validationMessage));
             }
