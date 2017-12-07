@@ -79,11 +79,11 @@ class CIConfigIntegrationTests {
     fun functionalTestsCanDependOnSpecificBuilds() {
         val m = CIBuildModel()
         val p = RootProject(m)
-        val quickFeedbackProject = p.subProjects.find { it.name == "Quick Feedback" }!!
-        val quickFeedbackFunctionalTests = quickFeedbackProject.subProjects.find { it.name == TestCoverage(TestType.quick, OS.windows, JvmVersion.java7).asName() }!!.buildTypes
+        val quickFeedbackProject = p.subProjects.find { it.name == "Quick Feedback - Linux Only" }!!
+        val quickFeedbackFunctionalTests = quickFeedbackProject.subProjects.find { it.name == TestCoverage(TestType.quick, OS.linux, JvmVersion.java8).asName() }!!.buildTypes
         assertTrue(quickFeedbackFunctionalTests.isNotEmpty())
         quickFeedbackFunctionalTests.forEach {
-            assertNotNull(it.dependencies.items.find { it.extId == "${m.projectPrefix}CompileAllJava7" }, "No dependency on CompileAllJava7 found")
+            assertNotNull(it.dependencies.items.find { it.extId == "${m.projectPrefix}SanityCheck" }, "No dependency on SanityCheck found")
         }
     }
 

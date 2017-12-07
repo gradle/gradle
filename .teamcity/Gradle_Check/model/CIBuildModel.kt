@@ -1,7 +1,6 @@
 package model
 
 import configurations.BuildDistributions
-import configurations.CompileAllJava7
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
@@ -23,8 +22,6 @@ data class CIBuildModel (
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.linux, JvmVersion.java8))),
             Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
-                    specificBuilds = listOf(
-                            SpecificBuild.CompileAllJava7),
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
                     functionalTestsDependOnSpecificBuilds = true),
@@ -225,11 +222,6 @@ enum class SpecificBuild {
     SanityCheck {
         override fun create(model: CIBuildModel): BuildType {
             return SanityCheck(model)
-        }
-    },
-    CompileAllJava7 {
-        override fun create(model: CIBuildModel): BuildType {
-            return CompileAllJava7(model)
         }
     },
     BuildDistributions {
