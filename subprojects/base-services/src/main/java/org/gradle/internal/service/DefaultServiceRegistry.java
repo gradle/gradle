@@ -16,13 +16,12 @@
 package org.gradle.internal.service;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.util.BiFunction;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -77,7 +76,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private final static ServiceProvider[] NO_DEPENDENTS = new ServiceProvider[0];
     private final static Object[] NO_PARAMS = new Object[0];
 
-    private static final ConcurrentMap<Type, BiFunction<ServiceProvider, LookupContext, Provider>> SERVICE_TYPE_PROVIDER_CACHE = new ConcurrentHashMap<Type, BiFunction<ServiceProvider, LookupContext, Provider>>();
+    private static final ConcurrentMap<Type, Transformer<ServiceProvider, Provider>> SERVICE_TYPE_PROVIDER_CACHE = new ConcurrentHashMap<Type, Transformer<ServiceProvider, Provider>>();
     private final Map<Type, ServiceProvider> providerCache = new IdentityHashMap<Type, ServiceProvider>();
 
     private final Object lock = new Object();
@@ -183,13 +182,12 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
     private void applyConfigureMethod(ServiceMethod method, Object target) {
         Object[] params = new Object[method.getParameterTypes().length];
-        DefaultLookupContext context = new DefaultLookupContext();
         for (int i = 0; i < method.getParameterTypes().length; i++) {
             Type paramType = method.getParameterTypes()[i];
             if (paramType.equals(ServiceRegistration.class)) {
                 params[i] = newRegistration();
             } else {
-                ServiceProvider paramProvider = context.find(paramType, allServices);
+                ServiceProvider paramProvider = find(paramType, allServices);
                 if (paramProvider == null) {
                     throw new ServiceLookupException(String.format("Cannot configure services using %s.%s() as required service of type %s is not available.",
                         method.getOwner().getSimpleName(),
@@ -311,8 +309,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
     private <T> void collectInto(Class<T> serviceType, List<T> results) {
         synchronized (lock) {
-            DefaultLookupContext context = new DefaultLookupContext();
-            allServices.getAll(context, serviceType, new UnpackingList<T>(serviceType, results));
+            allServices.getAll(serviceType, new UnpackingList<T>(serviceType, results));
         }
     }
 
@@ -364,8 +361,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         synchronized (lock) {
             ServiceProvider provider = providerCache.get(serviceType);
             if (provider == null) {
-                DefaultLookupContext context = new DefaultLookupContext();
-                provider = context.find(serviceType, allServices);
+                provider = find(serviceType, allServices);
                 providerCache.put(serviceType, provider);
             }
             return provider == null ? null : provider.get();
@@ -389,8 +385,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
     private <T> Factory<T> doGetFactory(Class<T> type) {
         synchronized (lock) {
-            DefaultLookupContext context = new DefaultLookupContext();
-            ServiceProvider provider = allServices.getFactory(context, type);
+            ServiceProvider provider = allServices.getFactory(type);
             return provider == null ? null : (Factory<T>) provider.get();
         }
     }
@@ -424,17 +419,17 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         /**
          * Locates a service instance of the given type. Returns null if this provider does not provide a service of this type.
          */
-        ServiceProvider getService(LookupContext context, TypeSpec serviceType);
+        ServiceProvider getService(TypeSpec serviceType);
 
         /**
          * Locates a factory for services of the given type. Returns null if this provider does not provide any services of this type.
          */
-        ServiceProvider getFactory(LookupContext context, Class<?> type);
+        ServiceProvider getFactory(Class<?> type);
 
         /**
          * Collects all services of the given type.
          */
-        void getAll(LookupContext context, Class<?> serviceType, List<ServiceProvider> result);
+        void getAll(Class<?> serviceType, List<ServiceProvider> result);
     }
 
     private class OwnServices implements Provider {
@@ -443,18 +438,18 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         private ProviderAnalyser analyser = new ProviderAnalyser();
 
         @Override
-        public ServiceProvider getFactory(LookupContext context, Class<?> type) {
+        public ServiceProvider getFactory(Class<?> type) {
             List<Provider> providers = getProvidersByType(Factory.class);
             if (providers.isEmpty()) {
                 return null;
             }
             if (providers.size() == 1) {
-                return providers.get(0).getFactory(context, type);
+                return providers.get(0).getFactory(type);
             }
 
             List<ServiceProvider> candidates = new ArrayList<ServiceProvider>(providers.size());
             for (Provider provider : providers) {
-                ServiceProvider service = provider.getFactory(context, type);
+                ServiceProvider service = provider.getFactory(type);
                 if (service != null) {
                     candidates.add(service);
                 }
@@ -481,19 +476,19 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         @Override
-        public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
+        public ServiceProvider getService(TypeSpec serviceType) {
             Type type = serviceType.getType();
             List<Provider> providers = getProvidersByType(unwrap(type));
             if (providers.isEmpty()) {
                 return null;
             }
             if (providers.size() == 1) {
-                return providers.get(0).getService(context, serviceType);
+                return providers.get(0).getService(serviceType);
             }
 
             List<ServiceProvider> candidates = new ArrayList<ServiceProvider>(providers.size());
             for (Provider provider : providers) {
-                ServiceProvider service = provider.getService(context, serviceType);
+                ServiceProvider service = provider.getService(serviceType);
                 if (service != null) {
                     candidates.add(service);
                 }
@@ -520,9 +515,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         @Override
-        public void getAll(LookupContext context, Class<?> serviceType, List<ServiceProvider> result) {
+        public void getAll(Class<?> serviceType, List<ServiceProvider> result) {
             for (Provider provider : getProvidersByType(serviceType)) {
-                provider.getAll(context, serviceType, result);
+                provider.getAll(serviceType, result);
             }
         }
 
@@ -641,7 +636,8 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private static abstract class SingletonService extends ManagedObjectProvider<Object> implements ServiceProvider {
-        private enum BindState { UNBOUND, BINDING, BOUND }
+        private enum BindState {UNBOUND, BINDING, BOUND}
+
         final Type serviceType;
         final Class serviceClass;
 
@@ -664,14 +660,14 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             return getInstance();
         }
 
-        private ServiceProvider prepare(LookupContext context) {
+        private ServiceProvider prepare() {
             if (state == BindState.BINDING) {
                 throw new ServiceValidationException("This service depends on itself");
             }
             if (state == BindState.UNBOUND) {
                 state = BindState.BINDING;
                 try {
-                    bind(context);
+                    bind();
                     state = BindState.BOUND;
                 } catch (RuntimeException e) {
                     state = BindState.UNBOUND;
@@ -681,30 +677,30 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             return this;
         }
 
-        protected void bind(LookupContext context) {
+        protected void bind() {
         }
 
         @Override
-        public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
+        public ServiceProvider getService(TypeSpec serviceType) {
             if (!serviceType.isSatisfiedBy(this.serviceType)) {
                 return null;
             }
-            return prepare(context);
+            return prepare();
         }
 
         @Override
-        public void getAll(LookupContext context, Class<?> serviceType, List<ServiceProvider> result) {
+        public void getAll(Class<?> serviceType, List<ServiceProvider> result) {
             if (serviceType.isAssignableFrom(this.serviceClass)) {
-                result.add(prepare(context));
+                result.add(prepare());
             }
         }
 
         @Override
-        public ServiceProvider getFactory(LookupContext context, Class<?> elementType) {
+        public ServiceProvider getFactory(Class<?> elementType) {
             if (!isFactory(serviceType, elementType)) {
                 return null;
             }
-            return prepare(context);
+            return prepare();
         }
 
         private boolean isFactory(Type type, Class<?> elementType) {
@@ -751,9 +747,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         protected abstract Member getFactory();
 
         @Override
-        protected void bind(LookupContext context) {
+        protected void bind() {
             Type[] parameterTypes = getParameterTypes();
-            if (parameterTypes.length==0) {
+            if (parameterTypes.length == 0) {
                 paramProviders = NO_DEPENDENTS;
                 return;
             }
@@ -765,7 +761,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 } else {
                     ServiceProvider paramProvider;
                     try {
-                        paramProvider = context.find(paramType, allServices);
+                        paramProvider = find(paramType, allServices);
                     } catch (ServiceLookupException e) {
                         throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as there is a problem with parameter #%s of type %s.",
                             format(serviceType),
@@ -946,10 +942,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         @Override
-        protected void bind(LookupContext context) {
+        protected void bind() {
             Type paramType = method.getParameterTypes()[0];
-            DefaultLookupContext parentLookupContext = new DefaultLookupContext();
-            paramProvider = parentLookupContext.find(paramType, parentServices);
+            paramProvider = find(paramType, parentServices);
             if (paramProvider == null) {
                 throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available in parent registries.",
                     format(method.getServiceType()),
@@ -996,9 +991,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         @Override
-        public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
+        public ServiceProvider getService(TypeSpec serviceType) {
             for (Provider provider : providers) {
-                ServiceProvider service = provider.getService(context, serviceType);
+                ServiceProvider service = provider.getService(serviceType);
                 if (service != null) {
                     return service;
                 }
@@ -1007,9 +1002,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         @Override
-        public ServiceProvider getFactory(LookupContext context, Class<?> type) {
+        public ServiceProvider getFactory(Class<?> type) {
             for (Provider provider : providers) {
-                ServiceProvider factory = provider.getFactory(context, type);
+                ServiceProvider factory = provider.getFactory(type);
                 if (factory != null) {
                     return factory;
                 }
@@ -1018,9 +1013,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         @Override
-        public void getAll(LookupContext context, Class<?> serviceType, List<ServiceProvider> result) {
+        public void getAll(Class<?> serviceType, List<ServiceProvider> result) {
             for (Provider provider : providers) {
-                provider.getAll(context, serviceType, result);
+                provider.getAll(serviceType, result);
             }
         }
 
@@ -1050,7 +1045,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         @Override
-        public ServiceProvider getFactory(LookupContext context, Class<?> serviceType) {
+        public ServiceProvider getFactory(Class<?> serviceType) {
             if (parent instanceof DefaultServiceRegistry) {
                 return instanceToServiceProvider(((DefaultServiceRegistry) parent).doGetFactory(serviceType));
             }
@@ -1066,7 +1061,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         @Override
-        public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
+        public ServiceProvider getService(TypeSpec serviceType) {
             if (parent instanceof DefaultServiceRegistry) {
                 return instanceToServiceProvider(((DefaultServiceRegistry) parent).doGet(serviceType.getType()));
             }
@@ -1082,7 +1077,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         @Override
-        public void getAll(LookupContext context, Class<?> serviceType, List<ServiceProvider> result) {
+        public void getAll(Class<?> serviceType, List<ServiceProvider> result) {
             if (parent instanceof DefaultServiceRegistry) {
                 ((DefaultServiceRegistry) parent).collectInto(serviceType, (List) new InstanceWrappingList(result));
                 return;
@@ -1118,7 +1113,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
         private ServiceProvider instanceToServiceProvider(final Object instance) {
             if (instance == null) {
-                return  null;
+                return null;
             }
             return new ServiceProvider() {
                 public String getDisplayName() {
@@ -1138,14 +1133,6 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         @Override
         public void stop() {
         }
-    }
-
-    /**
-     * Maintains state used while locating services and their dependencies.
-     */
-    interface LookupContext {
-        @Nullable
-        ServiceProvider find(Type type, Provider provider);
     }
 
     interface TypeSpec extends Spec<Type> {
@@ -1259,144 +1246,140 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
     }
 
-    private static class DefaultLookupContext implements LookupContext {
-
-        public ServiceProvider find(Type serviceType, Provider provider) {
-            BiFunction<ServiceProvider, LookupContext, Provider> function = SERVICE_TYPE_PROVIDER_CACHE.get(serviceType);
-            if (function == null) {
-                function = createServiceProviderFactory(serviceType);
-                SERVICE_TYPE_PROVIDER_CACHE.putIfAbsent(serviceType, function);
-            }
-            return function.apply(this, provider);
+    public ServiceProvider find(Type serviceType, Provider provider) {
+        Transformer<ServiceProvider, Provider> function = SERVICE_TYPE_PROVIDER_CACHE.get(serviceType);
+        if (function == null) {
+            function = createServiceProviderFactory(serviceType);
+            SERVICE_TYPE_PROVIDER_CACHE.putIfAbsent(serviceType, function);
         }
+        return function.transform(provider);
+    }
 
-        private static BiFunction<ServiceProvider, LookupContext, Provider> createServiceProviderFactory(final Type serviceType) {
-            if (serviceType instanceof ParameterizedType) {
-                ParameterizedType parameterizedType = (ParameterizedType) serviceType;
-                Type rawType = parameterizedType.getRawType();
-                if (rawType.equals(Factory.class)) {
-                    final Type typeArg = parameterizedType.getActualTypeArguments()[0];
-                    if (typeArg instanceof Class) {
-                        return new BiFunction<ServiceProvider, LookupContext, Provider>() {
-                            @Override
-                            public ServiceProvider apply(LookupContext lookupContext, Provider provider) {
-                                return provider.getFactory(lookupContext, (Class) typeArg);
-                            }
-                        };
-                    }
-                    if (typeArg instanceof WildcardType) {
-                        final WildcardType wildcardType = (WildcardType) typeArg;
-                        if (wildcardType.getLowerBounds().length == 1 && wildcardType.getUpperBounds().length == 1) {
-                            if (wildcardType.getLowerBounds()[0] instanceof Class && wildcardType.getUpperBounds()[0].equals(Object.class)) {
-                                return new BiFunction<ServiceProvider, LookupContext, Provider>() {
-                                    @Override
-                                    public ServiceProvider apply(LookupContext lookupContext, Provider provider) {
-                                        return provider.getFactory(lookupContext, (Class<?>) wildcardType.getLowerBounds()[0]);
-                                    }
-                                };
-                            }
+    private static Transformer<ServiceProvider, Provider> createServiceProviderFactory(final Type serviceType) {
+        if (serviceType instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) serviceType;
+            Type rawType = parameterizedType.getRawType();
+            if (rawType.equals(Factory.class)) {
+                final Type typeArg = parameterizedType.getActualTypeArguments()[0];
+                if (typeArg instanceof Class) {
+                    return new Transformer<ServiceProvider, Provider>() {
+                        @Override
+                        public ServiceProvider transform(Provider provider) {
+                            return provider.getFactory((Class) typeArg);
                         }
-                        if (wildcardType.getLowerBounds().length == 0 && wildcardType.getUpperBounds().length == 1) {
-                            if (wildcardType.getUpperBounds()[0] instanceof Class) {
-                                return new BiFunction<ServiceProvider, LookupContext, Provider>() {
-                                    @Override
-                                    public ServiceProvider apply(LookupContext lookupContext, Provider provider) {
-                                        return provider.getFactory(lookupContext, (Class<?>) wildcardType.getUpperBounds()[0]);
-                                    }
-                                };
-                            }
-                        }
-                    }
+                    };
                 }
-                if (rawType instanceof Class && ((Class<?>) rawType).isAssignableFrom(List.class)) {
-                    Type typeArg = parameterizedType.getActualTypeArguments()[0];
-                    if (typeArg instanceof Class) {
-                        return new ServicesWithTypeLookup((Class<?>) typeArg);
+                if (typeArg instanceof WildcardType) {
+                    final WildcardType wildcardType = (WildcardType) typeArg;
+                    if (wildcardType.getLowerBounds().length == 1 && wildcardType.getUpperBounds().length == 1) {
+                        if (wildcardType.getLowerBounds()[0] instanceof Class && wildcardType.getUpperBounds()[0].equals(Object.class)) {
+                            return new Transformer<ServiceProvider, Provider>() {
+                                @Override
+                                public ServiceProvider transform(Provider provider) {
+                                    return provider.getFactory((Class<?>) wildcardType.getLowerBounds()[0]);
+                                }
+                            };
+                        }
                     }
-                    if (typeArg instanceof WildcardType) {
-                        WildcardType wildcardType = (WildcardType) typeArg;
-                        if (wildcardType.getUpperBounds()[0] instanceof Class && wildcardType.getLowerBounds().length == 0) {
-                            return new ServicesWithTypeLookup((Class<?>) wildcardType.getUpperBounds()[0]);
+                    if (wildcardType.getLowerBounds().length == 0 && wildcardType.getUpperBounds().length == 1) {
+                        if (wildcardType.getUpperBounds()[0] instanceof Class) {
+                            return new Transformer<ServiceProvider, Provider>() {
+                                @Override
+                                public ServiceProvider transform(Provider provider) {
+                                    return provider.getFactory((Class<?>) wildcardType.getUpperBounds()[0]);
+                                }
+                            };
                         }
                     }
                 }
             }
-
-            final TypeSpec serviceTypeSpec = toSpec(serviceType);
-            return new BiFunction<ServiceProvider, LookupContext, Provider>() {
-                @Override
-                public ServiceProvider apply(LookupContext lookupContext, Provider provider) {
-                    return provider.getService(lookupContext, serviceTypeSpec);
+            if (rawType instanceof Class && ((Class<?>) rawType).isAssignableFrom(List.class)) {
+                Type typeArg = parameterizedType.getActualTypeArguments()[0];
+                if (typeArg instanceof Class) {
+                    return new ServicesWithTypeLookup((Class<?>) typeArg);
                 }
-            };
-        }
-
-        static TypeSpec toSpec(Type serviceType) {
-            if (serviceType instanceof ParameterizedType) {
-                ParameterizedType parameterizedType = (ParameterizedType) serviceType;
-                Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-                List<TypeSpec> paramSpecs = new ArrayList<TypeSpec>(actualTypeArguments.length);
-                for (Type paramType : actualTypeArguments) {
-                    paramSpecs.add(toSpec(paramType));
-                }
-                return new ParameterizedTypeSpec(serviceType, toSpec(parameterizedType.getRawType()), paramSpecs);
-            } else if (serviceType instanceof Class) {
-                Class<?> serviceClass = (Class<?>) serviceType;
-                assertValidServiceType(serviceClass);
-                return new ClassSpec(serviceClass);
-            }
-
-            throw new ServiceValidationException(String.format("Locating services with type %s is not supported.", format(serviceType)));
-        }
-
-        private static class CollectionServiceProvider implements ServiceProvider {
-            private final Type typeArg;
-            private final List<Object> services;
-            private final List<ServiceProvider> providers;
-
-            public CollectionServiceProvider(Type typeArg, List<Object> services, List<ServiceProvider> providers) {
-                this.typeArg = typeArg;
-                this.services = services;
-                this.providers = providers;
-            }
-
-            @Override
-            public String getDisplayName() {
-                return "services with type " + typeArg;
-            }
-
-            @Override
-            public Object get() {
-                return services;
-            }
-
-            @Override
-            public void requiredBy(Provider provider) {
-                for (ServiceProvider serviceProvider : providers) {
-                    serviceProvider.requiredBy(provider);
+                if (typeArg instanceof WildcardType) {
+                    WildcardType wildcardType = (WildcardType) typeArg;
+                    if (wildcardType.getUpperBounds()[0] instanceof Class && wildcardType.getLowerBounds().length == 0) {
+                        return new ServicesWithTypeLookup((Class<?>) wildcardType.getUpperBounds()[0]);
+                    }
                 }
             }
         }
 
-        private static class ServicesWithTypeLookup implements BiFunction<ServiceProvider, LookupContext, Provider> {
-            private final Class<?> elementClass;
-
-            ServicesWithTypeLookup(Class<?> elementClass) {
-                this.elementClass = elementClass;
-            }
-
+        final TypeSpec serviceTypeSpec = toSpec(serviceType);
+        return new Transformer<ServiceProvider, Provider>() {
             @Override
-            public ServiceProvider apply(final LookupContext lookupContext, final Provider provider) {
-                List<ServiceProvider> providers = new ArrayList<ServiceProvider>();
-                provider.getAll(lookupContext, elementClass, providers);
-                List<Object> services = new ArrayList<Object>(providers.size());
-                for (ServiceProvider serviceProvider : providers) {
-                    services.add(serviceProvider.get());
-                }
-                return new CollectionServiceProvider(elementClass, services, providers);
+            public ServiceProvider transform(Provider provider) {
+                return provider.getService(serviceTypeSpec);
             }
+        };
+    }
+
+    static TypeSpec toSpec(Type serviceType) {
+        if (serviceType instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) serviceType;
+            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+            List<TypeSpec> paramSpecs = new ArrayList<TypeSpec>(actualTypeArguments.length);
+            for (Type paramType : actualTypeArguments) {
+                paramSpecs.add(toSpec(paramType));
+            }
+            return new ParameterizedTypeSpec(serviceType, toSpec(parameterizedType.getRawType()), paramSpecs);
+        } else if (serviceType instanceof Class) {
+            Class<?> serviceClass = (Class<?>) serviceType;
+            assertValidServiceType(serviceClass);
+            return new ClassSpec(serviceClass);
         }
 
+        throw new ServiceValidationException(String.format("Locating services with type %s is not supported.", format(serviceType)));
+    }
+
+    private static class CollectionServiceProvider implements ServiceProvider {
+        private final Type typeArg;
+        private final List<Object> services;
+        private final List<ServiceProvider> providers;
+
+        public CollectionServiceProvider(Type typeArg, List<Object> services, List<ServiceProvider> providers) {
+            this.typeArg = typeArg;
+            this.services = services;
+            this.providers = providers;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "services with type " + typeArg;
+        }
+
+        @Override
+        public Object get() {
+            return services;
+        }
+
+        @Override
+        public void requiredBy(Provider provider) {
+            for (ServiceProvider serviceProvider : providers) {
+                serviceProvider.requiredBy(provider);
+            }
+        }
+    }
+
+    private static class ServicesWithTypeLookup implements Transformer<ServiceProvider, Provider> {
+        private final Class<?> elementClass;
+
+        ServicesWithTypeLookup(Class<?> elementClass) {
+            this.elementClass = elementClass;
+        }
+
+        @Override
+        public ServiceProvider transform(Provider provider) {
+            List<ServiceProvider> providers = new ArrayList<ServiceProvider>();
+            provider.getAll(elementClass, providers);
+            List<Object> services = new ArrayList<Object>(providers.size());
+            for (ServiceProvider serviceProvider : providers) {
+                services.add(serviceProvider.get());
+            }
+            return new CollectionServiceProvider(elementClass, services, providers);
+        }
     }
 
     private static void assertValidServiceType(Class<?> serviceClass) {
