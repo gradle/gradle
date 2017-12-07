@@ -88,7 +88,7 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
     @Override
     public void visitRuntimeProperties(PropertyVisitor visitor) {
         for (Object path : paths) {
-            visitor.visitDestroyable(path);
+            visitor.visitDestroyableProperty(path);
         }
     }
 
@@ -114,8 +114,8 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
         private List<Object> destroyables = new ArrayList<Object>();
 
         @Override
-        public void visitDestroyable(Object path) {
-            destroyables.add(path);
+        public void visitDestroyableProperty(Object value) {
+            destroyables.add(value);
         }
 
         public List<Object> getDestroyables() {

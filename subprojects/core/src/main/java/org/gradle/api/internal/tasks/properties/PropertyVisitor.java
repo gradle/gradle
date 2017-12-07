@@ -32,9 +32,9 @@ public interface PropertyVisitor {
 
     void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty);
 
-    void visitDestroyable(Object path);
+    void visitDestroyableProperty(Object value);
 
-    void visitLocalState(Object path);
+    void visitLocalStateProperty(Object value);
 
     void visitValidationMessage(TaskValidationContext.Severity severity, String message);
 
@@ -53,11 +53,11 @@ public interface PropertyVisitor {
         }
 
         @Override
-        public void visitDestroyable(Object path) {
+        public void visitDestroyableProperty(Object value) {
         }
 
         @Override
-        public void visitLocalState(Object path) {
+        public void visitLocalStateProperty(Object value) {
         }
 
         @Override

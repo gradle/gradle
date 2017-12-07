@@ -60,7 +60,7 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
     @Override
     public void visitRuntimeProperties(PropertyVisitor visitor) {
         for (Object path : paths) {
-            visitor.visitLocalState(path);
+            visitor.visitLocalStateProperty(path);
         }
     }
 
@@ -91,8 +91,8 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
         private List<Object> localState = new ArrayList<Object>();
 
         @Override
-        public void visitLocalState(Object path) {
-            localState.add(path);
+        public void visitLocalStateProperty(Object value) {
+            localState.add(value);
         }
 
         public List<Object> getLocalState() {

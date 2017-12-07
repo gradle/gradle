@@ -29,6 +29,6 @@ public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHa
 
     @Override
     public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
-        visitor.visitLocalState(propertyValue);
+        visitor.visitLocalStateProperty(propertyValue);
     }
 }

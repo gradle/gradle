@@ -50,16 +50,16 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitDestroyable(Object path) {
+    public void visitDestroyableProperty(Object value) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitDestroyable(path);
+            visitor.visitDestroyableProperty(value);
         }
     }
 
     @Override
-    public void visitLocalState(Object path) {
+    public void visitLocalStateProperty(Object value) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitLocalState(path);
+            visitor.visitLocalStateProperty(value);
         }
     }
 

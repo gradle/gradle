@@ -31,6 +31,6 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
 
     @Override
     public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
-        visitor.visitDestroyable(propertyValue);
+        visitor.visitDestroyableProperty(propertyValue);
     }
 }
