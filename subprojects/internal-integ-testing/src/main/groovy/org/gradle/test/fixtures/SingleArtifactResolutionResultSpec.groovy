@@ -17,27 +17,21 @@
 package org.gradle.test.fixtures
 
 import groovy.transform.CompileStatic
-import groovy.transform.SelfType
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 @CompileStatic
-@SelfType(AbstractIntegrationSpec)
-trait GradleMetadataAwarePublishingSpec {
-    boolean publishModuleMetadata = true
-    boolean resolveModuleMetadata = true
+class SingleArtifactResolutionResultSpec {
+    boolean expectSuccess = true
+    List<String> expectedFileNames = []
 
-    // cannot use "setup" because of a bug with Spock
-    void prepare() {
-        executer.beforeExecute {
-            if (publishModuleMetadata) {
-                withArgument("-Dorg.gradle.internal.experimentalFeatures")
-            }
-        }
+    void expectFiles(String... fileNames) {
+        expectFiles(fileNames as List<String>)
     }
 
-    void disableModuleMetadataPublishing() {
-        publishModuleMetadata = false
-        resolveModuleMetadata = false
+    void expectFiles(List<String> fileNames) {
+        expectedFileNames = fileNames.sort()
     }
 
+    void shouldFail() {
+        expectSuccess = false
+    }
 }

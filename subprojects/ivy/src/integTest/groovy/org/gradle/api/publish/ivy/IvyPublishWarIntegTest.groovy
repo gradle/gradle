@@ -71,6 +71,6 @@ class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         and: "can resolve warfile"
-        resolveArtifacts(ivyModule) == ["publishTest-1.9.war"]
+        resolveArtifacts(ivyModule) { expectFiles "publishTest-1.9.war" }
     }
 }

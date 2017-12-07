@@ -56,7 +56,9 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         ivy.expectArtifact('ivyPublish', 'reg').hasType("reg").hasConf(null)
 
         and:
-        resolveArtifacts(module) == ["ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.reg", "ivyPublish-2.4.txt"]
+        resolveArtifacts(module) {
+            expectFiles "ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.reg", "ivyPublish-2.4.txt"
+        }
     }
 
     def "can configure custom artifacts when creating"() {
@@ -108,7 +110,9 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         ivy.expectArtifact("regular", "txt").hasType("reg").hasConf(null)
 
         and:
-        resolveArtifacts(module) == ["customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"]
+        resolveArtifacts(module){
+            expectFiles "customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"
+        }
     }
 
     def "can publish custom file artifacts with map notation"() {
@@ -145,7 +149,9 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         ivy.expectArtifact("regular", "txt").hasType("reg").hasConf(null)
 
         and:
-        resolveArtifacts(module) == ["customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"]
+        resolveArtifacts(module) {
+            expectFiles "customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"
+        }
     }
 
     def "can set custom artifacts to override component artifacts"() {
@@ -226,7 +232,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.parsedIvy.expectArtifact("no-extension").hasAttributes("", "ext-less", null)
 
         and:
-        resolveArtifacts(module) == ["no-extension-2.4"]
+        resolveArtifacts(module) { expectFiles "no-extension-2.4" }
     }
 
     def "can publish artifact with classifier"() {
@@ -247,7 +253,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.parsedIvy.expectArtifact("ivyPublish").hasAttributes("jar", "jar", null, "classy")
 
         and:
-        resolveArtifacts(module) == ["ivyPublish-2.4-classy.jar"]
+        resolveArtifacts(module)  { expectFiles "ivyPublish-2.4-classy.jar" }
     }
 
     def "can add custom configurations"() {
