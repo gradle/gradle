@@ -25,7 +25,7 @@
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/buildScanInit.gradle -Djava7.home=%linux.jdk.for.gradle.compile%" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/buildScanInit.gradle -Djava7Home=%linux.jdk.for.gradle.compile% -Djava7.home=%linux.jdk.for.gradle.compile%" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="clean %subproject%:%buildType%" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
@@ -53,7 +53,7 @@ fi]]></param>
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/buildScanInit.gradle -Djava7.home=%linux.jdk.for.gradle.compile%" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/buildScanInit.gradle -Djava7Home=%linux.jdk.for.gradle.compile% -Djava7.home=%linux.jdk.for.gradle.compile%" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="verifyTestFilesCleanup" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
@@ -66,7 +66,7 @@ fi]]></param>
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="execute_always" />
           <param name="ui.gradleRUnner.gradle.build.file" value="gradle/buildTagging.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% -Djava7.home=%linux.jdk.for.gradle.compile%" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% -Djava7Home=%linux.jdk.for.gradle.compile% -Djava7.home=%linux.jdk.for.gradle.compile%" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="tagBuild" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>

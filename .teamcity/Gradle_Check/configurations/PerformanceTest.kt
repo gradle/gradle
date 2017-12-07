@@ -52,7 +52,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BaseGrad
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "tagBuild"
                 buildFile = "gradle/buildTagging.gradle"
-                gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% -Djava7.home=%linux.jdk.for.gradle.compile%"
+                gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% -Djava7Home=%linux.jdk.for.gradle.compile% -Djava7.home=%linux.jdk.for.gradle.compile%"
                 useGradleWrapper = true
             }
         }
