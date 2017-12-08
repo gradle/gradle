@@ -38,4 +38,14 @@ public interface TaskInputsInternal extends TaskInputs {
     TaskInputPropertyBuilder registerNested(String name, ValidatingValue value);
 
     void validate(TaskValidationContext context);
+
+    /**
+     * Called prior to the use of these inputs during task execution. The implementation may finalize and cache whatever state is required to efficiently calculate the snapshot, cache key and values of these inputs during task execution.
+     */
+    void prepareValues();
+
+    /**
+     * Called after task execution has completed, regardless of task outcome. The implementation may release whatever state was cached during task execution.
+     */
+    void cleanupValues();
 }

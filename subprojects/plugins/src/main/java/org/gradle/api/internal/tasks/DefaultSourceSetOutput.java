@@ -49,7 +49,8 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         // TODO: This should be more specific to just the tasks that create the class files?
         classesDirs.builtBy(this);
 
-        this.outputDirectories = new DefaultConfigurableFileCollection(displayName, fileResolver, taskResolver, new Callable() {
+        this.outputDirectories = new DefaultConfigurableFileCollection(displayName, fileResolver, taskResolver);
+        outputDirectories.from(new Callable() {
             public Object call() throws Exception {
                 return classesDirs;
             }
