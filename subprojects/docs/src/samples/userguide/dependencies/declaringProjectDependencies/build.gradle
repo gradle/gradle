@@ -7,7 +7,9 @@ project(':api')
 
 //START SNIPPET project-dependencies
 project(':web-service') {
-    compile project(':utils')
-    compile project(':api')
+    dependencies {
+        compile project(':utils')
+        compile project(':api')
+    }
 }
 //END SNIPPET project-dependencies

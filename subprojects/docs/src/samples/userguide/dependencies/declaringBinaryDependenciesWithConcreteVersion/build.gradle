@@ -10,4 +10,7 @@ dependencies {
 }
 //END SNIPPET binary-dependencies
 
-
+task copyLibs(type: Copy) {
+    from configurations.compileClasspath
+    into "$buildDir/libs"
+}

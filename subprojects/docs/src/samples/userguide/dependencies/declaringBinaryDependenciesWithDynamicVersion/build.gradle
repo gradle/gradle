@@ -1,0 +1,16 @@
+//START SNIPPET binary-dependencies
+apply plugin: 'java-library'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework:spring-web:5.+'
+}
+//END SNIPPET binary-dependencies
+
+task copyLibs(type: Copy) {
+    from configurations.compileClasspath
+    into "$buildDir/libs"
+}

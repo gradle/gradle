@@ -18,20 +18,75 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
 class SamplesCustomConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    Sample sample = new Sample(testDirectoryProvider, 'userguide/dependencies/declaringCustomConfigurations')
+    Sample sample = new Sample(testDirectoryProvider)
 
-    def setup() {
-        executer.requireGradleDistribution()
+    @UsesSample("userguide/dependencies/declaringBinaryDependenciesWithConcreteVersion")
+    def "can use declare and resolve binary dependency with concrete version"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('copyLibs')
+
+        then:
+        sample.dir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
     }
 
-    def "can use custom configuration"() {
+    @UsesSample("userguide/dependencies/declaringBinaryDependenciesWithDynamicVersion")
+    def "can use declare and resolve binary dependency with dynamic version"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('copyLibs')
+
+        then:
+        sample.dir.file('build/libs').listFiles().any { it.name.startsWith('spring-web-5.') }
+    }
+
+    @UsesSample("userguide/dependencies/declaringBinaryDependenciesWithChangingVersion")
+    def "can use declare and resolve binary dependency with changing version"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('copyLibs')
+
+        then:
+        sample.dir.file('build/libs/spring-web-5.0.3.BUILD-SNAPSHOT.jar').isFile()
+    }
+
+    @UsesSample("userguide/dependencies/declaringFileDependencies")
+    def "can use declare and resolve file dependencies"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('copyLibs')
+
+        then:
+        sample.dir.file('build/libs/antcontrib.jar').isFile()
+        sample.dir.file('build/libs/commons-lang.jar').isFile()
+        sample.dir.file('build/libs/log4j.jar').isFile()
+        sample.dir.file('build/libs/a.exe').isFile()
+        sample.dir.file('build/libs/b.exe').isFile()
+    }
+
+    @UsesSample("userguide/dependencies/declaringProjectDependencies")
+    def "can declare and resolve project dependencies"() {
+        executer.inDirectory(sample.dir)
+
+        expect:
+        succeeds('assemble')
+    }
+
+    @UsesSample("userguide/dependencies/declaringCustomConfigurations")
+    def "can declare and resolve custom configuration"() {
         setup:
         executer.inDirectory(sample.dir)
+        executer.requireGradleDistribution() // required to avoid multiple Servlet API JARs in classpath
 
         when:
         succeeds('preCompileJsps')
