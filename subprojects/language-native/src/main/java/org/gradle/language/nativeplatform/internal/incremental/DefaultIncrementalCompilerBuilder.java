@@ -52,59 +52,86 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
 
     @Override
     public IncrementalCompiler newCompiler(final String taskPath, final TaskOutputsInternal taskOutputs, final FileCollection sourceFiles, final FileCollection includeDirs) {
-        return new IncrementalCompiler() {
-            // TODO - discard this state when the task is up-to-date and compilation will not happen
-            // TODO - discard this state after compilation
-            private PersistentStateCache<CompilationState> compileStateCache;
-            private IncrementalCompilation incrementalCompilation;
-            private NativeToolChainInternal toolChain;
-            private Set<File> headerFiles;
+        return new StateCollectingIncrementalCompiler(taskOutputs, includeDirs, taskPath, sourceFiles, fileSystemSnapshotter, compilationStateCacheFactory, sourceParser, directoryFileTreeFactory, fileCollectionFactory);
+    }
 
+    private static class StateCollectingIncrementalCompiler implements IncrementalCompiler {
+        private final FileSystemSnapshotter fileSystemSnapshotter;
+        private final CompilationStateCacheFactory compilationStateCacheFactory;
+        private final CSourceParser sourceParser;
+        private final DirectoryFileTreeFactory directoryFileTreeFactory;
+        private final FileCollectionFactory fileCollectionFactory;
+        private final TaskOutputsInternal taskOutputs;
+        private final FileCollection includeDirs;
+        private final String taskPath;
+        private final FileCollection sourceFiles;
+        private final FileCollection headerFilesCollection;
+        // TODO - discard this state when the task is up-to-date and compilation will not happen
+        // TODO - discard this state after compilation
+        private PersistentStateCache<CompilationState> compileStateCache;
+        private IncrementalCompilation incrementalCompilation;
+        private NativeToolChainInternal toolChain;
+        private Set<File> headerFiles;
+
+        StateCollectingIncrementalCompiler(TaskOutputsInternal taskOutputs, FileCollection includeDirs, String taskPath, FileCollection sourceFiles, FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory) {
+            this.taskOutputs = taskOutputs;
+            this.includeDirs = includeDirs;
+            this.taskPath = taskPath;
+            this.sourceFiles = sourceFiles;
+            this.fileSystemSnapshotter = fileSystemSnapshotter;
+            this.compilationStateCacheFactory = compilationStateCacheFactory;
+            this.sourceParser = sourceParser;
+            this.directoryFileTreeFactory = directoryFileTreeFactory;
+            this.fileCollectionFactory = fileCollectionFactory;
+            headerFilesCollection = fileCollectionFactory.create(new HeaderFileSet());
+        }
+
+        @Override
+        public <T extends NativeCompileSpec> Compiler<T> createCompiler(Compiler<T> compiler) {
+            if (incrementalCompilation == null) {
+                throw new IllegalStateException("Header files should be calculated before compiler is created.");
+            }
+            return new IncrementalNativeCompiler<T>(taskOutputs, compiler, compileStateCache, incrementalCompilation);
+        }
+
+        @Override
+        public void setToolChain(NativeToolChainInternal toolChain) {
+            this.toolChain = toolChain;
+        }
+
+        private Set<File> calculateHeaderFiles() {
+            List<File> includeRoots = ImmutableList.copyOf(includeDirs);
+            compileStateCache = compilationStateCacheFactory.create(taskPath);
+            DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, toolChain instanceof Clang || toolChain instanceof Gcc);
+            DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots, fileSystemSnapshotter);
+            IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, fileSystemSnapshotter);
+            IncrementalCompileProcessor incrementalCompileProcessor = new IncrementalCompileProcessor(compileStateCache, incrementalCompileFilesFactory);
+
+            incrementalCompilation = incrementalCompileProcessor.processSourceFiles(sourceFiles.getFiles());
+            DefaultHeaderDependenciesCollector headerDependenciesCollector = new DefaultHeaderDependenciesCollector(directoryFileTreeFactory);
+            ImmutableSortedSet<File> existingHeaderDependencies = headerDependenciesCollector.collectExistingHeaderDependencies(taskPath, includeRoots, incrementalCompilation);
+            compileStateCache.set(incrementalCompilation.getFinalState());
+            return existingHeaderDependencies;
+        }
+
+        @Override
+        public FileCollection getHeaderFiles() {
+            return headerFilesCollection;
+        }
+
+        private class HeaderFileSet implements MinimalFileSet {
             @Override
-            public <T extends NativeCompileSpec> Compiler<T> createCompiler(Compiler<T> compiler) {
-                if (incrementalCompilation == null) {
-                    throw new IllegalStateException("Header files should be calculated before compiler is created.");
+            public Set<File> getFiles() {
+                if (headerFiles == null) {
+                    headerFiles = calculateHeaderFiles();
                 }
-                return new IncrementalNativeCompiler<T>(taskOutputs, compiler, compileStateCache, incrementalCompilation);
+                return headerFiles;
             }
 
             @Override
-            public void setToolChain(NativeToolChainInternal toolChain) {
-                this.toolChain = toolChain;
+            public String getDisplayName() {
+                return "header files for " + taskPath;
             }
-
-            private Set<File> calculateHeaderFiles() {
-                List<File> includeRoots = ImmutableList.copyOf(includeDirs);
-                compileStateCache = compilationStateCacheFactory.create(taskPath);
-                DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, toolChain instanceof Clang || toolChain instanceof Gcc);
-                DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(includeRoots, fileSystemSnapshotter);
-                IncrementalCompileFilesFactory incrementalCompileFilesFactory = new IncrementalCompileFilesFactory(sourceIncludesParser, dependencyParser, fileSystemSnapshotter);
-                IncrementalCompileProcessor incrementalCompileProcessor = new IncrementalCompileProcessor(compileStateCache, incrementalCompileFilesFactory);
-
-                incrementalCompilation = incrementalCompileProcessor.processSourceFiles(sourceFiles.getFiles());
-                DefaultHeaderDependenciesCollector headerDependenciesCollector = new DefaultHeaderDependenciesCollector(directoryFileTreeFactory);
-                ImmutableSortedSet<File> existingHeaderDependencies = headerDependenciesCollector.collectExistingHeaderDependencies(taskPath, includeRoots, incrementalCompilation);
-                compileStateCache.set(incrementalCompilation.getFinalState());
-                return existingHeaderDependencies;
-            }
-
-            @Override
-            public FileCollection getHeaderFiles() {
-                return fileCollectionFactory.create(new MinimalFileSet() {
-                    @Override
-                    public Set<File> getFiles() {
-                        if (headerFiles == null) {
-                            headerFiles = calculateHeaderFiles();
-                        }
-                        return headerFiles;
-                    }
-
-                    @Override
-                    public String getDisplayName() {
-                        return "header files for " + taskPath;
-                    }
-                });
-            }
-        };
+        }
     }
 }
