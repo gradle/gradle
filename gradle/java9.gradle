@@ -1,159 +1,177 @@
-import org.gradle.build.DefaultJavaInstallation
+/**
+ * Tests tasks to allow the gradual introduction of JDK 9 support
+ */
+String jdkVarName = 'JAVA_9'
 
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+task java9IntegTest(type: org.gradle.testing.IntegrationTest) {
+    description "Run integTests with Java9 and forking executer"
+    excludes = [
+        // TODO requires investigation
+        "DaemonGroovyCompilerIntegrationTest",
+        "DaemonJavaCompilerIntegrationTest",
+        "InProcessJavaCompilerIntegrationTest",
+        "CommandLineJavaCompilerIntegrationTest",
+        "CommandLineJavaCompilerForExecutableIntegrationTest",
+        "JavadocIntegrationTest",
 
-if (testJavaHome) {
+        // Caused by: java.lang.IncompatibleClassChangeError: Method Person.getName()Ljava/lang/String; must be InterfaceMethodref constant
+        // Fail since build 125
+        "InterfaceBackedManagedTypeIntegrationTest",
 
-    def testJavaInstallation = new DefaultJavaInstallation()
-    gradle.services.get(JavaInstallationProbe)
-        .checkJdk(new File(testJavaHome))
-        .configure(testJavaInstallation)
+        // "targetplatforms sample creates a binary specific source set" tries to compile for Java 5 - need to update test, samples and userguide
+        "SampleJavaLanguageIntegrationTest",
 
-    if (testJavaInstallation.javaVersion.java9) {
+        // Cannot obtain Jvm arguments via java.lang.management.ManagementFactory.runtimeMXBean.inputArguments module java.management does not export sun.management to unnamed module @6427ecb
+        "BuildEnvironmentModelCrossVersionSpec",  // "informs about java args as in the build script"
+        "JavaConfigurabilityCrossVersionSpec", // "customized java args are reflected in the inputArguments and the build model", "tooling api provided jvm args take precedence over gradle.properties"
+        "GradlePropertiesToolingApiCrossVersionSpec", // "tooling api honours jvm args specified in gradle.properties"
 
-        tasks.withType(org.gradle.testing.IntegrationTest) {
-            [
-                // TODO requires investigation
-                "DaemonGroovyCompilerIntegrationTest",
-                "DaemonJavaCompilerIntegrationTest",
-                "InProcessJavaCompilerIntegrationTest",
-                "CommandLineJavaCompilerIntegrationTest",
-                "CommandLineJavaCompilerForExecutableIntegrationTest",
-                "JavadocIntegrationTest",
+        // Add a dedicated Findbugs test for Java 9
+        "FindBugsIntegrationTest",
+        "FindBugsRelocationIntegrationTest",
 
-                // Caused by: java.lang.IncompatibleClassChangeError: Method Person.getName()Ljava/lang/String; must be InterfaceMethodref constant
-                // Fail since build 125
-                "InterfaceBackedManagedTypeIntegrationTest",
+        // Osgi is broken with a NPE in Processor - need to investigate
+        "OsgiPluginIntegrationSpec",
 
-                // "targetplatforms sample creates a binary specific source set" tries to compile for Java 5 - need to update test, samples and userguide
-                "SampleJavaLanguageIntegrationTest",
+        // Attempts to run Gradle 2.8 on Java 9
+        "HeterogeneousCompositeBuildCrossVersionSpec",
 
-                // Cannot obtain Jvm arguments via java.lang.management.ManagementFactory.runtimeMXBean.inputArguments module java.management does not export sun.management to unnamed module @6427ecb
-                "BuildEnvironmentModelCrossVersionSpec",  // "informs about java args as in the build script"
-                "JavaConfigurabilityCrossVersionSpec", // "customized java args are reflected in the inputArguments and the build model", "tooling api provided jvm args take precedence over gradle.properties"
-                "GradlePropertiesToolingApiCrossVersionSpec", // "tooling api honours jvm args specified in gradle.properties"
+        // Broken scala and twirl compilation
+        "MixedPlayAndJvmLibraryProjectIntegrationTest",
+        "PlayAppWithFailingTestsIntegrationTest",
+        "PlayMultiProjectApplicationIntegrationTest",
+        "PlayPlatformIntegrationTest",
+        "PlayBinaryAdvancedAppIntegrationTest",
+        "PlayDistributionAdvancedAppIntegrationTest",
+        "PlayBinaryBasicAppIntegrationTest",
+        "PlayDistributionBasicAppIntegrationTest",
+        "PlayTestBasicAppIntegrationTest",
+        "PlayContinuousBuildIntegrationTest",
+        "PlayContinuousBuildReloadIntegrationTest",
+        "PlayContinuousBuildReloadWaitingIntegrationTest",
+        "PlayMultiProjectContinuousBuildIntegrationTest",
+        "PlayMultiProjectReloadIntegrationTest",
+        "PlayReloadIntegrationTest",
+        "PlayReloadWaitingIntegrationTest",
+        "PlayTwirlCompilerContinuousIntegrationTest",
+        "PlayBinaryAppWithDependenciesIntegrationTest",
+        "PlayDistributionAppWithDependenciesIntegrationTest",
+        "PlayTestAppWithDependenciesIntegrationTest",
+        "AdvancedPlaySampleIntegrationTest",
+        "BasicPlaySampleIntegrationTest",
+        "MultiprojectPlaySampleIntegrationTest",
+        "UserGuidePlaySamplesIntegrationTest",
+        "PlayApplicationPluginIntegrationTest",
+        "Play23RoutesCompileIntegrationTest",
+        "Play24RoutesCompileIntegrationTest",
+        "PlayAssetsJarIntegrationTest",
+        "PlayRunIntegrationTest",
+        "TwirlCompileIntegrationTest",
+        "TwirlVersionIntegrationTest",
+        "PlayIdeaPluginAdvancedIntegrationTest",
+        "PlayIdeaPluginBasicIntegrationTest",
+        "PlayIdeaPluginMultiprojectIntegrationTest",
+        "ProjectLayoutIntegrationTest",
+        "SamplesMixedJavaAndScalaIntegrationTest",
+        "SamplesScalaCustomizedLayoutIntegrationTest",
+        "SamplesScalaQuickstartIntegrationTest",
+        "JointScalaLangIntegrationTest",
+        "SampleScalaLanguageIntegrationTest",
+        "ScalaCompileParallelIntegrationTest",
+        "ScalaCompilerContinuousIntegrationTest",
+        "ScalaLanguageIncrementalBuildIntegrationTest",
+        "ScalaLanguageIntegrationTest",
+        "ScalaCrossCompilationIntegrationTest",
+        "IncrementalScalaCompileIntegrationTest",
+        "ZincScalaCompilerIntegrationTest",
+        "ScalaTestIntegrationTest",
+        "ScalaLibraryInitIntegrationTest",
+        "ZincScalaCompilerMultiVersionIntegrationTest",
+        "PlayCompositeBuildIntegrationTest",
+        "PlayJavaAnnotationProcessingIntegrationTest",
+        "ScalaAnnotationProcessingIntegrationTest",
+        "CachedScalaCompileIntegrationTest",
+        "ScalaCompileRelocationIntegrationTest",
+        "UpToDateScalaCompileIntegrationTest",
+        "ScalaDocIntegrationTest",
+        "ScalaCompilerDaemonReuseIntegrationTest",
+        "ScalaComponentCompilerDaemonReuseIntegrationTest",
 
-                // Add a dedicated Findbugs test for Java 9
-                "FindBugsIntegrationTest",
-                "FindBugsRelocationIntegrationTest",
+        // Sample attempts to set max perm space
+        "SamplesScalaZincIntegrationTest",
 
-                // Osgi is broken with a NPE in Processor - need to investigate
-                "OsgiPluginIntegrationSpec",
+        // Cannot build Gradle with Java 9, compiler bug
+        "SrcDistributionIntegrationSpec",
 
-                // Attempts to run Gradle 2.8 on Java 9
-                "HeterogeneousCompositeBuildCrossVersionSpec",
+        // Test compiles for Java 5
+        "ToolingApiUnsupportedClientJvmCrossVersionSpec",
+        "MavenConversionIntegrationTest",
 
-                // Broken scala and twirl compilation
-                "MixedPlayAndJvmLibraryProjectIntegrationTest",
-                "PlayAppWithFailingTestsIntegrationTest",
-                "PlayMultiProjectApplicationIntegrationTest",
-                "PlayPlatformIntegrationTest",
-                "PlayBinaryAdvancedAppIntegrationTest",
-                "PlayDistributionAdvancedAppIntegrationTest",
-                "PlayBinaryBasicAppIntegrationTest",
-                "PlayDistributionBasicAppIntegrationTest",
-                "PlayTestBasicAppIntegrationTest",
-                "PlayContinuousBuildIntegrationTest",
-                "PlayContinuousBuildReloadIntegrationTest",
-                "PlayContinuousBuildReloadWaitingIntegrationTest",
-                "PlayMultiProjectContinuousBuildIntegrationTest",
-                "PlayMultiProjectReloadIntegrationTest",
-                "PlayReloadIntegrationTest",
-                "PlayReloadWaitingIntegrationTest",
-                "PlayTwirlCompilerContinuousIntegrationTest",
-                "PlayBinaryAppWithDependenciesIntegrationTest",
-                "PlayDistributionAppWithDependenciesIntegrationTest",
-                "PlayTestAppWithDependenciesIntegrationTest",
-                "AdvancedPlaySampleIntegrationTest",
-                "BasicPlaySampleIntegrationTest",
-                "MultiprojectPlaySampleIntegrationTest",
-                "UserGuidePlaySamplesIntegrationTest",
-                "PlayApplicationPluginIntegrationTest",
-                "Play23RoutesCompileIntegrationTest",
-                "Play24RoutesCompileIntegrationTest",
-                "PlayAssetsJarIntegrationTest",
-                "PlayRunIntegrationTest",
-                "TwirlCompileIntegrationTest",
-                "TwirlVersionIntegrationTest",
-                "PlayIdeaPluginAdvancedIntegrationTest",
-                "PlayIdeaPluginBasicIntegrationTest",
-                "PlayIdeaPluginMultiprojectIntegrationTest",
-                "ProjectLayoutIntegrationTest",
-                "SamplesMixedJavaAndScalaIntegrationTest",
-                "SamplesScalaCustomizedLayoutIntegrationTest",
-                "SamplesScalaQuickstartIntegrationTest",
-                "JointScalaLangIntegrationTest",
-                "SampleScalaLanguageIntegrationTest",
-                "ScalaCompileParallelIntegrationTest",
-                "ScalaCompilerContinuousIntegrationTest",
-                "ScalaLanguageIncrementalBuildIntegrationTest",
-                "ScalaLanguageIntegrationTest",
-                "ScalaCrossCompilationIntegrationTest",
-                "IncrementalScalaCompileIntegrationTest",
-                "ZincScalaCompilerIntegrationTest",
-                "ScalaTestIntegrationTest",
-                "ScalaLibraryInitIntegrationTest",
-                "ZincScalaCompilerMultiVersionIntegrationTest",
-                "PlayCompositeBuildIntegrationTest",
-                "PlayJavaAnnotationProcessingIntegrationTest",
-                "ScalaAnnotationProcessingIntegrationTest",
-                "CachedScalaCompileIntegrationTest",
-                "ScalaCompileRelocationIntegrationTest",
-                "UpToDateScalaCompileIntegrationTest",
-                "ScalaDocIntegrationTest",
-                "ScalaCompilerDaemonReuseIntegrationTest",
-                "ScalaComponentCompilerDaemonReuseIntegrationTest",
+        // Jetty version does not work on Java 9
+        "JettyIntegrationSpec",
+        "SamplesWebQuickstartIntegrationTest",
 
-                // Sample attempts to set max perm space
-                "SamplesScalaZincIntegrationTest",
+        // Missing class javax/xml/bind/DatatypeConverter on PUT to S3
+        // These tests need jvmArgs '-addmods', 'java.xml.bind'
+        // At some point Gradle should import this module automatically
+        "IvyPublishS3IntegrationTest",
+        "IvyS3UploadArchivesIntegrationTest",
+        "MavenPublishS3IntegrationTest",
+        "MavenPublishS3ErrorsIntegrationTest",
 
-                // Cannot build Gradle with Java 9, compiler bug
-                "SrcDistributionIntegrationSpec",
+        // Various problems, eg scala compile
+        "UserGuideSamplesIntegrationTest",
 
-                // Test compiles for Java 5
-                "ToolingApiUnsupportedClientJvmCrossVersionSpec",
-                "MavenConversionIntegrationTest",
+        /*
+         Changes in Javadoc generation
+         */
+        "SamplesJavaMultiProjectIntegrationTest",
 
-                // Jetty version does not work on Java 9
-                "JettyIntegrationSpec",
-                "SamplesWebQuickstartIntegrationTest",
+        /*
+         Caused by: java.lang.IllegalAccessException: class org.mozilla.javascript.MemberBox cannot access class sun.net.www.protocol.http.HttpURLConnection (in module java.base) because module java.base does not export sun.net.www.protocol.http to unnamed module @2afcc5b3
+            at jdk.internal.reflect.Reflection.throwIllegalAccessException(java.base@9-ea/Reflection.java:405)
+            at jdk.internal.reflect.Reflection.throwIllegalAccessException(java.base@9-ea/Reflection.java:396)
+            at jdk.internal.reflect.Reflection.ensureMemberAccess(java.base@9-ea/Reflection.java:98)
+            at org.mozilla.javascript.MemberBox.invoke(MemberBox.java:161)
+            for "can evaluate content"
+         */
+        "EnvJsPluginIntegrationTest",
 
-                // Missing class javax/xml/bind/DatatypeConverter on PUT to S3
-                // These tests need jvmArgs '-addmods', 'java.xml.bind'
-                // At some point Gradle should import this module automatically
-                "IvyPublishS3IntegrationTest",
-                "IvyS3UploadArchivesIntegrationTest",
-                "MavenPublishS3IntegrationTest",
-                "MavenPublishS3ErrorsIntegrationTest",
+        /*
+         Uses bytebuddy in a test which uses asm which cannot read Java 9 classfiles
+         */
+        "DirectoryScanningIntegTest",
 
-                // Various problems, eg scala compile
-                "UserGuideSamplesIntegrationTest",
+        /*
+          MaxPermSize as GRADLE_OPTS
+         */
+        "ClientShutdownCrossVersionSpec",
+    ].collect { "**/*${it}*" }
+}
 
-                /*
-                 Changes in Javadoc generation
-                 */
-                "SamplesJavaMultiProjectIntegrationTest",
+task java9Test(type: Test) {
+}
 
-                /*
-                 Caused by: java.lang.IllegalAccessException: class org.mozilla.javascript.MemberBox cannot access class sun.net.www.protocol.http.HttpURLConnection (in module java.base) because module java.base does not export sun.net.www.protocol.http to unnamed module @2afcc5b3
-                    at jdk.internal.reflect.Reflection.throwIllegalAccessException(java.base@9-ea/Reflection.java:405)
-                    at jdk.internal.reflect.Reflection.throwIllegalAccessException(java.base@9-ea/Reflection.java:396)
-                    at jdk.internal.reflect.Reflection.ensureMemberAccess(java.base@9-ea/Reflection.java:98)
-                    at org.mozilla.javascript.MemberBox.invoke(MemberBox.java:161)
-                    for "can evaluate content"
-                 */
-                "EnvJsPluginIntegrationTest",
+tasks.withType(Test).matching { it.name.startsWith("java9") }.all {
+    def java9Home = System.getenv('JAVA_9')
+    executable = "${java9Home}/bin/java"
+    environment['JAVA_HOME'] = java9Home
+    reports.junitXml.destination = file("${project.testResultsDir}/$name")
+    reports.html.destination = file("${project.reporting.baseDir}/$name")
+    if (name.contains('IntegTest')) {
+        systemProperties['org.gradle.integtest.executer'] = 'forking'
+    }
+}
 
-                /*
-                 Uses bytebuddy in a test which uses asm which cannot read Java 9 classfiles
-                 */
-                "DirectoryScanningIntegTest",
-
-                /*
-                  MaxPermSize as GRADLE_OPTS
-                 */
-                "ClientShutdownCrossVersionSpec",
-            ].collect { "**/*${it}*" }.each { exclude it }
+if (!gradle.hasProperty("haveInstalledJava9Guard")) {
+    gradle.taskGraph.whenReady { graph ->
+        if (gradle.taskGraph.allTasks.any { it.name.startsWith("java9") }) {
+            // Ideally, this would be a validate rule but it's not convenient to express this in the DSL yet
+            if (!System.getenv(jdkVarName)) {
+                throw new GradleException("A '$jdkVarName' environment variable, " +
+                    "pointing to a java 9 JDK image, is required to run java9 tests!")
+            }
         }
     }
+    gradle.ext.haveInstalledJava9Guard = true
 }
