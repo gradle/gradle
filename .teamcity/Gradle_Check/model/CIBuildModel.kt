@@ -39,7 +39,7 @@ data class CIBuildModel (
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
-                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java9),
+                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java9),
                             TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
             Stage("Release Accept", "Once a day: Rerun tests in more environments",
                     trigger = Trigger.daily,
