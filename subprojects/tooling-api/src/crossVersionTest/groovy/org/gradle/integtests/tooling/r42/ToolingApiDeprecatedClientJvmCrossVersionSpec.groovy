@@ -56,10 +56,11 @@ public class TestClient {
     public static void main(String[] args) throws Exception {
         GradleConnector.newConnector().forProjectDirectory(new File("."))
             .useDistribution(new java.net.URI("${dist.binDistribution.toURI()}"))
+            .useGradleUserHomeDir(new File("${temporaryFolder.file("userHome").toString().replace(File.separator,"/")}"))
             .connect()
             .newBuild()
             .withArguments("--warnings=all")
-//            .forTasks("help")
+            .forTasks("help")
             .setStandardOutput(System.out)
             .setStandardError(System.out)
             .run();
@@ -95,7 +96,6 @@ public class TestClient {
     String runScript(File javaHome) {
         def outStr = new ByteArrayOutputStream()
         def executer = new ScriptExecuter()
-        projectDir.file('gradle.properties') << 'org.gradle.warnings=all'
         executer.environment(JAVA_HOME: javaHome)
         executer.workingDir(projectDir)
         executer.errorOutput = outStr // simple slf4j writes warnings to stderr

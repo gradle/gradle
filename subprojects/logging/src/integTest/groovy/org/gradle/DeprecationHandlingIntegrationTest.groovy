@@ -104,7 +104,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.contains('The deprecated task has been deprecated') == warningsCountInConsole > 0
 
         and:
-        output.count("There're ${incrementWarningCountIfJava7(warningsCountInSummary)} deprecation warnings, which may break the build in Gradle") == 1
+        output.contains("There're ${incrementWarningCountIfJava7(warningsCountInSummary)} deprecation warnings") == (warningsCountInSummary > 0)
 
         and:
         assertFullStacktraceResult(fullStacktraceEnabled, warningsCountInConsole)

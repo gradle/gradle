@@ -218,7 +218,7 @@ public class GUtil {
             uc.setUseCaches(false);
             return loadProperties(uc.getInputStream());
         } catch (IOException e) {
-            throw new UncheckedIOException(url.toString(), e);
+            throw new UncheckedIOException(e);
         }
     }
 
