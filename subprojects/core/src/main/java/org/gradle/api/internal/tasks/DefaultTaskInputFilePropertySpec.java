@@ -57,7 +57,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
 
     @Override
     public TaskInputFilePropertyBuilderInternal withPropertyName(String propertyName) {
-        this.propertyName = propertyName;
+        this.propertyName = TaskPropertyUtils.checkPropertyName(propertyName);
         return this;
     }
 

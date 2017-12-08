@@ -44,6 +44,10 @@ Gradle's incremental C/C++ compilation works by analysing and understanding the 
 
 In this release, Gradle's incremental C/C++ compilation is now able to understand most dependencies between source files and header files. This means incremental compilation will occur more often and builds are more likely to see cache hits.
 
+### Arbitrary task property names
+
+When registering task properties via the runtime API, property names are not required to be Java identifiers anymore, and can be any non-empty string.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
