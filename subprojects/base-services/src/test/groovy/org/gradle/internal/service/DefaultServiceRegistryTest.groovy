@@ -448,7 +448,7 @@ class DefaultServiceRegistryTest extends Specification {
         ServiceCreationException e = thrown()
         e.message == 'Cannot create service of type String using ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
         e.cause.message == 'Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
-        e.cause.cause.message == 'This service depends on itself'
+        e.cause.cause.message == 'Cycle in dependencies of Service String at ProviderWithCycle.createString() detected'
 
         when:
         registry.getAll(Number)
@@ -458,7 +458,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         e.message == 'Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
         e.cause.message == 'Cannot create service of type String using ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
-        e.cause.cause.message == 'This service depends on itself'
+        e.cause.cause.message == 'Cycle in dependencies of Service Integer at ProviderWithCycle.createInteger() detected'
     }
 
     def failsWhenAProviderFactoryMethodReturnsNull() {
