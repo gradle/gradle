@@ -30,7 +30,7 @@ abstract class AbstractTaskOutputPropertySpec extends TaskOutputsDeprecationSupp
 
     @Override
     public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
-        this.propertyName = propertyName;
+        this.propertyName = TaskPropertyUtils.checkPropertyName(propertyName);
         return this;
     }
 

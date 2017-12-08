@@ -63,4 +63,11 @@ public class TaskPropertyUtils {
         }
         return builder.build();
     }
+
+    public static String checkPropertyName(String propertyName) {
+        if (propertyName.isEmpty()) {
+            throw new IllegalArgumentException("Property name must not be empty string");
+        }
+        return propertyName;
+    }
 }
