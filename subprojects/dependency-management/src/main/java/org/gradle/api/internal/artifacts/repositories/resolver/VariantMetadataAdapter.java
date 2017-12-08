@@ -17,28 +17,39 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependenciesMetadata;
-import org.gradle.api.artifacts.DependencyMetadata;
+import org.gradle.api.artifacts.DirectDependenciesMetadata;
+import org.gradle.api.artifacts.DependencyConstraintMetadata;
+import org.gradle.api.artifacts.DependencyConstraintsMetadata;
+import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.VariantMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 public class VariantMetadataAdapter implements VariantMetadata {
-    private String name;
-    private MutableModuleComponentResolveMetadata metadata;
-    private Instantiator instantiator;
-    private NotationParser<Object, DependencyMetadata> dependencyMetadataNotationParser;
+    private final String name;
+    private final MutableModuleComponentResolveMetadata metadata;
+    private final Instantiator instantiator;
+    private final NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser;
+    private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser;
 
-    public VariantMetadataAdapter(String name, MutableModuleComponentResolveMetadata metadata, Instantiator instantiator, NotationParser<Object, DependencyMetadata> dependencyMetadataNotationParser) {
+    public VariantMetadataAdapter(String name, MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
+                                  NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
+                                  NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser) {
         this.name = name;
         this.metadata = metadata;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
+        this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
     }
 
     @Override
-    public void withDependencies(Action<DependenciesMetadata> action) {
-        metadata.addDependencyMetadataRule(name, action, instantiator, dependencyMetadataNotationParser);
+    public void withDependencies(Action<DirectDependenciesMetadata> action) {
+        metadata.addDependencyMetadataRule(name, action, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser);
+    }
+
+    @Override
+    public void withDependencyConstraints(Action<DependencyConstraintsMetadata> action) {
+        metadata.addDependencyConstraintMetadataRule(name, action, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser);
     }
 }

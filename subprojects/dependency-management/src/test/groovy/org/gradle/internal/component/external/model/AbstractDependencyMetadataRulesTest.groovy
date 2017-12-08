@@ -18,9 +18,12 @@ package org.gradle.internal.component.external.model
 
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.Action
+import org.gradle.api.artifacts.DependenciesMetadata
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl
+import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.internal.component.external.descriptor.MavenScope
@@ -34,9 +37,10 @@ import spock.lang.Unroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
-class DependencyMetadataRulesTest extends Specification {
-    private instantiator = DirectInstantiator.INSTANCE
-    private notationParser = DependencyMetadataNotationParser.parser(instantiator)
+abstract class AbstractDependencyMetadataRulesTest extends Specification {
+    def instantiator = DirectInstantiator.INSTANCE
+    def notationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl)
+    def constraintNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl)
 
     @Shared versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
     @Shared componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
@@ -44,15 +48,28 @@ class DependencyMetadataRulesTest extends Specification {
     @Shared schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
     @Shared defaultVariant
 
+    abstract boolean addAllDependenciesAsConstraints()
+
+    abstract void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName, Action<DependenciesMetadata> action)
+
+    boolean supportedInMetadata(String metadata) {
+        !addAllDependenciesAsConstraints() || metadata != "ivy" //ivy does not support dependency constraints or optional dependencies
+    }
+
     private ivyComponentMetadata(String[] deps) {
-        def dependencies = deps.collect { name ->
-            new IvyDependencyDescriptor(newSelector("org.test", name, "1.0"), ImmutableListMultimap.of("default", "default"))
+        def dependencies
+        if (addAllDependenciesAsConstraints()) {
+            dependencies = [] //not supported in Ivy metadata
+        } else {
+            dependencies = deps.collect { name ->
+                new IvyDependencyDescriptor(newSelector("org.test", name, "1.0"), ImmutableListMultimap.of("default", "default"))
+            }
         }
         new DefaultMutableIvyModuleResolveMetadata(versionIdentifier, componentIdentifier, dependencies)
     }
     private mavenComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
-            new MavenDependencyDescriptor(MavenScope.Compile, false, newSelector("org.test", name, "1.0"), null, [])
+            new MavenDependencyDescriptor(MavenScope.Compile, addAllDependenciesAsConstraints(), newSelector("org.test", name, "1.0"), null, [])
         }
         new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, dependencies)
     }
@@ -61,7 +78,11 @@ class DependencyMetadataRulesTest extends Specification {
         //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
         defaultVariant = metadata.addVariant("default", attributes)
         deps.each { name ->
-            defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [])
+            if (addAllDependenciesAsConstraints()) {
+                defaultVariant.addDependencyConstraint("org.test", name, new DefaultMutableVersionConstraint("1.0"))
+            } else {
+                defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [])
+            }
         }
         metadata
     }
@@ -72,7 +93,7 @@ class DependencyMetadataRulesTest extends Specification {
         def rule = Mock(Action)
 
         when:
-        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+        doAddDependencyMetadataRule(metadataImplementation, "default", rule)
         def metadata = metadataImplementation.asImmutable()
 
         then:
@@ -105,7 +126,7 @@ class DependencyMetadataRulesTest extends Specification {
         def rule = Mock(Action)
 
         when:
-        metadataImplementation.addDependencyMetadataRule("anotherVariant", rule, instantiator, notationParser)
+        doAddDependencyMetadataRule(metadataImplementation, "anotherVariant", rule)
         selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
@@ -121,19 +142,28 @@ class DependencyMetadataRulesTest extends Specification {
     @Unroll
     def "dependencies of selected variant are accessible in dependency metadata rule for #metadataType metadata"() {
         given:
-//        addDependency(metadataImplementation, "org.test", "dep1", "1.0")
-//        addDependency(metadataImplementation, "org.test", "dep2", "1.0")
         def rule = { dependencies ->
-            assert dependencies.size() == 2
-            assert dependencies[0].name == "dep1"
-            assert dependencies[1].name == "dep2"
+            if (supportedInMetadata(metadataType)) {
+                assert dependencies.size() == 2
+                assert dependencies[0].name == "dep1"
+                assert dependencies[1].name == "dep2"
+            } else {
+                assert dependencies.empty
+            }
         }
 
         when:
-        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+        doAddDependencyMetadataRule(metadataImplementation, "default", rule)
+        def dependencies = selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies.size() == 2
+        if (supportedInMetadata(metadataType)) {
+            dependencies.size() == 2
+            dependencies[0].pending == addAllDependenciesAsConstraints()
+            dependencies[1].pending == addAllDependenciesAsConstraints()
+        } else {
+            dependencies.empty
+        }
 
         where:
         metadataType | metadataImplementation
@@ -146,18 +176,28 @@ class DependencyMetadataRulesTest extends Specification {
     def "dependencies of selected variant are modifiable in dependency metadata rule for #metadataType metadata"() {
         given:
         def rule = { dependencies ->
-            assert dependencies.size() == 1
-            dependencies[0].version {
-                it.strictly "2.0"
+            if (supportedInMetadata(metadataType)) {
+                assert dependencies.size() == 1
+                dependencies[0].version {
+                    it.strictly "2.0"
+                }
+            } else {
+                assert dependencies.empty
             }
         }
 
         when:
-        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+        doAddDependencyMetadataRule(metadataImplementation, "default", rule)
+        def dependencies = selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies[0].selector.version == "2.0"
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies[0].selector.versionConstraint.rejectedVersions[0] == "]2.0,)"
+        if (supportedInMetadata(metadataType)) {
+            dependencies[0].selector.version == "2.0"
+            dependencies[0].selector.versionConstraint.rejectedVersions[0] == "]2.0,)"
+            dependencies[0].pending == addAllDependenciesAsConstraints()
+        } else {
+            dependencies.empty
+        }
 
         where:
         metadataType | metadataImplementation
@@ -174,10 +214,11 @@ class DependencyMetadataRulesTest extends Specification {
         }
 
         when:
-        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+        doAddDependencyMetadataRule(metadataImplementation, "default", rule)
+        def dependencies = selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies.collect { it.selector } == [ newSelector("org.test", "added", "1.0") ]
+        dependencies.collect { it.selector } == [newSelector("org.test", "added", "1.0") ]
 
         where:
         metadataType | metadataImplementation
@@ -190,15 +231,16 @@ class DependencyMetadataRulesTest extends Specification {
     def "dependencies removed in dependency metadata rules are removed from dependency list for #metadataType metadata"() {
         given:
         def rule = { dependencies ->
-            assert dependencies.size() == 1
+            assert dependencies.size() == (supportedInMetadata(metadataType) ? 1 : 0)
             dependencies.removeAll { it.name == "toRemove" }
         }
 
         when:
-        metadataImplementation.addDependencyMetadataRule("default", rule, instantiator, notationParser)
+        doAddDependencyMetadataRule(metadataImplementation, "default", rule)
+        def dependencies = selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
-        selectTargetConfigurationMetadata(metadataImplementation).dependencies.empty
+        dependencies.empty
 
         where:
         metadataType | metadataImplementation
@@ -207,11 +249,11 @@ class DependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata("toRemove")
     }
 
-    private selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
+    def selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
         selectTargetConfigurationMetadata(targetComponent.asImmutable())
     }
 
-    private selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
+    def selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "consumer", "1.0")
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultMutableVersionConstraint(consumerIdentifier.version))

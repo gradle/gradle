@@ -243,7 +243,7 @@ public class ModuleMetadataParser {
 
     private ImmutableVersionConstraint consumeVersion(JsonReader reader) throws IOException {
         reader.beginObject();
-        String preferred = null;
+        String preferred = "";
         List<String> rejects = Lists.newArrayList();
         while (reader.peek() != END_OBJECT) {
             String cst = reader.nextName();

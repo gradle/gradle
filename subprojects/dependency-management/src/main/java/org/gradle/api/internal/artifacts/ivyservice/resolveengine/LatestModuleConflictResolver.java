@@ -78,12 +78,25 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
             }
         }
         if (matches.isEmpty()) {
-            StringBuilder sb = new StringBuilder("Cannot find a version of ");
+            boolean hasRejectAll = false;
+            for (T candidate : candidates) {
+                hasRejectAll |= isRejectAll(candidate.getVersionConstraint());
+            }
+            StringBuilder sb = new StringBuilder();
+            if (hasRejectAll) {
+                sb.append("Module ");
+            } else {
+                sb.append("Cannot find a version of ");
+            }
             boolean first = true;
             for (T candidate : candidates) {
                 if (first) {
                     sb.append("'").append(candidate.getId().getModule()).append("'");
-                    sb.append(" that satisfies the version constraints: \n");
+                    if (hasRejectAll) {
+                        sb.append(" has been rejected:\n");
+                    } else {
+                        sb.append(" that satisfies the version constraints: \n");
+                    }
                 }
                 if (candidate instanceof ComponentStateWithDependents) {
                     ComponentStateWithDependents component = (ComponentStateWithDependents) candidate;

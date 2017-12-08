@@ -50,6 +50,7 @@ public class DefaultCppBinary implements CppBinary {
     private final FileCollection linkLibraries;
     private final FileCollection runtimeLibraries;
     private final DirectoryProperty objectsDir;
+    private final Configuration includePathConfiguration;
 
     public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
         this.name = name;
@@ -84,6 +85,7 @@ public class DefaultCppBinary implements CppBinary {
         nativeLink.extendsFrom(implementation);
         nativeRuntime.extendsFrom(implementation);
 
+        includePathConfiguration = includePathConfig;
         includePath = componentHeaderDirs.plus(new FileCollectionAdapter(new IncludePath(includePathConfig)));
         linkLibraries = nativeLink;
         runtimeLibraries = nativeRuntime;
@@ -146,6 +148,10 @@ public class DefaultCppBinary implements CppBinary {
 
     public DirectoryProperty getObjectsDir() {
         return objectsDir;
+    }
+
+    public Configuration getIncludePathConfiguration() {
+        return includePathConfiguration;
     }
 
     @Override

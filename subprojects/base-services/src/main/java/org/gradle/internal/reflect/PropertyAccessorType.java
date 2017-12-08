@@ -70,7 +70,7 @@ public enum PropertyAccessorType {
         return Introspector.decapitalize(methodNamePrefixRemoved);
     }
 
-    abstract public Type propertyTypeFor(Method method);
+    public abstract Type propertyTypeFor(Method method);
 
     public static PropertyAccessorType of(Method method) {
         if (isStatic(method)) {

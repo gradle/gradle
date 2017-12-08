@@ -154,6 +154,12 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
         return t();
     }
 
+    @Override
+    public IvyModule dependencyConstraint(Map<String, ?> attributes, Module module) {
+        backingModule.dependencyConstraint(attributes, module);
+        return t();
+    }
+
     /**
      * Adds an additional artifact to this module.
      * @param options Can specify any of name, type, ext or classifier
@@ -188,8 +194,13 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
         return t();
     }
 
-   public T configuration(String name) {
+    public T configuration(String name) {
         backingModule.configuration(Collections.<String, Object>emptyMap(), name);
+        return t();
+    }
+
+    public IvyModule variant(String variant, Map<String, String> attributes) {
+        backingModule.variant(variant, attributes);
         return t();
     }
 

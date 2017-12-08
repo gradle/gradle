@@ -16,7 +16,10 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependenciesMetadata;
+import org.gradle.api.artifacts.DirectDependenciesMetadata;
+import org.gradle.api.artifacts.DependencyConstraintMetadata;
+import org.gradle.api.artifacts.DependencyConstraintsMetadata;
+import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ModuleSource;
@@ -81,5 +84,6 @@ public interface MutableModuleComponentResolveMetadata {
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
-    void addDependencyMetadataRule(String name, Action<DependenciesMetadata> action, Instantiator instantiator, NotationParser<Object, org.gradle.api.artifacts.DependencyMetadata> dependencyNotationParser);
+    void addDependencyMetadataRule(String variantName, Action<DirectDependenciesMetadata> action, Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser);
+    void addDependencyConstraintMetadataRule(String variantName, Action<DependencyConstraintsMetadata> action, Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser);
 }

@@ -62,7 +62,6 @@ configurations {
     userGuideTask
     jquery
     jqueryTipTip
-    fonts
 }
 
 dependencies {
@@ -77,16 +76,6 @@ dependencies {
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
     jquery "jquery:jquery.min:1.8.0@js"
     jqueryTipTip "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
-
-    fonts \
-        "lato:regular:6:v0SdcGFAl2aezM9Vq_aFTQ@ttf",
-        "lato:regular-italic:6:LqowQDslGv4DmUBAfWa2Vw@ttf",
-        "lato:bold:6:DvlFBScY1r-FMtZSYIYoYw@ttf",
-        "lato:bold-italic:6:HkF_qI1x_noxlxhrhMQYEKCWcynf_cDxXwCLxiixG1c@ttf",
-        "ubuntumono:regular:3:ViZhet7Ak-LRXZMXzuAfkZ0EAVxt0G0biEntp43Qt6E@ttf",
-        "ubuntumono:regular-italic:3:KAKuHXAHZOeECOWAHsRKA-LrC4Du4e_yfTJ8Ol60xk0@ttf",
-        "ubuntumono:bold:3:ceqTZGKHipo8pJj4molytp_TkvowlIOtbR7ePgFOpF4@ttf",
-        "ubuntumono:bold-italic:3:n_d8tv_JOIiYyMXR4eaV9WsGzsqhEorxQDpu60nfWEc@ttf"
 
     testCompile "org.pegdown:pegdown:1.1.0"
     testCompile libraries.jsoup
@@ -188,16 +177,10 @@ tasks.withType(AssembleDslDocTask) {
 
 task configureCss {
     doLast {
-        def images = fileTree(dir: "src/docs/css/images", include: "*.*").files.collectEntries {
+        def tokens = fileTree(dir: "src/docs/css/images", include: "*.*").files.collectEntries {
             [it.name, it.bytes.encodeBase64().toString()]
         }
 
-        def fonts = configurations.fonts.resolvedConfiguration.resolvedArtifacts.collectEntries {
-            def id = it.moduleVersion.id
-            ["${id.group}-${id.name}".toString(), it.file.bytes.encodeBase64().toString()]
-        }
-
-        ext.tokens = images + fonts
         css.inputs.property 'tokens', tokens
         css.filter ReplaceTokens, tokens: tokens
     }

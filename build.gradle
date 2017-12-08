@@ -15,7 +15,10 @@
  */
 
 import org.gradle.build.Install
+import org.gradle.build.DefaultJavaInstallation
 import org.gradle.cleanup.EmptyDirectoryCheck
+
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 
 plugins {
     id 'java-base'
@@ -291,9 +294,29 @@ task patchExternalModules(type: PatchExternalModules) {
 
 task verifyIsProductionBuildEnvironment {
     doLast {
-        assert javaVersion.java7: "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${jvm}"
+        assert javaVersion.java8:
+            "Must use a Java 8 compatible JVM to perform this build. Current JVM is ${jvm}"
+
+        def javaHomeProperty = { propertyName -> project.findProperty(propertyName) ?: System.getProperty(propertyName) }
+        def assertJavaHomeVersion = { propertyName, javaVersion ->
+            def javaInstallationPath = javaHomeProperty(propertyName)
+            assert javaInstallationPath:
+                "Must set $propertyName to the path of a Java $javaVersion compatible JVM to perform this build. " +
+                    "Currently unset. Set -P$propertyName=/path/to/jvm/$javaVersion"
+            def javaInstallation = new DefaultJavaInstallation()
+            gradle.services.get(JavaInstallationProbe).checkJdk(file(javaInstallationPath)).configure(javaInstallation)
+            assert javaInstallation.javaVersion == javaVersion:
+                "Must set $propertyName to the path of a Java $javaVersion compatible JVM to perform this build. " +
+                    "Is currently ${javaInstallation.displayName} at $javaInstallationPath. Set -P$propertyName=/path/to/jvm/$javaVersion"
+        }
+
+        assertJavaHomeVersion("java7Home", JavaVersion.VERSION_1_7)
+        if (javaHomeProperty("testJavaHome")) {
+            assertJavaHomeVersion("testJavaHome", JavaVersion.VERSION_1_8)
+        }
+
         def systemCharset = java.nio.charset.Charset.defaultCharset().name()
-        assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
+        assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8"
     }
 }
 

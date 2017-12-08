@@ -41,7 +41,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
             dependencies {
                 conf 'org:foo:17'
                 conf 'org:bar:1.0'
-            }                       
+            }
         """
 
         when:
@@ -236,4 +236,40 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
         ]
 
     }
+
+    def "should fail if required module is rejected"() {
+        given:
+        repository {
+            'org:foo:1.0'()
+            'org:bar:1.0' {
+                constraint(group: 'org', artifact: 'foo', rejects: ['+'])
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.0'
+                conf 'org:bar:1.0'
+            }                       
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+            }
+        }
+
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("""Module 'org:foo' has been rejected:
+   Dependency path ':test:unspecified' --> 'org:foo' prefers '1.0'
+   Constraint path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' rejects all versions""")
+
+    }
+
 }
