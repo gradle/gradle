@@ -66,6 +66,7 @@ public class IncrementalCompileFilesFactory {
         private final Set<File> existingHeaders = Sets.newHashSet();
         private final Map<File, IncludeDirectives> includeDirectivesMap = new HashMap<File, IncludeDirectives>();
         private final Map<File, FileDetails> visitedFiles = new HashMap<File, FileDetails>();
+        int traversalCount;
         private boolean hasUnresolvedHeaders;
 
         DefaultIncementalCompileSourceProcessor(CompilationState previousCompileState) {
@@ -98,7 +99,7 @@ public class IncrementalCompileFilesFactory {
             CollectingMacroLookup visibleMacros = new CollectingMacroLookup();
             FileVisitResult result = visitFile(sourceFile, fileSnapshot, visibleMacros, new HashSet<File>(), true);
             ArrayList<IncludeFileState> includedFiles = new ArrayList<IncludeFileState>();
-            result.collectFilesInto(new HashSet<FileVisitResult>(), includedFiles);
+            result.collectFilesInto(++traversalCount, includedFiles);
             SourceFileState newState = new SourceFileState(fileSnapshot.getContent().getContentMd5(), ImmutableSet.copyOf(includedFiles));
             current.setState(sourceFile, newState);
             includeDirectivesMap.put(sourceFile, result.includeDirectives);
@@ -208,6 +209,7 @@ public class IncrementalCompileFilesFactory {
         private final IncludeDirectives includeDirectives;
         private final List<FileVisitResult> included;
         private final CollectingMacroLookup includeFileDirectives;
+        int traversalCount;
 
         FileVisitResult(File file, IncludeFileResolutionResult result, IncludeFileState fileState, IncludeDirectives includeDirectives, List<FileVisitResult> included, CollectingMacroLookup dependentIncludeDirectives) {
             this.file = file;
@@ -233,14 +235,18 @@ public class IncrementalCompileFilesFactory {
             }
         }
 
-        void collectFilesInto(Set<FileVisitResult> visited, List<IncludeFileState> files) {
-            if (!visited.add(this)) {
+        void collectFilesInto(int traversal, List<IncludeFileState> files) {
+            if (traversalCount == traversal) {
+                // Already seen during this traversal, skip
                 return;
             }
+
+            // Collect files
+            traversalCount = traversal;
             if (fileState != null) {
                 files.add(fileState);
                 for (FileVisitResult include : included) {
-                    include.collectFilesInto(visited, files);
+                    include.collectFilesInto(traversal, files);
                 }
             }
         }
