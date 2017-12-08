@@ -50,7 +50,7 @@ abstract class AbstractVcsIntegrationTest extends AbstractIntegrationSpec {
 
     TestFile checkoutDir(String repoName, String versionId, String repoId, TestFile baseDir=testDirectory) {
         def hashedRepo = hashRepositoryId(repoId)
-        baseDir.file(".gradle/vcsWorkingDirs/${hashedRepo}/${versionId}/${repoName}")
+        baseDir.file(".gradle/vcsWorkingDirs/${hashedRepo}-${versionId}/${repoName}")
     }
 
     String hashRepositoryId(String repoId) {

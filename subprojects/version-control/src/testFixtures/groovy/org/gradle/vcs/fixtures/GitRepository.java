@@ -28,6 +28,7 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GFileUtils;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
@@ -36,6 +37,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 public class GitRepository extends ExternalResource implements Named {
     private final String repoName;
@@ -100,6 +102,15 @@ public class GitRepository extends ExternalResource implements Named {
 
     public RevCommit commit(String message, File... files) throws GitAPIException {
         return commit(message, Arrays.asList(files));
+    }
+
+    public RevCommit commit(String message, File file) throws GitAPIException {
+        // if the file is a directory, list all files in it and add those
+        if (file.isDirectory()) {
+            return commit(message, GFileUtils.listFiles(file, null, true));
+        } else {
+            return commit(message, Collections.singleton(file));
+        }
     }
 
     public Ref createBranch(String branchName) throws GitAPIException {

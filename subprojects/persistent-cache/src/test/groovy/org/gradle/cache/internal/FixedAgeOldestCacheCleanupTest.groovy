@@ -22,36 +22,23 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-@Subject(FixedSizeOldestCacheCleanup)
-class FixedSizeOldestCacheCleanupTest extends Specification {
+import java.util.concurrent.TimeUnit
+
+@Subject(FixedAgeOldestCacheCleanup)
+class FixedAgeOldestCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def persistentCache = Mock(PersistentCache)
-    def cleanupAction = new FixedSizeOldestCacheCleanup(10L)
+    def cleanupAction = new FixedAgeOldestCacheCleanup(1)
 
-    def setup() {
-        persistentCache.getBaseDir() >> cacheDir
-        persistentCache.reservedCacheFiles >> Collections.emptyList()
-    }
-
-    def "finds eligible files"() {
+    def "finds files to delete when files are old"() {
+        long now = System.currentTimeMillis()
+        long fiveDaysAgo = now - TimeUnit.DAYS.toMillis(5)
         def cacheEntries = [
-            createCacheEntry(1024), // 1KB
-            createCacheEntry(1024*1024), // 1MB
-            createCacheEntry(1024*1024*10), // 10MB
-        ]
-        expect:
-        def eligibleFiles = Arrays.asList(cleanupAction.findEligibleFiles(persistentCache))
-        eligibleFiles.size() == cacheEntries.size()
-        eligibleFiles.containsAll(cacheEntries)
-    }
-
-    def "finds files to delete when cache is larger than limit"() {
-        def cacheEntries = [
-            createCacheEntry(1024, 1000), // 1KB, newest file
-            createCacheEntry(1024*1024, 500), // 1MB
-            createCacheEntry(1024*1024*5, 250), // 5MB
-            createCacheEntry(1024*1024*10, 0), // 10MB, oldest file
+            createCacheEntry(1024, now),
+            createCacheEntry(1024, now),
+            createCacheEntry(1024, now),
+            createCacheEntry(1024, fiveDaysAgo),
         ]
         expect:
         def filesToDelete = cleanupAction.findFilesToDelete(persistentCache, cacheEntries as File[])
@@ -60,11 +47,12 @@ class FixedSizeOldestCacheCleanupTest extends Specification {
         filesToDelete[0] == cacheEntries.last()
     }
 
-    def "finds no files to delete when cache is smaller than limit"() {
+    def "finds no files to delete when files are new"() {
+        long now = System.currentTimeMillis()
         def cacheEntries = [
-            createCacheEntry(1024), // 1KB
-            createCacheEntry(1024*1024), // 1MB
-            createCacheEntry(1024*1024*5), // 5MB
+            createCacheEntry(1024, now),
+            createCacheEntry(1024, now - TimeUnit.MINUTES.toMillis(15)),
+            createCacheEntry(1024, now - TimeUnit.HOURS.toMillis(5)),
         ]
         expect:
         def filesToDelete = cleanupAction.findFilesToDelete(persistentCache, cacheEntries as File[])

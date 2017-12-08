@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.vcs.internal;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
-import org.gradle.api.internal.file.TemporaryFileProvider;
+import java.io.File;
 
-/**
- * The set of dependency management services that are created per build tree.
- */
-class DependencyManagementBuildTreeScopeServices {
+public class VcsWorkingDirectoryRoot {
+    private final File dir;
 
-    ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
-        return new ResolutionResultsStoreFactory(temporaryFileProvider);
+    public VcsWorkingDirectoryRoot(File dir) {
+        this.dir = dir;
     }
 
+    public File getDir() {
+        return dir;
+    }
 }

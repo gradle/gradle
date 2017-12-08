@@ -18,11 +18,15 @@ package org.gradle.vcs.internal;
 
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CleanupActionFactory;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.vcs.SourceControl;
 import org.gradle.vcs.VcsMappings;
+
+import java.io.File;
 
 public class VersionControlServices extends AbstractPluginServiceRegistry {
     @Override
@@ -58,8 +62,11 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildSessionServices {
-        VersionControlSystemFactory createVersionControlSystemFactory(CacheRepository cacheRepository) {
-            return new DefaultVersionControlSystemFactory(cacheRepository);
+        VersionControlSystemFactory createVersionControlSystemFactory(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, CleanupActionFactory cleanupActionFactory, CacheRepository cacheRepository) {
+            return new DefaultVersionControlSystemFactory(vcsWorkingDirectoryRoot, cacheRepository, cleanupActionFactory);
+        }
+        VcsWorkingDirectoryRoot createVcsWorkingDirectoryRoot(ProjectCacheDir projectCacheDir) {
+            return new VcsWorkingDirectoryRoot(new File(projectCacheDir.getDir(), "vcsWorkingDirs"));
         }
     }
 
