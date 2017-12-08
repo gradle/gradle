@@ -25,6 +25,10 @@ class SamplesCustomConfigurationIntegrationTest extends AbstractIntegrationSpec 
     @Rule
     Sample sample = new Sample(testDirectoryProvider, 'userguide/dependencies/declaringCustomConfigurations')
 
+    def setup() {
+        executer.requireGradleDistribution()
+    }
+
     def "can use custom configuration"() {
         setup:
         executer.inDirectory(sample.dir)
