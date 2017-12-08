@@ -41,5 +41,11 @@
             "changes": [
                 "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getIncludePaths()"
             ]
-        }    ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getFileResolver()",
+            "acceptation": "Added inject method to incubating class"
+        }
+    ]
 }
