@@ -45,7 +45,7 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
         expect:
         succeeds ":hello:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:generateModuleMap", ":cppGreeter:dependDebugCpp", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
 
         swiftLibrary("hello/build/lib/main/debug/Hello").assertExists()
@@ -83,8 +83,8 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
         expect:
         succeeds ":hello:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:generateModuleMap", ":cppGreeter:dependDebugCpp", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
-            ":logger:dependDebugCpp", ":logger:compileDebugCpp", ":logger:linkDebug",
+            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":logger:compileDebugCpp", ":logger:linkDebug",
             ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
 
         swiftLibrary("hello/build/lib/main/debug/Hello").assertExists()
@@ -117,7 +117,7 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
         expect:
         succeeds ":hello:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:generateModuleMap", ":cppGreeter:dependDebugCpp", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
 
         swiftLibrary("hello/build/lib/main/debug/Hello").assertExists()

@@ -25,6 +25,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -38,6 +39,8 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import static org.gradle.util.CollectionUtils.collect;
 
 /**
  * Generates a module map file for Swift interoperability with C/C++ projects.
@@ -102,7 +105,13 @@ public class GenerateModuleMap extends DefaultTask {
             List<String> lines = Lists.newArrayList(
                 "module " + moduleName + " {"
             );
-            lines.addAll(CollectionUtils.collect(publicHeaderDirs, new Transformer<String, File>() {
+            List<File> validHeaderDirs = CollectionUtils.filter(publicHeaderDirs, new Spec<File>() {
+                @Override
+                public boolean isSatisfiedBy(File file) {
+                    return file.exists();
+                }
+            });
+            lines.addAll(collect(validHeaderDirs, new Transformer<String, File>() {
                 @Override
                 public String transform(File file) {
                     return "\tumbrella \"" + file.getAbsolutePath() + "\"";

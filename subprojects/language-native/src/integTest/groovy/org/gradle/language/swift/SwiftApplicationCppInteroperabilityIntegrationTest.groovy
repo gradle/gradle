@@ -19,6 +19,7 @@ package org.gradle.language.swift
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
 import org.gradle.nativeplatform.fixtures.app.CppLogger
+import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithDep
 import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftMainWithCppDep
@@ -48,7 +49,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         expect:
         succeeds ":app:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:generateModuleMap", ":cppGreeter:dependDebugCpp", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
@@ -88,7 +89,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         succeeds ":app:assemble"
         result.assertTasksExecuted(
             ":greeter:compileDebugSwift", ":greeter:linkDebug",
-            ":cppGreeter:generateModuleMap", ":cppGreeter:dependDebugCpp", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
@@ -125,8 +126,38 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         expect:
         succeeds ":app:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:generateModuleMap", ":cppGreeter:dependDebugCpp", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
-            ":logger:dependDebugCpp", ":logger:compileDebugCpp", ":logger:linkDebug",
+            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":logger:compileDebugCpp", ":logger:linkDebug",
+            ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+    }
+
+    def "declaring a dependency on a c++ library without public headers does not fail"() {
+        settingsFile << "include 'app', 'cppGreeter'"
+        def cppGreeter = new CppGreeterFunction()
+        def app = new SwiftApp()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':cppGreeter')
+                }
+            }
+            project(':cppGreeter') {
+                apply plugin: 'cpp-library'
+            }
+        """
+        app.writeToProject(file("app"))
+        // writes headers to the private header dir
+        cppGreeter.writeToProject(file("cppGreeter"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(
+            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
