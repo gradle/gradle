@@ -43,7 +43,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         resolveArtifacts(module) {
             ext = 'txt'
             withModuleMetadata {
-                shouldFail()
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0.txt"
@@ -52,7 +52,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         resolveArtifacts(module) {
             ext = 'reg'
             withModuleMetadata {
-                shouldFail()
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0.reg"
@@ -62,7 +62,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             ext = 'jar'
             classifier = 'customjar'
             withModuleMetadata {
-                shouldFail()
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0-customjar.jar"
@@ -104,7 +104,9 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             classifier = 'classified'
             ext = 'jar'
             withModuleMetadata {
-                shouldFail()
+                // here we have a publication, but artifacts have been modified, which
+                // disables publication
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0-classified.jar"
@@ -142,7 +144,11 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         resolveArtifacts(module) {
             classifier = 'customjar'
             withModuleMetadata {
-                shouldFail()
+                shouldFail {
+                    // We have a publication but artifacts have been modified, which currently disables publication
+                    assertHasDescription 'Could not resolve all files'
+                    assertHasCause 'Could not find group:projectText:1.0.'
+                }
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0-customjar.jar"
@@ -210,7 +216,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             classifier = 'documentation'
             ext = 'htm'
             withModuleMetadata {
-                shouldFail()
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0-documentation.htm"
@@ -222,7 +228,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             classifier = 'output'
             ext = 'txt'
             withModuleMetadata {
-                shouldFail()
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0-output.txt"
@@ -234,7 +240,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             classifier = 'regular'
             ext = 'txt'
             withModuleMetadata {
-                shouldFail()
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0-regular.txt"
@@ -268,7 +274,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             classifier = 'documentation'
             ext = 'htm'
             withModuleMetadata {
-                shouldFail()
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0-documentation.htm"
@@ -280,7 +286,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             classifier = 'output'
             ext = 'txt'
             withModuleMetadata {
-                shouldFail()
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0-output.txt"
@@ -292,7 +298,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             classifier = 'regular'
             ext = 'txt'
             withModuleMetadata {
-                shouldFail()
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0-regular.txt"

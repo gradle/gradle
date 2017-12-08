@@ -134,7 +134,8 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         }
         resolveArtifacts(apiModule) {
             withModuleMetadata {
-                shouldFail()
+                // customizing publications is not supported with Gradle metadata
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles 'custom-api-2.jar'

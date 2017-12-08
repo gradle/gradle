@@ -86,7 +86,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         and:
         resolveArtifacts(module) {
             withModuleMetadata {
-                shouldFail()
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles()

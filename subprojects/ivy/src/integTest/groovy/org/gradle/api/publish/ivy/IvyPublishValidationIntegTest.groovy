@@ -134,8 +134,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
                 expectFiles "${artifact}-${version}-${classifier}.${extension}"
             }
             withModuleMetadata {
-                // TODO: should we support custom artifacts?
-                shouldFail()
+                noComponentPublished()
             }
         }
 

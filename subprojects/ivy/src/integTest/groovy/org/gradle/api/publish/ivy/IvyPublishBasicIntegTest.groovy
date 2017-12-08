@@ -81,8 +81,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
                 expectFiles()
             }
             withModuleMetadata {
-                // TODO: this is the current behavior. Should check if it is the intended one.
-                shouldFail()
+                noComponentPublished()
             }
         }
     }

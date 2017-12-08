@@ -39,7 +39,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
     }
 
     void resolveArtifacts(Object dependencyNotation, @DelegatesTo(value = MavenArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {
-        MavenArtifactResolutionExpectation expectation = new MavenArtifactResolutionExpectation()
+        MavenArtifactResolutionExpectation expectation = new MavenArtifactResolutionExpectation(dependencyNotation)
         expectation.dependency = convertDependencyNotation(dependencyNotation)
         expectationSpec.resolveStrategy = Closure.DELEGATE_FIRST
         expectationSpec.delegate = expectation
@@ -141,6 +141,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
     }
 
     static class ResolveParams {
+        MavenModule module
         String dependency
         List<? extends ModuleArtifact> additionalArtifacts
 
@@ -151,7 +152,18 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         boolean expectFailure
     }
 
-    class MavenArtifactResolutionExpectation extends ResolveParams implements ArtifactResolutionExpectationSpec {
+    class MavenArtifactResolutionExpectation extends ResolveParams implements ArtifactResolutionExpectationSpec<MavenModule> {
+
+        MavenArtifactResolutionExpectation(Object dependencyNotation) {
+            if (dependencyNotation instanceof MavenModule) {
+                module = dependencyNotation
+            }
+            createSpecs()
+        }
+
+        MavenModule getModule() {
+            super.module
+        }
 
         void validate() {
             singleValidation(true, withModuleMetadataSpec)
@@ -160,6 +172,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
 
         void singleValidation(boolean withModuleMetadata, SingleArtifactResolutionResultSpec expectationSpec) {
             ResolveParams params = new ResolveParams(
+                module: module,
                 dependency: dependency,
                 classifier: classifier,
                 ext: ext,
