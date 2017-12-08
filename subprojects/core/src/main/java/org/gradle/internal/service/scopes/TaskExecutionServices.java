@@ -54,7 +54,6 @@ import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
-import org.gradle.api.internal.tasks.execution.VerifyNoInputChangesTaskExecuter;
 import org.gradle.api.internal.tasks.properties.annotations.FileSnapshottingPropertyAnnotationHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheBuilder;
@@ -116,10 +115,6 @@ public class TaskExecutionServices {
             buildOperationExecutor,
             asyncWorkTracker
         );
-        boolean verifyInputsEnabled = Boolean.getBoolean("org.gradle.tasks.verifyinputs");
-        if (verifyInputsEnabled) {
-            executer = new VerifyNoInputChangesTaskExecuter(repository, executer);
-        }
         executer = new OutputDirectoryCreatingTaskExecuter(executer);
         if (taskOutputCacheEnabled) {
             executer = new SkipCachedTaskExecuter(
@@ -131,7 +126,7 @@ public class TaskExecutionServices {
         }
         executer = new SkipUpToDateTaskExecuter(executer);
         executer = new ResolveTaskOutputCachingStateExecuter(taskOutputCacheEnabled, executer);
-        if (verifyInputsEnabled || taskOutputCacheEnabled || scanPluginApplied) {
+        if (taskOutputCacheEnabled || scanPluginApplied) {
             executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor);
         }
         executer = new ValidatingTaskExecuter(executer);
