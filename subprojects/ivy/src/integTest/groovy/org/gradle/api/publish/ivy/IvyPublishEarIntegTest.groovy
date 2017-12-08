@@ -80,8 +80,7 @@ class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
                 expectFiles "publishEar-1.9.ear"
             }
             withModuleMetadata {
-                // TODO: should we support custom artifacts?
-                shouldFail()
+                noComponentPublished()
             }
         }
     }

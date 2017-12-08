@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.SingleArtifactResolutionResultSpec
 import org.gradle.test.fixtures.ivy.IvyFileModule
 import org.gradle.test.fixtures.ivy.IvyJavaModule
+import org.gradle.test.fixtures.ivy.IvyModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
@@ -39,7 +40,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
     }
 
     void resolveArtifacts(Object dependencyNotation, @DelegatesTo(value = IvyArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {
-        IvyArtifactResolutionExpectation expectation = new IvyArtifactResolutionExpectation()
+        IvyArtifactResolutionExpectation expectation = new IvyArtifactResolutionExpectation(dependencyNotation)
         expectation.dependency = convertDependencyNotation(dependencyNotation)
         expectationSpec.resolveStrategy = Closure.DELEGATE_FIRST
         expectationSpec.delegate = expectation
@@ -130,6 +131,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
     }
 
     static class ResolveParams {
+        IvyModule module
         String dependency
         List<? extends ModuleArtifact> additionalArtifacts
 
@@ -140,7 +142,18 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         boolean expectFailure
     }
 
-    class IvyArtifactResolutionExpectation extends ResolveParams implements ArtifactResolutionExpectationSpec {
+    class IvyArtifactResolutionExpectation extends ResolveParams implements ArtifactResolutionExpectationSpec<IvyModule> {
+
+        IvyArtifactResolutionExpectation(Object dependencyNotation) {
+            if (dependencyNotation instanceof IvyModule) {
+                module = dependencyNotation
+            }
+            createSpecs()
+        }
+
+        IvyModule getModule() {
+           super.module
+        }
 
         void validate() {
             singleValidation(true, withModuleMetadataSpec)
@@ -149,6 +162,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
 
         void singleValidation(boolean withModuleMetadata, SingleArtifactResolutionResultSpec expectationSpec) {
             ResolveParams params = new ResolveParams(
+                module: module,
                 dependency: dependency,
                 configuration: configuration,
                 additionalArtifacts: additionalArtifacts?.asImmutable(),

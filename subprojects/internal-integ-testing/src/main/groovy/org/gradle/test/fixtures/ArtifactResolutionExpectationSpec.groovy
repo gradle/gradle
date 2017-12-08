@@ -19,9 +19,9 @@ package org.gradle.test.fixtures
 import groovy.transform.CompileStatic
 
 @CompileStatic
-trait ArtifactResolutionExpectationSpec {
-    final SingleArtifactResolutionResultSpec withModuleMetadataSpec = new SingleArtifactResolutionResultSpec()
-    final SingleArtifactResolutionResultSpec withoutModuleMetadataSpec = new SingleArtifactResolutionResultSpec()
+trait ArtifactResolutionExpectationSpec<T extends Module> {
+    SingleArtifactResolutionResultSpec<T> withModuleMetadataSpec
+    SingleArtifactResolutionResultSpec<T> withoutModuleMetadataSpec
 
     /**
      * Setup expectation when resolving with module metadata
@@ -71,6 +71,13 @@ trait ArtifactResolutionExpectationSpec {
             expectFiles(fileNames)
         }
     }
+
+    void createSpecs() {
+        withModuleMetadataSpec = new SingleArtifactResolutionResultSpec<T>(module)
+        withoutModuleMetadataSpec = new SingleArtifactResolutionResultSpec<T>(module)
+    }
+
+    abstract T getModule()
 
     abstract void validate()
 }

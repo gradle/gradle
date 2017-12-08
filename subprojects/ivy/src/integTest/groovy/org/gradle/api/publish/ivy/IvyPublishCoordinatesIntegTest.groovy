@@ -129,13 +129,19 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
         and:
         resolveArtifacts(module) {
-            withModuleMetadata { shouldFail() }
+            withModuleMetadata {
+                // customizing publications is not supported with Gradle metadata
+                noComponentPublished()
+            }
             withoutModuleMetadata {
                 expectFiles 'custom-2.2.jar'
             }
         }
         resolveArtifacts(apiModule) {
-            withModuleMetadata { shouldFail() }
+            withModuleMetadata {
+                // customizing publications is not supported with Gradle metadata
+                noComponentPublished()
+            }
             withoutModuleMetadata {
                 expectFiles 'custom-api-2.jar'
             }

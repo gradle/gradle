@@ -91,12 +91,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         resolveRuntimeArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"
-            }
+            expectFiles "bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"
         }
     }
 
@@ -295,6 +290,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 expectFiles 'commons-compress-1.5.jar', 'commons-logging-1.2.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.6.jar'
             }
             withoutModuleMetadata {
+                // Dependency constraints not published to Maven POM
                 expectFiles 'commons-compress-1.5.jar', 'commons-logging-1.0.4.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.2.jar'
             }
         }
@@ -525,7 +521,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
             }
         }
         // Maven POM compile scope contains 'implementation' dependencies
-        resolveApiArtifacts(javaLibrary)  {
+        resolveApiArtifacts(javaLibrary) {
             withModuleMetadata {
                 expectFiles "bar-1.0.jar"
             }

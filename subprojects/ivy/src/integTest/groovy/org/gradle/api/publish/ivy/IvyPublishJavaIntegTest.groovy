@@ -613,8 +613,12 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 expectFiles 'commons-collections-3.2.2.jar', 'publishTest-1.9.jar'
             }
             withoutModuleMetadata {
-                // this is what happens today, but I'm not convinced it's the right behavior
-                shouldFail()
+                // Constraints cannot be published to Ivy files. Since we publish the _declared_ dependency
+                // versions and not the resolved ones, this can't be resolved
+                shouldFail {
+                    assertHasDescription 'Could not resolve all files for configuration'
+                    assertHasCause 'Could not find commons-collections:commons-collections:.'
+                }
             }
         }
     }

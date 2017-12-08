@@ -69,7 +69,7 @@ publishing {
         and:
         resolveArtifacts(earModule) {
             withModuleMetadata {
-                shouldFail()
+                noComponentPublished()
             }
             withoutModuleMetadata {
                 expectFiles "publishEar-1.9.ear"

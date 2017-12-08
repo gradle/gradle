@@ -22,7 +22,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
     def module = ivyRepo.module("org.gradle.test", "ivyPublish", "2.4")
 
-    public void "can publish custom artifacts"() {
+    void "can publish custom artifacts"() {
         given:
         createBuildScripts("""
             publications {
@@ -61,8 +61,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                 expectFiles "ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.reg", "ivyPublish-2.4.txt"
             }
             withModuleMetadata {
-                // TODO: should we support custom artifacts?
-                shouldFail()
+                noComponentPublished()
             }
         }
     }
@@ -121,8 +120,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                 expectFiles "customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"
             }
             withModuleMetadata {
-                // TODO: should we support custom artifacts?
-                shouldFail()
+                noComponentPublished()
             }
         }
     }
@@ -166,8 +164,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                 expectFiles "customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"
             }
             withModuleMetadata {
-                // TODO: should we support custom artifacts?
-                shouldFail()
+                noComponentPublished()
             }
         }
     }
@@ -255,8 +252,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                 expectFiles "no-extension-2.4"
             }
             withModuleMetadata {
-                // TODO: should we support custom artifacts?
-                shouldFail()
+                noComponentPublished()
             }
         }
     }
@@ -284,8 +280,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                 expectFiles "ivyPublish-2.4-classy.jar"
             }
             withModuleMetadata {
-                // TODO: should we support custom artifacts?
-                shouldFail()
+                noComponentPublished()
             }
         }
     }

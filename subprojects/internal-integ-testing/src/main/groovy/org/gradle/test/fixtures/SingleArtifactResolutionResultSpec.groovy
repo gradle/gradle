@@ -20,7 +20,13 @@ import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 
 @CompileStatic
-class SingleArtifactResolutionResultSpec {
+class SingleArtifactResolutionResultSpec<T extends Module> {
+    private final T module
+
+    SingleArtifactResolutionResultSpec(T module) {
+        this.module = module
+    }
+
     boolean expectSuccess = true
     List<String> expectedFileNames = []
     List<Closure<?>> failureExpectations = []
@@ -41,6 +47,12 @@ class SingleArtifactResolutionResultSpec {
         expectSuccess = false
         if (onFailure) {
             failureExpectations << onFailure
+        }
+    }
+
+    void noComponentPublished() {
+        shouldFail {
+            assertHasCause("Could not find ${module.group}:${module.module}:${module.version}")
         }
     }
 }
