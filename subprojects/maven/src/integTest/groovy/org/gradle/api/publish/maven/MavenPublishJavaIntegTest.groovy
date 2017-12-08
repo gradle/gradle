@@ -96,6 +96,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with dependencies and excludes"() {
+        requiresExternalDependencies = true
+
         given:
         createBuildScripts("""
 
@@ -159,6 +161,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with strict dependencies"() {
+        requiresExternalDependencies = true
+
         given:
         createBuildScripts("""
 
@@ -218,6 +222,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with dependency constraints"() {
+        requiresExternalDependencies = true
+
         given:
         createBuildScripts("""
 
@@ -297,6 +303,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with rejected versions"() {
+        requiresExternalDependencies = true
+
         given:
         createBuildScripts("""
 
@@ -368,6 +376,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with dependencies without version"() {
+        requiresExternalDependencies = true
+
         given:
         createBuildScripts("""
 

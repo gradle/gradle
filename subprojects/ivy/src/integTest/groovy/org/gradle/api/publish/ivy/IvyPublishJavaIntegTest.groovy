@@ -34,6 +34,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     void "can publish jar and descriptor to ivy repository"() {
+        requiresExternalDependencies = true
         given:
         createBuildScripts("""
             publishing {
@@ -70,6 +71,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     void "can publish java-library-platform to ivy repository"() {
+        requiresExternalDependencies = true
+
         given:
         createBuildScripts("""
             publishing {
@@ -210,6 +213,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     void "can publish additional artifacts for java project"() {
+        requiresExternalDependencies = true
         given:
         createBuildScripts("""
             $dependencies
@@ -262,6 +266,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     @Issue("GRADLE-3514")
     void "generated ivy descriptor includes dependency exclusions"() {
+        requiresExternalDependencies = true
+
         given:
         createBuildScripts("""
             $dependencies
@@ -430,10 +436,10 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     def "can publish java-library with strict dependencies"() {
+        requiresExternalDependencies = true
+
         given:
         createBuildScripts("""
-
-            ${jcenterRepository()}
 
             dependencies {
                 api "org.springframework:spring-core:2.5.6"
@@ -488,10 +494,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     def "can publish java-library with dependency constraints"() {
+        requiresExternalDependencies = true
         given:
         createBuildScripts("""
-
-            ${jcenterRepository()}
 
             dependencies {
                 api "org.springframework:spring-core:1.2.9"
@@ -564,6 +569,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     def "can publish java-library with dependencies without version"() {
+        requiresExternalDependencies = true
         given:
         createBuildScripts("""
 
@@ -624,10 +630,10 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     def "can publish java-library with rejected versions"() {
+        requiresExternalDependencies = true
+
         given:
         createBuildScripts("""
-
-            ${jcenterRepository()}
 
             dependencies {
                 constraints {

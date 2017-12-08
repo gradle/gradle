@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.maven.MavenModule
 @SelfType(AbstractIntegrationSpec)
 trait GradleMetadataAwarePublishingSpec {
     boolean publishModuleMetadata = true
+    boolean requiresExternalDependencies
 
     // cannot use "setup" because of a bug with Spock
     void prepare() {

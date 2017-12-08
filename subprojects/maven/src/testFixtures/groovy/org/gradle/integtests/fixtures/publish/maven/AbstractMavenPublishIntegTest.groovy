@@ -103,6 +103,8 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
             dependencyNotation = "${dependencyNotation}, ext: '${sq(params.ext)}'"
         }
 
+        def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
+
         buildFile.text = """
             configurations {
                 resolve {
@@ -116,7 +118,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
                         ${params.resolveModuleMetadata?'gradleMetadata':'mavenPom'}()
                     }
                 }
-                ${mavenCentralRepositoryDefinition()}
+                ${externalRepo}
             }
 
             dependencies {
