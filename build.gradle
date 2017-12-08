@@ -105,15 +105,6 @@ buildTypes {
         tasks "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"
     }
 
-    //Initial smoke test for java 9
-    java9Build {
-        tasks "java9Test", "java9IntegTest"
-    }
-
-    java9SmokeTest {
-        tasks "java9IntegTest"
-    }
-
     soakTest {
         tasks "soak:soakTest"
         projectProperties testAllVersions: true
