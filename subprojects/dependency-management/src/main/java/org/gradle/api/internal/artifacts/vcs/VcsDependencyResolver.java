@@ -124,12 +124,12 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                         }
                 });
                 if (entry == null) {
-                    result.failed(new ModuleVersionResolveException(depSelector, vcsMappingInternal + " did not contain a project publishing the specified dependency."));
+                    result.failed(new ModuleVersionResolveException(vcsMappingInternal.getRequested(), spec.getDisplayName() + " did not contain a project publishing the specified dependency."));
                 } else {
                     LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(entry.right);
 
                     if (componentMetaData == null) {
-                        result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(includedBuild, entry.right.getProjectPath()), vcsMappingInternal + " could not be resolved into a usable project."));
+                        result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(includedBuild, entry.right.getProjectPath()), vcsMappingInternal.getRepository().getDisplayName() + " could not be resolved into a usable project."));
                     } else {
                         result.resolved(componentMetaData);
                     }

@@ -17,10 +17,11 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.vcs.internal.spec.DirectoryRepositorySpec
 
 class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
-    def buildB
+    BuildTestFile buildB
 
     def setup() {
         buildTestFixture.withBuildInSubDir()
@@ -96,7 +97,47 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
             }
         """
         expect:
+        // foo should be from the source dependencies and bar should be from the external repo
         assertResolvesTo("foo-1.0.jar", "bar-1.0-SNAPSHOT.jar")
+    }
+
+    def "uses included build subproject of multi-project source dependency"() {
+        mavenRepo.module("org.test", "bar", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        buildB.buildFile << """
+            project(":foo") {
+                dependencies {
+                    compile project(":bar")
+                }
+            }
+        """
+        mappingFor("org.test:foo")
+        buildFile << """
+            dependencies {
+                conf 'org.test:foo:latest.integration'
+                conf 'org.test:bar:latest.integration'
+            }
+        """
+        expect:
+        assertResolvesTo("foo-1.0.jar", "bar-1.0.jar")
+    }
+
+
+    def "reasonable error when VCS mapping does not match underlying build"() {
+        mavenRepo.module("org.test", "bar", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        buildB.buildFile << """
+            allprojects {
+                group = "new.group"
+            }
+        """
+        mappingFor("org.test:foo")
+        buildFile << """
+            dependencies {
+                conf 'org.test:foo:latest.integration'
+            }
+        """
+        expect:
+        fails("resolve")
+        result.error.contains("did not contain a project publishing the specified dependency.")
     }
 
     void mappingFor(String... coords) {
