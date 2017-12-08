@@ -248,7 +248,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 expectFiles "commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar", "publishTest-1.9-source.jar"
             }
             withModuleMetadata {
-                // TODO: handle additional files in Gradle metadata?
+                // additional files are not published in Gradle metadata
                 expectFiles "commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"
             }
         }
