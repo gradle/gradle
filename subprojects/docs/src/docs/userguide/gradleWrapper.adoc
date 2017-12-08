@@ -72,17 +72,19 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-4.3.1-bin.zip
 ----
 ====
 
-All of those aspects are configurable at the time of generating the Wrapper files with the help of command line options.
+All of those aspects are configurable at the time of generating the Wrapper files with the help of the following command line options.
 
-.Wrapper command line options
-[options="header"]
-|===
-|Command Line Option                |Description
-|`--gradle-version`                 | The Gradle version used for downloading and executing the Wrapper.
-|`--distribution-type`              |The Gradle distribution type used for the Wrapper. Available options are `bin` and `all`. The default value is `bin`.
-|`--gradle-distribution-url`        |The full URL pointing to Gradle distribution ZIP file. Using this option makes `--gradle-version` and `--distribution-type` obsolete as the URL already contains this information. This option is extremely valuable if you want to host the Gradle distribution inside your company’s network.
-|`--gradle-distribution-sha256-sum` |The SHA256 hash sum used for <<sec:verification,verifying the downloaded Gradle distribution>>.
-|===
+`--gradle-version`::
+The Gradle version used for downloading and executing the Wrapper.
+
+`--distribution-type`::
+The Gradle distribution type used for the Wrapper. Available options are `bin` and `all`. The default value is `bin`.
+
+`--gradle-distribution-url`::
+The full URL pointing to Gradle distribution ZIP file. Using this option makes `--gradle-version` and `--distribution-type` obsolete as the URL already contains this information. This option is extremely valuable if you want to host the Gradle distribution inside your company’s network.
+
+`--gradle-distribution-sha256-sum`::
+The SHA256 hash sum used for <<sec:verification,verifying the downloaded Gradle distribution>>.
 
 Let’s assume the following use case to illustrate the use of the command line options. You would like to generate the Wrapper with version 4.0 and use the `-all` distribution to enable your IDE to enable code-completion and being able to navigate to the Gradle source code. Those requirements are captured by the following command line execution:
 
@@ -117,16 +119,16 @@ Let’s have a look at the following project layout to illustrate the expected W
 └── gradlew.bat
 ----
 
-A Gradle project typically provides a `build.gradle` and a `settings.gradle` file. The Wrapper files live alongside in the `gradle` directory and the root directory of the project. The following table explains their purpose.
+A Gradle project typically provides a `build.gradle` and a `settings.gradle` file. The Wrapper files live alongside in the `gradle` directory and the root directory of the project. The following list explains their purpose.
 
-.Generated Wrapper files
-[options="header"]
-|===
-|File(s)                     |Description
-|`gradle-wrapper.jar`        |The Wrapper JAR file containing code for downloading the Gradle distribution.
-|`gradle-wrapper.properties` |A properties file responsible for configuring the Wrapper runtime behavior e.g. the Gradle version compatible with this version.
-|`gradlew`, `gradlew.bat`    | A shell script and a Windows batch script for executing the build with the Wrapper.
-|===
+`gradle-wrapper.jar`::
+The Wrapper JAR file containing code for downloading the Gradle distribution.
+
+`gradle-wrapper.properties`::
+A properties file responsible for configuring the Wrapper runtime behavior e.g. the Gradle version compatible with this version.
+
+`gradlew`, `gradlew.bat`::
+A shell script and a Windows batch script for executing the build with the Wrapper.
 
 You can go ahead and <<sec:using_wrapper,execute the build with the Wrapper>> without having to install the Gradle runtime. If the project you are working on does not contain those Wrapper files then you’ll need to <<sec:adding_wrapper,generate them>>.
 

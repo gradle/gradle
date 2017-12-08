@@ -62,6 +62,8 @@ interface MavenModule extends Module {
 
     MavenModule dependencyConstraint(Module module)
 
+    MavenModule dependencyConstraint(Map<String, ?> attributes, Module module)
+
     MavenModule hasPackaging(String packaging)
 
     /**

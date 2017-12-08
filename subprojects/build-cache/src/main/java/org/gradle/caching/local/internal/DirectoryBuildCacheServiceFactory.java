@@ -79,12 +79,12 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = cacheRepository
             .cache(target)
-            .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetSizeInMB, BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX))
+            .withCleanup(new FixedSizeOldestCacheCleanup(buildOperationExecutor, targetSizeInMB))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
-        BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(target, BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX);
+        BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(target);
 
         return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, FAILED_READ_SUFFIX);
     }

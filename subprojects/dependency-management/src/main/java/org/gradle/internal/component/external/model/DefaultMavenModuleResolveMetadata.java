@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -139,5 +140,33 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     @Override
     public ImmutableList<MavenDependencyDescriptor> getDependencies() {
         return dependencies;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DefaultMavenModuleResolveMetadata that = (DefaultMavenModuleResolveMetadata) o;
+        return relocated == that.relocated
+            && Objects.equal(dependencies, that.dependencies)
+            && Objects.equal(packaging, that.packaging)
+            && Objects.equal(snapshotTimestamp, that.snapshotTimestamp);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(),
+            dependencies,
+            packaging,
+            relocated,
+            snapshotTimestamp);
     }
 }

@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
@@ -67,22 +66,19 @@ public class GradlePomModuleDescriptorBuilder {
         .put("test", MavenScope.Test)
         .put("system", MavenScope.System)
         .build();
-    private static final String[] WILDCARD = new String[]{"*"};
 
     private final VersionSelectorScheme defaultVersionSelectorScheme;
     private final VersionSelectorScheme mavenVersionSelectorScheme;
 
     private List<MavenDependencyDescriptor> dependencies = Lists.newArrayList();
     private final PomReader pomReader;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private String status;
     private ModuleComponentIdentifier componentIdentifier;
 
-    public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme) {
         this.defaultVersionSelectorScheme = gradleVersionSelectorScheme;
         this.mavenVersionSelectorScheme = mavenVersionSelectorScheme;
         this.pomReader = pomReader;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     public List<MavenDependencyDescriptor> getDependencies() {

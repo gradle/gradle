@@ -42,16 +42,16 @@ public abstract class ConfigurationTargetIdentifier {
         public final String label = name().toLowerCase();
     }
 
-    abstract public Type getTargetType();
+    public abstract Type getTargetType();
 
     /**
      * If type == project, that project's path (not identity path).
      * Else, null.
      */
     @Nullable
-    abstract public String getTargetPath();
+    public abstract String getTargetPath();
 
-    abstract public String getBuildPath();
+    public abstract String getBuildPath();
 
     /**
      * Returns null if the thing is of an unknown type.

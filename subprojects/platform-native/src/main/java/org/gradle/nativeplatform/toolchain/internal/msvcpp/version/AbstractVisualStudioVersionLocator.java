@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-abstract public class AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
+public abstract class AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
     private final List<VisualStudioMetadata> installs = Lists.newArrayList();
     private boolean initialized;
 

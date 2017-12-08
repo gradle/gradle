@@ -31,11 +31,10 @@ class ModuleVersionSpec {
 
     private final List<Object> dependsOn = []
     private final List<Object> constraints = []
+    private final Map<String, Map<String, String>> variants = [:]
     private final List<Closure<?>> withModule = []
     private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
     private List<ArtifactExpectation> expectGetArtifact = []
-
-    private boolean alwaysExpectGradleMetadata
 
     static class ArtifactExpectation {
         final InteractionExpectation type
@@ -58,8 +57,7 @@ class ModuleVersionSpec {
         expectGetArtifact()
     }
 
-    void expectGetMetadata(boolean alwaysExpectGradleMetadata = false) {
-        this.alwaysExpectGradleMetadata = alwaysExpectGradleMetadata
+    void expectGetMetadata() {
         expectGetMetadata << InteractionExpectation.GET
     }
 
@@ -95,6 +93,10 @@ class ModuleVersionSpec {
         expectGetMetadata << InteractionExpectation.MAYBE
     }
 
+    void variant(String variant, Map<String, String> attributes) {
+        variants << [(variant): attributes]
+    }
+
     void dependsOn(coord) {
         dependsOn << coord
     }
@@ -124,7 +126,8 @@ class ModuleVersionSpec {
 
     void build(HttpRepository repository) {
         def module = repository.module(groupId, artifactId, version)
-        def gradleMetadataEnabled = alwaysExpectGradleMetadata || GradleMetadataResolveRunner.isGradleMetadataEnabled()
+        def gradleMetadataEnabled = GradleMetadataResolveRunner.isGradleMetadataEnabled()
+        def newResolveBehaviorEnabled = GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
         if (gradleMetadataEnabled) {
             module.withModuleMetadata()
         }
@@ -133,7 +136,7 @@ class ModuleVersionSpec {
                 case InteractionExpectation.NONE:
                     break
                 case InteractionExpectation.MAYBE:
-                    if (gradleMetadataEnabled) {
+                    if (newResolveBehaviorEnabled) {
                         module.moduleMetadata.allowGetOrHead()
                     } else if (module instanceof MavenModule) {
                         module.pom.allowGetOrHead()
@@ -142,7 +145,10 @@ class ModuleVersionSpec {
                     }
                     break
                 case InteractionExpectation.HEAD:
-                    if (gradleMetadataEnabled) {
+                    if (newResolveBehaviorEnabled && !gradleMetadataEnabled) {
+                        module.moduleMetadata.allowGetOrHead()
+                    }
+                    if (newResolveBehaviorEnabled && gradleMetadataEnabled) {
                         module.moduleMetadata.expectHead()
                     } else if (module instanceof MavenModule) {
                         module.pom.expectHead()
@@ -153,7 +159,7 @@ class ModuleVersionSpec {
                     break
                 case InteractionExpectation.GET_MISSING:
                     // Assume all metadata files are missing
-                    if (gradleMetadataEnabled) {
+                    if (newResolveBehaviorEnabled) {
                         module.moduleMetadata.expectGetMissing()
                     }
 
@@ -164,7 +170,10 @@ class ModuleVersionSpec {
                     }
                     break
                 default:
-                    if (gradleMetadataEnabled) {
+                    if (newResolveBehaviorEnabled && !gradleMetadataEnabled) {
+                        module.moduleMetadata.allowGetOrHead()
+                    }
+                    if (newResolveBehaviorEnabled && gradleMetadataEnabled) {
                         module.moduleMetadata.expectGet()
                     } else if (module instanceof MavenModule) {
                         module.pom.expectGet()
@@ -204,6 +213,12 @@ class ModuleVersionSpec {
                 }
             }
         }
+        if (variants) {
+            variants.each {
+                module.variant(it.key, it.value)
+            }
+        }
+
         if (dependsOn) {
             dependsOn.each {
                 if (it instanceof CharSequence) {

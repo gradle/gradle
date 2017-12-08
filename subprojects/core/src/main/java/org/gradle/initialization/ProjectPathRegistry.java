@@ -28,6 +28,16 @@ public interface ProjectPathRegistry {
     Set<Path> getAllProjectPaths();
 
     /**
+     * Returns an path for every implicit project in a build, including projects from included builds.
+     */
+    Set<Path> getAllImplicitProjectPaths();
+
+    /**
+     * Returns an path for every explicit project in a build, including projects from included builds.
+     */
+    Set<Path> getAllExplicitProjectPaths();
+
+    /**
      * Returns a ProjectComponentIdentifier for the given identity path in this build.
      */
     ProjectComponentIdentifier getProjectComponentIdentifier(Path identityPath);

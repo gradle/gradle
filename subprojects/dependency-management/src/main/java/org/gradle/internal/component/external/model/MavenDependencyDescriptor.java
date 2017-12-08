@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -186,5 +187,34 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
     @Override
     public boolean isOptional() {
         return optional;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        MavenDependencyDescriptor that = (MavenDependencyDescriptor) o;
+        return optional == that.optional
+            && Objects.equal(selector, that.selector)
+            && scope == that.scope
+            && Objects.equal(excludes, that.excludes)
+            && Objects.equal(dependencyArtifact, that.dependencyArtifact)
+            && Objects.equal(moduleConfigurations, that.moduleConfigurations);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(
+            selector,
+            scope,
+            optional,
+            excludes,
+            dependencyArtifact,
+            moduleConfigurations);
     }
 }

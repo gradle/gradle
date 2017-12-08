@@ -1,5 +1,9 @@
 import org.gradle.build.ClasspathManifest
+import org.gradle.build.DefaultJavaInstallation
 import org.gradle.testing.DistributionTest
+
+import org.gradle.internal.jvm.Jvm
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 
 import java.util.jar.Attributes
 
@@ -9,12 +13,27 @@ archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase(
 
 sourceCompatibility = 1.7
 
+def javaInstallationProbe = gradle.services.get(JavaInstallationProbe)
+
 ext {
     compileTasks = tasks.matching { it instanceof JavaCompile || it instanceof GroovyCompile }
     testTasks = tasks.withType(Test)
+    javaInstallationForTest = new DefaultJavaInstallation()
     generatedResourcesDir = file("$buildDir/generated-resources/main")
     generatedTestResourcesDir = file("$buildDir/generated-resources/test")
     jarTasks = tasks.withType(Jar)
+}
+
+if(!hasProperty("testJavaHome")) {
+    ext.testJavaHome = System.getProperty("testJavaHome")
+}
+if (testJavaHome) {
+    def testJavaHomeFile = new File(testJavaHome)
+    javaInstallationForTest.javaHome = testJavaHomeFile
+    javaInstallationProbe.checkJdk(testJavaHomeFile).configure(javaInstallationForTest)
+} else {
+    javaInstallationForTest.javaHome = jvm.javaHome
+    javaInstallationProbe.current(javaInstallationForTest)
 }
 
 dependencies {
@@ -49,12 +68,15 @@ testTasks.all { task ->
             }
         }
     }
-    if (javaVersion.java7) {
+    executable = Jvm.forHome(javaInstallationForTest.javaHome).javaExecutable
+    environment['JAVA_HOME'] = javaInstallationForTest.javaHome.absolutePath
+    if (javaInstallationForTest.javaVersion.java7) {
         // enable class unloading
         task.jvmArgs '-XX:+UseConcMarkSweepGC', '-XX:+CMSClassUnloadingEnabled'
     }
     task.inputs.property('javaInstallation') {
-        currentJavaInstallation.displayName
+        // Includes JVM vendor and major version
+        javaInstallationForTest.displayName
     }
     doFirst {
         if (isCiServer) {

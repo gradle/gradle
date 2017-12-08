@@ -16,11 +16,15 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependenciesMetadata;
+import org.gradle.api.artifacts.DirectDependenciesMetadata;
+import org.gradle.api.artifacts.DependencyConstraintMetadata;
+import org.gradle.api.artifacts.DependencyConstraintsMetadata;
+import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -178,13 +182,25 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     }
 
     @Override
-    public void addDependencyMetadataRule(String variantName, Action<DependenciesMetadata> action,
-                                          Instantiator instantiator, NotationParser<Object, org.gradle.api.artifacts.DependencyMetadata> dependencyNotationParser) {
-        DependencyMetadataRules rulesForVariant = dependencyMetadataRules.get(variantName);
-        if (rulesForVariant == null) {
-            dependencyMetadataRules.put(variantName, new DependencyMetadataRules(instantiator, dependencyNotationParser));
+    public void addDependencyMetadataRule(String variantName, Action<DirectDependenciesMetadata> action, Instantiator instantiator,
+                                          NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
+                                          NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
+        maybeCreateRulesContainer(variantName, instantiator, dependencyNotationParser, dependencyConstraintNotationParser);
+        dependencyMetadataRules.get(variantName).addDependencyAction(action);
+    }
+
+    @Override
+    public void addDependencyConstraintMetadataRule(String variantName, Action<DependencyConstraintsMetadata> action, Instantiator instantiator,
+                                                    NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
+                                                    NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
+        maybeCreateRulesContainer(variantName, instantiator, dependencyNotationParser, dependencyConstraintNotationParser);
+        dependencyMetadataRules.get(variantName).addDependencyConstraintAction(action);
+    }
+
+    private void maybeCreateRulesContainer(String variantName, Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
+        if (!dependencyMetadataRules.containsKey(variantName)) {
+            dependencyMetadataRules.put(variantName, new DependencyMetadataRules(instantiator, dependencyNotationParser, dependencyConstraintNotationParser));
         }
-        dependencyMetadataRules.get(variantName).addAction(action);
     }
 
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {
@@ -295,6 +311,25 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         public String getUri() {
             return uri;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            FileImpl file = (FileImpl) o;
+            return Objects.equal(name, file.name)
+                && Objects.equal(uri, file.uri);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(name, uri);
+        }
     }
 
     protected static class DependencyImpl implements ComponentVariant.Dependency {
@@ -329,6 +364,27 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         public ImmutableList<ExcludeMetadata> getExcludes() {
             return excludes;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            DependencyImpl that = (DependencyImpl) o;
+            return Objects.equal(group, that.group)
+                && Objects.equal(module, that.module)
+                && Objects.equal(versionConstraint, that.versionConstraint)
+                && Objects.equal(excludes, that.excludes);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(group, module, versionConstraint, excludes);
+        }
     }
 
     protected static class DependencyConstraintImpl implements ComponentVariant.DependencyConstraint {
@@ -355,6 +411,26 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         @Override
         public VersionConstraint getVersionConstraint() {
             return versionConstraint;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            DependencyConstraintImpl that = (DependencyConstraintImpl) o;
+            return Objects.equal(group, that.group)
+                && Objects.equal(module, that.module)
+                && Objects.equal(versionConstraint, that.versionConstraint);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(group, module, versionConstraint);
         }
     }
 
@@ -414,5 +490,32 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             return artifacts;
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ImmutableVariantImpl that = (ImmutableVariantImpl) o;
+            return Objects.equal(componentId, that.componentId)
+                && Objects.equal(name, that.name)
+                && Objects.equal(attributes, that.attributes)
+                && Objects.equal(dependencies, that.dependencies)
+                && Objects.equal(dependencyConstraints, that.dependencyConstraints)
+                && Objects.equal(files, that.files);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(componentId,
+                name,
+                attributes,
+                dependencies,
+                dependencyConstraints,
+                files);
+        }
     }
 }

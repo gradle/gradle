@@ -26,7 +26,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputs;
 
 import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
-import static org.gradle.api.internal.tasks.TaskPropertyUtils.checkPropertyName;
 
 @NonNullApi
 public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSupport implements DeclaredTaskInputFileProperty {
@@ -58,7 +57,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
 
     @Override
     public TaskInputFilePropertyBuilderInternal withPropertyName(String propertyName) {
-        this.propertyName = checkPropertyName(propertyName);
+        this.propertyName = propertyName;
         return this;
     }
 

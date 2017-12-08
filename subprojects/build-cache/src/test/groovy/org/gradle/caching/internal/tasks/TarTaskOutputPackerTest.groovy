@@ -39,8 +39,8 @@ import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
-import static OutputType.DIRECTORY
-import static OutputType.FILE
+import static org.gradle.api.internal.tasks.OutputType.DIRECTORY
+import static org.gradle.api.internal.tasks.OutputType.FILE
 
 @CleanupTestDirectory
 class TarTaskOutputPackerTest extends Specification {
@@ -219,6 +219,43 @@ class TarTaskOutputPackerTest extends Specification {
         "space"       | "input file.txt"
         "zwnj"        | "input\u200cfile.txt"
         "url-quoted"  | "input%<file>#2.txt"
+    }
+
+    @Unroll
+    def "can pack output properties having #type characters in name"() {
+        def sourceOutputDir = temporaryFolder.file("source").createDir()
+        def sourceOutputFile = sourceOutputDir.file("output.txt") << "output"
+        def targetOutputDir = temporaryFolder.file("target")
+        def targetOutputFile = targetOutputDir.file("output.txt")
+        def output = new ByteArrayOutputStream()
+        when:
+        pack output, prop(propertyName, DIRECTORY, sourceOutputDir)
+
+        then:
+        noExceptionThrown()
+        1 * fileSystem.getUnixMode(sourceOutputFile) >> 0644
+        0 * _
+
+        when:
+        def input = new ByteArrayInputStream(output.toByteArray())
+        unpack input, prop(propertyName, DIRECTORY, targetOutputDir)
+
+        then:
+        1 * fileSystem.chmod(targetOutputDir, 0755)
+        1 * fileSystem.chmod(targetOutputFile, 0644)
+        then:
+        targetOutputFile.text == "output"
+        0 * _
+
+        where:
+        type          | propertyName
+        "ascii-only"  | "input-file"
+        "chinese"     | "输入文件"
+        "hungarian"   | "Dezső"
+        "space"       | "input file"
+        "zwnj"        | "input\u200cfile"
+        "url-quoted"  | "input%<file>#2"
+        "file-system" | ":input\\/file:"
     }
 
     def "can pack task output with all optional, null outputs"() {

@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
@@ -229,5 +230,37 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     @Override
     public ImmutableList<IvyDependencyDescriptor> getDependencies() {
         return dependencies;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DefaultIvyModuleResolveMetadata that = (DefaultIvyModuleResolveMetadata) o;
+        return Objects.equal(dependencies, that.dependencies)
+            && Objects.equal(artifactDefinitions, that.artifactDefinitions)
+            && Objects.equal(excludes, that.excludes)
+            && Objects.equal(extraAttributes, that.extraAttributes)
+            && Objects.equal(branch, that.branch)
+            && Objects.equal(artifacts, that.artifacts);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(),
+            dependencies,
+            artifactDefinitions,
+            excludes,
+            extraAttributes,
+            branch,
+            artifacts);
     }
 }

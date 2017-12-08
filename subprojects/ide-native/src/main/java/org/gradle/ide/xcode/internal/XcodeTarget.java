@@ -16,14 +16,17 @@
 
 package org.gradle.ide.xcode.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 
 import javax.inject.Inject;
+import java.util.List;
 
 /**
  * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Schemes.html">XCode Scheme Concept</a>
@@ -34,6 +37,7 @@ public class XcodeTarget implements Named {
     private final ConfigurableFileCollection headerSearchPaths;
     private final ConfigurableFileCollection compileModules;
     private final ConfigurableFileCollection sources;
+    private final List<TaskDependency> taskDependencies = Lists.newArrayList();
     private String taskName;
     private String gradleCommand;
 
@@ -129,5 +133,13 @@ public class XcodeTarget implements Named {
 
     public ConfigurableFileCollection getCompileModules() {
         return compileModules;
+    }
+
+    public void addTaskDependency(TaskDependency taskDependency) {
+        taskDependencies.add(taskDependency);
+    }
+
+    public List<TaskDependency> getTaskDependencies() {
+        return taskDependencies;
     }
 }

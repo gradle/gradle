@@ -26,15 +26,21 @@
     <xsl:param name="use.extensions">1</xsl:param>
     <xsl:param name="toc.section.depth">1</xsl:param>
     <xsl:param name="toc.max.depth">2</xsl:param>
-    <xsl:param name="section.autolabel">1</xsl:param>
-    <xsl:param name="section.autolabel.max.depth">2</xsl:param>
-    <xsl:param name="section.label.includes.component.label">1</xsl:param>
+    <xsl:param name="part.autolabel">0</xsl:param>
+    <xsl:param name="chapter.autolabel">0</xsl:param>
+    <xsl:param name="section.autolabel">0</xsl:param>
+    <xsl:param name="preface.autolabel">0</xsl:param>
+    <xsl:param name="figure.autolabel">0</xsl:param>
+    <xsl:param name="example.autolabel">0</xsl:param>
+    <xsl:param name="table.autolabel">0</xsl:param>
+    <xsl:param name="xref.with.number.and.title">0</xsl:param>
     <xsl:param name="css.decoration">0</xsl:param>
     <xsl:param name="highlight.source" select="1"/>
 
     <!-- Use custom style sheet content -->
     <xsl:param name="html.stylesheet">DUMMY</xsl:param>
     <xsl:template name="output.html.stylesheets">
+        <link rel="preconnect" href="//assets.gradle.com" crossorigin="crossorigin"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
         <link href="base.css" rel="stylesheet" type="text/css"/>
         <link href="docs.css" rel="stylesheet" type="text/css"/>

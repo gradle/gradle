@@ -23,7 +23,6 @@ import com.google.gson.stream.JsonToken;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
@@ -33,7 +32,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -245,7 +243,7 @@ public class ModuleMetadataParser {
 
     private ImmutableVersionConstraint consumeVersion(JsonReader reader) throws IOException {
         reader.beginObject();
-        String preferred = null;
+        String preferred = "";
         List<String> rejects = Lists.newArrayList();
         while (reader.peek() != END_OBJECT) {
             String cst = reader.nextName();
@@ -317,13 +315,7 @@ public class ModuleMetadataParser {
         reader.beginObject();
         while (reader.peek() != END_OBJECT) {
             String attrName = reader.nextName();
-            if (ProjectInternal.STATUS_ATTRIBUTE.getName().equals(attrName)) {
-                String attrValue = reader.nextString();
-                attributes = attributesFactory.concat(attributes, Attribute.of(attrName, String.class), attrValue);
-            } else if (attrName.equals(Usage.USAGE_ATTRIBUTE.getName())) {
-                String attrValue = reader.nextString();
-                attributes = attributesFactory.concat(attributes, Attribute.of(attrName, Usage.class), instantiator.named(Usage.class, attrValue));
-            } else if (reader.peek() == BOOLEAN) {
+            if (reader.peek() == BOOLEAN) {
                 boolean attrValue = reader.nextBoolean();
                 attributes = attributesFactory.concat(attributes, Attribute.of(attrName, Boolean.class), attrValue);
             } else {

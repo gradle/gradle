@@ -39,10 +39,6 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     private final List<ExcludeMetadata> excludes;
     private final boolean pending;
 
-    public GradleDependencyMetadata(ModuleComponentSelector selector) {
-        this(selector, false);
-    }
-
     public GradleDependencyMetadata(ModuleComponentSelector selector, boolean pending) {
         this.selector = selector;
         this.excludes = Collections.emptyList();
@@ -65,13 +61,13 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
         if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion));
+        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion), pending);
     }
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
-            return new GradleDependencyMetadata((ModuleComponentSelector) target);
+            return new GradleDependencyMetadata((ModuleComponentSelector) target, pending);
         }
         return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
     }
