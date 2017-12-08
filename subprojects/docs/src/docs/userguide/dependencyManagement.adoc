@@ -50,12 +50,12 @@ Both tools rely on descriptor XML files, which contain information about the dep
 [[sec:declaring_dependencies]]
 === Declaring dependencies
 
-Gradle builds can declare dependencies on external binaries providing additional metadata, raw files and other Gradle projects as described below. Check out the <<dependency_types,full reference on all types of dependencies>> for more information.
+Gradle builds can declare dependencies on external binaries, raw files and other Gradle projects. You can find examples for each scenario below. Please also check out the <<dependency_types,full reference on all types of dependencies>> for more information.
 
 [[sec:declaring_binary_dependency]]
 ==== Declaring a binary dependency
 
-Modern software projects rarely build code in isolation. Projects reference external libraries for the purpose of reusing existing and proven functionality, so-called _binary dependencies_. A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework] for the purpose of supporting dependency injection and web functionality out-of-the-box. Upon resolution binary dependencies are downloaded from dedicated repositories and stored in a cache to avoid unnecessary network access.
+Modern software projects rarely build code in isolation. Projects reference external libraries for the purpose of reusing existing and proven functionality, so-called _binary dependencies_. A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework]. Spring supports a variety of features, from dependency injection to web functionality. Upon resolution binary dependencies are downloaded from dedicated repositories and stored in a cache to avoid unnecessary network traffic.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -68,7 +68,7 @@ Modern software projects rarely build code in isolation. Projects reference exte
 
 ===== Declaring a concrete version of a binary dependency
 
-The code snippet below declares a compile-time dependency on the Spring web module by its coordinates `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the dependency including its transitive dependencies at runtime from the Maven Central repository and uses it to compile Java source code. The version attribute of the dependency coordinates points to a concrete version which doesn't change over time. The use of concrete versions ensures reproducibility when it comes to dependency resolution.
+The code snippet below declares a compile-time dependency on the Spring web module by its coordinates: `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the dependency including its transitive dependencies at runtime from the link:https://search.maven.org/[Maven Central repository] and uses it to compile Java source code. The version attribute of the dependency coordinates points to a _concrete version_ indicating that the underlying artifacts don't change over time. The use of concrete versions ensures reproducibility for the aspect of dependency resolution.
 
 ++++
 <sample id="binary-dependencies-concrete-version" dir="userguide/dependencies/declaringBinaryDependenciesWithConcreteVersion" title="Declaring a binary dependencies with a concrete version">
@@ -76,11 +76,16 @@ The code snippet below declares a compile-time dependency on the Spring web modu
 </sample>
 ++++
 
-A Gradle project can define other types of repositories hosting binary dependencies. You can learn more about the syntax and API for <<sec:repositories,declaring repositories>>. Please refer to <<java_plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for binary dependencies declarations is <<sec:customizing_dependencies,highly customizable>>.
+A Gradle project can define other types of repositories hosting binary dependencies. You can learn more about the syntax and API for <<sec:repositories,declaring repositories>> below. Please refer to <<java_plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for binary dependencies declarations is <<sec:customizing_dependencies,highly customizable>>.
 
 ===== Declaring a dynamic version of a binary dependency
 
-There are use cases in a project that require a different approach for declaring binaries dependency versions. You might want to always integrate the latest version of a dependency to consume the latest features. A dynamic versions allows for resolving the latest version or the latest version of a version range. Using dynamic versions in a build bears the risk of breaking the build as soon as a new version of the dependency is released containing an incompatible API change in regards to your source code.
+Projects might adopt a more aggressive approach for consuming binary dependencies. For example you might want to always integrate the latest version of a dependency to consume cutting edge features at any given time. A _dynamic version_ allows for resolving the latest version or the latest version of a version range for a given dependency.
+
+[NOTE]
+====
+Using dynamic versions in a build bears the risk of potentially breaking it. As soon as a new version of the dependency is released that contains an incompatible API change your source code might stop compiling.
+====
 
 ++++
 <sample id="binary-dependencies-dynamic-version" dir="userguide/dependencies/declaringBinaryDependenciesWithDynamicVersion" title="Declaring a binary dependencies with a dynamic version">
@@ -88,13 +93,13 @@ There are use cases in a project that require a different approach for declaring
 </sample>
 ++++
 
-By default Gradle caches dynamic versions of dependencies for 24 hours. The <<sec:controlling_caching,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
+By default, Gradle caches dynamic versions of dependencies for 24 hours. The <<sec:controlling_caching,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
 
 ===== Declaring a changing version of a binary dependency
 
-A team might to decide to implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an ad-hoc version of their artifacts early and often, the project can release a so-called changing version. A changing version indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
+A team might to decide to implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an ad-hoc version of their artifacts early and often is to release a so-called _changing version_. A changing version indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
 
-In Maven repositories changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version[snapshot versions]. Snapshot versions contain the suffix `-SNAPSHOT`. The following example demonstrates how to declare a snapshot version of the Spring dependency.
+In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version[snapshot versions]. Snapshot versions contain the suffix `-SNAPSHOT`. The following example demonstrates how to declare a snapshot version on the Spring dependency.
 
 ++++
 <sample id="binary-dependencies-changing-version" dir="userguide/dependencies/declaringBinaryDependenciesWithChangingVersion" title="Declaring a binary dependencies with a changing version">
@@ -102,25 +107,25 @@ In Maven repositories changing versions are commonly referred to as link:https:/
 </sample>
 ++++
 
-By default Gradle caches changing versions of dependencies for 24 hours. The <<sec:controlling_caching,threshold can be configured>> as needed for example if you want to resolve new snapshot versions earlier.
+By default, Gradle caches changing versions of dependencies for 24 hours. The <<sec:controlling_caching,threshold can be configured>> as needed for example if you want to resolve new snapshot versions earlier.
 
-Gradle is flexible enough to treat any version as changing version. All you need to do is to set the property api:org.gradle.api.artifacts.ExternalModuleDependency#setChanging(boolean) to `true`.
+Gradle is flexible enough to treat any version as changing version. All you need to do is to set the property api:org.gradle.api.artifacts.ExternalModuleDependency#setChanging(boolean)[] to `true`.
 
 [[sec:declaring_file_dependency]]
 ==== Declaring a file dependency
 
-For historical reasons legacy projects often times do not rely on a binary repository product e.g. link:https://www.jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/nexus-repository-sonatype/[Sonatype Nexus] for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_ the reason being that they represent a file without any metadata (like information about transitive dependencies, the origin or its author) attached to it.
+For historical reasons, legacy projects often times do not rely on a binary repository product e.g. link:https://www.jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/nexus-repository-sonatype/[Sonatype Nexus] for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_, the reason being that they represent a files without any metadata (like information about transitive dependencies, the origin or its author) attached to them.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Resolving binary dependencies from remote repositories</title>
+    <title>Resolving file dependencies from the local file system and a shared drive</title>
     <imageobject>
         <imagedata fileref="img/dependency-management-file-dependencies.png" width="140mm" />
     </imageobject>
 </figure>
 +++++
 
-Gradle is not limited to resolving module or project dependencies. It can also declare a dependency on just a file. The following example resolves file dependencies from the directories `ant`, `libs` and `tools`.
+The following example resolves file dependencies from the directories `ant`, `libs` and `tools`.
 
 ++++
 <sample id="file-dependencies" dir="userguide/dependencies/declaringFileDependencies" title="Declaring multiple file dependencies">
@@ -128,14 +133,14 @@ Gradle is not limited to resolving module or project dependencies. It can also d
 </sample>
 ++++
 
-As you can see in the code example, every dependency has to define its exact location in the file system. The most prominent methods for creating a file reference are api:org.gradle.api.Project#file(java.lang.Object)[], api:org.gradle.api.Project#files(java.lang.Object...)[] and api:org.gradle.api.Project#fileTree(java.lang.Object)[]. Alternatively, you can also define the target directory of one or many file dependencies in the form of a <<sec:flat_dir_resolver,flat directory repository>>.
+As you can see in the code example, every dependency has to define its exact location in the file system. The most prominent methods for creating a file reference are api:org.gradle.api.Project#files(java.lang.Object...)[] and api:org.gradle.api.Project#fileTree(java.lang.Object)[]. Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<sec:flat_dir_resolver,flat directory repository>>.
 
 [[sec:declaring_project_dependency]]
 ==== Declaring a project dependency
 
-Software projects often break down software components into modules to support maintainability and prevent strong coupling. Modules can define dependencies between each other to reuse code within the same project.
+Software projects often break up software components into modules to improve maintainability and prevent strong coupling. Modules can define dependencies between each other to reuse code within the same project.
 
-Gradle can model dependencies between modules. Gradle calls those dependencies _project dependencies_ because each module is represented by a Gradle project. At runtime, the build automatically ensures that project dependencies are built in the correct order and added to the classpath for compilation. <<multi_project_builds>> discusses setting up and configuring multi-project builds in more detail.
+Gradle can model dependencies between modules. Those dependencies are called _project dependencies_ because each module is represented by a Gradle project. At runtime, the build automatically ensures that project dependencies are built in the correct order and added to the classpath for compilation. The chapter <<multi_project_builds>> discusses how to set up and configure multi-project builds in more detail.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -146,7 +151,7 @@ Gradle can model dependencies between modules. Gradle calls those dependencies _
 </figure>
 +++++
 
-The following example declares the dependencies on the `utils` and `api` project for the `web-service` project. The method api:org.gradle.api.Project#project(java.lang.String)[] creates a reference to a specific subproject by path.
+The following example declares the dependencies on the `utils` and `api` project from the `web-service` project. The method api:org.gradle.api.Project#project(java.lang.String)[] creates a reference to a specific subproject by path.
 
 ++++
 <sample id="project-dependencies" dir="userguide/dependencies/declaringProjectDependencies" title="Declaring project dependencies">
@@ -159,7 +164,7 @@ The following example declares the dependencies on the `utils` and `api` project
 
 Every dependency declared for a Gradle project applies to a specific scope. For example some dependencies should be used for compiling source code whereas others only need to be available at runtime. Gradle represents the scope of a dependency with the help of a api:org.gradle.api.artifacts.Configuration[].
 
-Many Gradle plugins add pre-defined configurations to your project. The Java plugin, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests and the like. Please see <<sec:java_plugin_and_dependency_management>> for an overview. The sections above on <<sec:declaring_dependencies,declaring dependencies>> demonstrate the use of configurations for various use cases.
+Many Gradle plugins add pre-defined configurations to your project. The Java plugin, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests and the like. Please see <<sec:java_plugin_and_dependency_management>> for an overview. The sections above demonstrate how to <<sec:declaring_dependencies,declare dependencies>> for different use cases.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -170,7 +175,9 @@ Many Gradle plugins add pre-defined configurations to your project. The Java plu
 </figure>
 +++++
 
-You can also define configurations yourself, so-called _custom configurations_. A custom configuration is useful for separating the scope of dependencies needed for a dedicated purpose. Let's say you wanted to declare a dependency on the link:https://tomcat.apache.org/tomcat-9.0-doc/jasper-howto.html[Jasper Ant task] for the purpose of pre-compiling JSP files that should _not_ end up in the classpath for compiling your source code.
+You can also define configurations yourself, so-called _custom configurations_. A custom configuration is useful for separating the scope of dependencies needed for a dedicated purpose.
+
+Let's say you wanted to declare a dependency on the link:https://tomcat.apache.org/tomcat-9.0-doc/jasper-howto.html[Jasper Ant task] for the purpose of pre-compiling JSP files that should _not_ end up in the classpath for compiling your source code. It's fairly simply to achieve that goal by introducing a custom configuration and using it in a task as shown in the code snippet below.
 
 ++++
 <sample id="custom-configuration" dir="userguide/dependencies/declaringCustomConfigurations" title="Declaring and using a custom configuration">
