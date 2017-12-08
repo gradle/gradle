@@ -39,15 +39,12 @@ class SingleArtifactResolutionResultSpec<T extends Module> {
         expectedFileNames = fileNames.sort()
     }
 
-    void shouldFail() {
-        shouldFail(null)
-    }
-
-    void shouldFail(@DelegatesTo(value=ExecutionFailure, strategy = Closure.DELEGATE_FIRST) Closure<?> onFailure) {
+    void shouldFail(@DelegatesTo(value = ExecutionFailure, strategy = Closure.DELEGATE_FIRST) Closure<?> onFailure) {
         expectSuccess = false
-        if (onFailure) {
-            failureExpectations << onFailure
+        if (onFailure == null) {
+            throw new IllegalArgumentException("Please provide an explanation for the failure")
         }
+        failureExpectations << onFailure
     }
 
     void noComponentPublished() {
