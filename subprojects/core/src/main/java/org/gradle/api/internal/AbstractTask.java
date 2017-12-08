@@ -200,10 +200,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void visitProperties(PropertyVisitor visitor) {
         propertyWalker.visitProperties(specFactory, visitor, this);
-        getInputs().visitRuntimeProperties(visitor);
+        getInputs().visitRegisteredProperties(visitor);
         getOutputs().visitRuntimeProperties(visitor);
-        ((TaskDestroyablesInternal) getDestroyables()).visitRuntimeProperties(visitor);
-        ((TaskLocalStateInternal) getLocalState()).visitRuntimeProperties(visitor);
+        ((TaskDestroyablesInternal) getDestroyables()).visitRegisteredProperties(visitor);
+        ((TaskLocalStateInternal) getLocalState()).visitRegisteredProperties(visitor);
     }
 
     @Override

@@ -29,7 +29,7 @@ public interface TaskInputsInternal extends TaskInputs {
     /**
      * Calls the corresponding visitor methods for all inputs added via the runtime API.
      */
-    void visitRuntimeProperties(PropertyVisitor visitor);
+    void visitRegisteredProperties(PropertyVisitor visitor);
 
     ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
 

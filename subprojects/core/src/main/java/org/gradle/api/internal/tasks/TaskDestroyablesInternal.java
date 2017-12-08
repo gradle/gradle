@@ -28,7 +28,7 @@ public interface TaskDestroyablesInternal extends TaskDestroyables {
     /**
      * Calls the corresponding visitor methods for all destroyables added via the runtime API.
      */
-    void visitRuntimeProperties(PropertyVisitor visitor);
+    void visitRegisteredProperties(PropertyVisitor visitor);
 
     FileCollection getFiles();
 

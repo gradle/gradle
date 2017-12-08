@@ -38,7 +38,7 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
     private final TaskMutator taskMutator;
     private final PropertyWalker propertyWalker;
     private final PropertySpecFactory specFactory;
-    private final List<Object> paths = Lists.newArrayList();
+    private final List<Object> registeredPaths = Lists.newArrayList();
 
     public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PropertySpecFactory specFactory) {
         this.resolver = resolver;
@@ -54,7 +54,7 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
         taskMutator.mutate("TaskDestroys.files(Object...)", new Runnable() {
             @Override
             public void run() {
-                Collections.addAll(DefaultTaskDestroyables.this.paths, paths);
+                Collections.addAll(DefaultTaskDestroyables.this.registeredPaths, paths);
             }
         });
     }
@@ -65,7 +65,7 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
         taskMutator.mutate("TaskDestroys.file(Object...)", new Runnable() {
             @Override
             public void run() {
-                paths.add(path);
+                registeredPaths.add(path);
             }
         });
     }
@@ -75,19 +75,19 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
         taskMutator.mutate("TaskDestroys.register(Object...)", new Runnable() {
             @Override
             public void run() {
-                Collections.addAll(DefaultTaskDestroyables.this.paths, paths);
+                Collections.addAll(DefaultTaskDestroyables.this.registeredPaths, paths);
             }
         });
     }
 
     private void visitAllProperties(PropertyVisitor visitor) {
         propertyWalker.visitProperties(specFactory, visitor, task);
-        visitRuntimeProperties(visitor);
+        visitRegisteredProperties(visitor);
     }
 
     @Override
-    public void visitRuntimeProperties(PropertyVisitor visitor) {
-        for (Object path : paths) {
+    public void visitRegisteredProperties(PropertyVisitor visitor) {
+        for (Object path : registeredPaths) {
             visitor.visitDestroyableProperty(path);
         }
     }

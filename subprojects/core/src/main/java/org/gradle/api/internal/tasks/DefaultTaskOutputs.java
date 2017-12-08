@@ -62,7 +62,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private TaskExecutionHistory history;
-    private final List<DeclaredTaskOutputFileProperty> declaredRuntimeFileProperties = Lists.newArrayList();
+    private final List<DeclaredTaskOutputFileProperty> registeredFileProperties = Lists.newArrayList();
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
@@ -81,8 +81,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public void visitRuntimeProperties(PropertyVisitor visitor) {
-        TaskPropertyUtils.ensurePropertiesHaveNames(declaredRuntimeFileProperties);
-        for (DeclaredTaskOutputFileProperty fileProperty : declaredRuntimeFileProperties) {
+        TaskPropertyUtils.ensurePropertiesHaveNames(registeredFileProperties);
+        for (DeclaredTaskOutputFileProperty fileProperty : registeredFileProperties) {
             visitor.visitOutputFileProperty(fileProperty);
         }
     }
@@ -218,7 +218,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             public TaskOutputFilePropertyBuilder call() throws Exception {
                 StaticValue value = new StaticValue(path);
                 DeclaredTaskOutputFileProperty outputFileSpec = specFactory.createOutputFileSpec(value);
-                declaredRuntimeFileProperties.add(outputFileSpec);
+                registeredFileProperties.add(outputFileSpec);
                 return outputFileSpec;
             }
         });
@@ -231,7 +231,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             public TaskOutputFilePropertyBuilder call() throws Exception {
                 StaticValue value = new StaticValue(path);
                 DeclaredTaskOutputFileProperty outputDirSpec = specFactory.createOutputDirSpec(value);
-                declaredRuntimeFileProperties.add(outputDirSpec);
+                registeredFileProperties.add(outputDirSpec);
                 return outputDirSpec;
             }
         });
@@ -244,7 +244,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             public TaskOutputFilePropertyBuilder call() throws Exception {
                 StaticValue value = new StaticValue(resolveSingleArray(paths));
                 DeclaredTaskOutputFileProperty outputFilesSpec = specFactory.createOutputFilesSpec(value);
-                declaredRuntimeFileProperties.add(outputFilesSpec);
+                registeredFileProperties.add(outputFilesSpec);
                 return outputFilesSpec;
             }
         });
@@ -257,7 +257,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             public TaskOutputFilePropertyBuilder call() throws Exception {
                 StaticValue value = new StaticValue(resolveSingleArray(paths));
                 DeclaredTaskOutputFileProperty outputDirsSpec = specFactory.createOutputDirsSpec(value);
-                declaredRuntimeFileProperties.add(outputDirsSpec);
+                registeredFileProperties.add(outputDirsSpec);
                 return outputDirsSpec;
             }
         });

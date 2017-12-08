@@ -52,8 +52,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
     private final PropertyWalker propertyWalker;
-    private final List<DeclaredTaskInputProperty> runtimeProperties = Lists.newArrayList();
-    private final List<DeclaredTaskInputFileProperty> runtimeFileProperties = Lists.newArrayList();
+    private final List<DeclaredTaskInputProperty> registeredProperties = Lists.newArrayList();
+    private final List<DeclaredTaskInputFileProperty> registeredFileProperties = Lists.newArrayList();
     private final TaskInputs deprecatedThis;
     private final PropertySpecFactory specFactory;
 
@@ -77,16 +77,16 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     private void visitAllProperties(PropertyVisitor visitor) {
         propertyWalker.visitProperties(specFactory, visitor, task);
-        visitRuntimeProperties(visitor);
+        visitRegisteredProperties(visitor);
     }
 
     @Override
-    public void visitRuntimeProperties(PropertyVisitor visitor) {
-        ensurePropertiesHaveNames(runtimeFileProperties);
-        for (DeclaredTaskInputFileProperty fileProperty : runtimeFileProperties) {
+    public void visitRegisteredProperties(PropertyVisitor visitor) {
+        ensurePropertiesHaveNames(registeredFileProperties);
+        for (DeclaredTaskInputFileProperty fileProperty : registeredFileProperties) {
             visitor.visitInputFileProperty(fileProperty);
         }
-        for (DeclaredTaskInputProperty inputProperty : runtimeProperties) {
+        for (DeclaredTaskInputProperty inputProperty : registeredProperties) {
             visitor.visitInputProperty(inputProperty);
         }
     }
@@ -120,7 +120,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(unpackVarargs(paths));
                 DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(value, ValidationActions.NO_OP);
-                runtimeFileProperties.add(fileSpec);
+                registeredFileProperties.add(fileSpec);
                 return fileSpec;
             }
         });
@@ -140,7 +140,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(path);
                 DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(value, RUNTIME_INPUT_FILE_VALIDATOR);
-                runtimeFileProperties.add(fileSpec);
+                registeredFileProperties.add(fileSpec);
                 return fileSpec;
             }
         });
@@ -153,7 +153,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(dirPath);
                 DeclaredTaskInputFileProperty dirSpec = specFactory.createInputDirSpec(value, RUNTIME_INPUT_DIRECTORY_VALIDATOR);
-                runtimeFileProperties.add(dirSpec);
+                registeredFileProperties.add(dirSpec);
                 return dirSpec;
             }
         });
@@ -204,7 +204,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             public TaskInputPropertyBuilder call() {
                 StaticValue staticValue = new StaticValue(value);
                 DefaultTaskInputPropertySpec inputPropertySpec = specFactory.createInputPropertySpec(name, staticValue);
-                runtimeProperties.add(inputPropertySpec);
+                registeredProperties.add(inputPropertySpec);
                 return inputPropertySpec;
             }
         });
@@ -218,7 +218,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 for (Map.Entry<String, ?> entry : newProps.entrySet()) {
                     StaticValue staticValue = new StaticValue(entry.getValue());
                     String name = entry.getKey();
-                    runtimeProperties.add(specFactory.createInputPropertySpec(name, staticValue));
+                    registeredProperties.add(specFactory.createInputPropertySpec(name, staticValue));
                 }
             }
         });

@@ -26,7 +26,7 @@ public interface TaskLocalStateInternal extends TaskLocalState {
     /**
      * Calls the corresponding visitor methods for all local states added via the runtime API.
      */
-    void visitRuntimeProperties(PropertyVisitor visitor);
+    void visitRegisteredProperties(PropertyVisitor visitor);
 
     FileCollection getFiles();
 
