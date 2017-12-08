@@ -18,39 +18,39 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftMainWithCppDep extends SourceFileElement implements AppElement {
-    final GreeterElement greeter
-    final SwiftSum sum
+class SwiftLibWithCppDep extends SwiftSourceElement implements GreeterElement, SumElement, MultiplyElement {
+    final greeter
+    final sum
+    final multiply
 
-    SwiftMainWithCppDep(GreeterElement greeter) {
-        this(greeter, new SwiftSum())
+    SwiftLibWithCppDep(GreeterElement cppGreeter) {
+        this("greeter", cppGreeter)
     }
 
-    SwiftMainWithCppDep(GreeterElement greeter, SwiftSum sum) {
-        this.greeter = greeter
-        this.sum = sum
-    }
-
-    SourceFile sourceFile = sourceFile("swift", "main.swift", """
-        import cppGreeter
-        
-        // Simple hello world app
-        func main() -> Int {
-          sayGreeting()
-          print(sum(a: 5, b: 7), terminator: "")
-          return 0
-        }
-
-        _ = main()
-    """)
-
-    @Override
-    String getExpectedOutput() {
-        return greeter.expectedOutput + sum.sum(5, 7)
+    SwiftLibWithCppDep(String projectName, GreeterElement cppGreeter) {
+        super(projectName)
+        greeter = new SwiftGreeterUsingCppFunction(cppGreeter)
+        sum = new SwiftSum()
+        multiply = new SwiftMultiply()
     }
 
     @Override
     List<SourceFile> getFiles() {
-        return super.getFiles() + sum.getFiles()
+        return [greeter.sourceFile, sum.sourceFile, multiply.sourceFile]
+    }
+
+    @Override
+    String getExpectedOutput() {
+        return greeter.expectedOutput
+    }
+
+    @Override
+    int sum(int a, int b) {
+        return sum.sum(a, b)
+    }
+
+    @Override
+    int multiply(int a, int b) {
+        return multiply.multiply(a, b)
     }
 }

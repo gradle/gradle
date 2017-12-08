@@ -19,9 +19,13 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
+import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithDep
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraryTest
+import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
+import org.gradle.nativeplatform.fixtures.app.SwiftSum
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -156,6 +160,80 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         then:
         resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease',
             ':log:stripSymbolsRelease', ':log:compileReleaseSwift', ':log:linkRelease', ':hello:_xcode___Hello_Release')
+    }
+
+    def "can create xcode project for Swift application with dependency on c++ library"() {
+        def cppGreeter = new CppGreeterFunction()
+        def swiftGreeter = new SwiftGreeterUsingCppFunction(cppGreeter)
+        def sumLibrary = new SwiftSum()
+        def app = new SwiftAppWithDep(swiftGreeter, sumLibrary)
+        app.main.greeterModule = "Hello"
+
+        given:
+        settingsFile.text =  """
+            include 'app', 'cppGreeter', 'hello'
+            rootProject.name = "${rootProjectName}"
+        """
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                dependencies {
+                    api project(':cppGreeter')
+                }
+            }
+            project(':cppGreeter') {
+                apply plugin: 'cpp-library'
+            }
+        """
+        swiftGreeter.writeToProject(file("hello"))
+        cppGreeter.asLib().writeToProject(file("cppGreeter"))
+        sumLibrary.writeToProject(file("app"))
+        app.writeToProject(file("app"))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
+            ":cppGreeter:xcodeProject", ":cppGreeter:xcodeProjectWorkspaceSettings", ":cppGreeter:xcodeSchemeCppGreeterSharedLibrary", ":cppGreeter:xcode",
+            ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeSchemeHelloSharedLibrary", ":hello:xcode",
+            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'cppGreeter/cppGreeter.xcodeproj', 'hello/hello.xcodeproj')
+
+        def appProject = xcodeProject("app/app.xcodeproj").projectFile
+        appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("hello/build/modules/main/debug"), file("cppGreeter/build/map"))
+        def helloProject = xcodeProject("hello/hello.xcodeproj").projectFile
+        helloProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("cppGreeter/build/map"))
+
+        when:
+        def resultDebugApp = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('App Executable')
+            .succeeds()
+
+        then:
+        resultDebugApp.assertTasksExecuted(":cppGreeter:generateModuleMap", ":cppGreeter:dependDebugCpp", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ':hello:compileDebugSwift', ':hello:linkDebug',
+            ':app:compileDebugSwift', ':app:linkDebug', ':app:_xcode___App_Debug')
+
+        when:
+        def resultReleaseHello = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('Hello SharedLibrary')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
+            .succeeds()
+
+        then:
+        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease',
+            ":cppGreeter:generateModuleMap", ":cppGreeter:dependReleaseCpp", ":cppGreeter:compileReleaseCpp", ":cppGreeter:linkRelease", ":cppGreeter:stripSymbolsRelease",
+            ':hello:_xcode___Hello_Release')
     }
 
     def "can clean xcode project with transitive dependencies"() {

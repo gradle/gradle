@@ -20,15 +20,17 @@ import org.gradle.integtests.fixtures.SourceFile
 
 class SwiftGreeterUsingCppFunction extends SourceFileElement implements GreeterElement {
     final GreeterElement cppGreeter
+    final String moduleName
 
-    SwiftGreeterUsingCppFunction(GreeterElement cppGreeter) {
+    SwiftGreeterUsingCppFunction(GreeterElement cppGreeter, String moduleName = 'cppGreeter') {
         this.cppGreeter = cppGreeter
+        this.moduleName = moduleName
     }
 
     @Override
     SourceFile getSourceFile() {
         sourceFile("swift", "greeter.swift", """
-            import cppGreeter
+            import ${moduleName}
 
             public class Greeter {
                 public init() {}

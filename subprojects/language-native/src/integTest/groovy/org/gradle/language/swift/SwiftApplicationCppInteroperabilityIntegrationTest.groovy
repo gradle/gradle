@@ -16,59 +16,19 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
-import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
 import org.gradle.nativeplatform.fixtures.app.CppLogger
-
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithDep
 import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftMainWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftSum
 
-import static org.junit.Assume.assumeTrue
-
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
-class SwiftApplicationMixedLanguageIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
-        def swiftToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFT)
-        def cppToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.CLANG)
-        assumeTrue(swiftToolChain != null && swiftToolChain.isAvailable())
-        assumeTrue(cppToolChain != null && cppToolChain.isAvailable())
-
-        File initScript = file("init.gradle") << """
-        allprojects { p ->        
-            p.plugins.withType(${swiftToolChain.pluginClass}) {
-                model {
-                    toolChains {
-                        ${swiftToolChain.buildScriptConfig}
-                    }
-                }
-            }
-            p.plugins.withType(${cppToolChain.pluginClass}) {
-                model {
-                    toolChains {
-                        ${cppToolChain.buildScriptConfig}
-                    }
-                }
-            }
-        }
-        """
-        executer.beforeExecute({
-            usingInitScript(initScript)
-        })
-    }
-
+class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     def "can compile and link against a c++ library"() {
         settingsFile << "include 'app', 'cppGreeter'"
         def cppGreeter = new CppGreeterFunction()
-        def sumLibrary = new SwiftSum()
-        def app = new SwiftMainWithCppDep(cppGreeter, sumLibrary)
+        def app = new SwiftMainWithCppDep(cppGreeter)
 
         given:
         buildFile << """
@@ -83,7 +43,6 @@ class SwiftApplicationMixedLanguageIntegrationTest extends AbstractIntegrationSp
             }
         """
         app.writeToProject(file("app"))
-        sumLibrary.writeToProject(file("app"))
         cppGreeter.asLib().writeToProject(file("cppGreeter"))
 
         expect:
@@ -139,22 +98,14 @@ class SwiftApplicationMixedLanguageIntegrationTest extends AbstractIntegrationSp
         settingsFile << "include 'app', 'greeter', 'cppGreeter', ':logger'"
         def logger = new CppLogger()
         def cppGreeter = new CppGreeterFunctionUsesLogger()
-        def swiftGreeter = new SwiftGreeterUsingCppFunction(cppGreeter)
-        def sumLibrary = new SwiftSum()
-        def app = new SwiftAppWithDep(swiftGreeter, sumLibrary)
+        def app = new SwiftMainWithCppDep(cppGreeter)
 
         given:
         buildFile << """
             project(':app') {
                 apply plugin: 'swift-application'
                 dependencies {
-                    implementation project(':greeter')
-                }
-            }
-            project(':greeter') {
-                apply plugin: 'swift-library'
-                dependencies {
-                    api project(':cppGreeter')
+                    implementation project(':cppGreeter')
                 }
             }
             project(':cppGreeter') {
@@ -167,24 +118,17 @@ class SwiftApplicationMixedLanguageIntegrationTest extends AbstractIntegrationSp
                 apply plugin: 'cpp-library'
             }
         """
-        swiftGreeter.writeToProject(file("greeter"))
         app.writeToProject(file("app"))
-        sumLibrary.writeToProject(file("app"))
         cppGreeter.asLib().writeToProject(file("cppGreeter"))
         logger.asLib().writeToProject(file("logger"))
 
         expect:
         succeeds ":app:assemble"
         result.assertTasksExecuted(
-            ":greeter:compileDebugSwift", ":greeter:linkDebug",
             ":cppGreeter:generateModuleMap", ":cppGreeter:dependDebugCpp", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":logger:dependDebugCpp", ":logger:compileDebugCpp", ":logger:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
-    }
-
-    NativeInstallationFixture installation(Object installDir, OperatingSystem os = OperatingSystem.current()) {
-        return new NativeInstallationFixture(file(installDir), os)
     }
 }

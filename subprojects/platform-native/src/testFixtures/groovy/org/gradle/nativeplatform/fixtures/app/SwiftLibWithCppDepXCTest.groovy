@@ -16,18 +16,17 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
+class SwiftLibWithCppDepXCTest extends MainWithXCTestSourceElement {
+    final SwiftLibWithCppDep main
+    final XCTestSourceElement test
 
-class SwiftMainWithDep extends SwiftMain {
-    def greeterModule = "Greeter"
-
-    SwiftMainWithDep(GreeterElement greeter, SumElement sum) {
-        super(greeter, sum)
+    SwiftLibWithCppDepXCTest(GreeterElement cppGreeter) {
+        this("greeter", cppGreeter)
     }
 
-    @Override
-    SourceFile getSourceFile() {
-        def delegate = super.getSourceFile()
-        sourceFile(delegate.path, delegate.name, "import ${greeterModule}\n${delegate.content}")
+    SwiftLibWithCppDepXCTest(String projectName, GreeterElement cppGreeter) {
+        super(projectName)
+        main = new SwiftLibWithCppDep(projectName, cppGreeter)
+        test = new SwiftLibTest(main, main.greeter, main.sum, main.multiply)
     }
 }
