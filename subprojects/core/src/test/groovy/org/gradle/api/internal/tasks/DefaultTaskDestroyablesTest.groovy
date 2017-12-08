@@ -20,8 +20,8 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.tasks.properties.DefaultPropertiesWalker
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
+import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
@@ -51,7 +51,7 @@ class DefaultTaskDestroyablesTest extends Specification {
     }
 
     def specFactory = new DefaultPropertySpecFactory(task, resolver)
-    TaskDestroyables taskDestroys = new DefaultTaskDestroyables(resolver, task, taskMutator, new DefaultPropertiesWalker(new DefaultPropertyMetadataStore([])), specFactory)
+    TaskDestroyables taskDestroys = new DefaultTaskDestroyables(resolver, task, taskMutator, new DefaultPropertyWalker(new DefaultPropertyMetadataStore([])), specFactory)
 
     def "empty destroys by default"() {
         expect:

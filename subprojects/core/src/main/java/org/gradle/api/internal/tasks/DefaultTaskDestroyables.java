@@ -22,8 +22,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.internal.tasks.properties.PropertiesWalker;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.ArrayList;
@@ -36,15 +36,15 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
     private final FileResolver resolver;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
-    private final PropertiesWalker propertiesWalker;
+    private final PropertyWalker propertyWalker;
     private final PropertySpecFactory specFactory;
     private final List<Object> paths = Lists.newArrayList();
 
-    public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, PropertiesWalker propertiesWalker, PropertySpecFactory specFactory) {
+    public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PropertySpecFactory specFactory) {
         this.resolver = resolver;
         this.task = task;
         this.taskMutator = taskMutator;
-        this.propertiesWalker = propertiesWalker;
+        this.propertyWalker = propertyWalker;
         this.specFactory = specFactory;
     }
 
@@ -81,7 +81,7 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
     }
 
     private void visitAllProperties(PropertyVisitor visitor) {
-        propertiesWalker.visitProperties(specFactory, visitor, task);
+        propertyWalker.visitProperties(specFactory, visitor, task);
         visitRuntimeProperties(visitor);
     }
 

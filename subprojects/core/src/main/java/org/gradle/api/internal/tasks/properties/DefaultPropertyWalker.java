@@ -44,11 +44,11 @@ import java.util.Set;
 import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
 
 @NonNullApi
-public class DefaultPropertiesWalker implements PropertiesWalker {
+public class DefaultPropertyWalker implements PropertyWalker {
 
     private final PropertyMetadataStore propertyMetadataStore;
 
-    public DefaultPropertiesWalker(PropertyMetadataStore propertyMetadataStore) {
+    public DefaultPropertyWalker(PropertyMetadataStore propertyMetadataStore) {
         this.propertyMetadataStore = propertyMetadataStore;
     }
 

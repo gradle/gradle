@@ -27,8 +27,8 @@ import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.tasks.properties.PropertiesWalker;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
@@ -51,16 +51,16 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileCollection allSourceFiles;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
-    private final PropertiesWalker propertiesWalker;
+    private final PropertyWalker propertyWalker;
     private final List<DeclaredTaskInputProperty> runtimeProperties = Lists.newArrayList();
     private final List<DeclaredTaskInputFileProperty> runtimeFileProperties = Lists.newArrayList();
     private final TaskInputs deprecatedThis;
     private final PropertySpecFactory specFactory;
 
-    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertiesWalker propertiesWalker, PropertySpecFactory specFactory) {
+    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PropertySpecFactory specFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
-        this.propertiesWalker = propertiesWalker;
+        this.propertyWalker = propertyWalker;
         String taskName = task.getName();
         this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, this);
         this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, this);
@@ -76,7 +76,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     private void visitAllProperties(PropertyVisitor visitor) {
-        propertiesWalker.visitProperties(specFactory, visitor, task);
+        propertyWalker.visitProperties(specFactory, visitor, task);
         visitRuntimeProperties(visitor);
     }
 

@@ -22,8 +22,8 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.properties.DefaultPropertiesWalker
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
+import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -57,7 +57,7 @@ class DefaultTaskOutputsTest extends Specification {
             new SimpleFileCollection(it*.call().flatten().collect { new File((String) it) })
         }
     ]   as FileResolver
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertiesWalker(new DefaultPropertyMetadataStore([])), new DefaultPropertySpecFactory(task, resolver))
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultPropertyMetadataStore([])), new DefaultPropertySpecFactory(task, resolver))
 
     void hasNoOutputsByDefault() {
         setup:

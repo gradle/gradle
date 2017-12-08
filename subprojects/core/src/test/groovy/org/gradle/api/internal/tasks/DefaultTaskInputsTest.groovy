@@ -19,8 +19,8 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.tasks.properties.DefaultPropertiesWalker
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
+import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -48,7 +48,7 @@ class DefaultTaskInputsTest extends Specification {
         getName() >> "task"
         toString() >> "task 'task'"
     }
-    def walker = new DefaultPropertiesWalker(new DefaultPropertyMetadataStore([]))
+    def walker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, new DefaultPropertySpecFactory(task, resolver))
 
     def "default values"() {
