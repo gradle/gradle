@@ -55,6 +55,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
@@ -141,7 +144,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         if (root == null) {
             return 0;
         }
-        String propertyPath = "property-" + propertyName;
+        String propertyPath = "property-" + escape(propertyName);
         if (outputSnapshots.isEmpty()) {
             storeMissingProperty(propertyPath, tarOutput);
             return 1;
@@ -258,19 +261,19 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         long entries = 0;
         while ((tarEntry = tarInput.getNextTarEntry()) != null) {
             ++entries;
-            String name = tarEntry.getName();
+            String path = tarEntry.getName();
 
-            if (name.equals(METADATA_PATH)) {
+            if (path.equals(METADATA_PATH)) {
                 // handle origin metadata
                 originMetadata = readOriginAction.execute(new CloseShieldInputStream(tarInput));
             } else {
                 // handle output property
-                Matcher matcher = PROPERTY_PATH.matcher(name);
+                Matcher matcher = PROPERTY_PATH.matcher(path);
                 if (!matcher.matches()) {
-                    throw new IllegalStateException("Cached result format error, invalid contents: " + name);
+                    throw new IllegalStateException("Cached result format error, invalid contents: " + path);
                 }
 
-                String propertyName = matcher.group(2);
+                String propertyName = unescape(matcher.group(2));
                 ResolvedTaskOutputFilePropertySpec propertySpec = propertySpecsMap.get(propertyName);
                 if (propertySpec == null) {
                     throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
@@ -344,5 +347,21 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
 
         fileSystem.chmod(outputFile, entry.getMode() & FILE_PERMISSION_MASK);
+    }
+
+    private static String escape(String name) {
+        try {
+            return URLEncoder.encode(name, "utf-8");
+        } catch (UnsupportedEncodingException ignored) {
+            throw new AssertionError();
+        }
+    }
+
+    private static String unescape(String name) {
+        try {
+            return URLDecoder.decode(name, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new AssertionError(e);
+        }
     }
 }
