@@ -46,7 +46,7 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
             .cache(workingDirectoryRoot.getDir())
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .withDisplayName("VCS Checkout Cache")
-            .withCleanup(cleanupActionFactory.create(FixedAgeOldestCacheCleanup.class, 7L))
+            .withCleanup(cleanupActionFactory.create(new FixedAgeOldestCacheCleanup(7L)))
             .open();
     }
 

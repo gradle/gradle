@@ -59,7 +59,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * cacheScopeMapping.getBaseDirectory(null, "build-cache-1", VersionStrategy.SharedCache) >> cacheDir
         1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
-        1 * cleanupActionFactory.create(_, _) >> Mock(CleanupAction)
+        1 * cleanupActionFactory.create(_) >> Mock(CleanupAction)
         0 * _
     }
 
@@ -75,7 +75,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * resolver.resolve(cacheDir) >> cacheDir
         1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
-        1 * cleanupActionFactory.create(_, _) >> Mock(CleanupAction)
+        1 * cleanupActionFactory.create(_) >> Mock(CleanupAction)
         0 * _
     }
 

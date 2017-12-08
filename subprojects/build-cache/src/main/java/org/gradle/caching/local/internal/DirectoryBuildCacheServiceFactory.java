@@ -79,7 +79,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = cacheRepository
             .cache(target)
-            .withCleanup(cleanupActionFactory.create(FixedSizeOldestCacheCleanup.class, targetSizeInMB))
+            .withCleanup(cleanupActionFactory.create(new FixedSizeOldestCacheCleanup(targetSizeInMB)))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)

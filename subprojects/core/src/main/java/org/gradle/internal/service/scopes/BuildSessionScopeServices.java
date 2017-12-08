@@ -79,7 +79,6 @@ import org.gradle.internal.progress.BuildOperationListener;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.internal.progress.DefaultBuildOperationExecutor;
 import org.gradle.internal.progress.DefaultBuildOperationListenerManager;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -257,7 +256,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new ExperimentalFeatures();
     }
 
-    CleanupActionFactory createCleanupActionFactory(Instantiator instantiator, BuildOperationExecutor buildOperationExecutor) {
-        return new CleanupActionFactory(instantiator, buildOperationExecutor);
+    CleanupActionFactory createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
+        return new CleanupActionFactory(buildOperationExecutor);
     }
 }

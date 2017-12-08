@@ -22,19 +22,16 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.reflect.Instantiator;
 
 public class CleanupActionFactory {
-    private final Instantiator instantiator;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public CleanupActionFactory(Instantiator instantiator, BuildOperationExecutor buildOperationExecutor) {
-        this.instantiator = instantiator;
+    public CleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public CleanupAction create(Class<? extends CleanupAction> cleanupType, Object... args) {
-        return new BuildOperationCacheCleanupDecorator(instantiator.newInstance(cleanupType, args), buildOperationExecutor);
+    public CleanupAction create(CleanupAction action) {
+        return new BuildOperationCacheCleanupDecorator(action, buildOperationExecutor);
     }
 
     private static class BuildOperationCacheCleanupDecorator implements CleanupAction {
