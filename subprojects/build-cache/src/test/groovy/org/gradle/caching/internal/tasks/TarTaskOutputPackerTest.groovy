@@ -39,6 +39,9 @@ import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
+import static org.gradle.api.internal.tasks.OutputType.DIRECTORY
+import static org.gradle.api.internal.tasks.OutputType.FILE
+
 @CleanupTestDirectory
 class TarTaskOutputPackerTest extends Specification {
     @Rule
