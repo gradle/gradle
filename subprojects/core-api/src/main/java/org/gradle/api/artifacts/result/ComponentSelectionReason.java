@@ -58,7 +58,7 @@ public interface ComponentSelectionReason {
      *
      * @since 4.5
      */
-    boolean isCompositeParticipant();
+    boolean isCompositeSubstitution();
 
     /**
      * Returns a human-consumable description of this selection reason.

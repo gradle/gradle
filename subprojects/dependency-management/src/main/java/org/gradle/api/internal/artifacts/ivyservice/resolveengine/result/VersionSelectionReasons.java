@@ -78,7 +78,7 @@ public class VersionSelectionReasons {
             return expected;
         }
 
-        public boolean isCompositeParticipant() {
+        public boolean isCompositeSubstitution() {
             return compositeParticipant;
         }
 

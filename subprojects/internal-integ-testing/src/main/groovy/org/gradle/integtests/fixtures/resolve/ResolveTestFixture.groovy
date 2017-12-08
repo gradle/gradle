@@ -512,7 +512,7 @@ allprojects {
          * Marks that this node was substituted in a composite.
          */
         NodeBuilder compositeSubstitute() {
-            reasons << 'compositeParticipant'
+            reasons << 'compositeSubstitution'
             this
         }
 
@@ -637,8 +637,8 @@ class GenerateGraphTask extends DefaultTask {
         if (reason.selectedByRule) {
             reasons << "selectedByRule"
         }
-        if (reason.compositeParticipant) {
-            reasons << "compositeParticipant"
+        if (reason.compositeSubstitution) {
+            reasons << "compositeSubstitution"
         }
         return reasons.empty ? reason.description : reasons.join(',')
     }
