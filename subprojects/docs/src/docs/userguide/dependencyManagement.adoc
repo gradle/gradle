@@ -198,7 +198,7 @@ Every dependency declared for a Gradle project applies to a specific scope. For 
 
 Many Gradle plugins add pre-defined configurations to your project. The Java plugin, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests and the like. Please see <<sec:java_plugin_and_dependency_management>> for an overview. The sections above on <<sec:declaring_dependencies,declaring dependencies>> demonstrate the use of configurations for various use cases.
 
-You can also define configurations yourself, so-called _custom configurations_. A custom configuration is useful for separating the scope of dependencies needed for a purpose. Let's say you wanted to declare a dependency on the link:https://tomcat.apache.org/tomcat-9.0-doc/jasper-howto.html[Jasper Ant task] for the purpose of pre-compiling JSP files that should not end up in the classpath for compiling your source code.
+You can also define configurations yourself, so-called _custom configurations_. A custom configuration is useful for separating the scope of dependencies needed for a dedicated purpose. Let's say you wanted to declare a dependency on the link:https://tomcat.apache.org/tomcat-9.0-doc/jasper-howto.html[Jasper Ant task] for the purpose of pre-compiling JSP files that should _not_ end up in the classpath for compiling your source code.
 
 ++++
 <sample id="custom-configuration" dir="userguide/dependencies/declaringCustomConfigurations" title="Declaring and using a custom configuration">
