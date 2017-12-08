@@ -146,8 +146,9 @@ ext {
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
-        'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'resourcesGcs', 'compositeBuilds', 'buildCacheHttp'
+        'testingNative', 'testingJvm', 'testingJunitPlatform', 'pluginDevelopment', 'pluginUse',
+        'resourcesHttp', 'resourcesSftp', 'resourcesS3', 'resourcesGcs', 'compositeBuilds',
+        'buildCacheHttp'
     ].collect { project(it) }
     implementationPluginProjects = [
         project('toolingApiBuilders')
