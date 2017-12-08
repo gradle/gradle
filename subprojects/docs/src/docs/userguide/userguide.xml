@@ -36,8 +36,7 @@
     <part>
         <title>Working with existing builds</title>
         <xi:include href='../../../build/asciidoc/userguide/installation.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/tutorialGradleCommandLine.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/console.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/commandLineInterface.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/gradleWrapper.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/gradleDaemon.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/artifactDependenciesTutorial.xml'/>
@@ -127,7 +126,6 @@
         <xi:include href='../../../build/src/samplesList.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/potentialTraps.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/featureLifecycle.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/gradleCommandLine.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/licenses.xml'/>
     </part>
 </book>
