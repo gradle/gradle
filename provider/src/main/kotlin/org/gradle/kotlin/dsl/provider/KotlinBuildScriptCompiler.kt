@@ -29,7 +29,6 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.compilerMessageFor
 
-import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
 
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -51,9 +50,8 @@ typealias KotlinScript = (Any) -> Unit
 internal
 class KotlinBuildScriptCompiler(
     val kotlinCompiler: CachingKotlinCompiler,
-    val scriptTarget: KotlinScriptTarget<out Any>,
     val scriptSource: ScriptSource,
-    val topLevelScript: Boolean,
+    val scriptTarget: KotlinScriptTarget<out Any>,
     val scriptHandler: ScriptHandlerInternal,
     val pluginRequestsHandler: PluginRequestsHandler,
     val baseScope: ClassLoaderScope,
@@ -74,20 +72,6 @@ class KotlinBuildScriptCompiler(
     }
 
     fun compile() =
-        when {
-            topLevelScript -> compileTopLevelScript()
-            else           -> compileScriptPlugin()
-        }
-
-    fun compileForClassPath() =
-        asKotlinScript {
-            ignoringErrors { executeBuildscriptBlock() }
-            ignoringErrors { prepareTargetClassLoaderScope() }
-            ignoringErrors { executeScriptBody() }
-        }
-
-    private
-    fun compileTopLevelScript() =
         asKotlinScript {
             withUnexpectedBlockHandling {
                 executeBuildscriptBlock()
@@ -95,12 +79,11 @@ class KotlinBuildScriptCompiler(
             }
         }
 
-    private
-    fun compileScriptPlugin() =
+    fun compileForClassPath() =
         asKotlinScript {
-            withUnexpectedBlockHandling {
-                prepareAndExecuteScriptBody()
-            }
+            ignoringErrors { executeBuildscriptBlock() }
+            ignoringErrors { prepareTargetClassLoaderScope() }
+            ignoringErrors { executeScriptBody() }
         }
 
     private
@@ -125,8 +108,7 @@ class KotlinBuildScriptCompiler(
 
     private
     fun accessorsClassPath(): ClassPath =
-        scriptTarget.takeIf { topLevelScript }?.accessorsClassPathFor(compilationClassPath)?.bin
-            ?: ClassPath.EMPTY
+        scriptTarget.accessorsClassPathFor(compilationClassPath).bin
 
     private
     fun scriptClassLoaderScopeWith(accessorsClassPath: ClassPath) =
@@ -134,8 +116,8 @@ class KotlinBuildScriptCompiler(
 
     private
     fun executeBuildscriptBlock() {
-        setupEmbeddedKotlinForBuildscript()
         scriptTarget.buildscriptBlockTemplate?.let { template ->
+            setupEmbeddedKotlinForBuildscript()
             extractBuildscriptBlockFrom(script)?.let { buildscriptRange ->
                 executeBuildscriptBlockFrom(buildscriptRange, template)
             }
@@ -180,10 +162,10 @@ class KotlinBuildScriptCompiler(
     }
 
     private
-    fun pluginRequests(): PluginRequests =
+    fun pluginRequests() =
         scriptTarget.pluginsBlockTemplate?.let { template ->
             collectPluginRequestsFromPluginsBlock(template)
-        } ?: DefaultPluginRequests.EMPTY
+        }
 
     private
     fun collectPluginRequestsFromPluginsBlock(scriptTemplate: KClass<*>): PluginRequests {
@@ -222,7 +204,7 @@ class KotlinBuildScriptCompiler(
         extractTopLevelSectionFrom(script, "plugins")
 
     private
-    fun applyPlugins(pluginRequests: PluginRequests) {
+    fun applyPlugins(pluginRequests: PluginRequests?) {
         pluginRequestsHandler.handle(
             pluginRequests, scriptHandler, scriptTarget.`object` as PluginAwareInternal, targetScope)
     }
