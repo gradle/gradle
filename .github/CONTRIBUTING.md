@@ -44,20 +44,23 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
 
 ### IntelliJ
 
-You can generate the IntelliJ project by running
+You can generate the IntelliJ projects by running
 
-    gradlew idea
+    ./gradlew idea
 
 ### Eclipse
 
-You can generate the Eclipse project <ith the following steps
+You can generate the Eclipse projects by running
+
+    ./gradlew eclipse
+
+Then you can import the generated projects into Eclipse
   
 1. Install Eclipse 4.5 (Mars) at least
 2. Install the Groovy Eclipse plugin from http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/
 3. Make sure you have a Java 8 compatible JDK configured in your workspace
 4. In `Window->Preferences->Groovy->Compiler`, check `Enable Script folder support` and add `**/*.gradle`
-5. Run `gradlew eclipse` from the root directory
-6. Import all projects using the "Import Existing Projects into Workspace" wizard
+5. Import all projects using the "Import Existing Projects into Workspace" wizard
 
 
  
@@ -67,7 +70,7 @@ All code contributions should contain the following:
 
 * Unit Tests (using [Spock](http://spockframework.org/spock/docs/1.1-rc-2/index.html)) for any logic introduced
 * Integration Test coverage of the bug/feature at the level of build execution. Please annotate tests guarding against a specific GitHub issue `@Issue("gradle/gradle#123")`.
-* Documentation in the User Guide and DSL Reference (under `subprojects/docs/src/docs`). You can generate docs by running `gradlew :docs:docs`.
+* Documentation in the User Guide and DSL Reference (under `subprojects/docs/src/docs`). You can generate docs by running `./gradlew :docs:docs`.
 
 Your code needs to run on all supported Java versions and operating systems. The [Gradle CI](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
 
@@ -78,10 +81,10 @@ Your code needs to run on all supported Java versions and operating systems. The
 
 After making changes, you can test them in 2 ways:
 
-To run tests, execute `gradlew :<subproject>:check` where `<subproject>` is the name of the sub-project that has changed. For example: `gradlew :launcher:check`.
+To run tests, execute `./gradlew :<subproject>:check` where `<subproject>` is the name of the sub-project that has changed. For example: `./gradlew :launcher:check`.
 
 To try out a change in behavior manually, install Gradle locally and use it
-    gradlew install -Pgradle_installPath=/any/path
+    ./gradlew install -Pgradle_installPath=/any/path
     /any/path/bin/gradle taskName
 
 You can debug Gradle by adding `-Dorg.gradle.debug=true` when executing. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
