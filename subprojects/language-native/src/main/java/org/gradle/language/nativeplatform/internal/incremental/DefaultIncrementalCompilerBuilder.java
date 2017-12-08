@@ -22,7 +22,9 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser;
@@ -60,14 +62,11 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         private final CompilationStateCacheFactory compilationStateCacheFactory;
         private final CSourceParser sourceParser;
         private final DirectoryFileTreeFactory directoryFileTreeFactory;
-        private final FileCollectionFactory fileCollectionFactory;
         private final TaskOutputsInternal taskOutputs;
         private final FileCollection includeDirs;
         private final String taskPath;
         private final FileCollection sourceFiles;
         private final FileCollection headerFilesCollection;
-        // TODO - discard this state when the task is up-to-date and compilation will not happen
-        // TODO - discard this state after compilation
         private PersistentStateCache<CompilationState> compileStateCache;
         private IncrementalCompilation incrementalCompilation;
         private NativeToolChainInternal toolChain;
@@ -82,8 +81,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
             this.compilationStateCacheFactory = compilationStateCacheFactory;
             this.sourceParser = sourceParser;
             this.directoryFileTreeFactory = directoryFileTreeFactory;
-            this.fileCollectionFactory = fileCollectionFactory;
-            headerFilesCollection = fileCollectionFactory.create(new HeaderFileSet());
+            headerFilesCollection = new TaskInputFileCollection();
         }
 
         @Override
@@ -131,6 +129,28 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
             @Override
             public String getDisplayName() {
                 return "header files for " + taskPath;
+            }
+        }
+
+        // TODO - move this into TaskFileVarFactory and apply the caching and clean-up in there
+        private class TaskInputFileCollection extends FileCollectionAdapter implements LifecycleAwareTaskProperty {
+            TaskInputFileCollection() {
+                super(new HeaderFileSet());
+            }
+
+            @Override
+            public void prepareValue() {
+                // TODO - declare this and the include file collections as dependencies instead
+                ((LifecycleAwareTaskProperty)sourceFiles).prepareValue();
+            }
+
+            @Override
+            public void cleanupValue() {
+                // Discard state used during task execution
+                compileStateCache = null;
+                incrementalCompilation = null;
+                toolChain = null;
+                headerFiles = null;
             }
         }
     }

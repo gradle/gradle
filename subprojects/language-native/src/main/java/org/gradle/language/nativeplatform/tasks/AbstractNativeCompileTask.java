@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -36,6 +37,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.nativeplatform.internal.incremental.CachingTaskInputFiles;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -68,11 +70,16 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     public AbstractNativeCompileTask() {
         includes = getProject().files();
-        source = getProject().files();
+        source = new CachingTaskInputFiles(getPath(), getFileResolver(), null);
         objectFileDir = newOutputDirectory();
         compilerArgs = getProject().getObjects().listProperty(String.class);
         incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(getPath(), getOutputs(), source, includes);
         dependsOn(includes);
+    }
+
+    @Inject
+    protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
