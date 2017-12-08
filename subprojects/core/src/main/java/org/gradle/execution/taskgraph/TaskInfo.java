@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
@@ -25,11 +26,10 @@ import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
+import javax.annotation.Nonnull;
 import java.util.TreeSet;
 
 public class TaskInfo implements Comparable<TaskInfo> {
-
-
 
     private enum TaskExecutionState {
         UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
@@ -257,7 +257,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
         return !outputFilesVisitor.getFileProperties().isEmpty();
     }
 
-    public int compareTo(TaskInfo otherInfo) {
+    public int compareTo(@Nonnull TaskInfo otherInfo) {
         return task.compareTo(otherInfo.getTask());
     }
 
@@ -265,6 +265,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
         return task.getPath();
     }
 
+    @NonNullApi
     private static class HasFileInputsVisitor extends PropertyVisitor.Adapter {
         boolean hasFileInputs;
 

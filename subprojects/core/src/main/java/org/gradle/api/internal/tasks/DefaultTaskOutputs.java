@@ -299,6 +299,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return new GetFilePropertiesVisitor();
     }
 
+    @NonNullApi
     public class GetFilePropertiesVisitor extends PropertyVisitor.Adapter implements TaskOutputsInternal.GetFilePropertiesVisitor {
         private List<TaskOutputFilePropertySpec> specs = new ArrayList<TaskOutputFilePropertySpec>();
         private ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties;
