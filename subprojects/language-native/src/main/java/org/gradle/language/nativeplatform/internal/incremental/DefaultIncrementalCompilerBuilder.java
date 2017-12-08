@@ -71,6 +71,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         private IncrementalCompilation incrementalCompilation;
         private NativeToolChainInternal toolChain;
         private Set<File> headerFiles;
+        private boolean canQuery;
 
         StateCollectingIncrementalCompiler(TaskOutputsInternal taskOutputs, FileCollection includeDirs, String taskPath, FileCollection sourceFiles, FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory) {
             this.taskOutputs = taskOutputs;
@@ -120,6 +121,9 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         private class HeaderFileSet implements MinimalFileSet {
             @Override
             public Set<File> getFiles() {
+                if (!canQuery) {
+                    throw new IllegalStateException("Can query the header files of a compile task only while the task is executing.");
+                }
                 if (headerFiles == null) {
                     headerFiles = calculateHeaderFiles();
                 }
@@ -141,12 +145,16 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
             @Override
             public void prepareValue() {
                 // TODO - declare this and the include file collections as dependencies instead
-                ((LifecycleAwareTaskProperty)sourceFiles).prepareValue();
+                canQuery = true;
+                if (sourceFiles instanceof LifecycleAwareTaskProperty) {
+                    ((LifecycleAwareTaskProperty) sourceFiles).prepareValue();
+                }
             }
 
             @Override
             public void cleanupValue() {
                 // Discard state used during task execution
+                canQuery = false;
                 compileStateCache = null;
                 incrementalCompilation = null;
                 toolChain = null;
