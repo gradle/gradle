@@ -49,9 +49,10 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import javax.annotation.Nullable
+import javax.inject.Inject
 import java.lang.annotation.Annotation
 
-class DefaultPropertyMetadataTest extends Specification {
+class DefaultPropertyMetadataStoreTest extends Specification {
 
     private static final List<Class<? extends Annotation>> PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
         InputFile, InputFiles, InputDirectory, OutputFile, OutputDirectory, OutputFiles, OutputDirectories
@@ -387,6 +388,118 @@ class DefaultPropertyMetadataTest extends Specification {
         metadata*.validationMessages.flatten().empty
     }
 
+    @SuppressWarnings("GrDeprecatedAPIUsage")
+    static class SimpleTask extends DefaultTask {
+        @Input String inputString
+        @InputFile File inputFile
+        @InputDirectory File inputDirectory
+        @InputFiles File inputFiles
+        @OutputFile File outputFile
+        @OutputFiles Set<File> outputFiles
+        @OutputDirectory File outputDirectory
+        @OutputDirectories Set<File> outputDirectories
+        @Inject Object injectedService
+        @Internal Object internal
+        @Console boolean console
+    }
+
+    def "can get annotated properties of simple task"() {
+        def metadataStore = new DefaultPropertyMetadataStore([])
+
+        when:
+        def typeMetadata = metadataStore.getTypeMetadata(SimpleTask)
+
+        then:
+        nonIgnoredProperties(typeMetadata) == ["inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles"]
+    }
+
+    private static class BaseTask extends DefaultTask {
+        @Input String baseValue
+        @Input String superclassValue
+        @Input String superclassValueWithDuplicateAnnotation
+        String nonAnnotatedBaseValue
+    }
+
+    private static class OverridingTask extends BaseTask {
+        @Override
+        String getSuperclassValue() {
+            return super.getSuperclassValue()
+        }
+
+        @Input @Override
+        String getSuperclassValueWithDuplicateAnnotation() {
+            return super.getSuperclassValueWithDuplicateAnnotation()
+        }
+
+        @Input @Override
+        String getNonAnnotatedBaseValue() {
+            return super.getNonAnnotatedBaseValue()
+        }
+    }
+
+    def "overridden properties inherit super-class annotations"() {
+        def metadataStore = new DefaultPropertyMetadataStore([])
+
+        when:
+        def typeMetadata = metadataStore.getTypeMetadata(OverridingTask)
+
+        then:
+        nonIgnoredProperties(typeMetadata) == ["baseValue", "nonAnnotatedBaseValue", "superclassValue", "superclassValueWithDuplicateAnnotation"]
+    }
+
+    private interface TaskSpec {
+        @Input
+        String getInterfaceValue()
+    }
+
+    private static class InterfaceImplementingTask extends DefaultTask implements TaskSpec {
+        @Override
+        String getInterfaceValue() {
+            "value"
+        }
+    }
+
+    def "implemented properties inherit interface annotations"() {
+        def metadataStore = new DefaultPropertyMetadataStore([])
+
+        when:
+        def typeMetadata = metadataStore.getTypeMetadata(InterfaceImplementingTask)
+
+        then:
+        nonIgnoredProperties(typeMetadata) == ["interfaceValue"]
+    }
+
+    @SuppressWarnings("GroovyUnusedDeclaration")
+    private static class IsGetterTask extends DefaultTask {
+        @Input
+        private boolean feature1
+        private boolean feature2
+
+        boolean isFeature1() {
+            return feature1
+        }
+        void setFeature1(boolean enabled) {
+            this.feature1 = enabled
+        }
+        boolean isFeature2() {
+            return feature2
+        }
+        void setFeature2(boolean enabled) {
+            this.feature2 = enabled
+        }
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-2115")
+    def "annotation on private filed is recognized for is-getter"() {
+        def metadataStore = new DefaultPropertyMetadataStore([])
+
+        when:
+        def typeMetadata = metadataStore.getTypeMetadata(IsGetterTask)
+
+        then:
+        nonIgnoredProperties(typeMetadata) == ["feature1"]
+    }
+
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {
         metadata.propertyValueVisitor.class == VISITORS_FOR_ANNOTATION.get(type)
     }
@@ -396,6 +509,10 @@ class DefaultPropertyMetadataTest extends Specification {
     }
 
     private static boolean isIgnored(PropertyMetadata propertyMetadata) {
-        propertyMetadata.propertyValueVisitor.class == NoOpPropertyAnnotationHandler
+        propertyMetadata.propertyValueVisitor == null || propertyMetadata.propertyValueVisitor.class == NoOpPropertyAnnotationHandler
+    }
+
+    private static List<String> nonIgnoredProperties(Set<PropertyMetadata> typeMetadata) {
+        typeMetadata.findAll { !isIgnored(it) }*.fieldName.sort()
     }
 }

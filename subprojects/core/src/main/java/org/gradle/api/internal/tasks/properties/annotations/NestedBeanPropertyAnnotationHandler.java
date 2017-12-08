@@ -62,7 +62,8 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
             Object value = propertyValue.getValue();
             if (value == null) {
                 if (!optional) {
-                    context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", propertyName));
+                    String realPropertyName = propertyName.substring(0, propertyName.length() - ".class".length());
+                    context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", realPropertyName));
                 }
             } else {
                 valueValidator.validate(propertyName, value, context, ERROR);
