@@ -50,6 +50,9 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         try {
             val action = ResolverCoordinator.selectNextActionFor(script, environment, previousDependencies)
             when (action) {
+                is ResolverAction.Return         -> {
+                    action.dependencies
+                }
                 is ResolverAction.ReturnPrevious -> {
                     log(ResolvedToPrevious(script.file, environment, previousDependencies))
                     previousDependencies
@@ -145,6 +148,7 @@ internal
 sealed class ResolverAction {
     object ReturnPrevious : ResolverAction()
     class RequestNew(val buildscriptBlockHash: ByteArray?) : ResolverAction()
+    class Return(val dependencies: KotlinScriptExternalDependencies?) : ResolverAction()
 }
 
 
@@ -157,19 +161,29 @@ object ResolverCoordinator {
     fun selectNextActionFor(
         script: ScriptContents,
         environment: Environment?,
-        previousDependencies: KotlinScriptExternalDependencies?): ResolverAction =
+        previousDependencies: KotlinScriptExternalDependencies?): ResolverAction {
 
-        when (environment) {
-            null -> ResolverAction.ReturnPrevious
-            else -> {
-                val buildscriptBlockHash = buildscriptBlockHashFor(script, environment)
-                if (sameBuildscriptBlockHashAs(previousDependencies, buildscriptBlockHash)) {
-                    ResolverAction.ReturnPrevious
-                } else {
-                    ResolverAction.RequestNew(buildscriptBlockHash)
-                }
-            }
+        if (environment == null) {
+            return ResolverAction.ReturnPrevious
         }
+
+        val implicitImports = (environment["kotlinDslImplicitImportsFile"] as? String)?.let(::File)?.readLines()
+        if (implicitImports != null) {
+            return ResolverAction.Return(
+                KotlinBuildScriptDependencies(
+                    imports = implicitImports,
+                    classpath = emptyList(),
+                    sources = emptyList(),
+                    buildscriptBlockHash = null))
+        }
+
+        val buildscriptBlockHash = buildscriptBlockHashFor(script, environment)
+        if (sameBuildscriptBlockHashAs(previousDependencies, buildscriptBlockHash)) {
+            return ResolverAction.ReturnPrevious
+        }
+
+        return ResolverAction.RequestNew(buildscriptBlockHash)
+    }
 
     private
     fun sameBuildscriptBlockHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray?) =
