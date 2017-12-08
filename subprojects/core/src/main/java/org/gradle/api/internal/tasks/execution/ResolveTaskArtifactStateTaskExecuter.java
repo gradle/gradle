@@ -196,11 +196,6 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
             taskPropertySpecs.add(outputFileProperty);
         }
 
-        @Override
-        public void visitValidationMessage(TaskValidationContext.Severity severity, String message) {
-            messages.put(severity, message);
-        }
-
         public Multimap<TaskValidationContext.Severity, String> getMessages() {
             return messages;
         }

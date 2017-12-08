@@ -34,10 +34,4 @@ public interface PropertyValue extends ValidatingValue {
 
     @Nullable
     Object getValue();
-
-    Class<?> getDeclaredType();
-
-    boolean isCacheable();
-
-    String validationMessage(String message);
 }

@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
-import org.gradle.api.internal.tasks.TaskValidationContext;
 
 public class CompositePropertyVisitor implements PropertyVisitor {
     private final PropertyVisitor[] visitors;
@@ -60,13 +59,6 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     public void visitLocalStateProperty(Object value) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitLocalStateProperty(value);
-        }
-    }
-
-    @Override
-    public void visitValidationMessage(TaskValidationContext.Severity severity, String message) {
-        for (PropertyVisitor visitor : visitors) {
-            visitor.visitValidationMessage(severity, message);
         }
     }
 }

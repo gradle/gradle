@@ -399,6 +399,17 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         }
 
         @Override
+        @Nullable
+        public Class<? extends Annotation> getPropertyType() {
+            return propertyType;
+        }
+
+        @Override
+        public Class<?> getDeclaredType() {
+            return method.getReturnType();
+        }
+
+        @Override
         public Method getMethod() {
             return method;
         }

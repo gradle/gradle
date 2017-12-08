@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
-import org.gradle.api.internal.tasks.TaskValidationContext;
 
 /**
  * Visits properties of beans which are inputs, outputs, destroyables or local state.
@@ -35,8 +34,6 @@ public interface PropertyVisitor {
     void visitDestroyableProperty(Object value);
 
     void visitLocalStateProperty(Object value);
-
-    void visitValidationMessage(TaskValidationContext.Severity severity, String message);
 
     class Adapter implements PropertyVisitor {
 
@@ -59,10 +56,5 @@ public interface PropertyVisitor {
         @Override
         public void visitLocalStateProperty(Object value) {
         }
-
-        @Override
-        public void visitValidationMessage(TaskValidationContext.Severity severity, String message) {
-        }
     }
-
 }

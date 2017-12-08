@@ -36,5 +36,10 @@ public interface PropertyMetadata {
     @Nullable
     PropertyValueVisitor getPropertyValueVisitor();
 
+    @Nullable
+    Class<? extends Annotation> getPropertyType();
+
+    Class<?> getDeclaredType();
+
     Method getMethod();
 }

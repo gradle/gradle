@@ -15,15 +15,12 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.TaskValidationContext.Severity;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Input;
 
-import java.io.File;
 import java.lang.annotation.Annotation;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -37,12 +34,5 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         DefaultTaskInputPropertySpec declaration = specFactory.createInputPropertySpec(propertyValue.getPropertyName(), propertyValue);
         declaration.optional(propertyValue.isOptional());
         visitor.visitInputProperty(declaration);
-        Class<?> valueType = propertyValue.getDeclaredType();
-        if (File.class.isAssignableFrom(valueType)
-            || java.nio.file.Path.class.isAssignableFrom(valueType)
-            || FileCollection.class.isAssignableFrom(valueType)) {
-            visitor.visitValidationMessage(Severity.INFO, propertyValue.validationMessage("has @Input annotation used on property of type " + valueType.getName()));
-        }
     }
-
 }

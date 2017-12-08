@@ -25,7 +25,6 @@ import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.Factory;
@@ -37,14 +36,12 @@ import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
 import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
-import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.INFO;
 
 @NonNullApi
 public class DefaultPropertiesWalker implements PropertiesWalker {
@@ -59,30 +56,23 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
     public void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object bean) {
         Queue<PropertyNode> queue = new ArrayDeque<PropertyNode>();
         queue.add(new PropertyNode(null, bean));
-        boolean cacheable = bean.getClass().isAnnotationPresent(CacheableTask.class);
         while (!queue.isEmpty()) {
             PropertyNode node = queue.remove();
             Set<PropertyMetadata> typeMetadata = propertyMetadataStore.getTypeMetadata(node.getBean().getClass());
-            visitProperties(node, typeMetadata, queue, visitor, specFactory, cacheable);
+            visitProperties(node, typeMetadata, queue, visitor, specFactory);
         }
     }
 
-    private static void visitProperties(PropertyNode node, Set<PropertyMetadata> typeMetadata, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory inputs, boolean cacheable) {
+    private static void visitProperties(PropertyNode node, Set<PropertyMetadata> typeMetadata, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory inputs) {
         for (PropertyMetadata propertyMetadata : typeMetadata) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
             String propertyName = node.getQualifiedPropertyName(propertyMetadata.getFieldName());
             if (propertyValueVisitor == null) {
-                if (!Modifier.isPrivate(propertyMetadata.getMethod().getModifiers())) {
-                    visitor.visitValidationMessage(INFO, propertyValidationMessage(propertyName, "is not annotated with an input or output annotation"));
-                }
                 continue;
             }
             Object bean = node.getBean();
-            PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata.getAnnotations(), bean, propertyMetadata.getMethod(), cacheable);
+            PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata.getAnnotations(), bean, propertyMetadata.getMethod());
             propertyValueVisitor.visitPropertyValue(propertyValue, visitor, inputs);
-            for (String validationMessage : propertyMetadata.getValidationMessages()) {
-                visitor.visitValidationMessage(INFO, propertyValue.validationMessage(validationMessage));
-            }
             if (propertyValue.isAnnotationPresent(Nested.class)) {
                 try {
                     Object nestedBean = propertyValue.getValue();
@@ -123,7 +113,6 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
         private final List<Annotation> annotations;
         private final Object bean;
         private final Method method;
-        private final boolean cacheable;
         private final Supplier<Object> valueSupplier = Suppliers.memoize(new Supplier<Object>() {
             @Override
             @Nullable
@@ -143,12 +132,11 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
             }
         });
 
-        public DefaultPropertyValue(String propertyName, List<Annotation> annotations, Object bean, Method method, boolean cacheable) {
+        public DefaultPropertyValue(String propertyName, List<Annotation> annotations, Object bean, Method method) {
             this.propertyName = propertyName;
             this.annotations = ImmutableList.copyOf(annotations);
             this.bean = bean;
             this.method = method;
-            this.cacheable = cacheable;
             method.setAccessible(true);
         }
 
@@ -182,21 +170,6 @@ public class DefaultPropertiesWalker implements PropertiesWalker {
         @Override
         public Object getValue() {
             return valueSupplier.get();
-        }
-
-        @Override
-        public Class<?> getDeclaredType() {
-            return method.getReturnType();
-        }
-
-        @Override
-        public boolean isCacheable() {
-            return cacheable;
-        }
-
-        @Override
-        public String validationMessage(String message) {
-            return propertyValidationMessage(getPropertyName(), message);
         }
 
         @Nullable

@@ -17,12 +17,22 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.CompileClasspathPropertyAnnotationHandler;
+import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.PathSensitive;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.Map;
@@ -34,6 +44,13 @@ import java.util.Set;
  */
 @NonNullApi
 public class PropertyValidationAccess {
+    private final static Map<Class<? extends Annotation>, PropertyValidator> PROPERTY_VALIDATORS = ImmutableMap.of(
+        Input.class, new InputOnFileTypeValidator(),
+        InputFiles.class, new MissingPathSensitivityValidator(),
+        InputFile.class, new MissingPathSensitivityValidator(),
+        InputDirectory.class, new MissingPathSensitivityValidator()
+    );
+
     @SuppressWarnings("unused")
     public static void collectTaskValidationProblems(Class<?> beanClass, Map<String, Boolean> problems) {
         PropertyMetadataStore metadataStore = new DefaultPropertyMetadataStore(ImmutableList.of(
@@ -41,24 +58,35 @@ public class PropertyValidationAccess {
         ));
         Queue<ClassNode> queue = new ArrayDeque<ClassNode>();
         queue.add(new ClassNode(null, beanClass));
+        boolean cacheable = beanClass.isAnnotationPresent(CacheableTask.class);
 
         while (!queue.isEmpty()) {
             ClassNode node = queue.remove();
-            Set<PropertyMetadata> typeMetadata = metadataStore.getTypeMetadata(node.getBeanClass());
-            for (PropertyMetadata metadata : typeMetadata) {
-                String qualifiedPropertyName = node.getQualifiedPropertyName(metadata.getFieldName());
-                for (String validationMessage : metadata.getValidationMessages()) {
+            validateTaskClass(beanClass, cacheable, problems, queue, node, metadataStore.getTypeMetadata(node.getBeanClass()));
+        }
+    }
+
+    private static void validateTaskClass(Class<?> beanClass, boolean cacheable, Map<String, Boolean> problems, Queue<ClassNode> queue, ClassNode node, Set<PropertyMetadata> typeMetadata) {
+        for (PropertyMetadata metadata : typeMetadata) {
+            String qualifiedPropertyName = node.getQualifiedPropertyName(metadata.getFieldName());
+            for (String validationMessage : metadata.getValidationMessages()) {
+                problems.put(propertyValidationMessage(beanClass, qualifiedPropertyName, validationMessage), Boolean.FALSE);
+            }
+            Class<? extends Annotation> propertyType = metadata.getPropertyType();
+            if (propertyType == null) {
+                if (!Modifier.isPrivate(metadata.getMethod().getModifiers())) {
+                    problems.put(propertyValidationMessage(beanClass, qualifiedPropertyName, "is not annotated with an input or output annotation"), Boolean.FALSE);
+                }
+                continue;
+            } else if (PROPERTY_VALIDATORS.containsKey(propertyType)) {
+                PropertyValidator validator = PROPERTY_VALIDATORS.get(propertyType);
+                String validationMessage = validator.validate(cacheable, metadata);
+                if (validationMessage != null) {
                     problems.put(propertyValidationMessage(beanClass, qualifiedPropertyName, validationMessage), Boolean.FALSE);
                 }
-                if (metadata.getPropertyValueVisitor() == null) {
-                    if (!Modifier.isPrivate(metadata.getMethod().getModifiers())) {
-                        problems.put(propertyValidationMessage(beanClass, qualifiedPropertyName, "is not annotated with an input or output annotation"), Boolean.FALSE);
-                    }
-                    continue;
-                }
-                if (metadata.isAnnotationPresent(Nested.class)) {
-                    queue.add(new ClassNode(qualifiedPropertyName, metadata.getMethod().getReturnType()));
-                }
+            }
+            if (metadata.isAnnotationPresent(Nested.class)) {
+                queue.add(new ClassNode(qualifiedPropertyName, metadata.getDeclaredType()));
             }
         }
     }
@@ -82,6 +110,39 @@ public class PropertyValidationAccess {
 
         public String getQualifiedPropertyName(String propertyName) {
             return parentPropertyName == null ? propertyName : parentPropertyName + "." + propertyName;
+        }
+    }
+
+    private interface PropertyValidator {
+        @Nullable
+        String validate(boolean cacheable, PropertyMetadata metadata);
+    }
+
+    private static class InputOnFileTypeValidator implements PropertyValidator {
+        @SuppressWarnings("Since15")
+        @Nullable
+        @Override
+        public String validate(boolean cacheable, PropertyMetadata metadata) {
+            Class<?> valueType = metadata.getDeclaredType();
+            if (File.class.isAssignableFrom(valueType)
+                || java.nio.file.Path.class.isAssignableFrom(valueType)
+                || FileCollection.class.isAssignableFrom(valueType)) {
+                return "has @Input annotation used on property of type " + valueType.getName();
+            }
+            return null;
+        }
+    }
+
+    private static class MissingPathSensitivityValidator implements PropertyValidator {
+
+        @Nullable
+        @Override
+        public String validate(boolean cacheable, PropertyMetadata metadata) {
+            PathSensitive pathSensitive = metadata.getAnnotation(PathSensitive.class);
+            if (cacheable && pathSensitive == null) {
+                return "is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE";
+            }
+            return null;
         }
     }
 }

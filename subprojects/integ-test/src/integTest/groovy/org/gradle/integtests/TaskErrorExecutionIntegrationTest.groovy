@@ -121,61 +121,6 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("No value has been specified for property 'destFile'.")
     }
 
-    def reportsTaskValidationWarning() {
-        buildFile << """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-
-            @CacheableTask
-            class MyTask extends DefaultTask {
-                @Input
-                long goodTime
-
-                @Nested Options options
-
-                @javax.inject.Inject
-                org.gradle.api.internal.file.FileResolver fileResolver
-
-                long badTime
-
-                static class Options {
-                    @Input String goodNested
-                    String badNested
-                }
-                
-                @OutputDirectory
-                File outputDir = new File('outputDir')
-                
-                @InputDirectory
-                @Optional
-                File inputDirectory
-                
-                @Input
-                File file = new File('some-file')
-                
-                @TaskAction
-                void doStuff() { }
-            }
-            
-            task custom(type: MyTask) {
-                options = new MyTask.Options()
-                options.goodNested = 'SomeString'
-            }
-        """
-
-        when:
-        // FIXME wolfs:
-//        executer.expectDeprecationWarning()
-        succeeds 'custom', '--info'
-
-        then:
-        result.output.contains("Some problems were found with the configuration of task ':custom'.")
-        result.output.contains("property 'badTime' is not annotated with an input or output annotation")
-        result.output.contains("property 'file' has @Input annotation used on property of type java.io.File")
-        result.output.contains("property 'inputDirectory' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE")
-        result.output.contains("property 'options.badNested' is not annotated with an input or output annotation")
-    }
-
     def reportsUnknownTask() {
         settingsFile << """
             rootProject.name = 'test'
