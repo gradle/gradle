@@ -16,8 +16,6 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.internal.file.FileType;
@@ -156,13 +154,13 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         // Otherwise, macro or macro function call
-        if (!tokenLookup.tokensFor.containsKey(expression)) {
+        if (!tokenLookup.hasTokensFor(expression)) {
             resolveExpression(visibleMacros, expression, new CollectTokens(tokenLookup, expression), tokenLookup);
         }
-        if (tokenLookup.broken.contains(expression)) {
+        if (tokenLookup.isUnresolved(expression)) {
             visitor.visitUnresolved();
         }
-        return tokenLookup.tokensFor.get(expression);
+        return tokenLookup.tokensFor(expression);
     }
 
     private Collection<Expression> resolveTokenConcatenationToTokens(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
@@ -327,11 +325,6 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
     }
 
-    private static class TokenLookup {
-        final Set<Expression> broken = new HashSet<Expression>();
-        final Multimap<Expression, Expression> tokensFor = LinkedHashMultimap.create();
-    }
-
     private interface ExpressionVisitor {
         /**
          * Called when an expression is about to be visited. Called for each intermediate expression as macros are expanded.
@@ -421,12 +414,12 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
         @Override
         public void visitTokens(Expression tokens) {
-            tokenLookup.tokensFor.put(expression, tokens);
+            tokenLookup.addTokensFor(expression, tokens);
         }
 
         @Override
         public void visitUnresolved() {
-            tokenLookup.broken.add(expression);
+            tokenLookup.unresolved(expression);
         }
     }
 
