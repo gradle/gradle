@@ -87,6 +87,8 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
             dependencyNotation = "${dependencyNotation}, configuration: '${sq(params.configuration)}'"
         }
 
+        def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
+
         buildFile.text = """
             configurations {
                 resolve {
@@ -100,7 +102,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
                        ${params.resolveModuleMetadata?'gradleMetadata':'ivyDescriptor'}()
                     }
                 }
-                ${mavenCentralRepositoryDefinition()}
+                ${externalRepo}
             }
             dependencies {
                 resolve($dependencyNotation) $extraArtifacts
