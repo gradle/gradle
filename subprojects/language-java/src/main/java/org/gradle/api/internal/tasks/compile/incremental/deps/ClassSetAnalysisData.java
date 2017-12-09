@@ -36,18 +36,16 @@ public class ClassSetAnalysisData {
     final Map<String, String> filePathToClassName;
     final Map<String, DependentsSet> dependents;
     final Map<String, Set<Integer>> classesToConstants;
-    final Map<Integer, Set<String>> literalsToClasses;
     final Map<String, Set<String>> classesToChildren;
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Multimap<String, Integer> classesToConstants, Multimap<Integer, String> literalsToClasses, Multimap<String, String> classesToChildren) {
-        this(filePathToClassName, dependents, asMap(classesToConstants), asMap(literalsToClasses), asMap(classesToChildren));
+    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Multimap<String, Integer> classesToConstants, Multimap<String, String> classesToChildren) {
+        this(filePathToClassName, dependents, asMap(classesToConstants), asMap(classesToChildren));
     }
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, Set<Integer>> classesToConstants, Map<Integer, Set<String>> literalsToClasses, Map<String, Set<String>> classesToChildren) {
+    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, Set<Integer>> classesToConstants, Map<String, Set<String>> classesToChildren) {
         this.filePathToClassName = filePathToClassName;
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
-        this.literalsToClasses = literalsToClasses;
         this.classesToChildren = classesToChildren;
     }
 
@@ -113,18 +111,6 @@ public class ClassSetAnalysisData {
             }
 
             count = decoder.readSmallInt();
-            ImmutableMap.Builder<Integer, Set<String>> literalsToClassesBuilder = ImmutableMap.builder();
-            for (int i = 0; i < count; i++) {
-                int literal = decoder.readInt();
-                int nameCount = decoder.readSmallInt();
-                ImmutableSet.Builder<String> namesBuilder = ImmutableSet.builder();
-                for (int j = 0; j < nameCount; j++) {
-                    namesBuilder.add(readClassName(decoder, classNameMap));
-                }
-                literalsToClassesBuilder.put(literal, namesBuilder.build());
-            }
-
-            count = decoder.readSmallInt();
             ImmutableMap.Builder<String, Set<String>> classNameToChildren = ImmutableMap.builder();
             for (int i = 0; i < count; i++) {
                 String parent = readClassName(decoder, classNameMap);
@@ -136,7 +122,7 @@ public class ClassSetAnalysisData {
                 classNameToChildren.put(parent, namesBuilder.build());
             }
 
-            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), literalsToClassesBuilder.build(), classNameToChildren.build());
+            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build());
         }
 
         @Override
@@ -161,15 +147,6 @@ public class ClassSetAnalysisData {
             for (Map.Entry<String, Set<Integer>> entry : value.classesToConstants.entrySet()) {
                 writeClassName(entry.getKey(), classNameMap, encoder);
                 INTEGER_SET_SERIALIZER.write(encoder, entry.getValue());
-            }
-
-            encoder.writeSmallInt(value.literalsToClasses.size());
-            for (Map.Entry<Integer, Set<String>> entry : value.literalsToClasses.entrySet()) {
-                encoder.writeInt(entry.getKey());
-                encoder.writeSmallInt(entry.getValue().size());
-                for (String className : entry.getValue()) {
-                    writeClassName(className, classNameMap, encoder);
-                }
             }
 
             encoder.writeSmallInt(value.classesToChildren.size());

@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import com.google.common.base.Objects;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -39,9 +39,8 @@ public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
         boolean relatedToAll = decoder.readBoolean();
         Set<String> classes = stringSetSerializer.read(decoder);
         Set<Integer> constants = integerSetSerializer.read(decoder);
-        Set<Integer> literals = integerSetSerializer.read(decoder);
         Set<String> superTypes = stringSetSerializer.read(decoder);
-        return new ClassAnalysis(className, classes, relatedToAll, constants, literals, superTypes);
+        return new ClassAnalysis(className, classes, relatedToAll, constants, superTypes);
     }
 
     @Override
@@ -50,7 +49,6 @@ public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
         encoder.writeBoolean(value.isDependencyToAll());
         stringSetSerializer.write(encoder, value.getClassDependencies());
         integerSetSerializer.write(encoder, value.getConstants());
-        integerSetSerializer.write(encoder, value.getLiterals());
         stringSetSerializer.write(encoder, value.getSuperTypes());
     }
 

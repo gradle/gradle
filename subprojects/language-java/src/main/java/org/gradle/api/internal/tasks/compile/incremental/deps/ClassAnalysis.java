@@ -26,15 +26,13 @@ public class ClassAnalysis {
     private final Set<String> classDependencies;
     private final boolean dependencyToAll;
     private final Set<Integer> constants;
-    private final Set<Integer> literals;
     private final Set<String> superTypes;
 
-    public ClassAnalysis(String className, Set<String> classDependencies, boolean dependencyToAll, Set<Integer> constants, Set<Integer> literals, Set<String> superTypes) {
+    public ClassAnalysis(String className, Set<String> classDependencies, boolean dependencyToAll, Set<Integer> constants, Set<String> superTypes) {
         this.className = className;
         this.classDependencies = classDependencies;
         this.dependencyToAll = dependencyToAll;
         this.constants = constants;
-        this.literals = literals;
         this.superTypes = superTypes;
     }
 
@@ -48,10 +46,6 @@ public class ClassAnalysis {
 
     public Set<Integer> getConstants() {
         return constants;
-    }
-
-    public Set<Integer> getLiterals() {
-        return literals;
     }
 
     public boolean isDependencyToAll() {
