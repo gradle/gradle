@@ -15,67 +15,68 @@
  */
 package org.gradle.testing.junit5.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.internal.remote.ObjectConnection;
-import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.worker.WorkerProcess;
-import org.gradle.process.internal.worker.WorkerProcessBuilder;
-import org.gradle.process.internal.worker.WorkerProcessContext;
-import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.CollectionUtils;
+import org.gradle.workers.WorkerExecutor;
 
-import java.net.URL;
-import java.util.List;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.UncheckedIOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.Channels;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 
 public class JUnitPlatformTestExecutor implements TestExecuter<JUnitPlatformTestExecutionSpec> {
-    private final ModuleRegistry moduleRegistry;
-    private final WorkerProcessFactory workerFactory;
-    private final WorkerLeaseRegistry workerLeaseRegistry;
-
+    private final WorkerExecutor workerExecutor;
     private final JavaForkOptions forkOptions;
 
-    public JUnitPlatformTestExecutor(ModuleRegistry moduleRegistry, WorkerProcessFactory workerFactory, WorkerLeaseRegistry workerLeaseRegistry, JavaForkOptions forkOptions) {
-        this.moduleRegistry = moduleRegistry;
-        this.workerFactory = workerFactory;
-        this.workerLeaseRegistry = workerLeaseRegistry;
+    public JUnitPlatformTestExecutor(WorkerExecutor workerExecutor, JavaForkOptions forkOptions) {
+        this.workerExecutor = workerExecutor;
         this.forkOptions = forkOptions;
     }
 
     @Override
     public void execute(final JUnitPlatformTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
-        WorkerProcessBuilder builder = workerFactory.create(new Action<WorkerProcessContext>() {
-            @Override
-            public void execute(WorkerProcessContext workerProcessContext) {
-                ObjectConnection serverConnection = workerProcessContext.getServerConnection();
-                serverConnection.useJavaSerializationForParameters(Thread.currentThread().getContextClassLoader());
-                TestResultProcessor testResultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
-                serverConnection.connect();
-            }
-        });
-        });
+        try (ServerSocketChannel server = startServer()) {
 
-        builder.setBaseName("Gradle JUnit Platform Executor");
-        builder.setImplementationClasspath(getWorkerImplementationClasspath());
-        builder.applicationClasspath(testExecutionSpec.getClasspath());
-        forkOptions.copyTo(builder.getJavaCommand());
-        builder.getJavaCommand().jvmArgs("-Dorg.gradle.native=false");
+            workerExecutor.submit(JUnitPlatformLauncher.class, config -> {
+                config.params(testExecutionSpec.getOptions(), server.socket().getLocalPort());
+                config.setClasspath(testExecutionSpec.getClasspath());
+                forkOptions.copyTo(config.getForkOptions());
+            });
 
-        WorkerProcess workerProcess = builder.build();
-        workerProcess.start();
-
-        ObjectConnection connection = workerProcess.getConnection();
-        connection.useJavaSerializationForParameters(Thread.currentThread().getContextClassLoader());
-        connection.addIncoming(TestResultProcessor.class, testResultProcessor);
-        connection.connect();
+            handleEvents(server.accept(), testResultProcessor);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
-    private List<URL> getWorkerImplementationClasspath() {
-        return CollectionUtils.flattenCollections(URL.class,
-            moduleRegistry.getModule("gradle-testing-junit-platform").getImplementationClasspath().getAsURLs()
-        );
+    private void handleEvents(SocketChannel socket, TestResultProcessor testResultProcessor) {
+        try (ObjectInputStream stream = new ObjectInputStream(Channels.newInputStream(socket))) {
+            Object obj = stream.readObject();
+            while (obj != null) {
+
+
+                obj = stream.readObject();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } catch (ClassNotFoundException e) {
+            // TODO better exception
+            throw new RuntimeException(e);
+        }
+    }
+
+    private ServerSocketChannel startServer() {
+        try {
+            InetSocketAddress addr = new InetSocketAddress(0);
+            ServerSocketChannel server = ServerSocketChannel.open();
+            server.bind(addr);
+            return server;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

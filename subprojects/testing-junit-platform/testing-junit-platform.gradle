@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 // Test execution
-sourceCompatibility = 1.6
+sourceCompatibility = 1.8
 
 dependencies {
     compile project(':core')
