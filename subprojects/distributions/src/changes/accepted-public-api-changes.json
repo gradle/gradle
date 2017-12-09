@@ -44,7 +44,7 @@
         },
         {
             "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
-            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getFileResolver()",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getTaskFileVarFactory()",
             "acceptation": "Added inject method to incubating class"
         }
     ]
