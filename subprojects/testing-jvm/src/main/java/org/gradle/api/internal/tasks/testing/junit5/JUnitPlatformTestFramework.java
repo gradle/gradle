@@ -1,6 +1,7 @@
 package org.gradle.api.internal.tasks.testing.junit5;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
@@ -8,6 +9,7 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit5.JUnitPlatformOptions;
 import org.gradle.internal.Actions;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 public class JUnitPlatformTestFramework implements TestFramework {
@@ -41,5 +43,12 @@ public class JUnitPlatformTestFramework implements TestFramework {
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
         return Actions.doNothing();
+    }
+
+    private static class TestClassProcessorFactoryImpl implements  WorkerTestClassProcessorFactory {
+        @Override
+        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
+            return null;
+        }
     }
 }
