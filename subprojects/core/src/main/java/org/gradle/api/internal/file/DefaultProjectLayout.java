@@ -18,15 +18,18 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DirectoryVar;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.RegularFileVar;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.provider.AbstractCombiningProvider;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.AbstractProvider;
@@ -34,6 +37,7 @@ import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -45,8 +49,10 @@ import java.io.File;
 public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private final FixedDirectory projectDir;
     private final DefaultDirectoryVar buildDir;
+    private final TaskResolver taskResolver;
 
-    public DefaultProjectLayout(File projectDir, FileResolver resolver) {
+    public DefaultProjectLayout(File projectDir, FileResolver resolver, TaskResolver taskResolver) {
+        this.taskResolver = taskResolver;
         this.projectDir = new FixedDirectory(projectDir, resolver);
         this.buildDir = new DefaultDirectoryVar(resolver, Project.DEFAULT_BUILD_DIR_NAME);
     }
@@ -129,6 +135,16 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
             }
         });
         return directoryVar;
+    }
+
+    @Override
+    public ConfigurableFileCollection newInputFileCollection(Task consumer) {
+        return new CachingTaskInputFileCollection(consumer.getPath(), projectDir.fileResolver, taskResolver);
+    }
+
+    @Override
+    public FileCollection newCalculatedInputFileCollection(Task consumer, MinimalFileSet calculatedFiles, FileCollection... inputs) {
+        return new CalculatedTaskInputFileCollection(consumer.getPath(), calculatedFiles, inputs);
     }
 
     @Override

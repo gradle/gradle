@@ -70,7 +70,7 @@ public class WindowsResourceCompile extends DefaultTask {
     public WindowsResourceCompile() {
         includes = getProject().files();
         source = getProject().files();
-        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(getPath(), getOutputs(), source, includes);
+        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {

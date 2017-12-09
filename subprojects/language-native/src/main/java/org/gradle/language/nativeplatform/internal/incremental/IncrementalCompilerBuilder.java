@@ -17,13 +17,13 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
 public interface IncrementalCompilerBuilder {
-    IncrementalCompiler newCompiler(String taskPath, TaskOutputsInternal taskOutputs, FileCollection sourceFiles, FileCollection includeDirs);
+    IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs);
 
     interface IncrementalCompiler {
         <T extends NativeCompileSpec> Compiler<T> createCompiler(Compiler<T> compiler);

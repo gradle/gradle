@@ -18,11 +18,11 @@ package org.gradle.language.nativeplatform.internal.incremental;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
 import org.gradle.cache.PersistentStateCache;
@@ -42,22 +42,22 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
     private final CompilationStateCacheFactory compilationStateCacheFactory;
     private final CSourceParser sourceParser;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final FileCollectionFactory fileCollectionFactory;
+    private final TaskFileVarFactory fileVarFactory;
 
-    public DefaultIncrementalCompilerBuilder(FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory) {
+    public DefaultIncrementalCompilerBuilder(FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.sourceParser = sourceParser;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.fileCollectionFactory = fileCollectionFactory;
+        this.fileVarFactory = fileVarFactory;
     }
 
     @Override
-    public IncrementalCompiler newCompiler(final String taskPath, final TaskOutputsInternal taskOutputs, final FileCollection sourceFiles, final FileCollection includeDirs) {
-        return new StateCollectingIncrementalCompiler(taskOutputs, includeDirs, taskPath, sourceFiles, fileSystemSnapshotter, compilationStateCacheFactory, sourceParser, directoryFileTreeFactory, fileCollectionFactory);
+    public IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs) {
+        return new StateCollectingIncrementalCompiler(task, includeDirs, sourceFiles, fileSystemSnapshotter, compilationStateCacheFactory, sourceParser, directoryFileTreeFactory, fileVarFactory);
     }
 
-    private static class StateCollectingIncrementalCompiler implements IncrementalCompiler {
+    private static class StateCollectingIncrementalCompiler implements IncrementalCompiler, MinimalFileSet, LifecycleAwareTaskProperty {
         private final FileSystemSnapshotter fileSystemSnapshotter;
         private final CompilationStateCacheFactory compilationStateCacheFactory;
         private final CSourceParser sourceParser;
@@ -70,19 +70,17 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         private PersistentStateCache<CompilationState> compileStateCache;
         private IncrementalCompilation incrementalCompilation;
         private NativeToolChainInternal toolChain;
-        private Set<File> headerFiles;
-        private boolean canQuery;
 
-        StateCollectingIncrementalCompiler(TaskOutputsInternal taskOutputs, FileCollection includeDirs, String taskPath, FileCollection sourceFiles, FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory) {
-            this.taskOutputs = taskOutputs;
+        StateCollectingIncrementalCompiler(TaskInternal task, FileCollection includeDirs, FileCollection sourceFiles, FileSystemSnapshotter fileSystemSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, CSourceParser sourceParser, DirectoryFileTreeFactory directoryFileTreeFactory, TaskFileVarFactory fileVarFactory) {
+            this.taskOutputs = task.getOutputs();
+            this.taskPath = task.getPath();
             this.includeDirs = includeDirs;
-            this.taskPath = taskPath;
             this.sourceFiles = sourceFiles;
             this.fileSystemSnapshotter = fileSystemSnapshotter;
             this.compilationStateCacheFactory = compilationStateCacheFactory;
             this.sourceParser = sourceParser;
             this.directoryFileTreeFactory = directoryFileTreeFactory;
-            headerFilesCollection = new TaskInputFileCollection();
+            headerFilesCollection = fileVarFactory.newCalculatedInputFileCollection(task, this, sourceFiles, includeDirs);
         }
 
         @Override
@@ -98,7 +96,8 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
             this.toolChain = toolChain;
         }
 
-        private Set<File> calculateHeaderFiles() {
+        @Override
+        public Set<File> getFiles() {
             List<File> includeRoots = ImmutableList.copyOf(includeDirs);
             compileStateCache = compilationStateCacheFactory.create(taskPath);
             DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, toolChain instanceof Clang || toolChain instanceof Gcc);
@@ -114,52 +113,24 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         }
 
         @Override
+        public void prepareValue() {
+        }
+
+        @Override
+        public void cleanupValue() {
+            compileStateCache = null;
+            incrementalCompilation = null;
+            toolChain = null;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "header files for " + taskPath;
+        }
+
+        @Override
         public FileCollection getHeaderFiles() {
             return headerFilesCollection;
-        }
-
-        private class HeaderFileSet implements MinimalFileSet {
-            @Override
-            public Set<File> getFiles() {
-                if (!canQuery) {
-                    throw new IllegalStateException("Can query the header files of a compile task only while the task is executing.");
-                }
-                if (headerFiles == null) {
-                    headerFiles = calculateHeaderFiles();
-                }
-                return headerFiles;
-            }
-
-            @Override
-            public String getDisplayName() {
-                return "header files for " + taskPath;
-            }
-        }
-
-        // TODO - move this into TaskFileVarFactory and apply the caching and clean-up in there
-        private class TaskInputFileCollection extends FileCollectionAdapter implements LifecycleAwareTaskProperty {
-            TaskInputFileCollection() {
-                super(new HeaderFileSet());
-            }
-
-            @Override
-            public void prepareValue() {
-                // TODO - declare this and the include file collections as dependencies instead
-                canQuery = true;
-                if (sourceFiles instanceof LifecycleAwareTaskProperty) {
-                    ((LifecycleAwareTaskProperty) sourceFiles).prepareValue();
-                }
-            }
-
-            @Override
-            public void cleanupValue() {
-                // Discard state used during task execution
-                canQuery = false;
-                compileStateCache = null;
-                incrementalCompilation = null;
-                toolChain = null;
-                headerFiles = null;
-            }
         }
     }
 }

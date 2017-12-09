@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.internal.incremental;
+package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -28,18 +26,19 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import java.io.File;
 
 /**
- * TODO - move this to TaskFileVarFactory
+ * A {@link org.gradle.api.file.ConfigurableFileCollection} that can be used as a task input property. Caches the matching set of files during task execution, and discards the result after task execution.
+ *
  * TODO - disallow further changes to this collection once task has started
- * TODO - keep the file entries to snapshot later, to avoid a stat on each file during snapshotting
+ * TODO - keep the file entries to snapshot later, to avoid a stat on each file during snapshot
  */
-public class CachingTaskInputFiles extends DefaultConfigurableFileCollection implements LifecycleAwareTaskProperty {
+public class CachingTaskInputFileCollection extends DefaultConfigurableFileCollection implements LifecycleAwareTaskProperty {
     private final String taskPath;
     private final FileResolver fileResolver;
     private boolean canCache;
     private ImmutableSet<File> cachedValue;
 
     // TODO - display name
-    public CachingTaskInputFiles(String taskPath, FileResolver fileResolver, TaskResolver taskResolver) {
+    public CachingTaskInputFileCollection(String taskPath, FileResolver fileResolver, TaskResolver taskResolver) {
         super(fileResolver, taskResolver);
         this.taskPath = taskPath;
         this.fileResolver = fileResolver;
@@ -70,7 +69,7 @@ public class CachingTaskInputFiles extends DefaultConfigurableFileCollection imp
 
     @Override
     public void cleanupValue() {
-        // TODO - keep the files and discard the origin values instead?
+        // Keep the files and discard the origin values instead?
         canCache = false;
         cachedValue = null;
     }
