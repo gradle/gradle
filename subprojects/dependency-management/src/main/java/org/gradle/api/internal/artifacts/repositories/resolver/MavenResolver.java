@@ -52,7 +52,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMetadata, MutableMavenModuleResolveMetadata> {
+public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMetadata> {
     private final URI root;
     private final List<URI> artifactRoots = new ArrayList<URI>();
     private final MavenMetadataLoader mavenMetaDataLoader;
