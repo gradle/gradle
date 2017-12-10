@@ -63,26 +63,6 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         return mavenDependencyMetadata(MavenScope.Compile, false, selector, excludes)
     }
 
-    def "maps scope to module configuration"() {
-        def dep = mavenDependencyMetadata(scope, optional, Stub(ModuleComponentSelector), [])
-
-        expect:
-        dep.moduleConfigurations == moduleConfig as Set
-
-        where:
-        scope               | optional | moduleConfig
-        MavenScope.Compile  | false    | ["compile"]
-        MavenScope.Runtime  | false    | ["runtime"]
-        MavenScope.Provided | false    | ["provided"]
-        MavenScope.Test     | false    | ["test"]
-        MavenScope.System   | false    | ["system"]
-        MavenScope.Compile  | true     | ["optional", "compile"] // optional is there for backwards compatibility
-        MavenScope.Runtime  | true     | ["optional", "runtime"] // optional is there for backwards compatibility
-        MavenScope.Provided | true     | ["optional", "provided"] // optional is there for backwards compatibility
-        MavenScope.Test     | true     | ["test"]
-        MavenScope.System   | true     | ["system"]
-    }
-
     def "excludes nothing when no exclude rules provided"() {
         def dep = createWithExcludes(requested, [])
 

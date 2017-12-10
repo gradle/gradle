@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadataRules;
@@ -80,24 +81,28 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
         for (MavenDependencyDescriptor dependency : dependencies) {
-            if (include(dependency, config.getHierarchy())) {
+            if (include(dependency, config.getName(), config.getHierarchy())) {
                 filteredDependencies.add(contextualize(config, getComponentId(), dependency));
             }
         }
         return filteredDependencies.build();
     }
 
-    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor incoming) {
+    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
         return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
     }
 
-    private boolean include(ExternalDependencyDescriptor dependency, Collection<String> hierarchy) {
-        for (String moduleConfiguration : dependency.getModuleConfigurations()) {
-            if (hierarchy.contains(moduleConfiguration)) {
-                return true;
-            }
+    private boolean include(MavenDependencyDescriptor dependency, String configName, Collection<String> hierarchy) {
+        MavenScope dependencyScope = dependency.getScope();
+
+        if ("optional".equals(configName)) {
+            // Include all 'optional' dependencies in "optional" configuration
+            return dependency.isOptional()
+                && dependencyScope != MavenScope.Test
+                && dependencyScope != MavenScope.System;
         }
-        return false;
+
+        return hierarchy.contains(dependencyScope.name().toLowerCase());
     }
 
     @Override
