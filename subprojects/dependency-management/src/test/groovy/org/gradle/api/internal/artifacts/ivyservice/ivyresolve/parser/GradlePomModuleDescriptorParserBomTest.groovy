@@ -54,7 +54,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.optional
     }
 
-    def "a pom with dependencies block is not a bom - dependencyManagement block is ignored"() {
+    def "a bom can combine dependencies and dependencyManagement constraints"() {
         given:
         pomFile << """
 <project>
@@ -66,8 +66,8 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
     
     <dependencies>
         <dependency>
-            <groupId>group-b</groupId>
-            <artifactId>module-b</artifactId>
+            <groupId>group-a</groupId>
+            <artifactId>module-a</artifactId>
             <version>1.0</version>
         </dependency>
     </dependencies>
@@ -79,11 +79,6 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
                 <artifactId>module-b</artifactId>
                 <version>2.0</version>
             </dependency>
-            <dependency>
-                <groupId>group-d</groupId>
-                <artifactId>module-d</artifactId>
-                <version>2.0</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
@@ -93,9 +88,12 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         parsePom()
 
         then:
-        def dep = single(metadata.dependencies)
-        dep.selector == moduleId('group-b', 'module-b', '1.0')
-        !dep.optional
+        def depA = metadata.dependencies.find { it.selector.group == 'group-a'}
+        depA.selector == moduleId('group-a', 'module-a', '1.0')
+        !depA.optional
+        def depB = metadata.dependencies.find { it.selector.group == 'group-b'}
+        depB.selector == moduleId('group-b', 'module-b', '2.0')
+        depB.optional
     }
 
     def "a parent pom is not a bom - dependencies declared in dependencyManagement block are ignored"() {
@@ -140,6 +138,66 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
 
         then:
         metadata.dependencies.empty
+    }
+
+    def "a bom can have a parent pom - dependencyManagement entries are combined"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-a</groupId>
+    <artifactId>module-a</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>group-a</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-c</groupId>
+                <artifactId>module-c</artifactId>
+                <version>2.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-a</groupId>
+    <artifactId>parent</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-b</groupId>
+                <artifactId>module-b</artifactId>
+                <version>1.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        parseContext.getMetaDataArtifact({ it.selector.module == 'parent' }, MAVEN_POM) >> asResource(parent)
+
+        when:
+        parsePom()
+
+        then:
+        def depC = metadata.dependencies.find { it.selector.group == 'group-c'}
+        depC.selector == moduleId('group-c', 'module-c', '2.0')
+        depC.optional
+        def depB = metadata.dependencies.find { it.selector.group == 'group-b'}
+        depB.selector == moduleId('group-b', 'module-b', '1.0')
+        depB.optional
     }
 
     def "an entry in the dependencyManagement block without version does not fail parsing"() {
