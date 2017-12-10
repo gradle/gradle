@@ -16,7 +16,6 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
@@ -107,9 +106,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
 
             incrementalCompilation = incrementalCompileProcessor.processSourceFiles(sourceFiles.getFiles());
             DefaultHeaderDependenciesCollector headerDependenciesCollector = new DefaultHeaderDependenciesCollector(directoryFileTreeFactory);
-            ImmutableSortedSet<File> existingHeaderDependencies = headerDependenciesCollector.collectExistingHeaderDependencies(taskPath, includeRoots, incrementalCompilation);
-            compileStateCache.set(incrementalCompilation.getFinalState());
-            return existingHeaderDependencies;
+            return headerDependenciesCollector.collectExistingHeaderDependencies(taskPath, includeRoots, incrementalCompilation);
         }
 
         @Override
