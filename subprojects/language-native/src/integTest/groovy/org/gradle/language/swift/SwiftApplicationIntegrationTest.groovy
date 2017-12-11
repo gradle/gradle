@@ -527,9 +527,9 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
         sharedLibrary("log/build/lib/main/debug/Log").assertExists()
         executable("app/build/exe/main/debug/App").assertExists()
-        installation("app/build/install/main/debug").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/main/debug/lib/Hello").assertExists()
-        sharedLibrary("app/build/install/main/debug/lib/Log").assertExists()
+        def installation = installation("app/build/install/main/debug")
+        installation.exec().out == app.expectedOutput
+        installation.assertIncludesLibraries("Hello", "Log")
 
         succeeds ":app:assembleRelease"
 
@@ -543,8 +543,62 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
 
-    def "can compile and link against a library with debug and release variants"() {
+    def "can compile and link against static library with API dependencies"() {
         settingsFile << "include 'app', 'hello', 'log'"
+        def app = new SwiftAppWithLibraries()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                library.linkage = [Linkage.STATIC]
+                dependencies {
+                    api project(':log')
+                }
+            }
+            project(':log') {
+                apply plugin: 'swift-library'
+                library.linkage = [Linkage.STATIC]
+            }
+"""
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
+        app.application.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+
+        result.assertTasksExecuted(":hello:compileDebugStaticSwift", ":hello:createDebugStatic",
+            ":log:compileDebugStaticSwift", ":log:createDebugStatic",
+            ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+
+        staticLibrary("hello/build/lib/main/debug/static/Hello").assertExists()
+        staticLibrary("log/build/lib/main/debug/static/Log").assertExists()
+        executable("app/build/exe/main/debug/App").assertExists()
+        def installationDebug = installation("app/build/install/main/debug")
+        installationDebug.exec().out == app.expectedOutput
+        installationDebug.assertIncludesLibraries()
+
+        succeeds ":app:assembleRelease"
+
+        result.assertTasksExecuted(":hello:compileReleaseStaticSwift", ":hello:createReleaseStatic",
+            ":log:compileReleaseStaticSwift", ":log:createReleaseStatic",
+            ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
+
+        staticLibrary("hello/build/lib/main/release/static/Hello").assertExists()
+        staticLibrary("log/build/lib/main/release/static/Log").assertExists()
+        executable("app/build/exe/main/release/App").assertExists()
+        installation("app/build/install/main/release").exec().out == app.expectedOutput
+    }
+
+    def "can compile and link against a library with debug and release variants"() {
+        settingsFile << "include 'app', 'hello'"
         def app = new SwiftAppWithLibraryAndOptionalFeature()
 
         given:
@@ -590,7 +644,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
     }
 
     def "can compile and link against a static library with debug and release variants"() {
-        settingsFile << "include 'app', 'hello', 'log'"
+        settingsFile << "include 'app', 'hello'"
         def app = new SwiftAppWithLibraryAndOptionalFeature()
 
         given:
