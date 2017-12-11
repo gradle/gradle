@@ -80,7 +80,7 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         }
     }
 
-    private static TaskInputsAndOutputs createTaskInputsAndOutputs(TaskInternal task) {
+    private static TaskProperties createTaskInputsAndOutputs(TaskInternal task) {
         TaskOutputsInternal.GetFilePropertiesVisitor outputFilePropertiesVisitor = task.getOutputs().getFilePropertiesVisitor();
         TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor = task.getInputs().getFilePropertiesVisitor();
         TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor = task.getInputs().getInputPropertiesVisitor();
@@ -98,10 +98,10 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
             throw new TaskExecutionException(task, e);
         }
 
-        return new DefaultTaskInputsAndOutputs(inputPropertiesVisitor, inputFilePropertiesVisitor, outputFilePropertiesVisitor, taskValidationVisitor, localStateFilesVisitor);
+        return new DefaultTaskProperties(inputPropertiesVisitor, inputFilePropertiesVisitor, outputFilePropertiesVisitor, taskValidationVisitor, localStateFilesVisitor);
     }
 
-    private static class DefaultTaskInputsAndOutputs implements TaskInputsAndOutputs {
+    private static class DefaultTaskProperties implements TaskProperties {
 
         private final TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor;
         private final TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor;
@@ -109,7 +109,7 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         private final ValidatingPropertyVisitor validationVisitor;
         private final TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor;
 
-        public DefaultTaskInputsAndOutputs(TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor, TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor, TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor, ValidatingPropertyVisitor validationVisitor, TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor) {
+        public DefaultTaskProperties(TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor, TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor, TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor, ValidatingPropertyVisitor validationVisitor, TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor) {
             this.inputPropertiesVisitor = inputPropertiesVisitor;
             this.inputFilePropertiesVisitor = inputFilePropertiesVisitor;
             this.outputFilesVisitor = outputFilesVisitor;

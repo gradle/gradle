@@ -56,7 +56,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
     @Override
     public void execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         final Set<File> filesToDelete = new HashSet<File>();
-        TaskInputsAndOutputs taskInputsOutputs = task.getInputsAndOutputs();
+        TaskProperties taskInputsOutputs = task.getInputsAndOutputs();
         for (TaskOutputFilePropertySpec outputFileSpec : taskInputsOutputs.getOutputFileProperties()) {
             FileCollection files = outputFileSpec.getPropertyFiles();
             for (File file : files) {

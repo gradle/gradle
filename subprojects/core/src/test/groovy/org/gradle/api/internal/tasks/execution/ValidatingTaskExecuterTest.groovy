@@ -35,7 +35,7 @@ import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.WARNI
 class ValidatingTaskExecuterTest extends Specification {
     def target = Mock(TaskExecuter)
     def task = Mock(TaskInternal)
-    def inputsAndOutputs = Mock(TaskInputsAndOutputs)
+    def inputsAndOutputs = Mock(TaskProperties)
     def project = Stub(ProjectInternal)
     def state = Mock(TaskStateInternal)
     def inputs = Mock(TaskInputsInternal)

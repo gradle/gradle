@@ -36,7 +36,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final target = Mock(TaskExecuter)
     final task = Mock(TaskInternal)
     final state = Mock(TaskStateInternal)
-    final inputsAndOutputs = Mock(TaskInputsAndOutputs)
+    final inputsAndOutputs = Mock(TaskProperties)
     final taskInputs = Mock(TaskInputsInternal)
     final sourceFiles = Mock(FileCollectionInternal)
     final taskFiles = Mock(FileCollectionInternal)

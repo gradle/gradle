@@ -64,7 +64,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         LOGGER.debug("Determining if {} is cached already", task);
 
-        TaskInputsAndOutputs inputsAndOutputs = task.getInputsAndOutputs();
+        TaskProperties inputsAndOutputs = task.getInputsAndOutputs();
         TaskOutputCachingBuildCacheKey cacheKey = context.getBuildCacheKey();
         boolean taskOutputCachingEnabled = state.getTaskOutputCaching().isEnabled();
 

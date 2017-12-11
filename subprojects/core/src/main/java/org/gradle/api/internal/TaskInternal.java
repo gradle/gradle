@@ -21,7 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.execution.TaskInputsAndOutputs;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.specs.Spec;
@@ -85,14 +85,14 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Override
     TaskStateInternal getState();
 
-    void setInputsAndOutputs(@Nullable TaskInputsAndOutputs inputsAndOutputs);
+    void setInputsAndOutputs(@Nullable TaskProperties inputsAndOutputs);
 
     /**
      * A snapshot of the inputs and outputs of the task.
      *
      * Available while the task is executing.
      */
-    TaskInputsAndOutputs getInputsAndOutputs();
+    TaskProperties getInputsAndOutputs();
 
     @Internal
     boolean getImpliesSubProjects();

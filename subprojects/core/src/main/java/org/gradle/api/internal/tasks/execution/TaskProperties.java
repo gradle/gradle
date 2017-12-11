@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.TaskValidationContext;
 
 import java.util.Map;
 
-public interface TaskInputsAndOutputs {
+public interface TaskProperties {
 
     boolean hasSourceFiles();
 

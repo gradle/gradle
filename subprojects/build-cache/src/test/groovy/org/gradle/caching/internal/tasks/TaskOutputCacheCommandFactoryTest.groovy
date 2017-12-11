@@ -31,8 +31,8 @@ import org.gradle.api.internal.changedetection.state.RegularFileSnapshot
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
-import org.gradle.api.internal.tasks.execution.TaskInputsAndOutputs
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
+import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata
 import org.gradle.internal.hash.HashCode
@@ -54,7 +54,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def commandFactory = new TaskOutputCacheCommandFactory(packer, originFactory, fileSystemMirror, stringInterner)
 
     def key = Mock(TaskOutputCachingBuildCacheKey)
-    def inputsAndOutputs = Mock(TaskInputsAndOutputs)
+    def inputsAndOutputs = Mock(TaskProperties)
     def task = Stub(TaskInternal) {
         _ * getInputsAndOutputs() >> inputsAndOutputs
     }

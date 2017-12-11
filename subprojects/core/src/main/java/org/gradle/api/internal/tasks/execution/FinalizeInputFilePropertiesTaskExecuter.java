@@ -36,7 +36,7 @@ public class FinalizeInputFilePropertiesTaskExecuter implements TaskExecuter {
 
     @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        TaskInputsAndOutputs taskProperties = task.getInputsAndOutputs();
+        TaskProperties taskProperties = task.getInputsAndOutputs();
         for (DeclaredTaskInputFileProperty property : taskProperties.getInputFileProperties()) {
             property.prepareValue();
         }

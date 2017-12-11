@@ -52,7 +52,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        TaskInputsAndOutputs taskInputsOutputs = task.getInputsAndOutputs();
+        TaskProperties taskInputsOutputs = task.getInputsAndOutputs();
         FileCollection sourceFiles = taskInputsOutputs.getSourceFiles();
         if (taskInputsOutputs.hasSourceFiles() && sourceFiles.isEmpty()) {
             TaskArtifactState taskArtifactState = context.getTaskArtifactState();

@@ -36,7 +36,7 @@ import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.GenericFileNormalizer;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.execution.TaskInputsAndOutputs;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.file.FileType;
@@ -136,7 +136,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private CurrentTaskExecution createExecution(TaskInternal task, @Nullable HistoricalTaskExecution previousExecution, InputNormalizationStrategy normalizationStrategy) {
-        TaskInputsAndOutputs inputsAndOutputs = task.getInputsAndOutputs();
+        TaskProperties inputsAndOutputs = task.getInputsAndOutputs();
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<ContextAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = new ImplementationSnapshot(taskClass.getName(), classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader()));
@@ -182,7 +182,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private void updateExecution(@Nullable final HistoricalTaskExecution previousExecution, CurrentTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, InputNormalizationStrategy normalizationStrategy) {
-        TaskInputsAndOutputs inputsAndOutputs = task.getInputsAndOutputs();
+        TaskProperties inputsAndOutputs = task.getInputsAndOutputs();
         final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = snapshotTaskFiles(task, "Output", normalizationStrategy, inputsAndOutputs.getOutputFileProperties(), snapshotterRegistry);
 
         ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot;
@@ -303,7 +303,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return actionImplementations.build();
     }
 
-    private static ImmutableSortedMap<String, ValueSnapshot> snapshotTaskInputProperties(TaskInternal task, TaskInputsAndOutputs inputsAndOutputs, ImmutableSortedMap<String, ValueSnapshot> previousInputProperties, ValueSnapshotter valueSnapshotter) {
+    private static ImmutableSortedMap<String, ValueSnapshot> snapshotTaskInputProperties(TaskInternal task, TaskProperties inputsAndOutputs, ImmutableSortedMap<String, ValueSnapshot> previousInputProperties, ValueSnapshotter valueSnapshotter) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
         for (Map.Entry<String, Object> entry : inputsAndOutputs.getInputProperties().entrySet()) {
             String propertyName = entry.getKey();
@@ -370,7 +370,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return taskHistoryCache.get(task.getPath());
     }
 
-    private static ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey(TaskInputsAndOutputs inputsAndOutputs) {
+    private static ImmutableSortedSet<String> getOutputPropertyNamesForCacheKey(TaskProperties inputsAndOutputs) {
         ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties = inputsAndOutputs.getOutputFileProperties();
         List<String> outputPropertyNames = Lists.newArrayListWithCapacity(fileProperties.size());
         for (TaskOutputFilePropertySpec propertySpec : fileProperties) {
@@ -384,7 +384,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return ImmutableSortedSet.copyOf(outputPropertyNames);
     }
 
-    private static ImmutableSet<String> getDeclaredOutputFilePaths(TaskInputsAndOutputs inputsAndOutputs, StringInterner stringInterner) {
+    private static ImmutableSet<String> getDeclaredOutputFilePaths(TaskProperties inputsAndOutputs, StringInterner stringInterner) {
         ImmutableSet.Builder<String> declaredOutputFilePaths = ImmutableSortedSet.naturalOrder();
         for (File file : inputsAndOutputs.getOutputFiles()) {
             declaredOutputFilePaths.add(stringInterner.intern(file.getAbsolutePath()));

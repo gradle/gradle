@@ -21,7 +21,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
-import org.gradle.api.internal.tasks.execution.TaskInputsAndOutputs
+import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.specs.AndSpec
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.reflect.DirectInstantiator
@@ -35,7 +35,7 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
     def taskArtifactState = Mock(TaskArtifactState)
     def inputs = Mock(TaskInputsInternal)
     def outputs = Mock(TaskOutputsInternal)
-    def inputsAndOutputs = Mock(TaskInputsAndOutputs)
+    def inputsAndOutputs = Mock(TaskProperties)
     def task = Mock(TaskInternal)
     def upToDateSpec = Mock(AndSpec)
 

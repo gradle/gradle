@@ -40,7 +40,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def project = Mock(Project)
     def projectDir = Mock(File)
     def taskOutputCaching = Mock(TaskOutputCachingState)
-    def inputsAndOutputs = Mock(TaskInputsAndOutputs)
+    def inputsAndOutputs = Mock(TaskProperties)
     def task = Stub(TaskInternal) {
         getInputsAndOutputs() >> inputsAndOutputs
     }

@@ -40,7 +40,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
     def taskOutputs = Mock(TaskOutputsInternal)
-    def inputsAndOutputs = Mock(TaskInputsAndOutputs)
+    def inputsAndOutputs = Mock(TaskProperties)
     def delegate = Mock(TaskExecuter)
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def executer = new ResolveBuildCacheKeyExecuter(delegate, buildOperationExecutor)
