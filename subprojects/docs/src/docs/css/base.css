@@ -10,6 +10,7 @@
   src: url("https://assets.gradle.com/lato/fonts/lato-normal/lato-normal.woff2") format("woff2"),
        url("https://assets.gradle.com/lato/fonts/lato-normal/lato-normal.woff") format("woff");
 }
+
 /* Lato (normal, italic) */
 @font-face {
   font-display: optional;
@@ -425,5 +426,632 @@ h3.releaseinfo {
     color: #999;
     font-weight: normal;
     margin-top: -0.5em;
+}
+
+/* Site header specific styles */
+.hamburger {
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 11px 10px;
+}
+
+.hamburger:focus {
+    outline: 0;
+}
+
+.hamburger__bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background-color: black;
+    border-radius: 1px;
+}
+
+.hamburger__bar + .hamburger__bar {
+    margin-top: 4px;
+}
+
+.site-header .site-header-version {
+    color: #1DA2BD;
+    font-size: 23px;
+    font-weight: 200;
+    line-height: 45px;
+    padding-left: 2px;
+}
+
+.site-header {
+    background-color: white;
+    position: relative;
+    padding: 5px 12px;
+    z-index: 1;
+}
+
+/* Override javadoc styles */
+.site-header div {
+    font-family: 'Lato', Arial, sans-serif;
+}
+.site-header__navigation-header a {
+    border-bottom: 0 none;
+}
+
+.site-header__navigation {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.site-header__navigation-header {
+    display: flex;
+    flex: 0 0 auto;
+    margin-top: 5px;
+    margin-left: 12px;
+}
+
+.site-header__navigation-collapsible {
+    flex: 1 1 auto;
+    height: 404px;
+    overflow: visible;
+    transition: height 0.3s ease;
+}
+
+.site-header__navigation-items {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    float: left;
+    width: 100%;
+    margin: 0 20px 0 0;
+    padding-top: 12px;
+    padding-left: 0;
+    list-style-type: none;
+}
+
+.site-header__navigation-item {
+    flex: 0 1 auto;
+    width: 100%;
+    font-size: 16px;
+}
+
+.site-header__navigation-item .site-header__navigation-link {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    width: 100%;
+    padding: 5px;
+    line-height: 20px;
+    border: 0 none;
+    color: #02303A;
+    text-decoration: none;
+    transition: none;
+    -o-transition: none;
+    -moz-transition: none;
+    -webkit-transition: none;
+}
+
+.site-header__navigation-item .site-header__navigation-link:hover {
+    color: #1DA2BD;
+}
+
+.site-header__navigation-item .site-header__navigation-link.active {
+    font-weight: 500;
+}
+
+/* Navigation submenu styles */
+.site-header__navigation-submenu-section {
+    position: relative;
+}
+
+.site-header__navigation-submenu-section .site-header__down-arrow {
+    width: 8px;
+    height: 8px;
+    margin-left: 2px;
+    margin-top: 0;
+}
+
+.site-header__navigation-submenu-section .site-header__navigation-link:hover {
+    color: #02303A;
+}
+
+.site-header__navigation-submenu-section .site-header__navigation-link:hover path {
+    fill: none;
+}
+
+.site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link:hover {
+    color: #1DA2BD;
+}
+
+.site-header__navigation-submenu-section .site-header__navigation-submenu {
+    display: none;
+    width: 170px;
+    background-color: white;
+    top: 40px;
+    left: 21px; /* NOTE: This must match the padding of .site-header__navigation-link */
+    padding: 3px 10px 6px 10px;
+    z-index: 100;
+}
+
+.site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link {
+    width: 100%;
+    color: #02303A;
+    white-space: nowrap;
+    display: inline-block;
+    padding-top: 3px;
+    border: 0 none;
+    transition: none;
+    -o-transition: none;
+    -moz-transition: none;
+    -webkit-transition: none;
+}
+
+.site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link .site-header__navigation-submenu-item-link-text {
+    display: inline-block;
+    font-size: 16px;
+}
+
+.site-header__navigation-submenu-section.open .site-header__navigation-submenu {
+    display: block;
+}
+
+/* Top navigation mobile styles */
+@media (max-width: 1023px) {
+    .site-header__navigation-collapsible--collapse {
+        height: 0;
+        overflow-y: hidden;
+    }
+
+    .site-header__navigation-submenu {
+        top: 30px !important;
+        left: 0 !important;
+    }
+
+    .site-header-version {
+        display: none;
+    }
+
+    .site-footer__navigation {
+        flex-direction: column;
+    }
+
+    .site-footer__links {
+        flex-wrap: wrap;
+    }
+}
+
+/* Top navigation desktop styles */
+@media (min-width: 1024px) {
+    .site-header__navigation {
+        flex-direction: row;
+    }
+
+    .site-header__navigation-button {
+        display: none;
+    }
+
+    .site-header__navigation-items {
+        flex-direction: row;
+        align-items: center;
+        float: right;
+        width: auto;
+        padding-top: 0;
+    }
+
+    .site-header__navigation-item {
+        width: auto;
+    }
+
+    .site-header__navigation-item .site-header__navigation-link {
+        padding: 15px 18px;
+    }
+
+    .site-header__navigation-item:last-of-type .site-header__navigation-link {
+        padding-right: 0;
+    }
+
+    .site-header__navigation-link--button {
+        padding: 6px 12px;
+    }
+
+    .site-header__navigation-collapsible {
+        height: auto;
+    }
+
+    .site-header__navigation-submenu-section .site-header__navigation-submenu {
+        position: absolute;
+        border: 1px solid #9a9a9a;
+        border-radius: 3px;
+    }
+
+    .site-header__navigation-submenu-section:hover .site-header__navigation-submenu {
+        display: block;
+    }
+}
+
+/* Footer styles */
+.site-footer {
+}
+
+.site-footer__navigation {
+    display: flex;
+    max-width: 75rem;
+    margin: 3rem auto 2.5rem auto;
+    padding: 0.5rem 0.75rem;
+}
+
+.site-footer__links {
+    display: flex;
+    flex: 1 1 auto;
+}
+
+.site-footer__links .site-footer__links-list {
+    list-style-type: none;
+    margin: 0;
+}
+
+.site-footer__links .site-footer__links-list a {
+    color: #666;
+}
+
+.site-footer__link-group {
+    flex: 1 1 auto;
+    flex-basis: 175px;
+    margin-bottom: 1rem;
+}
+
+.site-footer__link-group header {
+    color: #555;
+}
+
+.site-footer__subscribe-newsletter {
+    flex: 0 1 auto;
+}
+
+.site-footer__subscribe-newsletter p {
+    font-size: 0.875rem;
+    margin-bottom: 0;
+    margin-left: 2px;
+    opacity: 0.7;
+}
+
+.site-footer__subscribe-newsletter .newsletter-form {
+    padding-top: 6px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.site-footer__subscribe-newsletter .email,
+.site-footer__subscribe-newsletter .submit {
+    height: 40px;
+}
+
+.site-footer__subscribe-newsletter .email {
+    line-height: 40px;
+    width: 250px;
+    color: #1DA2BD;
+    font-size: 16px;
+    padding-left: 20px;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-style: none;
+}
+
+.site-footer__subscribe-newsletter .submit {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    width: 100px;
+    background-color: #1BA8CB;
+    color: white;
+    font-weight: 500;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-style: none;
+    cursor: pointer;
+    transition: all .3s ease;
+}
+
+/* Secondary footer (below) */
+.site-footer-secondary {
+    background-color: white;
+}
+
+.site-footer-secondary__contents {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 75rem;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+}
+
+/*
+ * 1. Value is the largest computed width among 'site-footer__copy' and 'site-footer__links'.
+ */
+.site-footer__copy,
+.site-footer__secondary-links {
+    flex-grow: 0;
+    flex-basis: 280px;
+    /* 1. */
+}
+
+/*
+ * 1. 'flex-shrink: 1' is applied to the element with the smallest computed width among
+ *    'site-footer__copy' and 'site-footer__links'.
+ */
+.site-footer__copy {
+    flex-shrink: 1;
+    /* 1. */
+}
+
+.site-footer__logo {
+    flex: 0 0 auto;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+.site-footer__logo svg {
+    width: 35px;
+    height: 35px;
+}
+
+/*
+ * 1. 'flex-shrink: 0' is applied to the element with the largest computed width among
+ *    'site-footer__copy' and 'site-footer__links'.
+ */
+.site-footer__secondary-links {
+    flex-shrink: 0;
+    /* 1 */
+    text-align: right;
+    white-space: nowrap;
+}
+
+.site-footer-secondary a {
+    color: #999;
+}
+
+.site-footer-secondary__links a:not(:last-child) {
+    padding-right: 10px;
+}
+
+.site-footer-secondary__links a:not(:first-child) {
+    padding-left: 10px;
+}
+
+@media all and (max-width: 29.99em) {
+    .site-footer__rights,
+    .site-footer-secondary__links {
+        display: none;
+    }
+
+    .site-footer__logo {
+        order: 1;
+        text-align: left;
+    }
+
+    .site-footer__copy {
+        order: 2;
+        text-align: right;
+    }
+}
+
+.variablelist dt {
+    font-weight: bold;
+}
+
+.variablelist dt a {
+    font-weight: normal;
+}
+
+.itemizedlist li p,
+.example pre,
+.figure pre {
+    margin-top: 0;
+    margin-bottom: 0.625em;
+}
+
+.example, .figure, .table {
+    margin-top: 0;
+    margin-bottom: 1.8em;
+}
+
+.example .title, .figure .title, .table .title {
+    margin-top: 0;
+    margin-bottom: 0.6em;
+}
+
+.example-contents > p {
+    display: block;
+    margin: 0;
+    margin-bottom: 0.2em;
+}
+
+.example-break, .figure-break {
+    display: none
+}
+
+.exampleLocation {
+    margin-top: 0.5em;
+    padding-left: 1.7em;
+    background: #FEFEDD;
+    color: #777744;
+    border: 1px solid #DBDBA8;
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+}
+
+.exampleLocation .emphasis em {
+    font-style: normal;
+    font-weight: bold;
+}
+
+.appendix h1 {
+    margin-bottom: 1.0em;
+}
+
+.footnote sup {
+    vertical-align: baseline;
+    font-size: 100%;
+}
+
+.note p:first-child, .tip p:first-child {
+    margin-top: 0;
+}
+
+.note > :last-child, .tip > :last-child, .examplelocation > :last-child {
+    margin-bottom: 0;
+}
+
+.note, .tip {
+    border-left: 1px solid #ddddd8;
+    color: rgba(0,0,0,0.6);
+    margin: 0 0 1.5em 1.25em;
+    padding-left: 1.125em;
+    padding-right: 1.25em;
+}
+
+.note p:first-child:before {
+    content: "Note: ";
+    font-weight: bold;
+}
+
+.tip p:first-child:before {
+    content: "Tip: ";
+    font-weight: bold;
+}
+
+.note .title, .tip .title {
+    margin-left: 0px;
+}
+
+.tip h1, .note h1
+.tip h2, .note h2,
+.tip h3, .note h3,
+.tip h4, .note h4,
+.tip h5, .note h5,
+.tip h6, .note h6 {
+    margin-top: 0;
+}
+
+.literal, .userinput, .filename {
+    white-space: nowrap;
+}
+
+/*
+ * Code highlighting
+ */
+.hl-string, .hl-number, .hl-value { color: #d14; }
+
+.hl-keyword { color: #963; }
+
+.hl-comment, .hl-doccomment { color: #998; }
+
+.hl-annotation { color: #007; }
+
+.hl-directive { color: #555; }
+
+/*
+ * Table of Contents
+ */
+
+.toc dl, .list-of-examples dl {
+    margin-left: 0;
+}
+
+.book .toc > dl > dt {
+    margin-top: 0.6em;
+}
+
+.book .toc > dl > dt > .part {
+    display: inline-block;
+    font-size: 1.25em;
+    margin-top: 0.6em;
+    margin-bottom: 0.3em;
+}
+
+.book .toc > dl > dd {
+    margin-left: 0;
+}
+
+.book .toc, .book .list-of-examples {
+    margin-top: 1.5em;
+}
+
+div.toc p { /* Is "Table Of Contents" header */
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.chapter > .toc {
+    margin-bottom: 1em;
+}
+
+.toc a {
+    color: #02303A;
+}
+
+/*
+ * HEADER/FOOTER
+ */
+
+.navheader, .navfooter, .navbar {
+    display: none;
+}
+
+/**
+ * TITLEPAGE
+ */
+
+.titlepage .author {
+    color: #666666;
+}
+
+.titlepage p {
+    margin: 0;
+}
+
+/*
+ * Single page html
+ */
+.book .chapter {
+    margin-top: 4em;
+}
+
+.toc .chapter {
+    padding-top: 0;
+}
+
+div.example code.filename {
+    font-weight: bold;
+}
+
+/* Clickable links on section headers */
+.section .title > a.section-anchor {
+    display: inline-block;
+    text-decoration: none !important;
+    margin-left: -0.85ch;
+    opacity: 0;
+}
+
+.section .title > a.section-anchor:before {
+    content: "\00A7";
+    display: inline-block;
+    font-size: 0.8em;
+    vertical-align: bottom;
+}
+
+.section .title:hover > a {
+    opacity: 1;
+}
+
+.section .title:hover > a.section-anchor,
+.section .title a.section-anchor:hover {
+    border: inherit;
+    opacity: 1;
 }
 
