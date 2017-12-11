@@ -28,7 +28,6 @@ import org.gradle.util.DeprecationLogger;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 @NonNullApi
@@ -94,15 +93,9 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
 
     @Override
     public FileCollection getFiles() {
-        Iterable<Object> objects = new Iterable<Object>() {
-            @Override
-            public Iterator<Object> iterator() {
-                GetFilesVisitor visitor = new GetFilesVisitor();
-                visitAllProperties(visitor);
-                return visitor.getDestroyables().iterator();
-            }
-        };
-        return new DefaultConfigurableFileCollection(task + " destroy files", resolver, null, objects);
+        GetFilesVisitor visitor = new GetFilesVisitor();
+        visitAllProperties(visitor);
+        return new DefaultConfigurableFileCollection(task + " destroy files", resolver, null, visitor.getDestroyables());
     }
 
     @Override

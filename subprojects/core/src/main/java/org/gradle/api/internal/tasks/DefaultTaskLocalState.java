@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 @NonNullApi
@@ -71,15 +70,9 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
 
     @Override
     public FileCollection getFiles() {
-        Iterable<Object> objects = new Iterable<Object>() {
-            @Override
-            public Iterator<Object> iterator() {
-                GetFilesVisitor visitor = new GetFilesVisitor();
-                visitAllProperties(visitor);
-                return visitor.getLocalState().iterator();
-            }
-        };
-        return new DefaultConfigurableFileCollection(task + " local state", resolver, null, objects);
+        GetFilesVisitor visitor = new GetFilesVisitor();
+        visitAllProperties(visitor);
+        return new DefaultConfigurableFileCollection(task + " local state", resolver, null, visitor.getLocalState());
     }
 
     @Override
