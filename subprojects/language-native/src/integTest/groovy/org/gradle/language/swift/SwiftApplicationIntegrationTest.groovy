@@ -461,6 +461,38 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         installation.assertIncludesLibraries()
     }
 
+    def "can compile and link against a library with both linkage defined"() {
+        settingsFile << "include 'app', 'greeter'"
+        def app = new SwiftAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':greeter')
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+
+                library.linkage = [Linkage.SHARED, Linkage.STATIC]
+            }
+"""
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+
+        executable("app/build/exe/main/debug/App").assertExists()
+        sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
+        def installation = installation("app/build/install/main/debug")
+        installation.exec().out == app.expectedOutput
+        installation.assertIncludesLibraries("Greeter")
+    }
+
     def "can compile and link against library with API dependencies"() {
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
