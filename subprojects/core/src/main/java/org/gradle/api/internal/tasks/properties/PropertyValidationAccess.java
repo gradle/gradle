@@ -19,16 +19,18 @@ package org.gradle.api.internal.tasks.properties;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.CompileClasspathPropertyAnnotationHandler;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -53,12 +55,13 @@ public class PropertyValidationAccess {
 
     @SuppressWarnings("unused")
     public static void collectTaskValidationProblems(Class<?> beanClass, Map<String, Boolean> problems) {
+        DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore();
         PropertyMetadataStore metadataStore = new DefaultPropertyMetadataStore(ImmutableList.of(
             new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
         ));
         Queue<ClassNode> queue = new ArrayDeque<ClassNode>();
         queue.add(new ClassNode(null, beanClass));
-        boolean cacheable = beanClass.isAnnotationPresent(CacheableTask.class);
+        boolean cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(beanClass)).isCacheable();
 
         while (!queue.isEmpty()) {
             ClassNode node = queue.remove();
