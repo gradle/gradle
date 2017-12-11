@@ -151,10 +151,9 @@ abstract class AbstractResourcePattern implements ResourcePattern {
             return true;
         }
 
-        String patternBeforeToken = patternString.substring(0, tokenIndex);
         int optionalOpen = 0;
-        for (int i = 0; i < patternBeforeToken.length(); i++) {
-            char nextChar = patternBeforeToken.charAt(i);
+        for (int i = 0; i < tokenIndex; i++) {
+            char nextChar = patternString.charAt(i);
             if (nextChar == '(') {
                 optionalOpen++;
             } else if (nextChar == ')') {
