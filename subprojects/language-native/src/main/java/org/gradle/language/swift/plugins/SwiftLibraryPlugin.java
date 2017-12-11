@@ -71,87 +71,86 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         final SwiftLibrary library = project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", project.getLayout(), objectFactory, fileOperations, configurations);
         project.getComponents().add(library);
-        SwiftSharedLibrary debugSharedLibrary = library.getDebugSharedLibrary();
-        project.getComponents().add(debugSharedLibrary);
-        SwiftSharedLibrary releaseSharedLibrary = library.getReleaseSharedLibrary();
-        project.getComponents().add(releaseSharedLibrary);
 
         // Setup component
         final Property<String> module = library.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
 
-        // Configure compile task
-        final SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
-        final SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
 
-        // TODO - add lifecycle tasks
-        // TODO - extract some common code to setup the configurations
-        // TODO - extract common code with C++ plugins
-
-        Configuration implementation = library.getImplementationDependencies();
-        Configuration api = library.getApiDependencies();
-
-        Configuration debugApiElements = configurations.maybeCreate("debugSwiftApiElements");
-        debugApiElements.extendsFrom(api);
-        debugApiElements.setCanBeResolved(false);
-        debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-        debugApiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getDebugSharedLibrary().isDebuggable());
-        debugApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getDebugSharedLibrary().isOptimized());
-        debugApiElements.getOutgoing().artifact(compileDebug.getModuleFile());
-
-        Configuration debugLinkElements = configurations.maybeCreate("debugLinkElements");
-        debugLinkElements.extendsFrom(implementation);
-        debugLinkElements.setCanBeResolved(false);
-        debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getDebugSharedLibrary().isDebuggable());
-        debugLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getDebugSharedLibrary().isOptimized());
-        // TODO - should distinguish between link-time and runtime files, we're assuming here that they are the same
-        debugLinkElements.getOutgoing().artifact(debugSharedLibrary.getRuntimeFile());
-
-        Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
-        debugRuntimeElements.extendsFrom(implementation);
-        debugRuntimeElements.setCanBeResolved(false);
-        debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-        debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getDebugSharedLibrary().isDebuggable());
-        debugRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getDebugSharedLibrary().isOptimized());
-        // TODO - should distinguish between link-time and runtime files
-        debugRuntimeElements.getOutgoing().artifact(debugSharedLibrary.getRuntimeFile());
-
-        Configuration releaseApiElements = configurations.maybeCreate("releaseSwiftApiElements");
-        releaseApiElements.extendsFrom(api);
-        releaseApiElements.setCanBeResolved(false);
-        releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-        releaseApiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getReleaseSharedLibrary().isDebuggable());
-        releaseApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getReleaseSharedLibrary().isOptimized());
-        releaseApiElements.getOutgoing().artifact(compileRelease.getModuleFile());
-
-        Configuration releaseLinkElements = configurations.maybeCreate("releaseLinkElements");
-        releaseLinkElements.extendsFrom(implementation);
-        releaseLinkElements.setCanBeResolved(false);
-        releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-        releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getReleaseSharedLibrary().isDebuggable());
-        releaseLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getReleaseSharedLibrary().isOptimized());
-        // TODO - should distinguish between link-time and runtime files, we're assuming here that they are the same
-        releaseLinkElements.getOutgoing().artifact(releaseSharedLibrary.getRuntimeFile());
-
-        Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
-        releaseRuntimeElements.extendsFrom(implementation);
-        releaseRuntimeElements.setCanBeResolved(false);
-        releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-        releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getReleaseSharedLibrary().isDebuggable());
-        releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getReleaseSharedLibrary().isOptimized());
-        // TODO - should distinguish between link-time and runtime files
-        releaseRuntimeElements.getOutgoing().artifact(releaseSharedLibrary.getRuntimeFile());
 
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(Project project) {
-                if (!library.getLinkage().get().contains(Linkage.SHARED)) {
-                    throw new UnsupportedOperationException("Disabling shared linkage is not supported");
-                }
-
                 if (library.getLinkage().get().contains(Linkage.SHARED)) {
+                    SwiftSharedLibrary debugSharedLibrary = library.getDebugSharedLibrary();
+                    project.getComponents().add(debugSharedLibrary);
+                    SwiftSharedLibrary releaseSharedLibrary = library.getReleaseSharedLibrary();
+                    project.getComponents().add(releaseSharedLibrary);
+
                     tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getRuntimeFile());
+
+                    // Configure compile task
+                    final SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
+                    final SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
+
+                    // TODO - add lifecycle tasks
+                    // TODO - extract some common code to setup the configurations
+                    // TODO - extract common code with C++ plugins
+
+                    Configuration implementation = library.getImplementationDependencies();
+                    Configuration api = library.getApiDependencies();
+
+                    Configuration debugApiElements = configurations.maybeCreate("debugSwiftApiElements");
+                    debugApiElements.extendsFrom(api);
+                    debugApiElements.setCanBeResolved(false);
+                    debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+                    debugApiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getDebugSharedLibrary().isDebuggable());
+                    debugApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getDebugSharedLibrary().isOptimized());
+                    debugApiElements.getOutgoing().artifact(compileDebug.getModuleFile());
+
+                    Configuration debugLinkElements = configurations.maybeCreate("debugLinkElements");
+                    debugLinkElements.extendsFrom(implementation);
+                    debugLinkElements.setCanBeResolved(false);
+                    debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+                    debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getDebugSharedLibrary().isDebuggable());
+                    debugLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getDebugSharedLibrary().isOptimized());
+                    // TODO - should distinguish between link-time and runtime files, we're assuming here that they are the same
+                    debugLinkElements.getOutgoing().artifact(debugSharedLibrary.getRuntimeFile());
+
+                    Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
+                    debugRuntimeElements.extendsFrom(implementation);
+                    debugRuntimeElements.setCanBeResolved(false);
+                    debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+                    debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getDebugSharedLibrary().isDebuggable());
+                    debugRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getDebugSharedLibrary().isOptimized());
+                    // TODO - should distinguish between link-time and runtime files
+                    debugRuntimeElements.getOutgoing().artifact(debugSharedLibrary.getRuntimeFile());
+
+                    Configuration releaseApiElements = configurations.maybeCreate("releaseSwiftApiElements");
+                    releaseApiElements.extendsFrom(api);
+                    releaseApiElements.setCanBeResolved(false);
+                    releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+                    releaseApiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getReleaseSharedLibrary().isDebuggable());
+                    releaseApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getReleaseSharedLibrary().isOptimized());
+                    releaseApiElements.getOutgoing().artifact(compileRelease.getModuleFile());
+
+                    Configuration releaseLinkElements = configurations.maybeCreate("releaseLinkElements");
+                    releaseLinkElements.extendsFrom(implementation);
+                    releaseLinkElements.setCanBeResolved(false);
+                    releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+                    releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getReleaseSharedLibrary().isDebuggable());
+                    releaseLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getReleaseSharedLibrary().isOptimized());
+                    // TODO - should distinguish between link-time and runtime files, we're assuming here that they are the same
+                    releaseLinkElements.getOutgoing().artifact(releaseSharedLibrary.getRuntimeFile());
+
+                    Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
+                    releaseRuntimeElements.extendsFrom(implementation);
+                    releaseRuntimeElements.setCanBeResolved(false);
+                    releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+                    releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getReleaseSharedLibrary().isDebuggable());
+                    releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getReleaseSharedLibrary().isOptimized());
+                    // TODO - should distinguish between link-time and runtime files
+                    releaseRuntimeElements.getOutgoing().artifact(releaseSharedLibrary.getRuntimeFile());
                 }
 
                 if (library.getLinkage().get().contains(Linkage.STATIC)){
@@ -160,6 +159,10 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                     SwiftStaticLibrary debug = objectFactory.newInstance(DefaultSwiftStaticLibrary.class, name + "DebugStatic", project.getLayout(), objectFactory, library.getModule(), true, false, true, library.getSwiftSource(), configurations, library.getImplementationDependencies());
 
                     project.getComponents().add(debug);
+
+                    if (!library.getLinkage().get().contains(Linkage.SHARED)) {
+                        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debug.getLinkFile());
+                    }
                 }
             }
         });

@@ -24,7 +24,7 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftLibraryLinkageIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    def "throws UnssuportedOperationException when disabling shared library"() {
+    def "can create static only library"() {
         def library = new SwiftLib()
         buildFile << """
             apply plugin: 'swift-library'
@@ -39,10 +39,11 @@ class SwiftLibraryLinkageIntegrationTest extends AbstractInstalledToolChainInteg
         library.writeToProject(testDirectory)
 
         when:
-        def result = fails('assemble')
+        succeeds('assemble')
 
         then:
-        result.assertHasCause("Disabling shared linkage is not supported")
+        result.assertTasksExecuted(':compileDebugStaticSwift', ':createDebugStatic', ':assemble')
+        staticLibrary('build/lib/main/debug/static/Foo').assertExists()
     }
 
     def "can create shared library binary when explicitly request a shared linkage"() {

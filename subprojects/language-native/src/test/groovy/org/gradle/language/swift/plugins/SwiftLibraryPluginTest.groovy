@@ -67,6 +67,10 @@ class SwiftLibraryPluginTest extends Specification {
         project.evaluate()
 
         then:
+        project.tasks.withType(SwiftCompile)*.name == ['compileDebugSwift', 'compileReleaseSwift']
+        project.tasks.withType(CreateStaticLibrary).empty
+
+        and:
         def compileDebug = project.tasks.compileDebugSwift
         compileDebug instanceof SwiftCompile
         compileDebug.source.files == [src] as Set
@@ -129,6 +133,33 @@ class SwiftLibraryPluginTest extends Specification {
         linkRelease instanceof LinkSharedLibrary
         linkRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("TestLib"))
         linkRelease.debuggable
+
+        and:
+        def compileDebugStatic = project.tasks.compileDebugStaticSwift
+        compileDebugStatic instanceof SwiftCompile
+        compileDebugStatic.source.files == [src] as Set
+        compileDebugStatic.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug/static")
+        compileDebugStatic.moduleFile.get().asFile == projectDir.file("build/modules/main/debug/static/TestLib.swiftmodule")
+        compileDebugStatic.debuggable
+        !compileDebugStatic.optimized
+
+        def createDebugStatic = project.tasks.createDebugStatic
+        createDebugStatic instanceof CreateStaticLibrary
+        createDebugStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/static/" + OperatingSystem.current().getStaticLibraryName("TestLib"))
+    }
+
+    def "adds compile and link tasks for static linkage only"() {
+        given:
+        def src = projectDir.file("src/main/swift/main.swift").createFile()
+
+        when:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+        project.library.linkage = [Linkage.STATIC]
+        project.evaluate()
+
+        then:
+        project.tasks.withType(SwiftCompile)*.name == ['compileDebugStaticSwift']
+        project.tasks.withType(LinkSharedLibrary).empty
 
         and:
         def compileDebugStatic = project.tasks.compileDebugStaticSwift

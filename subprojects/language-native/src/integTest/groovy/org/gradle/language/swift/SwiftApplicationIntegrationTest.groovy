@@ -489,12 +489,16 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
                 dependencies {
                     implementation project(':hello')
                 }
-                compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
+                afterEvaluate {
+                    compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
+                }
             }
             project(':hello') {
                 apply plugin: 'swift-library'
                 library.module = 'Greeter'
-                compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
+                afterEvaluate {
+                    compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
+                }
             }
 """
         app.library.writeToProject(file("hello"))
