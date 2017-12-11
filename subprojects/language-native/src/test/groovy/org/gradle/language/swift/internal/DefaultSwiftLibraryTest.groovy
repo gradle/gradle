@@ -40,17 +40,6 @@ class DefaultSwiftLibraryTest extends Specification {
         library.apiDependencies == api
     }
 
-    def "has debug and release variants"() {
-        expect:
-        library.debugSharedLibrary.name == "mainDebug"
-        library.debugSharedLibrary.debuggable
-        !library.debugSharedLibrary.optimized
-        library.releaseSharedLibrary.name == "mainRelease"
-        library.releaseSharedLibrary.debuggable
-        library.releaseSharedLibrary.optimized
-        library.developmentBinary == library.debugSharedLibrary
-    }
-
     interface TestConfiguration extends Configuration, FileCollectionInternal {
     }
 }

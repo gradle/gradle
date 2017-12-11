@@ -527,9 +527,9 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
         sharedLibrary("log/build/lib/main/debug/Log").assertExists()
         executable("app/build/exe/main/debug/App").assertExists()
-        def installation = installation("app/build/install/main/debug")
-        installation.exec().out == app.expectedOutput
-        installation.assertIncludesLibraries("Hello", "Log")
+        def installationDebug = installation("app/build/install/main/debug")
+        installationDebug.exec().out == app.expectedOutput
+        installationDebug.assertIncludesLibraries("Hello", "Log")
 
         succeeds ":app:assembleRelease"
 

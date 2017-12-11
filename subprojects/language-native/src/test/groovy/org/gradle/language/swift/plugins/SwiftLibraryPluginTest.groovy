@@ -18,6 +18,8 @@ package org.gradle.language.swift.plugins
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftLibrary
+import org.gradle.language.swift.SwiftSharedLibrary
+import org.gradle.language.swift.SwiftStaticLibrary
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.Linkage
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
@@ -47,15 +49,62 @@ class SwiftLibraryPluginTest extends Specification {
         project.library.swiftSource.files == [src] as Set
     }
 
-    def "registers a component for the library"() {
+    def "registers a component for the library with default linkage"() {
         when:
         project.pluginManager.apply(SwiftLibraryPlugin)
         project.evaluate()
 
         then:
         project.components.main == project.library
-        project.components.mainDebug == project.library.debugSharedLibrary
-        project.components.mainRelease == project.library.releaseSharedLibrary
+        project.library.binaries.name == ['mainDebug', 'mainRelease']
+        project.components.containsAll(project.library.binaries)
+
+        and:
+        def binaries = project.library.binaries
+        binaries.matching { it.debuggable && it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
+        binaries.matching { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
+
+        and:
+        project.library.developmentBinary == binaries.matching { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }.first()
+    }
+
+    def "registers a component for the library with static linkage"() {
+        when:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+        project.library.linkage = [Linkage.STATIC]
+        project.evaluate()
+
+        then:
+        project.components.main == project.library
+        project.library.binaries.name == ['mainDebugStatic', 'mainReleaseStatic']
+        project.components.containsAll(project.library.binaries)
+
+        and:
+        def binaries = project.library.binaries
+        binaries.matching { it.debuggable && it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
+        binaries.matching { it.debuggable && !it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
+    }
+
+    def "registers a component for the library with both linkage"() {
+        when:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+        project.library.linkage = [Linkage.SHARED, Linkage.STATIC]
+        project.evaluate()
+
+        then:
+        project.components.main == project.library
+        project.library.binaries.name == ['mainDebug', 'mainRelease', 'mainDebugStatic', 'mainReleaseStatic']
+        project.components.containsAll(project.library.binaries)
+
+        and:
+        def binaries = project.library.binaries
+        binaries.matching { it.debuggable && it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
+        binaries.matching { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
+        binaries.matching { it.debuggable && it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
+        binaries.matching { it.debuggable && !it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
+
+        and:
+        project.library.developmentBinary == binaries.matching { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }.first()
     }
 
     def "adds compile and link tasks for default linkage"() {
@@ -67,7 +116,7 @@ class SwiftLibraryPluginTest extends Specification {
         project.evaluate()
 
         then:
-        project.tasks.withType(SwiftCompile)*.name == ['compileDebugSwift', 'compileReleaseSwift']
+        project.tasks.withType(SwiftCompile).name == ['compileDebugSwift', 'compileReleaseSwift']
         project.tasks.withType(CreateStaticLibrary).empty
 
         and:
@@ -170,7 +219,7 @@ class SwiftLibraryPluginTest extends Specification {
         project.evaluate()
 
         then:
-        project.tasks.withType(SwiftCompile)*.name == ['compileDebugStaticSwift', 'compileReleaseStaticSwift']
+        project.tasks.withType(SwiftCompile).name == ['compileDebugStaticSwift', 'compileReleaseStaticSwift']
         project.tasks.withType(LinkSharedLibrary).empty
 
         and:
