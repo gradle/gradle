@@ -29,9 +29,9 @@ class GenerateModuleMapIntegrationTest extends AbstractIntegrationSpec {
             task generate(type: GenerateModuleMap) {
                 moduleName.set('foo') 
                 moduleMapFile.set(project.layout.buildDirectory.file('moduleMaps/module.modulemap'))
-                publicHeaderDirs.add(file('headers'))
-                publicHeaderDirs.add(file('moreHeaders'))
-                publicHeaderDirs.add(file('does-not-exist'))
+                publicHeaderPaths.add(file('headers').absolutePath)
+                publicHeaderPaths.add(file('moreHeaders').absolutePath)
+                publicHeaderPaths.add(file('does-not-exist').absolutePath)
             }
         """
         file('headers').createDir()
@@ -52,8 +52,8 @@ class GenerateModuleMapIntegrationTest extends AbstractIntegrationSpec {
             task generate(type: GenerateModuleMap) {
                 moduleName.set('foo') 
                 moduleMapFile.set(project.layout.buildDirectory.file('moduleMaps/module.modulemap'))
-                publicHeaderDirs.add(file('headers'))
-                publicHeaderDirs.add(file('moreHeaders'))
+                publicHeaderPaths.add(file('headers').absolutePath)
+                publicHeaderPaths.add(file('moreHeaders').absolutePath)
             }
         """
         file('headers').createDir()
@@ -85,7 +85,7 @@ class GenerateModuleMapIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildFile << """
-            generate.publicHeaderDirs.add(file('yet/more/headers'))
+            generate.publicHeaderPaths.add(file('yet/more/headers').absolutePath)
         """
         file('yet/more/headers').createDir()
         succeeds "generate"

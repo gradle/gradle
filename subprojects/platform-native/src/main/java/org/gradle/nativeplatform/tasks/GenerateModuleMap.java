@@ -30,7 +30,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.CollectionUtils;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutor;
@@ -41,6 +40,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.CollectionUtils.filter;
 
 /**
  * Generates a module map file for Swift interoperability with C/C++ projects.
@@ -52,29 +52,38 @@ public class GenerateModuleMap extends DefaultTask {
     private final WorkerExecutor workerExecutor;
     private RegularFileProperty moduleMapFile;
     private Property<String> moduleName;
-    private ListProperty<File> publicHeaderDirs;
+    private ListProperty<String> publicHeaderPaths;
 
     @Inject
     public GenerateModuleMap(WorkerExecutor workerExecutor) {
         this.workerExecutor = workerExecutor;
         this.moduleMapFile = newOutputFile();
         this.moduleName = getProject().getObjects().property(String.class);
-        this.publicHeaderDirs = getProject().getObjects().listProperty(File.class);
+        this.publicHeaderPaths = getProject().getObjects().listProperty(String.class);
     }
 
+    /**
+     * The location of the generated module map file.
+     */
     @OutputFile
     public RegularFileProperty getModuleMapFile() {
         return moduleMapFile;
     }
 
+    /**
+     * The name of the module to use for the generated module map.
+     */
     @Input
     public Property<String> getModuleName() {
         return moduleName;
     }
 
+    /**
+     * The list of public header paths that should be exposed by the module.
+     */
     @Input
-    public ListProperty<File> getPublicHeaderDirs() {
-        return publicHeaderDirs;
+    public ListProperty<String> getPublicHeaderPaths() {
+        return publicHeaderPaths;
     }
 
     @TaskAction
@@ -83,7 +92,7 @@ public class GenerateModuleMap extends DefaultTask {
             @Override
             public void execute(WorkerConfiguration workerConfiguration) {
                 workerConfiguration.setIsolationMode(IsolationMode.NONE);
-                workerConfiguration.params(moduleMapFile.getAsFile().get(), moduleName.get(), publicHeaderDirs.get());
+                workerConfiguration.params(moduleMapFile.getAsFile().get(), moduleName.get(), publicHeaderPaths.get());
             }
         });
     }
@@ -91,10 +100,10 @@ public class GenerateModuleMap extends DefaultTask {
     private static class GenerateModuleMapFile implements Runnable {
         private final File moduleMapFile;
         private final String moduleName;
-        private final List<File> publicHeaderDirs;
+        private final List<String> publicHeaderDirs;
 
         @Inject
-        public GenerateModuleMapFile(File moduleMapFile, String moduleName, List<File> publicHeaderDirs) {
+        public GenerateModuleMapFile(File moduleMapFile, String moduleName, List<String> publicHeaderDirs) {
             this.moduleMapFile = moduleMapFile;
             this.moduleName = moduleName;
             this.publicHeaderDirs = publicHeaderDirs;
@@ -105,16 +114,16 @@ public class GenerateModuleMap extends DefaultTask {
             List<String> lines = Lists.newArrayList(
                 "module " + moduleName + " {"
             );
-            List<File> validHeaderDirs = CollectionUtils.filter(publicHeaderDirs, new Spec<File>() {
+            List<String> validHeaderDirs = filter(publicHeaderDirs, new Spec<String>() {
                 @Override
-                public boolean isSatisfiedBy(File file) {
-                    return file.exists();
+                public boolean isSatisfiedBy(String path) {
+                    return new File(path).exists();
                 }
             });
-            lines.addAll(collect(validHeaderDirs, new Transformer<String, File>() {
+            lines.addAll(collect(validHeaderDirs, new Transformer<String, String>() {
                 @Override
-                public String transform(File file) {
-                    return "\tumbrella \"" + file.getAbsolutePath() + "\"";
+                public String transform(String path) {
+                    return "\tumbrella \"" + path + "\"";
                 }
             }));
             lines.add("\texport *");

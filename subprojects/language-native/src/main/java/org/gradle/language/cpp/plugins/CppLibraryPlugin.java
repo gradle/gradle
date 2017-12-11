@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
@@ -51,6 +52,7 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
+import static org.gradle.util.CollectionUtils.collect;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
@@ -102,10 +104,15 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         GenerateModuleMap generateModuleMap = tasks.create("generateModuleMap", GenerateModuleMap.class);
         generateModuleMap.getModuleMapFile().set(moduleMapFile);
         generateModuleMap.getModuleName().set(library.getBaseName());
-        generateModuleMap.getPublicHeaderDirs().addAll(project.provider(new Callable<Iterable<File>>() {
+        generateModuleMap.getPublicHeaderPaths().addAll(project.provider(new Callable<Iterable<String>>() {
             @Override
-            public Iterable<File> call() throws Exception {
-                return library.getPublicHeaderDirs();
+            public Iterable<String> call() throws Exception {
+                return collect(library.getPublicHeaderDirs(), new Transformer<String, File>() {
+                    @Override
+                    public String transform(File file) {
+                        return file.getAbsolutePath();
+                    }
+                });
             }
         }));
         library.getModuleMapFile().set(generateModuleMap.getModuleMapFile());
