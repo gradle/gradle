@@ -146,6 +146,18 @@ class SwiftLibraryPluginTest extends Specification {
         def createDebugStatic = project.tasks.createDebugStatic
         createDebugStatic instanceof CreateStaticLibrary
         createDebugStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/static/" + OperatingSystem.current().getStaticLibraryName("TestLib"))
+
+        def compileReleaseStatic = project.tasks.compileReleaseStaticSwift
+        compileReleaseStatic instanceof SwiftCompile
+        compileReleaseStatic.source.files == [src] as Set
+        compileReleaseStatic.objectFileDir.get().asFile == projectDir.file("build/obj/main/release/static")
+        compileReleaseStatic.moduleFile.get().asFile == projectDir.file("build/modules/main/release/static/TestLib.swiftmodule")
+        compileReleaseStatic.debuggable
+        compileReleaseStatic.optimized
+
+        def createReleaseStatic = project.tasks.createReleaseStatic
+        createReleaseStatic instanceof CreateStaticLibrary
+        createReleaseStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/release/static/" + OperatingSystem.current().getStaticLibraryName("TestLib"))
     }
 
     def "adds compile and link tasks for static linkage only"() {
@@ -158,21 +170,33 @@ class SwiftLibraryPluginTest extends Specification {
         project.evaluate()
 
         then:
-        project.tasks.withType(SwiftCompile)*.name == ['compileDebugStaticSwift']
+        project.tasks.withType(SwiftCompile)*.name == ['compileDebugStaticSwift', 'compileReleaseStaticSwift']
         project.tasks.withType(LinkSharedLibrary).empty
 
         and:
-        def compileDebugStatic = project.tasks.compileDebugStaticSwift
-        compileDebugStatic instanceof SwiftCompile
-        compileDebugStatic.source.files == [src] as Set
-        compileDebugStatic.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug/static")
-        compileDebugStatic.moduleFile.get().asFile == projectDir.file("build/modules/main/debug/static/TestLib.swiftmodule")
-        compileDebugStatic.debuggable
-        !compileDebugStatic.optimized
+        def compileDebug = project.tasks.compileDebugStaticSwift
+        compileDebug instanceof SwiftCompile
+        compileDebug.source.files == [src] as Set
+        compileDebug.objectFileDir.get().asFile == projectDir.file("build/obj/main/debug/static")
+        compileDebug.moduleFile.get().asFile == projectDir.file("build/modules/main/debug/static/TestLib.swiftmodule")
+        compileDebug.debuggable
+        !compileDebug.optimized
 
-        def createDebugStatic = project.tasks.createDebugStatic
-        createDebugStatic instanceof CreateStaticLibrary
-        createDebugStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/static/" + OperatingSystem.current().getStaticLibraryName("TestLib"))
+        def createDebug = project.tasks.createDebugStatic
+        createDebug instanceof CreateStaticLibrary
+        createDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/static/" + OperatingSystem.current().getStaticLibraryName("TestLib"))
+
+        def compileRelease = project.tasks.compileReleaseStaticSwift
+        compileRelease instanceof SwiftCompile
+        compileRelease.source.files == [src] as Set
+        compileRelease.objectFileDir.get().asFile == projectDir.file("build/obj/main/release/static")
+        compileRelease.moduleFile.get().asFile == projectDir.file("build/modules/main/release/static/TestLib.swiftmodule")
+        compileRelease.debuggable
+        compileRelease.optimized
+
+        def createRelease = project.tasks.createReleaseStatic
+        createRelease instanceof CreateStaticLibrary
+        createRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/static/" + OperatingSystem.current().getStaticLibraryName("TestLib"))
     }
 
     def "output file names are calculated from module name defined on extension"() {

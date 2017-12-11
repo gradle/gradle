@@ -162,7 +162,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         and:
         buildFile << """
             apply plugin: 'swift-application'
-            compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
+            compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
          """
 
         expect:
@@ -555,14 +555,14 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
                     implementation project(':hello')
                 }
                 afterEvaluate {
-                    compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
+                    compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
                 }
             }
             project(':hello') {
                 apply plugin: 'swift-library'
                 library.module = 'Greeter'
                 afterEvaluate {
-                    compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
+                    compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
                 }
             }
 """
@@ -585,6 +585,51 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         sharedLibrary("hello/build/lib/main/debug/Greeter").assertExists()
         sharedLibrary("hello/build/lib/main/debug/Greeter").assertHasDebugSymbolsFor(app.library.sourceFileNames)
+        executable("app/build/exe/main/debug/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
+        executable("app/build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
+    }
+
+    def "can compile and link against a static library with debug and release variants"() {
+        settingsFile << "include 'app', 'hello', 'log'"
+        def app = new SwiftAppWithLibraryAndOptionalFeature()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':hello')
+                }
+                afterEvaluate {
+                    compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                library.module = 'Greeter'
+                library.linkage = [Linkage.STATIC]
+                afterEvaluate {
+                    compileReleaseStaticSwift.compilerArgs.add('-DWITH_FEATURE')
+                }
+            }
+"""
+        app.library.writeToProject(file("hello"))
+        app.application.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:linkRelease"
+
+        result.assertTasksExecuted(":hello:compileReleaseStaticSwift", ":hello:createReleaseStatic", ":app:compileReleaseSwift", ":app:linkRelease")
+
+        staticLibrary("hello/build/lib/main/release/static/Greeter").assertExists()
+        executable("app/build/exe/main/release/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
+        executable("app/build/exe/main/release/App").exec().out == app.withFeatureEnabled().expectedOutput
+
+        succeeds ":app:linkDebug"
+
+        result.assertTasksExecuted(":hello:compileDebugStaticSwift", ":hello:createDebugStatic", ":app:compileDebugSwift", ":app:linkDebug")
+
+        staticLibrary("hello/build/lib/main/debug/static/Greeter").assertExists()
         executable("app/build/exe/main/debug/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
         executable("app/build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
     }
