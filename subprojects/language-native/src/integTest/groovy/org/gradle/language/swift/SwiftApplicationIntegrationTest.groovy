@@ -597,6 +597,60 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
 
+    def "can compile and link against static library with API dependencies to shared library"() {
+        settingsFile << "include 'app', 'hello', 'log'"
+        def app = new SwiftAppWithLibraries()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                library.linkage = [Linkage.STATIC]
+                dependencies {
+                    api project(':log')
+                }
+            }
+            project(':log') {
+                apply plugin: 'swift-library'
+                library.linkage = [Linkage.SHARED]
+            }
+"""
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
+        app.application.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+
+        result.assertTasksExecuted(":hello:compileDebugStaticSwift", ":hello:createDebugStatic",
+            ":log:compileDebugSwift", ":log:linkDebug",
+            ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+
+        staticLibrary("hello/build/lib/main/debug/static/Hello").assertExists()
+        sharedLibrary("log/build/lib/main/debug/Log").assertExists()
+        executable("app/build/exe/main/debug/App").assertExists()
+        def installationDebug = installation("app/build/install/main/debug")
+        installationDebug.exec().out == app.expectedOutput
+        installationDebug.assertIncludesLibraries("Log")
+
+        succeeds ":app:assembleRelease"
+
+        result.assertTasksExecuted(":hello:compileReleaseStaticSwift", ":hello:createReleaseStatic",
+            ":log:compileReleaseSwift", ":log:linkRelease", ":log:stripSymbolsRelease",
+            ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
+
+        staticLibrary("hello/build/lib/main/release/static/Hello").assertExists()
+        sharedLibrary("log/build/lib/main/release/Log").assertExists()
+        executable("app/build/exe/main/release/App").assertExists()
+        installation("app/build/install/main/release").exec().out == app.expectedOutput
+    }
+
     def "can compile and link against a library with debug and release variants"() {
         settingsFile << "include 'app', 'hello'"
         def app = new SwiftAppWithLibraryAndOptionalFeature()
