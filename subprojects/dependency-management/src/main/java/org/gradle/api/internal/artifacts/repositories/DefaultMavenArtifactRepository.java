@@ -75,7 +75,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final FileStore<String> resourcesFileStore;
     private final FileResourceRepository fileResourceRepository;
-    private final ExperimentalFeatures experimentalFeatures;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
@@ -117,7 +116,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.resourcesFileStore = resourcesFileStore;
         this.fileResourceRepository = fileResourceRepository;
-        this.experimentalFeatures = experimentalFeatures;
         this.metadataSources.setDefaults(experimentalFeatures);
     }
 
@@ -157,10 +155,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     public void setArtifactUrls(Iterable<?> urls) {
         additionalUrls = Lists.newArrayList(urls);
-    }
-
-    protected boolean isPreferGradleMetadata() {
-        return experimentalFeatures.isEnabled();
     }
 
     public ModuleVersionPublisher createPublisher() {
