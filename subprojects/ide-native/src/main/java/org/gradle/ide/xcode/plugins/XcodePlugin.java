@@ -210,24 +210,29 @@ public class XcodePlugin extends IdePlugin {
         return configuration.getIncoming().artifactView(fromSourceDependency(project)).getArtifacts().getArtifactFiles();
     }
 
-    private void configureXcodeForSwift(final Project project, PBXTarget.ProductType productType) {
-        // TODO: Assumes there's a single 'main' Swift component
-        SwiftComponent component = project.getComponents().withType(SwiftComponent.class).getByName("main");
-        FileCollection sources = component.getSwiftSource();
-        xcode.getProject().getGroups().getSources().from(sources);
+    private void configureXcodeForSwift(final Project project, final PBXTarget.ProductType productType) {
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                // TODO: Assumes there's a single 'main' Swift component
+                SwiftComponent component = project.getComponents().withType(SwiftComponent.class).getByName("main");
+                FileCollection sources = component.getSwiftSource();
+                xcode.getProject().getGroups().getSources().from(sources);
 
-        // TODO - Reuse the logic from `swift-application` or `swift-library` to determine the link task path
-        // TODO - should use the _install_ task for an executable
-        AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
-        AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");
+                // TODO - Reuse the logic from `swift-application` or `swift-library` to determine the link task path
+                // TODO - should use the _install_ task for an executable
+                AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
+                AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");
 
-        String targetName = component.getModule().get() + " " + toString(productType);
-        XcodeTarget target = newTarget(targetName, component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
-        target.getCompileModules().from(component.getDevelopmentBinary().getCompileModules());
-        target.addTaskDependency(filterArtifactsFromImplicitBuilds((Configuration) component.getDevelopmentBinary().getCompileModules()).getBuildDependencies());
-        xcode.getProject().addTarget(target);
+                String targetName = component.getModule().get() + " " + XcodePlugin.toString(productType);
+                XcodeTarget target = newTarget(targetName, component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
+                target.getCompileModules().from(component.getDevelopmentBinary().getCompileModules());
+                target.addTaskDependency(filterArtifactsFromImplicitBuilds((Configuration) component.getDevelopmentBinary().getCompileModules()).getBuildDependencies());
+                xcode.getProject().addTarget(target);
 
-        createSchemeTask(project.getTasks(), targetName, xcode.getProject());
+                createSchemeTask(project.getTasks(), targetName, xcode.getProject());
+            }
+        });
     }
 
     private void configureForCppPlugin(final Project project) {
@@ -246,27 +251,32 @@ public class XcodePlugin extends IdePlugin {
         });
     }
 
-    private void configureXcodeForCpp(Project project, PBXTarget.ProductType productType) {
-        // TODO: Assumes there's a single 'main' C++ component
-        CppComponent component = project.getComponents().withType(CppComponent.class).getByName("main");
-        FileCollection sources = component.getCppSource();
-        xcode.getProject().getGroups().getSources().from(sources);
+    private void configureXcodeForCpp(Project project, final PBXTarget.ProductType productType) {
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                // TODO: Assumes there's a single 'main' C++ component
+                CppComponent component = project.getComponents().withType(CppComponent.class).getByName("main");
+                FileCollection sources = component.getCppSource();
+                xcode.getProject().getGroups().getSources().from(sources);
 
-        FileCollection headers = component.getHeaderFiles();
-        xcode.getProject().getGroups().getHeaders().from(headers);
+                FileCollection headers = component.getHeaderFiles();
+                xcode.getProject().getGroups().getHeaders().from(headers);
 
-        // TODO - Reuse the logic from `cpp-application` or `cpp-library` to find the link task path
-        // TODO - should use the _install_ task for an executable
-        // TODO - should use the basename of the component to calculate the target names
-        AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
-        AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");
-        String targetName = StringUtils.capitalize(project.getName());
-        XcodeTarget target = newTarget(targetName + " " + toString(productType), targetName, productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
-        target.getHeaderSearchPaths().from(component.getDevelopmentBinary().getCompileIncludePath());
-        target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultCppBinary) component.getDevelopmentBinary()).getIncludePathConfiguration()).getBuildDependencies());
-        xcode.getProject().addTarget(target);
+                // TODO - Reuse the logic from `cpp-application` or `cpp-library` to find the link task path
+                // TODO - should use the _install_ task for an executable
+                // TODO - should use the basename of the component to calculate the target names
+                AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
+                AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");
+                String targetName = StringUtils.capitalize(project.getName());
+                XcodeTarget target = newTarget(targetName + " " + XcodePlugin.toString(productType), targetName, productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
+                target.getHeaderSearchPaths().from(component.getDevelopmentBinary().getCompileIncludePath());
+                target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultCppBinary) component.getDevelopmentBinary()).getIncludePathConfiguration()).getBuildDependencies());
+                xcode.getProject().addTarget(target);
 
-        createSchemeTask(project.getTasks(), targetName + " " + toString(productType), xcode.getProject());
+                createSchemeTask(project.getTasks(), targetName + " " + XcodePlugin.toString(productType), xcode.getProject());
+            }
+        });
     }
 
     private static GenerateSchemeFileTask createSchemeTask(TaskContainer tasks, String schemeName, DefaultXcodeProject xcodeProject) {
