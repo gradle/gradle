@@ -61,6 +61,11 @@ public abstract class ExtendableToolChain<T extends NativePlatformToolChain> imp
         return getName() + "-" + operatingSystem.getName();
     }
 
+    @Override
+    public boolean supportsModuleMaps() {
+        return false;
+    }
+
     public void eachPlatform(Action<? super T> action) {
         configureActions.add(action);
     }

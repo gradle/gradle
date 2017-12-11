@@ -43,7 +43,11 @@ import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.GenerateModuleMap;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -100,22 +104,29 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         // TODO - add lifecycle tasks
         // TODO - extract some common code to setup the configurations
 
+        final ModelRegistry modelRegistry = project.getModelRegistry();
+        final DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
+        final NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
+
         Provider<RegularFile> moduleMapFile = project.getLayout().getBuildDirectory().file("map/module.modulemap");
-        GenerateModuleMap generateModuleMap = tasks.create("generateModuleMap", GenerateModuleMap.class);
-        generateModuleMap.getModuleMapFile().set(moduleMapFile);
-        generateModuleMap.getModuleName().set(library.getBaseName());
-        generateModuleMap.getPublicHeaderPaths().addAll(project.provider(new Callable<Iterable<String>>() {
-            @Override
-            public Iterable<String> call() throws Exception {
-                return collect(library.getPublicHeaderDirs(), new Transformer<String, File>() {
-                    @Override
-                    public String transform(File file) {
-                        return file.getAbsolutePath();
-                    }
-                });
-            }
-        }));
-        library.getModuleMapFile().set(generateModuleMap.getModuleMapFile());
+        library.getModuleMapFile().set(moduleMapFile);
+        if (toolChain.supportsModuleMaps()) {
+            GenerateModuleMap generateModuleMap = tasks.create("generateModuleMap", GenerateModuleMap.class);
+            generateModuleMap.getModuleMapFile().set(moduleMapFile);
+            generateModuleMap.getModuleName().set(library.getBaseName());
+            generateModuleMap.getPublicHeaderPaths().addAll(project.provider(new Callable<Iterable<String>>() {
+                @Override
+                public Iterable<String> call() throws Exception {
+                    return collect(library.getPublicHeaderDirs(), new Transformer<String, File>() {
+                        @Override
+                        public String transform(File file) {
+                            return file.getAbsolutePath();
+                        }
+                    });
+                }
+            }));
+            library.getModuleMapFile().set(generateModuleMap.getModuleMapFile());
+        }
 
         // Define the outgoing artifacts
         // TODO - move this to the base plugin
