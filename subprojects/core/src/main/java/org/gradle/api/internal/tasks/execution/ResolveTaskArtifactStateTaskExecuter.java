@@ -31,7 +31,6 @@ import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -144,7 +143,7 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ImmutableSortedSet<TaskInputFilePropertySpec> getInputFileProperties() {
+        public ImmutableSortedSet<DeclaredTaskInputFileProperty> getInputFileProperties() {
             return inputFilePropertiesVisitor.getFileProperties();
         }
 

@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.TaskInputs;
@@ -38,7 +39,7 @@ public interface TaskInputsInternal extends TaskInputs {
     GetInputPropertiesVisitor getInputPropertiesVisitor();
 
     interface GetFilePropertiesVisitor extends PropertyVisitor {
-        ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
+        ImmutableSortedSet<DeclaredTaskInputFileProperty> getFileProperties();
         FileCollection getFiles();
         FileCollection getSourceFiles();
 
@@ -48,14 +49,4 @@ public interface TaskInputsInternal extends TaskInputs {
     interface GetInputPropertiesVisitor extends PropertyVisitor {
         Map<String, Object> getProperties();
     }
-
-    /**
-     * Called prior to the use of these inputs during task execution. The implementation may finalize and cache whatever state is required to efficiently calculate the snapshot, cache key and values of these inputs during task execution.
-     */
-    void prepareValues();
-
-    /**
-     * Called after task execution has completed, regardless of task outcome. The implementation may release whatever state was cached during task execution.
-     */
-    void cleanupValues();
 }

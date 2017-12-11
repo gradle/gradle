@@ -100,7 +100,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
         GetFilePropertiesVisitor visitor = new GetFilePropertiesVisitor();
         visitAllProperties(visitor);
-        return visitor.getFileProperties();
+        return ImmutableSortedSet.<TaskInputFilePropertySpec>copyOf(visitor.getFileProperties());
     }
 
     @Override
@@ -169,22 +169,6 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     @Override
     public FileCollection getSourceFiles() {
         return allSourceFiles;
-    }
-
-    // FIXME wolfs
-    @Override
-    public void prepareValues() {
-        // Only file inputs for now
-        for (DeclaredTaskInputFileProperty property : declaredFileProperties) {
-            property.prepareValue();
-        }
-    }
-
-    @Override
-    public void cleanupValues() {
-        for (DeclaredTaskInputFileProperty property : declaredFileProperties) {
-            property.cleanupValue();
-        }
     }
 
     public Map<String, Object> getProperties() {
@@ -309,11 +293,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     private class GetFilePropertiesVisitor extends PropertyVisitor.Adapter implements TaskInputsInternal.GetFilePropertiesVisitor {
-        private ImmutableSortedSet.Builder<TaskInputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
+        private ImmutableSortedSet.Builder<DeclaredTaskInputFileProperty> builder = ImmutableSortedSet.naturalOrder();
         private Set<String> names = Sets.newHashSet();
         private boolean hasSourceFiles;
 
-        private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
+        private ImmutableSortedSet<DeclaredTaskInputFileProperty> fileProperties;
 
         @Override
         public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
@@ -328,7 +312,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
+        public ImmutableSortedSet<DeclaredTaskInputFileProperty> getFileProperties() {
             if (fileProperties == null) {
                 fileProperties = builder.build();
             }
