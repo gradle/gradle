@@ -572,16 +572,16 @@ application.module = 'TestApp'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeTestAppExecutable", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
         project.targets.size() == 2
-        project.targets.every { it.productName == 'App' }
-        project.targets[0].name == 'App Executable'
+        project.targets.every { it.productName == 'TestApp' }
+        project.targets[0].name == 'TestApp Executable'
         project.targets[0].productReference.path == exe("output/exe/main/debug/TestApp").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/debug").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/release").absolutePath
-        project.targets[1].name == '[INDEXING ONLY] App Executable'
+        project.targets[1].name == '[INDEXING ONLY] TestApp Executable'
         project.products.children.size() == 1
         project.products.children[0].path == exe("output/exe/main/debug/TestApp").absolutePath
     }
@@ -600,16 +600,16 @@ library.module = 'TestLib'
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeAppSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeSchemeTestLibSharedLibrary", ":xcodeProjectWorkspaceSettings", ":xcode")
 
         def project = rootXcodeProject.projectFile
         project.targets.size() == 2
-        project.targets.every { it.productName == "App" }
-        project.targets[0].name == 'App SharedLibrary'
+        project.targets.every { it.productName == "TestLib" }
+        project.targets[0].name == 'TestLib SharedLibrary'
         project.targets[0].productReference.path == sharedLib("output/lib/main/debug/TestLib").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/debug").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/release").absolutePath
-        project.targets[1].name == '[INDEXING ONLY] App SharedLibrary'
+        project.targets[1].name == '[INDEXING ONLY] TestLib SharedLibrary'
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("output/lib/main/debug/TestLib").absolutePath
     }
