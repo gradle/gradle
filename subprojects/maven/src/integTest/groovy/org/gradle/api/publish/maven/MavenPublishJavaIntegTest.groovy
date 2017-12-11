@@ -343,11 +343,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         then:
         javaLibrary.assertPublished()
 
-        javaLibrary.parsedPom.scopes.keySet() == ["compile", "runtime"] as Set
+        javaLibrary.parsedPom.scopes.keySet() == ["runtime"] as Set
 
-        javaLibrary.parsedPom.scopes.compile.assertDependsOn()
-        // TODO:DAZ Do not publish constraint with no version to <dependencyManagement/>
-        javaLibrary.parsedPom.scopes.compile.assertDependencyManagement("commons-logging:commons-logging:")
         javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:[3.2, 4)")
         javaLibrary.parsedPom.scopes.runtime.assertDependencyManagement()
 

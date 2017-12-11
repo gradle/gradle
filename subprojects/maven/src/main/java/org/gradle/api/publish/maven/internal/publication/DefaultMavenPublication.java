@@ -189,7 +189,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
             Set<MavenDependency> dependencyConstraints = dependencyConstraintsFor(usageContext.getUsage());
             for (DependencyConstraint dependency : usageContext.getDependencyConstraints()) {
-                if (seenConstraints.add(dependency)) {
+                if (seenConstraints.add(dependency)
+                    && !dependency.getVersionConstraint().getPreferredVersion().isEmpty()) {
                     addDependencyConstraint(dependency, dependencyConstraints);
                 }
             }
