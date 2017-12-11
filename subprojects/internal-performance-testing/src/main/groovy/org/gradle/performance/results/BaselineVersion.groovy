@@ -27,6 +27,8 @@ class BaselineVersion implements VersionResults {
     // Multiply standard error of mean by this factor to reduce the number of a falsely identified regressions.
     // https://en.wikipedia.org/wiki/Standard_deviation#Rules_for_normally_distributed_data
     static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN = new BigDecimal("3")
+    // Margin for detecting improvements
+    static final BigDecimal NUM_STANDARD_ERRORS_FOR_IMPROVEMENT = new BigDecimal("1.5")
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
 
@@ -71,6 +73,6 @@ class BaselineVersion implements VersionResults {
     }
 
     Amount<Duration> getMinExecutionTimeImprovement(MeasuredOperationList current) {
-        (results.totalTime.standardError + current.totalTime.standardError) / 2
+        (results.totalTime.standardError + current.totalTime.standardError) / 2 * NUM_STANDARD_ERRORS_FOR_IMPROVEMENT
     }
 }
