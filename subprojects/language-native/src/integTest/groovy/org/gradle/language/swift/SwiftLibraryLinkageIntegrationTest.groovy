@@ -111,4 +111,25 @@ class SwiftLibraryLinkageIntegrationTest extends AbstractInstalledToolChainInteg
         result.assertTasksExecuted(':compileDebugStaticSwift', ':createDebugStatic', ':assembleDebugStatic')
         staticLibrary('build/lib/main/debug/static/Foo').assertExists()
     }
+
+    def "fails when no linkage is specified"() {
+        def library = new SwiftLib()
+        buildFile << """
+            apply plugin: 'swift-library'
+
+            library {
+                linkage = []
+            }
+        """
+        settingsFile << """
+            rootProject.name = 'foo'
+        """
+        library.writeToProject(testDirectory)
+
+        when:
+        def result = fails('assemble')
+
+        then:
+        result.assertHasCause('A linkage needs to be specified for the library.')
+    }
 }
