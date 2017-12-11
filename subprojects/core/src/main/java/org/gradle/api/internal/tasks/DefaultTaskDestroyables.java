@@ -18,32 +18,19 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.properties.GetDestroyablesVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.util.DeprecationLogger;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 @NonNullApi
 public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
-    private final FileResolver resolver;
-    private final TaskInternal task;
     private final TaskMutator taskMutator;
-    private final PropertyWalker propertyWalker;
-    private final PropertySpecFactory specFactory;
     private final List<Object> registeredPaths = Lists.newArrayList();
 
-    public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PropertySpecFactory specFactory) {
-        this.resolver = resolver;
-        this.task = task;
+    public DefaultTaskDestroyables(TaskMutator taskMutator) {
         this.taskMutator = taskMutator;
-        this.propertyWalker = propertyWalker;
-        this.specFactory = specFactory;
     }
 
     @Override
@@ -78,22 +65,9 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
         });
     }
 
-    private void visitAllProperties(PropertyVisitor visitor) {
-        propertyWalker.visitProperties(specFactory, visitor, task);
-        visitRegisteredProperties(visitor);
+    @Override
+    public Collection<Object> getRegisteredPaths() {
+        return registeredPaths;
     }
 
-    @Override
-    public void visitRegisteredProperties(PropertyVisitor visitor) {
-        for (Object path : registeredPaths) {
-            visitor.visitDestroyableProperty(path);
-        }
-    }
-
-    @Override
-    public FileCollection getFiles() {
-        GetDestroyablesVisitor visitor = new GetDestroyablesVisitor(task.getName(), resolver);
-        visitAllProperties(visitor);
-        return visitor.getFiles();
-    }
 }

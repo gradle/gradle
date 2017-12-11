@@ -176,8 +176,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         specFactory = new DefaultPropertySpecFactory(this, fileResolver);
         taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, specFactory);
         taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, specFactory);
-        taskDestroyables = new DefaultTaskDestroyables(fileResolver, this, taskMutator, propertyWalker, specFactory);
-        taskLocalState = new DefaultTaskLocalState(fileResolver, this, taskMutator, propertyWalker, specFactory);
+        taskDestroyables = new DefaultTaskDestroyables(taskMutator);
+        taskLocalState = new DefaultTaskLocalState(taskMutator);
 
         dependencies = new InputsAwareTaskDependency(taskInputs, tasks);
     }
@@ -202,8 +202,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         propertyWalker.visitProperties(specFactory, visitor, this);
         getInputs().visitRegisteredProperties(visitor);
         getOutputs().visitRuntimeProperties(visitor);
-        ((TaskDestroyablesInternal) getDestroyables()).visitRegisteredProperties(visitor);
-        ((TaskLocalStateInternal) getLocalState()).visitRegisteredProperties(visitor);
+        for (Object path : ((TaskDestroyablesInternal) getDestroyables()).getRegisteredPaths()) {
+            visitor.visitDestroyableProperty(path);
+        }
+        for (Object path : ((TaskLocalStateInternal) getLocalState()).getRegisteredPaths()) {
+            visitor.visitLocalStateProperty(path);
+        }
     }
 
     @Override

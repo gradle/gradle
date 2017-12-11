@@ -218,6 +218,9 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 @InputFile
                 File inputFile
             }     
+            
+            import org.gradle.api.internal.tasks.properties.PropertyVisitor
+            
             class PrintInputsAndOutputs extends DefaultTask {
                 Task task
                 @TaskAction
@@ -231,9 +234,13 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                     task.outputs.fileProperties.each {
                         println "Output file property '\${it.propertyName}'"
                     }
-                    task.destroyables.files.files.each {
-                        println "Destroys: '\${it}'"
-                    }
+                    task.visitProperties(new PropertyVisitor.Adapter() {
+                        @Override
+                        void visitDestroyableProperty(Object value) {
+                            println "Destroys: '\${value.call()}'"
+                        }
+                        
+                    })
                 }
             }      
             
