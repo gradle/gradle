@@ -17,12 +17,14 @@ package org.gradle.api.artifacts.component;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Criteria for selecting a component instance that is available as a module version.
  *
  * @since 1.10
  */
+@UsedByScanPlugin
 @Incubating
 public interface ModuleComponentSelector extends ComponentSelector {
     /**
