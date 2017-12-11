@@ -424,8 +424,41 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         executable("app/build/exe/main/debug/App").assertExists()
         sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
-        installation("app/build/install/main/debug").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/main/debug/lib/Greeter").assertExists()
+        def installation = installation("app/build/install/main/debug")
+        installation.exec().out == app.expectedOutput
+        installation.assertIncludesLibraries("Greeter")
+    }
+
+    def "can compile and link against a static library"() {
+        settingsFile << "include 'app', 'greeter'"
+        def app = new SwiftAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':greeter')
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+
+                library.linkage = [Linkage.STATIC]
+            }
+"""
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":greeter:compileDebugStaticSwift", ":greeter:createDebugStatic", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+
+        executable("app/build/exe/main/debug/App").assertExists()
+        staticLibrary("greeter/build/lib/main/debug/static/Greeter").assertExists()
+        def installation = installation("app/build/install/main/debug")
+        installation.exec().out == app.expectedOutput
+        installation.assertIncludesLibraries()
     }
 
     def "can compile and link against library with API dependencies"() {

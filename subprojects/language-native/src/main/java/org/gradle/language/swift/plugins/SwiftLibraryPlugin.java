@@ -156,13 +156,41 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                 if (library.getLinkage().get().contains(Linkage.STATIC)){
                     String name = library.getName();
 
-                    SwiftStaticLibrary debug = objectFactory.newInstance(DefaultSwiftStaticLibrary.class, name + "DebugStatic", project.getLayout(), objectFactory, library.getModule(), true, false, true, library.getSwiftSource(), configurations, library.getImplementationDependencies());
+                    SwiftStaticLibrary debugStaticLibrary = objectFactory.newInstance(DefaultSwiftStaticLibrary.class, name + "DebugStatic", project.getLayout(), objectFactory, library.getModule(), true, false, true, library.getSwiftSource(), configurations, library.getImplementationDependencies());
 
-                    project.getComponents().add(debug);
+                    project.getComponents().add(debugStaticLibrary);
 
                     if (!library.getLinkage().get().contains(Linkage.SHARED)) {
-                        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debug.getLinkFile());
+                        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugStaticLibrary.getLinkFile());
                     }
+
+                    final SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugStaticSwift");
+
+                    Configuration implementation = library.getImplementationDependencies();
+                    Configuration api = library.getApiDependencies();
+
+                    Configuration debugApiElements = configurations.maybeCreate("debugStaticSwiftApiElements");
+                    debugApiElements.extendsFrom(api);
+                    debugApiElements.setCanBeResolved(false);
+                    debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+                    debugApiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getDebugSharedLibrary().isDebuggable());
+                    debugApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getDebugSharedLibrary().isOptimized());
+                    debugApiElements.getOutgoing().artifact(compileDebug.getModuleFile());
+
+                    Configuration debugLinkElements = configurations.maybeCreate("debugStaticLinkElements");
+                    debugLinkElements.extendsFrom(implementation);
+                    debugLinkElements.setCanBeResolved(false);
+                    debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
+                    debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getDebugSharedLibrary().isDebuggable());
+                    debugLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getDebugSharedLibrary().isOptimized());
+                    debugLinkElements.getOutgoing().artifact(debugStaticLibrary.getLinkFile());
+
+                    Configuration debugRuntimeElements = configurations.maybeCreate("debugStaticRuntimeElements");
+                    debugRuntimeElements.extendsFrom(implementation);
+                    debugRuntimeElements.setCanBeResolved(false);
+                    debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
+                    debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.getDebugSharedLibrary().isDebuggable());
+                    debugRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getDebugSharedLibrary().isOptimized());
                 }
             }
         });
