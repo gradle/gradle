@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -30,8 +31,11 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.SwiftSharedLibrary;
+import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftLibrary;
+import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
+import org.gradle.nativeplatform.Linkage;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -61,11 +65,11 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
-        TaskContainer tasks = project.getTasks();
-        ConfigurationContainer configurations = project.getConfigurations();
-        ObjectFactory objectFactory = project.getObjects();
+        final TaskContainer tasks = project.getTasks();
+        final ConfigurationContainer configurations = project.getConfigurations();
+        final ObjectFactory objectFactory = project.getObjects();
 
-        SwiftLibrary library = project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", project.getLayout(), objectFactory, fileOperations, configurations);
+        final SwiftLibrary library = project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", project.getLayout(), objectFactory, fileOperations, configurations);
         project.getComponents().add(library);
         SwiftSharedLibrary debugSharedLibrary = library.getDebugSharedLibrary();
         project.getComponents().add(debugSharedLibrary);
@@ -79,8 +83,6 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         // Configure compile task
         final SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
         final SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
-
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getRuntimeFile());
 
         // TODO - add lifecycle tasks
         // TODO - extract some common code to setup the configurations
@@ -140,5 +142,26 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.getReleaseSharedLibrary().isOptimized());
         // TODO - should distinguish between link-time and runtime files
         releaseRuntimeElements.getOutgoing().artifact(releaseSharedLibrary.getRuntimeFile());
+
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                if (!library.getLinkage().get().contains(Linkage.SHARED)) {
+                    throw new UnsupportedOperationException("Disabling shared linkage is not supported");
+                }
+
+                if (library.getLinkage().get().contains(Linkage.SHARED)) {
+                    tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getRuntimeFile());
+                }
+
+                if (library.getLinkage().get().contains(Linkage.STATIC)){
+                    String name = library.getName();
+
+                    SwiftStaticLibrary debug = objectFactory.newInstance(DefaultSwiftStaticLibrary.class, name + "DebugStatic", project.getLayout(), objectFactory, library.getModule(), true, false, true, library.getSwiftSource(), configurations, library.getImplementationDependencies());
+
+                    project.getComponents().add(debug);
+                }
+            }
+        });
     }
 }

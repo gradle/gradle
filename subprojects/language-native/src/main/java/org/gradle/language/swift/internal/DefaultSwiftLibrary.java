@@ -21,8 +21,10 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.SwiftSharedLibrary;
+import org.gradle.nativeplatform.Linkage;
 
 import javax.inject.Inject;
 
@@ -30,12 +32,15 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     private final DefaultSwiftSharedLibrary debug;
     private final DefaultSwiftSharedLibrary release;
     private final Configuration api;
+    private final ListProperty<Linkage> linkage;
 
     @Inject
     public DefaultSwiftLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
         debug = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, name + "Debug", projectLayout, objectFactory, getModule(), true, false, true, getSwiftSource(), configurations, getImplementationDependencies());
         release = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, name + "Release", projectLayout, objectFactory, getModule(), true, true, false, getSwiftSource(), configurations, getImplementationDependencies());
+        linkage = objectFactory.listProperty(Linkage.class);
+        linkage.add(Linkage.SHARED);
 
         api = configurations.maybeCreate(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);
@@ -61,5 +66,10 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     @Override
     public SwiftSharedLibrary getReleaseSharedLibrary() {
         return release;
+    }
+
+    @Override
+    public ListProperty<Linkage> getLinkage() {
+        return linkage;
     }
 }

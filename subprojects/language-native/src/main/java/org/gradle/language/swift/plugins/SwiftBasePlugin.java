@@ -32,14 +32,17 @@ import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftSharedLibrary;
+import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.internal.DefaultSwiftExecutable;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
+import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.ExtractSymbols;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
@@ -200,6 +203,29 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         library.getRuntimeFile().set(link.getBinaryFile());
                     }
                     lifecycleTask.dependsOn(library.getRuntimeFile());
+                } else if (binary instanceof SwiftStaticLibrary) {
+                    DefaultSwiftStaticLibrary library = (DefaultSwiftStaticLibrary) binary;
+
+                    // Specific compiler arguments
+                    compile.getCompilerArgs().add("-parse-as-library");
+
+                    // Add a link task
+                    final CreateStaticLibrary link = tasks.create(names.getTaskName("create"), CreateStaticLibrary.class);
+                    link.source(binary.getObjects());
+                    // TODO - need to set soname
+                    final PlatformToolProvider toolProvider = toolChain.select(currentPlatform);
+                    Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return toolProvider.getStaticLibraryName("lib/" + names.getDirName() + binary.getModule().get());
+                        }
+                    }));
+                    link.setOutputFile(runtimeFile);
+                    link.setTargetPlatform(currentPlatform);
+                    link.setToolChain(toolChain);
+
+                    library.getLinkFile().set(link.getBinaryFile());
+                    lifecycleTask.dependsOn(library.getLinkFile());
                 }
             }
         });

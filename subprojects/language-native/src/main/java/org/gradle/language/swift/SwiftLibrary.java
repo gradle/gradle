@@ -18,6 +18,8 @@ package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.nativeplatform.Linkage;
 
 /**
  * Configuration for a Swift library, defining the source files that make up the library plus other settings.
@@ -48,4 +50,11 @@ public interface SwiftLibrary extends SwiftComponent {
      * Returns the release shared library for this library.
      */
     SwiftSharedLibrary getReleaseSharedLibrary();
+
+    /**
+     * Returns the list of linkage of this library.
+     *
+     * @since 4.5
+     */
+    ListProperty<Linkage> getLinkage();
 }

@@ -49,6 +49,11 @@ public class DefaultSwiftcPlatformToolChain implements SwiftcPlatformToolChain {
     }
 
     @Override
+    public CommandLineToolConfiguration getStaticLibArchiver() {
+        return tools.get(ToolType.STATIC_LIB_ARCHIVER);
+    }
+
+    @Override
     public CommandLineToolConfiguration getSymbolExtractor() {
         return tools.get(ToolType.SYMBOL_EXTRACTOR);
     }
