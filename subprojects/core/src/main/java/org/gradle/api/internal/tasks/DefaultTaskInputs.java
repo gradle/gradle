@@ -17,16 +17,15 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import groovy.lang.GString;
 import org.gradle.api.Describable;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
+import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
@@ -35,15 +34,11 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
-import static org.gradle.util.GUtil.uncheckedCall;
 
 @NonNullApi
 public class DefaultTaskInputs implements TaskInputsInternal {
@@ -98,19 +93,9 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
-        GetFilePropertiesVisitor visitor = new GetFilePropertiesVisitor();
+        GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString());
         visitAllProperties(visitor);
         return ImmutableSortedSet.<TaskInputFilePropertySpec>copyOf(visitor.getFileProperties());
-    }
-
-    @Override
-    public GetFilePropertiesVisitor getFilePropertiesVisitor() {
-        return new GetFilePropertiesVisitor();
-    }
-
-    @Override
-    public TaskInputsInternal.GetInputPropertiesVisitor getInputPropertiesVisitor() {
-        return new GetInputPropertiesVisitor();
     }
 
     @Override
@@ -161,7 +146,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasSourceFiles() {
-        HasSourceFilesVisitor visitor = new HasSourceFilesVisitor();
+        GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString());
         visitAllProperties(visitor);
         return visitor.hasSourceFiles();
     }
@@ -172,29 +157,9 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     public Map<String, Object> getProperties() {
-        GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor();
+        GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor(task.getName());
         visitAllProperties(visitor);
         return visitor.getProperties();
-    }
-
-    @Nullable
-    private Object prepareValue(@Nullable Object value) {
-        while (true) {
-            if (value instanceof Callable) {
-                Callable callable = (Callable) value;
-                value = uncheckedCall(callable);
-            } else if (value instanceof FileCollection) {
-                FileCollection fileCollection = (FileCollection) value;
-                return fileCollection.getFiles();
-            } else {
-                return avoidGString(value);
-            }
-        }
-    }
-
-    @Nullable
-    private static Object avoidGString(@Nullable Object value) {
-        return (value instanceof GString) ? value.toString() : value;
     }
 
     @Override
@@ -292,115 +257,4 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private class GetFilePropertiesVisitor extends PropertyVisitor.Adapter implements TaskInputsInternal.GetFilePropertiesVisitor {
-        private ImmutableSortedSet.Builder<DeclaredTaskInputFileProperty> builder = ImmutableSortedSet.naturalOrder();
-        private Set<String> names = Sets.newHashSet();
-        private boolean hasSourceFiles;
-
-        private ImmutableSortedSet<DeclaredTaskInputFileProperty> fileProperties;
-
-        @Override
-        public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
-            String propertyName = inputFileProperty.getPropertyName();
-            if (!names.add(propertyName)) {
-                throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", "input", propertyName));
-            }
-            builder.add(inputFileProperty);
-            if (inputFileProperty.isSkipWhenEmpty()) {
-                hasSourceFiles = true;
-            }
-        }
-
-        @Override
-        public ImmutableSortedSet<DeclaredTaskInputFileProperty> getFileProperties() {
-            if (fileProperties == null) {
-                fileProperties = builder.build();
-            }
-            return fileProperties;
-        }
-
-        @Override
-        public FileCollection getFiles() {
-            return new CompositeFileCollection() {
-                @Override
-                public String getDisplayName() {
-                    return "task '" + task.getName() + "' input files";
-                }
-
-                @Override
-                public void visitContents(FileCollectionResolveContext context) {
-                    for (TaskInputFilePropertySpec filePropertySpec : getFileProperties()) {
-                        context.add(filePropertySpec.getPropertyFiles());
-                    }
-                }
-            };
-        }
-
-        @Override
-        public FileCollection getSourceFiles() {
-            return new CompositeFileCollection() {
-                @Override
-                public String getDisplayName() {
-                    return "task '" + task.getName() + "' source files";
-                }
-
-                @Override
-                public void visitContents(FileCollectionResolveContext context) {
-                    for (TaskInputFilePropertySpec filePropertySpec : getFileProperties()) {
-                        if (filePropertySpec.isSkipWhenEmpty()) {
-                            context.add(filePropertySpec.getPropertyFiles());
-                        }
-                    }
-                }
-            };
-        }
-
-        @Override
-        public boolean hasSourceFiles() {
-            return hasSourceFiles;
-        }
-    }
-
-    private static class HasSourceFilesVisitor extends PropertyVisitor.Adapter {
-        private boolean hasSourceFiles;
-
-        @Override
-        public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
-            if (inputFileProperty.isSkipWhenEmpty()) {
-                hasSourceFiles = true;
-            }
-        }
-
-        public boolean hasSourceFiles() {
-            return hasSourceFiles;
-        }
-    }
-
-    private class GetInputPropertiesVisitor extends PropertyVisitor.Adapter implements TaskInputsInternal.GetInputPropertiesVisitor {
-        private Map<String, Object> actualProperties;
-        private List<DeclaredTaskInputProperty> declaredTaskInputProperties = new ArrayList<DeclaredTaskInputProperty>();
-
-        @Override
-        public void visitInputProperty(DeclaredTaskInputProperty inputProperty) {
-            declaredTaskInputProperties.add(inputProperty);
-        }
-
-        @Override
-        public Map<String, Object> getProperties() {
-            if (actualProperties == null) {
-                Map<String, Object> result = new HashMap<String, Object>();
-                for (DeclaredTaskInputProperty declaredTaskInputProperty : declaredTaskInputProperties) {
-                    String propertyName = declaredTaskInputProperty.getPropertyName();
-                    try {
-                        Object value = prepareValue(declaredTaskInputProperty.getValue());
-                        result.put(propertyName, value);
-                    } catch (Exception ex) {
-                        throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, task), ex);
-                    }
-                }
-                actualProperties = result;
-            }
-            return actualProperties;
-        }
-    }
 }

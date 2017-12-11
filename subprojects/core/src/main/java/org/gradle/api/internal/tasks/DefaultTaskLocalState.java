@@ -21,11 +21,10 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.tasks.properties.GetLocalStateVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -70,30 +69,9 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
 
     @Override
     public FileCollection getFiles() {
-        GetFilesVisitor visitor = new GetFilesVisitor();
+        GetLocalStateVisitor visitor = new GetLocalStateVisitor(task.toString(), resolver);
         visitAllProperties(visitor);
-        return new DefaultConfigurableFileCollection(task + " local state", resolver, null, visitor.getLocalState());
+        return visitor.getFiles();
     }
 
-    @Override
-    public GetFilesVisitor getFilesVisitor() {
-        return new GetFilesVisitor();
-    }
-
-    public class GetFilesVisitor extends PropertyVisitor.Adapter implements TaskLocalStateInternal.GetFilesVisitor {
-        private List<Object> localState = new ArrayList<Object>();
-
-        @Override
-        public void visitLocalStateProperty(Object value) {
-            localState.add(value);
-        }
-
-        public List<Object> getLocalState() {
-            return localState;
-        }
-
-        public FileCollection getFiles() {
-            return new DefaultConfigurableFileCollection(task + " local state", resolver, null, getLocalState());
-        }
-    }
 }

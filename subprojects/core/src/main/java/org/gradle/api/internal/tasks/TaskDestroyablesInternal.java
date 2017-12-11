@@ -32,10 +32,4 @@ public interface TaskDestroyablesInternal extends TaskDestroyables {
 
     FileCollection getFiles();
 
-    GetFilesVisitor getFilesVisitor();
-
-    interface GetFilesVisitor extends PropertyVisitor {
-        FileCollection getFiles();
-    }
-
 }

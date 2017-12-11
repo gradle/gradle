@@ -19,12 +19,18 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
-import org.gradle.api.internal.tasks.TaskLocalStateInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
+import org.gradle.api.internal.tasks.properties.GetDestroyablesVisitor;
+import org.gradle.api.internal.tasks.properties.GetLocalStateVisitor;
+import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.internal.file.PathToFileResolver;
 
 import javax.annotation.Nonnull;
 import java.util.TreeSet;
@@ -45,9 +51,9 @@ public class TaskInfo implements Comparable<TaskInfo> {
     private final TreeSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
     private boolean inputsAndOutputsResolved;
-    private TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor;
-    private TaskLocalStateInternal.GetFilesVisitor localStateVisitor;
-    private TaskDestroyablesInternal.GetFilesVisitor destroyablesVisitor;
+    private GetOutputFilesVisitor outputFilesVisitor;
+    private GetLocalStateVisitor localStateVisitor;
+    private GetDestroyablesVisitor destroyablesVisitor;
     private HasFileInputsVisitor hasFileInputsVisitor;
 
     public TaskInfo(TaskInternal task) {
@@ -222,38 +228,59 @@ public class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public FileCollection getDestroyables() {
-        resolveInputsAndOutputs();
+        resolveTaskProperties();
         return destroyablesVisitor.getFiles();
     }
 
-    private synchronized void resolveInputsAndOutputs() {
+    private synchronized void resolveTaskProperties() {
         if (!inputsAndOutputsResolved) {
             inputsAndOutputsResolved = true;
-            outputFilesVisitor = task.getOutputs().getFilePropertiesVisitor();
-            localStateVisitor = ((TaskLocalStateInternal) task.getLocalState()).getFilesVisitor();
-            destroyablesVisitor = ((TaskDestroyablesInternal) task.getDestroyables()).getFilesVisitor();
+            outputFilesVisitor = new GetOutputFilesVisitor();
+            String beanName = task.toString();
+            ProjectInternal project = (ProjectInternal) task.getProject();
+            PathToFileResolver resolver = project.getServices().get(PathToFileResolver.class);
+            localStateVisitor = new GetLocalStateVisitor(beanName, resolver);
+            destroyablesVisitor = new GetDestroyablesVisitor(beanName, resolver);
             hasFileInputsVisitor = new HasFileInputsVisitor();
             task.visitProperties(new CompositePropertyVisitor(outputFilesVisitor, destroyablesVisitor, localStateVisitor, hasFileInputsVisitor));
         }
     }
 
     public FileCollection getLocalState() {
-        resolveInputsAndOutputs();
+        resolveTaskProperties();
         return localStateVisitor.getFiles();
     }
 
     public FileCollection getOutputs() {
-        resolveInputsAndOutputs();
-        return outputFilesVisitor.getFiles();
+        resolveTaskProperties();
+        return new CompositeFileCollection() {
+            @Override
+            public String getDisplayName() {
+                return task + " outputs";
+            }
+
+            @Override
+            public void visitContents(FileCollectionResolveContext context) {
+                for (TaskOutputFilePropertySpec outputFilePropertySpec : outputFilesVisitor.getFileProperties()) {
+                    context.add(outputFilePropertySpec.getPropertyFiles());
+                }
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                context.add(task);
+                super.visitDependencies(context);
+            }
+        };
     }
 
     public boolean hasFileInputs() {
-        resolveInputsAndOutputs();
+        resolveTaskProperties();
         return hasFileInputsVisitor.hasFileInputs();
     }
 
     public boolean hasOutputs() {
-        resolveInputsAndOutputs();
+        resolveTaskProperties();
         return !outputFilesVisitor.getFileProperties().isEmpty();
     }
 

@@ -18,7 +18,6 @@ package org.gradle.api.internal;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.specs.AndSpec;
@@ -57,11 +56,4 @@ public interface TaskOutputsInternal extends TaskOutputs {
      */
     boolean hasDeclaredOutputs();
 
-    GetFilePropertiesVisitor getFilePropertiesVisitor();
-
-    interface GetFilePropertiesVisitor extends PropertyVisitor {
-        ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties();
-        FileCollection getFiles();
-        boolean hasDeclaredOutputs();
-    }
 }

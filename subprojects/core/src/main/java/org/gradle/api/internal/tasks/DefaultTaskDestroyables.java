@@ -21,12 +21,11 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.tasks.properties.GetDestroyablesVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -93,30 +92,8 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
 
     @Override
     public FileCollection getFiles() {
-        GetFilesVisitor visitor = new GetFilesVisitor();
+        GetDestroyablesVisitor visitor = new GetDestroyablesVisitor(task.getName(), resolver);
         visitAllProperties(visitor);
-        return new DefaultConfigurableFileCollection(task + " destroy files", resolver, null, visitor.getDestroyables());
-    }
-
-    @Override
-    public GetFilesVisitor getFilesVisitor() {
-        return new GetFilesVisitor();
-    }
-
-    public class GetFilesVisitor extends PropertyVisitor.Adapter implements TaskDestroyablesInternal.GetFilesVisitor {
-        private List<Object> destroyables = new ArrayList<Object>();
-
-        @Override
-        public void visitDestroyableProperty(Object value) {
-            destroyables.add(value);
-        }
-
-        public List<Object> getDestroyables() {
-            return destroyables;
-        }
-
-        public FileCollection getFiles() {
-            return new DefaultConfigurableFileCollection(task + " destroy files", resolver, null, destroyables);
-        }
+        return visitor.getFiles();
     }
 }

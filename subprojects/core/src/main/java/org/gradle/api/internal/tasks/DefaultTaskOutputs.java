@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Describable;
@@ -32,6 +31,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
+import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
@@ -40,7 +40,6 @@ import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -206,7 +205,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
-        GetFilePropertiesVisitor visitor = new GetFilePropertiesVisitor();
+        GetOutputFilesVisitor visitor = new GetOutputFilesVisitor();
         visitAllProperties(visitor);
         return visitor.getFileProperties();
     }
@@ -289,70 +288,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             hasDeclaredOutputs = true;
         }
 
-        public boolean hasDeclaredOutputs() {
-            return hasDeclaredOutputs;
-        }
-    }
-
-    @Override
-    public GetFilePropertiesVisitor getFilePropertiesVisitor() {
-        return new GetFilePropertiesVisitor();
-    }
-
-    @NonNullApi
-    public class GetFilePropertiesVisitor extends PropertyVisitor.Adapter implements TaskOutputsInternal.GetFilePropertiesVisitor {
-        private List<TaskOutputFilePropertySpec> specs = new ArrayList<TaskOutputFilePropertySpec>();
-        private ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties;
-        private boolean hasDeclaredOutputs;
-
-        @Override
-        public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
-            hasDeclaredOutputs = true;
-            if (outputFileProperty instanceof CompositeTaskOutputPropertySpec) {
-                Iterators.addAll(specs, ((CompositeTaskOutputPropertySpec) outputFileProperty).resolveToOutputProperties());
-            } else {
-                if (outputFileProperty instanceof CacheableTaskOutputFilePropertySpec) {
-                    File outputFile = ((CacheableTaskOutputFilePropertySpec) outputFileProperty).getOutputFile();
-                    if (outputFile == null) {
-                        return;
-                    }
-                }
-                specs.add((TaskOutputFilePropertySpec) outputFileProperty);
-            }
-        }
-
-        @Override
-        public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
-            if (fileProperties == null) {
-                fileProperties = TaskPropertyUtils.collectFileProperties("output", specs.iterator());
-            }
-            return fileProperties;
-        }
-
-        @Override
-        public FileCollection getFiles() {
-            return new CompositeFileCollection() {
-                @Override
-                public String getDisplayName() {
-                    return "task '" + task.getName() + "' output files";
-                }
-
-                @Override
-                public void visitContents(FileCollectionResolveContext context) {
-                    for (TaskFilePropertySpec propertySpec : getFileProperties()) {
-                        context.add(propertySpec.getPropertyFiles());
-                    }
-                }
-
-                @Override
-                public void visitDependencies(TaskDependencyResolveContext context) {
-                    context.add(task);
-                    super.visitDependencies(context);
-                }
-            };
-        }
-
-        @Override
         public boolean hasDeclaredOutputs() {
             return hasDeclaredOutputs;
         }

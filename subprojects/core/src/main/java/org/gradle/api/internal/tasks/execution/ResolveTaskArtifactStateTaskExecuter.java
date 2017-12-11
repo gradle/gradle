@@ -21,24 +21,31 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Multimap;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
+import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.TaskLocalStateInternal;
+import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec;
 import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
+import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
+import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
+import org.gradle.api.internal.tasks.properties.GetLocalStateVisitor;
+import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
@@ -82,40 +89,42 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
     }
 
     private static TaskProperties createTaskProperties(TaskInternal task) {
-        TaskOutputsInternal.GetFilePropertiesVisitor outputFilePropertiesVisitor = task.getOutputs().getFilePropertiesVisitor();
-        TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor = task.getInputs().getFilePropertiesVisitor();
-        TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor = task.getInputs().getInputPropertiesVisitor();
-        TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor = ((TaskLocalStateInternal) task.getLocalState()).getFilesVisitor();
-        ValidatingPropertyVisitor taskValidationVisitor = new ValidatingPropertyVisitor();
+        GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor();
+        String beanName = task.toString();
+        GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName);
+        GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor(beanName);
+        ProjectInternal project = (ProjectInternal) task.getProject();
+        GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, project.getServices().get(PathToFileResolver.class));
+        ValidationVisitor validationVisitor = new ValidationVisitor();
         try {
             task.visitProperties(new CompositePropertyVisitor(
                 inputPropertiesVisitor,
-                inputFilePropertiesVisitor,
-                outputFilePropertiesVisitor,
-                taskValidationVisitor,
-                localStateFilesVisitor
+                inputFilesVisitor,
+                outputFilesVisitor,
+                validationVisitor,
+                localStateVisitor
             ));
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
         }
 
-        return new DefaultTaskProperties(inputPropertiesVisitor, inputFilePropertiesVisitor, outputFilePropertiesVisitor, taskValidationVisitor, localStateFilesVisitor);
+        return new DefaultTaskProperties(inputPropertiesVisitor, inputFilesVisitor, outputFilesVisitor, validationVisitor, localStateVisitor);
     }
 
     private static class DefaultTaskProperties implements TaskProperties {
 
-        private final TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor;
-        private final TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor;
-        private final TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor;
-        private final ValidatingPropertyVisitor validationVisitor;
-        private final TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor;
+        private final GetInputPropertiesVisitor inputPropertiesVisitor;
+        private final GetInputFilesVisitor inputFilesVisitor;
+        private final GetOutputFilesVisitor outputFilesVisitor;
+        private final ValidationVisitor validationVisitor;
+        private final GetLocalStateVisitor localStateVisitor;
 
-        public DefaultTaskProperties(TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor, TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor, TaskOutputsInternal.GetFilePropertiesVisitor outputFilesVisitor, ValidatingPropertyVisitor validationVisitor, TaskLocalStateInternal.GetFilesVisitor localStateFilesVisitor) {
+        public DefaultTaskProperties(GetInputPropertiesVisitor inputPropertiesVisitor, GetInputFilesVisitor inputFilesVisitor, GetOutputFilesVisitor outputFilesVisitor, ValidationVisitor validationVisitor, GetLocalStateVisitor localStateVisitor) {
             this.inputPropertiesVisitor = inputPropertiesVisitor;
-            this.inputFilePropertiesVisitor = inputFilePropertiesVisitor;
+            this.inputFilesVisitor = inputFilesVisitor;
             this.outputFilesVisitor = outputFilesVisitor;
             this.validationVisitor = validationVisitor;
-            this.localStateFilesVisitor = localStateFilesVisitor;
+            this.localStateVisitor = localStateVisitor;
         }
 
         @Override
@@ -125,27 +134,39 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
 
         @Override
         public FileCollection getOutputFiles() {
-            return outputFilesVisitor.getFiles();
+            return new CompositeFileCollection() {
+                @Override
+                public String getDisplayName() {
+                    return "output files";
+                }
+
+                @Override
+                public void visitContents(FileCollectionResolveContext context) {
+                    for (TaskFilePropertySpec propertySpec : outputFilesVisitor.getFileProperties()) {
+                        context.add(propertySpec.getPropertyFiles());
+                    }
+                }
+            };
         }
 
         @Override
         public FileCollection getSourceFiles() {
-            return inputFilePropertiesVisitor.getSourceFiles();
+            return inputFilesVisitor.getSourceFiles();
         }
 
         @Override
         public boolean hasSourceFiles() {
-            return inputFilePropertiesVisitor.hasSourceFiles();
+            return inputFilesVisitor.hasSourceFiles();
         }
 
         @Override
         public FileCollection getInputFiles() {
-            return inputFilePropertiesVisitor.getFiles();
+            return inputFilesVisitor.getFiles();
         }
 
         @Override
         public ImmutableSortedSet<DeclaredTaskInputFileProperty> getInputFileProperties() {
-            return inputFilePropertiesVisitor.getFileProperties();
+            return inputFilesVisitor.getFileProperties();
         }
 
         @Override
@@ -170,16 +191,13 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
 
         @Override
         public FileCollection getLocalStateFiles() {
-            return localStateFilesVisitor.getFiles();
+            return localStateVisitor.getFiles();
         }
     }
 
-    private static class ValidatingPropertyVisitor extends PropertyVisitor.Adapter {
+    private static class ValidationVisitor extends PropertyVisitor.Adapter {
         private final List<ValidatingTaskPropertySpec> taskPropertySpecs = new ArrayList<ValidatingTaskPropertySpec>();
         private final Multimap<TaskValidationContext.Severity, String> messages = ArrayListMultimap.create();
-
-        public ValidatingPropertyVisitor() {
-        }
 
         @Override
         public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {

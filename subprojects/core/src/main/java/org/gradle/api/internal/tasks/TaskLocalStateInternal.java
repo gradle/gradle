@@ -30,9 +30,4 @@ public interface TaskLocalStateInternal extends TaskLocalState {
 
     FileCollection getFiles();
 
-    GetFilesVisitor getFilesVisitor();
-
-    interface GetFilesVisitor extends PropertyVisitor {
-        FileCollection getFiles();
-    }
 }
