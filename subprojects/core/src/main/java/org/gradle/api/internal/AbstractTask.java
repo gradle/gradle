@@ -212,16 +212,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public void setInputsAndOutputs(@Nullable TaskProperties inputsAndOutputs) {
-        this.inputsAndOutputs = inputsAndOutputs;
-    }
-
-    @Override
-    public TaskProperties getInputsAndOutputs() {
-        return inputsAndOutputs;
-    }
-
-    @Override
     public AntBuilder getAnt() {
         return project.getAnt();
     }

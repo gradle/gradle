@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -39,8 +38,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def task = Mock(TaskInternal)
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
-    def taskOutputs = Mock(TaskOutputsInternal)
-    def inputsAndOutputs = Mock(TaskProperties)
+    def taskProperties = Mock(TaskProperties)
     def delegate = Mock(TaskExecuter)
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def executer = new ResolveBuildCacheKeyExecuter(delegate, buildOperationExecutor)
@@ -56,13 +54,13 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         }
 
         then:
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
+        1 * taskContext.getTaskProperties() >> taskProperties
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
 
         then:
-        1 * inputsAndOutputs.hasDeclaredOutputs() >> true
+        1 * taskProperties.hasDeclaredOutputs() >> true
         1 * cacheKey.isValid() >> true
         1 * cacheKey.getHashCode() >> "0123456789abcdef"
 
@@ -104,8 +102,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskArtifactState.calculateCacheKey() >> noCacheKey
 
         then:
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
-        1 * inputsAndOutputs.hasDeclaredOutputs() >> false
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.hasDeclaredOutputs() >> false
 
         then:
         1 * taskContext.setBuildCacheKey(noCacheKey)

@@ -23,6 +23,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
@@ -45,15 +46,15 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         this.repository = repository;
     }
 
-    public TaskArtifactState getStateFor(final TaskInternal task) {
+    public TaskArtifactState getStateFor(final TaskInternal task, TaskProperties taskProperties) {
 
         // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.
         AndSpec<? super TaskInternal> upToDateSpec = task.getOutputs().getUpToDateSpec();
-        if (!task.getInputsAndOutputs().hasDeclaredOutputs() && upToDateSpec.isEmpty()) {
+        if (!taskProperties.hasDeclaredOutputs() && upToDateSpec.isEmpty()) {
             return NoHistoryArtifactState.INSTANCE;
         }
 
-        TaskArtifactState state = repository.getStateFor(task);
+        TaskArtifactState state = repository.getStateFor(task, taskProperties);
 
         if (startParameter.isRerunTasks()) {
             return new RerunTaskArtifactState(state, task, "Executed with '--rerun-tasks'.");

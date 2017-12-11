@@ -44,7 +44,7 @@ public class ValidatingTaskExecuter implements TaskExecuter {
         final TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, messages);
 
         try {
-            task.getInputsAndOutputs().validate(validationContext);
+            context.getTaskProperties().validate(validationContext);
         } catch (Exception ex) {
             throw new TaskExecutionException(task, ex);
         }

@@ -63,8 +63,9 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
     @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         Timer clock = Time.startTimer();
-        task.setInputsAndOutputs(createTaskInputsAndOutputs(task));
-        TaskArtifactState taskArtifactState = repository.getStateFor(task);
+        TaskProperties taskProperties = createTaskProperties(task);
+        context.setTaskProperties(taskProperties);
+        TaskArtifactState taskArtifactState = repository.getStateFor(task, taskProperties);
         TaskOutputsInternal outputs = task.getOutputs();
 
         context.setTaskArtifactState(taskArtifactState);
@@ -75,12 +76,12 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         } finally {
             outputs.setHistory(null);
             context.setTaskArtifactState(null);
-            task.setInputsAndOutputs(null);
+            context.setTaskProperties(null);
             LOGGER.debug("Removed task artifact state for {} from context.");
         }
     }
 
-    private static TaskProperties createTaskInputsAndOutputs(TaskInternal task) {
+    private static TaskProperties createTaskProperties(TaskInternal task) {
         TaskOutputsInternal.GetFilePropertiesVisitor outputFilePropertiesVisitor = task.getOutputs().getFilePropertiesVisitor();
         TaskInputsInternal.GetFilePropertiesVisitor inputFilePropertiesVisitor = task.getInputs().getFilePropertiesVisitor();
         TaskInputsInternal.GetInputPropertiesVisitor inputPropertiesVisitor = task.getInputs().getInputPropertiesVisitor();

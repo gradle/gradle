@@ -19,7 +19,6 @@ import org.gradle.api.UncheckedIOException
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskExecutionHistory
-import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.file.FileCollectionInternal
@@ -36,8 +35,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final target = Mock(TaskExecuter)
     final task = Mock(TaskInternal)
     final state = Mock(TaskStateInternal)
-    final inputsAndOutputs = Mock(TaskProperties)
-    final taskInputs = Mock(TaskInputsInternal)
+    final taskProperties = Mock(TaskProperties)
     final sourceFiles = Mock(FileCollectionInternal)
     final taskFiles = Mock(FileCollectionInternal)
     final taskInputsListener = Mock(TaskInputsListener)
@@ -53,9 +51,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
-        1 * inputsAndOutputs.sourceFiles >> sourceFiles
-        1 * inputsAndOutputs.hasSourceFiles() >> true
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -84,9 +82,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
-        1 * inputsAndOutputs.sourceFiles >> sourceFiles
-        1 * inputsAndOutputs.hasSourceFiles() >> true
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -122,9 +120,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
-        1 * inputsAndOutputs.sourceFiles >> sourceFiles
-        1 * inputsAndOutputs.hasSourceFiles() >> true
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -159,9 +157,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
-        1 * inputsAndOutputs.sourceFiles >> sourceFiles
-        1 * inputsAndOutputs.hasSourceFiles() >> true
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -202,9 +200,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
-        1 * inputsAndOutputs.sourceFiles >> sourceFiles
-        1 * inputsAndOutputs.hasSourceFiles() >> true
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> true
         1 * sourceFiles.empty >> true
 
         then:
@@ -231,13 +229,13 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
-        1 * inputsAndOutputs.sourceFiles >> sourceFiles
-        1 * inputsAndOutputs.hasSourceFiles() >> true
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> true
         1 * sourceFiles.empty >> false
 
         then:
-        1 * inputsAndOutputs.getInputFiles() >> taskFiles
+        1 * taskProperties.getInputFiles() >> taskFiles
         1 * target.execute(task, state, taskContext)
         1 * taskInputsListener.onExecute(task, taskFiles)
 
@@ -250,12 +248,12 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, taskContext)
 
         then:
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
-        1 * inputsAndOutputs.sourceFiles >> sourceFiles
-        1 * inputsAndOutputs.hasSourceFiles() >> false
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.sourceFiles >> sourceFiles
+        1 * taskProperties.hasSourceFiles() >> false
 
         then:
-        1 * inputsAndOutputs.getInputFiles() >> taskFiles
+        1 * taskProperties.getInputFiles() >> taskFiles
         1 * target.execute(task, state, taskContext)
         1 * taskInputsListener.onExecute(task, taskFiles)
 

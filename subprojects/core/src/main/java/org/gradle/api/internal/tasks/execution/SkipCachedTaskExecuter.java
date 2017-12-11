@@ -64,7 +64,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         LOGGER.debug("Determining if {} is cached already", task);
 
-        TaskProperties inputsAndOutputs = task.getInputsAndOutputs();
+        TaskProperties taskProperties = context.getTaskProperties();
         TaskOutputCachingBuildCacheKey cacheKey = context.getBuildCacheKey();
         boolean taskOutputCachingEnabled = state.getTaskOutputCaching().isEnabled();
 
@@ -77,11 +77,11 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 TaskArtifactState taskState = context.getTaskArtifactState();
                 // TODO: This is really something we should do at an earlier/higher level so that the input and output
                 // property values are locked in at this point.
-                outputProperties = TaskPropertyUtils.resolveFileProperties(inputsAndOutputs.getOutputFileProperties());
+                outputProperties = TaskPropertyUtils.resolveFileProperties(taskProperties.getOutputFileProperties());
                 if (taskState.isAllowedToUseCachedResults()) {
                     try {
                         TaskOutputOriginMetadata originMetadata = buildCache.load(
-                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskOutputsGenerationListener, taskState, clock)
+                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskState, clock)
                         );
                         if (originMetadata != null) {
                             state.setOutcome(TaskExecutionOutcome.FROM_CACHE);

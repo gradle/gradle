@@ -92,7 +92,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     @Override
-    public History getHistory(final TaskInternal task) {
+    public History getHistory(final TaskInternal task, final TaskProperties taskProperties) {
         final InputNormalizationStrategy normalizationStrategy = ((InputNormalizationHandlerInternal) task.getProject().getNormalization()).buildFinalStrategy();
 
         return new History() {
@@ -112,14 +112,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             @Override
             public CurrentTaskExecution getCurrentExecution() {
                 if (currentExecution == null) {
-                    currentExecution = createExecution(task, getPreviousExecution(), normalizationStrategy);
+                    currentExecution = createExecution(task, taskProperties, getPreviousExecution(), normalizationStrategy);
                 }
                 return currentExecution;
             }
 
             @Override
             public void updateCurrentExecution(IncrementalTaskInputsInternal taskInputs) {
-                updateExecution(getPreviousExecution(), getCurrentExecution(), task, taskInputs, normalizationStrategy);
+                updateExecution(getPreviousExecution(), getCurrentExecution(), task, taskProperties, taskInputs, normalizationStrategy);
             }
 
             @Override
@@ -135,8 +135,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         };
     }
 
-    private CurrentTaskExecution createExecution(TaskInternal task, @Nullable HistoricalTaskExecution previousExecution, InputNormalizationStrategy normalizationStrategy) {
-        TaskProperties inputsAndOutputs = task.getInputsAndOutputs();
+    private CurrentTaskExecution createExecution(TaskInternal task, TaskProperties taskProperties, @Nullable HistoricalTaskExecution previousExecution, InputNormalizationStrategy normalizationStrategy) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<ContextAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = new ImplementationSnapshot(taskClass.getName(), classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader()));
@@ -148,14 +147,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, inputsAndOutputs, previousInputProperties, valueSnapshotter);
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, taskProperties, previousInputProperties, valueSnapshotter);
 
-        ImmutableSortedSet<String> outputPropertyNames = getOutputPropertyNamesForCacheKey(inputsAndOutputs);
-        ImmutableSet<String> declaredOutputFilePaths = getDeclaredOutputFilePaths(inputsAndOutputs, stringInterner);
+        ImmutableSortedSet<String> outputPropertyNames = getOutputPropertyNamesForCacheKey(taskProperties);
+        ImmutableSet<String> declaredOutputFilePaths = getDeclaredOutputFilePaths(taskProperties, stringInterner);
 
-        ImmutableSortedMap<String, FileCollectionSnapshot> inputFiles = snapshotTaskFiles(task, "Input", normalizationStrategy, inputsAndOutputs.getInputFileProperties(), snapshotterRegistry);
+        ImmutableSortedMap<String, FileCollectionSnapshot> inputFiles = snapshotTaskFiles(task, "Input", normalizationStrategy, taskProperties.getInputFileProperties(), snapshotterRegistry);
 
-        ImmutableSortedMap<String, FileCollectionSnapshot> outputFiles = snapshotTaskFiles(task, "Output", normalizationStrategy, inputsAndOutputs.getOutputFileProperties(), snapshotterRegistry);
+        ImmutableSortedMap<String, FileCollectionSnapshot> outputFiles = snapshotTaskFiles(task, "Output", normalizationStrategy, taskProperties.getOutputFileProperties(), snapshotterRegistry);
 
         FileCollectionSnapshot previousDiscoveredInputs = previousExecution == null ? null : previousExecution.getDiscoveredInputFilesSnapshot();
         FileCollectionSnapshot discoveredInputs;
@@ -181,9 +180,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         );
     }
 
-    private void updateExecution(@Nullable final HistoricalTaskExecution previousExecution, CurrentTaskExecution currentExecution, TaskInternal task, IncrementalTaskInputsInternal taskInputs, InputNormalizationStrategy normalizationStrategy) {
-        TaskProperties inputsAndOutputs = task.getInputsAndOutputs();
-        final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = snapshotTaskFiles(task, "Output", normalizationStrategy, inputsAndOutputs.getOutputFileProperties(), snapshotterRegistry);
+    private void updateExecution(@Nullable final HistoricalTaskExecution previousExecution, CurrentTaskExecution currentExecution, TaskInternal task, TaskProperties taskProperties, IncrementalTaskInputsInternal taskInputs, InputNormalizationStrategy normalizationStrategy) {
+        final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesAfter = snapshotTaskFiles(task, "Output", normalizationStrategy, taskProperties.getOutputFileProperties(), snapshotterRegistry);
 
         ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot;
         if (currentExecution.getDetectedOverlappingOutputs() == null) {

@@ -36,6 +36,7 @@ import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
@@ -63,8 +64,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         this.taskOutputFilesRepository = taskOutputFilesRepository;
     }
 
-    public TaskArtifactState getStateFor(final TaskInternal task) {
-        return new TaskArtifactStateImpl(task, taskHistoryRepository.getHistory(task));
+    public TaskArtifactState getStateFor(final TaskInternal task, TaskProperties taskProperties) {
+        return new TaskArtifactStateImpl(task, taskHistoryRepository.getHistory(task, taskProperties));
     }
 
     private class TaskArtifactStateImpl implements TaskArtifactState, TaskExecutionHistory {

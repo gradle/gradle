@@ -35,7 +35,7 @@ import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.WARNI
 class ValidatingTaskExecuterTest extends Specification {
     def target = Mock(TaskExecuter)
     def task = Mock(TaskInternal)
-    def inputsAndOutputs = Mock(TaskProperties)
+    def taskProperties = Mock(TaskProperties)
     def project = Stub(ProjectInternal)
     def state = Mock(TaskStateInternal)
     def inputs = Mock(TaskInputsInternal)
@@ -49,8 +49,8 @@ class ValidatingTaskExecuterTest extends Specification {
 
         then:
         1 * task.getProject() >> project
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
-        1 * inputsAndOutputs.validate(_)
+        1 * executionContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.validate(_)
         1 * target.execute(task, state, executionContext)
         0 * _
     }
@@ -64,8 +64,8 @@ class ValidatingTaskExecuterTest extends Specification {
 
         then:
         1 * task.getProject() >> project
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
-        1 * inputsAndOutputs.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(ERROR,'failure') }
+        1 * executionContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage(ERROR,'failure') }
         1 * state.setOutcome(!null as Throwable) >> {
             def failure = it[0]
             assert failure instanceof TaskValidationException
@@ -82,8 +82,8 @@ class ValidatingTaskExecuterTest extends Specification {
 
         then:
         1 * task.getProject() >> project
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
-        1 * inputsAndOutputs.validate(_) >> { TaskValidationContext context ->
+        1 * executionContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.validate(_) >> { TaskValidationContext context ->
             context.recordValidationMessage(ERROR, 'failure1')
             context.recordValidationMessage(ERROR, 'failure2')
         }
@@ -105,8 +105,8 @@ class ValidatingTaskExecuterTest extends Specification {
 
         then:
         1 * task.getProject() >> project
-        1 * task.getInputsAndOutputs() >> inputsAndOutputs
-        1 * inputsAndOutputs.validate(_) >> { TaskValidationContext context ->
+        1 * executionContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.validate(_) >> { TaskValidationContext context ->
             context.recordValidationMessage(WARNING, 'warning1')
             context.recordValidationMessage(WARNING, 'warning2')
         }

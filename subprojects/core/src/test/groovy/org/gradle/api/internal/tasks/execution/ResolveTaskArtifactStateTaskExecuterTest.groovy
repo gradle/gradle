@@ -52,13 +52,13 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then: 'taskContext is initialized with task artifact state'
-        1 * repository.getStateFor(task) >> taskArtifactState
+        1 * taskContext.setTaskProperties(_)
+        1 * repository.getStateFor(task, _) >> taskArtifactState
         1 * taskContext.setTaskArtifactState(taskArtifactState)
         1 * taskArtifactState.getExecutionHistory() >> taskExecutionhistory
         2 * task.getOutputs() >> outputs
         2 * task.getInputs() >> inputs
         1 * task.getLocalState() >> localState
-        1 * task.setInputsAndOutputs(_)
         1 * outputs.setHistory(taskExecutionhistory)
         1 * outputs.getFilePropertiesVisitor() >> Mock(TaskOutputsInternal.GetFilePropertiesVisitor)
         1 * inputs.getFilePropertiesVisitor() >> Mock(TaskInputsInternal.GetFilePropertiesVisitor)
@@ -72,7 +72,7 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
         then: 'task artifact state is removed from taskContext'
         1 * outputs.setHistory(null)
         1 * taskContext.setTaskArtifactState(null)
-        1 * task.setInputsAndOutputs(null)
+        1 * taskContext.setTaskProperties(null)
 
         and: 'nothing else'
         0 * _
