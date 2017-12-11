@@ -32,7 +32,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Formatter;
-import java.util.IdentityHashMap;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -302,6 +303,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             }
         }
     }
+
     public boolean isClosed() {
         return state == State.CLOSED;
     }
@@ -426,21 +428,20 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private class OwnServices implements ServiceProvider {
-        private final Map<Class<?>, Object> providersByType = new IdentityHashMap<Class<?>, Object>();
+        private final Map<Class<?>, List<ServiceProvider>> providersByType = new HashMap<Class<?>, List<ServiceProvider>>(16, 0.5f);
         private final CompositeStoppable stoppable = CompositeStoppable.stoppable();
         private ProviderAnalyser analyser = new ProviderAnalyser();
 
         @Override
         public Service getFactory(Class<?> type) {
-            Object providerCandidates = providersByType.get(Factory.class);
-            if (providerCandidates == null) {
+            List<ServiceProvider> serviceProviders = getProviders(Factory.class);
+            if (serviceProviders.isEmpty()) {
                 return null;
             }
-            if (providerCandidates instanceof ServiceProvider) {
-                return ((ServiceProvider) providerCandidates).getFactory(type);
+            if (serviceProviders.size() == 1) {
+                return serviceProviders.get(0).getFactory(type);
             }
 
-            List<ServiceProvider> serviceProviders = (List<ServiceProvider>) providerCandidates;
             List<Service> services = new ArrayList<Service>(serviceProviders.size());
             for (ServiceProvider serviceProvider : serviceProviders) {
                 Service service = serviceProvider.getFactory(type);
@@ -471,15 +472,14 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
         @Override
         public Service getService(Type type) {
-            Object providerCandidates = providersByType.get(unwrap(type));
-            if (providerCandidates == null) {
+            List<ServiceProvider> serviceProviders = getProviders(unwrap(type));
+            if (serviceProviders.isEmpty()) {
                 return null;
             }
-            if (providerCandidates instanceof ServiceProvider) {
-                return ((ServiceProvider) providerCandidates).getService(type);
+            if (serviceProviders.size() == 1) {
+                return serviceProviders.get(0).getService(type);
             }
 
-            List<ServiceProvider> serviceProviders = (List<ServiceProvider>) providerCandidates;
             List<Service> services = new ArrayList<Service>(serviceProviders.size());
             for (ServiceProvider serviceProvider : serviceProviders) {
                 Service service = serviceProvider.getService(type);
@@ -491,6 +491,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             if (services.isEmpty()) {
                 return null;
             }
+
             if (services.size() == 1) {
                 return services.get(0);
             }
@@ -508,18 +509,14 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             throw new ServiceLookupException(formatter.toString());
         }
 
+        private List<ServiceProvider> getProviders(Class<?> type) {
+            List<ServiceProvider> providers = providersByType.get(type);
+            return providers == null ? Collections.<ServiceProvider>emptyList() : providers;
+        }
+
         @Override
         public void getAll(Class<?> serviceType, List<Service> result) {
-            Object providerCandidates = providersByType.get(serviceType);
-            if (providerCandidates == null) {
-                return;
-            }
-            if (providerCandidates instanceof ServiceProvider) {
-                ((ServiceProvider) providerCandidates).getAll(serviceType, result);
-                return;
-            }
-            List<ServiceProvider> serviceProviders = (List<ServiceProvider>) providerCandidates;
-            for (ServiceProvider serviceProvider : serviceProviders) {
+            for (ServiceProvider serviceProvider : getProviders(serviceType)) {
                 serviceProvider.getAll(serviceType, result);
             }
         }
@@ -543,7 +540,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         private class ProviderAnalyser {
-            private Set<Class<?>> seen = Collections.newSetFromMap(new IdentityHashMap<Class<?>, Boolean>());
+            private Set<Class<?>> seen = new HashSet<Class<?>>(4, 0.5f);
 
             public void addProviderForClassHierarchy(Class<?> serviceType, ServiceProvider serviceProvider) {
                 analyseType(serviceType, serviceProvider);
@@ -564,17 +561,12 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             }
 
             private void putServiceType(Class<?> type, ServiceProvider serviceProvider) {
-                Object existing = providersByType.get(type);
-                if (existing == null) {
-                    providersByType.put(type, serviceProvider);
-                } else if (existing instanceof ServiceProvider){
-                    List<ServiceProvider> serviceProviders = new ArrayList<ServiceProvider>(2);
-                    serviceProviders.add((ServiceProvider) existing);
-                    serviceProviders.add(serviceProvider);
+                List<ServiceProvider> serviceProviders = providersByType.get(type);
+                if (serviceProviders == null) {
+                    serviceProviders = new ArrayList<ServiceProvider>(2);
                     providersByType.put(type, serviceProviders);
-                } else {
-                    ((List<ServiceProvider>) existing).add(serviceProvider);
                 }
+                serviceProviders.add(serviceProvider);
             }
         }
     }
