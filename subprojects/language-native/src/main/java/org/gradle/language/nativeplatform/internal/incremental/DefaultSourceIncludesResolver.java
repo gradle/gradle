@@ -15,9 +15,10 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
-import org.gradle.internal.FileUtils;
+import com.google.common.base.Objects;
+import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
+import org.gradle.internal.file.FileType;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -40,11 +41,13 @@ import java.util.Set;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private final List<File> includePaths;
-    private final Map<File, Map<String, Boolean>> includeRoots;
+    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final Map<File, Map<String, IncludeFileImpl>> includeRoots;
 
-    public DefaultSourceIncludesResolver(List<File> includePaths) {
+    public DefaultSourceIncludesResolver(List<File> includePaths, FileSystemSnapshotter fileSystemSnapshotter) {
         this.includePaths = includePaths;
-        this.includeRoots = new HashMap<File, Map<String, Boolean>>();
+        this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.includeRoots = new HashMap<File, Map<String, IncludeFileImpl>>();
     }
 
     @Override
@@ -151,13 +154,13 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         // Otherwise, macro or macro function call
-        if (!tokenLookup.tokensFor.containsKey(expression)) {
+        if (!tokenLookup.hasTokensFor(expression)) {
             resolveExpression(visibleMacros, expression, new CollectTokens(tokenLookup, expression), tokenLookup);
         }
-        if (tokenLookup.broken.contains(expression)) {
+        if (tokenLookup.isUnresolved(expression)) {
             visitor.visitUnresolved();
         }
-        return tokenLookup.tokensFor.get(expression);
+        return tokenLookup.tokensFor(expression);
     }
 
     private Collection<Expression> resolveTokenConcatenationToTokens(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
@@ -246,43 +249,80 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     private List<File> prependSourceDir(File sourceFile, List<File> includePaths) {
+        File sourceDir = sourceFile.getParentFile();
+        if (includePaths.size() > 1 && includePaths.get(0).equals(sourceDir)) {
+            // Source dir already at the start of the path, just use the include path
+            return includePaths;
+        }
         List<File> quotedSearchPath = new ArrayList<File>(includePaths.size() + 1);
-        quotedSearchPath.add(sourceFile.getParentFile());
+        quotedSearchPath.add(sourceDir);
         quotedSearchPath.addAll(includePaths);
         return quotedSearchPath;
     }
 
     private void searchForDependency(List<File> searchPath, String include, BuildableResult dependencies) {
         for (File searchDir : searchPath) {
-            File candidate = new File(searchDir, include);
-
-            Map<String, Boolean> searchedIncludes = includeRoots.get(searchDir);
+            Map<String, IncludeFileImpl> searchedIncludes = includeRoots.get(searchDir);
             if (searchedIncludes == null) {
-                searchedIncludes = new HashMap<String, Boolean>();
+                searchedIncludes = new HashMap<String, IncludeFileImpl>();
                 includeRoots.put(searchDir, searchedIncludes);
             }
-            dependencies.searched(candidate);
             if (searchedIncludes.containsKey(include)) {
-                if (searchedIncludes.get(include)) {
-                    dependencies.resolved(FileUtils.canonicalize(candidate));
+                IncludeFileImpl includeFile = searchedIncludes.get(include);
+                if (includeFile.snapshot.getType() == FileType.RegularFile) {
+                    dependencies.resolved(includeFile);
                     return;
                 }
                 continue;
             }
 
-            boolean found = candidate.isFile();
-            searchedIncludes.put(include, found);
+            File candidate = new File(searchDir, include);
+            FileSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(candidate);
+            IncludeFileImpl includeFile = fileSnapshot.getType() == FileType.RegularFile ? new IncludeFileImpl(candidate, fileSnapshot) : new IncludeFileImpl(null, fileSnapshot);
+            searchedIncludes.put(include, includeFile);
 
-            if (found) {
-                dependencies.resolved(FileUtils.canonicalize(candidate));
+            if (fileSnapshot.getType() == FileType.RegularFile) {
+                dependencies.resolved(includeFile);
                 return;
             }
         }
     }
 
-    private static class TokenLookup {
-        final Set<Expression> broken = new HashSet<Expression>();
-        final Multimap<Expression, Expression> tokensFor = LinkedHashMultimap.create();
+    private static class IncludeFileImpl implements IncludeFile {
+        final File file;
+        final FileSnapshot snapshot;
+
+        IncludeFileImpl(File file, FileSnapshot snapshot) {
+            this.file = file;
+            this.snapshot = snapshot;
+        }
+
+        @Override
+        public File getFile() {
+            return file;
+        }
+
+        @Override
+        public FileSnapshot getSnapshot() {
+            return snapshot;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            IncludeFileImpl other = (IncludeFileImpl) obj;
+            return Objects.equal(file, other.file) && snapshot.equals(other.snapshot);
+        }
+
+        @Override
+        public int hashCode() {
+            return snapshot.hashCode();
+        }
     }
 
     private interface ExpressionVisitor {
@@ -320,16 +360,11 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     }
 
     private static class BuildableResult implements IncludeResolutionResult {
-        private final Set<File> files = new LinkedHashSet<File>();
-        private final Set<File> candidates = new LinkedHashSet<File>();
+        private final Set<IncludeFile> files = new LinkedHashSet<IncludeFile>();
         private boolean missing;
 
-        void searched(File candidate) {
-            candidates.add(candidate);
-        }
-
-        void resolved(File file) {
-            files.add(file);
+        void resolved(IncludeFile includeFile) {
+            files.add(includeFile);
         }
 
         void unresolved() {
@@ -342,13 +377,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         @Override
-        public Collection<File> getFiles() {
+        public Set<IncludeFile> getFiles() {
             return files;
-        }
-
-        @Override
-        public Collection<File> getCheckedLocations() {
-            return candidates;
         }
     }
 
@@ -384,12 +414,12 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
 
         @Override
         public void visitTokens(Expression tokens) {
-            tokenLookup.tokensFor.put(expression, tokens);
+            tokenLookup.addTokensFor(expression, tokens);
         }
 
         @Override
         public void visitUnresolved() {
-            tokenLookup.broken.add(expression);
+            tokenLookup.unresolved(expression);
         }
     }
 

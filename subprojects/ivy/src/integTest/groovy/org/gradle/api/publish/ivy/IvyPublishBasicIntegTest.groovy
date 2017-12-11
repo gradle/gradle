@@ -76,7 +76,14 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         and:
-        resolveArtifacts(module) == []
+        resolveArtifacts(module) {
+            withoutModuleMetadata {
+                expectFiles()
+            }
+            withModuleMetadata {
+                noComponentPublished()
+            }
+        }
     }
 
     def "can publish simple jar"() {
@@ -120,7 +127,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.moduleDir.file('root-1.0.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
 
         and:
-        resolveArtifacts(javaLibrary) == ['root-1.0.jar']
+        resolveArtifacts(javaLibrary) { expectFiles 'root-1.0.jar' }
     }
 
     def "reports failure publishing when model validation fails"() {

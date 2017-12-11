@@ -18,6 +18,7 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheValidator
+import org.gradle.cache.CleanupAction
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
@@ -40,7 +41,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         isValid() >> true
     }
     def initializationAction = Mock(Action)
-    def cleanupAction = Mock(Action)
+    def cleanupAction = Mock(CleanupAction)
 
     def properties = ['prop': 'value', 'prop2': 'other-value']
 
@@ -199,7 +200,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
             cache.close()
         }
         then:
-        1 * cleanupAction.execute(cache)
+        1 * cleanupAction.clean(cache)
         0 * _
     }
 
@@ -207,9 +208,9 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         given:
         def dir = createCacheDir()
         def gcFile = dir.file("gc.properties")
-        def failingCleanupAction = new Action() {
+        def failingCleanupAction = new CleanupAction() {
             @Override
-            void execute(Object o) {
+            void clean(PersistentCache persistentCache) {
                 throw new Exception("Boom")
             }
         }

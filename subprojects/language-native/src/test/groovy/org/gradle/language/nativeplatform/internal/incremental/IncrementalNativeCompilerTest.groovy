@@ -15,37 +15,28 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
-import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Sets
-import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResults
+import org.gradle.cache.PersistentStateCache
 import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser
-import org.gradle.nativeplatform.toolchain.Clang
-import org.gradle.nativeplatform.toolchain.Gcc
-import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 @UsesNativeServices
 class IncrementalNativeCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def delegateCompiler = Mock(Compiler)
-    def toolChain = Mock(NativeToolChain)
-    def task = Mock(TaskInternal)
-    def sourceParser = Mock(CSourceParser)
-    def headerDependenciesCollector = new DefaultHeaderDependenciesCollector(TestFiles.directoryFileTreeFactory())
-    def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, headerDependenciesCollector, sourceParser)
-
     def outputs = Mock(TaskOutputsInternal)
+    def compileStateCache = Mock(PersistentStateCache)
+    def headerDependenciesCollector = new DefaultHeaderDependenciesCollector(TestFiles.directoryFileTreeFactory())
+    def incrementalCompilation = Mock(IncrementalCompilation)
+    def compiler = new IncrementalNativeCompiler(outputs, delegateCompiler, compileStateCache, incrementalCompilation)
 
     def "updates spec for incremental compilation"() {
         def spec = Mock(NativeCompileSpec)
@@ -80,7 +71,6 @@ class IncrementalNativeCompilerTest extends Specification {
 
         and:
         spec.incrementalCompile >> false
-        task.outputs >> outputs
         spec.getSourceFiles() >> sources
 
         and:
@@ -95,62 +85,5 @@ class IncrementalNativeCompilerTest extends Specification {
         and:
         result.didWork
         outputFile.assertDoesNotExist()
-    }
-
-    @Unroll
-    def "imports are includes for toolchain #tcName"() {
-       when:
-       def compiler = new IncrementalNativeCompiler(task, null, null, delegateCompiler, toolChain, headerDependenciesCollector, sourceParser)
-       then:
-       compiler.importsAreIncludes
-       where:
-       tcName   | toolChain
-       "clang"  | Mock(Clang)
-       "gcc"    | Mock(Gcc)
-
-    }
-
-    def "adds include files as discovered inputs"() {
-        given:
-        def spec = Mock(NativeCompileSpec)
-        def compilation = Mock(IncrementalCompilation)
-        def taskInputs = Mock(DiscoveredInputRecorder)
-        def includedFile = temporaryFolder.file("include")
-        compilation.discoveredInputs >> [includedFile]
-
-        when:
-        compiler.handleDiscoveredInputs(spec, compilation, taskInputs)
-
-        then:
-        1 * taskInputs.newInputs(ImmutableSet.of(includedFile))
-        1 * spec.getIncludeRoots() >> []
-        0 * spec._
-    }
-
-    def "falls back to old behavior of walking include path when macros are used"() {
-        given:
-        def spec = Mock(NativeCompileSpec)
-
-        def taskInputs = Mock(DiscoveredInputRecorder)
-
-        def includeDir = temporaryFolder.createDir("includes")
-        def includedFile = includeDir.createFile("include")
-        def notIncludedFile = includeDir.createFile("notIncluded")
-        def includeRoots = [ includeDir ]
-
-        def compilation = Mock(IncrementalCompilation)
-
-        compilation.discoveredInputs >> [includedFile]
-        compilation.unresolvedHeaders >> true
-
-        when:
-        compiler.handleDiscoveredInputs(spec, compilation, taskInputs)
-
-        then:
-        1 * spec.getIncludeRoots() >> includeRoots
-        0 * spec._
-
-        1 * taskInputs.newInputs(ImmutableSet.of(includedFile, notIncludedFile))
-        0 * taskInputs._
     }
 }

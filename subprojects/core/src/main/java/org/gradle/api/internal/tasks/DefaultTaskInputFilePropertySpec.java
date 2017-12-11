@@ -26,7 +26,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputs;
 
 import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
-import static org.gradle.api.internal.tasks.TaskPropertyUtils.checkPropertyName;
 
 @NonNullApi
 public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSupport implements DeclaredTaskInputFileProperty {
@@ -39,6 +38,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     private boolean optional;
     private PathNormalizationStrategy pathNormalizationStrategy = ABSOLUTE;
     private Class<? extends FileNormalizer> normalizer = GenericFileNormalizer.class;
+    private LifecycleAwareTaskProperty lifecycleAware;
 
     public DefaultTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue paths, ValidationAction validationAction) {
         this.value = paths;
@@ -58,7 +58,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
 
     @Override
     public TaskInputFilePropertyBuilderInternal withPropertyName(String propertyName) {
-        this.propertyName = checkPropertyName(propertyName);
+        this.propertyName = TaskPropertyUtils.checkPropertyName(propertyName);
         return this;
     }
 
@@ -137,5 +137,22 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     @Override
     public int compareTo(TaskPropertySpec o) {
         return getPropertyName().compareTo(o.getPropertyName());
+    }
+
+    @Override
+    public void prepareValue() {
+        Object obj = value.call();
+        // TODO - move this to ValidatingValue instead
+        if (obj instanceof LifecycleAwareTaskProperty) {
+            lifecycleAware = (LifecycleAwareTaskProperty) obj;
+            lifecycleAware.prepareValue();
+        }
+    }
+
+    @Override
+    public void cleanupValue() {
+        if (lifecycleAware != null) {
+            lifecycleAware.cleanupValue();
+        }
     }
 }

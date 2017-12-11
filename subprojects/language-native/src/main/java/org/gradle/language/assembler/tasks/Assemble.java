@@ -15,11 +15,9 @@
  */
 package org.gradle.language.assembler.tasks;
 
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -50,7 +48,7 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class Assemble extends DefaultTask {
-    private FileCollection source;
+    private ConfigurableFileCollection source;
     private ConfigurableFileCollection includes;
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
@@ -97,7 +95,7 @@ public class Assemble extends DefaultTask {
 
     @InputFiles
     @SkipWhenEmpty
-    public FileCollection getSource() {
+    public ConfigurableFileCollection getSource() {
         return source;
     }
 
@@ -105,7 +103,7 @@ public class Assemble extends DefaultTask {
      * Adds a set of assembler sources files to be translated. The provided sourceFiles object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      */
     public void source(Object sourceFiles) {
-        DefaultGroovyMethods.invokeMethod(source, "from", new Object[]{sourceFiles});
+        source.from(sourceFiles);
     }
 
     /**
@@ -162,7 +160,7 @@ public class Assemble extends DefaultTask {
      * @since 4.4
      */
     @InputFiles
-    public FileCollection getIncludes() {
+    public ConfigurableFileCollection getIncludes() {
         return includes;
     }
 

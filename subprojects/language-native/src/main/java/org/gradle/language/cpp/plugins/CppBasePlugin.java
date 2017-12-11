@@ -38,7 +38,6 @@ import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.language.nativeplatform.tasks.Depend;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
@@ -48,8 +47,6 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.StripSymbols;
-import org.gradle.nativeplatform.toolchain.Clang;
-import org.gradle.nativeplatform.toolchain.Gcc;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -110,10 +107,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
 
                 ((DefaultCppBinary)binary).getObjectsDir().set(compile.getObjectFileDir());
-
-                Depend depend = tasks.create(names.getDependTaskName(language), Depend.class);
-                configureDepend(depend, binary, toolChain, systemIncludes);
-                compile.getHeaderDependenciesFile().set(depend.getHeaderDependenciesFile());
 
                 Task lifecycleTask = tasks.maybeCreate(names.getTaskName("assemble"));
 
@@ -238,14 +231,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 }
                 compile.setTargetPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
-            }
-
-            private void configureDepend(Depend depend, CppBinary binary, NativeToolChain toolChain, Callable<List<File>> systemIncludesProvider) {
-                depend.includes(binary.getCompileIncludePath());
-                depend.includes(systemIncludesProvider);
-                depend.source(binary.getCppSource());
-                depend.getHeaderDependenciesFile().set(project.getLayout().getBuildDirectory().file(depend.getName() + "/" + "inputs.txt"));
-                depend.getImportsAreIncludes().set(Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass()));
             }
 
             private StripSymbols extractAndStripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChainInternal toolChain, NativePlatformInternal currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation, Task lifecycleTask) {

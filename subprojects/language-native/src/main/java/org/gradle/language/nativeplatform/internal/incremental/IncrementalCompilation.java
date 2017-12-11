@@ -34,11 +34,6 @@ public interface IncrementalCompilation {
      */
     Map<File, IncludeDirectives> getSourceFileIncludeDirectives();
 
-    /**
-     * The set of all input locations that were discovered as part of resolving the dependencies for this compilation.
-     */
-    Set<File> getDiscoveredInputs();
-
     Set<File> getExistingHeaders();
 
     boolean isUnresolvedHeaders();

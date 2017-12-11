@@ -22,8 +22,6 @@ import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
-import static org.gradle.api.internal.tasks.TaskPropertyUtils.checkPropertyName;
-
 @NonNullApi
 abstract class AbstractTaskOutputPropertySpec extends TaskOutputsDeprecationSupport implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
 
@@ -32,7 +30,7 @@ abstract class AbstractTaskOutputPropertySpec extends TaskOutputsDeprecationSupp
 
     @Override
     public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
-        this.propertyName = checkPropertyName(propertyName);
+        this.propertyName = TaskPropertyUtils.checkPropertyName(propertyName);
         return this;
     }
 

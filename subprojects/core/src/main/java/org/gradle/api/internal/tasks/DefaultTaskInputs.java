@@ -171,6 +171,22 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return allSourceFiles;
     }
 
+    // FIXME wolfs
+    @Override
+    public void prepareValues() {
+        // Only file inputs for now
+        for (DeclaredTaskInputFileProperty property : declaredFileProperties) {
+            property.prepareValue();
+        }
+    }
+
+    @Override
+    public void cleanupValues() {
+        for (DeclaredTaskInputFileProperty property : declaredFileProperties) {
+            property.cleanupValue();
+        }
+    }
+
     public Map<String, Object> getProperties() {
         GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor();
         visitAllProperties(visitor);

@@ -18,31 +18,5 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
-import java.io.File;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-public class MacroLookup implements Iterable<IncludeDirectives> {
-    private final Map<File, IncludeDirectives> visible = new LinkedHashMap<File, IncludeDirectives>();
-
-    public void append(File file, IncludeDirectives includeDirectives) {
-        if (includeDirectives.getMacros().isEmpty() && includeDirectives.getMacrosFunctions().isEmpty()) {
-            // Ignore
-            return;
-        }
-        if (!visible.containsKey(file)) {
-            visible.put(file, includeDirectives);
-        }
-    }
-
-    public void appendAll(MacroLookup macros) {
-        visible.putAll(macros.visible);
-    }
-
-    @Override
-    public Iterator<IncludeDirectives> iterator() {
-        return visible.values().iterator();
-    }
-
+public interface MacroLookup extends Iterable<IncludeDirectives> {
 }

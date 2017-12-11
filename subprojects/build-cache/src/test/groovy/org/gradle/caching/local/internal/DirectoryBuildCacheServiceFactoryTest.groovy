@@ -19,11 +19,12 @@ package org.gradle.caching.local.internal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
+import org.gradle.cache.CleanupAction
 import org.gradle.cache.internal.CacheScopeMapping
+import org.gradle.cache.internal.CleanupActionFactory
 import org.gradle.cache.internal.VersionStrategy
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.local.DirectoryBuildCache
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -38,7 +39,8 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def cacheScopeMapping = Mock(CacheScopeMapping)
     def resolver = Mock(FileResolver)
     def fileStoreFactory = Mock(DirectoryBuildCacheFileStoreFactory)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver, new TestBuildOperationExecutor(), fileStoreFactory)
+    def cleanupActionFactory = Mock(CleanupActionFactory)
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, cacheScopeMapping, resolver, fileStoreFactory, cleanupActionFactory)
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()
@@ -57,6 +59,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * cacheScopeMapping.getBaseDirectory(null, "build-cache-1", VersionStrategy.SharedCache) >> cacheDir
         1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
+        1 * cleanupActionFactory.create(_) >> Mock(CleanupAction)
         0 * _
     }
 
@@ -72,6 +75,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * resolver.resolve(cacheDir) >> cacheDir
         1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
+        1 * cleanupActionFactory.create(_) >> Mock(CleanupAction)
         0 * _
     }
 

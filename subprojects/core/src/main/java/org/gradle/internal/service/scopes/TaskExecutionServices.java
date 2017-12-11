@@ -30,7 +30,7 @@ import org.gradle.api.internal.changedetection.state.DefaultTaskOutputFilesRepos
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotterRegistry;
-import org.gradle.api.internal.changedetection.state.FileSystemMirror;
+import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.GenericFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
@@ -43,6 +43,7 @@ import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
+import org.gradle.api.internal.tasks.execution.FinalizeInputFilePropertiesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.OutputDirectoryCreatingTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBuildCacheKeyExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
@@ -131,6 +132,7 @@ public class TaskExecutionServices {
         }
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputsGenerationListener, executer);
+        executer = new FinalizeInputFilePropertiesTaskExecuter(executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
         executer = new SkipTaskWithNoActionsExecuter(executer);
@@ -180,7 +182,7 @@ public class TaskExecutionServices {
         );
     }
 
-    TaskOutputFilesRepository createTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, FileSystemMirror fileSystemMirror, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    TaskOutputFilesRepository createTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, FileSystemSnapshotter fileSystemSnapshotter, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         PersistentCache cacheAccess = cacheRepository
             .cache(gradle, "buildOutputCleanup")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
@@ -188,7 +190,7 @@ public class TaskExecutionServices {
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
             .open();
-        return new DefaultTaskOutputFilesRepository(cacheAccess, fileSystemMirror, inMemoryCacheDecoratorFactory);
+        return new DefaultTaskOutputFilesRepository(cacheAccess, fileSystemSnapshotter, inMemoryCacheDecoratorFactory);
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, TaskHistoryRepository taskHistoryRepository, TaskOutputFilesRepository taskOutputsRepository) {

@@ -73,8 +73,8 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultDebugApp.assertTasksExecuted(':greeter:dependDebugCpp', ':greeter:compileDebugCpp', ':greeter:linkDebug',
-            ':app:dependDebugCpp', ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
+        resultDebugApp.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug',
+            ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
 
         when:
         def resultReleaseApp = xcodebuild
@@ -84,8 +84,8 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultReleaseApp.assertTasksExecuted(':greeter:dependReleaseCpp', ':greeter:compileReleaseCpp', ':greeter:linkRelease', ':greeter:stripSymbolsRelease',
-            ':app:dependReleaseCpp', ':app:compileReleaseCpp', ':app:linkRelease', ':app:_xcode___App_Release')
+        resultReleaseApp.assertTasksExecuted(':greeter:compileReleaseCpp', ':greeter:linkRelease', ':greeter:stripSymbolsRelease',
+            ':app:compileReleaseCpp', ':app:linkRelease', ':app:_xcode___App_Release')
     }
 
     def "can create xcode project for C++ executable with transitive dependencies"() {
@@ -147,10 +147,10 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultDebugApp.assertTasksExecuted(':shuffle:dependDebugCpp', ':shuffle:compileDebugCpp', ':shuffle:linkDebug',
-            ':card:dependDebugCpp', ':card:compileDebugCpp', ':card:linkDebug',
-            ':deck:dependDebugCpp', ':deck:compileDebugCpp', ':deck:linkDebug',
-            ':app:dependDebugCpp', ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
+        resultDebugApp.assertTasksExecuted(':shuffle:compileDebugCpp', ':shuffle:linkDebug',
+            ':card:compileDebugCpp', ':card:linkDebug',
+            ':deck:compileDebugCpp', ':deck:linkDebug',
+            ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
 
         when:
         def resultReleaseHello = xcodebuild
@@ -160,9 +160,9 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultReleaseHello.assertTasksExecuted(':shuffle:dependReleaseCpp', ':shuffle:compileReleaseCpp', ':shuffle:linkRelease', ':shuffle:stripSymbolsRelease',
-            ':card:dependReleaseCpp', ':card:compileReleaseCpp', ':card:linkRelease', ':card:stripSymbolsRelease',
-            ':deck:dependReleaseCpp', ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:_xcode___Deck_Release')
+        resultReleaseHello.assertTasksExecuted(':shuffle:compileReleaseCpp', ':shuffle:linkRelease', ':shuffle:stripSymbolsRelease',
+            ':card:compileReleaseCpp', ':card:linkRelease', ':card:stripSymbolsRelease',
+            ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:_xcode___Deck_Release')
     }
 
     def "can create xcode project for C++ executable inside composite build"() {
@@ -212,8 +212,8 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultDebugApp.assertTasksExecuted(':greeter:dependDebugCpp', ':greeter:compileDebugCpp', ':greeter:linkDebug',
-            ':dependDebugCpp', ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
+        resultDebugApp.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug',
+            ':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
 
         when:
         def resultReleaseGreeter = xcodebuild
@@ -223,6 +223,6 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultReleaseGreeter.assertTasksExecuted(':dependReleaseCpp', ':compileReleaseCpp', ':linkRelease', ':_xcode___Greeter_Release')
+        resultReleaseGreeter.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':_xcode___Greeter_Release')
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.vcs.internal
 
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.GFileUtils
 import org.gradle.vcs.fixtures.GitRepository
 import org.junit.Rule
 import spock.lang.Issue
@@ -31,7 +30,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
 
     def 'can define and use source repositories'() {
         given:
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        def commit = repo.commit('initial commit', file('dep'))
 
         settingsFile << """
             sourceControl {
@@ -54,7 +53,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Issue('gradle/gradle-native#206')
     def 'can define and use source repositories with initscript resolution present'() {
         given:
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        def commit = repo.commit('initial commit', file('dep'))
         temporaryFolder.file('initialize.gradle') << """
         initscript {            
             dependencies {
@@ -86,7 +85,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Issue('gradle/gradle-native#207')
     def 'can use repositories even when clean is run'() {
         given:
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        def commit = repo.commit('initial commit', file('dep'))
 
         settingsFile << """
             sourceControl {
@@ -125,12 +124,12 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
                 }
             }
         """
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        def commit = repo.commit('initial commit', file('dep'))
         repo.createLightWeightTag('1.3.0')
 
         def javaFile = file('dep/src/main/java/Dep.java')
         javaFile.replace('class', 'interface')
-        repo.commit('Changed Dep to an interface', GFileUtils.listFiles(file('dep'), null, true))
+        repo.commit('Changed Dep to an interface', file('dep'))
 
         buildFile.replace('latest.integration', '1.3.0')
 
@@ -155,12 +154,12 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
                 }
             }
         """
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        def commit = repo.commit('initial commit', file('dep'))
         repo.createLightWeightTag('1.3.0')
 
         def javaFile = file('dep/src/main/java/Dep.java')
         javaFile.replace('class', 'interface')
-        repo.commit('Changed Dep to an interface', GFileUtils.listFiles(file('dep'), null, true))
+        repo.commit('Changed Dep to an interface', file('dep'))
 
         buildFile.replace('latest.integration', '1.4.0')
 
@@ -173,7 +172,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
 
         when:
         javaFile.replace('interface', 'class')
-        repo.commit('Switch it back to a class.', GFileUtils.listFiles(file('dep'), null, true))
+        repo.commit('Switch it back to a class.', file('dep'))
         repo.createLightWeightTag('1.4.0')
 
         then:
@@ -204,11 +203,11 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
                 compile "org.test:dep:1.4.0"
             }
         """
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        def commit = repo.commit('initial commit', file('dep'))
         repo.createLightWeightTag('1.3.0')
         def javaFile = file('dep/src/main/java/Dep.java')
         javaFile.replace('class', 'interface')
-        def commit2 = repo.commit('Changed Dep to an interface', GFileUtils.listFiles(file('dep'), null, true))
+        def commit2 = repo.commit('Changed Dep to an interface', file('dep'))
         repo.createLightWeightTag('1.4.0')
 
         when:
@@ -259,8 +258,8 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
              }
         """
 
-        def depCommit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
-        def deeperCommit = deeperRepo.commit('initial commit', GFileUtils.listFiles(file('deeperDep'), null, true))
+        def depCommit = repo.commit('initial commit', file('dep'))
+        def deeperCommit = deeperRepo.commit('initial commit', file('deeperDep'))
 
         when:
         succeeds('assemble')
@@ -315,7 +314,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
                 compile project(':bar')
             }
         """
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('dep'), null, true))
+        def commit = repo.commit('initial commit', file('dep'))
         def block = server.expectAndBlock("block")
 
         when:
@@ -339,7 +338,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
 
         and:
         def hashedRepo = hashRepositoryId(repo.id)
-        file(".gradle/vcsWorkingDirs/${hashedRepo}").listFiles()*.name == [commit.id.name]
+        file(".gradle/vcsWorkingDirs/${hashedRepo}-${commit.id.name}").assertIsDir()
 
         cleanup:
         server.stop()

@@ -90,7 +90,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
 //        module.snapshotMetaData.snapshotVersions == [initialVersion, secondVersion]
 
         and:
-        resolveArtifacts(module) == ["snapshotPublish-${secondVersion}.jar"]
+        resolveArtifacts(module) { expectFiles "snapshotPublish-${secondVersion}.jar" }
     }
 
     def "can publish a snapshot version that was previously published with uploadArchives"() {
@@ -153,6 +153,6 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         module.snapshotMetaData.snapshotVersions == [secondVersion]
 
         and:
-        resolveArtifacts(module) == ["snapshotPublish-${secondVersion}.jar"]
+        resolveArtifacts(module) { expectFiles "snapshotPublish-${secondVersion}.jar" }
     }
 }

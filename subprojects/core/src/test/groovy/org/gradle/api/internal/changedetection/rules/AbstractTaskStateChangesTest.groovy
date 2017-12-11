@@ -74,5 +74,13 @@ abstract class AbstractTaskStateChangesTest extends Specification {
         boolean isSkipWhenEmpty() {
             return false
         }
+
+        @Override
+        void prepareValue() {
+        }
+
+        @Override
+        void cleanupValue() {
+        }
     }
 }

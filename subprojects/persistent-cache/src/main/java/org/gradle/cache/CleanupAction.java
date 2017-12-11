@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.vcs;
+package org.gradle.cache;
 
-import java.io.File;
+public interface CleanupAction {
+    void clean(PersistentCache persistentCache);
 
-public class VcsWorkingDirectoryRoot {
-    private final File dir;
-
-    public VcsWorkingDirectoryRoot(File dir) {
-        this.dir = dir;
-    }
-
-    public File getDir() {
-        return dir;
-    }
+    CleanupAction NO_OP = new CleanupAction() {
+        @Override
+        public void clean(PersistentCache persistentCache) {
+            // no-op
+        }
+    };
 }

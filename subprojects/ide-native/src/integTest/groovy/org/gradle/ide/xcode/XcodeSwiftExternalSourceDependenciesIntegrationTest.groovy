@@ -355,6 +355,6 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
 
     String checkoutRelativeDir(String repoName, String versionId, String repoId) {
         def hashedRepo = HashUtil.createCompactMD5(repoId)
-        return ".gradle/vcsWorkingDirs/${hashedRepo}/${versionId}/${repoName}"
+        return ".gradle/vcsWorkingDirs/${hashedRepo}-${versionId}/${repoName}"
     }
 }
