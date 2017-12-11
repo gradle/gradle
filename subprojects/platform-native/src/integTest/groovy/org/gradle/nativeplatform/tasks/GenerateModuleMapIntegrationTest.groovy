@@ -41,7 +41,12 @@ class GenerateModuleMapIntegrationTest extends AbstractIntegrationSpec {
         succeeds "generate"
         def moduleMapFile = file('build/moduleMaps/module.modulemap')
         moduleMapFile.exists()
-        normaliseLineSeparators(moduleMapFile.text) == content('foo', 'headers', 'moreHeaders')
+        normaliseLineSeparators(moduleMapFile.text) == """module foo {
+\tumbrella "${file('headers').absolutePath}"
+\tumbrella "${file('moreHeaders').absolutePath}"
+\texport *
+}
+"""
     }
 
     def "generating a module map file is incremental"() {
@@ -65,7 +70,12 @@ class GenerateModuleMapIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ":generate"
         moduleMapFile.exists()
-        normaliseLineSeparators(moduleMapFile.text) == content('foo', 'headers', 'moreHeaders')
+        normaliseLineSeparators(moduleMapFile.text) == """module foo {
+\tumbrella "${file('headers').absolutePath}"
+\tumbrella "${file('moreHeaders').absolutePath}"
+\texport *
+}
+"""
 
         when:
         succeeds "generate"
@@ -81,7 +91,12 @@ class GenerateModuleMapIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ":generate"
-        normaliseLineSeparators(moduleMapFile.text) == content('bar', 'headers', 'moreHeaders')
+        normaliseLineSeparators(moduleMapFile.text) == """module bar {
+\tumbrella "${file('headers').absolutePath}"
+\tumbrella "${file('moreHeaders').absolutePath}"
+\texport *
+}
+"""
 
         when:
         buildFile << """
@@ -92,12 +107,10 @@ class GenerateModuleMapIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ":generate"
-        normaliseLineSeparators(moduleMapFile.text) == content('bar', 'headers', 'moreHeaders', 'yet/more/headers')
-    }
-
-    String content(String moduleName, String... headerPaths) {
-        return """module ${moduleName} {
-${headerPaths.collect { "\tumbrella \"${file(it).absolutePath}\"" }.join("\n")}
+        normaliseLineSeparators(moduleMapFile.text) == """module bar {
+\tumbrella "${file('headers').absolutePath}"
+\tumbrella "${file('moreHeaders').absolutePath}"
+\tumbrella "${file('yet/more/headers').absolutePath}"
 \texport *
 }
 """
