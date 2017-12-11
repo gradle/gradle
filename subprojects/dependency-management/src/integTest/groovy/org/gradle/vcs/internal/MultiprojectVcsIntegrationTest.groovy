@@ -18,6 +18,7 @@ package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.vcs.internal.spec.DirectoryRepositorySpec
 
 class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
@@ -121,6 +122,32 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
         assertResolvesTo("foo-1.0.jar", "bar-1.0.jar")
     }
 
+    def "uses root mapping for duplicate subproject of multi-project source dependency"() {
+        buildB.buildFile << """
+            project(":foo") {
+                dependencies {
+                    compile project(":bar")
+                }
+            }
+        """
+        def buildBar = singleProjectBuild("bar") {
+            buildFile << """
+                apply plugin: 'java'
+                version = "2.0"
+            """
+        }
+
+        mappingFor(buildB, "org.test:foo")
+        mappingFor(buildBar, "org.test:bar")
+        buildFile << """
+            dependencies {
+                conf 'org.test:foo:latest.integration'
+                conf 'org.test:bar:latest.integration'
+            }
+        """
+        expect:
+        assertResolvesTo("foo-1.0.jar", "bar-2.0.jar")
+    }
 
     def "reasonable error when VCS mapping does not match underlying build"() {
         mavenRepo.module("org.test", "bar", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
@@ -140,7 +167,7 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
         result.error.contains("did not contain a project publishing the specified dependency.")
     }
 
-    void mappingFor(String... coords) {
+    void mappingFor(TestFile repo=buildB, String... coords) {
         settingsFile << """
             import ${DirectoryRepositorySpec.canonicalName}
 
@@ -151,7 +178,7 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
             settingsFile << """
                     withModule("${coord}") {
                         from vcs(DirectoryRepositorySpec) {
-                            sourceDir = file("${buildB.name}")
+                            sourceDir = file("${repo.name}")
                         }
                     }
             """
