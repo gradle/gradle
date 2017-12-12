@@ -48,6 +48,14 @@ Set to `auto` (the default) to enable color and other rich output in the console
 Set to `rich` to enable color and other rich output in the console output, regardless of whether the build process is not attached to a console. When not attached to a console, the build output will use ANSI control characters to generate the rich output.
 +
 Set to `verbose` to enable color and other rich output like the `rich`, but output more detailed message (task name, output, etc.)
+`--warnings`::
+Specifies which type of deprecation warnings displayed in console.
++
+Set to `all` to render all deprecation warnings. This may be useful for users who're concern about these warnings.
++
+Set to `auto` (the default) to suppress all deprecation warnings in build but the "deprecation warning summary": `There're X deprecation warnings in your build.`
++
+Set to `no` to suppress all deprecation warnings as if they don't exist at all.
 `--continue`::
 Continues task execution after a task failure.
 `--configure-on-demand (incubating)`::

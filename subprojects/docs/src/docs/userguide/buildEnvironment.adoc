@@ -52,6 +52,8 @@ When set to false, Gradle will not monitor the memory usage of running daemons. 
 When set to true, Gradle will try to reuse outputs from previous builds. See <<sec:build_cache_intro>>.
 `org.gradle.console`::
 When set to plain, auto or rich, Gradle will use different type of console. See <<sec:console_build_output>>.
+`org.gradle.warnings`::
+When set to all, auto or no, Gradle will use different type of deprecation waring display. See `--warnings` for details.
 
 [[sec:forked_java_processes]]
 ==== Forked Java processes

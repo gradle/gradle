@@ -24,6 +24,15 @@ Think of every feature section as a mini blog post.
   NOTE: Totally fine to just link to an example that show the feature.
 -->
 
+### Deprecation warning improvements
+
+In this release, deprecation warnings are no longer displayed in build by default. Instead, all deprecation warnings in a build would be collected and a single warning would be rendered at the end of build:
+
+    There're X deprecation warnings, which may break the build in Gradle 5.0. Please run with --warnings=all to see them.
+
+As said by this warning, you can run the build with command line option `--warnings=all` or property `org.gradle.warnings=all` to have all warnings displayed as before.
+Of course, you could use command line option `--warnings=no` or property `org.gradle.warnings=no` to suppress all warnings, including the one displayed at the end of build.
+
 ### Provider API documentation
 
 In this release, the Gradle team added a new chapter in the user guide documenting the [Provider API](userguide/lazy_configuration.html).
