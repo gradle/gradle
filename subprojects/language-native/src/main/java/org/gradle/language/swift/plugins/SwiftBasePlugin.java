@@ -107,6 +107,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
 
+                ((DefaultSwiftBinary)binary).getCompileTask().set(compile);
                 ((DefaultSwiftBinary)binary).getObjectsDir().set(compile.getObjectFileDir());
 
                 Task lifecycleTask = tasks.maybeCreate(names.getTaskName("assemble"));
@@ -151,7 +152,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     // Add an install task
                     // TODO - maybe not for all executables
                     // TODO - add stripped symbols to the installation
-                    final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
+                    InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
                     install.setPlatform(link.getTargetPlatform());
                     install.setToolChain(link.getToolChain());
                     install.getInstallDirectory().set(buildDirectory.dir("install/" + names.getDirName()));
@@ -159,6 +160,8 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     install.lib(binary.getRuntimeLibraries());
                     executable.getInstallDirectory().set(install.getInstallDirectory());
                     executable.getRunScriptFile().set(install.getRunScriptFile());
+                    executable.getLinkTask().set(link);
+                    executable.getInstallTask().set(install);
 
                     lifecycleTask.dependsOn(install.getInstallDirectory());
                 } else if (binary instanceof SwiftSharedLibrary) {
@@ -202,7 +205,6 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     } else {
                         library.getRuntimeFile().set(link.getBinaryFile());
                     }
-                    library.getCompileTask().set(compile);
                     library.getLinkTask().set(link);
                     lifecycleTask.dependsOn(library.getRuntimeFile());
                 } else if (binary instanceof SwiftStaticLibrary) {
@@ -227,7 +229,6 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
 
                     library.getLinkFile().set(link.getBinaryFile());
-                    library.getCompileTask().set(compile);
                     library.getCreateTask().set(link);
                     lifecycleTask.dependsOn(library.getLinkFile());
                 }

@@ -19,7 +19,6 @@ package org.gradle.language.swift;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 
 /**
@@ -37,14 +36,7 @@ public interface SwiftSharedLibrary extends SwiftBinary {
     Provider<RegularFile> getRuntimeFile();
 
     /**
-     * Returns the compile task for this binary.
-     *
-     * @since 4.5
-     */
-    Provider<SwiftCompile> getCompileTask();
-
-    /**
-     * Returns the link shared library task for this binary.
+     * Returns the link task for this binary.
      *
      * @since 4.5
      */

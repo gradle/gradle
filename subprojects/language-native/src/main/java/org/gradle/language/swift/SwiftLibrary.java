@@ -36,13 +36,6 @@ public interface SwiftLibrary extends SwiftComponent {
     Configuration getApiDependencies();
 
     /**
-     * Returns the binaries for this library.
-     *
-     * @since 4.5
-     */
-    SwiftBinaryContainer getBinaries();
-
-    /**
      * {@inheritDoc}
      */
     @Override

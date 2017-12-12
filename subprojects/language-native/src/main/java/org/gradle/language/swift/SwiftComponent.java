@@ -58,6 +58,13 @@ public interface SwiftComponent extends SoftwareComponent {
     FileCollection getSwiftSource();
 
     /**
+     * Returns the binaries for this library.
+     *
+     * @since 4.5
+     */
+    SwiftBinaryContainer getBinaries();
+
+    /**
      * Returns the binary of the component to use as the default for development.
      */
     SwiftBinary getDevelopmentBinary();

@@ -40,6 +40,41 @@ class DefaultSwiftLibraryTest extends Specification {
         library.apiDependencies == api
     }
 
+    def "can create static binary"() {
+        expect:
+        def binary = library.createStaticLibrary("debug", true, false, true)
+        binary.name == "mainDebug"
+        binary.debuggable
+        !binary.optimized
+        binary.testable
+        library.binaries.get() == [binary] as Set
+    }
+
+    def "can create shared binary"() {
+        expect:
+        def binary = library.createSharedLibrary("debug", true, false, true)
+        binary.name == "mainDebug"
+        binary.debuggable
+        !binary.optimized
+        binary.testable
+        library.binaries.get() == [binary] as Set
+    }
+
+    def "throws exception when development binary is not available"() {
+        when:
+        library.developmentBinary
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "No value has been specified for this provider."
+    }
+
+    def "returns shared, debuggable and not optimized development binary when available"() {
+        expect:
+        def binary = library.createSharedLibrary("debug", true, false, true)
+        library.developmentBinary == binary
+    }
+
     interface TestConfiguration extends Configuration, FileCollectionInternal {
     }
 }

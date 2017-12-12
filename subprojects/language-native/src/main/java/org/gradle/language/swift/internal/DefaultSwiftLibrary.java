@@ -37,7 +37,6 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     private final ProjectLayout projectLayout;
     private final ObjectFactory objectFactory;
     private final ListProperty<Linkage> linkage;
-    private final DefaultSwiftBinaryContainer binaries;
     private final ConfigurationContainer configurations;
 
     @Inject
@@ -49,7 +48,6 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
 
         linkage = objectFactory.listProperty(Linkage.class);
         linkage.add(Linkage.SHARED);
-        binaries = objectFactory.newInstance(DefaultSwiftBinaryContainer.class);
 
         api = configurations.maybeCreate(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);
@@ -59,13 +57,13 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
 
     public SwiftStaticLibrary createStaticLibrary(String nameSuffix, boolean debuggable, boolean optimized, boolean testable) {
         SwiftStaticLibrary result = objectFactory.newInstance(DefaultSwiftStaticLibrary.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getModule(), debuggable, optimized, testable, getSwiftSource(), configurations, getImplementationDependencies());
-        binaries.add(result);
+        getBinaries().add(result);
         return result;
     }
 
     public SwiftSharedLibrary createSharedLibrary(String nameSuffix, boolean debuggable, boolean optimized, boolean testable) {
         SwiftSharedLibrary result = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getModule(), debuggable, optimized, testable, getSwiftSource(), configurations, getImplementationDependencies());
-        binaries.add(result);
+        getBinaries().add(result);
         return result;
     }
 
@@ -75,13 +73,8 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     }
 
     @Override
-    public DefaultSwiftBinaryContainer getBinaries() {
-        return binaries;
-    }
-
-    @Override
     public SwiftSharedLibrary getDevelopmentBinary() {
-        return binaries.get(SwiftSharedLibrary.class, new Spec<SwiftBinary>() {
+        return getBinaries().get(SwiftSharedLibrary.class, new Spec<SwiftBinary>() {
             @Override
             public boolean isSatisfiedBy(SwiftBinary element) {
                 return element.isDebuggable() && !element.isOptimized();

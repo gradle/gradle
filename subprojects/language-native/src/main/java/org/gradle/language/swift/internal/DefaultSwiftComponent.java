@@ -29,6 +29,7 @@ import org.gradle.language.swift.SwiftComponent;
 import java.util.Collections;
 
 public abstract class DefaultSwiftComponent extends DefaultNativeComponent implements SwiftComponent {
+    private final DefaultSwiftBinaryContainer binaries;
     private final FileCollection swiftSource;
     private final Property<String> module;
     private final String name;
@@ -45,6 +46,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
         implementation = configurations.maybeCreate(names.withSuffix("implementation"));
         implementation.setCanBeConsumed(false);
         implementation.setCanBeResolved(false);
+        binaries = objectFactory.newInstance(DefaultSwiftBinaryContainer.class);
     }
 
     @Override
@@ -69,5 +71,10 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     @Override
     public Configuration getImplementationDependencies() {
         return implementation;
+    }
+
+    @Override
+    public DefaultSwiftBinaryContainer getBinaries() {
+        return binaries;
     }
 }

@@ -25,32 +25,24 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftStaticLibrary;
-import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 
 import javax.inject.Inject;
 
 public class DefaultSwiftStaticLibrary extends DefaultSwiftBinary implements SwiftStaticLibrary {
     private final RegularFileProperty linkFile;
-    private final Property<SwiftCompile> compileTaskProperty;
     private final Property<CreateStaticLibrary> createTaskProperty;
 
     @Inject
     public DefaultSwiftStaticLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation);
         this.linkFile = projectLayout.fileProperty();
-        this.compileTaskProperty = objectFactory.property(SwiftCompile.class);
         this.createTaskProperty = objectFactory.property(CreateStaticLibrary.class);
     }
 
     @Override
     public RegularFileProperty getLinkFile() {
         return linkFile;
-    }
-
-    @Override
-    public Property<SwiftCompile> getCompileTask() {
-        return compileTaskProperty;
     }
 
     @Override

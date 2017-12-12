@@ -23,15 +23,30 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultSwiftApplicationTest extends Specification {
-    def "has debug and release variants"() {
+    def app = new DefaultSwiftApplication("main", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(FileOperations), Stub(ConfigurationContainer))
+
+    def "can create executable binary"() {
         expect:
-        def app = new DefaultSwiftApplication("main", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(FileOperations), Stub(ConfigurationContainer))
-        app.debugExecutable.name == "mainDebug"
-        app.debugExecutable.debuggable
-        !app.debugExecutable.optimized
-        app.releaseExecutable.name == "mainRelease"
-        app.releaseExecutable.debuggable
-        app.releaseExecutable.optimized
-        app.developmentBinary == app.debugExecutable
+        def binary = app.createExecutable("debug", true, false, true)
+        binary.name == "mainDebug"
+        binary.debuggable
+        !binary.optimized
+        binary.testable
+        app.binaries.get() == [binary] as Set
+    }
+
+    def "throws exception when development binary is not available"() {
+        when:
+        app.developmentBinary
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "No value has been specified for this provider."
+    }
+
+    def "returns debuggable and not optimized development binary when available"() {
+        expect:
+        def binary = app.createExecutable("debug", true, false, true)
+        app.developmentBinary == binary
     }
 }

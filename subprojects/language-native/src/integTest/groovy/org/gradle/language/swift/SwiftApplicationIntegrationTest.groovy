@@ -162,7 +162,11 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         and:
         buildFile << """
             apply plugin: 'swift-application'
-            compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
+            application.binaries.configureEach {
+                if (name.contains('Release')) {
+                    compileTask.get().compilerArgs.add('-DWITH_FEATURE')
+                }
+            }
          """
 
         expect:
@@ -195,7 +199,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'swift-application'
 
             task buildDebug {
-                dependsOn application.debugExecutable.executableFile
+                dependsOn { application.binaries.get().find { it.debuggable && !it.optimized }.executableFile }
             }
          """
 
@@ -216,7 +220,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'swift-application'
 
             task compileDebug {
-                dependsOn application.debugExecutable.objects
+                dependsOn { application.binaries.get().find { it.debuggable && !it.optimized }.objects }
             }
          """
 
@@ -238,7 +242,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'swift-application'
 
             task install {
-                dependsOn application.debugExecutable.installDirectory
+                dependsOn { application.binaries.get().find { it.debuggable && !it.optimized }.installDirectory }
             }
          """
 
@@ -383,10 +387,13 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         and:
         buildFile << """
             apply plugin: 'swift-application'
-            compileDebugSwift.objectFileDir = layout.buildDirectory.dir("object-files")
-            compileDebugSwift.moduleFile = layout.buildDirectory.file("some-app.swiftmodule")
-            linkDebug.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
-            installDebug.installDirectory = layout.buildDirectory.dir("some-app")
+
+            application.binaries.configureEach {
+                compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
+                compileTask.get().moduleFile = layout.buildDirectory.file("some-app.swiftmodule")
+                linkTask.get().binaryFile = layout.buildDirectory.file("exe/some-app.exe")
+                installTask.get().installDirectory = layout.buildDirectory.dir("some-app")
+            }
          """
 
         expect:
@@ -716,7 +723,11 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
                 dependencies {
                     implementation project(':hello')
                 }
-                compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
+                application.binaries.configureEach {
+                    if (name.contains('Release')) {
+                        compileTask.get().compilerArgs.add('-DWITH_FEATURE')
+                    }
+                }
             }
             project(':hello') {
                 apply plugin: 'swift-library'
@@ -762,7 +773,11 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
                 dependencies {
                     implementation project(':hello')
                 }
-                compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
+                application.binaries.configureEach {
+                    if (name.contains('Release')) {
+                        compileTask.get().compilerArgs.add('-DWITH_FEATURE')
+                    }
+                }
             }
             project(':hello') {
                 apply plugin: 'swift-library'
