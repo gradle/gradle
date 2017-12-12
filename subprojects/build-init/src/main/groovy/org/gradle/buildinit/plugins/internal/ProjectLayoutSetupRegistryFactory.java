@@ -34,7 +34,7 @@ public class ProjectLayoutSetupRegistryFactory {
         registry.add(BuildInitTypeIds.GROOVY_APPLICATION, new GroovyApplicationProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, settingsDescriptor, documentationRegistry));
         registry.add(BuildInitTypeIds.SCALA_LIBRARY, new ScalaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, settingsDescriptor, documentationRegistry));
         registry.add(BuildInitTypeIds.GROOVY_LIBRARY, new GroovyLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, settingsDescriptor, documentationRegistry));
-        registry.add(BuildInitTypeIds.BASIC, new BasicTemplateBasedProjectInitDescriptor(templateOperationBuilder, libraryVersionProvider, settingsDescriptor));
+        registry.add(BuildInitTypeIds.BASIC, new BasicTemplateBasedProjectInitDescriptor(fileResolver, settingsDescriptor));
         registry.add(BuildInitTypeIds.POM, new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider));
         return registry;
     }

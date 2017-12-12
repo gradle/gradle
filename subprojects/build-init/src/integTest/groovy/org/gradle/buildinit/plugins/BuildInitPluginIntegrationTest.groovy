@@ -22,6 +22,8 @@ import org.hamcrest.Matcher
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+import static org.hamcrest.Matchers.allOf
+import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
 class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -44,11 +46,20 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
+        given:
+        def dslFixture = ScriptDslFixture.of(scriptDsl, testDirectory)
+
         when:
         run 'init', '--dsl', scriptDsl.id
 
         then:
-        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
+        dslFixture.assertGradleFilesGenerated()
+
+        and:
+        dslFixture.buildFile.assertContents(
+            allOf(
+                containsString("This is a general purpose Gradle build"),
+                containsString("Learn how to create Gradle builds at")))
 
         expect:
         succeeds 'tasks'
