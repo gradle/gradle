@@ -25,12 +25,13 @@ import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
 import org.gradle.api.plugins.antlr.internal.AntlrSpecFactory;
 import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -49,6 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Generates parsers from Antlr grammars.
  */
+@CacheableTask
 public class AntlrTask extends SourceTask {
 
     private boolean trace;
@@ -114,7 +116,7 @@ public class AntlrTask extends SourceTask {
     /**
      * The maximum heap size for the forked antlr process (ex: '1g').
      */
-    @Optional @Input
+    @Internal
     public String getMaxHeapSize() {
         return maxHeapSize;
     }
@@ -272,12 +274,9 @@ public class AntlrTask extends SourceTask {
      *
      * @return The source.
      */
-    // This method is here as the Gradle DSL generation can't handle properties with setters and getters in different classes.
-    @InputFiles
-    @SkipWhenEmpty
+    @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getSource() {
         return super.getSource();
     }
-
-
 }
