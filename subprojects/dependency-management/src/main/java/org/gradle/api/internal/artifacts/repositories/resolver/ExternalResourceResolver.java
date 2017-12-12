@@ -46,7 +46,6 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
@@ -171,37 +170,15 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         List<ResourcePattern> completeIvyPatterns = filterComplete(this.ivyPatterns, module);
         List<ResourcePattern> completeArtifactPatterns = filterComplete(this.artifactPatterns, module);
 
-        // First see if one of the metadata sources can provide the version list
+        // Iterate over the metadata sources to see if they can provide the version list
         for (MetadataSource<?> metadataSource : metadataSources.sources()) {
-            metadataSource.listModuleVersions(module, completeIvyPatterns, versionLister, result);
+            metadataSource.listModuleVersions(dependency, module, completeIvyPatterns, completeArtifactPatterns, versionLister, result);
             if (result.hasResult() && result.isAuthoritative()) {
                 return;
             }
         }
 
-        // Otherwise, use resource listing to get the versions
-        listVersionsByResourceListing(dependency, module, completeIvyPatterns, completeArtifactPatterns, versionLister, result);
-    }
-
-    private void listVersionsByResourceListing(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, ResourceVersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
-
-        // List modules with missing metadata files
-        IvyArtifactName dependencyArtifact = getPrimaryDependencyArtifact(dependency);
-        versionLister.listVersions(module, dependencyArtifact, artifactPatterns, result);
-        if (result.hasResult() && result.isAuthoritative()) {
-            return;
-        }
-
         result.listed(ImmutableSet.<String>of());
-    }
-
-    private static IvyArtifactName getPrimaryDependencyArtifact(ModuleDependencyMetadata dependency) {
-        String moduleName = dependency.getSelector().getModule();
-        List<IvyArtifactName> artifacts = dependency.getArtifacts();
-        if (artifacts.isEmpty()) {
-            return new DefaultIvyArtifactName(moduleName, "jar", "jar");
-        }
-        return artifacts.get(0);
     }
 
     private List<ResourcePattern> filterComplete(List<ResourcePattern> ivyPatterns, final ModuleIdentifier module) {

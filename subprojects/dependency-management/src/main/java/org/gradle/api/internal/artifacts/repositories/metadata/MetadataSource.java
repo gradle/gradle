@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceA
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -42,7 +43,15 @@ public interface MetadataSource<S extends MutableModuleComponentResolveMetadata>
              ExternalResourceArtifactResolver artifactResolver, // Required for MavenLocal to verify the presence of the artifact
              BuildableModuleComponentMetaDataResolveResult result);
 
-    void listModuleVersions(ModuleIdentifier module, List<ResourcePattern> ivyPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result);
+    /**
+     * Use the supplied patterns and version lister to list available versions for the supplied dependency/module.
+     *
+     * This method would encapsulates all version listing for a metadata source, supplying the result (if found) to the
+     * {@link BuildableModuleVersionListingResolveResult} parameter.
+     *
+     * Ideally, the ivyPatterns + artifactPatterns + versionLister would be encapsulated into a single 'module resource accessor'.
+     */
+    void listModuleVersions(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result);
 
     void appendId(BuildCacheHasher hasher);
 }
