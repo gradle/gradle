@@ -507,4 +507,21 @@ public class GUtil {
         return result;
     }
 
+    public static boolean endsWith(CharSequence longer, CharSequence shorter) {
+        if (longer instanceof String && shorter instanceof String) {
+            return ((String) longer).endsWith((String) shorter);
+        }
+        int longerLength = longer.length();
+        int shorterLength = shorter.length();
+        if (longerLength < shorterLength) {
+            return false;
+        }
+        for (int i = shorterLength; i > 0; i--) {
+            if (longer.charAt(longerLength - i) != shorter.charAt(shorterLength - i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }
