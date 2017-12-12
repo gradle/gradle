@@ -31,7 +31,8 @@ import java.util.concurrent.Callable;
 
 public class DefaultSwiftBinaryContainer implements SwiftBinaryContainer {
     private final Set<SwiftBinary> elements = new LinkedHashSet<SwiftBinary>();
-    private final MutableActionSet<SwiftBinary> actions = new MutableActionSet<SwiftBinary>();
+    private final MutableActionSet<SwiftBinary> finalizeActions = new MutableActionSet<SwiftBinary>();
+    private final MutableActionSet<SwiftBinary> configureActions = new MutableActionSet<SwiftBinary>();
 
     @Override
     public <T extends SwiftBinary> Provider<T> get(final Class<T> type, final Spec<? super T> spec) {
@@ -54,7 +55,15 @@ public class DefaultSwiftBinaryContainer implements SwiftBinaryContainer {
 
     @Override
     public void whenElementFinalized(Action<? super SwiftBinary> action) {
-        actions.add(action);
+        finalizeActions.add(action);
+        for (SwiftBinary element : elements) {
+            action.execute(element);
+        }
+    }
+
+    @Override
+    public void configureEach(Action<? super SwiftBinary> action) {
+        configureActions.add(action);
         for (SwiftBinary element : elements) {
             action.execute(element);
         }
@@ -62,7 +71,8 @@ public class DefaultSwiftBinaryContainer implements SwiftBinaryContainer {
 
     void add(SwiftBinary element) {
         elements.add(element);
-        actions.execute(element);
+        configureActions.execute(element);
+        finalizeActions.execute(element);
     }
 
     @Override

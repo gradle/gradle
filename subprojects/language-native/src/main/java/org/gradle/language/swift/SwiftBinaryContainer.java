@@ -48,6 +48,13 @@ public interface SwiftBinaryContainer {
     void whenElementFinalized(Action<? super SwiftBinary> action);
 
     /**
+     * Configure each elements in the collection.
+     *
+     * @param action The action to execute on each element for configuration.
+     */
+    void configureEach(Action<? super SwiftBinary> action);
+
+    /**
      * Returns the set of binaries from the collection in a unspecified state.
      */
     Set<SwiftBinary> get();

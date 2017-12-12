@@ -71,7 +71,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         final DefaultSwiftLibrary library = (DefaultSwiftLibrary) project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", project.getLayout(), objectFactory, fileOperations, configurations);
         project.getComponents().add(library);
-        library.getBinaries().whenElementFinalized(new Action<SwiftBinary>() {
+        library.getBinaries().configureEach(new Action<SwiftBinary>() {
             @Override
             public void execute(SwiftBinary binary) {
                 project.getComponents().add(binary);
