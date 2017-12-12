@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
+import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -78,7 +79,7 @@ public class DefaultArtifactMetadataSource extends AbstractMetadataSource<Mutabl
     }
 
     @Override
-    public void listModuleVersions(ModuleIdentifier module, List<ResourcePattern> ivyPatterns, BuildableModuleVersionListingResolveResult result) {
+    public void listModuleVersions(ModuleIdentifier module, List<ResourcePattern> ivyPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
         // TODO:DAZ Move listing of artifacts to here
     }
 }

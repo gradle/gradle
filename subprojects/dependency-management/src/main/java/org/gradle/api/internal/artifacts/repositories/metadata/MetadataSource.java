@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
+import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -41,7 +42,7 @@ public interface MetadataSource<S extends MutableModuleComponentResolveMetadata>
              ExternalResourceArtifactResolver artifactResolver, // Required for MavenLocal to verify the presence of the artifact
              BuildableModuleComponentMetaDataResolveResult result);
 
-    void listModuleVersions(ModuleIdentifier module, List<ResourcePattern> ivyPatterns, BuildableModuleVersionListingResolveResult result);
+    void listModuleVersions(ModuleIdentifier module, List<ResourcePattern> ivyPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result);
 
     void appendId(BuildCacheHasher hasher);
 }

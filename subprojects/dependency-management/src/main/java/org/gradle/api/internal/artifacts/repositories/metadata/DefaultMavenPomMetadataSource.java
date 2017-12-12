@@ -25,6 +25,11 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceA
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
+<<<<<<< HEAD
+=======
+import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
+import org.gradle.api.resources.MissingResourceException;
+>>>>>>> dd8b508... Delegate version listing to Ivy metadata source
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
@@ -74,7 +79,7 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
     }
 
     @Override
-    public void listModuleVersions(ModuleIdentifier module, List<ResourcePattern> ivyPatterns, BuildableModuleVersionListingResolveResult result) {
+    public void listModuleVersions(ModuleIdentifier module, List<ResourcePattern> ivyPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
         new MavenVersionLister(mavenMetadataLoader).listVersions(module, ivyPatterns, result);
     }
 

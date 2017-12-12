@@ -17,16 +17,14 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
-import java.util.Collection;
+import java.util.List;
 
 public interface VersionLister {
     /**
-     * Creates a visitor for the given module. Call {@link VersionPatternVisitor#visit(ResourcePattern, org.gradle.internal.component.model.IvyArtifactName)} to search for versions.
-     *
-     * @param dest collection to add versions to
-     * @param result used to add candidate locations.
+     * Uses resource listing to attempt to get the list of versions for a module across a set of patterns.
      */
-    VersionPatternVisitor newVisitor(ModuleIdentifier module, Collection<String> dest, ResourceAwareResolveResult result);
+    void listVersions(ModuleIdentifier module, IvyArtifactName artifact, List<ResourcePattern> patterns, BuildableModuleVersionListingResolveResult result);
 }

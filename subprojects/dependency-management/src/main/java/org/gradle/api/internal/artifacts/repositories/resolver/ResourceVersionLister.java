@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import com.google.common.collect.Lists;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -43,14 +45,27 @@ public class ResourceVersionLister implements VersionLister {
 
     private final ExternalResourceRepository repository;
     private final String fileSeparator = "/";
+    private final Set<ExternalResourceName> visitedDirectories = new HashSet<ExternalResourceName>();
 
     public ResourceVersionLister(ExternalResourceRepository repository) {
         this.repository = repository;
     }
 
+    @Override
+    public void listVersions(ModuleIdentifier module, IvyArtifactName artifact, List<ResourcePattern> patterns, BuildableModuleVersionListingResolveResult result) {
+        List<String> collector = Lists.newArrayList();
+        VersionPatternVisitor visitor = newVisitor(module, collector, result);
+        for (ResourcePattern pattern : patterns) {
+            visitor.visit(pattern, artifact);
+        }
+        // TODO:DAZ Be a bit smarter about this
+        if (!collector.isEmpty()) {
+            result.listed(collector);
+        }
+    }
+
     public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {
         return new VersionPatternVisitor() {
-            final Set<ExternalResourceName> directories = new HashSet<ExternalResourceName>();
 
             public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
                 ExternalResourceName versionListPattern = pattern.toVersionListPattern(module, artifact);
@@ -81,7 +96,7 @@ public class ResourceVersionLister implements VersionLister {
                     String revisionParentFolder = parentFolderSlashIndex == -1 ? "" : prefix.substring(0, parentFolderSlashIndex + 1);
                     ExternalResourceName parent = versionListPattern.getRoot().resolve(revisionParentFolder);
                     LOGGER.debug("using {} to list all in {} ", repository, revisionParentFolder);
-                    if (!directories.add(parent)) {
+                    if (!visitedDirectories.add(parent)) {
                         return Collections.emptyList();
                     }
                     result.attempted(parent);
@@ -138,7 +153,7 @@ public class ResourceVersionLister implements VersionLister {
             }
 
             private List<String> listAll(ExternalResourceName parent)  {
-                if (!directories.add(parent)) {
+                if (!visitedDirectories.add(parent)) {
                     return Collections.emptyList();
                 }
                 LOGGER.debug("using {} to list all in {}", repository, parent);

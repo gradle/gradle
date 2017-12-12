@@ -78,7 +78,6 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -98,7 +97,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    private final VersionLister versionLister;
     private final ImmutableMetadataSources metadataSources;
     private final MetadataArtifactProvider metadataArtifactProvider;
 
@@ -117,7 +115,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
-        this.versionLister = new ResourceVersionLister(repository);
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
@@ -170,33 +167,32 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
         // TODO:DAZ Provide an abstraction for accessing resources within the same module (maven-metadata, directory listing, etc)
         // That way we can avoid passing `ivyPatterns` and `artifactPatterns` around everywhere
+        ResourceVersionLister versionLister = new ResourceVersionLister(repository);
         List<ResourcePattern> completeIvyPatterns = filterComplete(this.ivyPatterns, module);
         List<ResourcePattern> completeArtifactPatterns = filterComplete(this.artifactPatterns, module);
 
         // First see if one of the metadata sources can provide the version list
         for (MetadataSource<?> metadataSource : metadataSources.sources()) {
-            metadataSource.listModuleVersions(module, completeIvyPatterns, result);
+            metadataSource.listModuleVersions(module, completeIvyPatterns, versionLister, result);
             if (result.hasResult() && result.isAuthoritative()) {
                 return;
             }
         }
 
         // Otherwise, use resource listing to get the versions
-        listVersionsByResourceListing(dependency, module, completeIvyPatterns, completeArtifactPatterns, result);
+        listVersionsByResourceListing(dependency, module, completeIvyPatterns, completeArtifactPatterns, versionLister, result);
     }
 
-    private void listVersionsByResourceListing(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, BuildableModuleVersionListingResolveResult result) {
-        Set<String> versions = new LinkedHashSet<String>();
-        VersionPatternVisitor visitor = versionLister.newVisitor(module, versions, result);
-
-        // List modules based on metadata files (artifact version is not considered in listVersionsForAllPatterns())
-        IvyArtifactName metaDataArtifact = metadataArtifactProvider.getMetaDataArtifactName(dependency.getSelector().getModule());
-        listVersionsForAllPatterns(ivyPatterns, metaDataArtifact, visitor);
+    private void listVersionsByResourceListing(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, ResourceVersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
 
         // List modules with missing metadata files
         IvyArtifactName dependencyArtifact = getPrimaryDependencyArtifact(dependency);
-        listVersionsForAllPatterns(artifactPatterns, dependencyArtifact, visitor);
-        result.listed(versions);
+        versionLister.listVersions(module, dependencyArtifact, artifactPatterns, result);
+        if (result.hasResult() && result.isAuthoritative()) {
+            return;
+        }
+
+        result.listed(ImmutableSet.<String>of());
     }
 
     private static IvyArtifactName getPrimaryDependencyArtifact(ModuleDependencyMetadata dependency) {
@@ -206,12 +202,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             return new DefaultIvyArtifactName(moduleName, "jar", "jar");
         }
         return artifacts.get(0);
-    }
-
-    private void listVersionsForAllPatterns(List<ResourcePattern> patternList, IvyArtifactName ivyArtifactName, VersionPatternVisitor visitor) {
-        for (ResourcePattern resourcePattern : patternList) {
-            visitor.visit(resourcePattern, ivyArtifactName);
-        }
     }
 
     private List<ResourcePattern> filterComplete(List<ResourcePattern> ivyPatterns, final ModuleIdentifier module) {

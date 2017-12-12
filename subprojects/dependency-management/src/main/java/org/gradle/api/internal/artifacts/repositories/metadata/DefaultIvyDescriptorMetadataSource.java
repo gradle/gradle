@@ -22,7 +22,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Descriptor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
+import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -47,7 +49,9 @@ public class DefaultIvyDescriptorMetadataSource extends AbstractRepositoryMetada
     }
 
     @Override
-    public void listModuleVersions(ModuleIdentifier module, List<ResourcePattern> ivyPatterns, BuildableModuleVersionListingResolveResult result) {
-        // TODO:DAZ Maybe move version listing for `ivy.xml` into here
+    public void listModuleVersions(ModuleIdentifier module, List<ResourcePattern> ivyPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
+        // List modules based on metadata files (artifact version is not considered in listVersionsForAllPatterns())
+        IvyArtifactName metaDataArtifact = metadataArtifactProvider.getMetaDataArtifactName(module.getName());
+        versionLister.listVersions(module, metaDataArtifact, ivyPatterns, result);
     }
 }
