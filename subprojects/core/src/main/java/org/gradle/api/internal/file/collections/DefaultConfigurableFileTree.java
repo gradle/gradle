@@ -168,7 +168,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     public Set<Object> getBuiltBy() {
-        return buildDependency.getValues();
+        return buildDependency.getMutableValues();
     }
 
     public ConfigurableFileTree setBuiltBy(Iterable<?> tasks) {

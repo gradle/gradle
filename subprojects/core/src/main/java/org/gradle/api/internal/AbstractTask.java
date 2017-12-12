@@ -246,7 +246,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Set<Object> getDependsOn() {
-        return dependencies.getValues();
+        return dependencies.getMutableValues();
     }
 
     @Override

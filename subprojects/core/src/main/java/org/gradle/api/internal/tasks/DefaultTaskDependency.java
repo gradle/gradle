@@ -53,14 +53,14 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         this(resolver, ImmutableSet.of());
     }
 
-    public DefaultTaskDependency(TaskResolver resolver, ImmutableSet<Object> tasks) {
+    public DefaultTaskDependency(TaskResolver resolver, ImmutableSet<Object> immutableValues) {
         this.resolver = resolver;
-        this.immutableValues = tasks;
+        this.immutableValues = immutableValues;
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        Set<Object> mutableValues = getValues();
+        Set<Object> mutableValues = getMutableValues();
         if (mutableValues.isEmpty() && immutableValues.isEmpty()) {
             return;
         }
@@ -148,7 +148,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         }
     }
 
-    public Set<Object> getValues() {
+    public Set<Object> getMutableValues() {
         if (mutableValues == null) {
             mutableValues = Sets.newHashSet();
         }
@@ -156,7 +156,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     }
 
     public void setValues(Iterable<?> values) {
-        getValues().clear();
+        getMutableValues().clear();
         for (Object value : values) {
             addValue(value);
         }
@@ -173,6 +173,6 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         if (dependency == null) {
             throw new InvalidUserDataException("A dependency must not be empty");
         }
-        getValues().add(dependency);
+        getMutableValues().add(dependency);
     }
 }

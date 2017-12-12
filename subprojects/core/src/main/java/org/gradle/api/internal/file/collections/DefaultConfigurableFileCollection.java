@@ -93,7 +93,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     public Set<Object> getBuiltBy() {
-        return buildDependency.getValues();
+        return buildDependency.getMutableValues();
     }
 
     public ConfigurableFileCollection setBuiltBy(Iterable<?> tasks) {
