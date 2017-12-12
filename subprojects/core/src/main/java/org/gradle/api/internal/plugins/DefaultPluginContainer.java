@@ -27,6 +27,13 @@ import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import java.util.Collection;
 
+/**
+ * This plugin collection is optimized based on the knowledge we have about how plugins
+ * are applied. The plugin manager already keeps track of all plugins and ensures they
+ * are only applied once. As a result, we don't need to keep another data structure here,
+ * but can just share the one kept by the manager. This class forbids all mutations, as
+ * manually adding/removing plugin instances does not make sense.
+ */
 public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
 
     private final PluginRegistry pluginRegistry;

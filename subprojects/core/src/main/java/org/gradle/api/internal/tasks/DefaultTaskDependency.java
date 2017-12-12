@@ -40,6 +40,14 @@ import java.util.concurrent.Callable;
 import static com.google.common.collect.Iterables.toArray;
 import static org.gradle.util.GUtil.uncheckedCall;
 
+/**
+ * A task dependency which can have both mutable and immutable dependency values.
+ *
+ * If dependencies are known up-front, it is much more efficient to pass
+ * them as immutable values to the {@link DefaultTaskDependency#DefaultTaskDependency(TaskResolver, ImmutableSet)}
+ * constructor than to use the {@link #add(Object...)} method, as the former will
+ * require less memory to store them.
+ */
 public class DefaultTaskDependency extends AbstractTaskDependency {
     private final ImmutableSet<Object> immutableValues;
     private Set<Object> mutableValues;

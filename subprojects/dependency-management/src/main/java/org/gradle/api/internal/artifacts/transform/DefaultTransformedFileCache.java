@@ -161,6 +161,11 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         return new CacheKey(inputFileSnapshot, inputsHash);
     }
 
+    /**
+     * A lightweight key for in-memory caching of transformation results.
+     * Computing the hash key for the persistent cache is a rather expensive
+     * operation, so we only calculate it when we have a cache miss in memory.
+     */
     private static class CacheKey {
         private final Snapshot fileSnapshot;
         private final HashCode inputHash;
@@ -169,6 +174,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
             this.fileSnapshot = fileSnapshot;
             this.inputHash = inputHash;
         }
+
 
         public HashCode getPersistentCacheKey() {
             DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();

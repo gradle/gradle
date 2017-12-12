@@ -121,6 +121,11 @@ public enum InputPathNormalizationStrategy implements PathNormalizationStrategy 
         return getRelativeSnapshot(fileSnapshot, fileSnapshot.getRelativePath(), stringInterner);
     }
 
+    /**
+     * Creates a relative path while using as little additional memory as possible. If the absolute path and normalized path use the same
+     * line separators in their area of overlap, the normalized path is created by remembering the absolute path and an index. Otherwise the
+     * normalized path is converted to a String, which takes additional memory.
+     */
     static NormalizedFileSnapshot getRelativeSnapshot(FileSnapshot fileSnapshot, CharSequence normalizedPath, StringInterner stringInterner) {
         String absolutePath = fileSnapshot.getPath();
         FileContentSnapshot contentSnapshot = fileSnapshot.getContent();

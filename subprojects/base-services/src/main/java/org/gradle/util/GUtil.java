@@ -507,6 +507,12 @@ public class GUtil {
         return result;
     }
 
+    /**
+     * Checks whether the fist {@link CharSequence} ends with the second.
+     *
+     * If the {@link CharSequence#charAt(int)} method of both sequences is fast,
+     * this check is faster than converting them to Strings and using {@link String#endsWith(String)}.
+     */
     public static boolean endsWith(CharSequence longer, CharSequence shorter) {
         if (longer instanceof String && shorter instanceof String) {
             return ((String) longer).endsWith((String) shorter);

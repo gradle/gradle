@@ -33,6 +33,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The basic implementation for converting {@link PatternSet}s to {@link Spec}s.
+ * This implementation only caches the default exclude patterns, as these are always
+ * used, no matter which other includes and excludes a {@link PatternSet} has. For an
+ * implementation that caches all other patterns as well, see {@link CachingPatternSpecFactory}.
+ */
 public class PatternSpecFactory {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
     private final List<String> previousDefaultExcludes = Lists.newArrayList();
