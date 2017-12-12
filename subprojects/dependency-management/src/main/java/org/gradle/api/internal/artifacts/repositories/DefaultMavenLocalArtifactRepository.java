@@ -23,6 +23,7 @@ import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
@@ -67,6 +68,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         }
 
         RepositoryTransport transport = getTransport(rootUri.getScheme());
+        MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), getResourcesFileStore());
         MavenResolver resolver = new MavenResolver(
             getName(),
             rootUri,
@@ -74,10 +76,9 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
             getLocallyAvailableResourceFinder(),
             getArtifactFileStore(),
             moduleIdentifierFactory,
-            transport.getResourceAccessor(),
-            getResourcesFileStore(),
             createMetadataSources(),
-            MavenMetadataArtifactProvider.INSTANCE);
+            MavenMetadataArtifactProvider.INSTANCE,
+            mavenMetadataLoader);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
         }

@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader
+import org.gradle.api.internal.artifacts.repositories.maven.MavenVersionLister
 import org.gradle.api.resources.MissingResourceException
 import org.gradle.api.resources.ResourceException
 import org.gradle.internal.UncheckedException
@@ -44,7 +46,7 @@ class MavenVersionListerTest extends Specification {
     def pattern = pattern("testRepo/" + MavenPattern.M2_PATTERN)
     def metaDataResource = new ExternalResourceName('testRepo/org/acme/testproject/maven-metadata.xml')
 
-    final MavenVersionLister lister = new MavenVersionLister(resourceAccessor, fileStore)
+    final MavenVersionLister lister = new MavenVersionLister(new MavenMetadataLoader(resourceAccessor, fileStore))
 
     def "visit parses maven-metadata.xml"() {
         LocallyAvailableExternalResource resource = Mock()

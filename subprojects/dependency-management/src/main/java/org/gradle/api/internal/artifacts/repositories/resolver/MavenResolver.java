@@ -20,6 +20,9 @@ import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadata;
+import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
+import org.gradle.api.internal.artifacts.repositories.maven.MavenVersionLister;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -42,7 +45,6 @@ import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
-import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -66,20 +68,19 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                         CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor,
-                         FileStore<String> resourcesFileStore,
                          ImmutableMetadataSources metadataSources,
-                         MetadataArtifactProvider metadataArtifactProvider) {
+                         MetadataArtifactProvider metadataArtifactProvider,
+                         MavenMetadataLoader mavenMetadataLoader) {
         super(name, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
-            new ChainedVersionLister(new MavenVersionLister(cacheAwareExternalResourceAccessor, resourcesFileStore), new ResourceVersionLister(transport.getRepository())),
+            new ChainedVersionLister(new MavenVersionLister(mavenMetadataLoader), new ResourceVersionLister(transport.getRepository())),
             locallyAvailableResourceFinder,
             artifactFileStore,
             moduleIdentifierFactory,
             metadataSources,
             metadataArtifactProvider);
-        this.mavenMetaDataLoader = new MavenMetadataLoader(cacheAwareExternalResourceAccessor, resourcesFileStore);
+        this.mavenMetaDataLoader = mavenMetadataLoader;
         this.root = rootUri;
         updatePatterns();
     }

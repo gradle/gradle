@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.resolver;
+package org.gradle.api.internal.artifacts.repositories.maven;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
+import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
+import org.gradle.api.internal.artifacts.repositories.resolver.VersionPatternVisitor;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.local.FileStore;
-import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -31,8 +32,8 @@ import java.util.Set;
 public class MavenVersionLister implements VersionLister {
     private final MavenMetadataLoader mavenMetadataLoader;
 
-    public MavenVersionLister(CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor, FileStore<String> resourcesFileStore) {
-        this.mavenMetadataLoader = new MavenMetadataLoader(cacheAwareExternalResourceAccessor, resourcesFileStore);
+    public MavenVersionLister(MavenMetadataLoader mavenMetadataLoader) {
+        this.mavenMetadataLoader = mavenMetadataLoader;
     }
 
     public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {
