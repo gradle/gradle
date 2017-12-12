@@ -716,15 +716,15 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
                 dependencies {
                     implementation project(':hello')
                 }
-                afterEvaluate {
-                    compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
-                }
+                compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
             }
             project(':hello') {
                 apply plugin: 'swift-library'
                 library.module = 'Greeter'
-                afterEvaluate {
-                    compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
+                library.binaries.whenElementFinalized {
+                    if (name.contains('Release')) {
+                        compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
+                    }
                 }
             }
 """
@@ -762,16 +762,16 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
                 dependencies {
                     implementation project(':hello')
                 }
-                afterEvaluate {
-                    compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
-                }
+                compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
             }
             project(':hello') {
                 apply plugin: 'swift-library'
                 library.module = 'Greeter'
                 library.linkage = [Linkage.STATIC]
-                afterEvaluate {
-                    compileReleaseStaticSwift.compilerArgs.add('-DWITH_FEATURE')
+                library.binaries.whenElementFinalized {
+                    if (name.contains('Release')) {
+                        compileReleaseStaticSwift.compilerArgs.add('-DWITH_FEATURE')
+                    }
                 }
             }
 """

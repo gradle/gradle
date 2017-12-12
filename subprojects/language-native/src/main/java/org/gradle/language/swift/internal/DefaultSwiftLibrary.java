@@ -49,7 +49,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
 
         linkage = objectFactory.listProperty(Linkage.class);
         linkage.add(Linkage.SHARED);
-        binaries = new DefaultSwiftBinaryContainer();
+        binaries = objectFactory.newInstance(DefaultSwiftBinaryContainer.class);
 
         api = configurations.maybeCreate(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);
