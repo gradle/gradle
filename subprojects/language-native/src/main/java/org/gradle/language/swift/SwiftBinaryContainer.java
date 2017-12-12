@@ -31,7 +31,7 @@ import java.util.Set;
 @Incubating
 public interface SwiftBinaryContainer {
     /**
-     * Returns a single binary matching the specified type and specification.
+     * Returns a {@link Provider} that contains the single binary matching the specified type and specification. Querying the return value will fail when there is not exactly one such binary.
      *
      * @param type subtype to match
      * @param spec specification to satisfy
@@ -39,6 +39,22 @@ public interface SwiftBinaryContainer {
      * @return a binary from the collection in a unspecified state
      */
     <T extends SwiftBinary> Provider<T> get(Class<T> type, Spec<? super T> spec);
+
+    /**
+     * Returns a {@link Provider} that contains the single binary with the given name. Querying the return value will fail when there is not exactly one such binary.
+     *
+     * @param name The name of the binary
+     * @return a binary from the collection in a unspecified state
+     */
+    Provider<SwiftBinary> getByName(String name);
+
+    /**
+     * Returns a {@link Provider} that contains the single binary matching the given specification. Querying the return value will fail when there is not exactly one such binary.
+     *
+     * @param spec specification to satisfy
+     * @return a binary from the collection in a unspecified state
+     */
+    Provider<SwiftBinary> get(Spec<? super SwiftBinary> spec);
 
     /**
      * Register an action to execute when an element is finalized.

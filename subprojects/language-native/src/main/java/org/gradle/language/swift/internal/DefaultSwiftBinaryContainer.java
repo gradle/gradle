@@ -18,27 +18,34 @@ package org.gradle.language.swift.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
-import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftBinaryContainer;
 
+import javax.inject.Inject;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class DefaultSwiftBinaryContainer implements SwiftBinaryContainer {
+    private final ProviderFactory providerFactory;
     private final Set<SwiftBinary> elements = new LinkedHashSet<SwiftBinary>();
     private final MutableActionSet<SwiftBinary> finalizeActions = new MutableActionSet<SwiftBinary>();
     private final MutableActionSet<SwiftBinary> configureActions = new MutableActionSet<SwiftBinary>();
 
+    @Inject
+    public DefaultSwiftBinaryContainer(ProviderFactory providerFactory) {
+        this.providerFactory = providerFactory;
+    }
+
     @Override
     public <T extends SwiftBinary> Provider<T> get(final Class<T> type, final Spec<? super T> spec) {
-        return new DefaultProvider<T>(new Callable<T>() {
+        return providerFactory.provider(new Callable<T>() {
             @Override
-            public T call() throws Exception {
+            public T call() {
                 T match = null;
                 for (SwiftBinary element : elements) {
                     if (type.isInstance(element) && spec.isSatisfiedBy(type.cast(element))) {
@@ -51,6 +58,21 @@ public class DefaultSwiftBinaryContainer implements SwiftBinaryContainer {
                 return match;
             }
         });
+    }
+
+    @Override
+    public Provider<SwiftBinary> getByName(final String name) {
+        return get(new Spec<SwiftBinary>() {
+            @Override
+            public boolean isSatisfiedBy(SwiftBinary element) {
+                return element.getName().equals(name);
+            }
+        });
+    }
+
+    @Override
+    public Provider<SwiftBinary> get(Spec<? super SwiftBinary> spec) {
+        return get(SwiftBinary.class, spec);
     }
 
     @Override

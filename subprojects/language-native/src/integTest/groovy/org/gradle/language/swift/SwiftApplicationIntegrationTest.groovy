@@ -199,7 +199,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'swift-application'
 
             task buildDebug {
-                dependsOn { application.binaries.get().find { it.debuggable && !it.optimized }.executableFile }
+                dependsOn application.binaries.get { it.debuggable && !it.optimized }.map { it.executableFile }
             }
          """
 
@@ -220,7 +220,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'swift-application'
 
             task compileDebug {
-                dependsOn { application.binaries.get().find { it.debuggable && !it.optimized }.objects }
+                dependsOn application.binaries.get { it.debuggable && !it.optimized }.map { it.objects } 
             }
          """
 
@@ -242,7 +242,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'swift-application'
 
             task install {
-                dependsOn { application.binaries.get().find { it.debuggable && !it.optimized }.installDirectory }
+                dependsOn application.binaries.get { it.debuggable && !it.optimized }.map { it.installDirectory }
             }
          """
 
