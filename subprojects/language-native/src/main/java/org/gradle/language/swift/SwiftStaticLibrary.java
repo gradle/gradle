@@ -19,6 +19,8 @@ package org.gradle.language.swift;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.swift.tasks.SwiftCompile;
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 
 /**
  * A static library built from Swift source.
@@ -31,4 +33,18 @@ public interface SwiftStaticLibrary extends SwiftBinary {
      * Returns the link-time file for this binary.
      */
     Provider<RegularFile> getLinkFile();
+
+    /**
+     * Returns the compile task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<SwiftCompile> getCompileTask();
+
+    /**
+     * Returns the create static library task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<CreateStaticLibrary> getCreateTask();
 }

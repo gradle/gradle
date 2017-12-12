@@ -723,7 +723,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
                 library.module = 'Greeter'
                 library.binaries.configureEach {
                     if (name.contains('Release')) {
-                        compileReleaseSwift.compilerArgs.add('-DWITH_FEATURE')
+                        compileTask.get().compilerArgs.add('-DWITH_FEATURE')
                     }
                 }
             }
@@ -770,7 +770,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
                 library.linkage = [Linkage.STATIC]
                 library.binaries.configureEach {
                     if (name.contains('Release')) {
-                        compileReleaseStaticSwift.compilerArgs.add('-DWITH_FEATURE')
+                        compileTask.get().compilerArgs.add('-DWITH_FEATURE')
                     }
                 }
             }

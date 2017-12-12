@@ -218,9 +218,9 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
             apply plugin: 'swift-library'
             library.binaries.configureEach {
                 if (name.contains('Debug')) {
-                    compileDebugSwift.objectFileDir = layout.buildDirectory.dir("object-files")
-                    compileDebugSwift.moduleFile = layout.buildDirectory.file("some-lib.swiftmodule")
-                    linkDebug.binaryFile = layout.buildDirectory.file("some-lib/main.bin")
+                    compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
+                    compileTask.get().moduleFile = layout.buildDirectory.file("some-lib.swiftmodule")
+                    linkTask.get().binaryFile = layout.buildDirectory.file("some-lib/main.bin")
                 }
             }
          """
