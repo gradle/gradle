@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.ListProperty;
@@ -37,11 +36,11 @@ public interface SwiftLibrary extends SwiftComponent {
     Configuration getApiDependencies();
 
     /**
-     * Returns the debug shared library for this library.
+     * Returns the binaries for this library.
      *
      * @since 4.5
      */
-    DomainObjectSet<SwiftBinary> getBinaries();
+    SwiftBinaryContainer getBinaries();
 
     /**
      * {@inheritDoc}

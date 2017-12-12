@@ -71,7 +71,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         final DefaultSwiftLibrary library = (DefaultSwiftLibrary) project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", project.getLayout(), objectFactory, fileOperations, configurations);
         project.getComponents().add(library);
-        library.getBinaries().all(new Action<SwiftBinary>() {
+        library.getBinaries().whenElementFinalized(new Action<SwiftBinary>() {
             @Override
             public void execute(SwiftBinary binary) {
                 project.getComponents().add(binary);
@@ -93,9 +93,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
                 if (library.getLinkage().get().contains(Linkage.SHARED)) {
                     SwiftSharedLibrary debugSharedLibrary = library.createSharedLibrary("debug", true, false, true);
-                    library.getBinaries().add(debugSharedLibrary);
                     SwiftSharedLibrary releaseSharedLibrary = library.createSharedLibrary("release", true, true, false);
-                    library.getBinaries().add(releaseSharedLibrary);
 
                     tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getRuntimeFile());
 
@@ -168,9 +166,6 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
                     SwiftStaticLibrary debugStaticLibrary = library.createStaticLibrary("debugStatic", true, false, true);
                     SwiftStaticLibrary releaseStaticLibrary = library.createStaticLibrary("releaseStatic", true, true, false);
-
-                    library.getBinaries().add(debugStaticLibrary);
-                    library.getBinaries().add(releaseStaticLibrary);
 
                     if (!library.getLinkage().get().contains(Linkage.SHARED)) {
                         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugStaticLibrary.getLinkFile());

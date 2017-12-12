@@ -56,16 +56,16 @@ class SwiftLibraryPluginTest extends Specification {
 
         then:
         project.components.main == project.library
-        project.library.binaries.name == ['mainDebug', 'mainRelease']
-        project.components.containsAll(project.library.binaries)
+        project.library.binaries.get().name == ['mainDebug', 'mainRelease']
+        project.components.containsAll(project.library.binaries.get())
 
         and:
-        def binaries = project.library.binaries
-        binaries.matching { it.debuggable && it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
-        binaries.matching { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
+        def binaries = project.library.binaries.get()
+        binaries.findAll { it.debuggable && it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
 
         and:
-        project.library.developmentBinary == binaries.matching { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }.first()
+        project.library.developmentBinary == binaries.get().find { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }
     }
 
     def "registers a component for the library with static linkage"() {
@@ -76,13 +76,13 @@ class SwiftLibraryPluginTest extends Specification {
 
         then:
         project.components.main == project.library
-        project.library.binaries.name == ['mainDebugStatic', 'mainReleaseStatic']
-        project.components.containsAll(project.library.binaries)
+        project.library.binaries.get().name == ['mainDebugStatic', 'mainReleaseStatic']
+        project.components.containsAll(project.library.binaries.get())
 
         and:
-        def binaries = project.library.binaries
-        binaries.matching { it.debuggable && it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
-        binaries.matching { it.debuggable && !it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
+        def binaries = project.library.binaries.get()
+        binaries.findAll { it.debuggable && it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
     }
 
     def "registers a component for the library with both linkage"() {
@@ -93,18 +93,18 @@ class SwiftLibraryPluginTest extends Specification {
 
         then:
         project.components.main == project.library
-        project.library.binaries.name == ['mainDebug', 'mainRelease', 'mainDebugStatic', 'mainReleaseStatic']
-        project.components.containsAll(project.library.binaries)
+        project.library.binaries.get().name == ['mainDebug', 'mainRelease', 'mainDebugStatic', 'mainReleaseStatic']
+        project.components.containsAll(project.library.binaries.get())
 
         and:
-        def binaries = project.library.binaries
-        binaries.matching { it.debuggable && it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
-        binaries.matching { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
-        binaries.matching { it.debuggable && it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
-        binaries.matching { it.debuggable && !it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
+        def binaries = project.library.binaries.get()
+        binaries.findAll { it.debuggable && it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
+        binaries.findAll { it.debuggable && it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
 
         and:
-        project.library.developmentBinary == binaries.matching { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }.first()
+        project.library.developmentBinary == binaries.get().find { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }
     }
 
     def "adds compile and link tasks for default linkage"() {

@@ -107,7 +107,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
             apply plugin: 'swift-library'
             
             task assembleRuntimeDebug {
-                dependsOn { library.binaries.matching { it.name == 'mainDebug' }.runtimeFile }
+                dependsOn { library.binaries.get().find { it.name == 'mainDebug' }.runtimeFile }
             }
          """
 
@@ -128,7 +128,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
             apply plugin: 'swift-library'
             
             task compileDebug {
-                dependsOn { library.binaries.matching { it.name == 'mainDebug' }.objects }
+                dependsOn { library.binaries.get().find { it.name == 'mainDebug' }.objects }
             }
          """
 
