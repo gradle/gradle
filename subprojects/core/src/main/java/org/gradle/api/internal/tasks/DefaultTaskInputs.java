@@ -27,7 +27,6 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
@@ -46,19 +45,19 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileCollection allSourceFiles;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
-    private final PropertyWalker propertyWalker;
+    private final TaskPropertyWalker taskPropertyWalker;
     private final List<DeclaredTaskInputProperty> registeredProperties = Lists.newArrayList();
     private final List<DeclaredTaskInputFileProperty> registeredFileProperties = Lists.newArrayList();
     private final TaskInputs deprecatedThis;
     private final PropertySpecFactory specFactory;
 
-    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PropertySpecFactory specFactory) {
+    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, TaskPropertyWalker taskPropertyWalker, PropertySpecFactory specFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
-        this.propertyWalker = propertyWalker;
+        this.taskPropertyWalker = taskPropertyWalker;
         String taskName = task.getName();
-        this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, this);
-        this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, this);
+        this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, task, taskPropertyWalker);
+        this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, task, taskPropertyWalker);
         this.deprecatedThis = new LenientTaskInputsDeprecationSupport(this);
         this.specFactory = specFactory;
     }
@@ -66,13 +65,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     @Override
     public boolean getHasInputs() {
         HasInputsVisitor visitor = new HasInputsVisitor();
-        visitAllProperties(visitor);
+        taskPropertyWalker.visitProperties(task, visitor);
         return visitor.hasInputs();
-    }
-
-    private void visitAllProperties(PropertyVisitor visitor) {
-        propertyWalker.visitProperties(specFactory, visitor, task);
-        visitRegisteredProperties(visitor);
     }
 
     @Override
@@ -94,7 +88,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     @Override
     public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
         GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString());
-        visitAllProperties(visitor);
+        taskPropertyWalker.visitProperties(task, visitor);
         return visitor.getFileProperties();
     }
 
@@ -147,7 +141,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     @Override
     public boolean getHasSourceFiles() {
         GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString());
-        visitAllProperties(visitor);
+        taskPropertyWalker.visitProperties(task, visitor);
         return visitor.hasSourceFiles();
     }
 
@@ -158,7 +152,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     public Map<String, Object> getProperties() {
         GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor(task.getName());
-        visitAllProperties(visitor);
+        taskPropertyWalker.visitProperties(task, visitor);
         return visitor.getProperties();
     }
 
@@ -194,13 +188,15 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private final boolean skipWhenEmptyOnly;
         private final String taskName;
         private final String type;
-        private final DefaultTaskInputs taskInputs;
+        private final TaskInternal task;
+        private final TaskPropertyWalker taskPropertyWalker;
 
-        public TaskInputUnionFileCollection(String taskName, String type, boolean skipWhenEmptyOnly, DefaultTaskInputs taskInputs) {
+        public TaskInputUnionFileCollection(String taskName, String type, boolean skipWhenEmptyOnly, TaskInternal task, TaskPropertyWalker taskPropertyWalker) {
             this.taskName = taskName;
             this.type = type;
             this.skipWhenEmptyOnly = skipWhenEmptyOnly;
-            this.taskInputs = taskInputs;
+            this.task = task;
+            this.taskPropertyWalker = taskPropertyWalker;
         }
 
         @Override
@@ -210,10 +206,10 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
         @Override
         public void visitContents(final FileCollectionResolveContext context) {
-            taskInputs.visitAllProperties(new PropertyVisitor.Adapter() {
+            taskPropertyWalker.visitProperties(task, new PropertyVisitor.Adapter() {
                 @Override
                 public void visitInputFileProperty(TaskInputFilePropertySpec fileProperty) {
-                    if (!skipWhenEmptyOnly || fileProperty.isSkipWhenEmpty()) {
+                    if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || fileProperty.isSkipWhenEmpty()) {
                         context.add(fileProperty.getPropertyFiles());
                     }
                 }

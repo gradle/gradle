@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.GradleException
 import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskExecutionHistory
+import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -45,19 +46,26 @@ class DefaultTaskOutputsTest extends Specification {
             }
         }
     }
-    def project = Mock(ProjectInternal)
-    def task = Mock(TaskInternal) {
-        getName() >> "task"
-        toString() >> "task 'task'"
-        getProject() >> project
-    }
     def resolver = [
         resolve: { new File(it) },
         resolveFiles: { it ->
             new SimpleFileCollection(it*.call().flatten().collect { new File((String) it) })
         }
     ]   as FileResolver
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultPropertyMetadataStore([])), new DefaultPropertySpecFactory(task, resolver))
+    def project = Stub(ProjectInternal) {
+        getFileFileResolver() >> resolver
+    }
+    def task = Mock(TaskInternal) {
+        getName() >> "task"
+        toString() >> "task 'task'"
+        getProject() >> project
+        getProject() >> project
+        getOutputs() >> { outputs }
+        getInputs() >> Stub(TaskInputsInternal)
+        getDestroyables() >> Stub(TaskDestroyablesInternal)
+        getLocalState() >> Stub(TaskLocalStateInternal)
+    }
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultTaskPropertyWalker(new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))), new DefaultPropertySpecFactory(task, resolver))
 
     void hasNoOutputsByDefault() {
         setup:
@@ -359,7 +367,7 @@ class DefaultTaskOutputsTest extends Specification {
         taskHistory.getOverlappingOutputs() >> new OverlappingOutputs("someProperty", "path/to/outputFile")
         def cachingState = outputs.cachingState
         then:
-        1 * project.relativePath(_) >> 'relative/path/to/outputFile'
+        project.relativePath(_) >> 'relative/path/to/outputFile'
         !cachingState.enabled
         cachingState.disabledReason == "Gradle does not know how file 'relative/path/to/outputFile' was created (output property 'someProperty'). Task output caching requires exclusive access to output paths to guarantee correctness."
         cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS

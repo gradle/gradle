@@ -33,7 +33,6 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
@@ -55,7 +54,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
     private final FileCollection allOutputFiles;
-    private final PropertyWalker propertyWalker;
+    private final TaskPropertyWalker taskPropertyWalker;
     private final PropertySpecFactory specFactory;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
@@ -65,17 +64,12 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PropertySpecFactory specFactory) {
+    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, TaskPropertyWalker taskPropertyWalker, PropertySpecFactory specFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.allOutputFiles = new TaskOutputUnionFileCollection(task);
-        this.propertyWalker = propertyWalker;
+        this.taskPropertyWalker = taskPropertyWalker;
         this.specFactory = specFactory;
-    }
-
-    private void visitAllProperties(PropertyVisitor visitor) {
-        propertyWalker.visitProperties(specFactory, visitor, task);
-        visitRuntimeProperties(visitor);
     }
 
     @Override
@@ -194,7 +188,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public boolean hasDeclaredOutputs() {
         HasDeclaredOutputsVisitor visitor = new HasDeclaredOutputsVisitor();
-        visitAllProperties(visitor);
+        taskPropertyWalker.visitProperties(task, visitor);
         return visitor.hasDeclaredOutputs();
     }
 
@@ -206,7 +200,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
         GetOutputFilesVisitor visitor = new GetOutputFilesVisitor();
-        visitAllProperties(visitor);
+        taskPropertyWalker.visitProperties(task, visitor);
         return visitor.getFileProperties();
     }
 
