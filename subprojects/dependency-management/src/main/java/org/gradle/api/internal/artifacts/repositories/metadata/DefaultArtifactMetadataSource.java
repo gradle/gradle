@@ -16,16 +16,19 @@
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,4 +77,8 @@ public class DefaultArtifactMetadataSource extends AbstractMetadataSource<Mutabl
         return ImmutableList.of(defaultArtifact);
     }
 
+    @Override
+    public void listModuleVersions(ModuleIdentifier module, List<ResourcePattern> ivyPatterns, BuildableModuleVersionListingResolveResult result) {
+        // TODO:DAZ Move listing of artifacts to here
+    }
 }

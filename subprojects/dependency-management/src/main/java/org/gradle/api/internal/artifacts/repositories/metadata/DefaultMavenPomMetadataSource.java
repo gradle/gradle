@@ -15,32 +15,41 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
+import org.gradle.api.internal.artifacts.repositories.maven.MavenVersionLister;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
+import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 import javax.inject.Inject;
+import java.util.List;
 
 public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSource<MutableMavenModuleResolveMetadata> {
 
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
     private final MavenMetadataValidator validator;
+    private final MavenMetadataLoader mavenMetadataLoader;
 
     @Inject
     public DefaultMavenPomMetadataSource(MetadataArtifactProvider metadataArtifactProvider,
                                          MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                          FileResourceRepository fileResourceRepository,
-                                         MavenMetadataValidator validator) {
+                                         MavenMetadataValidator validator,
+                                         MavenMetadataLoader mavenMetadataLoader) {
         super(metadataArtifactProvider, fileResourceRepository);
         this.pomParser = pomParser;
         this.validator = validator;
+        this.mavenMetadataLoader = mavenMetadataLoader;
     }
 
     protected MutableMavenModuleResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, ExternalResourceArtifactResolver artifactResolver, DescriptorParseContext context, String repoName) {
@@ -62,6 +71,11 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
             return result;
         }
         return null;
+    }
+
+    @Override
+    public void listModuleVersions(ModuleIdentifier module, List<ResourcePattern> ivyPatterns, BuildableModuleVersionListingResolveResult result) {
+        new MavenVersionLister(mavenMetadataLoader).listVersions(module, ivyPatterns, result);
     }
 
     /**

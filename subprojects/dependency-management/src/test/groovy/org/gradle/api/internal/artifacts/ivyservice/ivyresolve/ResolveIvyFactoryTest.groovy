@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadata
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
-import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.CachedArtifactIndex
@@ -118,7 +117,6 @@ class ResolveIvyFactoryTest extends Specification {
     def externalResourceResolverSpy() {
         ExternalResourceRepository externalResourceRepository = Stub()
         CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor = Stub()
-        VersionLister versionLister = Stub()
         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Stub()
         FileStore<ModuleComponentArtifactMetadata> artifactFileStore = Stub()
         ImmutableMetadataSources metadataSources = Stub()
@@ -129,7 +127,6 @@ class ResolveIvyFactoryTest extends Specification {
                 false,
                 externalResourceRepository,
                 cacheAwareExternalResourceAccessor,
-                versionLister,
                 locallyAvailableResourceFinder,
                 artifactFileStore,
                 moduleIdentifierFactory,

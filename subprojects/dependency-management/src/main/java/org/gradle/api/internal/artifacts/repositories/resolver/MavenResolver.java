@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadata;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
-import org.gradle.api.internal.artifacts.repositories.maven.MavenVersionLister;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -74,7 +73,6 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         super(name, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
-            new ChainedVersionLister(new MavenVersionLister(mavenMetadataLoader), new ResourceVersionLister(transport.getRepository())),
             locallyAvailableResourceFinder,
             artifactFileStore,
             moduleIdentifierFactory,

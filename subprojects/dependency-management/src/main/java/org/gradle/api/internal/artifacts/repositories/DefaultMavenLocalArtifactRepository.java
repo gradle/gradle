@@ -76,7 +76,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
             getLocallyAvailableResourceFinder(),
             getArtifactFileStore(),
             moduleIdentifierFactory,
-            createMetadataSources(),
+            createMetadataSources(mavenMetadataLoader),
             MavenMetadataArtifactProvider.INSTANCE,
             mavenMetadataLoader);
         for (URI repoUrl : getArtifactUrls()) {

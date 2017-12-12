@@ -109,7 +109,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        boolean local,
                                        ExternalResourceRepository repository,
                                        CacheAwareExternalResourceAccessor cachingResourceAccessor,
-                                       VersionLister versionLister,
                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
@@ -118,7 +117,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
-        this.versionLister = versionLister;
+        this.versionLister = new ResourceVersionLister(repository);
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
@@ -167,7 +166,24 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private void doListModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        // TODO:DAZ Provide an abstraction for accessing resources within the same module (maven-metadata, directory listing, etc)
+        // That way we can avoid passing `ivyPatterns` and `artifactPatterns` around everywhere
+
         ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getSelector().getGroup(), dependency.getSelector().getModule());
+
+        // First see if one of the metadata sources can provide the version list
+        for (MetadataSource<?> metadataSource : metadataSources.sources()) {
+            metadataSource.listModuleVersions(module, ivyPatterns, result);
+            if (result.hasResult() && result.isAuthoritative()) {
+                return;
+            }
+        }
+
+        // Otherwise, use resource listing to get the versions
+        listVersionsByResourceListing(dependency, result, module);
+    }
+
+    private void listVersionsByResourceListing(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result, ModuleIdentifier module) {
         Set<String> versions = new LinkedHashSet<String>();
         VersionPatternVisitor visitor = versionLister.newVisitor(module, versions, result);
 
@@ -238,7 +254,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return artifactResolver;
     }
 
-    protected ExternalResourceArtifactResolver createArtifactResolver(List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns) {
+    private ExternalResourceArtifactResolver createArtifactResolver(List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns) {
         return new DefaultExternalResourceArtifactResolver(repository, locallyAvailableResourceFinder, ivyPatterns, artifactPatterns, artifactFileStore, cachingResourceAccessor);
     }
 

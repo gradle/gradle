@@ -182,8 +182,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private MavenResolver createResolver(URI rootUri) {
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        ImmutableMetadataSources metadataSources = createMetadataSources();
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), resourcesFileStore);
+        ImmutableMetadataSources metadataSources = createMetadataSources(mavenMetadataLoader);
         return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader);
     }
 
@@ -193,14 +193,14 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         configureAction.execute(metadataSources);
     }
 
-    ImmutableMetadataSources createMetadataSources() {
+    ImmutableMetadataSources createMetadataSources(MavenMetadataLoader mavenMetadataLoader) {
         MavenMutableModuleMetadataFactory metadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory);
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
         if (metadataSources.gradleMetadata) {
             sources.add(new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory));
         }
         if (metadataSources.mavenPom) {
-            sources.add(new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices()));
+            sources.add(new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices(), mavenMetadataLoader));
         }
         if (metadataSources.artifact) {
             sources.add(new DefaultArtifactMetadataSource(metadataFactory));

@@ -15,13 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+
+import java.util.List;
 
 /**
  * Represents a source of metadata for a repository. Each implementation is responsible for a different metadata
@@ -35,6 +40,8 @@ public interface MetadataSource<S extends MutableModuleComponentResolveMetadata>
              ComponentOverrideMetadata prescribedMetaData,
              ExternalResourceArtifactResolver artifactResolver, // Required for MavenLocal to verify the presence of the artifact
              BuildableModuleComponentMetaDataResolveResult result);
+
+    void listModuleVersions(ModuleIdentifier module, List<ResourcePattern> ivyPatterns, BuildableModuleVersionListingResolveResult result);
 
     void appendId(BuildCacheHasher hasher);
 }

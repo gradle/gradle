@@ -16,41 +16,45 @@
 
 package org.gradle.api.internal.artifacts.repositories.maven;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
-import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
-import org.gradle.api.internal.artifacts.repositories.resolver.VersionPatternVisitor;
-import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.gradle.api.resources.MissingResourceException;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-public class MavenVersionLister implements VersionLister {
+public class MavenVersionLister {
     private final MavenMetadataLoader mavenMetadataLoader;
 
     public MavenVersionLister(MavenMetadataLoader mavenMetadataLoader) {
         this.mavenMetadataLoader = mavenMetadataLoader;
     }
 
-    public VersionPatternVisitor newVisitor(final ModuleIdentifier module, final Collection<String> dest, final ResourceAwareResolveResult result) {
-        return new VersionPatternVisitor() {
-            final Set<ExternalResourceName> searched = new HashSet<ExternalResourceName>();
+    public void listVersions(ModuleIdentifier module, List<ResourcePattern> patterns, BuildableModuleVersionListingResolveResult result) {
+        final Set<ExternalResourceName> searched = Sets.newHashSet();
 
-            public void visit(ResourcePattern pattern, IvyArtifactName artifact) throws ResourceException {
-                ExternalResourceName metadataLocation = pattern.toModulePath(module).resolve("maven-metadata.xml");
-                if (!searched.add(metadataLocation)) {
-                    return;
-                }
+        List<String> versions = Lists.newArrayList();
+        boolean hasResult = false;
+        for (ResourcePattern pattern : patterns) {
+            ExternalResourceName metadataLocation = pattern.toModulePath(module).resolve("maven-metadata.xml");
+
+            if (searched.add(metadataLocation)) {
                 result.attempted(metadataLocation);
-                MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
-                for (String version : mavenMetaData.versions) {
-                    dest.add(version);
+                try {
+                    MavenMetadata mavenMetaData = mavenMetadataLoader.load(metadataLocation);
+                    versions.addAll(mavenMetaData.versions);
+                    hasResult = true;
+                } catch (MissingResourceException e) {
+                    // Continue
                 }
             }
-        };
+        }
+        if (hasResult) {
+            result.listed(versions);
+        }
     }
 }
