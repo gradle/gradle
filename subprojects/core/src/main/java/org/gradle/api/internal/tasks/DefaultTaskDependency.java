@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskReference;
@@ -107,9 +108,16 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 context.add(resolver.resolveTask((TaskReference) dependency));
             } else if (resolver != null && dependency instanceof CharSequence) {
                 context.add(resolver.resolveTask(dependency.toString()));
-            } else if (dependency instanceof TaskDependencyContainer) {
-                ((TaskDependencyContainer) dependency).visitDependencies(context);
-            } else if (dependency instanceof Provider) {
+            } else if (dependency instanceof ProviderInternal) {
+                if (dependency instanceof TaskDependencyContainer) {
+                    ((TaskDependencyContainer) dependency).visitDependencies(context);
+                    continue;
+                }
+                ProviderInternal providerInternal = (ProviderInternal) dependency;
+                if (providerInternal.getType() == null || providerInternal.getType().equals(Provider.class)) {
+                    queue.addFirst(providerInternal.get());
+                    continue;
+                }
                 List<String> formats = new ArrayList<String>();
                 formats.add("A RegularFileProperty");
                 formats.add("A DirectoryProperty");
@@ -124,9 +132,10 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 formats.add("A Buildable instance");
                 formats.add("A TaskDependency instance");
                 formats.add("A RegularFileProperty or DirectoryProperty instance");
-                formats.add("A Closure instance that returns any of the above types");
-                formats.add("A Callable instance that returns any of the above types");
-                formats.add("An Iterable, Collection, Map or array instance that contains any of the above types");
+                formats.add("A Provider instance that returns any of these types");
+                formats.add("A Closure instance that returns any of these types");
+                formats.add("A Callable instance that returns any of these types");
+                formats.add("An Iterable, Collection, Map or array instance that contains any of these types");
                 throw new UnsupportedNotationException(dependency, String.format("Cannot convert %s to a task.", dependency), null, formats);
             }
         }
