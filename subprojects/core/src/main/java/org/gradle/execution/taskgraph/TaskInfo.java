@@ -50,7 +50,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
     private final TreeSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
-    private boolean inputsAndOutputsResolved;
+    private boolean taskPropertiesResolved;
     private GetOutputFilesVisitor outputFilesVisitor;
     private GetLocalStateVisitor localStateVisitor;
     private GetDestroyablesVisitor destroyablesVisitor;
@@ -233,8 +233,8 @@ public class TaskInfo implements Comparable<TaskInfo> {
     }
 
     private synchronized void resolveTaskProperties() {
-        if (!inputsAndOutputsResolved) {
-            inputsAndOutputsResolved = true;
+        if (!taskPropertiesResolved) {
+            taskPropertiesResolved = true;
             outputFilesVisitor = new GetOutputFilesVisitor();
             String beanName = task.toString();
             ProjectInternal project = (ProjectInternal) task.getProject();
