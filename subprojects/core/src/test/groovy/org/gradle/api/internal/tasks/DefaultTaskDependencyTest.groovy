@@ -19,9 +19,9 @@ import org.gradle.api.Buildable
 import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.provider.ProviderInternal
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.typeconversion.UnsupportedNotationException
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 import java.util.concurrent.Callable
@@ -201,7 +201,7 @@ public class DefaultTaskDependencyTest extends Specification {
         then:
         def e = thrown(GradleException)
         e.cause instanceof UnsupportedNotationException
-        e.cause.message == '''Cannot convert 12 to a task.
+        e.cause.message == TextUtil.toPlatformLineSeparators('''Cannot convert 12 to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
   - A TaskReference instance
@@ -212,7 +212,7 @@ The following types/formats are supported:
   - A Provider instance that returns any of these types
   - A Closure instance that returns any of these types
   - A Callable instance that returns any of these types
-  - An Iterable, Collection, Map or array instance that contains any of these types'''
+  - An Iterable, Collection, Map or array instance that contains any of these types''')
     }
 
     def "fails for char sequence when no resolver provided"() {
