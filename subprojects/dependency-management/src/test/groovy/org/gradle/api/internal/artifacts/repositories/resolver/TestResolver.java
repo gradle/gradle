@@ -35,7 +35,7 @@ import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 
-public class TestResolver extends ExternalResourceResolver<ModuleComponentResolveMetadata, TestResolver.MutableTestResolveMetadata> {
+public class TestResolver extends ExternalResourceResolver<ModuleComponentResolveMetadata> {
     ExternalResourceArtifactResolver artifactResolver;
 
     protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, VersionLister versionLister, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableMetadataSources metadataSources, MetadataArtifactProvider metadataArtifactProvider) {

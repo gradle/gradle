@@ -38,41 +38,53 @@ class MavenPom {
             def scopesByDependency = ArrayListMultimap.create()
 
             pom.dependencies.dependency.each { dep ->
-                def scopeElement = dep.scope
-                def scopeName = scopeElement ? scopeElement.text() : "runtime"
-                def scope = scopes[scopeName]
-                def exclusions = []
-                if (!scope) {
-                    scope = new MavenScope()
-                    scopes[scopeName] = scope
-                }
-                if (dep.exclusions){
-                    dep.exclusions.exclusion.each { excl ->
-                        MavenDependencyExclusion exclusion = new MavenDependencyExclusion(
-                            groupId: excl.groupId.text(),
-                            artifactId: excl.artifactId.text(),
-                        )
-                        exclusions << exclusion
-                    }
+                def scope = createScope(dep.scope)
+                MavenDependency mavenDependency = createDependency(dep)
+                scope.dependencies[mavenDependency.getKey()] = mavenDependency
+                scopesByDependency.put(mavenDependency.getKey(), scope.name)
+            }
 
-                }
-                MavenDependency mavenDependency = new MavenDependency(
-                        groupId: dep.groupId.text(),
-                        artifactId: dep.artifactId.text(),
-                        version: dep.version.text(),
-                        classifier: dep.classifier ? dep.classifier.text() : null,
-                        type: dep.type ? dep.type.text() : null,
-                        exclusions: exclusions,
-                )
-                def key = "${mavenDependency.groupId}:${mavenDependency.artifactId}:${mavenDependency.version}"
-                key += mavenDependency.classifier ? ":${mavenDependency.classifier}" : ""
-                scope.dependencies[key] = mavenDependency
-                scopesByDependency.put(key, scopeName)
+            pom.dependencyManagement.dependencies.dependency.each { dep ->
+                def scope = createScope(dep.scope)
+                MavenDependency mavenDependency = createDependency(dep)
+                scope.dependencyManagement[mavenDependency.getKey()] = mavenDependency
             }
 
             scopesByDependency.asMap().entrySet().findAll { it.value.size() > 1 }.each {
                 throw new AssertionError("$it.key appeared in more than one scope: $it.value")
             }
         }
+    }
+
+    private MavenDependency createDependency(def dep) {
+        def exclusions = []
+        if (dep.exclusions) {
+            dep.exclusions.exclusion.each { excl ->
+                MavenDependencyExclusion exclusion = new MavenDependencyExclusion(
+                    groupId: excl.groupId.text(),
+                    artifactId: excl.artifactId.text(),
+                )
+                exclusions << exclusion
+            }
+
+        }
+        new MavenDependency(
+            groupId: dep.groupId.text(),
+            artifactId: dep.artifactId.text(),
+            version: dep.version.text(),
+            classifier: dep.classifier ? dep.classifier.text() : null,
+            type: dep.type ? dep.type.text() : null,
+            exclusions: exclusions,
+        )
+    }
+
+    private MavenScope createScope(def scopeElement) {
+        def scopeName = scopeElement ? scopeElement.text() : 'runtime'
+        def scope = scopes[scopeName]
+        if (!scope) {
+            scope = new MavenScope(name: scopeName)
+            scopes[scopeName] = scope
+        }
+        scope
     }
 }
