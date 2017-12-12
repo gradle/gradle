@@ -84,7 +84,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private final ServiceProvider thisAsServiceProvider;
 
     private volatile State state = State.INIT;
-    private final Object stopLock = new Object();
+    private final Object stateLock = new Object();
     private final AtomicInteger inProgress = new AtomicInteger(0);
 
 
@@ -259,7 +259,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             return;
         }
 
-        synchronized (stopLock) {
+        synchronized (stateLock) {
             if (state == State.CLOSED || state == State.CLOSING) {
                 return;
             }
@@ -273,7 +273,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private void waitForPendingRequests() {
         while (inProgress.get() != 0) {
             try {
-                stopLock.wait();
+                stateLock.wait();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -290,16 +290,20 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
     private void noLongerMutable() {
         if (state == State.INIT) {
-            state = State.IN_USE;
-            ownServices.noLongerMutable();
+            synchronized (stateLock) {
+                if (state == State.INIT) {
+                    state = State.IN_USE;
+                    ownServices.noLongerMutable();
+                }
+            }
         }
     }
 
     private void requestFinished() {
         boolean noMoreRequests = inProgress.decrementAndGet() == 0;
         if (noMoreRequests && state == State.CLOSING) {
-            synchronized (stopLock) {
-                stopLock.notify();
+            synchronized (stateLock) {
+                stateLock.notify();
             }
         }
     }
