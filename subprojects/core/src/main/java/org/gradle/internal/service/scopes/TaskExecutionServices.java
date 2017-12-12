@@ -39,6 +39,7 @@ import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskPropertyWalker;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
@@ -71,6 +72,7 @@ import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
@@ -104,7 +106,9 @@ public class TaskExecutionServices {
                                     AsyncWorkTracker asyncWorkTracker,
                                     BuildOutputCleanupRegistry cleanupRegistry,
                                     TaskOutputFilesRepository taskOutputFilesRepository,
-                                    BuildScanPluginApplied buildScanPlugin) {
+                                    BuildScanPluginApplied buildScanPlugin,
+                                    PathToFileResolver resolver,
+                                    TaskPropertyWalker taskPropertyWalker) {
 
         boolean taskOutputCacheEnabled = startParameter.isBuildCacheEnabled();
         boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
@@ -134,7 +138,7 @@ public class TaskExecutionServices {
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputsGenerationListener, executer);
         executer = new FinalizeInputFilePropertiesTaskExecuter(executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, executer);
-        executer = new ResolveTaskArtifactStateTaskExecuter(repository, executer);
+        executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, taskPropertyWalker, executer);
         executer = new SkipTaskWithNoActionsExecuter(executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new ExecuteAtMostOnceTaskExecuter(executer);

@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Factory;
@@ -72,13 +71,6 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Deprecated
     void addValidator(TaskValidator validator);
-
-    /**
-     * Visit all inputs, outputs, destroyables and local state properties.
-     *
-     * Both the properties on the task class itself as well as the properties added via the runtime API are visited
-     */
-    void visitProperties(PropertyVisitor visitor);
 
     @Override
     TaskStateInternal getState();

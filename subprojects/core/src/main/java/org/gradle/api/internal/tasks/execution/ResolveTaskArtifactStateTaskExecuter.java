@@ -27,7 +27,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
@@ -35,6 +34,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskPropertyWalker;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec;
@@ -59,10 +59,14 @@ import java.util.Map;
 public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveTaskArtifactStateTaskExecuter.class);
 
+    private final TaskPropertyWalker taskPropertyWalker;
+    private final PathToFileResolver resolver;
     private final TaskExecuter executer;
     private final TaskArtifactStateRepository repository;
 
-    public ResolveTaskArtifactStateTaskExecuter(TaskArtifactStateRepository repository, TaskExecuter executer) {
+    public ResolveTaskArtifactStateTaskExecuter(TaskArtifactStateRepository repository, PathToFileResolver resolver, TaskPropertyWalker taskPropertyWalker, TaskExecuter executer) {
+        this.taskPropertyWalker = taskPropertyWalker;
+        this.resolver = resolver;
         this.executer = executer;
         this.repository = repository;
     }
@@ -88,16 +92,15 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         }
     }
 
-    private static TaskProperties createTaskProperties(TaskInternal task) {
+    private TaskProperties createTaskProperties(TaskInternal task) {
         GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor();
         String beanName = task.toString();
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName);
         GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor(beanName);
-        ProjectInternal project = (ProjectInternal) task.getProject();
-        GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, project.getServices().get(PathToFileResolver.class));
+        GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, resolver);
         ValidationVisitor validationVisitor = new ValidationVisitor();
         try {
-            task.visitProperties(new CompositePropertyVisitor(
+            taskPropertyWalker.visitProperties(task, new CompositePropertyVisitor(
                 inputPropertiesVisitor,
                 inputFilesVisitor,
                 outputFilesVisitor,

@@ -25,12 +25,14 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskPropertyWalker;
 import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
 import org.gradle.api.internal.tasks.properties.GetDestroyablesVisitor;
 import org.gradle.api.internal.tasks.properties.GetLocalStateVisitor;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.TreeSet;
@@ -238,11 +240,13 @@ public class TaskInfo implements Comparable<TaskInfo> {
             outputFilesVisitor = new GetOutputFilesVisitor();
             String beanName = task.toString();
             ProjectInternal project = (ProjectInternal) task.getProject();
-            PathToFileResolver resolver = project.getServices().get(PathToFileResolver.class);
+            ServiceRegistry serviceRegistry = project.getServices();
+            PathToFileResolver resolver = serviceRegistry.get(PathToFileResolver.class);
+            TaskPropertyWalker taskPropertyWalker = serviceRegistry.get(TaskPropertyWalker.class);
             localStateVisitor = new GetLocalStateVisitor(beanName, resolver);
             destroyablesVisitor = new GetDestroyablesVisitor(beanName, resolver);
             hasFileInputsVisitor = new HasFileInputsVisitor();
-            task.visitProperties(new CompositePropertyVisitor(outputFilesVisitor, destroyablesVisitor, localStateVisitor, hasFileInputsVisitor));
+            taskPropertyWalker.visitProperties(task, new CompositePropertyVisitor(outputFilesVisitor, destroyablesVisitor, localStateVisitor, hasFileInputsVisitor));
         }
     }
 

@@ -36,6 +36,7 @@ import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskPropertyWalker
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter
@@ -46,6 +47,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.id.UniqueId
@@ -619,7 +621,8 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
     private TaskArtifactState getStateFor(task) {
         def state = null
-        new ResolveTaskArtifactStateTaskExecuter(repository, new TaskExecuter() {
+        def serviceRegistry = project.services
+        new ResolveTaskArtifactStateTaskExecuter(repository, serviceRegistry.get(PathToFileResolver), serviceRegistry.get(TaskPropertyWalker), new TaskExecuter() {
             @Override
             void execute(TaskInternal task1, TaskStateInternal state1, TaskExecutionContext context) {
                 state = context.getTaskArtifactState()

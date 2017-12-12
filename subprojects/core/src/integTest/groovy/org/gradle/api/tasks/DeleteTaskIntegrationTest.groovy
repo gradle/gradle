@@ -53,7 +53,8 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.tasks.properties.PropertyVisitor
             import org.gradle.internal.file.PathToFileResolver
             import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
-
+            import org.gradle.api.internal.tasks.TaskPropertyWalker
+            
             task clean(type: Delete) {
                 delete 'foo'
                 delete file('bar')
@@ -63,7 +64,8 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     def destroyablePaths = []
                     def resolver = project.services.get(PathToFileResolver)
-                    it.visitProperties(new PropertyVisitor.Adapter() {
+                    def taskPropertyWalker = project.services.get(TaskPropertyWalker)
+                    taskPropertyWalker.visitProperties(it, new PropertyVisitor.Adapter() {
                         void visitDestroyableProperty(Object value) {
                             destroyablePaths << value
                         }

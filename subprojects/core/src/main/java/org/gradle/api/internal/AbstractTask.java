@@ -43,7 +43,6 @@ import org.gradle.api.internal.tasks.InputsAwareTaskDependency;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
@@ -51,7 +50,6 @@ import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -192,19 +190,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             return uncheckedCall(factory);
         } finally {
             NEXT_INSTANCE.set(null);
-        }
-    }
-
-    @Override
-    public void visitProperties(PropertyVisitor visitor) {
-        propertyWalker.visitProperties(specFactory, visitor, this);
-        getInputs().visitRegisteredProperties(visitor);
-        getOutputs().visitRuntimeProperties(visitor);
-        for (Object path : ((TaskDestroyablesInternal) getDestroyables()).getRegisteredPaths()) {
-            visitor.visitDestroyableProperty(path);
-        }
-        for (Object path : ((TaskLocalStateInternal) getLocalState()).getRegisteredPaths()) {
-            visitor.visitLocalStateProperty(path);
         }
     }
 

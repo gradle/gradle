@@ -24,12 +24,11 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskPropertyWalker
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.internal.file.PathToFileResolver
-import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -44,12 +43,11 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
     final repository = Mock(TaskArtifactStateRepository)
     final taskArtifactState = Mock(TaskArtifactState)
     final taskExecutionhistory = Mock(TaskExecutionHistory)
-    final project = Mock(ProjectInternal)
-    final serviceRegistry = Mock(ServiceRegistry)
     final resolver = Mock(PathToFileResolver)
+    final taskPropertyWalker = Mock(TaskPropertyWalker)
     final Action<Task> action = Mock(Action)
 
-    final executer = new ResolveTaskArtifactStateTaskExecuter(repository, delegate)
+    final executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, taskPropertyWalker, delegate)
 
     def 'taskContext is initialized and cleaned as expected'() {
         when:
@@ -61,11 +59,8 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
         1 * taskContext.setTaskArtifactState(taskArtifactState)
         1 * taskArtifactState.getExecutionHistory() >> taskExecutionhistory
         1 * task.getOutputs() >> outputs
-        1 * task.getProject() >> project
-        1 * project.getServices() >> serviceRegistry
-        1 * serviceRegistry.get(PathToFileResolver.class) >> resolver
         1 * outputs.setHistory(taskExecutionhistory)
-        1 * task.visitProperties(_)
+        1 * taskPropertyWalker.visitProperties(task, _)
 
         then: 'delegate is executed'
         1 * delegate.execute(task, taskState, taskContext)
