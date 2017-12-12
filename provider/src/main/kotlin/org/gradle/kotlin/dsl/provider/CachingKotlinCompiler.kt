@@ -22,13 +22,10 @@ import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
-import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.cache.ScriptCache
 
 import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.ImplicitImports
-import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
-import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.messageCollectorFor
 
@@ -63,15 +60,17 @@ class CachingKotlinCompiler(
     val cacheProperties = mapOf("version" to "6")
 
     fun compileBuildscriptBlockOf(
+        buildscriptBlockTemplate: KClass<out Any>,
         scriptPath: String,
         buildscript: String,
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledScript {
 
         val scriptFileName = scriptFileNameFor(scriptPath)
-        return compileScript(cacheKeyPrefix + scriptFileName + buildscript, classPath, parentClassLoader) { cacheDir ->
+        val cacheKeySpec = cacheKeyPrefix + buildscriptBlockTemplate.qualifiedName + scriptFileName + buildscript
+        return compileScript(cacheKeySpec, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
-                KotlinBuildscriptBlock::class,
+                buildscriptBlockTemplate,
                 scriptPath,
                 cacheFileFor(buildscript, cacheDir, scriptFileName),
                 scriptFileName + " buildscript block")
@@ -81,6 +80,7 @@ class CachingKotlinCompiler(
     data class CompiledScript(val location: File, val className: String)
 
     fun compilePluginsBlockOf(
+        pluginsBlockTemplate: KClass<out Any>,
         scriptPath: String,
         lineNumberedPluginsBlock: Pair<Int, String>,
         classPath: ClassPath,
@@ -88,29 +88,31 @@ class CachingKotlinCompiler(
 
         val (lineNumber, plugins) = lineNumberedPluginsBlock
         val scriptFileName = scriptFileNameFor(scriptPath)
-        val compiledScript =
-            compileScript(cacheKeyPrefix + scriptFileName + plugins, classPath, parentClassLoader) { cacheDir ->
-                ScriptCompilationSpec(
-                    KotlinPluginsBlock::class,
-                    scriptPath,
-                    cacheFileFor(plugins, cacheDir, scriptFileName),
-                    scriptFileName + " plugins block")
-            }
+        val cacheKeySpec = cacheKeyPrefix + pluginsBlockTemplate.qualifiedName + scriptFileName + plugins
+        val compiledScript = compileScript(cacheKeySpec, classPath, parentClassLoader) { cacheDir ->
+            ScriptCompilationSpec(
+                pluginsBlockTemplate,
+                scriptPath,
+                cacheFileFor(plugins, cacheDir, scriptFileName),
+                scriptFileName + " plugins block")
+        }
         return CompiledPluginsBlock(lineNumber, compiledScript)
     }
 
     data class CompiledPluginsBlock(val lineNumber: Int, val compiledScript: CompiledScript)
 
-    fun compileBuildScript(
+    fun compileGradleScript(
+        scriptTemplate: KClass<out Any>,
         scriptPath: String,
         script: String,
         classPath: ClassPath,
         parentClassLoader: ClassLoader): CompiledScript {
 
         val scriptFileName = scriptFileNameFor(scriptPath)
-        return compileScript(cacheKeyPrefix + scriptFileName + script, classPath, parentClassLoader) { cacheDir ->
+        val cacheKeySpec = cacheKeyPrefix + scriptTemplate.qualifiedName + scriptFileName + script
+        return compileScript(cacheKeySpec, classPath, parentClassLoader) { cacheDir ->
             ScriptCompilationSpec(
-                KotlinBuildScript::class,
+                scriptTemplate,
                 scriptPath,
                 cacheFileFor(script, cacheDir, scriptFileName),
                 scriptFileName)

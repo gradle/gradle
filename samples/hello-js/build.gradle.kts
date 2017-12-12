@@ -1,20 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 
-buildscript {
-    dependencies {
-        classpath(kotlin("gradle-plugin", "1.1.51"))
-    }
-    repositories {
-        jcenter()
-    }
-}
-
-apply {
-    plugin("kotlin2js")
+plugins {
+    id("kotlin2js") version "1.1.51"
 }
 
 dependencies {
-    "compile"(kotlin("stdlib-js"))
+    compile(kotlin("stdlib-js"))
 }
 
 repositories {

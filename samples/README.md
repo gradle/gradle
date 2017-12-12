@@ -5,23 +5,34 @@ _See instructions below in order to [set up your dev environment](#set-up-dev-en
 
 The Gradle projects in this directory demonstrate typical use cases with and features available in the Gradle Kotlin DSL. They include:
 
+ - [`ant`](./ant): demonstrates how to use Ant from Gradle via the Ant Groovy Builder
+ - [`build-cache`](./build-cache): demonstrates how to configure the Gradle build cache
  - [`build-scan`](./build-scan): demonstrates how to apply and configure the `org.gradle.build-scan` plugin
+ - [`code-quality`](./code-quality): demonstrates how to configure Gradle code quality plugins
  - [`composite-builds`](./composite-builds): demonstrates how to use Composite Builds
  - [`copy`](./copy): demonstrates typed task declarations, and configuration of a Gradle `CopySpec`
  - [`domain-objects`](./domain-objects): demonstrates how to create and configure a `NamedDomainObjectContainer` from a Kotlin build script.
  - [`extra-properties`](./extra-properties): demonstrates the use of `extra` properties (equivalent of the `ext` properties found in Gradle Script Groovy)
+ - [`gradle-plugin`](./gradle-plugin): demonstrates a Gradle plugin implemented in Kotlin and taking advantage of the `kotlin-dsl` plugin
  - [`groovy-interop`](./groovy-interop): demonstrates how to interact with Groovy code from Kotlin
  - [`hello-android`](./hello-android): demonstrates a Kotlin-based Gradle build script for a Kotlin-based Android project
  - [`hello-coroutines`](./hello-coroutines): demonstrates how to enable experimental support for [coroutines in Kotlin](https://kotlinlang.org/docs/reference/coroutines.html)
+ - [`hello-js`](./hello-js): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin and targets JavaScript
  - [`hello-kotlin`](./hello-kotlin): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin
  - [`hello-world`](./hello-world): demonstrates plugin application and configuration, dependency management, JUnit testing
+ - [`kotlin-friendly-groovy-plugin`](./kotlin-friendly-groovy-plugin): demonstrates a Groovy Gradle plugin and its use from Kotlin-based build scripts
+ - [`maven-plugin`](./maven-plugin): demonstrates how to configure the Gradle `maven` plugin
+ - [`maven-publish`](./maven-publish): demonstrates how to configure the Gradle `maven-publish` plugin
+ - [`model-rules`](./model-rules): demonstrates the use of model rules
  - [`modularity`](./modularity): demonstrates the use of `apply { from() }` to modularize build scripts
+ - [`multi-kotlin-project`](./multi-kotlin-project): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects
  - [`multi-kotlin-project-config-injection`](./multi-kotlin-project-config-injection): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects in which all `KotlinCompile` tasks belonging to the subprojects are configured by the root project
  - [`multi-kotlin-project-with-buildSrc`](./multi-kotlin-project-with-buildSrc): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects with custom build logic in `buildSrc`
- - [`multi-kotlin-project`](./multi-kotlin-project): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects
  - [`multi-project-with-buildSrc`](./multi-project-with-buildSrc): demonstrates a multi-project build with custom build logic in `buildSrc`, including a custom task
  - [`project-properties`](./project-properties): demonstrates project property access via [delegated properties](https://kotlinlang.org/docs/reference/delegated-properties.html)
+ - [`project-with-buildSrc`](./project-with-buildSrc): demonstrates a single-project build with custom build logic in `buildSrc`
  - [`provider-properties`](./provider-properties): demonstrates usage of lazily evaluated properties to [map extension properties to task properties](https://docs.gradle.org/4.0-milestone-2/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties)
+ - [`source-control`](./source-control): demonstrates how to use external [source dependencies](https://github.com/gradle/gradle-native/issues/42)
  - [`task-dependencies`](./task-dependencies): demonstrates explicit configuration of task dependencies
 
 Set up dev environment

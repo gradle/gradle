@@ -4,7 +4,7 @@ plugins {
     id("kotlin-dsl-module")
     `maven-publish`
     `java-gradle-plugin`
-    id("com.gradle.plugin-publish") version "0.9.7"
+    id("com.gradle.plugin-publish") version "0.9.9"
 }
 
 base {
@@ -14,9 +14,9 @@ base {
 dependencies {
     compileOnly(gradleKotlinDsl())
 
-    compile(futureKotlin("stdlib"))
-    compile(futureKotlin("gradle-plugin"))
-    compile(futureKotlin("sam-with-receiver"))
+    implementation(futureKotlin("stdlib-jre8"))
+    implementation(futureKotlin("gradle-plugin"))
+    implementation(futureKotlin("sam-with-receiver"))
 
     testImplementation(project(":test-fixtures"))
 }

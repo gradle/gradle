@@ -47,11 +47,15 @@ import java.util.jar.JarFile
 fun accessorsClassPathFor(project: Project, classPath: ClassPath) =
     project.getOrCreateSingletonProperty {
         buildAccessorsClassPathFor(project, classPath)
-            ?: AccessorsClassPath(ClassPath.EMPTY, ClassPath.EMPTY)
+            ?: AccessorsClassPath.empty
     }
 
 
-data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath)
+data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
+    companion object {
+        val empty = AccessorsClassPath(ClassPath.EMPTY, ClassPath.EMPTY)
+    }
+}
 
 
 private

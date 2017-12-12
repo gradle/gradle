@@ -126,15 +126,15 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `can access configurations registered by declared plugins via jit accessor`() {
 
-        withFile("settings.gradle", """
-            include "a", "b", "c"
+        withSettings("""
+            include("a", "b", "c")
         """)
 
-        withFile("a/build.gradle.kts", """
+        withBuildScriptIn("a", """
             plugins { `java-library` }
         """)
 
-        withFile("b/build.gradle.kts", """
+        withBuildScriptIn("b", """
             plugins { `java-library` }
 
             dependencies {
@@ -144,7 +144,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             repositories { jcenter() }
         """)
 
-        withFile("c/build.gradle.kts", """
+        withBuildScriptIn("c", """
             plugins { `java-library` }
 
             dependencies {
@@ -235,10 +235,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `accessors tasks applied in a mixed Groovy-Kotlin multi-project build`() {
 
-        withFile("settings.gradle", """
-            include 'a'
-        """)
-        withFile("a/build.gradle.kts")
+        withSettings("include(\"a\")")
+        withBuildScriptIn("a", "")
 
         val aTasks = build(":a:tasks").output
         assertThat(aTasks, containsString("kotlinDslAccessorsReport"))
@@ -254,7 +252,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         withFile("init.gradle", """
             initscript {
                 repositories {
-                    maven { url "https://plugins.gradle.org/m2" }
+                    gradlePluginPortal()
                 }
                 dependencies {
                     classpath "com.gradle:build-scan-plugin:1.8"

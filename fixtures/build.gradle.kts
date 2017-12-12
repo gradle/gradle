@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.GradleBuild
 
 fun isProjectDir(candidate: File) =
-    candidate.isDirectory && File(candidate, "settings.gradle").exists()
+    File(candidate, "settings.gradle.kts").isFile
 
 fun isCompatibleWithJDK(candidate: File) =
     candidate.name.endsWith("kotlin-1.0") && JavaVersion.current() < JavaVersion.VERSION_1_9
@@ -12,8 +12,8 @@ val subProjectTasks = rootDir
     .filter { isCompatibleWithJDK(it) }
     .map { subProjectDir ->
         task<GradleBuild>("prepare-${subProjectDir.name}") {
-            setDir(subProjectDir)
+            dir = subProjectDir
         }
     }
 
-setDefaultTasks(subProjectTasks.map { it.name })
+defaultTasks = subProjectTasks.map { it.name }

@@ -60,7 +60,7 @@ with the `plugins {}` block depending on how they have been published. If you're
 the Gradle built-in [`java-gradle-plugin`](https://docs.gradle.org/current/userguide/javaGradle_plugin.html) plugin
 that automates publication of supplementary data to make your plugins usable with the `plugins {}` block.
 
-For example, the Android Gradle Plugin 2.x plugins are not published to the Gradle Plugin Portal and the metadata
+For example, the Android Gradle Plugin plugins are not published to the Gradle Plugin Portal and the metadata
 required to resolve plugin identifiers to resolvable artifacts
 [is not published](https://issuetracker.google.com/issues/64551265).
 The following snippets will use the Android Gradle Plugin to demonstrate how to enable the use of the `plugins {}` block
@@ -70,19 +70,19 @@ The goal here is to instruct your build how to map the `com.android.application`
 artifact.
 This is done in two steps.
 
-First add a plugin repository in your `settings.gradle` file for the whole build: 
-```groovy
+First add a plugin repository in your `settings.gradle.kts` file for the whole build: 
+```kotlin
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven { url "https://jcenter.bintray.com/" }
+        google()
     }
 }
 ```
 
-Then, map the plugin `id` to the corresponding artifact coordinates, still in your `settings.gradle` file:
+Then, map the plugin `id` to the corresponding artifact coordinates, still in your `settings.gradle.kts` file:
 
-```groovy
+```kotlin
 pluginManagement {
     // ...
     resolutionStrategy {
@@ -100,20 +100,22 @@ plugin extension accessors, in your `build.gradle.kts` file:
 
 ```kotlin
 plugins {
-    id("com.android.application") version "2.3.3"
+    id("com.android.application") version "3.0.0"
 }
 
 android {
-    buildToolsVersion("25.0.0")
-    compileSdkVersion(23)    
+    buildToolsVersion("27.0.0")
+    compileSdkVersion(27)
 }
 ```
 
 See the [Plugin Management](https://docs.gradle.org/current/userguide/plugins.html#sec:plugin_management) section of
 the Gradle documentation for more information.
 
-However, it is not yet possible to use the `plugins {}` block to request
-[plugins from composite builds](https://github.com/gradle/gradle/issues/2528)
+The same can be applied to resolving plugins from composite builds.
+Composite builds [do not expose plugin markers](https://github.com/gradle/gradle/issues/2528) yet.
+This can be worked around by mapping the plugin `id` to the corresponding artifact coordinates using a plugin
+resolution strategy, just like above.
 
 If you can't use the `plugins {}` block, you need to apply the plugin imperatively (using the `buildscript` block and
 `apply { from("") }`) and to know the type of the extension.

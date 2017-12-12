@@ -3,7 +3,6 @@ package org.gradle.kotlin.dsl.samples
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertThat
 
-
 class MultiKotlinProjectWithBuildSrcSampleTest : AbstractSampleTest("multi-kotlin-project-with-buildSrc") {
 
     @org.junit.Test

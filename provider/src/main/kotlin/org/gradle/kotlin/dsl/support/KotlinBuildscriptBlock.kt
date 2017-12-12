@@ -17,13 +17,15 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.kotlin.dsl.KotlinBuildScript
+import org.gradle.kotlin.dsl.KotlinSettingsScript
 import org.gradle.kotlin.dsl.ScriptHandlerScope
 
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 
 
 /**
- * Base class for `buildscript` block evaluation.
+ * Base class for `buildscript` block evaluation on scripts targeting Project.
  */
 abstract class KotlinBuildscriptBlock(project: Project) : KotlinBuildScript(project) {
 
@@ -34,5 +36,21 @@ abstract class KotlinBuildscriptBlock(project: Project) : KotlinBuildScript(proj
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
         ScriptHandlerScope(project.buildscript).block()
+    }
+}
+
+
+/**
+ * Base class for `buildscript` block evaluation on scripts targeting Settings.
+ */
+abstract class KotlinSettingsBuildscriptBlock(settings: Settings) : KotlinSettingsScript(settings) {
+
+    /**
+     * Configures the build script classpath for settings.
+     *
+     * @see [Settings.buildscript]
+     */
+    override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
+        ScriptHandlerScope(settings.buildscript).block()
     }
 }

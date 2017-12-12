@@ -1,7 +1,7 @@
 import build.*
 
 plugins {
-    id("kotlin-dsl-published-module")
+    id("public-kotlin-dsl-module")
 }
 
 base {

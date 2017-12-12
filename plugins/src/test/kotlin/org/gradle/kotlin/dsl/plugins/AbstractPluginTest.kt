@@ -15,11 +15,11 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
     fun setUpTestPluginRepository() {
         val testRepository = normaliseFileSeparators(absolutePathOf("build/repository"))
         val futureVersion = loadTestProperties()["version"]
-        withFile("settings.gradle", """
+        withSettings("""
             pluginManagement {
                 repositories {
                     maven { url = uri("$testRepository") }
-                    maven { url = uri("https://jcenter.bintray.com/") }
+                    jcenter()
                 }
                 resolutionStrategy {
                     eachPlugin {

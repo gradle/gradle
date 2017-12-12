@@ -87,9 +87,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `can fetch buildscript classpath for sub-project script`() {
 
-        withFile("settings.gradle", """
-            include 'foo', 'bar'
-        """)
+        withSettings("include(\"foo\", \"bar\")")
 
         fun withFixture(fixture: String) =
             withClassJar("libs/$fixture.jar", DeepThought::class.java)
@@ -164,6 +162,14 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `sourcePath includes Gradle sources`() {
+
+        assertSourcePathIncludesGradleSourcesGiven(
+            rootProjectScript = "",
+            subProjectScript = "")
+    }
+
+    @Test
     fun `sourcePath includes kotlin-stdlib sources resolved against project`() {
 
         assertSourcePathIncludesKotlinStdlibSourcesGiven(
@@ -184,7 +190,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
 
         assertSourcePathIncludesKotlinPluginSourcesGiven(
             rootProjectScript = "",
-            subProjectScript ="""
+            subProjectScript = """
                 buildscript {
                     dependencies { classpath(embeddedKotlin("gradle-plugin")) }
                     repositories { jcenter() }
@@ -213,13 +219,53 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
             subProjectScript = """ plugins { kotlin("jvm") version "$embeddedKotlinVersion" } """)
     }
 
+    @Test
+    fun `can fetch classpath of settings script`() {
+
+        withBuildSrc()
+
+        val settingsDependency = withFile("settings-dependency.jar", "")
+        val settings = withSettings("""
+            buildscript {
+                dependencies {
+                    classpath(files("${normaliseFileSeparators(settingsDependency.path)}"))
+                }
+            }
+        """)
+
+        val projectDependency = withFile("project-dependency.jar", "")
+        withFile("build.gradle", """
+            buildscript {
+                dependencies {
+                    classpath(files("${normaliseFileSeparators(projectDependency.path)}"))
+                }
+            }
+        """)
+
+        val classPath = canonicalClassPathFor(projectRoot, settings)
+
+        assertContainsBuildSrc(classPath)
+        assertContainsGradleKotlinDslJars(classPath)
+        assertIncludes(classPath, settingsDependency)
+        assertExcludes(classPath, projectDependency)
+    }
+
+    private
+    fun assertSourcePathIncludesGradleSourcesGiven(rootProjectScript: String, subProjectScript: String) {
+
+        assertSourcePathGiven(
+            rootProjectScript,
+            subProjectScript,
+            hasItems("core-api"))
+    }
+
     private
     fun assertSourcePathIncludesKotlinStdlibSourcesGiven(rootProjectScript: String, subProjectScript: String) {
 
         assertSourcePathGiven(
             rootProjectScript,
             subProjectScript,
-            hasItems("kotlin-stdlib-$embeddedKotlinVersion-sources.jar"))
+            hasItems("kotlin-stdlib-jre8-$embeddedKotlinVersion-sources.jar"))
     }
 
     private
@@ -240,7 +286,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         matches: Matcher<Iterable<String>>) {
 
         val subProjectName = "sub"
-        withFile("settings.gradle", "include '$subProjectName'")
+        withSettings("include(\"$subProjectName\")")
 
         withBuildScript(rootProjectScript)
         val subProjectScriptFile = withBuildScriptIn(subProjectName, subProjectScript)
@@ -272,20 +318,34 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
                 not(hasItems(*excludes.map { it.name }.toTypedArray()))))
 
     private
-    fun assertClassPathContains(vararg files: File) {
-        val fileNameSet = files.map { it.name }.toSet().toTypedArray()
-        assert(fileNameSet.size == files.size)
+    fun assertClassPathContains(vararg files: File) =
         assertThat(
             canonicalClassPath().map { it.name },
-            hasItems(*fileNameSet))
-    }
+            hasItems(*fileNameSetOf(*files)))
 
     private
-    fun assertContainsBuildSrc(classPath: List<File>) {
+    fun assertContainsBuildSrc(classPath: List<File>) =
         assertThat(
             classPath.map { it.name },
             hasItem("buildSrc.jar"))
-    }
+
+    private
+    fun assertIncludes(classPath: List<File>, vararg files: File) =
+        assertThat(
+            classPath.map { it.name },
+            hasItems(*fileNameSetOf(*files)))
+
+    private
+    fun assertExcludes(classPath: List<File>, vararg files: File) =
+        assertThat(
+            classPath.map { it.name },
+            not(hasItems(*fileNameSetOf(*files))))
+
+    private
+    fun fileNameSetOf(vararg files: File) =
+        files.map { it.name }.toSet().toTypedArray().also {
+            assert(it.size == files.size)
+        }
 
     private
     fun canonicalClassPath() =
