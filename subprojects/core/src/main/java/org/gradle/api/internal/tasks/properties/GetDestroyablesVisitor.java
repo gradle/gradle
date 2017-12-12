@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.ArrayList;
@@ -34,12 +35,8 @@ public class GetDestroyablesVisitor extends PropertyVisitor.Adapter {
     }
 
     @Override
-    public void visitDestroyableProperty(Object value) {
-        destroyables.add(value);
-    }
-
-    public List<Object> getDestroyables() {
-        return destroyables;
+    public void visitDestroyableProperty(TaskDestroyablePropertySpec destroyableProperty) {
+        destroyables.add(destroyableProperty.getValue());
     }
 
     public FileCollection getFiles() {

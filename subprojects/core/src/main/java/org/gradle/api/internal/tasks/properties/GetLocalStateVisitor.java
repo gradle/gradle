@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.ArrayList;
@@ -34,15 +35,11 @@ public class GetLocalStateVisitor extends PropertyVisitor.Adapter {
     }
 
     @Override
-    public void visitLocalStateProperty(Object value) {
-        localState.add(value);
-    }
-
-    public List<Object> getLocalState() {
-        return localState;
+    public void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
+        localState.add(localStateProperty.getValue());
     }
 
     public FileCollection getFiles() {
-        return new DefaultConfigurableFileCollection(beanName + " local state", resolver, null, getLocalState());
+        return new DefaultConfigurableFileCollection(beanName + " local state", resolver, null, localState);
     }
 }

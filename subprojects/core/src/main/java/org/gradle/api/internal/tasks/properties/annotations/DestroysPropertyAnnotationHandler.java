@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import org.gradle.api.internal.tasks.DefaultTaskDestroyablePropertySpec;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -31,6 +32,6 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
 
     @Override
     public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
-        visitor.visitDestroyableProperty(propertyValue);
+        visitor.visitDestroyableProperty(new DefaultTaskDestroyablePropertySpec(propertyValue.getPropertyName(), propertyValue));
     }
 }

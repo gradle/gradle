@@ -221,6 +221,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             
             import org.gradle.api.internal.tasks.properties.PropertyVisitor
             import org.gradle.api.internal.tasks.TaskPropertyWalker
+            import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec
 
             class PrintInputsAndOutputs extends DefaultTask {
                 Task task
@@ -238,8 +239,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                     project.services.get(TaskPropertyWalker)
                         .visitProperties(task, new PropertyVisitor.Adapter() {
                         @Override
-                        void visitDestroyableProperty(Object value) {
-                            println "Destroys: '\${value.call()}'"
+                        void visitDestroyableProperty(TaskDestroyablePropertySpec destroyable) {
+                            println "Destroys: '\${destroyable.value.call()}'"
                         }
                         
                     })

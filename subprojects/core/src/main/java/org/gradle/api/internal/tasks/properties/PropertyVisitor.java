@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskInputPropertySpec;
+import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 
 /**
@@ -31,9 +33,9 @@ public interface PropertyVisitor {
 
     void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty);
 
-    void visitDestroyableProperty(Object value);
+    void visitDestroyableProperty(TaskDestroyablePropertySpec destroyableProperty);
 
-    void visitLocalStateProperty(Object value);
+    void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty);
 
     class Adapter implements PropertyVisitor {
 
@@ -50,11 +52,11 @@ public interface PropertyVisitor {
         }
 
         @Override
-        public void visitDestroyableProperty(Object value) {
+        public void visitDestroyableProperty(TaskDestroyablePropertySpec destroyableProperty) {
         }
 
         @Override
-        public void visitLocalStateProperty(Object value) {
+        public void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
         }
     }
 }
