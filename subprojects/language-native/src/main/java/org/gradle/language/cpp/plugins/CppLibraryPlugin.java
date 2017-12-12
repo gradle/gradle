@@ -113,8 +113,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         if (toolChain.supportsModuleMaps()) {
             GenerateModuleMap generateModuleMap = tasks.create("generateModuleMap", GenerateModuleMap.class);
             generateModuleMap.getModuleMapFile().set(moduleMapFile);
-            generateModuleMap.getModuleName().set(library.getBaseName());
-            generateModuleMap.getPublicHeaderPaths().addAll(project.provider(new Callable<Iterable<String>>() {
+            generateModuleMap.getModuleMap().getModuleName().set(library.getBaseName());
+            generateModuleMap.getModuleMap().getPublicHeaderPaths().addAll(project.provider(new Callable<Iterable<String>>() {
                 @Override
                 public Iterable<String> call() throws Exception {
                     return collect(library.getPublicHeaderDirs(), new Transformer<String, File>() {

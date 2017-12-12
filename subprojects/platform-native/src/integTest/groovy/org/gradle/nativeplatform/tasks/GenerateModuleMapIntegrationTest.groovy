@@ -27,11 +27,11 @@ class GenerateModuleMapIntegrationTest extends AbstractIntegrationSpec {
             import ${GenerateModuleMap.class.canonicalName}
 
             task generate(type: GenerateModuleMap) {
-                moduleName.set('foo') 
+                moduleMap.moduleName.set('foo') 
                 moduleMapFile.set(project.layout.buildDirectory.file('moduleMaps/module.modulemap'))
-                publicHeaderPaths.add(file('headers').absolutePath)
-                publicHeaderPaths.add(file('moreHeaders').absolutePath)
-                publicHeaderPaths.add(file('does-not-exist').absolutePath)
+                moduleMap.publicHeaderPaths.add(file('headers').absolutePath)
+                moduleMap.publicHeaderPaths.add(file('moreHeaders').absolutePath)
+                moduleMap.publicHeaderPaths.add(file('does-not-exist').absolutePath)
             }
         """
         file('headers').createDir()
@@ -55,10 +55,10 @@ class GenerateModuleMapIntegrationTest extends AbstractIntegrationSpec {
             import ${GenerateModuleMap.class.canonicalName}
 
             task generate(type: GenerateModuleMap) {
-                moduleName.set('foo') 
+                moduleMap.moduleName.set('foo') 
                 moduleMapFile.set(project.layout.buildDirectory.file('moduleMaps/module.modulemap'))
-                publicHeaderPaths.add(file('headers').absolutePath)
-                publicHeaderPaths.add(file('moreHeaders').absolutePath)
+                moduleMap.publicHeaderPaths.add(file('headers').absolutePath)
+                moduleMap.publicHeaderPaths.add(file('moreHeaders').absolutePath)
             }
         """
         file('headers').createDir()
@@ -85,7 +85,7 @@ class GenerateModuleMapIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildFile << """
-            generate.moduleName.set('bar')
+            generate.moduleMap.moduleName.set('bar')
         """
         succeeds "generate"
 
@@ -100,7 +100,7 @@ class GenerateModuleMapIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildFile << """
-            generate.publicHeaderPaths.add(file('yet/more/headers').absolutePath)
+            generate.moduleMap.publicHeaderPaths.add(file('yet/more/headers').absolutePath)
         """
         file('yet/more/headers').createDir()
         succeeds "generate"

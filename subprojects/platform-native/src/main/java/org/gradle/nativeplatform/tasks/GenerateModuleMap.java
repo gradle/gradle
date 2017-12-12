@@ -23,13 +23,12 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
+import org.gradle.nativeplatform.ModuleMap;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutor;
@@ -50,16 +49,14 @@ import static org.gradle.util.CollectionUtils.filter;
 @Incubating
 public class GenerateModuleMap extends DefaultTask {
     private final WorkerExecutor workerExecutor;
-    private RegularFileProperty moduleMapFile;
-    private Property<String> moduleName;
-    private ListProperty<String> publicHeaderPaths;
+    private final RegularFileProperty moduleMapFile;
+    private final ModuleMap moduleMap;
 
     @Inject
     public GenerateModuleMap(WorkerExecutor workerExecutor) {
         this.workerExecutor = workerExecutor;
         this.moduleMapFile = newOutputFile();
-        this.moduleName = getProject().getObjects().property(String.class);
-        this.publicHeaderPaths = getProject().getObjects().listProperty(String.class);
+        this.moduleMap = new ModuleMap(getProject().getObjects().property(String.class), getProject().getObjects().listProperty(String.class));
     }
 
     /**
@@ -71,19 +68,11 @@ public class GenerateModuleMap extends DefaultTask {
     }
 
     /**
-     * The name of the module to use for the generated module map.
+     * The module map that will be used to generate the file.
      */
-    @Input
-    public Property<String> getModuleName() {
-        return moduleName;
-    }
-
-    /**
-     * The list of public header paths that should be exposed by the module.
-     */
-    @Input
-    public ListProperty<String> getPublicHeaderPaths() {
-        return publicHeaderPaths;
+    @Nested
+    public ModuleMap getModuleMap() {
+        return moduleMap;
     }
 
     @TaskAction
@@ -92,7 +81,7 @@ public class GenerateModuleMap extends DefaultTask {
             @Override
             public void execute(WorkerConfiguration workerConfiguration) {
                 workerConfiguration.setIsolationMode(IsolationMode.NONE);
-                workerConfiguration.params(moduleMapFile.getAsFile().get(), moduleName.get(), publicHeaderPaths.get());
+                workerConfiguration.params(moduleMapFile.getAsFile().get(), moduleMap.getModuleName().get(), moduleMap.getPublicHeaderPaths().get());
             }
         });
     }

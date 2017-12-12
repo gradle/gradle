@@ -108,7 +108,7 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
             project(':cppGreeter') {
                 apply plugin: 'cpp-library'
                 
-                generateModuleMap.moduleName.set "MyGreeter"
+                generateModuleMap.moduleMap.moduleName.set "MyGreeter"
             }
         """
         lib.writeToProject(file("hello"))
