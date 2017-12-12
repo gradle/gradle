@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
-import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
+import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskInputPropertySpec;
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 
 public class CompositePropertyVisitor implements PropertyVisitor {
     private final PropertyVisitor[] visitors;
@@ -28,21 +28,21 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
+    public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitInputFileProperty(inputFileProperty);
         }
     }
 
     @Override
-    public void visitInputProperty(DeclaredTaskInputProperty inputProperty) {
+    public void visitInputProperty(TaskInputPropertySpec inputProperty) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitInputProperty(inputProperty);
         }
     }
 
     @Override
-    public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
+    public void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitOutputFileProperty(outputFileProperty);
         }

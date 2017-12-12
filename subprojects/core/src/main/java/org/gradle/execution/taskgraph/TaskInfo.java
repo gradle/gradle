@@ -22,8 +22,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyWalker;
 import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
@@ -301,7 +301,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
         boolean hasFileInputs;
 
         @Override
-        public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
+        public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
             hasFileInputs = true;
         }
 

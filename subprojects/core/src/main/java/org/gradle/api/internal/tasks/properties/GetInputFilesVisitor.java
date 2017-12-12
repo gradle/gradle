@@ -21,25 +21,24 @@ import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 
 import java.util.Set;
 
 public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     private final String beanName;
-    private ImmutableSortedSet.Builder<DeclaredTaskInputFileProperty> builder = ImmutableSortedSet.naturalOrder();
+    private ImmutableSortedSet.Builder<TaskInputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
     private Set<String> names = Sets.newHashSet();
     private boolean hasSourceFiles;
 
-    private ImmutableSortedSet<DeclaredTaskInputFileProperty> fileProperties;
+    private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
 
     public GetInputFilesVisitor(String beanName) {
         this.beanName = beanName;
     }
 
     @Override
-    public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
+    public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
         String propertyName = inputFileProperty.getPropertyName();
         if (!names.add(propertyName)) {
             throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", "input", propertyName));
@@ -50,7 +49,7 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
         }
     }
 
-    public ImmutableSortedSet<DeclaredTaskInputFileProperty> getFileProperties() {
+    public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
             fileProperties = builder.build();
         }

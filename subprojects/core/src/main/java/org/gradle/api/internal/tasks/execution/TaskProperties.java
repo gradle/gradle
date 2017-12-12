@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
+import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 
@@ -36,7 +36,7 @@ public interface TaskProperties {
 
     FileCollection getSourceFiles();
 
-    ImmutableSortedSet<DeclaredTaskInputFileProperty> getInputFileProperties();
+    ImmutableSortedSet<TaskInputFilePropertySpec> getInputFileProperties();
 
     void validate(TaskValidationContext validationContext);
 

@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 
 /**
@@ -37,13 +37,13 @@ public class FinalizeInputFilePropertiesTaskExecuter implements TaskExecuter {
     @Override
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         TaskProperties taskProperties = context.getTaskProperties();
-        for (DeclaredTaskInputFileProperty property : taskProperties.getInputFileProperties()) {
+        for (TaskInputFilePropertySpec property : taskProperties.getInputFileProperties()) {
             property.prepareValue();
         }
         try {
             taskExecuter.execute(task, state, context);
         } finally {
-            for (DeclaredTaskInputFileProperty property : taskProperties.getInputFileProperties()) {
+            for (TaskInputFilePropertySpec property : taskProperties.getInputFileProperties()) {
                 property.cleanupValue();
             }
         }

@@ -95,7 +95,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
         GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString());
         visitAllProperties(visitor);
-        return ImmutableSortedSet.<TaskInputFilePropertySpec>copyOf(visitor.getFileProperties());
+        return visitor.getFileProperties();
     }
 
     @Override
@@ -212,7 +212,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         public void visitContents(final FileCollectionResolveContext context) {
             taskInputs.visitAllProperties(new PropertyVisitor.Adapter() {
                 @Override
-                public void visitInputFileProperty(DeclaredTaskInputFileProperty fileProperty) {
+                public void visitInputFileProperty(TaskInputFilePropertySpec fileProperty) {
                     if (!skipWhenEmptyOnly || fileProperty.isSkipWhenEmpty()) {
                         context.add(fileProperty.getPropertyFiles());
                     }
@@ -247,12 +247,12 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
+        public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
             hasInputs = true;
         }
 
         @Override
-        public void visitInputProperty(DeclaredTaskInputProperty inputProperty) {
+        public void visitInputProperty(TaskInputPropertySpec inputProperty) {
             hasInputs = true;
         }
     }

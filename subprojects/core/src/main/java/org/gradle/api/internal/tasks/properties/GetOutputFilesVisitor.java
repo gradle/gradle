@@ -21,7 +21,6 @@ import com.google.common.collect.Iterators;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.CompositeTaskOutputPropertySpec;
-import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 
@@ -36,7 +35,7 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
     private boolean hasDeclaredOutputs;
 
     @Override
-    public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
+    public void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
         hasDeclaredOutputs = true;
         if (outputFileProperty instanceof CompositeTaskOutputPropertySpec) {
             Iterators.addAll(specs, ((CompositeTaskOutputPropertySpec) outputFileProperty).resolveToOutputProperties());
@@ -47,7 +46,7 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
                     return;
                 }
             }
-            specs.add((TaskOutputFilePropertySpec) outputFileProperty);
+            specs.add(outputFileProperty);
         }
     }
 

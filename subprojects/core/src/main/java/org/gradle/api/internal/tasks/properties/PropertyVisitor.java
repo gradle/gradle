@@ -16,20 +16,20 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
-import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
+import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskInputPropertySpec;
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 
 /**
  * Visits properties of beans which are inputs, outputs, destroyables or local state.
  */
 public interface PropertyVisitor {
 
-    void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty);
+    void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty);
 
-    void visitInputProperty(DeclaredTaskInputProperty inputProperty);
+    void visitInputProperty(TaskInputPropertySpec inputProperty);
 
-    void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty);
+    void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty);
 
     void visitDestroyableProperty(Object value);
 
@@ -38,15 +38,15 @@ public interface PropertyVisitor {
     class Adapter implements PropertyVisitor {
 
         @Override
-        public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
+        public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
         }
 
         @Override
-        public void visitInputProperty(DeclaredTaskInputProperty inputProperty) {
+        public void visitInputProperty(TaskInputPropertySpec inputProperty) {
         }
 
         @Override
-        public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
+        public void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
         }
 
         @Override

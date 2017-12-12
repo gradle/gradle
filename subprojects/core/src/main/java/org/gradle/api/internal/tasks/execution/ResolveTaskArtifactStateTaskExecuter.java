@@ -27,12 +27,11 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.DeclaredTaskInputProperty;
-import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskInputPropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyWalker;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -168,7 +167,7 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ImmutableSortedSet<DeclaredTaskInputFileProperty> getInputFileProperties() {
+        public ImmutableSortedSet<TaskInputFilePropertySpec> getInputFileProperties() {
             return inputFilesVisitor.getFileProperties();
         }
 
@@ -203,18 +202,18 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
         private final Multimap<TaskValidationContext.Severity, String> messages = ArrayListMultimap.create();
 
         @Override
-        public void visitInputFileProperty(DeclaredTaskInputFileProperty inputFileProperty) {
-            taskPropertySpecs.add(inputFileProperty);
+        public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
+            taskPropertySpecs.add((ValidatingTaskPropertySpec) inputFileProperty);
         }
 
         @Override
-        public void visitInputProperty(DeclaredTaskInputProperty inputProperty) {
-            taskPropertySpecs.add(inputProperty);
+        public void visitInputProperty(TaskInputPropertySpec inputProperty) {
+            taskPropertySpecs.add((ValidatingTaskPropertySpec) inputProperty);
         }
 
         @Override
-        public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
-            taskPropertySpecs.add(outputFileProperty);
+        public void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
+            taskPropertySpecs.add((ValidatingTaskPropertySpec) outputFileProperty);
         }
 
         public Multimap<TaskValidationContext.Severity, String> getMessages() {

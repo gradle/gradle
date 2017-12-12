@@ -284,7 +284,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         boolean hasDeclaredOutputs;
 
         @Override
-        public void visitOutputFileProperty(DeclaredTaskOutputFileProperty outputFileProperty) {
+        public void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
             hasDeclaredOutputs = true;
         }
 

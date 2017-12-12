@@ -16,5 +16,9 @@
 
 package org.gradle.api.internal.tasks;
 
+import javax.annotation.Nullable;
+
 public interface TaskInputPropertySpec extends TaskPropertySpec {
+    @Nullable
+    Object getValue();
 }
