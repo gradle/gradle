@@ -148,11 +148,13 @@ repositories {
         given:
         builder
             .taskPropertyAssignment(null, "test", "Test", "maxParallelForks", 23)
+            .propertyAssignment(null, "foo.bar", "bazar")
             .conventionPropertyAssignment("Convention configuration A", "application", "mainClassName", "com.example.Main")
             .conventionPropertyAssignment("Convention configuration B", "application", "applicationName", "My Application")
             .conventionPropertyAssignment("C convention", "c", "cp", 42)
             .conventionPropertyAssignment("B convention", "b", "bp", 0)
             .taskMethodInvocation("Use TestNG", "test", "Test", "useTestNG")
+            .propertyAssignment(null, "cathedral", 42)
             .taskPropertyAssignment("Disable tests", "test", "Test", "enabled", false)
 
         when:
@@ -160,6 +162,10 @@ repositories {
 
         then:
         assertOutputFileContains("""
+            foo.bar = "bazar"
+
+            cathedral = 42
+            
             application {
 
                 // Convention configuration A

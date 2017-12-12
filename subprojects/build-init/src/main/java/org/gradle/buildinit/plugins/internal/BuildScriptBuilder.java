@@ -122,6 +122,12 @@ public class BuildScriptBuilder {
         return dependency("testRuntime", comment, dependencies);
     }
 
+    public BuildScriptBuilder propertyAssignment(String comment, String propertyName, Object propertyValue) {
+        return configuration(
+            NULL_SELECTOR,
+            new PropertyAssignment(comment, propertyName, propertyValue));
+    }
+
     public BuildScriptBuilder taskMethodInvocation(String comment, String taskName, String taskType, String methodName) {
         return configuration(
             new TaskSelector(taskName, taskType),
@@ -224,6 +230,9 @@ public class BuildScriptBuilder {
 
     private interface ConfigSelector {
     }
+
+    private static final ConfigSelector NULL_SELECTOR = new ConfigSelector() {
+    };
 
     private static class TaskSelector implements ConfigSelector {
 
@@ -434,6 +443,12 @@ public class BuildScriptBuilder {
             }
 
             private int compareSelectors(ConfigSelector s1, ConfigSelector s2) {
+                if (NULL_SELECTOR == s1) {
+                    return -1; // root statements come first
+                }
+                if (NULL_SELECTOR == s2) {
+                    return 1; // root statements come first
+                }
                 if (s1 instanceof ConventionSelector) {
                     if (s2 instanceof ConventionSelector) {
                         return conventionNameOf(s1).compareTo(conventionNameOf(s2));
@@ -502,6 +517,9 @@ public class BuildScriptBuilder {
 
         @Nullable
         private String codeBlockSelectorFor(ConfigSelector selector) {
+            if (NULL_SELECTOR == selector) {
+                return null;
+            }
             if (selector instanceof TaskSelector) {
                 return taskSelector((TaskSelector) selector);
             }
