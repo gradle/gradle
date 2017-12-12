@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -195,18 +194,18 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         listVersionsForAllPatterns(ivyPatterns, metaDataArtifact, visitor);
 
         // List modules with missing metadata files
-        for (IvyArtifactName otherArtifact : getDependencyArtifactNames(dependency.getSelector().getModule(), dependency.getArtifacts())) {
-            listVersionsForAllPatterns(artifactPatterns, otherArtifact, visitor);
-        }
+        IvyArtifactName dependencyArtifact = getPrimaryDependencyArtifact(dependency);
+        listVersionsForAllPatterns(artifactPatterns, dependencyArtifact, visitor);
         result.listed(versions);
     }
 
-    private static List<IvyArtifactName> getDependencyArtifactNames(String moduleName, List<IvyArtifactName> artifacts) {
+    private static IvyArtifactName getPrimaryDependencyArtifact(ModuleDependencyMetadata dependency) {
+        String moduleName = dependency.getSelector().getModule();
+        List<IvyArtifactName> artifacts = dependency.getArtifacts();
         if (artifacts.isEmpty()) {
-            IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(moduleName, "jar", "jar");
-            return ImmutableList.of(defaultArtifact);
+            return new DefaultIvyArtifactName(moduleName, "jar", "jar");
         }
-        return artifacts;
+        return artifacts.get(0);
     }
 
     private void listVersionsForAllPatterns(List<ResourcePattern> patternList, IvyArtifactName ivyArtifactName, VersionPatternVisitor visitor) {
