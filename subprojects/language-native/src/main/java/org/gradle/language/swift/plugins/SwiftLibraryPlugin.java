@@ -71,7 +71,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         final DefaultSwiftLibrary library = (DefaultSwiftLibrary) project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", project.getLayout(), objectFactory, fileOperations, configurations);
         project.getComponents().add(library);
-        library.getBinaries().configureEach(new Action<SwiftBinary>() {
+        library.getBinaries().whenElementKnown(new Action<SwiftBinary>() {
             @Override
             public void execute(SwiftBinary binary) {
                 project.getComponents().add(binary);
@@ -82,8 +82,6 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         final Property<String> module = library.getModule();
         module.set(GUtil.toCamelCase(project.getName()));
 
-
-
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(Project project) {
@@ -91,15 +89,16 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                     throw new IllegalArgumentException("A linkage needs to be specified for the library.");
                 }
 
-                if (library.getLinkage().get().contains(Linkage.SHARED)) {
+                boolean sharedLibs = library.getLinkage().get().contains(Linkage.SHARED);
+                boolean staticLibs = library.getLinkage().get().contains(Linkage.STATIC);
+
+                if (sharedLibs) {
                     SwiftSharedLibrary debugSharedLibrary = library.createSharedLibrary("debug", true, false, true);
                     SwiftSharedLibrary releaseSharedLibrary = library.createSharedLibrary("release", true, true, false);
 
-                    tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getRuntimeFile());
-
-                    // Configure compile task
-                    final SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
-                    final SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
+                    // Add publications
+                    SwiftCompile compileDebug = debugSharedLibrary.getCompileTask().get();
+                    SwiftCompile compileRelease = releaseSharedLibrary.getCompileTask().get();
 
                     // TODO - add lifecycle tasks
                     // TODO - extract some common code to setup the configurations
@@ -161,17 +160,15 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                     releaseRuntimeElements.getOutgoing().artifact(releaseSharedLibrary.getRuntimeFile());
                 }
 
-                if (library.getLinkage().get().contains(Linkage.STATIC)){
-                    String name = library.getName();
-
-                    SwiftStaticLibrary debugStaticLibrary = library.createStaticLibrary("debugStatic", true, false, true);
+                SwiftStaticLibrary debugStaticLibrary = null;
+                if (staticLibs){
+                    debugStaticLibrary = library.createStaticLibrary("debugStatic", true, false, true);
                     SwiftStaticLibrary releaseStaticLibrary = library.createStaticLibrary("releaseStatic", true, true, false);
 
-                    if (!library.getLinkage().get().contains(Linkage.SHARED)) {
-                        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugStaticLibrary.getLinkFile());
-
-                        final SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugStaticSwift");
-                        final SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseStaticSwift");
+                    if (!sharedLibs) {
+                        // Add publications
+                        SwiftCompile compileDebug = debugStaticLibrary.getCompileTask().get();
+                        SwiftCompile compileRelease = releaseStaticLibrary.getCompileTask().get();
 
                         Configuration implementation = library.getImplementationDependencies();
                         Configuration api = library.getApiDependencies();
@@ -222,6 +219,15 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                         releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, releaseStaticLibrary.isDebuggable());
                         releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, releaseStaticLibrary.isOptimized());
                     }
+                }
+
+                library.getBinaries().realizeNow();
+
+                if (sharedLibs) {
+                    tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getRuntimeFile());
+                } else {
+                    // Should use the development binary as well
+                    tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugStaticLibrary.getLinkFile());
                 }
             }
         });

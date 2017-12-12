@@ -72,7 +72,7 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
         // Add the component extension
         final DefaultSwiftApplication application = (DefaultSwiftApplication) project.getExtensions().create(SwiftApplication.class, "application", DefaultSwiftApplication.class, "main", project.getLayout(), project.getObjects(), fileOperations, configurations);
         project.getComponents().add(application);
-        application.getBinaries().configureEach(new Action<SwiftBinary>() {
+        application.getBinaries().whenElementKnown(new Action<SwiftBinary>() {
             @Override
             public void execute(SwiftBinary binary) {
                 project.getComponents().add(binary);
@@ -91,12 +91,9 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                 SwiftExecutable debugExecutable = application.createExecutable("debug", true, false, true);
                 SwiftExecutable releaseExecutable = application.createExecutable("release", true, true, false);
 
-                // Wire in this install task
-                tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(application.getDevelopmentBinary().getInstallDirectory());
-
-                // Configure compile task
-                final SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
-                final SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
+                // Add outgoing APIs
+                SwiftCompile compileDebug = debugExecutable.getCompileTask().get();
+                SwiftCompile compileRelease = releaseExecutable.getCompileTask().get();
 
                 Configuration implementation = application.getImplementationDependencies();
 
@@ -115,6 +112,12 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                 releaseApiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, releaseExecutable.isDebuggable());
                 releaseApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, releaseExecutable.isOptimized());
                 releaseApiElements.getOutgoing().artifact(compileRelease.getModuleFile());
+
+                // Configure the binaries
+                application.getBinaries().realizeNow();
+
+                // Assemble builds the debug installation
+                tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(application.getDevelopmentBinary().getInstallDirectory());
             }
         });
     }

@@ -47,6 +47,8 @@ class DefaultSwiftLibraryTest extends Specification {
         binary.debuggable
         !binary.optimized
         binary.testable
+
+        library.binaries.realizeNow()
         library.binaries.get() == [binary] as Set
     }
 
@@ -57,10 +59,15 @@ class DefaultSwiftLibraryTest extends Specification {
         binary.debuggable
         !binary.optimized
         binary.testable
+
+        library.binaries.realizeNow()
         library.binaries.get() == [binary] as Set
     }
 
     def "throws exception when development binary is not available"() {
+        given:
+        library.binaries.realizeNow()
+
         when:
         library.developmentBinary
 
@@ -72,6 +79,7 @@ class DefaultSwiftLibraryTest extends Specification {
     def "returns shared, debuggable and not optimized development binary when available"() {
         expect:
         def binary = library.createSharedLibrary("debug", true, false, true)
+        library.binaries.realizeNow()
         library.developmentBinary == binary
     }
 

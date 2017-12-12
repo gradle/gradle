@@ -32,10 +32,15 @@ class DefaultSwiftApplicationTest extends Specification {
         binary.debuggable
         !binary.optimized
         binary.testable
+
+        app.binaries.realizeNow()
         app.binaries.get() == [binary] as Set
     }
 
     def "throws exception when development binary is not available"() {
+        given:
+        app.binaries.realizeNow()
+
         when:
         app.developmentBinary
 
@@ -47,6 +52,7 @@ class DefaultSwiftApplicationTest extends Specification {
     def "returns debuggable and not optimized development binary when available"() {
         expect:
         def binary = app.createExecutable("debug", true, false, true)
+        app.binaries.realizeNow()
         app.developmentBinary == binary
     }
 }
