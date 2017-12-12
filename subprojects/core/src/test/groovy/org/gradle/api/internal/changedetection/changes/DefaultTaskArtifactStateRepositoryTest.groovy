@@ -34,7 +34,11 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.execution.TaskProperties
+import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
+import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
@@ -53,9 +57,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.TestUtil
-import spock.lang.Ignore
 
-@Ignore("FIXME wolfs - fix or delete this test")
 class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec {
     def gradle
     final outputFile = temporaryFolder.file("output-file")
@@ -73,7 +75,6 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     final outputFiles = [file: [outputFile], missingFile: [missingOutputFile]]
     final outputDirs = [emptyDir: [emptyOutputDir], dir: [outputDir], missingDir: [missingOutputDir]]
     final createFiles = [outputFile, outputDirFile, outputDirFile2] as Set
-    final taskProperties = Mock(TaskProperties)
     def buildScopeId = new BuildInvocationScopeId(UniqueId.generate())
 
     TaskInternal task
@@ -364,7 +365,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
     def "artifacts are not up to date when state has not been updated"() {
         when:
-        repository.getStateFor(task, taskProperties)
+        getStateFor(task)
 
         then:
         outOfDate task
@@ -379,7 +380,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         TaskInternal task2 = builder.withPath("other").withOutputFiles(outputDir).task()
 
         when:
-        TaskArtifactState state = repository.getStateFor(task1,)
+        TaskArtifactState state = getStateFor(task1)
         state.isUpToDate([])
         fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile.createFile()
@@ -394,7 +395,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
         and:
         // Another task creates dir
-        state = repository.getStateFor(task2,)
+        state = getStateFor(task2)
 
         then:
         !state.isUpToDate([])
@@ -414,8 +415,8 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         execute(task)
 
         expect:
-        repository.getStateFor(task, taskProperties).isUpToDate([])
-        repository.getStateFor(task, taskProperties).isUpToDate([])
+        getStateFor(task).isUpToDate([])
+        getStateFor(task).isUpToDate([])
     }
 
     def "artifacts are up to date when output file which did not exist now exists"() {
@@ -442,7 +443,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
     def "has empty task history when task has never been executed"() {
         when:
-        TaskArtifactState state = repository.getStateFor(task, taskProperties)
+        TaskArtifactState state = getStateFor(task)
 
         then:
         state.getExecutionHistory().getOutputFiles().isEmpty()
@@ -453,7 +454,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         execute(task)
 
         when:
-        TaskArtifactState state = repository.getStateFor(task, taskProperties)
+        TaskArtifactState state = getStateFor(task)
 
         then:
         state.getExecutionHistory().getOutputFiles() == [outputFile, outputDir, outputDirFile, outputDirFile2, emptyOutputDir, missingOutputDir] as Set
@@ -499,7 +500,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         otherFile.delete()
 
         then:
-        TaskArtifactState state = repository.getStateFor(task, taskProperties)
+        TaskArtifactState state = getStateFor(task)
         state.isUpToDate([])
         !state.getExecutionHistory().getOutputFiles().contains(otherFile)
     }
@@ -507,7 +508,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     def "considers existing file in output directory which is updated by the task as produced by task"() {
         when:
         TestFile otherFile = outputDir.file("other").createFile()
-        TaskArtifactState state = repository.getStateFor(task, taskProperties)
+        TaskArtifactState state = getStateFor(task)
 
         then:
         !state.isUpToDate([])
@@ -520,7 +521,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         otherFile.delete()
 
         then:
-        def stateAfter = repository.getStateFor(task, taskProperties)
+        def stateAfter = getStateFor(task)
         !stateAfter.upToDate
         stateAfter.executionHistory.outputFiles.contains(otherFile)
     }
@@ -530,7 +531,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         execute(task)
 
         outputDirFile.delete()
-        TaskArtifactState state = repository.getStateFor(task, taskProperties)
+        TaskArtifactState state = getStateFor(task)
         state.isUpToDate([])
         state.snapshotAfterTaskExecution(null)
 
@@ -538,7 +539,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outputDirFile.write("ignore me")
 
         then:
-        def stateAfter = repository.getStateFor(task, taskProperties)
+        def stateAfter = getStateFor(task)
         stateAfter.isUpToDate([])
         !stateAfter.executionHistory.outputFiles.contains(outputDirFile)
     }
@@ -587,19 +588,19 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         execute(task1, task2)
 
         then:
-        def state1 = repository.getStateFor(task1,)
+        def state1 = getStateFor(task1)
         state1.isUpToDate([])
         state1.executionHistory.outputFiles == [outputDir, outputDirFile] as Set
 
         and:
-        def state2 = repository.getStateFor(task2,)
+        def state2 = getStateFor(task2)
         state2.isUpToDate([])
         state2.executionHistory.outputFiles == [outputDirFile2] as Set
     }
 
     def "has no origin build ID when not executed"() {
         expect:
-        repository.getStateFor(task, taskProperties).originBuildInvocationId == null
+        getStateFor(task).originBuildInvocationId == null
     }
 
     def "has origin build ID after executed"() {
@@ -607,17 +608,28 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         execute(task)
 
         then:
-        repository.getStateFor(task, taskProperties).originBuildInvocationId == buildScopeId.id
+        getStateFor(task).originBuildInvocationId == buildScopeId.id
     }
 
     private void outOfDate(TaskInternal task) {
-        final state = repository.getStateFor(task, taskProperties)
+        final state = getStateFor(task)
         assert !state.isUpToDate([])
         assert !state.inputChanges.incremental
     }
 
+    private TaskArtifactState getStateFor(task) {
+        def state = null
+        new ResolveTaskArtifactStateTaskExecuter(repository, new TaskExecuter() {
+            @Override
+            void execute(TaskInternal task1, TaskStateInternal state1, TaskExecutionContext context) {
+                state = context.getTaskArtifactState()
+            }
+        }).execute(task, null, new DefaultTaskExecutionContext())
+        return state
+    }
+
     def inputsOutOfDate(TaskInternal task) {
-        final state = repository.getStateFor(task, taskProperties)
+        final state = getStateFor(task)
         assert !state.isUpToDate([])
 
         final inputChanges = state.inputChanges
@@ -649,7 +661,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     }
 
     private void upToDate(TaskInternal task) {
-        final state = repository.getStateFor(task, taskProperties)
+        final state = getStateFor(task)
         assert state.isUpToDate([])
     }
 
@@ -660,7 +672,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
 
     void execute(TaskInternal... tasks) {
         for (TaskInternal task : tasks) {
-            TaskArtifactState state = repository.getStateFor(task, taskProperties)
+            TaskArtifactState state = getStateFor(task)
             state.isUpToDate([])
             // reset state
             fileSystemMirror.beforeTaskOutputsGenerated()
