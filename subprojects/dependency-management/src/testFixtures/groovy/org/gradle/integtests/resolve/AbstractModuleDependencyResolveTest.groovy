@@ -110,6 +110,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
 
     def setup() {
         resolve = new ResolveTestFixture(buildFile, testConfiguration)
+        resolve.expectDefaultConfiguration(GradleMetadataResolveRunner.isGradleMetadataEnabled() ? "runtime" : "default")
         settingsFile << "rootProject.name = '$rootProjectName'"
         if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
             ExperimentalFeaturesFixture.enable(settingsFile)

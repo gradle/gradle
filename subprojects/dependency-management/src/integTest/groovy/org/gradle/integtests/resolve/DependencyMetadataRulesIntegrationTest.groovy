@@ -60,6 +60,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
             }
         """
     }
+
     @Unroll
     def "#thing can be added using #notation notation"() {
         when:
@@ -416,6 +417,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         """
         repositoryInteractions {
             'org.test:moduleA:1.0' {
+                variant("default", ['some':'other'])
                 expectGetMetadata()
                 expectGetArtifact()
             }

@@ -60,7 +60,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
 
@@ -71,7 +71,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
 
@@ -86,7 +86,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
     }
@@ -688,7 +688,7 @@ Required by:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
     }
@@ -729,7 +729,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
     }
