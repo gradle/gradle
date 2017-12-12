@@ -16,17 +16,18 @@
 
 package org.gradle.api.plugins.antlr
 
-import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 
-class AntlrRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
+class Antlr2RelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
     @Override
     protected String getTaskName() {
         return ":generateGrammarSource"
     }
 
     @Override
-    protected void setupProjectInOriginalLocation() {
-        file("src/main/antlr/org/acme/TestGrammar.g") << """ class TestGrammar extends Parser;
+    protected void setupProjectIn(TestFile projectDir) {
+        projectDir.file("src/main/antlr/org/acme/TestGrammar.g") << """ class TestGrammar extends Parser;
         options {
             buildAST = true;
         }
@@ -40,34 +41,20 @@ class AntlrRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTe
 
         atom:   INT
         ;"""
-        buildFile << buildFileWithSourceDir("src/main/antlr")
-    }
-
-    private static String buildFileWithSourceDir(String sourceDir) {
-        """
+        projectDir.file("build.gradle") << """
             apply plugin: "antlr"
 
             ${jcenterRepository()}
-
-            generateGrammarSource {
-                source "$sourceDir"
-            }
         """
     }
 
     @Override
-    protected void moveFilesAround() {
-        file("src").renameTo(file("other-src"))
-        buildFile.text = buildFileWithSourceDir("other-src/main/antlr")
-    }
-
-    @Override
-    protected extractResults() {
+    protected extractResultsFrom(TestFile projectDir) {
         [
             "build/generated-src/antlr/main/TestGrammar.java",
             "build/generated-src/antlr/main/TestGrammar.smap",
             "build/generated-src/antlr/main/TestGrammarTokenTypes.java",
             "build/generated-src/antlr/main/TestGrammarTokenTypes.txt",
-        ].collect { file(it).text }.join("\n")
+        ].collect { projectDir.file(it).text }.join("\n")
     }
 }
