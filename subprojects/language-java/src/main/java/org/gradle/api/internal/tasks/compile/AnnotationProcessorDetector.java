@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Set;
 
 public class AnnotationProcessorDetector {
+    public static final String PROCESSOR_PATH_DEPRECATION_MESSAGE = "Specifying the processor path in the CompilerOptions compilerArgs property";
+
     private final FileCollectionFactory fileCollectionFactory;
     private final FileContentCache<Boolean> cache;
 
@@ -66,6 +68,9 @@ public class AnnotationProcessorDetector {
             if (pos == compileOptions.getCompilerArgs().size() - 1) {
                 throw new InvalidUserDataException("No path provided for compiler argument -processorpath in requested compiler args: " + Joiner.on(" ").join(compileOptions.getCompilerArgs()));
             }
+            DeprecationLogger.nagUserOfDeprecated(
+                PROCESSOR_PATH_DEPRECATION_MESSAGE,
+                "Instead, use the CompilerOptions annotationProcessorPath property directly");
             List<File> files = new ArrayList<File>();
             for (String path : Splitter.on(File.pathSeparatorChar).splitToList(compileOptions.getCompilerArgs().get(pos + 1))) {
                 files.add(new File(path));
