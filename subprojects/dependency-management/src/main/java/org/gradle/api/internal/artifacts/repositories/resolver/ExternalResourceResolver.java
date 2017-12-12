@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadata
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.specs.Spec;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.UncheckedException;
@@ -166,24 +167,26 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private void doListModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getSelector().getGroup(), dependency.getSelector().getModule());
+
         // TODO:DAZ Provide an abstraction for accessing resources within the same module (maven-metadata, directory listing, etc)
         // That way we can avoid passing `ivyPatterns` and `artifactPatterns` around everywhere
-
-        ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getSelector().getGroup(), dependency.getSelector().getModule());
+        List<ResourcePattern> completeIvyPatterns = filterComplete(this.ivyPatterns, module);
+        List<ResourcePattern> completeArtifactPatterns = filterComplete(this.artifactPatterns, module);
 
         // First see if one of the metadata sources can provide the version list
         for (MetadataSource<?> metadataSource : metadataSources.sources()) {
-            metadataSource.listModuleVersions(module, ivyPatterns, result);
+            metadataSource.listModuleVersions(module, completeIvyPatterns, result);
             if (result.hasResult() && result.isAuthoritative()) {
                 return;
             }
         }
 
         // Otherwise, use resource listing to get the versions
-        listVersionsByResourceListing(dependency, result, module);
+        listVersionsByResourceListing(dependency, module, completeIvyPatterns, completeArtifactPatterns, result);
     }
 
-    private void listVersionsByResourceListing(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result, ModuleIdentifier module) {
+    private void listVersionsByResourceListing(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, BuildableModuleVersionListingResolveResult result) {
         Set<String> versions = new LinkedHashSet<String>();
         VersionPatternVisitor visitor = versionLister.newVisitor(module, versions, result);
 
@@ -210,6 +213,15 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         for (ResourcePattern resourcePattern : patternList) {
             visitor.visit(resourcePattern, ivyArtifactName);
         }
+    }
+
+    private List<ResourcePattern> filterComplete(List<ResourcePattern> ivyPatterns, final ModuleIdentifier module) {
+        return CollectionUtils.filter(ivyPatterns, new Spec<ResourcePattern>() {
+            @Override
+            public boolean isSatisfiedBy(ResourcePattern element) {
+                return element.isComplete(module);
+            }
+        });
     }
 
     protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
