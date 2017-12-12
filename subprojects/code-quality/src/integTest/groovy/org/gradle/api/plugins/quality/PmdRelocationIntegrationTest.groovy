@@ -16,47 +16,39 @@
 
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 
-class PmdRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
+class PmdRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
+
     @Override
     protected String getTaskName() {
         return ":pmd"
     }
 
     @Override
-    protected void setupProjectInOriginalLocation() {
-        file("src/main/java/org/gradle/Class1.java") <<
+    protected void setupProjectIn(TestFile projectDir) {
+        projectDir.file("src/main/java/org/gradle/Class1.java") <<
             "package org.gradle; class Class1 { public boolean is() { return true; } }"
-        file("src/main/java/org/gradle/Class1Test.java") <<
+        projectDir.file("src/main/java/org/gradle/Class1Test.java") <<
             "package org.gradle; class Class1Test { public boolean is() { return true; } }"
 
-        buildFile << buildFileWithSourceDir("src/main/java")
-    }
-
-    private static String buildFileWithSourceDir(String sourceDir) {
-        """
+        projectDir.file("build.gradle") << """
             apply plugin: "java"
             apply plugin: "pmd"
 
             ${mavenCentralRepository()}
 
             task pmd(type: Pmd) {
-                source "$sourceDir"
+                source "src/main/java"
                 ignoreFailures = true
             }
         """
     }
 
     @Override
-    protected void moveFilesAround() {
-        file("src").renameTo(file("other-src"))
-        buildFile.text = buildFileWithSourceDir("other-src/main/java")
-    }
-
-    @Override
-    protected extractResults() {
-        file("build/reports/pmd/pmd.xml").text
+    protected extractResultsFrom(TestFile projectDir) {
+        projectDir.file("build/reports/pmd/pmd.xml").text
             .replaceAll(/timestamp=".*?"/, 'timestamp="[NUMBER]"')
     }
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-class CodeNarcRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
-    private TestFile configFile
+class CodeNarcRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override
     protected String getTaskName() {
@@ -30,15 +29,15 @@ class CodeNarcRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
     }
 
     @Override
-    protected void setupProjectInOriginalLocation() {
-        configFile = file("config/codenarc/codenarc.xml") << """
+    protected void setupProjectIn(TestFile projectDir) {
+        projectDir.file("config/codenarc/codenarc.xml") << """
             <ruleset xmlns="http://codenarc.org/ruleset/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                      xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
                      xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
                 <ruleset-ref path='rulesets/naming.xml'/>
             </ruleset>
         """
-        file("src/main/groovy/org/gradle/Class1.groovy") << """
+        projectDir.file("src/main/groovy/org/gradle/Class1.groovy") << """
             package org.gradle
 
             class Class1 {
@@ -47,17 +46,13 @@ class CodeNarcRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
             }
         """
 
-        buildFile << buildFileWithSourceDir("src/main/groovy")
-    }
-
-    private static String buildFileWithSourceDir(String sourceDir) {
-        """
+        projectDir.file("build.gradle") << """
             apply plugin: "codenarc"
 
             ${mavenCentralRepository()}
 
             task codenarc(type: CodeNarc) {
-                source "$sourceDir"
+                source "src/main/groovy"
                 ignoreFailures = true
                 reports.html.enabled = false
                 reports.text.enabled = true
@@ -66,21 +61,10 @@ class CodeNarcRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
     }
 
     @Override
-    protected void moveFilesAround() {
-        file("src").renameTo(file("other-src"))
-        buildFile.text = buildFileWithSourceDir("other-src/main/groovy")
-        def movedConfigPath = "config/codenarc-config.xml"
-        configFile.renameTo(file(movedConfigPath))
-        buildFile << """
-            codenarc.configFile = file("$movedConfigPath")
-        """
-    }
-
-    @Override
-    protected extractResults() {
-        return normaliseLineSeparators(file("build/reports/codenarc/codenarc.txt").text)
+    protected extractResultsFrom(TestFile projectDir) {
+        return normaliseLineSeparators(projectDir.file("build/reports/codenarc/codenarc.txt").text)
             .split("\n")
-                .findAll { !it.startsWith("CodeNarc Report -") }
-                .join("\n")
+            .findAll { !it.startsWith("CodeNarc Report -") }
+            .join("\n")
     }
 }
