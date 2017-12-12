@@ -45,11 +45,15 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
         try {
             Settings settings = settingsProvider.buildSettings();
             Set<MavenProject> mavenProjects = new MavenProjectsCreator().create(settings, pom);
-            new Maven2Gradle(dsl, mavenProjects, fileResolver.resolve(".")).convert();
+            new Maven2Gradle(mavenProjects, fileResolver.resolve(".")).convert();
         } catch (Exception exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
         }
+    }
 
+    @Override
+    public boolean supports(BuildInitDsl dsl) {
+        return BuildInitDsl.GROOVY == dsl;
     }
 
     @Override

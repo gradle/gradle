@@ -18,11 +18,9 @@ package org.gradle.buildinit.plugins.internal.maven
 
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider
 import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations
-import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class MavenProjectsCreatorSpec extends Specification {
 
@@ -116,11 +114,10 @@ class MavenProjectsCreatorSpec extends Specification {
         ex.message == "Unable to create Maven project model. The POM file $pom does not exist."
     }
 
-    @Unroll
-    def "can translate dependency assigned to Maven provided scope into compileOnly with #scriptDsl build scripts"() {
+    def "can translate dependency assigned to Maven provided scope into compileOnly"() {
         given:
-        def pom = temp.file("pom.xml")
-        pom.text = """<project>
+            def pom = temp.file("pom.xml")
+            pom.text = """<project>
   <modelVersion>4.0.0</modelVersion>
   <groupId>util</groupId>
   <artifactId>util</artifactId>
@@ -135,19 +132,13 @@ class MavenProjectsCreatorSpec extends Specification {
     </dependency>
   </dependencies>
 </project>"""
-
-        and:
         def mavenProjects = creator.create(settings.buildSettings(), pom)
-        def converter = new Maven2Gradle(scriptDsl, mavenProjects, temp.testDirectory)
-        def dslFixture = ScriptDslFixture.of(scriptDsl, temp.testDirectory)
+        def converter = new Maven2Gradle(mavenProjects, temp.testDirectory)
 
         when:
-        converter.convert()
+        def gradleProject = converter.convert()
 
         then:
-        dslFixture.buildFile.assertContents(dslFixture.containsConfigurationDependency('compileOnly', 'org.gradle', 'build-init', '1.0.0'))
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+        gradleProject.contains("compileOnly group: 'org.gradle', name: 'build-init', version:'1.0.0'")
     }
 }

@@ -48,6 +48,11 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
     }
 
     @Override
+    public boolean supports(BuildInitDsl dsl) {
+        return true;
+    }
+
+    @Override
     public boolean supports(BuildInitTestFramework testFramework) {
         return false;
     }

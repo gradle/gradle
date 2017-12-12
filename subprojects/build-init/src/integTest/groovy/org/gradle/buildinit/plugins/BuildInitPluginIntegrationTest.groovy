@@ -160,19 +160,15 @@ include("child")
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    @Unroll
-    def "pom conversion to #scriptDsl build scripts is triggered when pom and no gradle file found"() {
+    def "pom conversion to groovy build scripts is triggered when pom and no gradle file found"() {
         given:
         pom()
 
         when:
-        run('init', '--dsl', scriptDsl.id)
+        run('init')
 
         then:
-        pomValuesUsed(ScriptDslFixture.of(scriptDsl, testDirectory))
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+        pomValuesUsed(ScriptDslFixture.of(GROOVY, testDirectory))
     }
 
     @Unroll
