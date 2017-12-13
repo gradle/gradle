@@ -19,7 +19,6 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
-import org.gradle.util.GFileUtils
 import org.gradle.vcs.fixtures.GitRepository
 import org.gradle.vcs.internal.SourceDependencies
 import org.junit.Rule
@@ -42,7 +41,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
             """
             fixture.greeter.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         settingsFile << """
@@ -91,7 +90,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
             """
             fixture.greeter.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         settingsFile << """
@@ -139,7 +138,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
             """
             fixture.greeter.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         singleProjectBuild("app") {
@@ -197,7 +196,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
             """
             fixture.greeter.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         singleProjectBuild("app") {

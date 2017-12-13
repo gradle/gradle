@@ -45,18 +45,18 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec implements Sourc
         repo.workTree.file("settings.gradle") << """
             rootProject.name = "dep"
         """
-        commits["initial"] = repo.commit('initial', repo.workTree)
+        commits["initial"] = repo.commit('initial')
 
         def versionFile = repo.workTree.file("version")
         versions.each { version ->
             versionFile.text = version
-            def commit = repo.commit("version is $version", repo.workTree)
+            def commit = repo.commit("version is $version")
             repo.createLightWeightTag(version)
             commits[version] = commit
         }
 
         versionFile.text = "4.0-SNAPSHOT"
-        commits["latest.integration"] = repo.commit("version is snapshot", repo.workTree)
+        commits["latest.integration"] = repo.commit("version is snapshot")
 
         buildFile << """
             apply plugin: 'base'
