@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal;
 
-import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.TaskInputs;
 
@@ -27,7 +25,5 @@ public interface TaskInputsInternal extends TaskInputs {
      * Calls the corresponding visitor methods for all inputs added via the runtime API.
      */
     void visitRegisteredProperties(PropertyVisitor visitor);
-
-    ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
 
 }

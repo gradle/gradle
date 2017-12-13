@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
@@ -83,13 +82,6 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     @Override
     public FileCollection getFiles() {
         return allInputFiles;
-    }
-
-    @Override
-    public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
-        GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString());
-        taskPropertyWalker.visitProperties(task, visitor);
-        return visitor.getFileProperties();
     }
 
     @Override
