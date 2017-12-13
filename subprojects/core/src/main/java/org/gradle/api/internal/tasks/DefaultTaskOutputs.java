@@ -38,6 +38,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -184,11 +185,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public boolean getHasOutput() {
-        return hasDeclaredOutputs() || !upToDateSpec.isEmpty();
-    }
-
-    @Override
-    public boolean hasDeclaredOutputs() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskOutputs.getHasOutput()", "Declare individual task properties to access output files.");
+        if (!upToDateSpec.isEmpty()) {
+            return true;
+        }
         HasDeclaredOutputsVisitor visitor = new HasDeclaredOutputsVisitor();
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         return visitor.hasDeclaredOutputs();

@@ -107,7 +107,10 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      * still have an empty set of output files.
      *
      * @return true if this task has declared any outputs, otherwise false.
+     *
+     * @deprecated Declare individual task properties to access output files.
      */
+    @Deprecated
     boolean getHasOutput();
 
     /**
