@@ -235,7 +235,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
         return destroyablesVisitor.getFiles();
     }
 
-    private synchronized void resolveTaskProperties() {
+    private void resolveTaskProperties() {
         if (!taskPropertiesResolved) {
             taskPropertiesResolved = true;
             outputFilesVisitor = new GetOutputFilesVisitor();
