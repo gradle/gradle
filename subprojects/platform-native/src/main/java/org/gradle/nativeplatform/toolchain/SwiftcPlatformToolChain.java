@@ -36,6 +36,13 @@ public interface SwiftcPlatformToolChain extends NativePlatformToolChain {
     CommandLineToolConfiguration getLinker();
 
     /**
+     * Returns the settings to use for the archiver.
+     *
+     * @since 4.5
+     */
+    CommandLineToolConfiguration getStaticLibArchiver();
+
+    /**
      * Returns the tool for extracting symbols.
      *
      * @since 4.5
@@ -44,7 +51,7 @@ public interface SwiftcPlatformToolChain extends NativePlatformToolChain {
 
     /**
      * Returns the tool for stripping symbols.
-     * 
+     *
      * @since 4.5
      */
     CommandLineToolConfiguration getStripper();

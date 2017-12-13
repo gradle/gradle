@@ -107,7 +107,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
             apply plugin: 'swift-library'
             
             task assembleRuntimeDebug {
-                dependsOn library.debugSharedLibrary.runtimeFile
+                dependsOn library.binaries.getByName('mainDebug').map { it.runtimeFile }
             }
          """
 
@@ -128,7 +128,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
             apply plugin: 'swift-library'
             
             task compileDebug {
-                dependsOn library.debugSharedLibrary.objects
+                dependsOn library.binaries.getByName('mainDebug').map { it.objects }
             }
          """
 
@@ -216,9 +216,11 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         and:
         buildFile << """
             apply plugin: 'swift-library'
-            compileDebugSwift.objectFileDir = layout.buildDirectory.dir("object-files")
-            compileDebugSwift.moduleFile = layout.buildDirectory.file("some-lib.swiftmodule")
-            linkDebug.binaryFile = layout.buildDirectory.file("some-lib/main.bin")
+            library.binaries.getByName('mainDebug').configure {
+                compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
+                compileTask.get().moduleFile = layout.buildDirectory.file("some-lib.swiftmodule")
+                linkTask.get().binaryFile = layout.buildDirectory.file("some-lib/main.bin")
+            }
          """
 
         expect:

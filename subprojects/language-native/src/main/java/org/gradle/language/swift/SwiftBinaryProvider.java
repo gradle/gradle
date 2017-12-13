@@ -16,20 +16,20 @@
 
 package org.gradle.language.swift;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 
 /**
- * Configuration for a Swift application, defining the source files that make up the application plus other settings.
+ * Represents a binary that is created and configured as required.
  *
- * <p>An instance of this type is added as a project extension by the Swift application plugin.</p>
- *
- * @since 4.2
+ * @since 4.5
+ * @param <T> The type of binary.
  */
 @Incubating
-public interface SwiftApplication extends SwiftComponent {
+public interface SwiftBinaryProvider<T> extends Provider<T> {
     /**
-     * {@inheritDoc}
+     * Registers an action to execute to configure the binary. The action is executed when the element is required.
      */
-    @Override
-    SwiftExecutable getDevelopmentBinary();
+    void configure(Action<? super T> action);
 }

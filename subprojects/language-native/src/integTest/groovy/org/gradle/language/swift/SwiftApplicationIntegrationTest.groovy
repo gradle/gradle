@@ -162,7 +162,9 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         and:
         buildFile << """
             apply plugin: 'swift-application'
-            compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
+            application.binaries.get { it.optimized }.configure {
+                compileTask.get().compilerArgs.add('-DWITH_FEATURE')
+            }
          """
 
         expect:
@@ -195,7 +197,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'swift-application'
 
             task buildDebug {
-                dependsOn application.debugExecutable.executableFile
+                dependsOn application.binaries.get { it.debuggable && !it.optimized }.map { it.executableFile }
             }
          """
 
@@ -216,7 +218,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'swift-application'
 
             task compileDebug {
-                dependsOn application.debugExecutable.objects
+                dependsOn application.binaries.get { it.debuggable && !it.optimized }.map { it.objects } 
             }
          """
 
@@ -238,7 +240,7 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'swift-application'
 
             task install {
-                dependsOn application.debugExecutable.installDirectory
+                dependsOn application.binaries.get { it.debuggable && !it.optimized }.map { it.installDirectory }
             }
          """
 
@@ -383,10 +385,13 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         and:
         buildFile << """
             apply plugin: 'swift-application'
-            compileDebugSwift.objectFileDir = layout.buildDirectory.dir("object-files")
-            compileDebugSwift.moduleFile = layout.buildDirectory.file("some-app.swiftmodule")
-            linkDebug.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
-            installDebug.installDirectory = layout.buildDirectory.dir("some-app")
+
+            application.binaries.configureEach {
+                compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
+                compileTask.get().moduleFile = layout.buildDirectory.file("some-app.swiftmodule")
+                linkTask.get().binaryFile = layout.buildDirectory.file("exe/some-app.exe")
+                installTask.get().installDirectory = layout.buildDirectory.dir("some-app")
+            }
          """
 
         expect:
@@ -424,8 +429,73 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         executable("app/build/exe/main/debug/App").assertExists()
         sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
-        installation("app/build/install/main/debug").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/main/debug/lib/Greeter").assertExists()
+        def installation = installation("app/build/install/main/debug")
+        installation.exec().out == app.expectedOutput
+        installation.assertIncludesLibraries("Greeter")
+    }
+
+    def "can compile and link against a static library"() {
+        settingsFile << "include 'app', 'greeter'"
+        def app = new SwiftAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':greeter')
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+
+                library.linkage = [Linkage.STATIC]
+            }
+"""
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":greeter:compileDebugStaticSwift", ":greeter:createDebugStatic", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+
+        executable("app/build/exe/main/debug/App").assertExists()
+        staticLibrary("greeter/build/lib/main/debug/static/Greeter").assertExists()
+        def installation = installation("app/build/install/main/debug")
+        installation.exec().out == app.expectedOutput
+        installation.assertIncludesLibraries()
+    }
+
+    def "can compile and link against a library with both linkage defined"() {
+        settingsFile << "include 'app', 'greeter'"
+        def app = new SwiftAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':greeter')
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+
+                library.linkage = [Linkage.SHARED, Linkage.STATIC]
+            }
+"""
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+
+        executable("app/build/exe/main/debug/App").assertExists()
+        sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
+        def installation = installation("app/build/install/main/debug")
+        installation.exec().out == app.expectedOutput
+        installation.assertIncludesLibraries("Greeter")
     }
 
     def "can compile and link against library with API dependencies"() {
@@ -462,9 +532,9 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
         sharedLibrary("log/build/lib/main/debug/Log").assertExists()
         executable("app/build/exe/main/debug/App").assertExists()
-        installation("app/build/install/main/debug").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/main/debug/lib/Hello").assertExists()
-        sharedLibrary("app/build/install/main/debug/lib/Log").assertExists()
+        def installationDebug = installation("app/build/install/main/debug")
+        installationDebug.exec().out == app.expectedOutput
+        installationDebug.assertIncludesLibraries("Hello", "Log")
 
         succeeds ":app:assembleRelease"
 
@@ -478,8 +548,170 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
 
-    def "can compile and link against a library with debug and release variants"() {
+    def "can compile and link against static library with API dependencies"() {
         settingsFile << "include 'app', 'hello', 'log'"
+        def app = new SwiftAppWithLibraries()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                library.linkage = [Linkage.STATIC]
+                dependencies {
+                    api project(':log')
+                }
+            }
+            project(':log') {
+                apply plugin: 'swift-library'
+                library.linkage = [Linkage.STATIC]
+            }
+"""
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
+        app.application.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+
+        result.assertTasksExecuted(":hello:compileDebugStaticSwift", ":hello:createDebugStatic",
+            ":log:compileDebugStaticSwift", ":log:createDebugStatic",
+            ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+
+        staticLibrary("hello/build/lib/main/debug/static/Hello").assertExists()
+        staticLibrary("log/build/lib/main/debug/static/Log").assertExists()
+        executable("app/build/exe/main/debug/App").assertExists()
+        def installationDebug = installation("app/build/install/main/debug")
+        installationDebug.exec().out == app.expectedOutput
+        installationDebug.assertIncludesLibraries()
+
+        succeeds ":app:assembleRelease"
+
+        result.assertTasksExecuted(":hello:compileReleaseStaticSwift", ":hello:createReleaseStatic",
+            ":log:compileReleaseStaticSwift", ":log:createReleaseStatic",
+            ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
+
+        staticLibrary("hello/build/lib/main/release/static/Hello").assertExists()
+        staticLibrary("log/build/lib/main/release/static/Log").assertExists()
+        executable("app/build/exe/main/release/App").assertExists()
+        installation("app/build/install/main/release").exec().out == app.expectedOutput
+    }
+
+    def "can compile and link against static library with API dependencies to shared library"() {
+        settingsFile << "include 'app', 'hello', 'log'"
+        def app = new SwiftAppWithLibraries()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                library.linkage = [Linkage.STATIC]
+                dependencies {
+                    api project(':log')
+                }
+            }
+            project(':log') {
+                apply plugin: 'swift-library'
+                library.linkage = [Linkage.SHARED]
+            }
+"""
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
+        app.application.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+
+        result.assertTasksExecuted(":hello:compileDebugStaticSwift", ":hello:createDebugStatic",
+            ":log:compileDebugSwift", ":log:linkDebug",
+            ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+
+        staticLibrary("hello/build/lib/main/debug/static/Hello").assertExists()
+        sharedLibrary("log/build/lib/main/debug/Log").assertExists()
+        executable("app/build/exe/main/debug/App").assertExists()
+        def installationDebug = installation("app/build/install/main/debug")
+        installationDebug.exec().out == app.expectedOutput
+        installationDebug.assertIncludesLibraries("Log")
+
+        succeeds ":app:assembleRelease"
+
+        result.assertTasksExecuted(":hello:compileReleaseStaticSwift", ":hello:createReleaseStatic",
+            ":log:compileReleaseSwift", ":log:linkRelease", ":log:stripSymbolsRelease",
+            ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
+
+        staticLibrary("hello/build/lib/main/release/static/Hello").assertExists()
+        sharedLibrary("log/build/lib/main/release/Log").assertExists()
+        executable("app/build/exe/main/release/App").assertExists()
+        installation("app/build/install/main/release").exec().out == app.expectedOutput
+    }
+
+    def "can compile and link against shared library with API dependencies to static library"() {
+        settingsFile << "include 'app', 'hello', 'log'"
+        def app = new SwiftAppWithLibraries()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                library.linkage = [Linkage.SHARED]
+                dependencies {
+                    api project(':log')
+                }
+            }
+            project(':log') {
+                apply plugin: 'swift-library'
+                library.linkage = [Linkage.STATIC]
+            }
+"""
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
+        app.application.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+
+        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug",
+            ":log:compileDebugStaticSwift", ":log:createDebugStatic",
+            ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+
+        sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
+        staticLibrary("log/build/lib/main/debug/static/Log").assertExists()
+        executable("app/build/exe/main/debug/App").assertExists()
+        def installationDebug = installation("app/build/install/main/debug")
+        installationDebug.exec().out == app.expectedOutput
+        installationDebug.assertIncludesLibraries("Hello")
+
+        succeeds ":app:assembleRelease"
+
+        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:stripSymbolsRelease",
+            ":log:compileReleaseStaticSwift", ":log:createReleaseStatic",
+            ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
+
+        sharedLibrary("hello/build/lib/main/release/Hello").assertExists()
+        staticLibrary("log/build/lib/main/release/static/Log").assertExists()
+        executable("app/build/exe/main/release/App").assertExists()
+        installation("app/build/install/main/release").exec().out == app.expectedOutput
+    }
+
+    def "can compile and link against a library with debug and release variants"() {
+        settingsFile << "include 'app', 'hello'"
         def app = new SwiftAppWithLibraryAndOptionalFeature()
 
         given:
@@ -489,12 +721,16 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
                 dependencies {
                     implementation project(':hello')
                 }
-                compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
+                application.binaries.get { it.optimized }.configure {
+                    compileTask.get().compilerArgs.add('-DWITH_FEATURE')
+                }
             }
             project(':hello') {
                 apply plugin: 'swift-library'
                 library.module = 'Greeter'
-                compileReleaseSwift.compilerArgs = ['-DWITH_FEATURE']
+                library.binaries.get { it.optimized }.configure {
+                    compileTask.get().compilerArgs.add('-DWITH_FEATURE')
+                }
             }
 """
         app.library.writeToProject(file("hello"))
@@ -516,6 +752,51 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         sharedLibrary("hello/build/lib/main/debug/Greeter").assertExists()
         sharedLibrary("hello/build/lib/main/debug/Greeter").assertHasDebugSymbolsFor(app.library.sourceFileNames)
+        executable("app/build/exe/main/debug/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
+        executable("app/build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
+    }
+
+    def "can compile and link against a static library with debug and release variants"() {
+        settingsFile << "include 'app', 'hello'"
+        def app = new SwiftAppWithLibraryAndOptionalFeature()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':hello')
+                }
+                application.binaries.get { it.optimized }.configure {
+                    compileTask.get().compilerArgs.add('-DWITH_FEATURE')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                library.module = 'Greeter'
+                library.linkage = [Linkage.STATIC]
+                library.binaries.get {it.optimized }.configure {
+                    compileTask.get().compilerArgs.add('-DWITH_FEATURE')
+                }
+            }
+"""
+        app.library.writeToProject(file("hello"))
+        app.application.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:linkRelease"
+
+        result.assertTasksExecuted(":hello:compileReleaseStaticSwift", ":hello:createReleaseStatic", ":app:compileReleaseSwift", ":app:linkRelease")
+
+        staticLibrary("hello/build/lib/main/release/static/Greeter").assertExists()
+        executable("app/build/exe/main/release/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
+        executable("app/build/exe/main/release/App").exec().out == app.withFeatureEnabled().expectedOutput
+
+        succeeds ":app:linkDebug"
+
+        result.assertTasksExecuted(":hello:compileDebugStaticSwift", ":hello:createDebugStatic", ":app:compileDebugSwift", ":app:linkDebug")
+
+        staticLibrary("hello/build/lib/main/debug/static/Greeter").assertExists()
         executable("app/build/exe/main/debug/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
         executable("app/build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
     }

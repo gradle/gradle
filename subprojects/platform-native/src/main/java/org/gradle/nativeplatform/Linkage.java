@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift;
+package org.gradle.nativeplatform;
 
 import org.gradle.api.Incubating;
 
 /**
- * Configuration for a Swift application, defining the source files that make up the application plus other settings.
+ * Specify how a native library should be linked into another binary.
  *
- * <p>An instance of this type is added as a project extension by the Swift application plugin.</p>
- *
- * @since 4.2
+ * @since 4.5
  */
 @Incubating
-public interface SwiftApplication extends SwiftComponent {
+public enum Linkage {
     /**
-     * {@inheritDoc}
+     * Statically link binaries together.
      */
-    @Override
-    SwiftExecutable getDevelopmentBinary();
+    STATIC,
+
+    /**
+     * Dynamically link binaries together.
+     */
+    SHARED
 }

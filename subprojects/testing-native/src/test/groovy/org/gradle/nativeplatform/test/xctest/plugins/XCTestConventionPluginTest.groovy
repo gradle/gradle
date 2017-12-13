@@ -45,6 +45,7 @@ class XCTestConventionPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
 
         then:
         project.xctest instanceof SwiftXCTestSuite
@@ -61,6 +62,7 @@ class XCTestConventionPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(SwiftLibraryPlugin)
+        project.evaluate()
 
         then:
         project.xctest.testedComponent.orNull == project.library
@@ -75,6 +77,7 @@ class XCTestConventionPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(SwiftApplicationPlugin)
+        project.evaluate()
 
         then:
         project.xctest.testedComponent.orNull == project.application
@@ -83,6 +86,7 @@ class XCTestConventionPluginTest extends Specification {
     def "registers a component for the test suite"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
 
         then:
         project.components.test == project.xctest
@@ -96,6 +100,7 @@ class XCTestConventionPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
 
         then:
         def compileSwift = project.tasks.compileTestSwift
@@ -127,6 +132,7 @@ class XCTestConventionPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
 
         then:
         def compileSwift = project.tasks.compileTestSwift
@@ -155,6 +161,7 @@ class XCTestConventionPluginTest extends Specification {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
         project.buildDir = project.file("output")
+        project.evaluate()
 
         then:
         def compileSwift = project.tasks.compileTestSwift

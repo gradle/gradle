@@ -216,39 +216,44 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         return new Action<T>() {
             @Override
             public void execute(T plugin) {
-                TaskContainer tasks = project.getTasks();
-                final SwiftComponent testedComponent = project.getComponents().withType(SwiftComponent.class).getByName("main");
-                SwiftXCTestSuite testSuite = project.getExtensions().getByType(SwiftXCTestSuite.class);
+                project.afterEvaluate(new Action<Project>() {
+                    @Override
+                    public void execute(Project project) {
+                        TaskContainer tasks = project.getTasks();
+                        final SwiftComponent testedComponent = project.getComponents().withType(SwiftComponent.class).getByName("main");
+                        SwiftXCTestSuite testSuite = project.getExtensions().getByType(SwiftXCTestSuite.class);
 
-                // Connect test suite with tested component
-                ((DefaultSwiftXCTestSuite)testSuite).getTestedComponent().set(testedComponent);
+                        // Connect test suite with tested component
+                        ((DefaultSwiftXCTestSuite)testSuite).getTestedComponent().set(testedComponent);
 
-                // Configure test suite compile task from tested component compile task
-                SwiftCompile compileMain = tasks.withType(SwiftCompile.class).getByName("compileDebugSwift");
-                SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
-                compileTest.getModules().from(compileMain.getModuleFile());
+                        // Configure test suite compile task from tested component compile task
+                        SwiftCompile compileMain = tasks.withType(SwiftCompile.class).getByName("compileDebugSwift");
+                        SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
+                        compileTest.getModules().from(compileMain.getModuleFile());
 
-                // Test configuration extends main configuration
-                testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
-                project.getDependencies().add(((Configuration)(testSuite.getDevelopmentBinary().getCompileModules())).getName(), project);
+                        // Test configuration extends main configuration
+                        testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
+                        project.getDependencies().add(((Configuration)(testSuite.getDevelopmentBinary().getCompileModules())).getName(), project);
 
-                // Configure test suite link task from tested component compiled objects
-                AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
+                        // Configure test suite link task from tested component compiled objects
+                        AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
 
-                if (testedComponent instanceof SwiftApplication) {
-                    final UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
-                    unexportMainSymbol.source(testedComponent.getDevelopmentBinary().getObjects());
+                        if (testedComponent instanceof SwiftApplication) {
+                            final UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
+                            unexportMainSymbol.source(testedComponent.getDevelopmentBinary().getObjects());
 
-                    linkTest.source(unexportMainSymbol.getObjects());
-                    linkTest.source(testedComponent.getDevelopmentBinary().getObjects().filter(new Spec<File>() {
-                        @Override
-                        public boolean isSatisfiedBy(File objectFile) {
-                            return !objectFile.equals(unexportMainSymbol.getMainObject());
+                            linkTest.source(unexportMainSymbol.getObjects());
+                            linkTest.source(testedComponent.getDevelopmentBinary().getObjects().filter(new Spec<File>() {
+                                @Override
+                                public boolean isSatisfiedBy(File objectFile) {
+                                    return !objectFile.equals(unexportMainSymbol.getMainObject());
+                                }
+                            }));
+                        } else {
+                            linkTest.source(testedComponent.getDevelopmentBinary().getObjects());
                         }
-                    }));
-                } else {
-                    linkTest.source(testedComponent.getDevelopmentBinary().getObjects());
-                }
+                    }
+                });
             }
         };
     }

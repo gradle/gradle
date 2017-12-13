@@ -17,34 +17,26 @@
 package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.nativeplatform.Linkage;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Provider;
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 
 /**
- * Configuration for a Swift library, defining the source files that make up the library plus other settings.
+ * A static library built from Swift source.
  *
- * <p>An instance of this type is added as a project extension by the Swift library plugin.</p>
- *
- * @since 4.2
+ * @since 4.5
  */
 @Incubating
-public interface SwiftLibrary extends SwiftComponent {
+public interface SwiftStaticLibrary extends SwiftBinary {
     /**
-     * Returns the API dependencies of this library.
+     * Returns the link-time file for this binary.
      */
-    Configuration getApiDependencies();
+    Provider<RegularFile> getLinkFile();
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    SwiftSharedLibrary getDevelopmentBinary();
-
-    /**
-     * Returns the list of linkage of this library.
+     * Returns the create static library task for this binary.
      *
      * @since 4.5
      */
-    ListProperty<Linkage> getLinkage();
+    Provider<CreateStaticLibrary> getCreateTask();
 }

@@ -23,8 +23,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
 
 import javax.inject.Inject;
 
@@ -32,12 +35,17 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     private final RegularFileProperty executableFile;
     private final DirectoryProperty installDirectory;
     private final RegularFileProperty runScriptFile;
+    private final Property<LinkExecutable> linkTaskProperty;
+    private final Property<InstallExecutable> installTaskProperty;
+
     @Inject
     public DefaultSwiftExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation);
         this.executableFile = projectLayout.fileProperty();
         this.installDirectory = projectLayout.directoryProperty();
         this.runScriptFile = projectLayout.fileProperty();
+        this.linkTaskProperty = objectFactory.property(LinkExecutable.class);
+        this.installTaskProperty = objectFactory.property(InstallExecutable.class);
     }
 
     @Override
@@ -53,5 +61,15 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     @Override
     public RegularFileProperty getRunScriptFile() {
         return runScriptFile;
+    }
+
+    @Override
+    public Property<LinkExecutable> getLinkTask() {
+        return linkTaskProperty;
+    }
+
+    @Override
+    public Property<InstallExecutable> getInstallTask() {
+        return installTaskProperty;
     }
 }

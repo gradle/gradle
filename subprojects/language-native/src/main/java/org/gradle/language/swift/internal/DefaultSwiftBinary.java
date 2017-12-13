@@ -24,10 +24,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
+import org.gradle.language.swift.tasks.SwiftCompile;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
@@ -44,6 +46,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
     private final Configuration runtimeLibs;
     private final DirectoryProperty objectsDir;
     private final RegularFileProperty moduleFile;
+    private final Property<SwiftCompile> compileTaskProperty;
 
     public DefaultSwiftBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
         this.name = name;
@@ -54,6 +57,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
         this.source = source;
         this.objectsDir = projectLayout.directoryProperty();
         this.moduleFile = projectLayout.fileProperty();
+        this.compileTaskProperty = objectFactory.property(SwiftCompile.class);
 
         Names names = Names.of(name);
 
@@ -140,5 +144,10 @@ public class DefaultSwiftBinary implements SwiftBinary {
     @Override
     public FileCollection getObjects() {
         return objectsDir.getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o"));
+    }
+
+    @Override
+    public Property<SwiftCompile> getCompileTask() {
+        return compileTaskProperty;
     }
 }
