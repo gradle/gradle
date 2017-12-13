@@ -24,11 +24,15 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
-import org.gradle.api.internal.tasks.TaskPropertyWalker
+import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.internal.file.PathToFileResolver
+import org.gradle.api.internal.tasks.properties.PropertyWalker
+import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -37,17 +41,21 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
     final delegate = Mock(TaskExecuter)
     final outputs = Mock(TaskOutputsInternal)
     final inputs = Mock(TaskInputsInternal)
+    final destroyables = Stub(TaskDestroyablesInternal)
+    final localState = Stub(TaskLocalStateInternal)
     final task = Mock(TaskInternal)
     final taskState = Mock(TaskStateInternal)
     final taskContext = Mock(TaskExecutionContext)
     final repository = Mock(TaskArtifactStateRepository)
     final taskArtifactState = Mock(TaskArtifactState)
     final taskExecutionhistory = Mock(TaskExecutionHistory)
-    final resolver = Mock(PathToFileResolver)
-    final taskPropertyWalker = Mock(TaskPropertyWalker)
+    final resolver = Mock(FileResolver)
+    final propertyWalker = Mock(PropertyWalker)
+    final project = Mock(ProjectInternal)
+    final serviceRegistry = Mock(ServiceRegistry)
     final Action<Task> action = Mock(Action)
 
-    final executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, taskPropertyWalker, delegate)
+    final executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, propertyWalker, delegate)
 
     def 'taskContext is initialized and cleaned as expected'() {
         when:
@@ -58,9 +66,16 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
         1 * repository.getStateFor(task, _) >> taskArtifactState
         1 * taskContext.setTaskArtifactState(taskArtifactState)
         1 * taskArtifactState.getExecutionHistory() >> taskExecutionhistory
-        1 * task.getOutputs() >> outputs
+        2 * task.getOutputs() >> outputs
+        1 * task.getInputs() >> inputs
+        1 * task.getDestroyables() >> destroyables
+        1 * task.getLocalState() >> localState
         1 * outputs.setHistory(taskExecutionhistory)
-        1 * taskPropertyWalker.visitProperties(task, _)
+        1 * task.getProject() >> project
+        1 * project.getFileResolver() >> resolver
+        1 * propertyWalker.visitProperties(_, _, task)
+        1 * inputs.visitRegisteredProperties(_)
+        1 * outputs.visitRuntimeProperties(_)
 
         then: 'delegate is executed'
         1 * delegate.execute(task, taskState, taskContext)

@@ -36,10 +36,10 @@ import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
-import org.gradle.api.internal.tasks.TaskPropertyWalker
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter
+import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
@@ -622,7 +622,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     private TaskArtifactState getStateFor(task) {
         def state = null
         def serviceRegistry = project.services
-        new ResolveTaskArtifactStateTaskExecuter(repository, serviceRegistry.get(PathToFileResolver), serviceRegistry.get(TaskPropertyWalker), new TaskExecuter() {
+        new ResolveTaskArtifactStateTaskExecuter(repository, serviceRegistry.get(PathToFileResolver), serviceRegistry.get(PropertyWalker), new TaskExecuter() {
             @Override
             void execute(TaskInternal task1, TaskStateInternal state1, TaskExecutionContext context) {
                 state = context.getTaskArtifactState()

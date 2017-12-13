@@ -59,7 +59,7 @@ class DefaultTaskInputsTest extends Specification {
         getDestroyables() >> Stub(TaskDestroyablesInternal)
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
-    def walker = new DefaultTaskPropertyWalker(new DefaultPropertyWalker(new DefaultPropertyMetadataStore([])))
+    def walker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, new DefaultPropertySpecFactory(task, resolver))
 
     def "default values"() {

@@ -51,10 +51,11 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
     def "deleted files show up in task destroys"() {
         buildFile << """
             import org.gradle.api.internal.tasks.properties.PropertyVisitor
+            import org.gradle.api.internal.tasks.properties.PropertyWalker
             import org.gradle.internal.file.PathToFileResolver
             import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
-            import org.gradle.api.internal.tasks.TaskPropertyWalker
             import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec
+            import org.gradle.api.internal.tasks.TaskPropertyUtils
             
             task clean(type: Delete) {
                 delete 'foo'
@@ -65,8 +66,8 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     def destroyablePaths = []
                     def resolver = project.services.get(PathToFileResolver)
-                    def taskPropertyWalker = project.services.get(TaskPropertyWalker)
-                    taskPropertyWalker.visitProperties(it, new PropertyVisitor.Adapter() {
+                    def propertyWalker = project.services.get(PropertyWalker)
+                    TaskPropertyUtils.visitProperties(propertyWalker, it, new PropertyVisitor.Adapter() {
                         void visitDestroyableProperty(TaskDestroyablePropertySpec destroyable) {
                             destroyablePaths << destroyable.value
                         }

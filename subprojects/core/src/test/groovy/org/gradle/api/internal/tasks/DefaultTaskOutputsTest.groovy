@@ -81,7 +81,8 @@ class DefaultTaskOutputsTest extends Specification {
         getDestroyables() >> Stub(TaskDestroyablesInternal)
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultTaskPropertyWalker(new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))), new DefaultPropertySpecFactory(task, resolver))
+
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultPropertyMetadataStore([])), new DefaultPropertySpecFactory(task, resolver))
 
     void hasNoOutputsByDefault() {
         setup:

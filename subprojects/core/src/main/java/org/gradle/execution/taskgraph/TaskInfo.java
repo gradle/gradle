@@ -25,12 +25,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskPropertyWalker;
+import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.properties.CompositePropertyVisitor;
 import org.gradle.api.internal.tasks.properties.GetDestroyablesVisitor;
 import org.gradle.api.internal.tasks.properties.GetLocalStateVisitor;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -242,11 +243,15 @@ public class TaskInfo implements Comparable<TaskInfo> {
             ProjectInternal project = (ProjectInternal) task.getProject();
             ServiceRegistry serviceRegistry = project.getServices();
             PathToFileResolver resolver = serviceRegistry.get(PathToFileResolver.class);
-            TaskPropertyWalker taskPropertyWalker = serviceRegistry.get(TaskPropertyWalker.class);
+            PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
             localStateVisitor = new GetLocalStateVisitor(beanName, resolver);
             destroyablesVisitor = new GetDestroyablesVisitor(beanName, resolver);
             hasFileInputsVisitor = new HasFileInputsVisitor();
-            taskPropertyWalker.visitProperties(task, new CompositePropertyVisitor(outputFilesVisitor, destroyablesVisitor, localStateVisitor, hasFileInputsVisitor));
+            TaskPropertyUtils.visitProperties(
+                propertyWalker,
+                task,
+                new CompositePropertyVisitor(outputFilesVisitor, destroyablesVisitor, localStateVisitor, hasFileInputsVisitor)
+            );
         }
     }
 

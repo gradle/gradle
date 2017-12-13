@@ -61,8 +61,6 @@ import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
-import org.gradle.api.internal.tasks.DefaultTaskPropertyWalker;
-import org.gradle.api.internal.tasks.TaskPropertyWalker;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore;
@@ -243,10 +241,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected PropertyWalker createPropertyWalker(PropertyMetadataStore propertyMetadataStore) {
         return new DefaultPropertyWalker(propertyMetadataStore);
-    }
-
-    protected TaskPropertyWalker createTaskPropertyWalker(PropertyWalker propertyWalker) {
-        return new DefaultTaskPropertyWalker(propertyWalker);
     }
 
     protected TaskClassInfoStore createTaskClassInfoStore() {

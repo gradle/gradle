@@ -19,6 +19,10 @@ package org.gradle.api.internal.tasks;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.tasks.TaskFilePropertyBuilder;
 import org.gradle.internal.Cast;
 
@@ -28,6 +32,21 @@ import java.util.SortedSet;
 
 @NonNullApi
 public class TaskPropertyUtils {
+
+    public static void visitProperties(PropertyWalker propertyWalker, final TaskInternal task, PropertyVisitor visitor) {
+        final PropertySpecFactory specFactory = new DefaultPropertySpecFactory(task, ((ProjectInternal) task.getProject()).getFileResolver());
+        propertyWalker.visitProperties(specFactory, visitor, task);
+        task.getInputs().visitRegisteredProperties(visitor);
+        task.getOutputs().visitRuntimeProperties(visitor);
+        int destroyableCount = 0;
+        for (Object path : ((TaskDestroyablesInternal) task.getDestroyables()).getRegisteredPaths()) {
+            visitor.visitDestroyableProperty(new DefaultTaskDestroyablePropertySpec("$" + ++destroyableCount, path));
+        }
+        int localStateCount = 0;
+        for (Object path : ((TaskLocalStateInternal) task.getLocalState()).getRegisteredPaths()) {
+            visitor.visitLocalStateProperty(new DefaultTaskLocalStatePropertySpec("$" + ++localStateCount, path));
+        }
+    }
 
     // Note: sorted set used to keep order of properties consistent
     public static <T extends TaskFilePropertySpec> ImmutableSortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
