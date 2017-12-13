@@ -75,7 +75,10 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
      * Returns the set of input properties for this task.
      *
      * @return The properties.
+     *
+     * @deprecated Use {@link #property(String, Object)} and {@link #properties(Map)} to declare input properties.
      */
+    @Deprecated
     Map<String, Object> getProperties();
 
     /**
