@@ -16,6 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.util.GUtil;
 
 public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
@@ -33,11 +35,12 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(testFramework);
+    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(dsl, testFramework);
+        String buildScriptFilename = dsl.fileNameFor("build");
         templateOperationFactory.newTemplateOperation()
-            .withTemplate("build.gradle.template")
-            .withTarget("build.gradle")
+            .withTemplate(buildScriptFilename + ".template")
+            .withTarget(buildScriptFilename)
             .withDocumentationBindings(GUtil.map("ref_userguide_java_tutorial", "tutorial_java_projects"))
             .withBindings(GUtil.map("slf4jVersion", libraryVersionProvider.getVersion("slf4j")))
             .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))

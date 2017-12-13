@@ -20,9 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.wrapper.Wrapper;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.tasks.InitBuild;
 
 import java.io.File;
@@ -40,17 +42,20 @@ public class TaskConfiguration {
 
             @Override
             public String transform(Project project) {
-                if (project.file("build.gradle").exists()) {
-                    return "The build file 'build.gradle' already exists. Skipping build initialization.";
+                for (BuildInitDsl dsl : BuildInitDsl.values()) {
+                    String buildFileName = dsl.fileNameFor("build");
+                    if (project.file(buildFileName).exists()) {
+                        return "The build file '" + buildFileName + "' already exists. Skipping build initialization.";
+                    }
+                    String settingsFileName = dsl.fileNameFor("settings");
+                    if (project.file(settingsFileName).exists()) {
+                        return "The settings file '" + settingsFileName + "' already exists. Skipping build initialization.";
+                    }
                 }
 
                 File buildFile = project.getBuildFile();
                 if (buildFile != null && buildFile.exists()) {
                     return "The build file \'" + buildFile.getName() + "\' already exists. Skipping build initialization.";
-                }
-
-                if (project.file("settings.gradle").exists()) {
-                    return "The settings file 'settings.gradle' already exists. Skipping build initialization.";
                 }
 
                 if (project.getSubprojects().size() > 0) {
@@ -60,12 +65,13 @@ public class TaskConfiguration {
                 return null;
             }
         };
+        final Project project = init.getProject();
         init.onlyIf(new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
-                Object skippedMsg = setupCanBeSkipped.transform(element.getProject());
+                Object skippedMsg = setupCanBeSkipped.transform(project);
                 if (skippedMsg != null) {
-                    element.getProject().getLogger().warn((String) skippedMsg);
+                    project.getLogger().warn((String) skippedMsg);
                     return false;
                 }
 
@@ -76,10 +82,21 @@ public class TaskConfiguration {
         init.dependsOn(new Callable<String>() {
             @Override
             public String call() throws Exception {
-                if (setupCanBeSkipped.transform(init.getProject()) == null) {
+                if (setupCanBeSkipped.transform(project) == null) {
                     return "wrapper";
                 } else {
                     return null;
+                }
+            }
+        });
+
+        project.getGradle().getTaskGraph().whenReady(new Action<TaskExecutionGraph>() {
+            @Override
+            public void execute(TaskExecutionGraph taskGraph) {
+                if (setupCanBeSkipped.transform(project) == null && taskGraph.hasTask(init)) {
+                    Wrapper wrapper = (Wrapper) project.getTasks().getByName("wrapper");
+                    BuildInitDsl dsl = BuildInitDsl.fromName(init.getDsl());
+                    wrapper.setDistributionType(dsl.getWrapperDistributionType());
                 }
             }
         });

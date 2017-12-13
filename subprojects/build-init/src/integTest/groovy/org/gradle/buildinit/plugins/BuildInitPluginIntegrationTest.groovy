@@ -13,26 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.buildinit.plugins
 
-import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
+import spock.lang.Unroll
 
-import static org.hamcrest.Matchers.containsString
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.hamcrest.Matchers.not
 
-class BuildInitPluginIntegrationTest extends WellBehavedPluginTest {
-    final wrapper = new WrapperTestFixture(testDirectory)
-
-    @Override
-    String getMainTask() {
-        return "init"
-    }
+class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "init shows up on tasks overview "() {
         when:
@@ -42,114 +34,160 @@ class BuildInitPluginIntegrationTest extends WellBehavedPluginTest {
         result.output.contains "init - Initializes a new Gradle build."
     }
 
-    def "creates a simple project when no pom file present and no type specified"() {
-        given:
-        assert !buildFile.exists()
-        assert !settingsFile.exists()
-
+    def "defaults to groovy build scripts"() {
         when:
         run 'init'
 
         then:
-        wrapper.generated()
-        buildFile.exists()
-        settingsFile.exists()
+        ScriptDslFixture.of(GROOVY, testDirectory).assertGradleFilesGenerated()
+    }
+
+    @Unroll
+    def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
+        when:
+        run 'init', '--dsl', scriptDsl.id
+
+        then:
+        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
 
         expect:
         succeeds 'tasks'
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "build file generation is skipped when build file already exists"() {
+    @Unroll
+    def "#targetScriptDsl build file generation is skipped when #existingScriptDsl build file already exists"() {
         given:
-        buildFile.createFile()
+        def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
+        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
+
+        and:
+        existingDslFixture.buildFile.createFile()
 
         when:
-        run('init')
+        run('init', '--dsl', targetScriptDsl.id)
 
         then:
         result.assertTasksExecuted(":init")
-        result.output.contains("The build file 'build.gradle' already exists. Skipping build initialization.")
+        result.output.contains("The build file '${existingDslFixture.buildFileName}' already exists. Skipping build initialization.")
 
         and:
-        !settingsFile.exists()
-        wrapper.notGenerated()
+        !targetDslFixture.settingsFile.exists()
+        targetDslFixture.assertWrapperNotGenerated()
+
+        where:
+        [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    def "build file generation is skipped when settings file already exists"() {
+    @Unroll
+    def "#targetScriptDsl build file generation is skipped when #existingScriptDsl settings file already exists"() {
         given:
-        settingsFile.createFile()
+        def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
+        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
+
+        and:
+        existingDslFixture.settingsFile.createFile()
 
         when:
-        run('init')
+        run('init', '--dsl', targetScriptDsl.id)
 
         then:
         result.assertTasksExecuted(":init")
-        result.output.contains("The settings file 'settings.gradle' already exists. Skipping build initialization.")
+        result.output.contains("The settings file '${existingDslFixture.settingsFileName}' already exists. Skipping build initialization.")
 
         and:
-        !buildFile.exists()
-        wrapper.notGenerated()
+        !targetDslFixture.buildFile.exists()
+        targetDslFixture.assertWrapperNotGenerated()
+
+        where:
+        [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    def "build file generation is skipped when custom build file exists"() {
+    @Unroll
+    def "#targetScriptDsl build file generation is skipped when custom #existingScriptDsl build file exists"() {
         given:
-        def customBuildScript = testDirectory.file("customBuild.gradle").createFile()
+        def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
+        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
+
+        and:
+        def customBuildScript = existingDslFixture.scriptFile("customBuild").createFile()
 
         when:
         executer.usingBuildScript(customBuildScript)
-        run('init')
+        run('init', '--dsl', targetScriptDsl.id)
 
         then:
         result.assertTasksExecuted(":init")
-        result.output.contains("The build file 'customBuild.gradle' already exists. Skipping build initialization.")
+        result.output.contains("The build file '${customBuildScript.name}' already exists. Skipping build initialization.")
 
         and:
-        !buildFile.exists()
-        !settingsFile.exists()
-        wrapper.notGenerated()
+        !targetDslFixture.buildFile.exists()
+        !targetDslFixture.settingsFile.exists()
+        targetDslFixture.assertWrapperNotGenerated()
+
+        where:
+        [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    def "build file generation is skipped when part of a multi-project build with non-standard settings file location"() {
+    @Unroll
+    def "#targetScriptDsl build file generation is skipped when part of a multi-project build with non-standard #existingScriptDsl settings file location"() {
         given:
-        def customSettings = testDirectory.file("customSettings.gradle")
+        def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
+        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
+
+        and:
+        def customSettings = existingDslFixture.scriptFile("customSettings")
         customSettings << """
-include 'child'
+include("child")
 """
 
         when:
         executer.usingSettingsFile(customSettings)
-        run('init')
+        run('init', '--dsl', targetScriptDsl.id)
 
         then:
         result.assertTasksExecuted(":init")
         result.output.contains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
 
         and:
-        !buildFile.exists()
-        !settingsFile.exists()
-        wrapper.notGenerated()
+        !targetDslFixture.buildFile.exists()
+        !targetDslFixture.settingsFile.exists()
+        targetDslFixture.assertWrapperNotGenerated()
+
+        where:
+        [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    def "pom conversion is triggered when pom and no gradle file found"() {
+    @Unroll
+    def "pom conversion to #scriptDsl build scripts is triggered when pom and no gradle file found"() {
         given:
         pom()
 
         when:
-        run('init')
+        run('init', '--dsl', scriptDsl.id)
 
         then:
-        pomValuesUsed()
+        pomValuesUsed(ScriptDslFixture.of(scriptDsl, testDirectory))
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "pom conversion not triggered when build type is specified"() {
+    @Unroll
+    def "pom conversion to #scriptDsl build scripts not triggered when build type is specified"() {
         given:
         pom()
 
         when:
-        succeeds('init', '--type', 'java-library')
+        succeeds('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
         then:
-        pomValuesNotUsed()
+        pomValuesNotUsed(ScriptDslFixture.of(scriptDsl, testDirectory))
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "gives decent error message when triggered with unknown init-type"() {
@@ -158,6 +196,14 @@ include 'child'
 
         then:
         failure.assertHasCause("The requested build setup type 'some-unknown-library' is not supported.")
+    }
+
+    def "gives decent error message when triggered with unknown dsl"() {
+        when:
+        fails('init', '--dsl', 'some-unknown-dsl')
+
+        then:
+        failure.assertHasDescription("The requested build script DSL 'some-unknown-dsl' is not supported.")
     }
 
     def "gives decent error message when using unknown test framework"() {
@@ -192,6 +238,11 @@ include 'child'
                      pom
                      scala-library
 
+     --dsl     Set alternative build script DSL to be used.
+               Available values are:
+                    groovy
+                    kotlin
+
      --test-framework     Set alternative test framework to be used.
                           Available values are:
                                spock
@@ -210,28 +261,27 @@ include 'child'
       </project>"""
     }
 
-    private pomValuesUsed() {
-        buildFile.assertContents(containsPomGroup())
-        buildFile.assertContents(containsPomVersion())
-        settingsFile.assertContents(containsPomArtifactId())
+    private static pomValuesUsed(ScriptDslFixture dslFixture) {
+        dslFixture.buildFile.assertContents(containsPomGroup(dslFixture))
+        dslFixture.buildFile.assertContents(containsPomVersion(dslFixture))
+        dslFixture.settingsFile.assertContents(containsPomArtifactId(dslFixture))
     }
 
-    private pomValuesNotUsed() {
-        buildFile.assertContents(not(containsPomGroup()))
-        buildFile.assertContents(not(containsPomVersion()))
-        settingsFile.assertContents(not(containsPomArtifactId()))
+    private static pomValuesNotUsed(ScriptDslFixture dslFixture) {
+        dslFixture.buildFile.assertContents(not(containsPomGroup(dslFixture)))
+        dslFixture.buildFile.assertContents(not(containsPomVersion(dslFixture)))
+        dslFixture.settingsFile.assertContents(not(containsPomArtifactId(dslFixture)))
     }
 
-    private Matcher<String> containsPomGroup() {
-        containsString("group = 'util'")
+    private static Matcher<String> containsPomGroup(ScriptDslFixture dslFixture) {
+        dslFixture.containsStringAssignment('group', 'util')
     }
 
-    private Matcher<String> containsPomVersion() {
-        containsString("version = '2.5'")
+    private static Matcher<String> containsPomVersion(ScriptDslFixture dslFixture) {
+        dslFixture.containsStringAssignment('version', '2.5')
     }
 
-    private Matcher<String> containsPomArtifactId() {
-        containsString("rootProject.name = 'util'")
+    private static Matcher<String> containsPomArtifactId(ScriptDslFixture dslFixture) {
+        dslFixture.containsStringAssignment('rootProject.name', 'util')
     }
-
 }
