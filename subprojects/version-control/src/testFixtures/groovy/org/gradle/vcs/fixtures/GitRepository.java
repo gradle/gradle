@@ -98,7 +98,7 @@ public class GitRepository extends ExternalResource implements Named {
             setURI(submoduleRepo.getWorkTree().toString()).
             setPath(submoduleRepo.getName()).
             call();
-        commit("add submodule " + submoduleRepo.getName());
+        commit("add submodule " + submoduleRepo.getName(), submoduleRepo.getName());
     }
 
     /**

@@ -64,7 +64,7 @@ class GitVersionControlSystemSpec extends Specification {
         repoSpec.url = repo.url
 
         submoduleRepo.workTree.file("foo.txt") << "hello from submodule"
-        submoduleRepo.commit("initial commit", submoduleRepo.workTree)
+        submoduleRepo.commit("initial commit")
     }
 
     def 'clone a repository'() {
@@ -141,13 +141,13 @@ class GitVersionControlSystemSpec extends Specification {
         gitVcs.populate(target, repoHead, repoSpec)
 
         submoduleRepo.workTree.file("foo.txt").text = "goodbye from submodule"
-        submoduleRepo.commit("Change submodule message", submoduleRepo.workTree)
+        submoduleRepo.commit("Change submodule message")
 
         // TODO: JGit doesn't support these commands easily
         "git submodule foreach git fetch".execute([], repo.workTree).waitFor()
         "git submodule foreach git checkout origin/master".execute([], repo.workTree).waitFor()
         repo.git.add().addFilepattern("submodule").call()
-        repo.commit("Update submodule", repo.workTree)
+        repo.commit("Update submodule")
 
         repoHead = GitVersionRef.from(repo.head)
 
