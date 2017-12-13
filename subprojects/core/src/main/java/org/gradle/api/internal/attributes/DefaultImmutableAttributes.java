@@ -17,7 +17,6 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.AbstractIterator;
-import com.google.common.collect.Iterators;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
@@ -115,25 +114,17 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         @Override
         public Iterator<Attribute<?>> iterator() {
             return new AbstractIterator<Attribute<?>>() {
-                private boolean visitedThis = false;
-                private Iterator<Attribute<?>> parentIterator;
+                private DefaultImmutableAttributes current = DefaultImmutableAttributes.this;
 
                 @Override
                 protected Attribute<?> computeNext() {
-                    if (!visitedThis) {
-                        visitedThis = true;
-                        if (attribute == null) {
-                            return endOfData();
-                        }
+                    Attribute<?> attribute;
+                    while (current != null && (attribute = current.attribute) != null) {
+                        DefaultImmutableAttributes parent = current.parent;
+                        current = parent;
                         if (parent == null || !parent.contains(attribute)) {
                             return attribute;
                         }
-                    }
-                    if (parentIterator == null) {
-                        parentIterator = parent == null ? Iterators.<Attribute<?>>emptyIterator() : parent.keySet().iterator();
-                    }
-                    if (parentIterator.hasNext()) {
-                        return parentIterator.next();
                     }
                     return endOfData();
                 }
