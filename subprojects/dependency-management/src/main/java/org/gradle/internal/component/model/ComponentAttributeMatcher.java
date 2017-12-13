@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -103,20 +102,18 @@ public class ComponentAttributeMatcher {
         Set<Attribute<Object>> requestedAttributes = Cast.uncheckedCast(requested.keySet());
         Set<Attribute<Object>> candidateAttributes = Cast.uncheckedCast(candidate.keySet());
 
-        for (Iterator<Attribute<Object>> requestedIterator = requestedAttributes.iterator(); details.compatible && requestedIterator.hasNext();) {
-            Attribute<Object> attribute = requestedIterator.next();
+        for (Attribute<Object> attribute : requestedAttributes) {
             AttributeValue<?> requestedValue = requested.findEntry(attribute);
             AttributeValue<?> actualValue = candidate.findEntry(attribute.getName());
             if (actualValue.isPresent()) {
                 details.update(attribute, schema, requestedValue, actualValue);
             }
-        }
-        if (!details.compatible) {
-            return;
+            if (!details.compatible) {
+                return;
+            }
         }
 
-        for (Iterator<Attribute<Object>> candidateIterator = candidateAttributes.iterator(); details.compatible && candidateIterator.hasNext();) {
-            Attribute<Object> attribute = candidateIterator.next();
+        for (Attribute<Object> attribute : candidateAttributes) {
             if (requestedAttributes.contains(attribute)) {
                 continue;
             }
