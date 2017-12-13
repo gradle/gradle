@@ -118,6 +118,9 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
      * A task is skipped if it has declared it accepts source files, and this collection is empty.
      *
      * @return The set of source files for this task.
+     *
+     * @deprecated Declare individual task properties to access source files.
      */
+    @Deprecated
     FileCollection getSourceFiles();
 }
