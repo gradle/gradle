@@ -75,7 +75,7 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
         1 * project.getFileResolver() >> resolver
         1 * propertyWalker.visitProperties(_, _, task)
         1 * inputs.visitRegisteredProperties(_)
-        1 * outputs.visitRuntimeProperties(_)
+        1 * outputs.visitRegisteredProperties(_)
 
         then: 'delegate is executed'
         1 * delegate.execute(task, taskState, taskContext)

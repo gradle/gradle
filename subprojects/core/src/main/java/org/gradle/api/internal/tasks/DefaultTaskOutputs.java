@@ -75,7 +75,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public void visitRuntimeProperties(PropertyVisitor visitor) {
+    public void visitRegisteredProperties(PropertyVisitor visitor) {
         TaskPropertyUtils.ensurePropertiesHaveNames(registeredFileProperties);
         for (DeclaredTaskOutputFileProperty fileProperty : registeredFileProperties) {
             visitor.visitOutputFileProperty(fileProperty);
