@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.maven.MavenPom
 
+import static org.hamcrest.Matchers.containsString
+
 @TestReproducibleArchives
 class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
@@ -130,7 +132,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
             """
         then:
         runAndFail('customDistZip')
-        failure.assertHasCause "Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."
+        failure.assertThatDescription(containsString("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."))
     }
 
     def createDistributionWithoutVersion() {

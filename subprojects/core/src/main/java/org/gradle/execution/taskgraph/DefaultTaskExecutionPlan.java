@@ -144,7 +144,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
 
         Set<TaskInfo> visiting = new HashSet<TaskInfo>();
-        CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
+        CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext(nodeFactory);
 
         while (!queue.isEmpty()) {
             TaskInfo node = queue.get(0);

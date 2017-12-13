@@ -398,6 +398,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails ":aPing"
 
         and:
-        failure.assertHasCause "BOOM!"
+        failure.assertHasDescription("BOOM!")
     }
 }

@@ -76,16 +76,16 @@ public class TaskInfo implements Comparable<TaskInfo> {
 
     public boolean isComplete() {
         return state == TaskExecutionState.EXECUTED
-                || state == TaskExecutionState.SKIPPED
-                || state == TaskExecutionState.UNKNOWN
-                || state == TaskExecutionState.NOT_REQUIRED
-                || state == TaskExecutionState.MUST_NOT_RUN;
+            || state == TaskExecutionState.SKIPPED
+            || state == TaskExecutionState.UNKNOWN
+            || state == TaskExecutionState.NOT_REQUIRED
+            || state == TaskExecutionState.MUST_NOT_RUN;
     }
 
     public boolean isSuccessful() {
         return (state == TaskExecutionState.EXECUTED && !isFailed())
-                || state == TaskExecutionState.NOT_REQUIRED
-                || state == TaskExecutionState.MUST_NOT_RUN;
+            || state == TaskExecutionState.NOT_REQUIRED
+            || state == TaskExecutionState.MUST_NOT_RUN;
     }
 
     public boolean isFailed() {
@@ -237,6 +237,10 @@ public class TaskInfo implements Comparable<TaskInfo> {
 
     public FileCollection getOutputs() {
         return getTaskProperties().getOutputFiles();
+    }
+
+    public FileCollection getInputs() {
+        return getTaskProperties().getInputFiles();
     }
 
     public boolean hasFileInputs() {

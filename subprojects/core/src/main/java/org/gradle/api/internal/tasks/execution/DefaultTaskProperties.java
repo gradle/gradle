@@ -55,7 +55,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
     private final Factory<Map<String, Object>> inputPropertyValues;
     private final ImmutableSortedSet<TaskInputFilePropertySpec> inputFileProperties;
-    private final ImmutableSortedSet<TaskOutputFilePropertySpec> outputFileProperties;
+    private final Factory<ImmutableSortedSet<TaskOutputFilePropertySpec>> outputFileProperties;
     private final FileCollection inputFiles;
     private final boolean hasSourceFiles;
     private final FileCollection sourceFiles;
@@ -90,14 +90,14 @@ public class DefaultTaskProperties implements TaskProperties {
             task.toString(),
             inputPropertiesVisitor.getPropertyValuesFactory(),
             inputFilesVisitor.getFileProperties(),
-            outputFilesVisitor.getFileProperties(),
+            outputFilesVisitor.getFilePropertiesFactory(),
             outputFilesVisitor.hasDeclaredOutputs(),
             localStateVisitor.getFiles(),
             destroyablesVisitor.getFiles(),
             validationVisitor.getTaskPropertySpecs());
     }
 
-    private DefaultTaskProperties(final String name, Factory<Map<String, Object>> inputPropertyValues, final ImmutableSortedSet<TaskInputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<TaskOutputFilePropertySpec> outputFileProperties, boolean hasDeclaredOutputs, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingTaskPropertySpec> validatingPropertySpecs) {
+    private DefaultTaskProperties(final String name, Factory<Map<String, Object>> inputPropertyValues, final ImmutableSortedSet<TaskInputFilePropertySpec> inputFileProperties, final Factory<ImmutableSortedSet<TaskOutputFilePropertySpec>> outputFileProperties, boolean hasDeclaredOutputs, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingTaskPropertySpec> validatingPropertySpecs) {
         this.validatingPropertySpecs = validatingPropertySpecs;
 
         this.inputPropertyValues = inputPropertyValues;
@@ -148,7 +148,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
             @Override
             public void visitContents(FileCollectionResolveContext context) {
-                for (TaskFilePropertySpec propertySpec : outputFileProperties) {
+                for (TaskFilePropertySpec propertySpec : outputFileProperties.create()) {
                     context.add(propertySpec.getPropertyFiles());
                 }
             }
@@ -159,7 +159,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
     @Override
     public ImmutableSortedSet<TaskOutputFilePropertySpec> getOutputFileProperties() {
-        return outputFileProperties;
+        return outputFileProperties.create();
     }
 
     @Override

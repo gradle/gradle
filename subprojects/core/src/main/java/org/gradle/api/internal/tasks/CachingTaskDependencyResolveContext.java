@@ -19,8 +19,11 @@ package org.gradle.api.internal.tasks;
 import com.google.common.base.Preconditions;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskReference;
+import org.gradle.execution.taskgraph.TaskInfoFactory;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 
@@ -49,7 +52,16 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
     private final LinkedList<Object> queue = new LinkedList<Object>();
     private final CachingDirectedGraphWalker<Object, Task> walker = new CachingDirectedGraphWalker<Object, Task>(
             new TaskGraphImpl());
+    private final TaskInfoFactory taskInfoFactory;
     private Task task;
+
+    public CachingTaskDependencyResolveContext() {
+        this(new TaskInfoFactory());
+    }
+
+    public CachingTaskDependencyResolveContext(TaskInfoFactory taskInfoFactory) {
+        this.taskInfoFactory = taskInfoFactory;
+    }
 
     public Set<? extends Task> getDependencies(Task task) {
         add(task.getTaskDependencies());
@@ -58,6 +70,11 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
 
     public Task getTask() {
         return task;
+    }
+
+    @Override
+    public FileCollection getInputFiles(TaskInternal task) {
+        return taskInfoFactory.createNode(task).getInputs();
     }
 
     public Set<Task> resolve(Task task) {

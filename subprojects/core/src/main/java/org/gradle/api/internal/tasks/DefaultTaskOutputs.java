@@ -200,7 +200,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
         GetOutputFilesVisitor visitor = new GetOutputFilesVisitor();
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
-        return visitor.getFileProperties();
+        return visitor.getFilePropertiesFactory().create();
     }
 
     @Override

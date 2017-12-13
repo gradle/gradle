@@ -16,45 +16,63 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.CompositeTaskOutputPropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
+import org.gradle.internal.Factory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @NonNullApi
 public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
-    private List<TaskOutputFilePropertySpec> specs = new ArrayList<TaskOutputFilePropertySpec>();
+    private List<TaskOutputFilePropertySpec> declaredOutputFileProperties = new ArrayList<TaskOutputFilePropertySpec>();
     private ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties;
     private boolean hasDeclaredOutputs;
 
     @Override
     public void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
         hasDeclaredOutputs = true;
-        if (outputFileProperty instanceof CompositeTaskOutputPropertySpec) {
-            Iterators.addAll(specs, ((CompositeTaskOutputPropertySpec) outputFileProperty).resolveToOutputProperties());
-        } else {
-            if (outputFileProperty instanceof CacheableTaskOutputFilePropertySpec) {
-                File outputFile = ((CacheableTaskOutputFilePropertySpec) outputFileProperty).getOutputFile();
-                if (outputFile == null) {
-                    return;
-                }
-            }
-            specs.add(outputFileProperty);
-        }
+        declaredOutputFileProperties.add(outputFileProperty);
     }
 
-    public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
-        if (fileProperties == null) {
-            fileProperties = TaskPropertyUtils.collectFileProperties("output", specs.iterator());
-        }
-        return fileProperties;
+    public Factory<ImmutableSortedSet<TaskOutputFilePropertySpec>> getFilePropertiesFactory() {
+        return new Factory<ImmutableSortedSet<TaskOutputFilePropertySpec>>() {
+            @Nullable
+            @Override
+            public ImmutableSortedSet<TaskOutputFilePropertySpec> create() {
+                if (fileProperties == null) {
+                    Iterator<TaskOutputFilePropertySpec> flattenedProperties = Iterators.concat(Iterables.transform(declaredOutputFileProperties, new Function<TaskPropertySpec, Iterator<? extends TaskOutputFilePropertySpec>>() {
+                        @Override
+                        public Iterator<? extends TaskOutputFilePropertySpec> apply(@Nullable TaskPropertySpec propertySpec) {
+                            if (propertySpec instanceof CompositeTaskOutputPropertySpec) {
+                                return ((CompositeTaskOutputPropertySpec) propertySpec).resolveToOutputProperties();
+                            } else {
+                                if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {
+                                    File outputFile = ((CacheableTaskOutputFilePropertySpec) propertySpec).getOutputFile();
+                                    if (outputFile == null) {
+                                        return Iterators.emptyIterator();
+                                    }
+                                }
+                                return Iterators.singletonIterator((TaskOutputFilePropertySpec) propertySpec);
+                            }
+                        }
+                    }).iterator());
+                    fileProperties = TaskPropertyUtils.collectFileProperties("output", flattenedProperties);
+                }
+                return fileProperties;
+            }
+        };
     }
 
     public boolean hasDeclaredOutputs() {
