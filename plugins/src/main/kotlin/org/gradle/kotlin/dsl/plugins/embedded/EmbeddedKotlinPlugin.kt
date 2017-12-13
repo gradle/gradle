@@ -47,14 +47,14 @@ open class EmbeddedKotlinPlugin @Inject internal constructor(
             embeddedKotlin.addDependenciesTo(
                 dependencies,
                 embeddedKotlinConfiguration.name,
-                "stdlib", "reflect")
+                "stdlib-jre8", "reflect")
 
             listOf("compileOnly", "testCompileOnly").forEach {
                 configurations.getByName(it).extendsFrom(embeddedKotlinConfiguration)
             }
 
             configurations.all {
-                embeddedKotlin.pinDependenciesOn(it, "stdlib", "reflect", "compiler-embeddable")
+                embeddedKotlin.pinDependenciesOn(it, "stdlib-jre8", "reflect", "compiler-embeddable")
             }
         }
     }

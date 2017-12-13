@@ -4,10 +4,8 @@ import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 
 import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.not
 
 import org.junit.Assert.assertThat
-import org.junit.Assume.assumeThat
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
@@ -31,9 +29,7 @@ class SamplesSmokeTest(
 
     @Before
     fun populateProjectRootWithSample() {
-        if (sampleName.contains("android")) {
-            assumeTrue(System.getenv().containsKey("ANDROID_HOME"))
-        }
+        ignoreAndroidSampleUnlessAndroidHomeIsSet()
         copySampleProject(from = sampleDir, to = projectRoot)
     }
 
@@ -57,6 +53,13 @@ class SamplesSmokeTest(
 
         // Mark that test as ignored if not using the kotlin-gradle-plugin
         assumeTrue(foundKotlinGradlePlugin.any { it })
+    }
+
+    private
+    fun ignoreAndroidSampleUnlessAndroidHomeIsSet() {
+        if (sampleName.contains("android")) {
+            assumeTrue(System.getenv().containsKey("ANDROID_HOME"))
+        }
     }
 
     private

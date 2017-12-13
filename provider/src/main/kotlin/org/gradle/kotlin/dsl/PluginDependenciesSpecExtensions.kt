@@ -15,6 +15,7 @@
  */
 package org.gradle.kotlin.dsl
 
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
@@ -24,9 +25,9 @@ import org.gradle.plugin.use.PluginDependencySpec
  *
  * Visit the [Build Scan Plugin User Manual](https://docs.gradle.com/build-scan-plugin/) for additional information.
  *
- * Equivalent to `id("com.gradle.build-scan") version "1.9.1"`.
+ * By default, the applied plugin version will be the same as the one used by the `--scan` command line option.
  *
- * You can also use e.g. `` `build-scan` version "1.8" `` if you want to use a different version.
+ * You can also use e.g. `` `build-scan` version "1.8" `` to request a different version.
  */
 val PluginDependenciesSpec.`build-scan`: PluginDependencySpec
-    get() = id("com.gradle.build-scan") version "1.9.1"
+    get() = id(AutoAppliedBuildScanPlugin.ID.id) version AutoAppliedBuildScanPlugin.VERSION

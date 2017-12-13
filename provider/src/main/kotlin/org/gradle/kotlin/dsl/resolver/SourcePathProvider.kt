@@ -28,11 +28,11 @@ object SourcePathProvider {
     fun sourcePathFor(
         classPath: ClassPath,
         projectDir: File,
-        gradleHome: File?): ClassPath {
+        gradleHomeDir: File?): ClassPath {
 
         val gradleKotlinDslJar = classPath.filter { it.name.startsWith("gradle-kotlin-dsl-") }
         val projectBuildSrcRoots = buildSrcRootsOf(projectDir)
-        val gradleSourceRoots = gradleHome?.let { sourceRootsOf(it) } ?: emptyList()
+        val gradleSourceRoots = gradleHomeDir?.let { sourceRootsOf(it) } ?: emptyList()
 
         return gradleKotlinDslJar + projectBuildSrcRoots + gradleSourceRoots
     }

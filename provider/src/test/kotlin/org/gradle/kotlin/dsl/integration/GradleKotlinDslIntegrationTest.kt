@@ -129,7 +129,8 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `given a plugin compiled against Kotlin one dot zero, it will run against the embedded Kotlin version`() {
-        assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
+
+        assumeJavaLessThan9()
 
         withBuildScript("""
             buildscript {
@@ -331,11 +332,9 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             }
         """)
 
-        existing("settings.gradle").appendText("""
-            include 'sub-project'
-        """)
+        withSettings("include(\"sub-project\")")
 
-        withFile("sub-project/build.gradle.kts", """
+        withBuildScriptIn("sub-project", """
             task("compute") {
                 doLast {
                     val computer = ${DeepThought::class.qualifiedName}()
@@ -352,7 +351,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `given non-existing build script file name set in settings do not fail`() {
 
-        withFile("settings.gradle", "rootProject.buildFileName = \"does-not-exist.gradle.kts\"")
+        withSettings("rootProject.buildFileName = \"does-not-exist.gradle.kts\"")
 
         build("help")
     }
@@ -389,20 +388,155 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
                 not(containsString("myTask.foo"))))
     }
 
-    //@Issue("gradle/gradle#3250")
     @Test
-    fun `automatically applies build scan plugin when --scan is provided on command-line and a script is applied in the buildscript block`() {
+    fun `build with groovy settings and kotlin-dsl build script succeeds`() {
+
+        withFile("settings.gradle", """
+            println 'Groovy DSL Settings'
+        """)
+
         withBuildScript("""
+            println("Kotlin DSL Build Script")
+        """)
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("Groovy DSL Settings"),
+                containsString("Kotlin DSL Build Script")))
+    }
+
+    @Test
+    fun `build script can use jre8 extensions`() {
+
+        assumeJavaLessThan9()
+
+        withBuildScript("""
+
+            // without kotlin-stdlib-jre8 we get:
+            // > Retrieving groups by name is not supported on this platform.
+
+            val regex = Regex("(?<bla>.*)")
+            val groups = regex.matchEntire("abc")?.groups
+            println("*" + groups?.get("bla")?.value + "*")
+
+        """)
+
+        assertThat(
+            build("help").output,
+            containsString("*abc*"))
+    }
+
+    @Test
+    fun `settings script can use buildscript dependencies`() {
+
+        withSettings("""
             buildscript {
-              rootProject.apply { from(rootProject.file("gradle/dependencies.gradle.kts")) }
+                repositories { jcenter() }
+                dependencies {
+                    classpath("org.apache.commons:commons-lang3:3.6")
+                }
             }
-            buildScan {
-                setLicenseAgreementUrl("https://gradle.com/terms-of-service")
-                setLicenseAgree("yes")
+
+            println(org.apache.commons.lang3.StringUtils.reverse("Gradle"))
+        """)
+
+        assertThat(
+            build("help").output,
+            containsString("eldarG"))
+    }
+
+    @Test
+    fun `script plugin can by applied to either Project or Settings`() {
+
+        withFile("common.gradle.kts", """
+            println("Target is Settings? ${"$"}{Settings::class.java.isAssignableFrom(this::class.java)}")
+            println("Target is Project? ${"$"}{Project::class.java.isAssignableFrom(this::class.java)}")
+        """)
+
+        withSettings("""
+            apply { from("common.gradle.kts") }
+        """)
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("Target is Settings? true"),
+                containsString("Target is Project? false")))
+
+        withSettings("")
+        withBuildScript("""
+            apply { from("common.gradle.kts") }
+        """)
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("Target is Settings? false"),
+                containsString("Target is Project? true")))
+    }
+
+    @Test
+    fun `can apply buildSrc plugin to Settings`() {
+
+        withBuildSrc()
+
+        withFile("buildSrc/src/main/groovy/my/SettingsPlugin.groovy", """
+            package my
+
+            import org.gradle.api.*
+            import org.gradle.api.initialization.Settings
+
+            class SettingsPlugin implements Plugin<Settings> {
+                void apply(Settings settings) {
+                    println("Settings plugin applied!")
+                }
             }
         """)
-        withFile("gradle/dependencies.gradle.kts")
-        canPublishBuildScan()
+
+        withSettings("""
+            apply { plugin(my.SettingsPlugin::class.java) }
+        """)
+
+        assertThat(
+            build("help").output,
+            containsString("Settings plugin applied!"))
+    }
+
+    @Test
+    fun `scripts can use the gradle script api`() {
+
+        fun usageFor(target: String) = """
+
+            logger.error("Error logging from $target")
+            require(logging is LoggingManager, { "logging" })
+            require(resources is ResourceHandler, { "resources" })
+
+            require(relativePath("src/../settings.gradle.kts") == "settings.gradle.kts", { "relativePath(path)" })
+            require(uri("settings.gradle.kts").toString().endsWith("settings.gradle.kts"), { "uri(path)" })
+            require(file("settings.gradle.kts").isFile, { "file(path)" })
+            require(files("settings.gradle.kts").files.isNotEmpty(), { "files(paths)" })
+            require(fileTree(".").contains(file("settings.gradle.kts")), { "fileTree(path)" })
+            require(copySpec {} != null, { "copySpec {}" })
+            require(mkdir("some").isDirectory, { "mkdir(path)" })
+            require(delete("some"), { "delete(path)" })
+            require(delete {} != null, { "delete {}" })
+
+        """
+
+        withSettings(usageFor("Settings"))
+        withBuildScript(usageFor("Project"))
+
+        assertThat(
+            build("help").output,
+            allOf(
+                containsString("Error logging from Settings"),
+                containsString("Error logging from Project")))
+    }
+
+    private
+    fun assumeJavaLessThan9() {
+        assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
     }
 
     private

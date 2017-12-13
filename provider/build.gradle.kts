@@ -3,7 +3,7 @@ import build.*
 import codegen.GenerateKotlinDependencyExtensions
 
 plugins {
-    id("kotlin-dsl-published-module")
+    id("public-kotlin-dsl-module")
 }
 
 base {
@@ -14,7 +14,7 @@ dependencies {
     compileOnly(gradleApi())
 
     compile(project(":tooling-models"))
-    compile(futureKotlin("stdlib"))
+    compile(futureKotlin("stdlib-jre8"))
     compile(futureKotlin("reflect"))
     compile(futureKotlin("compiler-embeddable"))
     compile(futureKotlin("sam-with-receiver-compiler-plugin")) {

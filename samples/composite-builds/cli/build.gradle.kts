@@ -11,5 +11,5 @@ application {
 }
 
 dependencies {
-    compile("org.gradle.kotlin.dsl.samples.composite-builds:core:1.0")
+    compile("composite-builds:core:1.0")
 }
