@@ -21,12 +21,13 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.internal.Factory;
 
 import java.util.Map;
 
 public interface TaskProperties {
 
-    Map<String, Object> getInputPropertyValues();
+    Factory<Map<String, Object>> getInputPropertyValues();
 
     ImmutableSortedSet<TaskInputFilePropertySpec> getInputFileProperties();
 

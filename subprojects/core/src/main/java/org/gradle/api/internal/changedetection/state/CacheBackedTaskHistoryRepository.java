@@ -303,7 +303,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static ImmutableSortedMap<String, ValueSnapshot> snapshotTaskInputProperties(TaskInternal task, TaskProperties taskProperties, ImmutableSortedMap<String, ValueSnapshot> previousInputProperties, ValueSnapshotter valueSnapshotter) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        for (Map.Entry<String, Object> entry : taskProperties.getInputPropertyValues().entrySet()) {
+        for (Map.Entry<String, Object> entry : taskProperties.getInputPropertyValues().create().entrySet()) {
             String propertyName = entry.getKey();
             Object value = entry.getValue();
             try {
