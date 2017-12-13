@@ -20,7 +20,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -42,14 +44,18 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final ComponentVariant variant;
     private final ImmutableList<GradleDependencyMetadata> dependencies;
+    private final ImmutableAttributesFactory attributesFactory;
     private final ComponentMetadataRules componentMetadataRules;
+    private final ImmutableAttributes componentLevelAttributes;
 
     private List<GradleDependencyMetadata> calculatedDependencies;
 
-    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ComponentMetadataRules componentMetadataRules) {
+    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableAttributes attributes, ImmutableAttributesFactory attributesFactory, ComponentMetadataRules componentMetadataRules) {
         this.componentId = componentId;
         this.variant = variant;
+        this.attributesFactory = attributesFactory;
         this.componentMetadataRules = componentMetadataRules;
+        this.componentLevelAttributes = attributes;
         List<GradleDependencyMetadata> dependencies = new ArrayList<GradleDependencyMetadata>(variant.getDependencies().size());
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint());
@@ -84,7 +90,11 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
 
     @Override
     public ImmutableAttributes getAttributes() {
-        return componentMetadataRules.applyVariantAttributeRules(variant.getAttributes());
+        return componentMetadataRules.applyVariantAttributeRules(mergeComponentAndVariantAttributes(variant.getAttributes()));
+    }
+
+    private AttributeContainerInternal mergeComponentAndVariantAttributes(AttributeContainerInternal variantAttributes) {
+        return attributesFactory.concat(componentLevelAttributes, variantAttributes.asImmutable());
     }
 
     @Override

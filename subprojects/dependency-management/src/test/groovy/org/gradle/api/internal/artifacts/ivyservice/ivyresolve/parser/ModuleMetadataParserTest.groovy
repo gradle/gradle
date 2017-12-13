@@ -117,7 +117,7 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant
+        1 * metadata.addVariant("api", attributes(usage: "compile"),) >> variant
         1 * variant.addFile("a.zip", "a.zop")
         1 * variant.addDependency("g1", "m1", prefers("v1"), [])
         0 * _
@@ -146,8 +146,8 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * metadata.addVariant("api", attributes(usage: "compile"),) >> variant1
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip"),) >> variant2
         0 * _
     }
 
@@ -182,10 +182,10 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * metadata.addVariant("api", attributes(usage: "compile"),) >> variant1
         1 * variant1.addFile("api.zip", "api.zop")
         1 * variant1.addFile("api-2.zip", "api-2.zop")
-        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip"),) >> variant2
         1 * variant2.addFile("api.zip", "api.zop")
         1 * variant2.addFile("runtime.zip", "runtime.zop")
         0 * _
@@ -233,12 +233,12 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * metadata.addVariant("api", attributes(usage: "compile"),) >> variant1
         1 * variant1.addDependency("g0", "m0", emptyConstraint(), [])
         1 * variant1.addDependency("g1", "m1", prefers("v1"), [])
         1 * variant1.addDependency("g2", "m2", prefers("v2"), [])
         1 * variant1.addDependency("g3", "m3", prefers("v3"), excludes("gx:mx", "*:*"))
-        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip"),) >> variant2
         1 * variant2.addDependency("g3", "m3", prefers("v3"), [])
         1 * variant2.addDependency("g4", "m4", prefersAndRejects("v4", ["v5"]), [])
         1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), [])
@@ -282,11 +282,11 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * metadata.addVariant("api", attributes(usage: "compile"),) >> variant1
         1 * variant1.addDependencyConstraint("g1", "m1", prefers("v1"))
         1 * variant1.addDependencyConstraint("g2", "m2", prefers("v2"))
         1 * variant1.addDependencyConstraint("g3", "m3", prefers("v3"))
-        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip"),) >> variant2
         1 * variant2.addDependencyConstraint("g3", "m3", prefers("v3"))
         1 * variant2.addDependencyConstraint("g4", "m4", prefersAndRejects("v4", ["v5"]))
         1 * variant2.addDependencyConstraint("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]))
@@ -312,7 +312,7 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile", debuggable: true, testable: false)) >> variant
+        1 * metadata.addVariant("api", attributes(usage: "compile", debuggable: true, testable: false),) >> variant
         0 * _
     }
 
@@ -340,8 +340,8 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes()) >> variant1
-        1 * metadata.addVariant("runtime", attributes()) >> variant2
+        1 * metadata.addVariant("api", attributes(),) >> variant1
+        1 * metadata.addVariant("runtime", attributes(),) >> variant2
         0 * _
     }
 
@@ -380,9 +380,9 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * metadata.addVariant("api", attributes(usage: "compile"),) >> variant1
         1 * variant1.addDependency("g1", "m1", prefers("v1"), [])
-        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip"),) >> variant2
         1 * variant2.addDependency("g2", "m2", prefers("v2"), [])
         0 * _
     }
@@ -438,7 +438,7 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes())
+        1 * metadata.addVariant("api", attributes(),)
         0 * metadata._
     }
 
@@ -469,7 +469,7 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes()) >> variant
+        1 * metadata.addVariant("api", attributes(),) >> variant
         0 * metadata._
     }
 
@@ -504,7 +504,7 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes()) >> variant
+        1 * metadata.addVariant("api", attributes(),) >> variant
         1 * variant.addDependency("g", "m", prefers("v"), excludes("g:*"))
         0 * metadata._
     }
