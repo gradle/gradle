@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Unroll
@@ -34,7 +35,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
         then:
         file(SAMPLE_APP_CLASS).exists()
         file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
-        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
         succeeds("build")
@@ -60,7 +61,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
         then:
         file(SAMPLE_APP_CLASS).exists()
         file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
-        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
         succeeds("build")
@@ -105,10 +106,14 @@ class GroovyApplicationInitIntegrationTest extends AbstractIntegrationSpec {
         then:
         !file(SAMPLE_APP_CLASS).exists()
         !file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
-        ScriptDslFixture.of(scriptDsl, testDirectory).assertGradleFilesGenerated()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    private ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
+        ScriptDslFixture.of(dsl, testDirectory)
     }
 
     def assertTestPassed(String name) {

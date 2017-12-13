@@ -16,7 +16,9 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 import spock.lang.Unroll
@@ -41,16 +43,16 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
         run 'init'
 
         then:
-        ScriptDslFixture.of(GROOVY, testDirectory).assertGradleFilesGenerated()
+        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
     }
 
     @Unroll
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
         given:
-        def dslFixture = ScriptDslFixture.of(scriptDsl, testDirectory)
+        def dslFixture = dslFixtureFor(scriptDsl)
 
         when:
-        run 'init', '--dsl', scriptDsl.id
+        runInitWith scriptDsl
 
         then:
         dslFixture.assertGradleFilesGenerated()
@@ -71,14 +73,14 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl build file already exists"() {
         given:
-        def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
-        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
+        def existingDslFixture = dslFixtureFor(existingScriptDsl)
+        def targetDslFixture = dslFixtureFor(targetScriptDsl)
 
         and:
         existingDslFixture.buildFile.createFile()
 
         when:
-        run('init', '--dsl', targetScriptDsl.id)
+        runInitWith targetScriptDsl
 
         then:
         result.assertTasksExecuted(":init")
@@ -95,14 +97,14 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl settings file already exists"() {
         given:
-        def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
-        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
+        def existingDslFixture = dslFixtureFor(existingScriptDsl)
+        def targetDslFixture = dslFixtureFor(targetScriptDsl)
 
         and:
         existingDslFixture.settingsFile.createFile()
 
         when:
-        run('init', '--dsl', targetScriptDsl.id)
+        runInitWith targetScriptDsl
 
         then:
         result.assertTasksExecuted(":init")
@@ -119,15 +121,15 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "#targetScriptDsl build file generation is skipped when custom #existingScriptDsl build file exists"() {
         given:
-        def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
-        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
+        def existingDslFixture = dslFixtureFor(existingScriptDsl)
+        def targetDslFixture = dslFixtureFor(targetScriptDsl)
 
         and:
         def customBuildScript = existingDslFixture.scriptFile("customBuild").createFile()
 
         when:
         executer.usingBuildScript(customBuildScript)
-        run('init', '--dsl', targetScriptDsl.id)
+        runInitWith targetScriptDsl
 
         then:
         result.assertTasksExecuted(":init")
@@ -145,8 +147,8 @@ class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "#targetScriptDsl build file generation is skipped when part of a multi-project build with non-standard #existingScriptDsl settings file location"() {
         given:
-        def existingDslFixture = ScriptDslFixture.of(existingScriptDsl, testDirectory)
-        def targetDslFixture = ScriptDslFixture.of(targetScriptDsl, testDirectory)
+        def existingDslFixture = dslFixtureFor(existingScriptDsl)
+        def targetDslFixture = dslFixtureFor(targetScriptDsl)
 
         and:
         def customSettings = existingDslFixture.scriptFile("customSettings")
@@ -156,7 +158,7 @@ include("child")
 
         when:
         executer.usingSettingsFile(customSettings)
-        run('init', '--dsl', targetScriptDsl.id)
+        runInitWith targetScriptDsl
 
         then:
         result.assertTasksExecuted(":init")
@@ -179,7 +181,7 @@ include("child")
         run('init')
 
         then:
-        pomValuesUsed(ScriptDslFixture.of(GROOVY, testDirectory))
+        pomValuesUsed(dslFixtureFor(GROOVY))
     }
 
     @Unroll
@@ -191,7 +193,7 @@ include("child")
         succeeds('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
         then:
-        pomValuesNotUsed(ScriptDslFixture.of(scriptDsl, testDirectory))
+        pomValuesNotUsed(dslFixtureFor(scriptDsl))
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -254,6 +256,14 @@ include("child")
                           Available values are:
                                spock
                                testng""");
+    }
+
+    private ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
+        ScriptDslFixture.of(dsl, testDirectory)
+    }
+
+    private ExecutionResult runInitWith(BuildInitDsl dsl) {
+        run 'init', '--dsl', dsl.id
     }
 
     private TestFile pom() {
