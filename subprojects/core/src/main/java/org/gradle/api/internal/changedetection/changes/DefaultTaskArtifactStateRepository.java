@@ -92,13 +92,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public IncrementalTaskInputs getInputChanges() {
+        public IncrementalTaskInputs getInputChanges(TaskProperties taskProperties) {
             assert !upToDate : "Should not be here if the task is up-to-date";
 
             if (!outputsRemoved && canPerformIncrementalBuild()) {
                 taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
             } else {
-                taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
+                taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, taskProperties);
             }
             return taskInputs;
         }

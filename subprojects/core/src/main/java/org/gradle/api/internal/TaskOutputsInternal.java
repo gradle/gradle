@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal;
 
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.specs.AndSpec;
@@ -37,8 +35,6 @@ public interface TaskOutputsInternal extends TaskOutputs {
     void visitRegisteredProperties(PropertyVisitor visitor);
 
     AndSpec<? super TaskInternal> getUpToDateSpec();
-
-    ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties();
 
     /**
      * Returns the output files and directories recorded during the previous execution of the task.

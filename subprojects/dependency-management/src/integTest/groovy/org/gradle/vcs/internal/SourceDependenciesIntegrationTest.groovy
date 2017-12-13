@@ -91,22 +91,22 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         singleProjectBuild("first") {
             buildFile << commonConfiguration
         }
-        first.commit("initial commit", first.listFiles())
+        first.commit("initial commit")
 
         singleProjectBuild("second") {
             buildFile << commonConfiguration
         }
-        second.commit("initial commit", second.listFiles())
+        second.commit("initial commit")
 
         singleProjectBuild("third") {
             buildFile << commonConfiguration
         }
-        third.commit("initial commit", third.listFiles())
+        third.commit("initial commit")
 
         singleProjectBuild("fourth") {
             buildFile << commonConfiguration
         }
-        fourth.commit("initial commit", fourth.listFiles())
+        fourth.commit("initial commit")
     }
 
     def "can use source mappings in nested builds"() {
@@ -202,7 +202,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
             file('settings.gradle').text = """
                 rootProject.name = 'second'
             """
-            commit("Set project name to second", file('settings.gradle'))
+            commit("Set project name to second", 'settings.gradle')
         }
 
         dependency(first, "org.test:second")
@@ -258,7 +258,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
             file('settings.gradle').text = """
                 rootProject.name = 'third'
             """
-            commit("Set project name to third", file('settings.gradle'))
+            commit("Set project name to third", 'settings.gradle')
         }
 
         dependency(first, "org.test:second")
@@ -284,7 +284,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
             file('settings.gradle').text = """
                 rootProject.name = 'third'
             """
-            commit("Set project name to third", file('settings.gradle'))
+            commit("Set project name to third", 'settings.gradle')
         }
 
         dependency(first, "org.test:second")
@@ -312,7 +312,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 runtime '${target}:latest.integration'
             }
         """
-        consumer.commit("Create dependency on ${target}", consumer.file("build.gradle"))
+        consumer.commit("Create dependency on ${target}", "build.gradle")
     }
 
     void shouldResolve(GitRepository... targets) {
@@ -336,7 +336,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
             repo.file("build.gradle") << """
                 generate.message = "$message"
             """
-            repo.commit("change message", repo.file("build.gradle"))
+            repo.commit("change message", "build.gradle")
         }
     }
 
@@ -360,6 +360,6 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     void nestedVcsMapping(GitRepository repo, String module, GitRepository target) {
         vcsMapping(repo.file('settings.gradle'), module, TextUtil.normaliseFileSeparators(file(target.workTree.name).absolutePath))
-        repo.commit("add source mapping", repo.file('settings.gradle'))
+        repo.commit("add source mapping", 'settings.gradle')
     }
 }

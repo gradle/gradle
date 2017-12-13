@@ -30,7 +30,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
 
     def 'can define and use source repositories'() {
         given:
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
 
         settingsFile << """
             sourceControl {
@@ -53,7 +53,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Issue('gradle/gradle-native#206')
     def 'can define and use source repositories with initscript resolution present'() {
         given:
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
         temporaryFolder.file('initialize.gradle') << """
         initscript {            
             dependencies {
@@ -85,7 +85,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Issue('gradle/gradle-native#207')
     def 'can use repositories even when clean is run'() {
         given:
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
 
         settingsFile << """
             sourceControl {
@@ -124,12 +124,12 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
                 }
             }
         """
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
         repo.createLightWeightTag('1.3.0')
 
         def javaFile = file('dep/src/main/java/Dep.java')
         javaFile.replace('class', 'interface')
-        repo.commit('Changed Dep to an interface', file('dep'))
+        repo.commit('Changed Dep to an interface')
 
         buildFile.replace('latest.integration', '1.3.0')
 
@@ -154,12 +154,12 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
                 }
             }
         """
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
         repo.createLightWeightTag('1.3.0')
 
         def javaFile = file('dep/src/main/java/Dep.java')
         javaFile.replace('class', 'interface')
-        repo.commit('Changed Dep to an interface', file('dep'))
+        repo.commit('Changed Dep to an interface')
 
         buildFile.replace('latest.integration', '1.4.0')
 
@@ -172,7 +172,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
 
         when:
         javaFile.replace('interface', 'class')
-        repo.commit('Switch it back to a class.', file('dep'))
+        repo.commit('Switch it back to a class.')
         repo.createLightWeightTag('1.4.0')
 
         then:
@@ -203,11 +203,11 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
                 compile "org.test:dep:1.4.0"
             }
         """
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
         repo.createLightWeightTag('1.3.0')
         def javaFile = file('dep/src/main/java/Dep.java')
         javaFile.replace('class', 'interface')
-        def commit2 = repo.commit('Changed Dep to an interface', file('dep'))
+        def commit2 = repo.commit('Changed Dep to an interface')
         repo.createLightWeightTag('1.4.0')
 
         when:
@@ -258,8 +258,8 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
              }
         """
 
-        def depCommit = repo.commit('initial commit', file('dep'))
-        def deeperCommit = deeperRepo.commit('initial commit', file('deeperDep'))
+        def depCommit = repo.commit('initial commit')
+        def deeperCommit = deeperRepo.commit('initial commit')
 
         when:
         succeeds('assemble')
@@ -314,7 +314,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
                 compile project(':bar')
             }
         """
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
         def block = server.expectAndBlock("block")
 
         when:
@@ -326,7 +326,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         // Change the head of the repo
         def javaFile = file('dep/src/main/java/Dep.java')
         javaFile.replace('class', 'interface')
-        repo.commit('Changed Dep to an interface', javaFile)
+        repo.commit('Changed Dep to an interface')
 
         // Finish up build
         block.releaseAll()

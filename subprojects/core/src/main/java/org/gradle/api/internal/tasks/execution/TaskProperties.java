@@ -21,28 +21,31 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.internal.Factory;
 
 import java.util.Map;
 
 public interface TaskProperties {
 
-    boolean hasSourceFiles();
+    Factory<Map<String, Object>> getInputPropertyValues();
+
+    ImmutableSortedSet<TaskInputFilePropertySpec> getInputFileProperties();
 
     FileCollection getInputFiles();
+
+    boolean hasSourceFiles();
+
+    FileCollection getSourceFiles();
 
     ImmutableSortedSet<TaskOutputFilePropertySpec> getOutputFileProperties();
 
     FileCollection getOutputFiles();
 
-    FileCollection getSourceFiles();
-
-    ImmutableSortedSet<TaskInputFilePropertySpec> getInputFileProperties();
-
-    void validate(TaskValidationContext validationContext);
-
     boolean hasDeclaredOutputs();
 
-    Map<String, Object> getInputProperties();
-
     FileCollection getLocalStateFiles();
+
+    FileCollection getDestroyableFiles();
+
+    void validate(TaskValidationContext validationContext);
 }
