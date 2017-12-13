@@ -39,7 +39,6 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.DeprecationLogger;
 
@@ -196,7 +195,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
         @Override
         public Provider<Directory> dir(Provider<? extends CharSequence> path) {
-            return new ResolvingDirectory(fileResolver, path, path);
+            return new ResolvingDirectory(fileResolver, path);
         }
 
         @Override
@@ -299,12 +298,10 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private static class ResolvingDirectory extends AbstractProvider<Directory> implements TaskDependencyContainer {
         private final FileResolver resolver;
         private final Provider<?> valueProvider;
-        private final Factory<File> valueFactory;
 
-        ResolvingDirectory(FileResolver resolver, Object value, Provider<?> valueProvider) {
+        ResolvingDirectory(FileResolver resolver, Provider<?> valueProvider) {
             this.resolver = resolver;
             this.valueProvider = valueProvider;
-            this.valueFactory = resolver.resolveLater(value);
         }
 
         @Nullable
@@ -320,7 +317,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
         @Override
         public boolean isPresent() {
-            return valueProvider == null || valueProvider.isPresent();
+            return valueProvider.isPresent();
         }
 
         @Override
@@ -328,8 +325,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
             if (!isPresent()) {
                 return null;
             }
-            // TODO - factory should cache, and use a FixedDirectory instance when the value is fixed
-            File dir = valueFactory.create();
+            File dir = resolver.resolve(valueProvider);
             return new FixedDirectory(dir, resolver.newResolver(dir));
         }
     }
@@ -345,7 +341,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         DefaultDirectoryVar(FileResolver resolver, Object value) {
             super(Directory.class);
             this.resolver = resolver;
-            set(new ResolvingDirectory(resolver, value, null));
+            resolveAndSet(value);
         }
 
         @Override
@@ -376,7 +372,8 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
 
         void resolveAndSet(Object value) {
-            set(new ResolvingDirectory(resolver, value, null));
+            File resolved = resolver.resolve(value);
+            set(new FixedDirectory(resolved, resolver.newResolver(resolved)));
         }
 
         @Override

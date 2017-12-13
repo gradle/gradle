@@ -16,8 +16,6 @@
 
 package org.gradle.internal.file;
 
-import org.gradle.internal.Factory;
-
 import java.io.File;
 
 /**
@@ -28,11 +26,6 @@ public interface PathToFileResolver {
      * Resolves the given path to a file.
      */
     File resolve(Object path);
-
-    /**
-     * Returns a factory that resolves the given path to a file on each call to {@link Factory#create()}.
-     */
-    Factory<File> resolveLater(Object path);
 
     /**
      * Returns a resolver that resolves paths relative to the given base dir.

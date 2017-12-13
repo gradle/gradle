@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
@@ -39,8 +40,17 @@ import java.util.concurrent.Callable;
 import static com.google.common.collect.Iterables.toArray;
 import static org.gradle.util.GUtil.uncheckedCall;
 
+/**
+ * A task dependency which can have both mutable and immutable dependency values.
+ *
+ * If dependencies are known up-front, it is much more efficient to pass
+ * them as immutable values to the {@link DefaultTaskDependency#DefaultTaskDependency(TaskResolver, ImmutableSet)}
+ * constructor than to use the {@link #add(Object...)} method, as the former will
+ * require less memory to store them.
+ */
 public class DefaultTaskDependency extends AbstractTaskDependency {
-    private Set<Object> values;
+    private final ImmutableSet<Object> immutableValues;
+    private Set<Object> mutableValues;
     private final TaskResolver resolver;
 
     public DefaultTaskDependency() {
@@ -48,15 +58,23 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     }
 
     public DefaultTaskDependency(TaskResolver resolver) {
+        this(resolver, ImmutableSet.of());
+    }
+
+    public DefaultTaskDependency(TaskResolver resolver, ImmutableSet<Object> immutableValues) {
         this.resolver = resolver;
+        this.immutableValues = immutableValues;
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        if (getValues().isEmpty()) {
+        Set<Object> mutableValues = getMutableValues();
+        if (mutableValues.isEmpty() && immutableValues.isEmpty()) {
             return;
         }
-        Deque<Object> queue = new ArrayDeque<Object>(getValues());
+        Deque<Object> queue = new ArrayDeque<Object>(mutableValues.size() + immutableValues.size());
+        queue.addAll(immutableValues);
+        queue.addAll(mutableValues);
         while (!queue.isEmpty()) {
             Object dependency = queue.removeFirst();
             if (dependency instanceof Buildable) {
@@ -138,15 +156,15 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         }
     }
 
-    public Set<Object> getValues() {
-        if (values == null) {
-            values = Sets.newHashSet();
+    public Set<Object> getMutableValues() {
+        if (mutableValues == null) {
+            mutableValues = Sets.newHashSet();
         }
-        return values;
+        return mutableValues;
     }
 
     public void setValues(Iterable<?> values) {
-        getValues().clear();
+        getMutableValues().clear();
         for (Object value : values) {
             addValue(value);
         }
@@ -163,6 +181,6 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         if (dependency == null) {
             throw new InvalidUserDataException("A dependency must not be empty");
         }
-        getValues().add(dependency);
+        getMutableValues().add(dependency);
     }
 }

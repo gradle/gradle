@@ -77,7 +77,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     private boolean isBom(PomReader pomReader) {
-        return pomReader.getDependencies().isEmpty() && !pomReader.getDependencyMgt().isEmpty() && POM_PACKAGING.equals(pomReader.getPackaging());
+        return POM_PACKAGING.equals(pomReader.getPackaging());
     }
 
     protected MutableMavenModuleResolveMetadata doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
@@ -143,14 +143,15 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     private void addDependencies(GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) {
+        // Only consider Maven <dependencyManagement> for BOM files
         if (isBom(pomReader)) {
             for (PomDependencyMgt dependencyMgt : pomReader.getDependencyMgt().values()) {
                 mdBuilder.addOptionalDependency(dependencyMgt);
             }
-        } else {
-            for (PomDependencyData dependency : pomReader.getDependencies().values()) {
-                mdBuilder.addDependency(dependency);
-            }
+        }
+
+        for (PomDependencyData dependency : pomReader.getDependencies().values()) {
+            mdBuilder.addDependency(dependency);
         }
     }
 

@@ -50,8 +50,8 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
-        _ * fileResolver.resolveLater(_) >> fileFactory()
-        _ * fileResolver.resolve(_) >> { files -> files[0] }
+        _ * fileResolver.resolve(_ as File) >> { files -> files[0] }
+        _ * fileResolver.resolve(_ as String) >> { files -> new File(files[0]) }
         _ * workerExecutorFactory.create(_ as String) >> stoppableExecutor
         workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, workerExecutorFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider)
     }

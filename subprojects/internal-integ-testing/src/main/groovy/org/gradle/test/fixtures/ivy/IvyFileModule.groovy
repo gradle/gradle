@@ -17,6 +17,7 @@ package org.gradle.test.fixtures.ivy
 
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Action
+import org.gradle.api.attributes.Usage
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
@@ -43,7 +44,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final Map extendsFrom = [:]
     final Map extraAttributes = [:]
     final Map extraInfo = [:]
-    final List<VariantMetadata> variants = [new VariantMetadata("default")]
+    private final List<VariantMetadata> variants = [new VariantMetadata("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API]), new VariantMetadata("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME])]
     String branch = null
     String status = "integration"
     MetadataPublish metadataPublish = MetadataPublish.ALL

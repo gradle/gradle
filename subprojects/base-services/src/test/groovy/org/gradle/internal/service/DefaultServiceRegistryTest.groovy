@@ -95,7 +95,16 @@ class DefaultServiceRegistryTest extends Specification {
         expect:
         registry.get(BigDecimal) == value
         registry.get(Number) == value
-        registry.get(Object) == value
+    }
+
+    def "does not support querying for Object.class"() {
+        def registry = new DefaultServiceRegistry()
+        when:
+        registry.get(Object)
+
+        then:
+        ServiceValidationException e = thrown()
+        e.message == "Locating services with type Object is not supported."
     }
 
     def createsInstanceOfServiceImplementation() {
@@ -269,7 +278,8 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         e = thrown()
-        e.message == "Cannot create service of type String using StringProvider.createString() as required service of type Runnable is not available."
+        e.message == "Cannot create service of type Integer using StringProvider.createInteger() as there is a problem with parameter #1 of type String."
+        e.cause.message == "Cannot create service of type String using StringProvider.createString() as required service of type Runnable is not available."
     }
 
     def failsWhenProviderFactoryMethodThrowsException() {
@@ -325,7 +335,6 @@ class DefaultServiceRegistryTest extends Specification {
         expect:
         registry.get(Long) == 112L
         registry.get(Number) == 112L
-        registry.get(Object) == 112L
 
         where:
         decoratorProvider << [ new TestDecoratingProviderWithCreate(), new TestDecoratingProviderWithDecorate() ]
@@ -437,16 +446,19 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String."
-        e.cause.message == 'A service dependency cycle was detected: Integer > String > String.'
+        e.message == 'Cannot create service of type String using ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
+        e.cause.message == 'Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
+        e.cause.cause.message == 'Cycle in dependencies of Service String at ProviderWithCycle.createString() detected'
 
         when:
         registry.getAll(Number)
 
         then:
         e = thrown()
-        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String."
-        e.cause.message == 'A service dependency cycle was detected: Integer > String > String.'
+
+        e.message == 'Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
+        e.cause.message == 'Cannot create service of type String using ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
+        e.cause.cause.message == 'Cycle in dependencies of Service Integer at ProviderWithCycle.createInteger() detected'
     }
 
     def failsWhenAProviderFactoryMethodReturnsNull() {
@@ -517,13 +529,11 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(String)
 
         when:
-        registry.get(Object)
+        registry.get(Comparable)
 
         then:
         ServiceLookupException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""Multiple services of type Object available in DefaultServiceRegistry:
-   - Service Callable<BigDecimal> at TestProvider.createCallable()
-   - Service Factory<BigDecimal> at TestProvider.createTestFactory()
+        e.message == TextUtil.toPlatformLineSeparators("""Multiple services of type Comparable available in DefaultServiceRegistry:
    - Service Integer at TestProvider.createInt()
    - Service String at TestProvider.createString()""")
     }
@@ -680,7 +690,6 @@ class DefaultServiceRegistryTest extends Specification {
         expect:
         registry.get(new TypeToken<List<String>>() {}.type) == ["12", "hi"]
         registry.get(new TypeToken<List<Number>>() {}.type) == [12]
-        registry.get(new TypeToken<List<?>>() {}.type) == registry.getAll(Object)
         registry.get(new TypeToken<List<? extends CharSequence>>() {}.type) == ["12", "hi"]
         registry.get(new TypeToken<List<? extends Number>>() {}.type) == [12]
     }
@@ -696,14 +705,14 @@ class DefaultServiceRegistryTest extends Specification {
                 return {} as Factory
             }
 
-            Callable<String> createCallable() {
-                return {}
+            CharSequence createCharSequence() {
+                return "foo"
             }
         })
 
         expect:
         registry.getAll(Factory).size() == 1
-        registry.getAll(Object).size() == 3
+        registry.getAll(CharSequence).size() == 2
     }
 
     def allServicesReturnsEmptyCollectionWhenNoServicesOfGivenType() {
@@ -885,12 +894,12 @@ class DefaultServiceRegistryTest extends Specification {
         def registry = new RegistryWithAmbiguousFactoryMethods()
 
         when:
-        registry.getFactory(Object)
+        registry.getFactory(Comparable)
 
         then:
         ServiceLookupException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""Multiple factories for objects of type Object available in RegistryWithAmbiguousFactoryMethods:
-   - Service Factory<Object> at RegistryWithAmbiguousFactoryMethods.createObjectFactory()
+        e.message == TextUtil.toPlatformLineSeparators("""Multiple factories for objects of type Comparable available in RegistryWithAmbiguousFactoryMethods:
+   - Service Factory<Integer> at RegistryWithAmbiguousFactoryMethods.createIntegerFactory()
    - Service Factory<String> at RegistryWithAmbiguousFactoryMethods.createStringFactory()""")
     }
 
@@ -931,7 +940,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def closeIgnoresServiceWithNoCloseOrStopMethod() {
         registry.add(String, "service")
-        registry.getAll(Object)
+        registry.getAll(String)
 
         when:
         registry.close()
@@ -1127,14 +1136,14 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "Cannot locate service of type String, as TestRegistry has been closed."
+        e.message == "TestRegistry has been closed."
 
         when:
         registry.getAll(String)
 
         then:
         e = thrown()
-        e.message == "Cannot locate service of type String, as TestRegistry has been closed."
+        e.message == "TestRegistry has been closed."
     }
 
     def cannotLookupFactoriesWhenClosed() {
@@ -1147,7 +1156,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "Cannot locate factory for objects of type BigDecimal, as TestRegistry has been closed."
+        e.message == "TestRegistry has been closed."
     }
 
     /*
@@ -1496,18 +1505,18 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     private static class RegistryWithAmbiguousFactoryMethods extends DefaultServiceRegistry {
-        Object createObject() {
-            return "hello"
+        Integer createInteger() {
+            return 123
         }
 
         String createString() {
             return "hello"
         }
 
-        Factory<Object> createObjectFactory() {
-            return new Factory<Object>() {
-                public Object create() {
-                    return createObject()
+        Factory<Integer> createIntegerFactory() {
+            return new Factory<Integer>() {
+                public Integer create() {
+                    return createInteger()
                 }
             };
         }

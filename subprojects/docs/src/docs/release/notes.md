@@ -48,6 +48,10 @@ In this release, Gradle's incremental C/C++ compilation is now able to understan
 
 When registering task properties via the runtime API, property names are not required to be Java identifiers anymore, and can be any non-empty string.
 
+### ANTLR task is now cacheable by default
+
+When generating grammar sources with ANTLR, now the task's outputs are stored and retrieved from the build cache.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

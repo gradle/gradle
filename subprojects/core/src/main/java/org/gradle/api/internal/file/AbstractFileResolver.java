@@ -92,14 +92,6 @@ public abstract class AbstractFileResolver implements FileResolver {
     }
 
 
-    public Factory<File> resolveLater(final Object path) {
-        return new Factory<File>() {
-            public File create() {
-                return resolve(path);
-            }
-        };
-    }
-
     @Nullable
     public URI resolveUri(Object path) {
         return convertObjectToURI(path);

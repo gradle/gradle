@@ -343,6 +343,5 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         cleanup:
         server.stop()
     }
-
     // TODO: Use HTTP hosting for git repo
 }

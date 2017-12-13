@@ -19,6 +19,7 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
+
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */

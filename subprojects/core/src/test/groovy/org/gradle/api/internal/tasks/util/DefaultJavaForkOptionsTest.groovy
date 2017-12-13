@@ -17,20 +17,21 @@
 
 package org.gradle.api.internal.tasks.util
 
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.jvm.Jvm
+import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 import java.nio.charset.Charset
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.DefaultJavaForkOptions
-import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.Factory
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.nullValue
+import static org.junit.Assert.assertThat
 
 @UsesNativeServices
 class DefaultJavaForkOptionsTest extends Specification {
@@ -38,8 +39,8 @@ class DefaultJavaForkOptionsTest extends Specification {
     private DefaultJavaForkOptions options
 
     def setup() {
-        _ * resolver.resolveLater(_ as File) >> { args -> Stub(Factory) { create() >> args[0] } }
-        _ * resolver.resolveLater(_ as String) >> { args -> Stub(Factory) { create() >> new File(args[0]) } }
+        _ * resolver.resolve(_ as File) >> { args -> args[0] }
+        _ * resolver.resolve(_ as String) >> { args -> new File(args[0]) }
         options = new DefaultJavaForkOptions(resolver, Jvm.current())
     }
 

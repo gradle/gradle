@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.regression.corefeature
+package org.gradle.vcs.internal
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import groovy.transform.SelfType
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.hash.HashUtil
+import org.gradle.test.fixtures.file.TestFile
 
-class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+@SelfType(AbstractIntegrationSpec)
+trait SourceDependencies {
+    TestFile checkoutDir(String repoName, String versionId, String repoId, TestFile baseDir=testDirectory) {
+        def hashedRepo = hashRepositoryId(repoId)
+        baseDir.file(".gradle/vcsWorkingDirs/${hashedRepo}-${versionId}/${repoName}")
+    }
 
-    def "create many tasks"() {
-        given:
-        runner.testProject = "createLotsOfTasks"
-        runner.tasksToRun = ['help']
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.targetVersions = ["4.5-20171210235906+0000"]
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
+    String hashRepositoryId(String repoId) {
+        HashUtil.createCompactMD5(repoId)
     }
 }

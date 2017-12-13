@@ -62,8 +62,8 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:first-level:1.0")
-                module("org:foo:1.0")
+                module("org:first-level:1.0:default")
+                module("org:foo:1.0:default")
             }
         }
     }

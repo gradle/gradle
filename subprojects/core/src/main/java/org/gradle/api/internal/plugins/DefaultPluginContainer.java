@@ -25,22 +25,54 @@ import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
+import java.util.Collection;
+
+/**
+ * This plugin collection is optimized based on the knowledge we have about how plugins
+ * are applied. The plugin manager already keeps track of all plugins and ensures they
+ * are only applied once. As a result, we don't need to keep another data structure here,
+ * but can just share the one kept by the manager. This class forbids all mutations, as
+ * manually adding/removing plugin instances does not make sense.
+ */
 public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
 
     private final PluginRegistry pluginRegistry;
     private final PluginManagerInternal pluginManager;
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager) {
-        super(Plugin.class);
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager, Collection<Plugin> values) {
+        super(Plugin.class, values);
         this.pluginRegistry = pluginRegistry;
         this.pluginManager = pluginManager;
+    }
 
-        // Need this to make withId() work when someone does project.plugins.add(new SomePlugin());
-        whenObjectAdded(new Action<Plugin>() {
-            public void execute(Plugin plugin) {
-                pluginManager.addImperativePlugin(plugin.getClass());
-            }
-        });
+    void pluginAddded(Plugin plugin) {
+        didAdd(plugin);
+        getEventRegister().getAddAction().execute(plugin);
+    }
+
+    @Override
+    public boolean add(Plugin toAdd) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends Plugin> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException();
     }
 
     public Plugin apply(String id) {
@@ -144,5 +176,4 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
 
         return super.withType(type);
     }
-
 }

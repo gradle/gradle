@@ -27,17 +27,19 @@ import org.gradle.initialization.BuildIdentity;
 public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifier {
     private final BuildIdentifier buildIdentifier;
     private final String projectPath;
-    private final String displayName;
+    private String displayName;
 
     public DefaultProjectComponentIdentifier(BuildIdentifier buildIdentifier, String projectPath) {
         assert buildIdentifier != null : "build cannot be null";
         assert projectPath != null : "project path cannot be null";
         this.buildIdentifier = buildIdentifier;
         this.projectPath = projectPath;
-        displayName = "project " + fullPath(buildIdentifier, projectPath);
     }
 
     public String getDisplayName() {
+        if (displayName == null) {
+            displayName = "project " + fullPath(buildIdentifier, projectPath);
+        }
         return displayName;
     }
 
@@ -79,7 +81,7 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
 
     @Override
     public String toString() {
-        return displayName;
+        return getDisplayName();
     }
 
     private static String fullPath(BuildIdentifier build, String projectPath) {

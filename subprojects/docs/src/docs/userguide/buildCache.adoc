@@ -158,6 +158,7 @@ Currently, the following built-in Gradle tasks are cacheable:
     api:org.gradle.testing.jacoco.tasks.JacocoMerge[],
     api:org.gradle.testing.jacoco.tasks.JacocoReport[]
 * Other tasks:
+    api:org.gradle.api.plugins.antlr.AntlrTask[]
     api:org.gradle.plugin.devel.tasks.ValidateTaskProperties[],
     api:org.gradle.api.tasks.WriteProperties[]
 

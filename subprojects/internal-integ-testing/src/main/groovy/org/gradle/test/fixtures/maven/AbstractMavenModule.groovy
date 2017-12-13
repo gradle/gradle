@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.maven
 
 import groovy.xml.MarkupBuilder
+import org.gradle.api.attributes.Usage
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
@@ -42,7 +43,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     String packaging
     int publishCount = 1
     private boolean hasPom = true
-    private final List<VariantMetadata> variants = [new VariantMetadata("default")]
+    private final List<VariantMetadata> variants = [new VariantMetadata("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API]), new VariantMetadata("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME])]
     private final List dependencies = []
     private final List artifacts = []
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")

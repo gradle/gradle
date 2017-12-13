@@ -77,7 +77,7 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
         ModuleIdentifier candidateId = moduleIdentifierFactory.module(selector.getGroup(), selector.getModule());
         Collection<ProjectComponentIdentifier> providingProjects = replacementMap.get(candidateId);
         if (providingProjects.isEmpty()) {
-            LOGGER.info("Found no composite build substitute for module '" + candidateId + "'.");
+            LOGGER.debug("Found no composite build substitute for module '" + candidateId + "'.");
             return null;
         }
         if (providingProjects.size() == 1) {
