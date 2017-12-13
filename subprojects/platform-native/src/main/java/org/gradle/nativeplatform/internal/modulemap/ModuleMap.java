@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform;
+package org.gradle.nativeplatform.internal.modulemap;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Input;
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * Represents a mapping between a module and the header files associated with the module.
  *
  * @since 4.5
  */
-@Incubating
-public class ModuleMap {
-    private final Property<String> moduleName;
-    private final ListProperty<String> publicHeaderPaths;
+public class ModuleMap implements Serializable {
+    private final String moduleName;
+    private final List<String> publicHeaderPaths;
 
-    public ModuleMap(Property<String> moduleName, ListProperty<String> publicHeaderPaths) {
+    public ModuleMap(String moduleName, List<String> publicHeaderPaths) {
         this.moduleName = moduleName;
         this.publicHeaderPaths = publicHeaderPaths;
     }
@@ -39,16 +36,14 @@ public class ModuleMap {
     /**
      * The name of the module to use for the generated module map.
      */
-    @Input
-    public Property<String> getModuleName() {
+    public String getModuleName() {
         return moduleName;
     }
 
     /**
      * The list of public header paths that should be exposed by the module.
      */
-    @Input
-    public ListProperty<String> getPublicHeaderPaths() {
+    public List<String> getPublicHeaderPaths() {
         return publicHeaderPaths;
     }
 }

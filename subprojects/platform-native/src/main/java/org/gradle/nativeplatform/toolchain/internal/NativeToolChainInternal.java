@@ -37,11 +37,6 @@ public interface NativeToolChainInternal extends NativeToolChain, ToolChainInter
      */
     boolean requiresDebugBinaryStripping();
 
-    /**
-     * Whether or not this tool chain supports module maps.
-     */
-    boolean supportsModuleMaps();
-
     class Identifier {
         public static String identify(NativeToolChainInternal toolChain, NativePlatformInternal platform) {
             return toolChain.getOutputType() + ":" + platform.getArchitecture().getName() + ":" + platform.getOperatingSystem().getName();

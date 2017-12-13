@@ -144,10 +144,5 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
         public boolean requiresDebugBinaryStripping() {
             return false;
         }
-
-        @Override
-        public boolean supportsModuleMaps() {
-            return false;
-        }
     }
 }

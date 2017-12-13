@@ -60,7 +60,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         lib.assertTestCasesRan(testExecutionResult)
     }
@@ -101,7 +101,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":greeter:compileDebugSwift", ":greeter:linkDebug",
             ":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }

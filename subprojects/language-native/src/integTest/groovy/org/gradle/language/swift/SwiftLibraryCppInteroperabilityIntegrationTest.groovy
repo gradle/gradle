@@ -45,9 +45,10 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
         expect:
         succeeds ":hello:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
 
+        file("hello/build/maps/cppGreeter/module.modulemap").exists()
         swiftLibrary("hello/build/lib/main/debug/Hello").assertExists()
         cppLibrary("cppGreeter/build/lib/main/debug/cppGreeter").assertExists()
     }
@@ -83,44 +84,13 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
         expect:
         succeeds ":hello:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":logger:compileDebugCpp", ":logger:linkDebug",
             ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
 
+        file("hello/build/maps/cppGreeter/module.modulemap").exists()
         swiftLibrary("hello/build/lib/main/debug/Hello").assertExists()
         cppLibrary("cppGreeter/build/lib/main/debug/cppGreeter").assertExists()
         cppLibrary("logger/build/lib/main/debug/logger").assertExists()
-    }
-
-    def "can override the module name of a c++ library"() {
-        settingsFile << "include 'hello', 'cppGreeter'"
-        def cppGreeter = new CppGreeterFunction()
-        def lib = new SwiftGreeterUsingCppFunction(cppGreeter, "MyGreeter")
-
-        given:
-        buildFile << """
-            project(':hello') {
-                apply plugin: 'swift-library'
-                dependencies {
-                    api project(':cppGreeter')
-                }
-            }
-            project(':cppGreeter') {
-                apply plugin: 'cpp-library'
-                
-                generateModuleMap.moduleMap.moduleName.set "MyGreeter"
-            }
-        """
-        lib.writeToProject(file("hello"))
-        cppGreeter.asLib().writeToProject(file("cppGreeter"))
-
-        expect:
-        succeeds ":hello:assemble"
-        result.assertTasksExecuted(
-            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
-            ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
-
-        swiftLibrary("hello/build/lib/main/debug/Hello").assertExists()
-        cppLibrary("cppGreeter/build/lib/main/debug/cppGreeter").assertExists()
     }
 }

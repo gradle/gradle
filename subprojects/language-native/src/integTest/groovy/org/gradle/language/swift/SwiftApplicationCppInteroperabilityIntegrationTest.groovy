@@ -49,9 +49,10 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         expect:
         succeeds ":app:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
+        file("app/build/maps/cppGreeter/module.modulemap").exists()
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
@@ -89,9 +90,10 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         succeeds ":app:assemble"
         result.assertTasksExecuted(
             ":greeter:compileDebugSwift", ":greeter:linkDebug",
-            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
+        file("greeter/build/maps/cppGreeter/module.modulemap").exists()
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
@@ -126,10 +128,51 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         expect:
         succeeds ":app:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":logger:compileDebugCpp", ":logger:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
+        file("app/build/maps/cppGreeter/module.modulemap").exists()
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+    }
+
+    def "can compile and link against a c++ library with an api dependency on another c++ library"() {
+        settingsFile << "include 'app', 'greeter', 'cppGreeter', ':logger'"
+        def logger = new CppLogger()
+        def cppGreeter = new CppGreeterFunctionUsesLogger()
+        def app = new SwiftMainWithCppDep(cppGreeter)
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':cppGreeter')
+                }
+            }
+            project(':cppGreeter') {
+                apply plugin: 'cpp-library'
+                dependencies {
+                    api project(':logger')
+                }
+            }
+            project(':logger') {
+                apply plugin: 'cpp-library'
+            }
+        """
+        app.writeToProject(file("app"))
+        cppGreeter.asLib().writeToProject(file("cppGreeter"))
+        logger.asLib().writeToProject(file("logger"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(
+            ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":logger:compileDebugCpp", ":logger:linkDebug",
+            ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+
+        file("app/build/maps/cppGreeter/module.modulemap").exists()
+        file("app/build/maps/logger/module.modulemap").exists()
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
@@ -157,7 +200,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         expect:
         succeeds ":app:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:generateModuleMap", ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         installation("app/build/install/main/debug").exec().out == app.expectedOutput

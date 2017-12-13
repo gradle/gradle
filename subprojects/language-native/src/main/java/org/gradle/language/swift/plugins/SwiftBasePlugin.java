@@ -20,6 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
+import org.gradle.api.attributes.AttributeCompatibilityRule;
+import org.gradle.api.attributes.CompatibilityCheckDetails;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -53,6 +56,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
+import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 /**
@@ -73,6 +77,8 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
         final ModelRegistry modelRegistry = project.getModelRegistry();
         final ProviderFactory providers = project.getProviders();
+
+        project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE).getCompatibilityRules().add(SwiftCppUsageCompatibilityRule.class);
 
         project.getComponents().withType(SwiftBinary.class, new Action<SwiftBinary>() {
             @Override
@@ -252,5 +258,19 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         lifecycleTask.dependsOn(stripSymbols);
 
         return stripSymbols;
+    }
+
+    private static class SwiftCppUsageCompatibilityRule implements AttributeCompatibilityRule<Usage> {
+        @Inject
+        public SwiftCppUsageCompatibilityRule() {
+        }
+
+        @Override
+        public void execute(CompatibilityCheckDetails<Usage> details) {
+            if (Usage.SWIFT_API.equals(details.getConsumerValue().getName())
+                    && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
+                details.compatible();
+            }
+        }
     }
 }
