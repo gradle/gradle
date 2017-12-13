@@ -278,6 +278,52 @@ class DefaultSwiftBinaryContainerTest extends Specification {
         e.message == 'Found multiple elements'
     }
 
+    def "can configure by name before element is realized"() {
+        def action = Mock(Action)
+        def binary1 = Stub(SwiftBinary)
+        binary1.name >> "test1"
+        def binary2 = Stub(SwiftBinary)
+        binary2.name >> "test2"
+
+        when:
+        def p = container.getByName("test1")
+        p.configure(action)
+
+        container.add(binary1)
+        container.add(binary2)
+
+        then:
+        0 * action._
+
+        when:
+        container.realizeNow()
+
+        then:
+        1 * action.execute(binary1)
+        0 * action._
+    }
+
+    def "does not invoke configuration by name action when there is no match"() {
+        def action = Mock(Action)
+        def binary2 = Stub(SwiftBinary)
+        binary2.name >> "test2"
+
+        when:
+        def p = container.getByName("test1")
+        p.configure(action)
+
+        container.add(binary2)
+
+        then:
+        0 * action._
+
+        when:
+        container.realizeNow()
+
+        then:
+        0 * action._
+    }
+
     def "can get by spec before element is present and query after container realized"() {
         def spec = Stub(Spec)
         def binary1 = Stub(SwiftBinary)

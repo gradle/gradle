@@ -162,10 +162,8 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
         and:
         buildFile << """
             apply plugin: 'swift-application'
-            application.binaries.configureEach {
-                if (name.contains('Release')) {
-                    compileTask.get().compilerArgs.add('-DWITH_FEATURE')
-                }
+            application.binaries.get { it.optimized }.configure {
+                compileTask.get().compilerArgs.add('-DWITH_FEATURE')
             }
          """
 
@@ -723,19 +721,15 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
                 dependencies {
                     implementation project(':hello')
                 }
-                application.binaries.configureEach {
-                    if (name.contains('Release')) {
-                        compileTask.get().compilerArgs.add('-DWITH_FEATURE')
-                    }
+                application.binaries.get { it.optimized }.configure {
+                    compileTask.get().compilerArgs.add('-DWITH_FEATURE')
                 }
             }
             project(':hello') {
                 apply plugin: 'swift-library'
                 library.module = 'Greeter'
-                library.binaries.configureEach {
-                    if (name.contains('Release')) {
-                        compileTask.get().compilerArgs.add('-DWITH_FEATURE')
-                    }
+                library.binaries.get { it.optimized }.configure {
+                    compileTask.get().compilerArgs.add('-DWITH_FEATURE')
                 }
             }
 """
@@ -773,20 +767,16 @@ class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrat
                 dependencies {
                     implementation project(':hello')
                 }
-                application.binaries.configureEach {
-                    if (name.contains('Release')) {
-                        compileTask.get().compilerArgs.add('-DWITH_FEATURE')
-                    }
+                application.binaries.get { it.optimized }.configure {
+                    compileTask.get().compilerArgs.add('-DWITH_FEATURE')
                 }
             }
             project(':hello') {
                 apply plugin: 'swift-library'
                 library.module = 'Greeter'
                 library.linkage = [Linkage.STATIC]
-                library.binaries.configureEach {
-                    if (name.contains('Release')) {
-                        compileTask.get().compilerArgs.add('-DWITH_FEATURE')
-                    }
+                library.binaries.get {it.optimized }.configure {
+                    compileTask.get().compilerArgs.add('-DWITH_FEATURE')
                 }
             }
 """
