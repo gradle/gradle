@@ -45,15 +45,6 @@ plugins {
 repositories {
     javaScript.googleApis()
 
-    ivy {
-        name "Google Fonts"
-        url "http://themes.googleusercontent.com/static/fonts/"
-        layout 'pattern', {
-            artifact '[organisation]/v[revision](/[classifier])(.[ext])'
-            ivy '[organisation]/v[revision]/ivy(.[ext])'
-        }
-    }
-
     maven { url 'https://repo.gradle.org/gradle/gradle-build-internal' }
 }
 
