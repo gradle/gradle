@@ -63,7 +63,6 @@ public class DefaultTaskProperties implements TaskProperties {
     private final FileCollection localStateFiles;
     private FileCollection destroyableFiles;
     private List<ValidatingTaskPropertySpec> validatingPropertySpecs;
-    private final Multimap<TaskValidationContext.Severity, String> validationMessages;
 
     public static TaskProperties resolve(PropertyWalker propertyWalker, PathToFileResolver resolver, TaskInternal task) {
         String beanName = task.toString();
@@ -93,13 +92,11 @@ public class DefaultTaskProperties implements TaskProperties {
             outputFilesVisitor.getFileProperties(),
             localStateVisitor.getFiles(),
             destroyablesVisitor.getFiles(),
-            validationVisitor.getTaskPropertySpecs(),
-            validationVisitor.getMessages());
+            validationVisitor.getTaskPropertySpecs());
     }
 
-    private DefaultTaskProperties(final String name, Map<String, Object> inputPropertyValues, final ImmutableSortedSet<TaskInputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<TaskOutputFilePropertySpec> outputFileProperties, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingTaskPropertySpec> validatingPropertySpecs, Multimap<TaskValidationContext.Severity, String> validationMessages) {
+    private DefaultTaskProperties(final String name, Map<String, Object> inputPropertyValues, final ImmutableSortedSet<TaskInputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<TaskOutputFilePropertySpec> outputFileProperties, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingTaskPropertySpec> validatingPropertySpecs) {
         this.validatingPropertySpecs = validatingPropertySpecs;
-        this.validationMessages = validationMessages;
 
         this.inputPropertyValues = inputPropertyValues;
         this.inputFileProperties = inputFileProperties;
@@ -192,9 +189,6 @@ public class DefaultTaskProperties implements TaskProperties {
     public void validate(TaskValidationContext validationContext) {
         for (ValidatingTaskPropertySpec validatingTaskPropertySpec : validatingPropertySpecs) {
             validatingTaskPropertySpec.validate(validationContext);
-        }
-        for (Map.Entry<TaskValidationContext.Severity, String> entry : validationMessages.entries()) {
-            validationContext.recordValidationMessage(entry.getKey(), entry.getValue());
         }
     }
 
