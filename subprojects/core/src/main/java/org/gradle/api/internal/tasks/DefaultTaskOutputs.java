@@ -31,6 +31,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.specs.AndSpec;
@@ -104,24 +105,24 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public TaskOutputCachingState getCachingState() {
+    public TaskOutputCachingState getCachingState(TaskProperties taskProperties) {
         if (cacheIfSpecs.isEmpty()) {
             return CACHING_NOT_ENABLED;
         }
 
-        if (!hasDeclaredOutputs()) {
+        if (!taskProperties.hasDeclaredOutputs()) {
             return NO_OUTPUTS_DECLARED;
         }
 
         OverlappingOutputs overlappingOutputs = getOverlappingOutputs();
-        if (overlappingOutputs!=null) {
+        if (overlappingOutputs != null) {
             String relativePath = task.getProject().relativePath(overlappingOutputs.getOverlappedFilePath());
             return DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS,
                 String.format("Gradle does not know how file '%s' was created (output property '%s'). Task output caching requires exclusive access to output paths to guarantee correctness.",
                     relativePath, overlappingOutputs.getPropertyName()));
         }
 
-        for (TaskPropertySpec spec : getFileProperties()) {
+        for (TaskPropertySpec spec : taskProperties.getOutputFileProperties()) {
             if (spec instanceof NonCacheableTaskOutputPropertySpec) {
                 return DefaultTaskOutputCachingState.disabled(
                     PLURAL_OUTPUTS,
@@ -208,7 +209,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public TaskOutputFilePropertyBuilder file(final Object path) {
         return taskMutator.mutate("TaskOutputs.file(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
-            public TaskOutputFilePropertyBuilder call() throws Exception {
+            public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(path);
                 DeclaredTaskOutputFileProperty outputFileSpec = specFactory.createOutputFileSpec(value);
                 registeredFileProperties.add(outputFileSpec);
@@ -221,7 +222,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public TaskOutputFilePropertyBuilder dir(final Object path) {
         return taskMutator.mutate("TaskOutputs.dir(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
-            public TaskOutputFilePropertyBuilder call() throws Exception {
+            public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(path);
                 DeclaredTaskOutputFileProperty outputDirSpec = specFactory.createOutputDirSpec(value);
                 registeredFileProperties.add(outputDirSpec);
@@ -234,7 +235,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public TaskOutputFilePropertyBuilder files(final @Nullable Object... paths) {
         return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
-            public TaskOutputFilePropertyBuilder call() throws Exception {
+            public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(resolveSingleArray(paths));
                 DeclaredTaskOutputFileProperty outputFilesSpec = specFactory.createOutputFilesSpec(value);
                 registeredFileProperties.add(outputFilesSpec);
@@ -247,7 +248,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public TaskOutputFilePropertyBuilder dirs(final Object... paths) {
         return taskMutator.mutate("TaskOutputs.dirs(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
-            public TaskOutputFilePropertyBuilder call() throws Exception {
+            public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(resolveSingleArray(paths));
                 DeclaredTaskOutputFileProperty outputDirsSpec = specFactory.createOutputDirsSpec(value);
                 registeredFileProperties.add(outputDirsSpec);

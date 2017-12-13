@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.TaskOutputs;
@@ -49,7 +50,7 @@ public interface TaskOutputsInternal extends TaskOutputs {
     /**
      * Yields information about the cacheability of the outputs.
      */
-    TaskOutputCachingState getCachingState();
+    TaskOutputCachingState getCachingState(TaskProperties taskProperties);
 
     /**
      * Returns whether the task has declared any outputs.
