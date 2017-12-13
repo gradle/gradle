@@ -55,6 +55,12 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 @OutputDirectories Map<String, File> namedOutputDirectories
             }
 
+            import org.gradle.api.internal.tasks.properties.PropertyVisitor
+            import org.gradle.api.internal.tasks.properties.PropertyWalker
+            import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
+            import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
+            import org.gradle.api.internal.tasks.TaskPropertyUtils
+
             task myTask(type: MyTask) {
                 inputString = "data"
 
@@ -74,7 +80,20 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 namedOutputDirectories = [one: file("outputs-one"), two: file("outputs-two")]
 
                 doLast {
-                    inputs.fileProperties.each { property ->
+                    def outputFiles = []
+                    def inputFiles = []
+                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
+                        @Override
+                        void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
+                            inputFiles << inputFileProperty
+                        }
+
+                        @Override
+                        void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
+                            outputFiles << outputFileProperty
+                        }
+                    })
+                    inputFiles.each { property ->
                         println "Input: \${property.propertyName} \${property.propertyFiles.files*.name.sort()}"
                     }
                     outputs.fileProperties.each { property ->
@@ -222,6 +241,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.tasks.properties.PropertyVisitor
             import org.gradle.api.internal.tasks.properties.PropertyWalker
             import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec
+            import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
+            import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
             import org.gradle.api.internal.tasks.TaskPropertyUtils
 
             class PrintInputsAndOutputs extends DefaultTask {
@@ -231,19 +252,32 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                     task.inputs.properties.entrySet().each {
                         println "Input property '\${it.key}' : '\${it.value}'"
                     }        
-                    task.inputs.fileProperties.each {
-                        println "Input file property '\${it.propertyName}'"
-                    }
-                    task.outputs.fileProperties.each {
-                        println "Output file property '\${it.propertyName}'"
-                    }
+                    def outputFiles = []
+                    def inputFiles = []
                     TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), task, new PropertyVisitor.Adapter() {
+                        
+                        @Override
+                        void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
+                            inputFiles << inputFileProperty.propertyName
+                        }
+
+                        @Override
+                        void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
+                            outputFiles << outputFileProperty.propertyName
+                        }
+                    
                         @Override
                         void visitDestroyableProperty(TaskDestroyablePropertySpec destroyable) {
                             println "Destroys: '\${destroyable.value.call()}'"
                         }
                         
                     })
+                    inputFiles.sort().each {
+                        println "Input file property '\${it}'"
+                    }
+                    outputFiles.sort().each {
+                        println "Output file property '\${it}'"
+                    }
                 }
             }      
             
