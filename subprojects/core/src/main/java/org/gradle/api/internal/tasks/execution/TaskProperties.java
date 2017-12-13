@@ -26,23 +26,25 @@ import java.util.Map;
 
 public interface TaskProperties {
 
-    boolean hasSourceFiles();
+    Map<String, Object> getInputPropertyValues();
+
+    ImmutableSortedSet<TaskInputFilePropertySpec> getInputFileProperties();
 
     FileCollection getInputFiles();
+
+    boolean hasSourceFiles();
+
+    FileCollection getSourceFiles();
 
     ImmutableSortedSet<TaskOutputFilePropertySpec> getOutputFileProperties();
 
     FileCollection getOutputFiles();
 
-    FileCollection getSourceFiles();
-
-    ImmutableSortedSet<TaskInputFilePropertySpec> getInputFileProperties();
-
-    void validate(TaskValidationContext validationContext);
-
     boolean hasDeclaredOutputs();
 
-    Map<String, Object> getInputProperties();
-
     FileCollection getLocalStateFiles();
+
+    FileCollection getDestroyableFiles();
+
+    void validate(TaskValidationContext validationContext);
 }
