@@ -35,9 +35,9 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDesc
     public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
         new BuildScriptBuilder(dsl, fileResolver, "settings")
             .fileComment(
-                "The settings file is used to specify which projects to include in your build.\n\n" +
-                    "Detailed information about configuring a multi-project build in Gradle can be found\n" +
-                    "in the user guide at " + documentationRegistry.getDocumentationFor("multi_project_builds"))
+                "The settings file is used to specify which projects to include in your build.\n\n"
+                    + "Detailed information about configuring a multi-project build in Gradle can be found\n"
+                    + "in the user guide at " + documentationRegistry.getDocumentationFor("multi_project_builds"))
             .propertyAssignment(null, "rootProject.name", fileResolver.resolve(".").getName())
             .create()
             .generate();

@@ -35,8 +35,8 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
         globalSettingsDescriptor.generate(dsl, testFramework);
 
         new BuildScriptBuilder(dsl, fileResolver, "build")
-            .fileComment("This is a general purpose Gradle build.\n" +
-                "Learn how to create Gradle builds at https://guides.gradle.org/creating-new-gradle-builds/")
+            .fileComment("This is a general purpose Gradle build.\n"
+                + "Learn how to create Gradle builds at https://guides.gradle.org/creating-new-gradle-builds/")
             .create()
             .generate();
     }
