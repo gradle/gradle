@@ -90,17 +90,19 @@ public class DefaultTaskProperties implements TaskProperties {
             inputPropertiesVisitor.getPropertyValuesFactory().create(),
             inputFilesVisitor.getFileProperties(),
             outputFilesVisitor.getFileProperties(),
+            outputFilesVisitor.hasDeclaredOutputs(),
             localStateVisitor.getFiles(),
             destroyablesVisitor.getFiles(),
             validationVisitor.getTaskPropertySpecs());
     }
 
-    private DefaultTaskProperties(final String name, Map<String, Object> inputPropertyValues, final ImmutableSortedSet<TaskInputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<TaskOutputFilePropertySpec> outputFileProperties, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingTaskPropertySpec> validatingPropertySpecs) {
+    private DefaultTaskProperties(final String name, Map<String, Object> inputPropertyValues, final ImmutableSortedSet<TaskInputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<TaskOutputFilePropertySpec> outputFileProperties, boolean hasDeclaredOutputs, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingTaskPropertySpec> validatingPropertySpecs) {
         this.validatingPropertySpecs = validatingPropertySpecs;
 
         this.inputPropertyValues = inputPropertyValues;
         this.inputFileProperties = inputFileProperties;
         this.outputFileProperties = outputFileProperties;
+        this.hasDeclaredOutputs = hasDeclaredOutputs;
 
         this.inputFiles = new CompositeFileCollection() {
             @Override
@@ -150,7 +152,6 @@ public class DefaultTaskProperties implements TaskProperties {
                 }
             }
         };
-        this.hasDeclaredOutputs = !outputFileProperties.isEmpty();
         this.localStateFiles = localStateFiles;
         this.destroyableFiles = destroyableFiles;
     }
