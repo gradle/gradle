@@ -80,6 +80,15 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 The command line options for searching in parent directories for a `settings.gradle` file (`-u`/`--no-search-upward`) has been deprecated and will be removed in Gradle 5.0. A Gradle project should always define a `settings.gradle` file to avoid the performance overhead of walking parent directories.
 
+### Deprecation of `TaskInputs` and `TaskOutputs` methods
+
+Gradle 5.0 will remove support for the following methods:
+
+- `TaskInputs.getHasInputs()`
+- `TaskInputs.getHasSourceFiles()`
+
+You can declare individual task properties and observe their values instead of calling these methods.
+
 ## Potential breaking changes
 
 * Two overloaded `ValidateTaskProperties.setOutputFile()` methods were removed. They are replaced with auto-generated setters when the task is accessed from a build script.

@@ -33,7 +33,10 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
      * Returns true if this task has declared the inputs that it consumes.
      *
      * @return true if this task has declared any inputs.
+     *
+     * @deprecated Declare individual task properties to access input files.
      */
+    @Deprecated
     boolean getHasInputs();
 
     /**
@@ -104,7 +107,10 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
      * Returns true if this task has declared that it accepts source files.
      *
      * @return true if this task has source files, false if not.
+     *
+     * @deprecated Declare individual task properties to access source files.
      */
+    @Deprecated
     boolean getHasSourceFiles();
 
     /**
