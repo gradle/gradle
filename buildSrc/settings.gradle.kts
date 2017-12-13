@@ -14,4 +14,6 @@
  * limitations under the License.
  */
 
-apply from: new File(settingsDir, '../gradle/remoteHttpCacheSettings.gradle')
+apply {
+    from("../gradle/remoteHttpCacheSettings.gradle")
+}
