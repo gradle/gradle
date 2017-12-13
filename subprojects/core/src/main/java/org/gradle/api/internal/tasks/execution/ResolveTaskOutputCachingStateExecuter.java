@@ -40,7 +40,7 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         if (taskOutputCacheEnabled) {
             try {
-                TaskOutputCachingState taskOutputCachingState = task.getOutputs().getCachingState();
+                TaskOutputCachingState taskOutputCachingState = task.getOutputs().getCachingState(context.getTaskProperties());
                 state.setTaskOutputCaching(taskOutputCachingState);
                 if (!taskOutputCachingState.isEnabled()) {
                     LOGGER.info("Caching disabled for {}: {}", task, taskOutputCachingState.getDisabledReason());
