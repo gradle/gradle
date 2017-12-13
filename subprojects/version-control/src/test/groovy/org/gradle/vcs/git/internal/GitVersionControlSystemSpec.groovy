@@ -25,6 +25,7 @@ import org.gradle.vcs.VersionRef
 import org.gradle.vcs.fixtures.GitRepository
 import org.gradle.vcs.git.GitVersionControlSpec
 import org.junit.Rule
+import org.junit.rules.RuleChain
 import spock.lang.Specification
 
 class GitVersionControlSystemSpec extends Specification {
@@ -34,17 +35,14 @@ class GitVersionControlSystemSpec extends Specification {
     private RevCommit c1
     private RevCommit c2
 
-    @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-
-    @Rule
     GitRepository repo = new GitRepository(tmpDir.getTestDirectory())
-
-    @Rule
     GitRepository repo2 = new GitRepository(tmpDir.getTestDirectory().file('other'))
-
-    @Rule
     GitRepository submoduleRepo = new GitRepository("submodule", tmpDir.testDirectory)
+
+    // Directory clean up needs to happen after all of the repos have closed
+    @Rule
+    RuleChain rules = RuleChain.outerRule(tmpDir).around(repo).around(repo2).around(submoduleRepo)
 
     def setup() {
         gitVcs = new GitVersionControlSystem()
