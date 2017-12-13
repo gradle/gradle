@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.attributes.AttributeContainer;
 
 import java.util.List;
 
@@ -63,4 +64,13 @@ public interface ComponentMetadataDetails extends ComponentMetadata {
      * @since 4.4
      */
     void withVariant(String name, Action<? super VariantMetadata> action);
+
+    /**
+     * Adjust the component-level attributes.
+     *
+     * @param action the adjustment action to be executed on attributes
+     *
+     * @since 4.5
+     */
+    void withAttributes(Action<? super AttributeContainer> action);
 }

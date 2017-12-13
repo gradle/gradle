@@ -66,6 +66,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
     private HashValue contentHash = EMPTY_CONTENT;
+    private AttributeContainer componentLevelAttributes;
 
     final Map<String, ComponentMetadataRules> componentMetadataRules = Maps.newHashMap();
 
@@ -169,7 +170,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.moduleSource = source;
     }
 
-    public void setAttributes(ImmutableAttributes attributes) {
+    public void setAttributes(AttributeContainer attributes) {
         // map the "status" attribute to the "status" field
         // currently this is the only "attribute" that is supported
         // so this explains that we don't bother storing the whole attribute set
@@ -178,6 +179,12 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         if (attributes.contains(ProjectInternal.STATUS_ATTRIBUTE)) {
             setStatus(attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE));
         }
+        this.componentLevelAttributes = attributes;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return componentLevelAttributes;
     }
 
     @Override

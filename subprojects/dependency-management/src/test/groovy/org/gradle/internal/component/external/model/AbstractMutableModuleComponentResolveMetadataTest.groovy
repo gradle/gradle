@@ -160,10 +160,10 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         def metadata = createMetadata(id)
 
         given:
-        def v1 = metadata.addVariant("api", attributes(usage: "compile"))
+        def v1 = metadata.addVariant("api", attributes(usage: "compile"),)
         v1.addFile("f1", "dir/f1")
         v1.addFile("f2.jar", "f2-1.2.jar")
-        def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"))
+        def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"),)
         v2.addFile("f1", "dir/f1")
 
         expect:
@@ -230,10 +230,10 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         def metadata = createMetadata(id)
 
         given:
-        def v1 = metadata.addVariant("api", attributes(usage: "compile"))
+        def v1 = metadata.addVariant("api", attributes(usage: "compile"),)
         v1.addDependency("g1", "m1", v("v1"), [])
         v1.addDependency("g2", "m2", v("v2"), [])
-        def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"))
+        def v2 = metadata.addVariant("runtime", attributes(usage: "runtime"),)
         v2.addDependency("g1", "m1", v("v1"), [])
 
         expect:
@@ -278,24 +278,25 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         def attributes1 = attributes(usage: "compile")
         def attributes2 = attributes(usage: "runtime")
 
-        def v1 = metadata.addVariant("api", attributes1)
+        def v1 = metadata.addVariant("api", attributes1,)
         v1.addFile("f1.jar", "f1.jar")
         v1.addFile("f2.jar", "f2-1.2.jar")
         v1.addDependency("g1", "m1", v("v1"), [])
-        def v2 = metadata.addVariant("runtime", attributes2)
+        def v2 = metadata.addVariant("runtime", attributes2,)
         v2.addFile("f2", "f2-version.zip")
         v2.addDependency("g2", "m2", v("v2"), [])
         v2.addDependency("g3", "m3", v("v3"), [])
 
         expect:
         def immutable = metadata.asImmutable()
-        immutable.variantsForGraphTraversal.size() == 2
-        immutable.variantsForGraphTraversal[0].name == 'api'
-        immutable.variantsForGraphTraversal[0].dependencies.size() == 1
-        immutable.variantsForGraphTraversal[1].name == 'runtime'
-        immutable.variantsForGraphTraversal[1].dependencies.size() == 2
+        def variantsForTraversal = immutable.getVariantsForGraphTraversal()
+        variantsForTraversal.size() == 2
+        variantsForTraversal[0].name == 'api'
+        variantsForTraversal[0].dependencies.size() == 1
+        variantsForTraversal[1].name == 'runtime'
+        variantsForTraversal[1].dependencies.size() == 2
 
-        def api = immutable.variantsForGraphTraversal[0]
+        def api = variantsForTraversal[0]
         api.name == 'api'
         api.asDescribable().displayName == 'group:module:version variant api'
         api.attributes == attributes1
@@ -315,7 +316,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         artifacts1[0].name.classifier == null
         artifacts1[0].name.extension == 'jar'
 
-        def runtime = immutable.variantsForGraphTraversal[1]
+        def runtime = variantsForTraversal[1]
         runtime.name == 'runtime'
         runtime.asDescribable().displayName == 'group:module:version variant runtime'
         runtime.attributes == attributes2

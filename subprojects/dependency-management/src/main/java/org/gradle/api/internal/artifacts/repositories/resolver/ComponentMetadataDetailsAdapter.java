@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VariantMetadata;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -81,6 +83,13 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     public void withVariant(String name, Action<? super VariantMetadata> action) {
         assertVariantExists(name);
         action.execute(instantiator.newInstance(VariantMetadataAdapter.class, name, metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
+    }
+
+    @Override
+    public void withAttributes(Action<? super AttributeContainer> action) {
+        AttributeContainer attributes = metadata.getAttributesFactory().mutable((AttributeContainerInternal) metadata.getAttributes());
+        action.execute(attributes);
+        metadata.setAttributes(attributes);
     }
 
     @Override

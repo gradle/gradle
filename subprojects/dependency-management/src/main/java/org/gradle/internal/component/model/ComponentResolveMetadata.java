@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.ComponentMetadataRules;
 
 import javax.annotation.Nullable;
@@ -65,7 +66,7 @@ public interface ComponentResolveMetadata {
     ComponentResolveMetadata withSource(ModuleSource source);
 
     /**
-     * Returns the names of all of the legacy configurations for this component. May be empty, in which case the component should provide at least one variant via {@link #getVariantsForGraphTraversal()}.
+     * Returns the names of all of the legacy configurations for this component. May be empty, in which case the component should provide at least one variant via {@link #getVariantsForGraphTraversal(ImmutableAttributesFactory)}.
      */
     Set<String> getConfigurationNames();
 
