@@ -69,6 +69,40 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         method << ["file", "dir"]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/3792")
+    def "task dependency is discovered via Buildable input files"() {
+        buildFile << """
+            @groovy.transform.TupleConstructor
+            class BuildableArtifact implements Buildable, Iterable<File> {
+                FileCollection files
+
+                Iterator<File> iterator() {
+                    files.iterator()
+                }
+
+                TaskDependency getBuildDependencies() {
+                    files.getBuildDependencies()
+                }
+            }
+
+            task foo {
+                outputs.file "foo.txt"
+                doFirst {}
+            }
+
+            task bar {
+                inputs.files(new BuildableArtifact(files(foo)))
+                outputs.file "bar.txt"
+                doFirst {}
+            }
+        """
+
+        when:
+        run "bar"
+        then:
+        executed ":foo"
+    }
+
     @Unroll
     def "TaskInputs.#method shows deprecation warning"() {
         buildFile << """
