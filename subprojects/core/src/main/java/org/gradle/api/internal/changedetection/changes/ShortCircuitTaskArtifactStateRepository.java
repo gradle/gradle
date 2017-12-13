@@ -87,8 +87,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public IncrementalTaskInputs getInputChanges() {
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
+        public IncrementalTaskInputs getInputChanges(TaskProperties taskProperties) {
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, taskProperties);
         }
 
         @Override
