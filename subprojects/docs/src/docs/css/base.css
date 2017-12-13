@@ -2,7 +2,7 @@
 
 /* Lato (normal, regular) */
 @font-face {
-  font-display: optional;
+  font-display: swap;
   font-family: Lato;
   font-weight: 400;
   font-style: normal;
@@ -13,7 +13,7 @@
 
 /* Lato (normal, italic) */
 @font-face {
-  font-display: optional;
+  font-display: swap;
   font-family: Lato;
   font-weight: 400;
   font-style: italic;
@@ -24,7 +24,7 @@
 
 /* Lato (bold, regular) */
 @font-face {
-  font-display: optional;
+  font-display: swap;
   font-family: Lato;
   font-weight: 500;
   font-style: normal;
@@ -455,19 +455,16 @@ h3.releaseinfo {
     margin-top: 4px;
 }
 
+.site-header {
+    background-color: white;
+}
+
 .site-header .site-header-version {
     color: #1DA2BD;
     font-size: 23px;
     font-weight: 200;
     line-height: 45px;
     padding-left: 2px;
-}
-
-.site-header {
-    background-color: white;
-    position: relative;
-    padding: 5px 12px;
-    z-index: 1;
 }
 
 /* Override javadoc styles */
@@ -624,6 +621,15 @@ h3.releaseinfo {
 
 /* Top navigation desktop styles */
 @media (min-width: 1024px) {
+    .site-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        border-bottom: 1rem solid #F7F7F8;
+        z-index: 1;
+    }
+
     .site-header__navigation {
         flex-direction: row;
     }
@@ -669,6 +675,213 @@ h3.releaseinfo {
     .site-header__navigation-submenu-section:hover .site-header__navigation-submenu {
         display: block;
     }
+}
+
+/* Docs Navigation */
+.docs-navigation {
+    display: none;
+}
+
+.docs-navigation a {
+    color: #1BA8C4;
+    display: block;
+    font-size: 1rem;
+    line-height: 1.0;
+}
+
+.docs-navigation a.active {
+    color: #02303A;
+    opacity: 0.6;
+}
+
+.docs-navigation ul {
+    list-style-type: none;
+    margin: 0.625em 0;
+    padding: 0;
+}
+.docs-navigation ul:last-of-type {
+    margin-bottom: 0;
+}
+
+.docs-navigation li {
+    margin-bottom: 0.625em;
+}
+.docs-navigation li:last-of-type {
+    margin-bottom: 0;
+}
+
+.docs-navigation .nav-dropdown {
+    background: transparent url('data:image/svg+xml;utf8,<svg width="10" height="6" viewBox="0 0 19 11" xmlns="http://www.w3.org/2000/svg"><path transform="rotate(-180 9.374 5.494)" d="M17.9991 10.422825L9.3741 0.565575 0.7491 10.422825" stroke="#1BA8C4" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center right;
+}
+
+.docs-navigation > ul ul,
+.docs-navigation > ul ul ul {
+    display: none;
+    height: 0;
+    margin-left: 1rem;
+}
+
+.docs-navigation > ul ul:target,
+.docs-navigation > ul ul:target ul,
+.docs-navigation > ul .nav-dropdown.expanded ~ ul {
+    display: block;
+    height: auto;
+}
+
+.docs-navigation h3 {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.docs-navigation h3 {
+    margin-top: 1.5em;
+}
+
+.chapter {
+    margin: 0 auto 30px;
+}
+
+/* User guide navigation appears for desktops */
+@media screen and (min-width: 1024px) {
+    .docs-navigation {
+        display: block;
+        position: absolute;
+        left: 60px;
+        top: 100px;
+        width: 220px;
+    }
+
+    .chapter, .book {
+        margin: 95px 0 30px 304px;
+    }
+}
+
+/* Fixed intra-chapter navigation for desktops */
+@media screen and (min-width: 1200px) {
+    .chapter {
+        margin: 95px auto 30px auto;
+    }
+
+    .chapter .toc {
+        position: fixed;
+        left: calc(50% + 360px);
+        top: 62px;
+        width: 220px;
+        padding: 15px 0 0 1.5rem;
+        font-size: 0.9375rem;
+        background-color: #F7F7F8;
+    }
+
+    .chapter .toc a {
+        color: #02303A;
+    }
+
+    .chapter .toc a.active {
+        color: #1BA8C4;
+    }
+
+    /*
+      Pushes the section headings to just below the top nav bar when a user
+      navigates directly to section anchors. It doesn't work if you try
+      to apply the padding and margin to the `h` elements directly. Don't
+      know why.
+     */
+    .chapter a[name] {
+        padding-top: 100px;
+        margin-top: -100px;
+        text-decoration: none;
+        border: none;
+        display: inline-block;
+    }
+
+    .docs-navigation {
+        left: calc(50% - 600px);
+    }
+}
+
+/*
+ * Table of Contents
+ */
+.chapter .toc p {
+    font-size: 1em;
+}
+
+.chapter .toc a {
+    line-height: 1.0;
+}
+
+.chapter .toc dl dt {
+    padding-bottom: 0.625rem;
+}
+
+.toc a {
+    color: #1DA2BD;
+}
+
+.toc p {
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.toc dl, .list-of-examples dl {
+    margin-left: 0;
+}
+
+
+.book .toc > dl > dt {
+    margin-top: 0.6em;
+}
+
+.book .toc > dl > dt > .part {
+    display: inline-block;
+    font-size: 1.25em;
+    margin-top: 0.6em;
+    margin-bottom: 0.3em;
+}
+
+.book .toc > dl > dd {
+    margin-left: 0;
+}
+
+.book .toc, .book .list-of-examples {
+    margin-top: 1.5em;
+}
+
+.navheader, .navfooter, .navbar {
+    display: none;
+}
+
+/* Userguide Meta */
+.chapter-meta {
+    display: none;
+    float: right;
+    text-align: right;
+}
+
+.chapter-meta .edit-link {
+    color: #999;
+    font-size: 0.9em;
+    padding-right: 3px;
+}
+
+.chapter-meta .edit-link svg {
+    margin-right: 1px;
+}
+
+/* Clever use of RTL to fill in all stars to left of hover position */
+.rating {
+    direction: rtl;
+}
+.rating > .star {
+    cursor: pointer;
+    padding: 3px;
+}
+.rating > .star:hover > svg > g,
+.rating > .star:hover ~ .star > svg > g,
+.rating > .star.selected > svg > g,
+.rating > .star.selected ~ .star > svg > g {
+    fill: #999;
 }
 
 /* Footer styles */
@@ -938,7 +1151,7 @@ h3.releaseinfo {
     margin-top: 0;
 }
 
-.literal, .userinput, .filename {
+.literal, .filename {
     white-space: nowrap;
 }
 
@@ -954,54 +1167,6 @@ h3.releaseinfo {
 .hl-annotation { color: #007; }
 
 .hl-directive { color: #555; }
-
-/*
- * Table of Contents
- */
-
-.toc dl, .list-of-examples dl {
-    margin-left: 0;
-}
-
-.book .toc > dl > dt {
-    margin-top: 0.6em;
-}
-
-.book .toc > dl > dt > .part {
-    display: inline-block;
-    font-size: 1.25em;
-    margin-top: 0.6em;
-    margin-bottom: 0.3em;
-}
-
-.book .toc > dl > dd {
-    margin-left: 0;
-}
-
-.book .toc, .book .list-of-examples {
-    margin-top: 1.5em;
-}
-
-div.toc p { /* Is "Table Of Contents" header */
-    font-size: 1.5em;
-    margin-bottom: 0.5em;
-}
-
-.chapter > .toc {
-    margin-bottom: 1em;
-}
-
-.toc a {
-    color: #02303A;
-}
-
-/*
- * HEADER/FOOTER
- */
-
-.navheader, .navfooter, .navbar {
-    display: none;
-}
 
 /**
  * TITLEPAGE
@@ -1054,4 +1219,3 @@ div.example code.filename {
     border: inherit;
     opacity: 1;
 }
-
