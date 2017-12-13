@@ -22,14 +22,16 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.Cast;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
 
 import java.util.Collections;
 
 public abstract class DefaultSwiftComponent extends DefaultNativeComponent implements SwiftComponent {
-    private final DefaultSwiftBinaryContainer binaries;
+    private final DefaultSwiftBinaryContainer<SwiftBinary> binaries;
     private final FileCollection swiftSource;
     private final Property<String> module;
     private final String name;
@@ -46,7 +48,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
         implementation = configurations.maybeCreate(names.withSuffix("implementation"));
         implementation.setCanBeConsumed(false);
         implementation.setCanBeResolved(false);
-        binaries = objectFactory.newInstance(DefaultSwiftBinaryContainer.class);
+        binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultSwiftBinaryContainer.class, SwiftBinary.class));
     }
 
     @Override
@@ -74,7 +76,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     }
 
     @Override
-    public DefaultSwiftBinaryContainer getBinaries() {
+    public DefaultSwiftBinaryContainer<SwiftBinary> getBinaries() {
         return binaries;
     }
 }

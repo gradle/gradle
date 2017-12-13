@@ -20,10 +20,11 @@ import org.gradle.api.Action
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.specs.Spec
 import org.gradle.language.swift.SwiftBinary
+import org.gradle.language.swift.SwiftSharedLibrary
 import spock.lang.Specification
 
 class DefaultSwiftBinaryContainerTest extends Specification {
-    def container = new DefaultSwiftBinaryContainer(new DefaultProviderFactory())
+    def container = new DefaultSwiftBinaryContainer(SwiftBinary, new DefaultProviderFactory())
 
     def "can query elements when realized"() {
         def binary1 = Stub(SwiftBinary)
@@ -393,6 +394,28 @@ class DefaultSwiftBinaryContainerTest extends Specification {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'Found multiple elements'
+    }
+
+    def "can get by type and spec when element is already present"() {
+        def spec = Stub(Spec)
+        def binary1 = Stub(SwiftBinary)
+        def binary2 = Stub(SwiftSharedLibrary)
+        def binary3 = Stub(SwiftSharedLibrary)
+
+        spec.isSatisfiedBy(binary2) >> true
+
+        container.add(binary1)
+        container.add(binary2)
+        container.add(binary3)
+
+        expect:
+        def p = container.get(SwiftSharedLibrary, spec)
+        !p.present
+
+        container.realizeNow()
+
+        p.present
+        p.get() == binary2
     }
 
 }

@@ -18,11 +18,11 @@ package org.gradle.language.swift.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftBinaryContainer;
 
 import javax.inject.Inject;
@@ -32,34 +32,36 @@ import java.util.concurrent.Callable;
 
 // TODO - error messages
 // TODO - display names for this container and the Provider implementations
-public class DefaultSwiftBinaryContainer implements SwiftBinaryContainer {
+public class DefaultSwiftBinaryContainer<T extends SoftwareComponent> implements SwiftBinaryContainer<T> {
     private enum State {
         Collecting, Realizing, Finalized
     }
 
-    private State state = State.Collecting;
+    private final Class<T> elementType;
     private final ProviderFactory providerFactory;
-    private final Set<SwiftBinary> elements = new LinkedHashSet<SwiftBinary>();
-    private ImmutableActionSet<SwiftBinary> knownActions = ImmutableActionSet.empty();
-    private ImmutableActionSet<SwiftBinary> configureActions = ImmutableActionSet.empty();
-    private ImmutableActionSet<SwiftBinary> finalizeActions = ImmutableActionSet.empty();
+    private final Set<T> elements = new LinkedHashSet<T>();
+    private State state = State.Collecting;
+    private ImmutableActionSet<T> knownActions = ImmutableActionSet.empty();
+    private ImmutableActionSet<T> configureActions = ImmutableActionSet.empty();
+    private ImmutableActionSet<T> finalizeActions = ImmutableActionSet.empty();
 
     @Inject
-    public DefaultSwiftBinaryContainer(ProviderFactory providerFactory) {
+    public DefaultSwiftBinaryContainer(Class<T> elementType, ProviderFactory providerFactory) {
+        this.elementType = elementType;
         this.providerFactory = providerFactory;
     }
 
     @Override
-    public <T extends SwiftBinary> Provider<T> get(final Class<T> type, final Spec<? super T> spec) {
-        return providerFactory.provider(new Callable<T>() {
+    public <S> Provider<S> get(final Class<S> type, final Spec<? super S> spec) {
+        return providerFactory.provider(new Callable<S>() {
             @Override
-            public T call() {
+            public S call() {
                 if (state != State.Finalized) {
                     return null;
                 }
                 // TODO - don't recalculate value multiple times
-                T match = null;
-                for (SwiftBinary element : elements) {
+                S match = null;
+                for (T element : elements) {
                     if (type.isInstance(element) && spec.isSatisfiedBy(type.cast(element))) {
                         if (match != null) {
                             throw new IllegalStateException("Found multiple elements");
@@ -73,33 +75,33 @@ public class DefaultSwiftBinaryContainer implements SwiftBinaryContainer {
     }
 
     @Override
-    public Provider<SwiftBinary> getByName(final String name) {
-        return get(new Spec<SwiftBinary>() {
+    public Provider<T> getByName(final String name) {
+        return get(new Spec<T>() {
             @Override
-            public boolean isSatisfiedBy(SwiftBinary element) {
+            public boolean isSatisfiedBy(T element) {
                 return element.getName().equals(name);
             }
         });
     }
 
     @Override
-    public Provider<SwiftBinary> get(Spec<? super SwiftBinary> spec) {
-        return get(SwiftBinary.class, spec);
+    public Provider<T> get(Spec<? super T> spec) {
+        return get(elementType, spec);
     }
 
     @Override
-    public void whenElementKnown(Action<? super SwiftBinary> action) {
+    public void whenElementKnown(Action<? super T> action) {
         if (state != State.Collecting) {
             throw new IllegalStateException("Cannot add actions to this collection as it has already been realized.");
         }
         knownActions = knownActions.add(action);
-        for (SwiftBinary element : elements) {
+        for (T element : elements) {
             action.execute(element);
         }
     }
 
     @Override
-    public void whenElementFinalized(Action<? super SwiftBinary> action) {
+    public void whenElementFinalized(Action<? super T> action) {
         if (state != State.Collecting) {
             throw new IllegalStateException("Cannot add actions to this collection as it has already been realized.");
         }
@@ -107,14 +109,14 @@ public class DefaultSwiftBinaryContainer implements SwiftBinaryContainer {
     }
 
     @Override
-    public void configureEach(Action<? super SwiftBinary> action) {
+    public void configureEach(Action<? super T> action) {
         if (state != State.Collecting) {
             throw new IllegalStateException("Cannot add actions to this collection as it has already been realized.");
         }
         configureActions = configureActions.add(action);
     }
 
-    void add(SwiftBinary element) {
+    void add(T element) {
         if (state != State.Collecting) {
             throw new IllegalStateException("Cannot add an element to this collection as it has already been realized.");
         }
@@ -128,11 +130,11 @@ public class DefaultSwiftBinaryContainer implements SwiftBinaryContainer {
         }
         state = State.Realizing;
         knownActions = ImmutableActionSet.empty();
-        for (SwiftBinary element : elements) {
+        for (T element : elements) {
             configureActions.execute(element);
         }
         configureActions = ImmutableActionSet.empty();
-        for (SwiftBinary element : elements) {
+        for (T element : elements) {
             finalizeActions.execute(element);
         }
         finalizeActions = ImmutableActionSet.empty();
@@ -140,7 +142,7 @@ public class DefaultSwiftBinaryContainer implements SwiftBinaryContainer {
     }
 
     @Override
-    public Set<SwiftBinary> get() {
+    public Set<T> get() {
         if (state != State.Finalized) {
             throw new IllegalStateException("Cannot query the elements of this container as the elements have not been created yet.");
         }
