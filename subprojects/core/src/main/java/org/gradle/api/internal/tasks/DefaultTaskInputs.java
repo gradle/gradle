@@ -146,7 +146,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     public Map<String, Object> getProperties() {
         GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor(task.getName());
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
-        return visitor.getProperties();
+        return visitor.getPropertyValuesFactory().create();
     }
 
     @Override

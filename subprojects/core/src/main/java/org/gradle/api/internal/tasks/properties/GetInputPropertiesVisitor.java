@@ -20,6 +20,7 @@ import groovy.lang.GString;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskInputPropertySpec;
+import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -32,7 +33,6 @@ import static org.gradle.util.GUtil.uncheckedCall;
 
 public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
     private final String beanName;
-    private Map<String, Object> actualProperties;
     private List<TaskInputPropertySpec> inputProperties = new ArrayList<TaskInputPropertySpec>();
 
     public GetInputPropertiesVisitor(String beanName) {
@@ -44,25 +44,27 @@ public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
         inputProperties.add(inputProperty);
     }
 
-    public Map<String, Object> getProperties() {
-        if (actualProperties == null) {
-            Map<String, Object> result = new HashMap<String, Object>();
-            for (TaskInputPropertySpec inputProperty : inputProperties) {
-                String propertyName = inputProperty.getPropertyName();
-                try {
-                    Object value = prepareValue(inputProperty.getValue());
-                    result.put(propertyName, value);
-                } catch (Exception ex) {
-                    throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, beanName), ex);
+    public Factory<Map<String, Object>> getPropertyValuesFactory() {
+        return new Factory<Map<String, Object>>() {
+            @Override
+            public Map<String, Object> create() {
+                Map<String, Object> result = new HashMap<String, Object>();
+                for (TaskInputPropertySpec inputProperty : inputProperties) {
+                    String propertyName = inputProperty.getPropertyName();
+                    try {
+                        Object value = prepareValue(inputProperty.getValue());
+                        result.put(propertyName, value);
+                    } catch (Exception ex) {
+                        throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, beanName), ex);
+                    }
                 }
+                return result;
             }
-            actualProperties = result;
-        }
-        return actualProperties;
+        };
     }
 
     @Nullable
-    private Object prepareValue(@Nullable Object value) {
+    private static Object prepareValue(@Nullable Object value) {
         while (true) {
             if (value instanceof Callable) {
                 Callable callable = (Callable) value;

@@ -88,7 +88,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
         return new DefaultTaskProperties(
             task.toString(),
-            inputPropertiesVisitor.getProperties(),
+            inputPropertiesVisitor.getPropertyValuesFactory().create(),
             inputFilesVisitor.getFileProperties(),
             outputFilesVisitor.getFileProperties(),
             localStateVisitor.getFiles(),
