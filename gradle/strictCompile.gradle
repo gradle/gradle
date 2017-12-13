@@ -15,14 +15,15 @@
  */
 
 allprojects {
+    def javaGroovyCompileTasks = tasks.matching { it instanceof JavaCompile || it instanceof GroovyCompile }
     ext.strictCompile = {
-        tasks.withType(AbstractCompile) {
+        javaGroovyCompileTasks.all {
             options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
         }
     }
     ext.strictCompileIgnoreDeprecations = {
         strictCompile()
-        tasks.withType(AbstractCompile) {
+        javaGroovyCompileTasks.all {
             options.compilerArgs << "-Xlint:-deprecation"
         }
     }
