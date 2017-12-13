@@ -49,7 +49,6 @@ public class GitVersionControlSystem implements VersionControlSystem {
         GitVersionControlSpec gitSpec = cast(spec);
         File workingDir = new File(versionDir, gitSpec.getRepoName());
 
-        // TODO: Assuming the default branch for the repository
         File dbDir = new File(workingDir, ".git");
         if (dbDir.exists() && dbDir.isDirectory()) {
             updateRepo(workingDir, gitSpec, ref);
@@ -84,7 +83,10 @@ public class GitVersionControlSystem implements VersionControlSystem {
     }
 
     private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
-        CloneCommand clone = Git.cloneRepository().setURI(gitSpec.getUrl().toString()).setDirectory(workingDir);
+        CloneCommand clone = Git.cloneRepository().
+            setURI(gitSpec.getUrl().toString()).
+            setDirectory(workingDir).
+            setCloneSubmodules(true);
         Git git = null;
         try {
             git = clone.call();

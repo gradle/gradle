@@ -17,6 +17,7 @@
 package org.gradle.vcs.git.internal
 
 import com.google.common.collect.Maps
+import groovy.transform.NotYetImplemented
 import org.eclipse.jgit.revwalk.RevCommit
 import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -42,6 +43,9 @@ class GitVersionControlSystemSpec extends Specification {
     @Rule
     GitRepository repo2 = new GitRepository(tmpDir.getTestDirectory().file('other'))
 
+    @Rule
+    GitRepository submoduleRepo = new GitRepository("submodule", tmpDir.testDirectory)
+
     def setup() {
         gitVcs = new GitVersionControlSystem()
 
@@ -58,6 +62,9 @@ class GitVersionControlSystemSpec extends Specification {
         repoHead = GitVersionRef.from(repo.head)
         repoSpec = new DefaultGitVersionControlSpec()
         repoSpec.url = repo.url
+
+        submoduleRepo.workTree.file("foo.txt") << "hello from submodule"
+        submoduleRepo.commit("initial commit", submoduleRepo.workTree)
     }
 
     def 'clone a repository'() {
@@ -73,6 +80,20 @@ class GitVersionControlSystemSpec extends Specification {
         target.file( 'repo/.git').assertIsDir()
         target.file( 'repo/source.txt').text == 'Hello world!'
         target.file( 'repo/dir/another.txt').text == 'Goodbye world!'
+    }
+
+    def 'clone a repository with a submodule'() {
+        given:
+        repo.addSubmodule(submoduleRepo)
+        def target = tmpDir.file('versionDir')
+
+        when:
+        def workingDir = gitVcs.populate(target, repoHead, repoSpec)
+
+        then:
+        workingDir.parent == target.path
+        target.file( 'repo/.git').assertIsDir()
+        target.file( 'repo/submodule/foo.txt').text == "hello from submodule"
     }
 
     def 'clone a repository into empty extant workingDir'() {
@@ -109,6 +130,36 @@ class GitVersionControlSystemSpec extends Specification {
         then:
         workingDir.path == target.file('repo').path
         target.file('repo/newFile.txt').exists()
+    }
+
+    // This doesn't work yet because we don't update submodules when a repo is updated in place.
+    @NotYetImplemented
+    def 'update a cloned repository with submodules'() {
+        given:
+        repo.addSubmodule(submoduleRepo)
+        def target = tmpDir.file('versionDir')
+        gitVcs.populate(target, repoHead, repoSpec)
+
+        submoduleRepo.workTree.file("foo.txt").text = "goodbye from submodule"
+        submoduleRepo.commit("Change submodule message", submoduleRepo.workTree)
+
+        // TODO: JGit doesn't support these commands easily
+        "git submodule foreach git fetch".execute([], repo.workTree).waitFor()
+        "git submodule foreach git checkout origin/master".execute([], repo.workTree).waitFor()
+        repo.git.add().addFilepattern("submodule").call()
+        repo.commit("Update submodule", repo.workTree)
+
+        repoHead = GitVersionRef.from(repo.head)
+
+        expect:
+        target.file('repo/submodule/foo.txt').text == "hello from submodule"
+
+        when:
+        def workingDir = gitVcs.populate(target, repoHead, repoSpec)
+
+        then:
+        workingDir.path == target.file('repo').path
+        target.file('repo/submodule/foo.txt').text == "goodbye from submodule"
     }
 
     def 'error if working dir is not a repository'() {
