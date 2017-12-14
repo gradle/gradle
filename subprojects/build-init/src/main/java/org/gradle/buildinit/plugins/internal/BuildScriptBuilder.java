@@ -360,7 +360,6 @@ public class BuildScriptBuilder {
                 }
             }
             println("}");
-
         }
 
         public void printRepositories() {
