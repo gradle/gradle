@@ -87,9 +87,10 @@ Gradle 5.0 will remove support for the following methods:
 - `TaskInputs.getHasInputs()`
 - `TaskInputs.getHasSourceFiles()`
 - `TaskInputs.getSourceFiles()`
+- `TaskInputs.getProperties()`
 - `TaskOutputs.getHasOutput()`
 
-You can declare individual task properties and observe their values instead of calling these methods.
+You can declare individual task properties and observe their values instead of calling these methods. The `TaskInputs.property()` and `properties()` methods can be used to declare non-file inputs.
 
 ## Potential breaking changes
 

@@ -88,6 +88,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         "getHasInputs"      | "The TaskInputs.getHasInputs() method has been deprecated and is scheduled to be removed in Gradle 5.0. Declare individual task properties to access input files."
         "getHasSourceFiles" | "The TaskInputs.getHasSourceFiles() method has been deprecated and is scheduled to be removed in Gradle 5.0. Declare individual task properties to access source files."
         "getSourceFiles"    | "The TaskInputs.getSourceFiles() method has been deprecated and is scheduled to be removed in Gradle 5.0. Declare individual task properties to access source files."
+        "getProperties"     | "The TaskInputs.getProperties() method has been deprecated and is scheduled to be removed in Gradle 5.0. Use the property() and properties() methods to declare input properties instead."
     }
 
     @Unroll

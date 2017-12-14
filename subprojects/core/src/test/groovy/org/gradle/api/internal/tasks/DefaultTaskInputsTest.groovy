@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
+import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -65,7 +66,7 @@ class DefaultTaskInputsTest extends Specification {
     def "default values"() {
         expect:
         inputs.files.empty
-        inputs.properties.isEmpty()
+        inputProperties().isEmpty()
         !inputs.hasInputs
         !inputs.hasSourceFiles
         inputs.sourceFiles.empty
@@ -134,7 +135,7 @@ class DefaultTaskInputsTest extends Specification {
         inputs.property('a', 'value')
 
         then:
-        inputs.properties == [a: 'value']
+        inputProperties() == [a: 'value']
     }
 
     def canRegisterInputPropertyUsingAClosure() {
@@ -142,7 +143,7 @@ class DefaultTaskInputsTest extends Specification {
         inputs.property('a', { 'value' })
 
         then:
-        inputs.properties == [a: 'value']
+        inputProperties() == [a: 'value']
     }
 
     def canRegisterInputPropertyUsingACallable() {
@@ -150,7 +151,7 @@ class DefaultTaskInputsTest extends Specification {
         inputs.property('a', { 'value' } as Callable)
 
         then:
-        inputs.properties == [a: 'value']
+        inputProperties() == [a: 'value']
     }
 
     def canRegisterInputPropertyUsingAFileCollection() {
@@ -160,7 +161,7 @@ class DefaultTaskInputsTest extends Specification {
         inputs.property('a', [getFiles: { files }] as FileCollection)
 
         then:
-        inputs.properties == [a: files]
+        inputProperties() == [a: files]
     }
 
     def inputPropertyCanBeNestedCallableAndClosure() {
@@ -172,7 +173,7 @@ class DefaultTaskInputsTest extends Specification {
         inputs.property('a', { callable })
 
         then:
-        inputs.properties == [a: files]
+        inputProperties() == [a: files]
     }
 
     def "GString input property values are evaluated to avoid serialization issues"() {
@@ -180,8 +181,8 @@ class DefaultTaskInputsTest extends Specification {
         inputs.property('a', { "hey ${new NotSerializable()}" })
 
         then:
-        inputs.properties == [a: "hey Joe"]
-        String.is inputs.properties.a.class
+        inputProperties() == [a: "hey Joe"]
+        String.is inputProperties().a.class
     }
 
     class NotSerializable {
@@ -279,6 +280,12 @@ class DefaultTaskInputsTest extends Specification {
         then:
         inputs.hasInputs
         inputs.hasSourceFiles
+    }
+
+    def inputProperties() {
+        def visitor = new GetInputPropertiesVisitor("test")
+        TaskPropertyUtils.visitProperties(walker, task, visitor)
+        return visitor.propertyValuesFactory.create()
     }
 
     def inputFileProperties() {

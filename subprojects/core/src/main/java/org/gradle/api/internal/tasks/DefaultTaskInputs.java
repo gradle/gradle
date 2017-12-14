@@ -146,9 +146,12 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return allSourceFiles;
     }
 
+    @Override
     public Map<String, Object> getProperties() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputs.getProperties()", "Use the property() and properties() methods to declare input properties instead.");
         GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor(task.getName());
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
+        //noinspection ConstantConditions
         return visitor.getPropertyValuesFactory().create();
     }
 
