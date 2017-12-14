@@ -33,22 +33,22 @@ class DefaultFileCollectionResolveContextTest extends Specification {
     final FileResolver resolver = Mock() { getPatternSetFactory() >> TestFiles.getPatternSetFactory() }
     final DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(resolver)
 
-    def resolveAsFileCollectionReturnsEmptyListWhenContextIsEmpty() {
+    def "resolve as FileCollection returns empty List when context is empty"() {
         expect:
         context.resolveAsFileCollections() == []
     }
 
-    def resolveAsFileTreeReturnsEmptyListWhenContextIsEmpty() {
+    def "resolve as FileTree returns empty List when context is empty"() {
         expect:
         context.resolveAsFileTrees() == []
     }
 
-    def resolveAsMinimalFileCollectionReturnsEmptyListWhenContextIsEmpty() {
+    def "resolve as MinimalFileCollection returns empty List when context is empty"() {
         expect:
         context.resolveAsMinimalFileCollections() == []
     }
 
-    def resolveAsFileCollectionWrapsAMinimalFileSet() {
+    def "resolve as FileCollection wraps a MinimalFileSet"() {
         MinimalFileSet fileSet = Mock()
 
         when:
@@ -61,7 +61,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result[0].fileCollection == fileSet
     }
 
-    def resolveAsFileTreeConvertsTheElementsOfMinimalFileSet() {
+    def "resolve as FileTree converts the elements of MinimalFileSet"() {
         MinimalFileSet fileSet = Mock()
         File file = this.file('file1')
         File dir = directory('file2')
@@ -82,7 +82,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         1 * fileSet.files >> ([file, dir, doesNotExist] as LinkedHashSet)
     }
 
-    def resolveAsMinimalFileCollectionReturnsMinimalFileSet() {
+    def "resolve as MinimalFileCollection returns MinimalFileSet"() {
         MinimalFileSet fileSet = Mock()
 
         when:
@@ -93,7 +93,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == [fileSet]
     }
 
-    def resolveAsFileCollectionWrapsAMinimalFileTree() {
+    def "resolve as FileCollection wraps a MinimalFileTree"() {
         MinimalFileTree fileTree = Mock()
 
         when:
@@ -106,7 +106,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result[0].tree == fileTree
     }
 
-    def resolveAsFileTreesWrapsAMinimalFileTree() {
+    def "resolve as FileTrees wraps a MinimalFileTree"() {
         MinimalFileTree fileTree = Mock()
 
         when:
@@ -119,7 +119,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result[0].tree == fileTree
     }
 
-    def resolveAsMinimalFileCollectionWrapsAMinimalFileTree() {
+    def "resolve as MinimalFileCollection wraps a MinimalFileTree"() {
         MinimalFileTree fileTree = Mock()
 
         when:
@@ -130,7 +130,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == [fileTree]
     }
 
-    def resolveAsFileCollectionsForAFileCollection() {
+    def "resolve as FileCollections for a FileCollection"() {
         FileCollectionInternal fileCollection = Mock()
 
         when:
@@ -141,7 +141,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == [fileCollection]
     }
 
-    def resolveAsFileCollectionsDelegatesToACompositeFileCollection() {
+    def "resolve as FileCollections delegates to a CompositeFileCollection"() {
         FileCollectionContainer composite = Mock()
         FileCollectionInternal contents = Mock()
 
@@ -154,7 +154,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         1 * composite.visitContents(!null) >> { it[0].add(contents) }
     }
 
-    def resolveAsFileTreesDelegatesToACompositeFileCollection() {
+    def "resolve as FileTrees delegates to a CompositeFileCollection"() {
         FileCollectionContainer composite = Mock()
         FileTreeInternal contents = Mock()
 
@@ -167,7 +167,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         1 * composite.visitContents(!null) >> { it[0].add(contents) }
     }
 
-    def resolveAsMinimalFileCollectionsDelegatesToACompositeFileCollection() {
+    def "resolve as MinimalFileCollections delegates to a CompositeFileCollection"() {
         FileCollectionContainer composite = Mock()
         MinimalFileCollection contents = Mock()
 
@@ -180,7 +180,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         1 * composite.visitContents(!null) >> { it[0].add(contents) }
     }
 
-    def resolvesCompositeFileCollectionsInDepthwiseOrder() {
+    def "resolves CompositeFileCollections in depthwise order"() {
         FileCollectionContainer parent1 = Mock()
         FileCollectionInternal child1 = Mock()
         FileCollectionContainer parent2 = Mock()
@@ -198,7 +198,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         1 * parent2.visitContents(!null) >> { it[0].add(child2) }
     }
 
-    def recursivelyResolvesReturnValueOfAClosure() {
+    def "recursively resolves return value of a Closure"() {
         FileCollectionInternal content = Mock()
 
         when:
@@ -209,7 +209,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == [content]
     }
 
-    def resolvesAClosureWhichReturnsNull() {
+    def "resolves a Closure which returns null"() {
         when:
         context.add { null }
         def result = context.resolveAsFileCollections()
@@ -218,7 +218,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == []
     }
 
-    def resolvesTasksOutputsWithEmptyFileCollection() {
+    def "resolves tasks outputs with empty FileCollection"() {
         FileCollectionInternal content = Mock()
         TaskOutputs outputs = Mock()
         when:
@@ -231,7 +231,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == [content]
     }
 
-    def recursivelyResolvesReturnValueOfACallable() {
+    def "recursively resolves return value of a Callable"() {
         FileCollectionInternal content = Mock()
         Callable<?> callable = Mock()
 
@@ -244,7 +244,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == [content]
     }
 
-    def resolvesACallableWhichReturnsNull() {
+    def "resolves a Callable which returns null"() {
         Callable<?> callable = Mock()
 
         when:
@@ -281,7 +281,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == []
     }
 
-    def recursivelyResolvesElementsOfAnIterable() {
+    def "recursively resolves elements of an Iterable"() {
         FileCollectionInternal content = Mock()
         Iterable<Object> iterable = Mock()
 
@@ -294,7 +294,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == [content]
     }
 
-    def recursivelyResolvesElementsAnArray() {
+    def "recursively resolves elements an Array"() {
         FileCollectionInternal content = Mock()
 
         when:
@@ -305,7 +305,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == [content]
     }
 
-    def resolveAsFileCollectionsIgnoresATaskDependency() {
+    def "resolve as FileCollections ignores a TaskDependency"() {
         TaskDependency dependency = Mock()
 
         when:
@@ -316,7 +316,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == []
     }
 
-    def resolveAsFileTreesIgnoresATaskDependency() {
+    def "resolve as FileTrees ignores a TaskDependency"() {
         TaskDependency dependency = Mock()
 
         when:
@@ -327,7 +327,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == []
     }
 
-    def resolveAsMinimalFileCollectionsIgnoresATaskDependency() {
+    def "resolve as MinimalFileCollections ignores a TaskDependency"() {
         TaskDependency dependency = Mock()
 
         when:
@@ -338,7 +338,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == []
     }
 
-    def resolveAsFileCollectionsResolvesTaskToItsOutputFiles() {
+    def "resolve as FileCollections resolves Task to its output files"() {
         Task task = Mock()
         TaskOutputs outputs = Mock()
         FileCollectionInternal outputFiles = Mock()
@@ -355,7 +355,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         result == [outputFiles]
     }
 
-    def resolveAsFileCollectionsUsesFileResolverToResolveOtherTypes() {
+    def "resolve as FileCollections uses FileResolver to resolve other types"() {
         File file1 = new File('a')
         File file2 = new File('b')
 
@@ -376,7 +376,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         1 * resolver.resolve('b') >> file2
     }
 
-    def resolveAsFileTreeUsesFileResolverToResolveOtherTypes() {
+    def "resolve as FileTree uses FileResolver to resolve other types"() {
         File file = file('a')
 
         when:
@@ -391,7 +391,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         1 * resolver.resolve('a') >> file
     }
 
-    def resolveAsMinimalFileCollectionUsesFileResolverToResolveOtherTypes() {
+    def "resolve as MinimalFileCollection uses FileResolver to resolve other types"() {
         File file = file('a')
 
         when:
@@ -405,7 +405,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         1 * resolver.resolve('a') >> file
     }
 
-    def canPushContextWhichUsesADifferentFileResolverToConvertToFileCollections() {
+    def "can push context which uses a different FileResolver to convert to FileCollections"() {
         FileResolver fileResolver = Mock()
         File file = new File('a')
 
@@ -422,7 +422,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         0 * _._
     }
 
-    def canPushContextWhichUsesADifferentFileResolverToConvertToFileTrees() {
+    def "can push context which uses a different FileResolver to convert to FileTrees"() {
         FileResolver fileResolver = Mock()
         File file = file('a')
 
