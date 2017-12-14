@@ -33,6 +33,12 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         this.name = name;
         this.moduleVersionConstraint = versionConstraint;
     }
+    
+    // DO NOT USE THIS CONSTRUCTOR DIRECTLY
+    // It's only there for backwards compatibility with the Nebula plugin
+    public DefaultModuleVersionSelector(String group, String name, String version) {
+        this(group, name, new DefaultMutableVersionConstraint(version));
+    }
 
     public String getGroup() {
         return group;

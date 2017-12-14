@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
@@ -122,5 +123,71 @@ testCompile('junit:junit:4.7')""")
 
         then:
         runner('buildEnvironment', 'generateLock').build()
+    }
+
+    @Issue("gradle/gradle#3798")
+    @Unroll
+    def "nebula dependency lock plugin version #version binary compatibility"() {
+        when:
+        buildFile << """
+            plugins {
+                id 'java-library'
+                id 'nebula.dependency-lock' version '$version'
+            }
+            
+            repositories {
+                jcenter()
+            }
+            
+            dependencies {
+                api 'org.apache.commons:commons-math3:3.6.1'
+            }
+            
+            task resolve {
+                doFirst {
+                    configurations.compileClasspath.each { println it.name }
+                }
+            }
+        """
+        file('dependencies.lock') << '''{
+    "compileClasspath": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    },
+    "default": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    },
+    "runtimeClasspath": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    },
+    "testCompileClasspath": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    },
+    "testRuntimeClasspath": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    }
+}'''
+
+        then:
+        runner('dependencies').build()
+        runner('generateLock').build()
+        runner('resolve').build()
+
+        where:
+        version << ['4.9.5', '5.0.0']
     }
 }
