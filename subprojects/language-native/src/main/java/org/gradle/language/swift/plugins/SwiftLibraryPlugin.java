@@ -85,6 +85,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(Project project) {
+                library.getLinkage().lockNow();
                 if (library.getLinkage().get().isEmpty()) {
                     throw new IllegalArgumentException("A linkage needs to be specified for the library.");
                 }

@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.plugins
 
+import org.gradle.api.ProjectConfigurationException
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftLibrary
 import org.gradle.language.swift.SwiftSharedLibrary
@@ -249,6 +250,23 @@ class SwiftLibraryPluginTest extends Specification {
         def createRelease = project.tasks.createReleaseStatic
         createRelease instanceof CreateStaticLibrary
         createRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/static/" + OperatingSystem.current().getStaticLibraryName("TestLib"))
+    }
+
+    def "cannot change the library linkages after binaries have been calculated"() {
+        given:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+        project.library.linkage = [Linkage.STATIC]
+        project.library.binaries.configureEach {
+            project.library.linkage.add(Linkage.SHARED)
+        }
+
+        when:
+        project.evaluate()
+
+        then:
+        def e = thrown(ProjectConfigurationException)
+        e.cause instanceof IllegalStateException
+        e.cause.message == 'This property is locked and cannot be changed.'
     }
 
     def "output file names are calculated from module name defined on extension"() {

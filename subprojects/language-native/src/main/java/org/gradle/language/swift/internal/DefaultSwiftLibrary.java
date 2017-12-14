@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.provider.LockableListProperty;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftLibrary;
@@ -36,7 +36,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     private final Configuration api;
     private final ProjectLayout projectLayout;
     private final ObjectFactory objectFactory;
-    private final ListProperty<Linkage> linkage;
+    private final LockableListProperty<Linkage> linkage;
     private final ConfigurationContainer configurations;
     private final Property<SwiftBinary> developmentBinary;
 
@@ -48,7 +48,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
         this.configurations = configurations;
         this.developmentBinary = objectFactory.property(SwiftBinary.class);
 
-        linkage = objectFactory.listProperty(Linkage.class);
+        linkage = new LockableListProperty<Linkage>(objectFactory.listProperty(Linkage.class));
         linkage.add(Linkage.SHARED);
 
         api = configurations.maybeCreate(getNames().withSuffix("api"));
@@ -80,7 +80,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     }
 
     @Override
-    public ListProperty<Linkage> getLinkage() {
+    public LockableListProperty<Linkage> getLinkage() {
         return linkage;
     }
 }
