@@ -48,11 +48,4 @@ class DefaultSwiftApplicationTest extends Specification {
         def ex = thrown(IllegalStateException)
         ex.message == "No value has been specified for this provider."
     }
-
-    def "returns debuggable and not optimized development binary when available"() {
-        expect:
-        def binary = app.createExecutable("debug", true, false, true)
-        app.binaries.realizeNow()
-        app.developmentBinary.get() == binary
-    }
 }

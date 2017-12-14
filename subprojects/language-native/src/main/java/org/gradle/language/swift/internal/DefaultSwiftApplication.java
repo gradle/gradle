@@ -21,8 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.provider.Property;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
 
@@ -32,6 +31,7 @@ public class DefaultSwiftApplication extends DefaultSwiftComponent implements Sw
     private final ProjectLayout projectLayout;
     private final ObjectFactory objectFactory;
     private final ConfigurationContainer configurations;
+    private final Property<SwiftExecutable> developmentBinary;
 
     @Inject
     public DefaultSwiftApplication(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
@@ -39,6 +39,7 @@ public class DefaultSwiftApplication extends DefaultSwiftComponent implements Sw
         this.projectLayout = projectLayout;
         this.objectFactory = objectFactory;
         this.configurations = configurations;
+        this.developmentBinary = objectFactory.property(SwiftExecutable.class);
     }
 
     public SwiftExecutable createExecutable(String nameSuffix, boolean debuggable, boolean optimized, boolean testable) {
@@ -48,12 +49,7 @@ public class DefaultSwiftApplication extends DefaultSwiftComponent implements Sw
     }
 
     @Override
-    public Provider<? extends SwiftExecutable> getDevelopmentBinary() {
-        return getBinaries().get(SwiftExecutable.class, new Spec<SwiftExecutable>() {
-            @Override
-            public boolean isSatisfiedBy(SwiftExecutable element) {
-                return element.isDebuggable() && !element.isOptimized();
-            }
-        });
+    public Property<SwiftExecutable> getDevelopmentBinary() {
+        return developmentBinary;
     }
 }
