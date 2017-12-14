@@ -17,24 +17,22 @@
 package org.gradle.api.plugins.quality
 
 import groovy.xml.XmlUtil
-import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 
-class FindBugsRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
+class FindBugsRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
+
     @Override
     protected String getTaskName() {
         return ":findbugs"
     }
 
     @Override
-    protected void setupProjectInOriginalLocation() {
+    protected void setupProjectIn(TestFile projectDir) {
         // Has DM_EXIT
-        file('src/main/java/org/gradle/BadClass.java') << 'package org.gradle; public class BadClass { public boolean isFoo(Object arg) { System.exit(1); return true; } }'
+        projectDir.file('src/main/java/org/gradle/BadClass.java') << 'package org.gradle; public class BadClass { public boolean isFoo(Object arg) { System.exit(1); return true; } }'
 
-        buildFile << buildFileWithClassesDir("build/classes")
-    }
-
-    private static String buildFileWithClassesDir(String classesDir) {
-        """
+        projectDir.file("build.gradle") << """
             apply plugin: "findbugs"
 
             ${mavenCentralRepository()}
@@ -42,14 +40,14 @@ class FindBugsRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
             task compile(type: JavaCompile) {
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
-                destinationDir = file("$classesDir")
+                destinationDir = file("build/classes")
                 source "src/main/java"
                 classpath = files()
             }
 
             task findbugs(type: FindBugs) {
                 dependsOn compile
-                classes = files("$classesDir")
+                classes = files("build/classes")
                 classpath = files()
                 ignoreFailures = true
             }
@@ -57,15 +55,8 @@ class FindBugsRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
     }
 
     @Override
-    protected void moveFilesAround() {
-        buildFile.text = buildFileWithClassesDir("build/other-classes")
-        assert file("build/classes").directory
-        file("build/classes").deleteDir()
-    }
-
-    @Override
-    protected extractResults() {
-        def findbugsXml = new XmlSlurper().parse(file("build/reports/findbugs/findbugs.xml"))
+    protected extractResultsFrom(TestFile projectDir) {
+        def findbugsXml = new XmlSlurper().parse(projectDir.file("build/reports/findbugs/findbugs.xml"))
 
         // Remove Jar elements that have a full path to the jar being analyzed
         findbugsXml.Project.Jar.replaceNode {}

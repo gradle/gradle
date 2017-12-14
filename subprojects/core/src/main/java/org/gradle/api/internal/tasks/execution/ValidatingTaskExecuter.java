@@ -41,11 +41,10 @@ public class ValidatingTaskExecuter implements TaskExecuter {
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         List<String> messages = Lists.newArrayList();
         FileResolver resolver = ((ProjectInternal) task.getProject()).getFileResolver();
-        TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, messages);
+        final TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, messages);
 
         try {
-            task.getInputs().validate(validationContext);
-            task.getOutputs().validate(validationContext);
+            context.getTaskProperties().validate(validationContext);
         } catch (Exception ex) {
             throw new TaskExecutionException(task, ex);
         }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
 
@@ -42,4 +43,8 @@ public interface TaskExecutionContext {
     List<String> getUpToDateMessages();
 
     void setUpToDateMessages(List<String> upToDateMessages);
+
+    void setTaskProperties(TaskProperties taskProperties);
+
+    TaskProperties getTaskProperties();
 }

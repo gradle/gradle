@@ -16,13 +16,12 @@
 
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
 import java.util.regex.Pattern
 
-class CheckstyleRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
-    private TestFile configFile
+class CheckstyleRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override
     protected String getTaskName() {
@@ -30,8 +29,8 @@ class CheckstyleRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
     }
 
     @Override
-    protected void setupProjectInOriginalLocation() {
-        configFile = file("config/checkstyle/checkstyle.xml") << """<?xml version="1.0"?>
+    protected void setupProjectIn(TestFile projectDir) {
+        projectDir.file("config/checkstyle/checkstyle.xml") << """<?xml version="1.0"?>
 <!DOCTYPE module PUBLIC
           "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
           "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
@@ -45,22 +44,18 @@ class CheckstyleRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
 </module>
         """
 
-        file("src/main/java/org/gradle/Class1.java") <<
+        projectDir.file("src/main/java/org/gradle/Class1.java") <<
             "package org.gradle; class Class1 { public boolean is() { return true; } }  "
-        file("src/main/java/org/gradle/Class1Test.java") <<
+        projectDir.file("src/main/java/org/gradle/Class1Test.java") <<
             "package org.gradle; class Class1Test { public boolean is() { return true; } }"
 
-        buildFile << buildFileWithSourceDir("src/main/java")
-    }
-
-    private static String buildFileWithSourceDir(String sourceDir) {
-        """
+        projectDir.file("build.gradle") << """
             apply plugin: "checkstyle"
 
             ${mavenCentralRepository()}
 
             task checkstyle(type: Checkstyle) {
-                source "$sourceDir"
+                source "src/main/java"
                 classpath = files()
                 ignoreFailures = true
             }
@@ -68,18 +63,8 @@ class CheckstyleRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
     }
 
     @Override
-    protected void moveFilesAround() {
-        file("src").renameTo(file("other-src"))
-        buildFile.text = buildFileWithSourceDir("other-src/main/java")
-        def movedConfigPath = "config-2/checkstyle-config.xml"
-        configFile.copyTo(file(movedConfigPath))
-        buildFile << """
-           checkstyle.configFile = file("$movedConfigPath")
-        """
-    }
-
-    @Override
-    protected extractResults() {
-        return file("build/reports/checkstyle/checkstyle.xml").text.replaceAll(Pattern.quote(file().absolutePath + File.separator) + ".*?" + Pattern.quote(File.separator), "")
+    protected extractResultsFrom(TestFile projectDir) {
+        return projectDir.file("build/reports/checkstyle/checkstyle.xml").text
+            .replaceAll(Pattern.quote(projectDir.absolutePath + File.separator) + ".*?" + Pattern.quote(File.separator), "")
     }
 }

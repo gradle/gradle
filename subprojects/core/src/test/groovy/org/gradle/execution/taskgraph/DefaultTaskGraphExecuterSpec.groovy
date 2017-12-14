@@ -23,6 +23,7 @@ import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
@@ -562,15 +563,10 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.mustRunAfter >> Stub(TaskDependency)
         _ * mock.shouldRunAfter >> Stub(TaskDependency)
         _ * mock.compareTo(_) >> { Task t -> name.compareTo(t.name) }
-        _ * mock.outputs >> Stub(TaskOutputsInternal) {
-            getFiles() >> project.files()
-        }
-        _ * mock.destroyables >> Stub(TaskDestroyablesInternal) {
-            getFiles() >> project.files()
-        }
-        _ * mock.localState >> Stub(TaskLocalStateInternal) {
-            getFiles() >> project.files()
-        }
+        _ * mock.outputs >> Stub(TaskOutputsInternal)
+        _ * mock.inputs >> Stub(TaskInputsInternal)
+        _ * mock.destroyables >> Stub(TaskDestroyablesInternal)
+        _ * mock.localState >> Stub(TaskLocalStateInternal)
         _ * mock.path >> ":${name}"
         return mock
     }
@@ -601,15 +597,10 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         _ * mock.mustRunAfter >> Stub(TaskDependency)
         _ * mock.shouldRunAfter >> Stub(TaskDependency)
         _ * mock.compareTo(_) >> { Task t -> name.compareTo(t.name) }
-        _ * mock.outputs >> Stub(TaskOutputsInternal) {
-            getFiles() >> project.files()
-        }
-        _ * mock.destroyables >> Stub(TaskDestroyablesInternal) {
-            getFiles() >> project.files()
-        }
-        _ * mock.localState >> Stub(TaskLocalStateInternal) {
-            getFiles() >> project.files()
-        }
+        _ * mock.outputs >> Stub(TaskOutputsInternal)
+        _ * mock.inputs >> Stub(TaskInputsInternal)
+        _ * mock.destroyables >> Stub(TaskDestroyablesInternal)
+        _ * mock.localState >> Stub(TaskLocalStateInternal)
         _ * mock.path >> ":${name}"
         return mock
     }

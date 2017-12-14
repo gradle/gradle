@@ -40,15 +40,47 @@ class DefaultSwiftLibraryTest extends Specification {
         library.apiDependencies == api
     }
 
-    def "has debug and release variants"() {
+    def "can create static binary"() {
         expect:
-        library.debugSharedLibrary.name == "mainDebug"
-        library.debugSharedLibrary.debuggable
-        !library.debugSharedLibrary.optimized
-        library.releaseSharedLibrary.name == "mainRelease"
-        library.releaseSharedLibrary.debuggable
-        library.releaseSharedLibrary.optimized
-        library.developmentBinary == library.debugSharedLibrary
+        def binary = library.createStaticLibrary("debug", true, false, true)
+        binary.name == "mainDebug"
+        binary.debuggable
+        !binary.optimized
+        binary.testable
+
+        library.binaries.realizeNow()
+        library.binaries.get() == [binary] as Set
+    }
+
+    def "can create shared binary"() {
+        expect:
+        def binary = library.createSharedLibrary("debug", true, false, true)
+        binary.name == "mainDebug"
+        binary.debuggable
+        !binary.optimized
+        binary.testable
+
+        library.binaries.realizeNow()
+        library.binaries.get() == [binary] as Set
+    }
+
+    def "throws exception when development binary is not available"() {
+        given:
+        library.binaries.realizeNow()
+
+        when:
+        library.developmentBinary
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "No value has been specified for this provider."
+    }
+
+    def "returns shared, debuggable and not optimized development binary when available"() {
+        expect:
+        def binary = library.createSharedLibrary("debug", true, false, true)
+        library.binaries.realizeNow()
+        library.developmentBinary == binary
     }
 
     interface TestConfiguration extends Configuration, FileCollectionInternal {

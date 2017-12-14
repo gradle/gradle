@@ -90,6 +90,17 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 The command line options for searching in parent directories for a `settings.gradle` file (`-u`/`--no-search-upward`) has been deprecated and will be removed in Gradle 5.0. A Gradle project should always define a `settings.gradle` file to avoid the performance overhead of walking parent directories.
 
+### Deprecation of `TaskInputs` and `TaskOutputs` methods
+
+Gradle 5.0 will remove support for the following methods:
+
+- `TaskInputs.getHasInputs()`
+- `TaskInputs.getHasSourceFiles()`
+- `TaskInputs.getSourceFiles()`
+- `TaskOutputs.getHasOutput()`
+
+You can declare individual task properties and observe their values instead of calling these methods.
+
 ## Potential breaking changes
 
 * Two overloaded `ValidateTaskProperties.setOutputFile()` methods were removed. They are replaced with auto-generated setters when the task is accessed from a build script.
@@ -108,6 +119,19 @@ Getting a redirect from the build cache backend is mostly a configuration error 
 ### Incubating `Depend` task removed
 
 TBD - removed `Depend` task, this capability has been merged into the compile tasks.
+
+### Gradle no longer tracks the canonical path of input file tree roots
+
+Gradle was inconsistently handling symlinks when snapshotting inputs. For the root of a file tree it would take the canonical path into account. For individual files and contents of trees,
+it would only consider the normalized path instead. Gradle will now always use the normalized path. This means that a task will not rerun if a directory is replaced with a symlink to the exact same contents.
+If you have a use case that requires reacting to the canonical path of inputs, please open an issue and we'll consider an opt-in API that will canonicalize all inputs, not just tree roots.
+
+### Project.file() no longer normalizes case
+
+The `Project.file()` and related methods used to normalize the case on case-insensitive file systems. This means that the method would check whether any parts of the hierarchy of a given file already
+existed in a different case and would adjust the given file accordingly. This lead to lots of IO during configuration time without a strong benefit. 
+
+The `Project.file()` method will now ignore case and only normalize redundant segments like `/../`. It will not touch the file system.
 
 ## External contributions
 

@@ -18,6 +18,7 @@ package org.gradle.language.swift.plugins
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftApplication
+import org.gradle.language.swift.SwiftExecutable
 import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
@@ -38,6 +39,7 @@ class SwiftApplicationPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(SwiftApplicationPlugin)
+        project.evaluate()
 
         then:
         project.application instanceof SwiftApplication
@@ -48,11 +50,20 @@ class SwiftApplicationPluginTest extends Specification {
     def "registers a component for the executable"() {
         when:
         project.pluginManager.apply(SwiftApplicationPlugin)
+        project.evaluate()
 
         then:
         project.components.main == project.application
-        project.components.mainDebug == project.application.debugExecutable
-        project.components.mainRelease == project.application.releaseExecutable
+        project.application.binaries.get().name == ['mainDebug', 'mainRelease']
+        project.components.containsAll(project.application.binaries.get())
+
+        and:
+        def binaries = project.application.binaries.get()
+        binaries.findAll { it.debuggable && it.optimized && it instanceof SwiftExecutable }.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftExecutable }.size() == 1
+
+        and:
+        project.application.developmentBinary == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftExecutable }
     }
 
     def "adds compile, link and install tasks"() {
@@ -61,8 +72,12 @@ class SwiftApplicationPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(SwiftApplicationPlugin)
+        project.evaluate()
 
         then:
+        project.tasks.withType(SwiftCompile).name == ['compileDebugSwift', 'compileReleaseSwift']
+
+        and:
         def compileDebug = project.tasks.compileDebugSwift
         compileDebug instanceof SwiftCompile
         compileDebug.source.files == [src] as Set
@@ -104,6 +119,7 @@ class SwiftApplicationPluginTest extends Specification {
         when:
         project.pluginManager.apply(SwiftApplicationPlugin)
         project.application.module = "App"
+        project.evaluate()
 
         then:
         def compileSwift = project.tasks.compileDebugSwift

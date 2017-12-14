@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.swift.tasks.SwiftCompile;
 
 /**
  * A binary built from Swift source.
@@ -80,4 +81,11 @@ public interface SwiftBinary extends SoftwareComponent {
      * @since 4.4
      */
     FileCollection getObjects();
+
+    /**
+     * Returns the compile task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<SwiftCompile> getCompileTask();
 }

@@ -21,6 +21,7 @@ import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -944,21 +945,19 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     private TaskOutputsInternal emptyTaskOutputs() {
-        Mock(TaskOutputsInternal) {
-            getFiles() >> root.files()
-        }
+        Stub(TaskOutputsInternal)
     }
 
     private TaskDestroyables emptyTaskDestroys() {
-        Mock(TaskDestroyablesInternal) {
-            getFiles() >> root.files()
-        }
+        Stub(TaskDestroyablesInternal)
     }
 
     private TaskLocalStateInternal emptyTaskLocalState() {
-        Mock(TaskLocalStateInternal) {
-            getFiles() >> root.files()
-        }
+        Stub(TaskLocalStateInternal)
+    }
+
+    private TaskInputsInternal emptyTaskInputs() {
+        Stub(TaskInputsInternal)
     }
 
     private TaskInternal task(Map options, final String name) {
@@ -971,6 +970,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         task.getOutputs() >> emptyTaskOutputs()
         task.getDestroyables() >> emptyTaskDestroys()
         task.getLocalState() >> emptyTaskLocalState()
+        task.getInputs() >> emptyTaskInputs()
         return task
     }
 
@@ -1005,6 +1005,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         task.getOutputs() >> emptyTaskOutputs()
         task.getDestroyables() >> emptyTaskDestroys()
         task.getLocalState() >> emptyTaskLocalState()
+        task.getInputs() >> emptyTaskInputs()
         return task
     }
 }

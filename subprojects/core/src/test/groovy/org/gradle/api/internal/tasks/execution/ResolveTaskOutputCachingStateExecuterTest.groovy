@@ -33,6 +33,7 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     def task = Stub(TaskInternal) {
         getOutputs() >> outputs
     }
+    def taskProperties = Mock(TaskProperties)
     def taskState = Mock(TaskStateInternal)
     def taskContext = Mock(TaskExecutionContext)
     def delegate = Mock(TaskExecuter)
@@ -43,7 +44,8 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * outputs.getCachingState() >> taskOutputCaching
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * outputs.getCachingState(taskProperties) >> taskOutputCaching
         1 * taskState.setTaskOutputCaching(taskOutputCaching)
         1 * taskOutputCaching.isEnabled() >> true
 
@@ -57,7 +59,8 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * outputs.getCachingState() >> taskOutputCaching
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * outputs.getCachingState(taskProperties) >> taskOutputCaching
         1 * taskState.setTaskOutputCaching(taskOutputCaching)
         1 * taskOutputCaching.isEnabled() >> false
         1 * taskOutputCaching.getDisabledReason() >> "Some"
@@ -72,7 +75,8 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
         executer.execute(task, taskState, taskContext)
 
         then:
-        1 * outputs.getCachingState() >> { throw new RuntimeException("Bad cacheIf() clause") }
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * outputs.getCachingState(taskProperties) >> { throw new RuntimeException("Bad cacheIf() clause") }
         0 * _
 
         def ex = thrown GradleException

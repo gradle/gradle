@@ -16,36 +16,14 @@
 
 package org.gradle.api.internal;
 
-import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.tasks.TaskInputPropertyBuilder;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.TaskInputs;
 
 public interface TaskInputsInternal extends TaskInputs {
-    ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties();
-
-    TaskInputFilePropertyBuilderInternal registerFiles(ValidatingValue paths);
-
-    TaskInputFilePropertyBuilderInternal registerFile(ValidatingValue value);
-
-    TaskInputFilePropertyBuilderInternal registerDir(ValidatingValue dirPath);
-
-    TaskInputPropertyBuilder registerProperty(String name, ValidatingValue value);
-
-    TaskInputPropertyBuilder registerNested(String name, ValidatingValue value);
-
-    void validate(TaskValidationContext context);
 
     /**
-     * Called prior to the use of these inputs during task execution. The implementation may finalize and cache whatever state is required to efficiently calculate the snapshot, cache key and values of these inputs during task execution.
+     * Calls the corresponding visitor methods for all inputs added via the runtime API.
      */
-    void prepareValues();
+    void visitRegisteredProperties(PropertyVisitor visitor);
 
-    /**
-     * Called after task execution has completed, regardless of task outcome. The implementation may release whatever state was cached during task execution.
-     */
-    void cleanupValues();
 }

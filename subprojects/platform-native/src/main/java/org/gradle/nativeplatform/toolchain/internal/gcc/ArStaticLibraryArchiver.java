@@ -36,8 +36,8 @@ import java.util.List;
 /**
  * A static library archiver based on the GNU 'ar' utility
  */
-class ArStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiverSpec> {
-    ArStaticLibraryArchiver(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, WorkerLeaseService workerLeaseService) {
+public class ArStaticLibraryArchiver extends AbstractCompiler<StaticLibraryArchiverSpec> {
+    public ArStaticLibraryArchiver(BuildOperationExecutor buildOperationExecutor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, WorkerLeaseService workerLeaseService) {
         super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new ArchiverSpecToArguments(), false, workerLeaseService);
     }
 

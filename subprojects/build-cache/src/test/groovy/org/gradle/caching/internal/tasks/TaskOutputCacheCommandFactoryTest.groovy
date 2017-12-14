@@ -31,8 +31,8 @@ import org.gradle.api.internal.changedetection.state.RegularFileSnapshot
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
-import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
+import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata
 import org.gradle.internal.hash.HashCode
@@ -54,10 +54,10 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def commandFactory = new TaskOutputCacheCommandFactory(packer, originFactory, fileSystemMirror, stringInterner)
 
     def key = Mock(TaskOutputCachingBuildCacheKey)
+    def taskProperties = Mock(TaskProperties)
     def task = Mock(TaskInternal)
     def taskOutputsGenerationListener = Mock(TaskOutputsGenerationListener)
     def taskArtifactState = Mock(TaskArtifactState)
-    def taskLocalState = Mock(TaskLocalStateInternal)
     def timer = Stub(Timer)
 
     def originMetadata = Mock(TaskOutputOriginMetadata)
@@ -76,7 +76,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
             prop("outputDir", DIRECTORY, outputDir),
             prop("outputFile", FILE, outputFile),
         ] as SortedSet
-        def load = commandFactory.createLoad(key, outputProperties, task, taskOutputsGenerationListener, taskArtifactState, timer)
+        def load = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState, timer)
 
         def outputDirSnapshot = new DirectoryFileSnapshot(outputDir.path, RelativePath.EMPTY_ROOT, true)
         def outputDirFileContent = new FileHashSnapshot(HashCode.fromInt(123))
@@ -113,8 +113,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         }
 
         then:
-        1 * task.getLocalState() >> taskLocalState
-        1 * taskLocalState.getFiles() >> localStateFiles
+        1 * taskProperties.getLocalStateFiles() >> localStateFiles
 
         then:
         result.artifactEntryCount == 123
@@ -129,7 +128,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         def input = Mock(InputStream)
         def outputFile = temporaryFolder.file("output.txt")
         def outputProperties = props("output", FILE, outputFile)
-        def command = commandFactory.createLoad(key, outputProperties, task, taskOutputsGenerationListener, taskArtifactState, timer)
+        def command = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState, timer)
 
         when:
         command.load(input)
@@ -148,8 +147,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         1 * taskArtifactState.afterOutputsRemovedBeforeTask()
 
         then:
-        1 * task.getLocalState() >> taskLocalState
-        1 * taskLocalState.getFiles() >> localStateFiles
+        1 * taskProperties.getLocalStateFiles() >> localStateFiles
 
         then:
         def ex = thrown Exception
@@ -165,7 +163,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def "error during cleanup of failed unpacking is reported"() {
         def input = Mock(InputStream)
         def outputProperties = Mock(SortedSet)
-        def command = commandFactory.createLoad(key, outputProperties, task, taskOutputsGenerationListener, taskArtifactState, timer)
+        def command = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState, timer)
 
         when:
         command.load(input)
@@ -183,8 +181,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         1 * outputProperties.iterator() >> { throw new RuntimeException("cleanup error") }
 
         then:
-        1 * task.getLocalState() >> taskLocalState
-        1 * taskLocalState.getFiles() >> localStateFiles
+        1 * taskProperties.getLocalStateFiles() >> localStateFiles
 
         then:
         def ex = thrown UnrecoverableTaskOutputUnpackingException
@@ -219,7 +216,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         return [prop(name, outputType, outputFile)] as SortedSet
     }
 
-    def ResolvedTaskOutputFilePropertySpec prop(String name, OutputType outputType = FILE, File outputFile = null) {
+    ResolvedTaskOutputFilePropertySpec prop(String name, OutputType outputType = FILE, File outputFile = null) {
         new ResolvedTaskOutputFilePropertySpec(name, outputType, outputFile)
     }
 }

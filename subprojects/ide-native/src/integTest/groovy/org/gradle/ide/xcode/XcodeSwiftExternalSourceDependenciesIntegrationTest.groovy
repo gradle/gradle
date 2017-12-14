@@ -20,7 +20,6 @@ import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
-import org.gradle.util.GFileUtils
 import org.gradle.vcs.fixtures.GitRepository
 import org.gradle.vcs.internal.SourceDependencies
 import org.junit.Rule
@@ -46,7 +45,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             """
             fixture.library.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         settingsFile << """
@@ -95,7 +94,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             """
             fixture.library.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         settingsFile << """
@@ -144,7 +143,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             """
             library.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
 
         and:
@@ -195,7 +194,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             """
             library.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
 
         and:
@@ -244,7 +243,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             """
             fixture.library.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         singleProjectBuild("app") {
@@ -302,7 +301,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             """
             fixture.library.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         singleProjectBuild("app") {

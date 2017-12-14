@@ -32,14 +32,4 @@ public interface SwiftApplication extends SwiftComponent {
      */
     @Override
     SwiftExecutable getDevelopmentBinary();
-
-    /**
-     * Returns the debug executable for this application.
-     */
-    SwiftExecutable getDebugExecutable();
-
-    /**
-     * Returns the release executable for this application.
-     */
-    SwiftExecutable getReleaseExecutable();
 }
