@@ -2,35 +2,35 @@
 
 /* Lato (normal, regular) */
 @font-face {
-  font-display: swap;
-  font-family: Lato;
-  font-weight: 400;
-  font-style: normal;
-  text-rendering: optimizeLegibility;
-  src: url("https://assets.gradle.com/lato/fonts/lato-normal/lato-normal.woff2") format("woff2"),
-       url("https://assets.gradle.com/lato/fonts/lato-normal/lato-normal.woff") format("woff");
+    font-display: swap;
+    font-family: Lato;
+    font-weight: 400;
+    font-style: normal;
+    text-rendering: optimizeLegibility;
+    src: url("https://assets.gradle.com/lato/fonts/lato-normal/lato-normal.woff2") format("woff2"),
+    url("https://assets.gradle.com/lato/fonts/lato-normal/lato-normal.woff") format("woff");
 }
 
 /* Lato (normal, italic) */
 @font-face {
-  font-display: swap;
-  font-family: Lato;
-  font-weight: 400;
-  font-style: italic;
-  text-rendering: optimizeLegibility;
-  src: url("https://assets.gradle.com/lato/fonts/lato-normal-italic/lato-normal-italic.woff2") format("woff2"),
-       url("https://assets.gradle.com/lato/fonts/lato-normal-italic/lato-normal-italic.woff") format("woff");
+    font-display: swap;
+    font-family: Lato;
+    font-weight: 400;
+    font-style: italic;
+    text-rendering: optimizeLegibility;
+    src: url("https://assets.gradle.com/lato/fonts/lato-normal-italic/lato-normal-italic.woff2") format("woff2"),
+    url("https://assets.gradle.com/lato/fonts/lato-normal-italic/lato-normal-italic.woff") format("woff");
 }
 
 /* Lato (bold, regular) */
 @font-face {
-  font-display: swap;
-  font-family: Lato;
-  font-weight: 500;
-  font-style: normal;
-  text-rendering: optimizeLegibility;
-  src: url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff2") format("woff2"),
-       url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff") format("woff");
+    font-display: swap;
+    font-family: Lato;
+    font-weight: 500;
+    font-style: normal;
+    text-rendering: optimizeLegibility;
+    src: url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff2") format("woff2"),
+    url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff") format("woff");
 }
 
 * {
@@ -240,7 +240,6 @@ blockquote p:last-child {
     background-color: white;
     border-radius: 5px;
     max-width: 45rem;
-    margin: 2rem auto;
     padding: 1.5rem;
 }
 
@@ -743,39 +742,39 @@ h3.releaseinfo {
     margin-top: 1.5em;
 }
 
-.chapter {
-    margin: 0 auto 30px;
+.main-content {
+    display: flex;
+    justify-content: center;
 }
 
 /* User guide navigation appears for desktops */
 @media screen and (min-width: 1024px) {
+    .main-content {
+        padding-top: 75px;
+    }
+
     .docs-navigation {
         display: block;
-        position: absolute;
-        left: 60px;
-        top: 75px;
+        flex: 0 1 auto;
         width: 220px;
     }
 
     .chapter, .book {
-        margin: 75px 0 30px 304px;
-        min-height: 1200px;
+        flex: 0 1 720px;
+        margin: 0 20px;
+        min-height: 600px;
     }
 }
 
 /* Fixed intra-chapter navigation for desktops */
 @media screen and (min-width: 1200px) {
-    .chapter {
-        margin: 82px auto 30px auto;
-    }
-
     .chapter .toc {
         position: fixed;
-        left: calc(50% + 360px);
+        left: calc(50% + 380px);
         top: 50px;
         width: 220px;
-        padding: 15px 0 0 1.5rem;
-        font-size: 0.9375rem;
+        padding-top: 15px;
+        font-size: 0.9rem;
         background-color: #F7F7F8;
     }
 
@@ -804,7 +803,12 @@ h3.releaseinfo {
     }
 
     .docs-navigation {
-        left: calc(50% - 600px);
+        flex-basis: 220px;
+    }
+
+    /* Sneaky way to make room for TOC */
+    .secondary-navigation {
+        flex: 0 1 220px;
     }
 }
 
@@ -1179,7 +1183,7 @@ h3.releaseinfo {
 /**
  * TITLEPAGE
  */
-.home ~ .toc {
+.home {
 
 }
 

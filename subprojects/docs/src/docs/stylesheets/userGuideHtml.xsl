@@ -212,6 +212,7 @@
                         </ul>
                     </nav>
                     <xsl:copy-of select="$content"/>
+                    <aside class="secondary-navigation"></aside>
                 </main>
                 <xsl:call-template name="footer.navigation"></xsl:call-template>
                 <script type="text/javascript">
