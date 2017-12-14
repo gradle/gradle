@@ -19,7 +19,6 @@ package org.gradle.language.swift;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.Provider;
 import org.gradle.nativeplatform.Linkage;
 
 /**
@@ -35,12 +34,6 @@ public interface SwiftLibrary extends SwiftComponent {
      * Returns the API dependencies of this library.
      */
     Configuration getApiDependencies();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Provider<? extends SwiftSharedLibrary> getDevelopmentBinary();
 
     /**
      * Returns the list of linkage of this library.

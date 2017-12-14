@@ -23,8 +23,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.provider.Property;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.SwiftSharedLibrary;
@@ -39,6 +38,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     private final ObjectFactory objectFactory;
     private final ListProperty<Linkage> linkage;
     private final ConfigurationContainer configurations;
+    private final Property<SwiftBinary> developmentBinary;
 
     @Inject
     public DefaultSwiftLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
@@ -46,6 +46,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
         this.projectLayout = projectLayout;
         this.objectFactory = objectFactory;
         this.configurations = configurations;
+        this.developmentBinary = objectFactory.property(SwiftBinary.class);
 
         linkage = objectFactory.listProperty(Linkage.class);
         linkage.add(Linkage.SHARED);
@@ -74,13 +75,8 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     }
 
     @Override
-    public Provider<? extends SwiftSharedLibrary> getDevelopmentBinary() {
-        return getBinaries().get(SwiftSharedLibrary.class, new Spec<SwiftBinary>() {
-            @Override
-            public boolean isSatisfiedBy(SwiftBinary element) {
-                return element.isDebuggable() && !element.isOptimized();
-            }
-        });
+    public Property<SwiftBinary> getDevelopmentBinary() {
+        return developmentBinary;
     }
 
     @Override

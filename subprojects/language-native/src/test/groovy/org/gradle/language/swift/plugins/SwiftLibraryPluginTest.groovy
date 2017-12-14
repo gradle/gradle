@@ -83,6 +83,9 @@ class SwiftLibraryPluginTest extends Specification {
         def binaries = project.library.binaries.get()
         binaries.findAll { it.debuggable && it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
         binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
+
+        and:
+        project.library.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftStaticLibrary }
     }
 
     def "registers a component for the library with both linkage"() {
