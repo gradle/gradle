@@ -18,7 +18,6 @@ package org.gradle.buildinit.tasks;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -35,7 +34,10 @@ import org.gradle.buildinit.plugins.internal.BuildInitTypeIds;
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 
+import java.io.File;
 import java.util.List;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Generates a Gradle project structure.
@@ -55,7 +57,7 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     public String getType() {
-        return !Strings.isNullOrEmpty(type) ? type : getProject().file("pom.xml").exists() ? BuildInitTypeIds.POM : BuildInitTypeIds.BASIC;
+        return isNullOrEmpty(type) ? detectType() : type;
     }
 
     /**
@@ -69,7 +71,7 @@ public class InitBuild extends DefaultTask {
     @Optional
     @Input
     public String getDsl() {
-        return !Strings.isNullOrEmpty(dsl) ? dsl : BuildInitDsl.GROOVY.getId();
+        return isNullOrEmpty(dsl) ? BuildInitDsl.GROOVY.getId() : dsl;
     }
 
     /**
@@ -164,4 +166,11 @@ public class InitBuild extends DefaultTask {
         this.projectLayoutRegistry = projectLayoutRegistry;
     }
 
+    private String detectType() {
+        return file("pom.xml").exists() ? BuildInitTypeIds.POM : BuildInitTypeIds.BASIC;
+    }
+
+    private File file(String path) {
+        return getProject().file(path);
+    }
 }
