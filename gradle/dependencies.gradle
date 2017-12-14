@@ -36,6 +36,7 @@ libraries.commons_lang = 'commons-lang:commons-lang:2.6'
 libraries.commons_collections = 'commons-collections:commons-collections:3.2.2'
 libraries.commons_compress = 'org.apache.commons:commons-compress:1.14'
 libraries.jsch = 'com.jcraft:jsch:0.1.54'
+libraries.fastutil = "it.unimi.dsi:fastutil:7.2.1"
 
 libraries.ivy = 'org.apache.ivy:ivy:2.2.0'
 
