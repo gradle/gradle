@@ -19,7 +19,6 @@ package org.gradle.buildinit.tasks.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
@@ -38,38 +37,12 @@ public class TaskConfiguration {
     public static void configureInit(final InitBuild init) {
         init.setGroup(GROUP);
         init.setDescription("Initializes a new Gradle build.");
-        final Transformer<String, Project> setupCanBeSkipped = new Transformer<String, Project>() {
 
-            @Override
-            public String transform(Project project) {
-                for (BuildInitDsl dsl : BuildInitDsl.values()) {
-                    String buildFileName = dsl.fileNameFor("build");
-                    if (project.file(buildFileName).exists()) {
-                        return "The build file '" + buildFileName + "' already exists. Skipping build initialization.";
-                    }
-                    String settingsFileName = dsl.fileNameFor("settings");
-                    if (project.file(settingsFileName).exists()) {
-                        return "The settings file '" + settingsFileName + "' already exists. Skipping build initialization.";
-                    }
-                }
-
-                File buildFile = project.getBuildFile();
-                if (buildFile != null && buildFile.exists()) {
-                    return "The build file \'" + buildFile.getName() + "\' already exists. Skipping build initialization.";
-                }
-
-                if (project.getSubprojects().size() > 0) {
-                    return "This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.";
-                }
-
-                return null;
-            }
-        };
         final Project project = init.getProject();
         init.onlyIf(new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
-                Object skippedMsg = setupCanBeSkipped.transform(project);
+                Object skippedMsg = reasonToSkip(project);
                 if (skippedMsg != null) {
                     project.getLogger().warn((String) skippedMsg);
                     return false;
@@ -82,7 +55,7 @@ public class TaskConfiguration {
         init.dependsOn(new Callable<String>() {
             @Override
             public String call() throws Exception {
-                if (setupCanBeSkipped.transform(project) == null) {
+                if (reasonToSkip(project) == null) {
                     return "wrapper";
                 } else {
                     return null;
@@ -93,13 +66,45 @@ public class TaskConfiguration {
         project.getGradle().getTaskGraph().whenReady(new Action<TaskExecutionGraph>() {
             @Override
             public void execute(TaskExecutionGraph taskGraph) {
-                if (setupCanBeSkipped.transform(project) == null && taskGraph.hasTask(init)) {
-                    Wrapper wrapper = (Wrapper) project.getTasks().getByName("wrapper");
-                    BuildInitDsl dsl = BuildInitDsl.fromName(init.getDsl());
-                    wrapper.setDistributionType(dsl.getWrapperDistributionType());
+                if (reasonToSkip(project) == null && taskGraph.hasTask(init)) {
+                    wrapperTaskOf(project)
+                        .setDistributionType(
+                            wrapperDistributionTypeFor(init.getDsl()));
                 }
             }
         });
+    }
+
+    private static Wrapper wrapperTaskOf(Project project) {
+        return (Wrapper) project.getTasks().getByName("wrapper");
+    }
+
+    private static Wrapper.DistributionType wrapperDistributionTypeFor(String dsl) {
+        return BuildInitDsl.fromName(dsl).getWrapperDistributionType();
+    }
+
+    private static String reasonToSkip(Project project) {
+        for (BuildInitDsl dsl : BuildInitDsl.values()) {
+            String buildFileName = dsl.fileNameFor("build");
+            if (project.file(buildFileName).exists()) {
+                return "The build file '" + buildFileName + "' already exists. Skipping build initialization.";
+            }
+            String settingsFileName = dsl.fileNameFor("settings");
+            if (project.file(settingsFileName).exists()) {
+                return "The settings file '" + settingsFileName + "' already exists. Skipping build initialization.";
+            }
+        }
+
+        File buildFile = project.getBuildFile();
+        if (buildFile != null && buildFile.exists()) {
+            return "The build file \'" + buildFile.getName() + "\' already exists. Skipping build initialization.";
+        }
+
+        if (project.getSubprojects().size() > 0) {
+            return "This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.";
+        }
+
+        return null;
     }
 
     public static void configureWrapper(Wrapper wrapper) {
