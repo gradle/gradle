@@ -49,15 +49,6 @@ public interface ModuleVersionSelector {
     String getVersion();
 
     /**
-     * Returns the version constraint to be used during selection.
-     * @return the version constraint
-     *
-     * @since 4.4
-     */
-    @Incubating
-    VersionConstraint getVersionConstraint();
-
-    /**
      * To match strictly means that the given identifier needs to have
      * equal group, module name and version.
      * It does not smartly match dynamic versions,
