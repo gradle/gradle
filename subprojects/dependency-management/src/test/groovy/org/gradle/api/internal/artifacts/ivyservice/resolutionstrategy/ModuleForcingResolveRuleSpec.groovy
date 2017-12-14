@@ -29,14 +29,14 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 
 class ModuleForcingResolveRuleSpec extends Specification {
 
+    private static VersionConstraint v(String version) {
+        new DefaultMutableVersionConstraint(version)
+    }
+
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
         module(_, _) >> { args ->
             DefaultModuleIdentifier.newId(*args)
         }
-    }
-
-    private static VersionConstraint v(String version) {
-        new DefaultMutableVersionConstraint(version)
     }
 
     def "forces modules"() {
@@ -45,25 +45,25 @@ class ModuleForcingResolveRuleSpec extends Specification {
 
         when:
         new ModuleForcingResolveRule([
-            newSelector("org", "module1", v("1.0")),
-            newSelector("org", "module2", v("2.0")),
+            newSelector("org", "module1", "1.0"),
+            newSelector("org", "module2", "2.0"),
             //exotic module with colon in the name
-            newSelector("org", "module:with:colon", v("3.0")),
-            newSelector("org:with:colon", "module2", v("4.0"))
+            newSelector("org", "module:with:colon", "3.0"),
+            newSelector("org:with:colon", "module2", "4.0")
         ], moduleIdentifierFactory).execute(details)
 
         then:
         _ * details.requested >> DefaultModuleComponentSelector.newSelector(requested)
         _ * details.getOldRequested() >> requested
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(requested.group, requested.name, v(forcedVersion)), VersionSelectionReasons.FORCED)
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(requested.group, requested.name, forcedVersion), VersionSelectionReasons.FORCED)
         0 * details._
 
         where:
         requested                                                             | forcedVersion
-        newSelector("org", "module2", v("0.9"))            | "2.0"
-        newSelector("org", "module2", v("2.1"))            | "2.0"
-        newSelector("org", "module:with:colon", v("2.0"))  | "3.0"
-        newSelector("org:with:colon", "module2", v("5.0")) | "4.0"
+        newSelector("org", "module2", "0.9")            | "2.0"
+        newSelector("org", "module2", "2.1")            | "2.0"
+        newSelector("org", "module:with:colon", "2.0")  | "3.0"
+        newSelector("org:with:colon", "module2", "5.0") | "4.0"
     }
 
     def "does not force modules if they dont match"() {
@@ -72,10 +72,10 @@ class ModuleForcingResolveRuleSpec extends Specification {
 
         when:
         new ModuleForcingResolveRule([
-            newSelector("org", "module1", v("1.0")),
-            newSelector("org", "module2", v("2.0")),
-            newSelector("org", "module:with:colon", v("3.0")),
-            newSelector("org:with:colon", "module2", v("4.0"))
+            newSelector("org", "module1", "1.0"),
+            newSelector("org", "module2", "2.0"),
+            newSelector("org", "module:with:colon", "3.0"),
+            newSelector("org:with:colon", "module2", "4.0")
         ], moduleIdentifierFactory).execute(details)
 
         then:

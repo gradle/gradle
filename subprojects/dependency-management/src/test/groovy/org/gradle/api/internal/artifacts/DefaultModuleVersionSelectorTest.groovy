@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts
 
-import org.gradle.api.artifacts.VersionConstraint
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -25,17 +23,13 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 
 class DefaultModuleVersionSelectorTest extends Specification {
 
-    static VersionConstraint v(String version) {
-        new DefaultMutableVersionConstraint(version)
-    }
-
     def "equality"() {
-        def selector = newSelector("org", "util", v("1.0"))
+        def selector = newSelector("org", "util", "1.0")
 
-        def same = newSelector("org", "util", v("1.0"))
-        def diffGroup = newSelector("foo", "util", v("1.0"))
-        def diffName = newSelector("org", "foo", v("1.0"))
-        def diffVersion = newSelector("org", "util", v("2.0"))
+        def same = newSelector("org", "util", "1.0")
+        def diffGroup = newSelector("foo", "util", "1.0")
+        def diffName = newSelector("org", "foo", "1.0")
+        def diffVersion = newSelector("org", "util", "2.0")
 
         expect:
         selector == same
@@ -45,7 +39,7 @@ class DefaultModuleVersionSelectorTest extends Specification {
     }
 
     def "knows if matches the id"() {
-        def selector = newSelector("org", "util", v("1.0"))
+        def selector = newSelector("org", "util", "1.0")
         def matching = newId("org", "util", "1.0")
 
         def differentGroup = newId("xorg", "util", "1.0")

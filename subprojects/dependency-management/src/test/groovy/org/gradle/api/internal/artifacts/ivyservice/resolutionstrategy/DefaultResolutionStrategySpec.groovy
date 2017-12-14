@@ -100,7 +100,7 @@ class DefaultResolutionStrategySpec extends Specification {
         _ * dependencySubstitutions.ruleAction >> Actions.doNothing()
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
         _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
-        _ * details.getOldRequested() >> newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
+        _ * details.getOldRequested() >> newSelector("org", "foo", "1.0")
         1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
         0 * details._
     }
@@ -128,7 +128,7 @@ class DefaultResolutionStrategySpec extends Specification {
         then: //forced modules:
         dependencySubstitutions.ruleAction >> substitutionAction
         _ * details.requested >> DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
-        _ * details.oldRequested >> newSelector("org", "foo", new DefaultMutableVersionConstraint("1.0"))
+        _ * details.oldRequested >> newSelector("org", "foo", "1.0")
         1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", new DefaultMutableVersionConstraint("2.0")), VersionSelectionReasons.FORCED)
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
 

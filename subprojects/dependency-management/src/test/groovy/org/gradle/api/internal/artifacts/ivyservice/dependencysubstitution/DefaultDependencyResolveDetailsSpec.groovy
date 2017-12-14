@@ -149,6 +149,6 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
     }
 
     private static ModuleVersionSelector newVersionSelector(String group, String name, String version) {
-        return DefaultModuleVersionSelector.newSelector(group, name, new DefaultMutableVersionConstraint(version))
+        return DefaultModuleVersionSelector.newSelector(group, name, version)
     }
 }
