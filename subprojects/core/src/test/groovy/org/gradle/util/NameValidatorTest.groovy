@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.featurelifecycle.FeatureUsage
+import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -62,7 +62,7 @@ class NameValidatorTest extends Specification {
         new TaskFactory(Mock(ClassGenerator), null, Mock(Instantiator)).create(name, DefaultTask)
 
         then:
-        1 * loggingDeprecatedFeatureHandler.featureUsed(_  as FeatureUsage) >> { FeatureUsage usage ->
+        1 * loggingDeprecatedFeatureHandler.featureUsed(_  as DeprecatedFeatureUsage) >> { DeprecatedFeatureUsage usage ->
             assertForbidden(name, usage.message)
         }
 
@@ -76,7 +76,7 @@ class NameValidatorTest extends Specification {
         domainObjectContainer.create(name)
 
         then:
-        1 * loggingDeprecatedFeatureHandler.featureUsed(_  as FeatureUsage) >> { FeatureUsage usage ->
+        1 * loggingDeprecatedFeatureHandler.featureUsed(_  as DeprecatedFeatureUsage) >> { DeprecatedFeatureUsage usage ->
             assertForbidden(name, usage.message)
         }
 

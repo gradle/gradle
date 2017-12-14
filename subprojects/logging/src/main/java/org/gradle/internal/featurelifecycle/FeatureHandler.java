@@ -25,5 +25,5 @@ public interface FeatureHandler {
 
     void reset();
 
-    void featureUsed(FeatureUsage usage);
+    void featureUsed(DeprecatedFeatureUsage usage);
 }

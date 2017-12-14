@@ -34,7 +34,7 @@ public class LoggingIncubatingFeatureHandler implements FeatureHandler {
     }
 
     @Override
-    public void featureUsed(FeatureUsage usage) {
+    public void featureUsed(DeprecatedFeatureUsage usage) {
         if (features.add(usage.getMessage())) {
             LOGGER.warn(String.format(INCUBATION_MESSAGE, usage.getMessage()));
         }

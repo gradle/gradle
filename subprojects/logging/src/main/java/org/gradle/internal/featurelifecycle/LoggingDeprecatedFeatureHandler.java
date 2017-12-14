@@ -54,7 +54,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
         messages.clear();
     }
 
-    public void featureUsed(FeatureUsage usage) {
+    public void featureUsed(DeprecatedFeatureUsage usage) {
         if (messages.add(usage.getMessage())) {
             usage = usage.withStackTrace();
             StringBuilder messageBuilder = new StringBuilder();
@@ -81,14 +81,14 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
         }
     }
 
-    private void reportLocation(FeatureUsage usage, StringBuilder message) {
+    private void reportLocation(DeprecatedFeatureUsage usage, StringBuilder message) {
         locationReporter.reportLocation(usage, message);
         if (message.length() > 0) {
             message.append(SystemProperties.getInstance().getLineSeparator());
         }
     }
 
-    private static void appendTraceIfNecessary(FeatureUsage usage, StringBuilder message) {
+    private static void appendTraceIfNecessary(DeprecatedFeatureUsage usage, StringBuilder message) {
         final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
         if (isTraceLoggingEnabled()) {
@@ -164,7 +164,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
         INSTANCE;
 
         @Override
-        public void reportLocation(FeatureUsage usage, StringBuilder target) {
+        public void reportLocation(DeprecatedFeatureUsage usage, StringBuilder target) {
         }
     }
 }

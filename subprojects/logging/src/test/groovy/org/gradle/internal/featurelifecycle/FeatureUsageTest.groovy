@@ -24,7 +24,7 @@ import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLo
 import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL
 import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL_2
 
-@Subject(FeatureUsage)
+@Subject(DeprecatedFeatureUsage)
 class FeatureUsageTest extends Specification {
 
     @Unroll

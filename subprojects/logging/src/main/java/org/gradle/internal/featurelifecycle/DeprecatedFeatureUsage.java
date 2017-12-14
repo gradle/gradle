@@ -23,18 +23,18 @@ import java.util.List;
 /**
  * An immutable description of the usage of a deprecated or incubating feature.
  */
-public class FeatureUsage {
+public class DeprecatedFeatureUsage {
     private final String message;
     private final List<StackTraceElement> stack;
     private final Class<?> calledFrom;
 
-    public FeatureUsage(String message, Class<?> calledFrom) {
+    public DeprecatedFeatureUsage(String message, Class<?> calledFrom) {
         this.message = message;
         this.calledFrom = calledFrom;
         this.stack = Collections.emptyList();
     }
 
-    public FeatureUsage(FeatureUsage usage, List<StackTraceElement> stack) {
+    public DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, List<StackTraceElement> stack) {
         if (stack == null) {
             throw new NullPointerException("stack is null");
         }
@@ -54,9 +54,9 @@ public class FeatureUsage {
     /**
      * Creates a copy of this usage with the stack trace populated. Implementation is a bit limited in that it assumes that this method is called from the same thread that triggered the usage.
      */
-    FeatureUsage withStackTrace() {
+    DeprecatedFeatureUsage withStackTrace() {
         if (stack.isEmpty()) {
-            return new FeatureUsage(this, StacktraceAnalyzer.getCleansedStackTrace(calledFrom));
+            return new DeprecatedFeatureUsage(this, StacktraceAnalyzer.getCleansedStackTrace(calledFrom));
         } else {
             return this;
         }

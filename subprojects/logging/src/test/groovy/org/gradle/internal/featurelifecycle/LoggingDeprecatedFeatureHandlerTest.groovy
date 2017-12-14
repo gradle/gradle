@@ -55,7 +55,7 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.featureUsed(new FeatureUsage(createFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(createFeatureUsage('fake'), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -93,7 +93,7 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.featureUsed(new FeatureUsage(createFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(createFeatureUsage('fake'), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -131,7 +131,7 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.featureUsed(new FeatureUsage(createFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(createFeatureUsage('fake'), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -169,7 +169,7 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.featureUsed(new FeatureUsage(createFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(createFeatureUsage('fake'), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -199,7 +199,7 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         System.setProperty(deprecationTracePropertyName, 'false')
 
         when:
-        handler.featureUsed(new FeatureUsage(createFeatureUsage('fake'), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(createFeatureUsage('fake'), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -223,7 +223,7 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.featureUsed(new FeatureUsage(new FeatureUsage('fake', FeatureUsageTest), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', FeatureUsageTest), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -248,7 +248,7 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
 
         when:
-        handler.featureUsed(new FeatureUsage('fake', FeatureUsageTest))
+        handler.featureUsed(new DeprecatedFeatureUsage('fake', FeatureUsageTest))
         def events = outputEventListener.events
 
         then:
@@ -267,7 +267,7 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         handler.featureUsed(createFeatureUsage('feature'))
 
         then:
-        1 * locationReporter.reportLocation(_, _) >> { FeatureUsage param1, StringBuilder message ->
+        1 * locationReporter.reportLocation(_, _) >> { DeprecatedFeatureUsage param1, StringBuilder message ->
             message.append('location')
         }
 

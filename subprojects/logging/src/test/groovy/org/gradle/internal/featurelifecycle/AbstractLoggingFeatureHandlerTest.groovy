@@ -32,7 +32,7 @@ abstract class AbstractLoggingFeatureHandlerTest extends Specification {
     abstract FeatureHandler createHandler()
 
     def createFeatureUsage(String message) {
-        return new FeatureUsage(message, getClass())
+        return new DeprecatedFeatureUsage(message, getClass())
     }
 
     def 'logs each warning only once'() {

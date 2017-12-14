@@ -21,7 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.configuration.WarningsType;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.FeatureHandler;
-import org.gradle.internal.featurelifecycle.FeatureUsage;
+import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler;
 import org.gradle.internal.featurelifecycle.UsageLocationReporter;
@@ -150,10 +150,10 @@ public class SingleMessageLogger {
      * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
      */
     public static void nagUserWith(String message) {
-        nagUserWith(deprecatedFeatureHandler, new FeatureUsage(message, SingleMessageLogger.class));
+        nagUserWith(deprecatedFeatureHandler, new DeprecatedFeatureUsage(message, SingleMessageLogger.class));
     }
 
-    private synchronized static void nagUserWith(FeatureHandler handler, FeatureUsage usage) {
+    private synchronized static void nagUserWith(FeatureHandler handler, DeprecatedFeatureUsage usage) {
         if (isEnabled()) {
             handler.featureUsed(usage);
         }
@@ -214,6 +214,6 @@ public class SingleMessageLogger {
     }
 
     public static void incubatingFeatureUsed(String incubatingFeature) {
-        nagUserWith(incubatingFeatureHandler, new FeatureUsage(incubatingFeature, SingleMessageLogger.class));
+        nagUserWith(incubatingFeatureHandler, new DeprecatedFeatureUsage(incubatingFeature, SingleMessageLogger.class));
     }
 }
