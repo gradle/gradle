@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.impldeps
 
+import groovy.transform.NotYetImplemented
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Issue
 
@@ -146,5 +147,33 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
         then:
         succeeds 'test'
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/3780")
+    def "can use different JGit API"() {
+        when:
+        buildFile << testableGroovyProject()
+
+        buildFile << """
+            dependencies {
+                testCompile 'org.eclipse.jgit:org.eclipse.jgit:4.9.1.201712030800-r'
+            }
+        """
+
+        file('src/test/groovy/JGitTest.groovy') << '''
+            import org.junit.Test
+            
+            class JGitTest {
+                @Test
+                void loadJGitResources() {
+                    assert org.eclipse.jgit.internal.JGitText.getPackage().getImplementationVersion() == "4.9.1.201712030800-r"
+                    assert org.eclipse.jgit.internal.JGitText.get() != null
+                }
+            }
+        '''.stripIndent()
+
+        then:
+        succeeds 'test', '-i'
     }
 }
