@@ -21,6 +21,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 
+import javax.annotation.Nullable;
+
 /**
  * A {@code SourceSet} represents a logical group of Java source and resources.
  * <p>
@@ -214,7 +216,7 @@ public interface SourceSet {
      * @param target The target, may be null
      * @return The task name, generally of the form ${verb}${name}${noun}
      */
-    String getTaskName(String verb, String target);
+    String getTaskName(@Nullable String verb, @Nullable String target);
 
     /**
      * Returns the name of the compile configuration for this source set.
