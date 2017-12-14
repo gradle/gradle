@@ -386,6 +386,36 @@ class DefaultSwiftBinaryContainerTest extends Specification {
         p.get() == binary2
     }
 
+    def "reuses the result of matching by spec"() {
+        def spec = Mock(Spec)
+        def binary1 = Stub(SwiftBinary)
+        def binary2 = Stub(SwiftBinary)
+
+        when:
+        def p = container.get(spec)
+        container.add(binary1)
+        container.add(binary2)
+
+        then:
+        0 * spec._
+
+        when:
+        container.realizeNow()
+
+        then:
+        1 * spec.isSatisfiedBy(binary1) >> true
+        1 * spec.isSatisfiedBy(binary2) >> false
+        0 * spec._
+
+        when:
+        p.get()
+        p.get()
+        p.get()
+
+        then:
+        0 * spec._
+    }
+
     def "querying the result of get by spec fails when container is not realized"() {
         def spec = Stub(Spec)
         def binary = Stub(SwiftBinary)
@@ -440,6 +470,74 @@ class DefaultSwiftBinaryContainerTest extends Specification {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'Found multiple elements'
+    }
+
+    def "when configuring by spec the spec is applied prior to configuring binary"() {
+        def binary1 = Stub(SwiftBinary)
+        def binary2 = Stub(SwiftBinary)
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def spec = Mock(Spec)
+
+        when:
+        def p = container.get(spec)
+        p.configure(action1)
+        container.configureEach(action2)
+
+        container.add(binary1)
+        container.add(binary2)
+
+        then:
+        0 * _
+
+        when:
+        container.realizeNow()
+
+        then:
+        1 * spec.isSatisfiedBy(binary1) >> true
+        1 * spec.isSatisfiedBy(binary2) >> false
+
+        then:
+        1 * action1.execute(binary1)
+
+        then:
+        1 * action2.execute(binary1)
+        1 * action2.execute(binary2)
+        0 * _
+    }
+
+    def "cannot add configure by spec action when container is realizing"() {
+        def spec = Stub(Spec)
+        spec.isSatisfiedBy(_) >> true
+
+        given:
+        container.add(Stub(SwiftBinary))
+        def p = container.get(spec)
+        container.configureEach { p.configure { } }
+
+        when:
+        container.realizeNow()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot add actions to this collection as it has already been realized.'
+    }
+
+    def "cannot add configure by spec action after container is realized"() {
+        def spec = Stub(Spec)
+        spec.isSatisfiedBy(_) >> true
+
+        given:
+        container.add(Stub(SwiftBinary))
+        def p = container.get(spec)
+        container.realizeNow()
+
+        when:
+        p.configure { }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot add actions to this collection as it has already been realized.'
     }
 
     def "can get by type and spec when element is already present"() {
