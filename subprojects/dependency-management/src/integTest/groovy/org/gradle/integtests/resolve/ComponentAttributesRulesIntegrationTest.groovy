@@ -125,8 +125,8 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         } else {
             fails ':checkDeps'
             failure.assertHasCause("Cannot choose between the following configurations of org.test:module:1.0:")
-            failure.assertThatCause(containsNormalizedString("Configuration 'api': Found org.gradle.usage 'unknownApiVariant' but wasn't required"))
-            failure.assertThatCause(containsNormalizedString("Configuration 'runtime': Found org.gradle.usage 'unknownRuntimeVariant' but wasn't required"))
+            failure.assertThatCause(containsNormalizedString("Found org.gradle.usage 'unknownApiVariant' but wasn't required"))
+            failure.assertThatCause(containsNormalizedString("Found org.gradle.usage 'unknownRuntimeVariant' but wasn't required"))
         }
 
         where:
@@ -186,5 +186,63 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
 
     }
 
+    @Unroll
+    def "published component metadata can be overwritten (fix applied = #fixApplied)"() {
+        given:
+        repository {
+            'org.test:module:1.0' {
+                attribute 'quality', 'canary'
+            }
+        }
+        buildFile << """
+            def quality = Attribute.of("quality", String)
+            
+            configurations {
+                conf.attributes.attribute(quality, 'qa')
+            }
+            
+            dependencies {
+                attributesSchema {
+                    attribute(quality)
+                }
+                components {
+                    withModule('org.test:module') {
+                        if ($fixApplied) {
+                           withAttributes {
+                              attribute quality, 'qa'
+                           }
+                        }
+                    }
+                }
+                conf 'org.test:module:1.0'
+            }
+        """
 
+        when:
+        repositoryInteractions {
+            'org.test:module:1.0' {
+                expectGetMetadata()
+                if (fixApplied) {
+                    expectGetArtifact()
+                }
+            }
+        }
+
+        then:
+        if (fixApplied) {
+            run ':checkDeps'
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    module('org.test:module:1.0')
+                }
+            }
+        } else {
+            fails ':checkDeps'
+            failure.assertHasCause("Unable to find a matching configuration of org.test:module:1.0:")
+            failure.assertThatCause(containsNormalizedString("Required quality 'qa' and found incompatible value 'canary'"))
+        }
+
+        where:
+        fixApplied << [false, true]
+    }
 }

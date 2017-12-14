@@ -262,6 +262,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
+    public AttributeContainer getAttributes() {
+        return attributes;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -279,6 +284,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             && Objects.equal(statusScheme, that.statusScheme)
             && Objects.equal(moduleSource, that.moduleSource)
             && Objects.equal(configurationDefinitions, that.configurationDefinitions)
+            && Objects.equal(attributes, that.attributes)
             && Objects.equal(variants, that.variants)
             && Objects.equal(contentHash, that.contentHash);
     }
@@ -294,6 +300,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             statusScheme,
             moduleSource,
             configurationDefinitions,
+            attributes,
             variants,
             contentHash);
     }

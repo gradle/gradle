@@ -35,6 +35,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
@@ -54,6 +55,21 @@ class ModuleMetadataSerializerTest extends Specification {
     private MetaDataParser<MutableIvyModuleResolveMetadata> ivyDescriptorParser = ivyParser()
     private ModuleMetadataParser gradleMetadataParser = gradleMetadataParser()
 
+    def "all samples are different"() {
+        given:
+        def metadata = sampleFiles().collectEntries { [it.name, parse(it)] }
+
+        when:
+        def serializedMetadata = metadata.collectEntries { [it.key, HashUtil.sha1(serialize(it.value))] }
+
+        then:
+        println "Checking that all ${metadata.size()} samples are different"
+        serializedMetadata.each { key, value ->
+            println "$key : ${value.asHexString() }"
+        }
+        def unique = serializedMetadata.values() as Set
+        unique.size() == metadata.size()
+    }
 
     @Unroll
     def "can write and re-read sample #sample.parentFile.name metadata file #sample.name"() {
