@@ -81,6 +81,58 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         fixApplied << [false, true]
     }
 
+    @Unroll
+    def "variant attributes take precedence over component attributes (component level = #componentLevel)"() {
+        given:
+        repository {
+            'org.test:module:1.0'()
+        }
+        buildFile << """
+            def usage = Attribute.of('org.gradle.usage', String)
+            dependencies {
+                components {
+                    withModule('org.test:module') {                       
+                        if ($componentLevel) {
+                            withAttributes { attribute usage, 'unknown' }
+                        } else {
+                            withVariant('api') { withAttributes { attribute usage, 'unknownApiVariant' } }
+                            withVariant('runtime') { withAttributes { attribute usage, 'unknownRuntimeVariant' } }
+                        }
+                    }
+                }
+                conf 'org.test:module:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org.test:module:1.0' {
+                expectGetMetadata()
+                if (componentLevel) {
+                    expectGetArtifact()
+                }
+            }
+        }
+
+        then:
+        if (componentLevel) {
+            run ':checkDeps'
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    module('org.test:module:1.0')
+                }
+            }
+        } else {
+            fails ':checkDeps'
+            failure.assertHasCause("Cannot choose between the following configurations of org.test:module:1.0:")
+            failure.assertThatCause(containsNormalizedString("Configuration 'api': Found org.gradle.usage 'unknownApiVariant' but wasn't required"))
+            failure.assertThatCause(containsNormalizedString("Configuration 'runtime': Found org.gradle.usage 'unknownRuntimeVariant' but wasn't required"))
+        }
+
+        where:
+        componentLevel << [true, false]
+    }
+
     // This is eventually what we want, but version listing is not wired properly for this
     @Ignore
     def "can use a component metadata rule to infer quality attribute"() {
