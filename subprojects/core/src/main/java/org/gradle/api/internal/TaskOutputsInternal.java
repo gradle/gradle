@@ -48,9 +48,4 @@ public interface TaskOutputsInternal extends TaskOutputs {
      */
     TaskOutputCachingState getCachingState(TaskProperties taskProperties);
 
-    /**
-     * Returns whether the task has declared any outputs.
-     */
-    boolean hasDeclaredOutputs();
-
 }
