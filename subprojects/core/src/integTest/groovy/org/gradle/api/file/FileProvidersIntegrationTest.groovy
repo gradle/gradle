@@ -435,7 +435,8 @@ task useDirProvider {
         file("output/merged.txt").text == 'new-dir1,dir2'
     }
 
-    def "can wire the output of a task as a dependency of another task"() {
+    @Unroll
+    def "can wire the output of a task as a dependency of another task via #fileMethod"() {
         buildFile << """
             class DirOutputTask extends DefaultTask {
                 @InputFile
@@ -466,8 +467,8 @@ task useDirProvider {
             task createDir(type: DirOutputTask)
             task createFile1(type: FileOutputTask)
             task otherTask {
-                dependsOn(createFile1.outputFile)
-                dependsOn(createDir.outputDir.asFileTree)
+                ${fileMethod}(createFile1.outputFile)
+                ${dirMethod}(createDir.outputDir.asFileTree)
             }
             
             // Set values lazily
@@ -486,6 +487,11 @@ task useDirProvider {
 
         then:
         result.assertTasksExecuted(":createDir", ":createFile1", ":otherTask")
+
+        where:
+        fileMethod    | dirMethod
+        'dependsOn'   | 'dependsOn'
+        'inputs.file' | 'inputs.dir'
     }
 
     def "can use @Optional on properties with type Property"() {
