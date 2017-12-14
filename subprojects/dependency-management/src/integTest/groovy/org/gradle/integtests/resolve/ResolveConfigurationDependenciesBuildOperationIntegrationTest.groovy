@@ -18,17 +18,15 @@ package org.gradle.integtests.resolve
 
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
-import org.gradle.internal.operations.notify.BuildOperationNotificationListener2
-import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar
-import org.gradle.internal.operations.notify.BuildOperationProgressNotification
-import org.gradle.internal.operations.notify.BuildOperationStartedNotification
 import spock.lang.Unroll
 
 class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
+
+    BuildOperationNotificationsFixture operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     def "resolved configurations are exposed via build operation"() {
         setup:
@@ -298,34 +296,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         buildFile << """
             buildscript {
                 dependencies {
+
                     classpath 'org.sample:sub1:1.0'
                 }
-            }    
-        
-            class OperationPlugin implements Plugin<Project> {
-                void apply(Project project){
-                    def listener = new $BuildOperationNotificationListener2.name() {
-                        void started($BuildOperationStartedNotification.name notification){
-                        } 
-                        void progress($BuildOperationProgressNotification.name notification){
-                        }
-                        void finished($BuildOperationFinishedNotification.name notification) {
-                            def result = notification.notificationOperationResult
-                            def details = notification.notificationOperationDetails
-                            if (result instanceof $ResolveConfigurationDependenciesBuildOperationType.Result.name) {
-                                result.rootComponent.dependencies.each {
-                                    println "configuration: "+ details.configurationName + ", buildPath: " + details.buildPath + ", id: "  + it.selected.id
-                                }
-                            }
-                        }
-                    }
-                
-                    def registrar = project.services.get($BuildOperationNotificationListenerRegistrar.name)            
-                    registrar.register(listener)
-                }
             }
-            
-            apply plugin:OperationPlugin
             task foo
         """
 
@@ -335,7 +309,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         run "foo"
 
         then:
-        outputContains("configuration: classpath, buildPath: :project-b, id: org.foo:some-dep:1.0")
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType) {
+            it.details.configurationName == 'classpath' && it.details.buildPath == ':project-b'
+        }
+        op.result.resolvedDependenciesCount == 1
     }
 
     private void setupComposite() {
