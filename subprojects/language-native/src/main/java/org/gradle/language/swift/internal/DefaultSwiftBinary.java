@@ -200,7 +200,8 @@ public class DefaultSwiftBinary implements SwiftBinary {
                 result = Sets.newLinkedHashSet();
                 Map<String, ModuleMap> moduleMaps = Maps.newHashMap();
                 for (ResolvedArtifactResult artifact : importPathConfig.getIncoming().getArtifacts()) {
-                    if (Usage.C_PLUS_PLUS_API.equals(artifact.getVariant().getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE).getName())) {
+                    Usage usage = artifact.getVariant().getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
+                    if (usage != null && Usage.C_PLUS_PLUS_API.equals(usage.getName())) {
                         String moduleName;
 
                         ComponentIdentifier id = artifact.getId().getComponentIdentifier();
