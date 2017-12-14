@@ -17,8 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.internal.util.RetryRule
 import org.junit.Rule
@@ -27,7 +25,7 @@ import spock.lang.Unroll
 import static org.gradle.integtests.fixtures.RetryRuleUtil.getRootCauseMessage
 import static org.gradle.testing.internal.util.RetryRule.retryIf
 
-class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
+class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "src/main/java/App.java"
     public static final String SAMPLE_APP_TEST_CLASS = "src/test/java/AppTest.java"
@@ -130,10 +128,6 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
-    }
-
-    private ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
-        ScriptDslFixture.of(dsl, testDirectory)
     }
 
     void assertTestPassed(String name) {

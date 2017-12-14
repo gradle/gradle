@@ -17,7 +17,6 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
@@ -28,7 +27,7 @@ import static org.hamcrest.Matchers.allOf
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
-class BuildInitPluginIntegrationTest extends AbstractIntegrationSpec {
+class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "init shows up on tasks overview "() {
         when:
@@ -256,10 +255,6 @@ include("child")
                           Available values are:
                                spock
                                testng""");
-    }
-
-    private ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
-        ScriptDslFixture.of(dsl, testDirectory)
     }
 
     private ExecutionResult runInitWith(BuildInitDsl dsl) {

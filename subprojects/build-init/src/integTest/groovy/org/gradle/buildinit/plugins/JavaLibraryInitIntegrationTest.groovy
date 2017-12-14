@@ -17,14 +17,12 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.allOf
 
-class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
+class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "src/main/java/Library.java"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/java/LibraryTest.java"
@@ -131,10 +129,6 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
-    }
-
-    private ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
-        ScriptDslFixture.of(dsl, testDirectory)
     }
 
     void assertTestPassed(String name) {
