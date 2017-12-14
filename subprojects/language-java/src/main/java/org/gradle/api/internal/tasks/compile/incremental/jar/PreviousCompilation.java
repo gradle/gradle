@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.File;
 import java.util.Collections;
@@ -38,7 +39,7 @@ public class PreviousCompilation {
         this.jarSnapshotCache = jarSnapshotCache;
     }
 
-    public DependentsSet getDependents(Set<String> allClasses, Set<Integer> constants) {
+    public DependentsSet getDependents(Set<String> allClasses, IntSet constants) {
         return analysis.getRelevantDependents(allClasses, constants);
     }
 
@@ -54,8 +55,9 @@ public class PreviousCompilation {
         return jarSnapshots.get(file);
     }
 
-    public DependentsSet getDependents(String className, Set<Integer> newConstants) {
-        Set<Integer> constants = Sets.difference(analysis.getData().getConstants(className), newConstants);
+    public DependentsSet getDependents(String className, IntSet newConstants) {
+        IntSet constants = new IntOpenHashSet(analysis.getData().getConstants(className));
+        constants.removeAll(newConstants);
         return analysis.getRelevantDependents(className, constants);
     }
 

@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.compile.incremental.asm;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -39,18 +41,18 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     };
 
     private final LocalVariableVisitor localVariableVisitor;
-    private final Set<Integer> constants;
+    private final IntSet constants;
     private final Set<String> superTypes;
     private final Set<String> types;
     private final Predicate<String> typeFilter;
     private boolean isAnnotationType;
     private boolean dependencyToAll;
 
-    public ClassDependenciesVisitor(Set<Integer> constantsCollector) {
+    public ClassDependenciesVisitor(IntSet constantsCollector) {
         this(constantsCollector, null, null, null);
     }
 
-    private ClassDependenciesVisitor(Set<Integer> constantsCollector, Set<String> types, Predicate<String> typeFilter, ClassReader reader) {
+    private ClassDependenciesVisitor(IntSet constantsCollector, Set<String> types, Predicate<String> typeFilter, ClassReader reader) {
         super(API);
         this.constants = constantsCollector;
         this.types = types;
@@ -63,15 +65,15 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     }
 
     public static ClassAnalysis analyze(String className, ClassReader reader) {
-        Set<Integer> constants = Sets.newHashSet();
+        IntSet constants = new IntOpenHashSet(2);
         Set<String> classDependencies = Sets.newHashSet();
         ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, classDependencies, new ClassRelevancyFilter(className), reader);
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return new ClassAnalysis(className, classDependencies, visitor.isDependencyToAll(), constants, visitor.getSuperTypes());
     }
 
-    public static Set<Integer> retrieveConstants(ClassReader reader) {
-        Set<Integer> constants = Sets.newHashSet();
+    public static IntSet retrieveConstants(ClassReader reader) {
+        IntSet constants = new IntOpenHashSet(2);
         ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants);
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return constants;

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import it.unimi.dsi.fastutil.ints.IntSet;
+
 import java.util.Set;
 
 /**
@@ -25,10 +27,10 @@ public class ClassAnalysis {
     private final String className;
     private final Set<String> classDependencies;
     private final boolean dependencyToAll;
-    private final Set<Integer> constants;
+    private final IntSet constants;
     private final Set<String> superTypes;
 
-    public ClassAnalysis(String className, Set<String> classDependencies, boolean dependencyToAll, Set<Integer> constants, Set<String> superTypes) {
+    public ClassAnalysis(String className, Set<String> classDependencies, boolean dependencyToAll, IntSet constants, Set<String> superTypes) {
         this.className = className;
         this.classDependencies = classDependencies;
         this.dependencyToAll = dependencyToAll;
@@ -44,7 +46,7 @@ public class ClassAnalysis {
         return classDependencies;
     }
 
-    public Set<Integer> getConstants() {
+    public IntSet getConstants() {
         return constants;
     }
 

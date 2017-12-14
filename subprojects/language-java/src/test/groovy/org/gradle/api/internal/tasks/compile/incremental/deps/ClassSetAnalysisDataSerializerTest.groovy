@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet
+import it.unimi.dsi.fastutil.ints.IntSet
+import it.unimi.dsi.fastutil.ints.IntSets
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
@@ -31,7 +34,7 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
         def data = new ClassSetAnalysisData(
             ["A.class": "A", "B.class": "B"],
             ["A": dependents("B", "C"), "B": new DefaultDependentsSet(["C"] as Set), "C": dependents(), "D": new DependencyToAll(),],
-            [C: [1, 2] as Set, D: [] as Set]
+            [C: new IntOpenHashSet([1, 2]) as IntSet, D: IntSets.EMPTY_SET]
             ,
             ['A': ['SA'] as Set, B: ['SB1', 'SB2'] as Set]
         )

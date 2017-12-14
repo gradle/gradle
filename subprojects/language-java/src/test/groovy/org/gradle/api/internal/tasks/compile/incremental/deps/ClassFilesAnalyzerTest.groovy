@@ -21,6 +21,7 @@ package org.gradle.api.internal.tasks.compile.incremental.deps
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
@@ -52,7 +53,7 @@ class ClassFilesAnalyzerTest extends Specification {
             getName() >> "Foo.class"
         }
         def classNames = ["A"] as Set
-        def constants = [1] as Set
+        def constants = new IntOpenHashSet(1)
         def superTypes = ['B', 'C'] as Set
         def analysis = new ClassAnalysis("org.foo.Foo", classNames, true, constants, superTypes)
 
