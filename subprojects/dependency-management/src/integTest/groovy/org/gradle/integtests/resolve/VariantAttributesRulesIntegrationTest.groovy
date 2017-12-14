@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
 import spock.lang.Unroll
 
 class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -36,7 +38,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
-    def setup() {
+    void withDefaultVariantToTest() {
         repository {
             'org.test:moduleA:1.0'() {
                 variant 'customVariant', [format: 'custom']
@@ -58,6 +60,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
     def "can add attributes"() {
         given:
+        withDefaultVariantToTest()
         buildFile << """
             dependencies {
                 components {
@@ -104,6 +107,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
     def "can override attributes"() {
         given:
+        withDefaultVariantToTest()
         buildFile << """
             dependencies {
                 components {
@@ -151,6 +155,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
     @Unroll
     def "can disambiguate variants to select #selectedVariant"() {
         given:
+        withDefaultVariantToTest()
         buildFile << """
             configurations {
                 ${variantToTest}.attributes.attribute(testAttribute, "select")
@@ -171,11 +176,11 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         repository {
             'org.test:moduleB:1.0' {
-                variant ('customVariant1') {
+                variant('customVariant1') {
                     attribute 'format', 'custom'
                     artifact 'variant1'
                 }
-                variant ('customVariant2') {
+                variant('customVariant2') {
                     attribute 'format', 'custom'
                     artifact 'variant2'
                 }
@@ -216,6 +221,63 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         where:
         selectedVariant << ['customVariant1', 'customVariant2']
+    }
+
+    @RequiredFeatures(
+        // published attributes are only available in Gradle metadata
+        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
+    )
+    def "published variant metadata can be overwritten"() {
+        given:
+        repository {
+            'org.test:module:1.0' {
+                variant('customVariant1') {
+                    attribute 'quality', 'canary'
+                }
+                variant('customVariant2') {
+                    attribute 'quality', 'canary'
+                }
+            }
+        }
+        buildFile << """
+            def quality = Attribute.of("quality", String)
+            
+            configurations {
+                ${variantToTest}.attributes.attribute(quality, 'qa')
+            }
+            
+            dependencies {
+                attributesSchema {
+                    attribute(quality)
+                }
+                components {
+                    withModule('org.test:module') {
+                        withVariant('customVariant2') {
+                           withAttributes {
+                              attribute quality, 'qa'
+                           }
+                        }
+                    }
+                }
+                $variantToTest 'org.test:module:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org.test:module:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+
+        then:
+        run ':checkDeps'
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.test:module:1.0:customVariant2')
+            }
+        }
     }
 
 }
