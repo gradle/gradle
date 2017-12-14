@@ -461,10 +461,10 @@ h3.releaseinfo {
 
 .site-header .site-header-version {
     color: #1DA2BD;
-    font-size: 23px;
-    font-weight: 200;
-    line-height: 45px;
-    padding-left: 2px;
+    font-size: 21px;
+    font-weight: 500;
+    line-height: 36px;
+    padding-left: 1px;
 }
 
 /* Override javadoc styles */
@@ -626,12 +626,16 @@ h3.releaseinfo {
         top: 0;
         left: 0;
         right: 0;
-        border-bottom: 1rem solid #F7F7F8;
+        box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
         z-index: 1;
     }
 
     .site-header__navigation {
         flex-direction: row;
+    }
+
+    .site-header__navigation-header {
+        margin-left: 0;
     }
 
     .site-header__navigation-button {
@@ -683,15 +687,16 @@ h3.releaseinfo {
 }
 
 .docs-navigation a {
-    color: #1BA8C4;
+    color: #02303A;
     display: block;
     font-size: 1rem;
     line-height: 1.0;
+    opacity: 0.7;
 }
 
 .docs-navigation a.active {
-    color: #02303A;
-    opacity: 0.6;
+    color: #1BA8C4;
+    opacity: 1.0;
 }
 
 .docs-navigation ul {
@@ -711,7 +716,7 @@ h3.releaseinfo {
 }
 
 .docs-navigation .nav-dropdown {
-    background: transparent url('data:image/svg+xml;utf8,<svg width="10" height="6" viewBox="0 0 19 11" xmlns="http://www.w3.org/2000/svg"><path transform="rotate(-180 9.374 5.494)" d="M17.9991 10.422825L9.3741 0.565575 0.7491 10.422825" stroke="#1BA8C4" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center right;
+    background: transparent url('data:image/svg+xml;utf8,<svg width="10" height="6" viewBox="0 0 19 11" xmlns="http://www.w3.org/2000/svg"><path transform="rotate(-180 9.374 5.494)" d="M17.9991 10.422825L9.3741 0.565575 0.7491 10.422825" stroke="#02303A" opacity="0.7" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center right;
 }
 
 .docs-navigation > ul ul,
@@ -748,25 +753,26 @@ h3.releaseinfo {
         display: block;
         position: absolute;
         left: 60px;
-        top: 100px;
+        top: 75px;
         width: 220px;
     }
 
     .chapter, .book {
-        margin: 95px 0 30px 304px;
+        margin: 75px 0 30px 304px;
+        min-height: 1200px;
     }
 }
 
 /* Fixed intra-chapter navigation for desktops */
 @media screen and (min-width: 1200px) {
     .chapter {
-        margin: 95px auto 30px auto;
+        margin: 82px auto 30px auto;
     }
 
     .chapter .toc {
         position: fixed;
         left: calc(50% + 360px);
-        top: 62px;
+        top: 50px;
         width: 220px;
         padding: 15px 0 0 1.5rem;
         font-size: 0.9375rem;
@@ -775,10 +781,12 @@ h3.releaseinfo {
 
     .chapter .toc a {
         color: #02303A;
+        opacity: 0.7;
     }
 
     .chapter .toc a.active {
         color: #1BA8C4;
+        opacity: 1.0;
     }
 
     /*
@@ -788,8 +796,8 @@ h3.releaseinfo {
       know why.
      */
     .chapter a[name] {
-        padding-top: 100px;
-        margin-top: -100px;
+        padding-top: 60px;
+        margin-top: -60px;
         text-decoration: none;
         border: none;
         display: inline-block;
@@ -1065,7 +1073,7 @@ h3.releaseinfo {
 .example pre,
 .figure pre {
     margin-top: 0;
-    margin-bottom: 0.625em;
+    margin-bottom: 0.625rem;
 }
 
 .example, .figure, .table {
@@ -1075,7 +1083,7 @@ h3.releaseinfo {
 
 .example .title, .figure .title, .table .title {
     margin-top: 0;
-    margin-bottom: 0.6em;
+    margin-bottom: 0.6rem;
 }
 
 .example-contents > p {
@@ -1171,13 +1179,8 @@ h3.releaseinfo {
 /**
  * TITLEPAGE
  */
+.home ~ .toc {
 
-.titlepage .author {
-    color: #666666;
-}
-
-.titlepage p {
-    margin: 0;
 }
 
 /*
