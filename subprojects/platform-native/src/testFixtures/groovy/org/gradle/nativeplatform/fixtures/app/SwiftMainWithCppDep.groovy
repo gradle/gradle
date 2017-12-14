@@ -21,9 +21,15 @@ import org.gradle.integtests.fixtures.SourceFile
 class SwiftMainWithCppDep extends SourceFileElement implements AppElement {
     final GreeterElement greeter
     final SwiftSum sum
+    String[] imports = ['cppGreeter']
 
     SwiftMainWithCppDep(GreeterElement greeter) {
         this(greeter, new SwiftSum())
+    }
+
+    SwiftMainWithCppDep(GreeterElement greeter, String[] imports) {
+        this(greeter, new SwiftSum())
+        this.imports = imports
     }
 
     SwiftMainWithCppDep(GreeterElement greeter, SwiftSum sum) {
@@ -31,18 +37,21 @@ class SwiftMainWithCppDep extends SourceFileElement implements AppElement {
         this.sum = sum
     }
 
-    SourceFile sourceFile = sourceFile("swift", "main.swift", """
-        import cppGreeter
-        
-        // Simple hello world app
-        func main() -> Int {
-          sayGreeting()
-          print(sum(a: 5, b: 7), terminator: "")
-          return 0
-        }
-
-        _ = main()
-    """)
+    @Override
+    SourceFile getSourceFile() {
+        return sourceFile("swift", "main.swift", """
+            ${imports.collect { "import " + it }.join("\n")}
+            
+            // Simple hello world app
+            func main() -> Int {
+              sayGreeting()
+              print(sum(a: 5, b: 7), terminator: "")
+              return 0
+            }
+    
+            _ = main()
+        """)
+    }
 
     @Override
     String getExpectedOutput() {

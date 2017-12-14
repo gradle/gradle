@@ -39,12 +39,13 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.language.cpp.internal.NativeDependencyCache;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.internal.modulemap.ModuleMap;
-import org.gradle.nativeplatform.internal.modulemap.GenerateModuleMapFile;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
@@ -102,7 +103,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
         nativeRuntime.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
 
-        compileModules = new FileCollectionAdapter(new ModulePath(importPathConfiguration, projectLayout));
+        compileModules = new FileCollectionAdapter(new ModulePath(importPathConfiguration));
         linkLibs = nativeLink;
         runtimeLibs = nativeRuntime;
     }
@@ -169,21 +170,23 @@ public class DefaultSwiftBinary implements SwiftBinary {
         return objectsDir.getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o"));
     }
 
-
     @Override
     public Property<SwiftCompile> getCompileTask() {
         return compileTaskProperty;
     }
 
+    @Inject
+    protected NativeDependencyCache getNativeDependencyCache() {
+        throw new UnsupportedOperationException();
+    }
+
     private class ModulePath implements MinimalFileSet, Buildable {
         private final Configuration importPathConfig;
-        private final ProjectLayout projectLayout;
 
         private Set<File> result;
 
-        ModulePath(Configuration importPathConfig, ProjectLayout projectLayout) {
+        ModulePath(Configuration importPathConfig) {
             this.importPathConfig = importPathConfig;
-            this.projectLayout = projectLayout;
         }
 
         @Override
@@ -224,10 +227,11 @@ public class DefaultSwiftBinary implements SwiftBinary {
                     result.add(artifact.getFile());
                 }
 
-                for (ModuleMap moduleMap : moduleMaps.values()) {
-                    final File moduleMapFile = projectLayout.getBuildDirectory().file("maps/" + moduleMap.getModuleName() + "/module.modulemap").get().getAsFile();
-                    new GenerateModuleMapFile(moduleMapFile, moduleMap.getModuleName(), moduleMap.getPublicHeaderPaths()).run();
-                    result.add(moduleMapFile);
+                if (!moduleMaps.isEmpty()) {
+                    NativeDependencyCache cache = getNativeDependencyCache();
+                    for (ModuleMap moduleMap : moduleMaps.values()) {
+                        result.add(cache.getModuleMapFile(moduleMap));
+                    }
                 }
             }
             return result;

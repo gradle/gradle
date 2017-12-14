@@ -18,7 +18,9 @@ package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
+import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLoggerApi
 import org.gradle.nativeplatform.fixtures.app.CppLogger
+import org.gradle.nativeplatform.fixtures.app.CppLoggerWithGreeterApi
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithDep
 import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
@@ -52,7 +54,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
             ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
-        file("app/build/maps/cppGreeter/module.modulemap").exists()
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
@@ -93,7 +94,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
             ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
-        file("greeter/build/maps/cppGreeter/module.modulemap").exists()
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
@@ -132,15 +132,15 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
             ":logger:compileDebugCpp", ":logger:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
-        file("app/build/maps/cppGreeter/module.modulemap").exists()
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
     def "can compile and link against a c++ library with an api dependency on another c++ library"() {
         settingsFile << "include 'app', 'greeter', 'cppGreeter', ':logger'"
-        def logger = new CppLogger()
-        def cppGreeter = new CppGreeterFunctionUsesLogger()
-        def app = new SwiftMainWithCppDep(cppGreeter)
+        def logger = new CppLoggerWithGreeterApi()
+        def cppGreeter = new CppGreeterFunctionUsesLoggerApi()
+        String[] imports = ["cppGreeter", "logger"]
+        def app = new SwiftMainWithCppDep(cppGreeter, imports)
 
         given:
         buildFile << """
@@ -171,8 +171,6 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
             ":logger:compileDebugCpp", ":logger:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
-        file("app/build/maps/cppGreeter/module.modulemap").exists()
-        file("app/build/maps/logger/module.modulemap").exists()
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 

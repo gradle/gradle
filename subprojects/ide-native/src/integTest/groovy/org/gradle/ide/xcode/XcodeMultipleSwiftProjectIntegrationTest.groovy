@@ -208,9 +208,9 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'cppGreeter/cppGreeter.xcodeproj', 'hello/hello.xcodeproj')
 
         def appProject = xcodeProject("app/app.xcodeproj").projectFile
-        appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("hello/build/modules/main/debug"), file("cppGreeter/src/main/public"), file("app/build/maps/cppGreeter"))
+        appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS.startsWith toSpaceSeparatedList(file("hello/build/modules/main/debug"), file("cppGreeter/src/main/public"))
         def helloProject = xcodeProject("hello/hello.xcodeproj").projectFile
-        helloProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("cppGreeter/src/main/public"), file("hello/build/maps/cppGreeter"))
+        helloProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS.startsWith toSpaceSeparatedList(file("cppGreeter/src/main/public"))
 
         when:
         def resultDebugApp = xcodebuild

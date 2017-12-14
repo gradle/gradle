@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.fixtures.app
 
 import static org.gradle.nativeplatform.fixtures.app.SourceFileElement.ofFile
 
-class CppGreeterFunctionUsesLogger extends CppLibraryElement implements GreeterElement {
+class CppGreeterFunctionUsesLoggerApi extends CppLibraryElement implements GreeterElement {
     final SourceFileElement header
     final SourceFileElement privateHeader
     final SourceFileElement source
@@ -35,22 +35,12 @@ class CppGreeterFunctionUsesLogger extends CppLibraryElement implements GreeterE
         return source
     }
 
-    CppGreeterFunctionUsesLogger(String publicHeaderDir = "public") {
+    CppGreeterFunctionUsesLoggerApi(String publicHeaderDir = "public") {
         header = ofFile(sourceFile(publicHeaderDir, "greeter.h", """
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
 #else
 #define EXPORT_FUNC
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void sayGreeting();
-
-#ifdef __cplusplus
-}
 #endif
 """))
 
@@ -65,16 +55,14 @@ void sayGreeting();
 #include "greeter_consts.h"
 
 void sayGreeting() {
-    Logger logger;
-    std::string str(GREETING);
-    logger.log(str);
+    logGreeting();
 }
 """))
     }
 
     @Override
-    CppGreeterFunctionUsesLogger asLib() {
-        return new CppGreeterFunctionUsesLogger("public")
+    CppGreeterFunctionUsesLoggerApi asLib() {
+        return new CppGreeterFunctionUsesLoggerApi("public")
     }
 
     @Override

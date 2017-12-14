@@ -48,7 +48,6 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
             ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
 
-        file("hello/build/maps/cppGreeter/module.modulemap").exists()
         swiftLibrary("hello/build/lib/main/debug/Hello").assertExists()
         cppLibrary("cppGreeter/build/lib/main/debug/cppGreeter").assertExists()
     }
@@ -88,7 +87,6 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
             ":logger:compileDebugCpp", ":logger:linkDebug",
             ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
 
-        file("hello/build/maps/cppGreeter/module.modulemap").exists()
         swiftLibrary("hello/build/lib/main/debug/Hello").assertExists()
         cppLibrary("cppGreeter/build/lib/main/debug/cppGreeter").assertExists()
         cppLibrary("logger/build/lib/main/debug/logger").assertExists()

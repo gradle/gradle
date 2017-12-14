@@ -17,10 +17,11 @@
 package org.gradle.nativeplatform.internal.modulemap;
 
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Transformer;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.UncheckedException;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -44,7 +45,10 @@ public class GenerateModuleMapFile implements Runnable {
 
     @Override
     public void run() {
-        moduleMapFile.getParentFile().mkdirs();
+        generateFile(moduleMapFile, moduleName, publicHeaderDirs);
+    }
+
+    public static void generateFile(File moduleMapFile, String moduleName, List<String> publicHeaderDirs) {
         List<String> lines = Lists.newArrayList(
             "module " + moduleName + " {"
         );
@@ -63,9 +67,10 @@ public class GenerateModuleMapFile implements Runnable {
         lines.add("\texport *");
         lines.add("}");
         try {
+            Files.createParentDirs(moduleMapFile);
             FileUtils.writeLines(moduleMapFile, lines);
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw new UncheckedIOException("Could not generate a module map for " + moduleName, e);
         }
     }
 }
