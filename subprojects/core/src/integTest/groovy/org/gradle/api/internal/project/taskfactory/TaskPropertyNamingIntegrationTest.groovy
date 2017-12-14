@@ -55,11 +55,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 @OutputDirectories Map<String, File> namedOutputDirectories
             }
 
-            import org.gradle.api.internal.tasks.properties.PropertyVisitor
-            import org.gradle.api.internal.tasks.properties.PropertyWalker
-            import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
-            import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
-            import org.gradle.api.internal.tasks.TaskPropertyUtils
+            import org.gradle.api.internal.tasks.*
+            import org.gradle.api.internal.tasks.properties.*
 
             task myTask(type: MyTask) {
                 inputString = "data"
@@ -144,11 +141,11 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "test", "printMetadata"
-        output =~ /Input property 'input' : 'someString'/
-        output =~ /Input property 'bean\.class' : 'NestedProperty'/
+        output =~ /Input property 'input'/
+        output =~ /Input property 'bean\.class'/
 
-        output =~ /Input property 'bean\.input' : 'someString'/
-        output =~ /Input property 'bean\.nestedBean.class' : 'AnotherNestedProperty'/
+        output =~ /Input property 'bean\.input'/
+        output =~ /Input property 'bean\.nestedBean.class'/
         output =~ /Input file property 'bean\.inputDir'/
         output =~ /Input file property 'bean\.nestedBean.inputFile'/
         output =~ /Output file property 'bean\.outputDir'/
@@ -157,6 +154,15 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
     def "nested destroyables are discovered"() {
         buildFile << classesForNestedProperties()
         buildFile << """
+            class MyDestroyer extends DefaultTask {
+                @TaskAction void doStuff() {}
+                @Nested
+                Object bean
+            }
+            class DestroyerBean {
+                @Destroys File destroyedFile
+            }
+
             task destroy(type: MyDestroyer) {
                 bean = new DestroyerBean(
                     destroyedFile: file("\$buildDir/destroyed")
@@ -171,8 +177,38 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "destroy", "printMetadata"
 
         then:
-        output =~ /Input property 'bean\.class' : 'DestroyerBean'/
+        output =~ /Input property 'bean\.class'/
         output =~ /Destroys: '.*destroyed'/
+    }
+
+    def "nested local state is discovered"() {
+        buildFile << classesForNestedProperties()
+        buildFile << """
+            class TaskWithNestedLocalState extends DefaultTask {
+                @TaskAction void doStuff() {}
+                @Nested
+                Object bean
+            }
+            class LocalStateBean {
+                @LocalState File localStateFile
+            }
+
+            task taskWithLocalState(type: TaskWithNestedLocalState) {
+                bean = new LocalStateBean(
+                    localStateFile: file("\$buildDir/localState")
+                )
+            }               
+            task printMetadata(type: PrintInputsAndOutputs) {
+                task = taskWithLocalState
+            }
+        """
+
+        when:
+        succeeds "taskWithLocalState", "printMetadata"
+
+        then:
+        output =~ /Input property 'bean\.class'/
+        output =~ /Local state: '.*localState'/
     }
 
     def "input properties can be overridden"() {
@@ -197,11 +233,11 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test", "printMetadata"
 
         then:
-        output =~ /Input property 'input' : 'someOtherString'/
-        output =~ /Input property 'bean\.input' : 'otherNestedString'/
+        output =~ /Input property 'input'/
+        output =~ /Input property 'bean\.input'/
 
-        output =~ /Input property 'bean\.class' : 'NestedProperty'/
-        output =~ /Input property 'bean\.nestedBean\.class' : 'null'/
+        output =~ /Input property 'bean\.class'/
+        output =~ /Input property 'bean\.nestedBean\.class'/
         output =~ /Input file property 'bean\.inputDir'/
     }
 
@@ -238,57 +274,41 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 File inputFile
             }     
             
-            import org.gradle.api.internal.tasks.properties.PropertyVisitor
-            import org.gradle.api.internal.tasks.properties.PropertyWalker
-            import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec
-            import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
-            import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
-            import org.gradle.api.internal.tasks.TaskPropertyUtils
+            import org.gradle.api.internal.tasks.*
+            import org.gradle.api.internal.tasks.properties.*
 
             class PrintInputsAndOutputs extends DefaultTask {
                 Task task
                 @TaskAction
                 void printInputsAndOutputs() {
-                    task.inputs.properties.entrySet().each {
-                        println "Input property '\${it.key}' : '\${it.value}'"
-                    }        
-                    def outputFiles = []
-                    def inputFiles = []
-                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), task, new PropertyVisitor.Adapter() {
-                        
+                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), task, new PropertyVisitor() {
+                        @Override
+                        void visitInputProperty(TaskInputPropertySpec inputProperty) {
+                            println "Input property '\${inputProperty.propertyName}'"
+                        }
+
                         @Override
                         void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
-                            inputFiles << inputFileProperty.propertyName
+                            println "Input file property '\${inputFileProperty.propertyName}'"
                         }
 
                         @Override
                         void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
-                            outputFiles << outputFileProperty.propertyName
+                            println "Output file property '\${outputFileProperty.propertyName}'"
                         }
-                    
+
                         @Override
                         void visitDestroyableProperty(TaskDestroyablePropertySpec destroyable) {
                             println "Destroys: '\${destroyable.value.call()}'"
                         }
-                        
+
+                        @Override
+                        void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
+                            println "Local state: '\${localStateProperty.value.call()}'"
+                        }
                     })
-                    inputFiles.sort().each {
-                        println "Input file property '\${it}'"
-                    }
-                    outputFiles.sort().each {
-                        println "Output file property '\${it}'"
-                    }
                 }
-            }      
-            
-            class MyDestroyer extends DefaultTask {
-                @TaskAction void doStuff() {}
-                @Nested
-                Object bean
-            }              
-            class DestroyerBean {
-                @Destroys File destroyedFile
-            }            
+            }
         """
     }
 }
