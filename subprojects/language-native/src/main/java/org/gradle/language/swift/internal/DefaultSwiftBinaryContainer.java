@@ -110,7 +110,7 @@ public class DefaultSwiftBinaryContainer<T extends SoftwareComponent> implements
         configureActions = configureActions.add(action);
     }
 
-    void add(T element) {
+    public void add(T element) {
         if (state != State.Collecting) {
             throw new IllegalStateException("Cannot add an element to this collection as it has already been realized.");
         }

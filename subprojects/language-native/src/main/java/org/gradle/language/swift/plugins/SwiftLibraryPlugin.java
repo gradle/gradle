@@ -223,8 +223,6 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                     }
                 }
 
-                library.getBinaries().realizeNow();
-
                 if (sharedLibs) {
                     library.getDevelopmentBinary().set(debugSharedLibrary);
                     tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugSharedLibrary.getRuntimeFile());
@@ -233,6 +231,8 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                     library.getDevelopmentBinary().set(debugStaticLibrary);
                     tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugStaticLibrary.getLinkFile());
                 }
+
+                library.getBinaries().realizeNow();
             }
         });
     }

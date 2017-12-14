@@ -21,6 +21,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftBinary;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 
 /**
  * An test binary built from Swift source.
@@ -49,4 +50,11 @@ public interface SwiftXCTestBinary extends SwiftBinary {
      * @since 4.4
      */
     Provider<RegularFile> getRunScriptFile();
+
+    /**
+     * Returns the link task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<? extends AbstractLinkTask> getLinkTask();
 }

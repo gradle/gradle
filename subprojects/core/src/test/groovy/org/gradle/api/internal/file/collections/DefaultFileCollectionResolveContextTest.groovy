@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
 import org.gradle.util.UsesNativeServices
@@ -252,6 +253,31 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         1 * callable.call() >> null
+        result == []
+    }
+
+    def "recursively resolves return value of a Provider"() {
+        FileCollectionInternal content = Mock()
+        Provider<?> provider = Mock()
+
+        when:
+        context.add(provider)
+        def result = context.resolveAsFileCollections()
+
+        then:
+        1 * provider.getOrNull() >> content
+        result == [content]
+    }
+
+    def "resolves a Provider which returns null"() {
+        Provider<?> provider = Mock()
+
+        when:
+        context.add(provider)
+        def result = context.resolveAsFileCollections()
+
+        then:
+        1 * provider.getOrNull() >> null
         result == []
     }
 

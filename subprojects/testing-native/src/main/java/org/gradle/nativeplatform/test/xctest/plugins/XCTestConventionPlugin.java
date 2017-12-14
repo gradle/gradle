@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
@@ -31,8 +32,8 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftApplication;
+import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.plugins.SwiftApplicationPlugin;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
@@ -79,21 +80,17 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     }
 
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(ProjectInternal project) {
         project.getPluginManager().apply(TestingBasePlugin.class);
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
-        TaskContainer tasks = project.getTasks();
+        final TaskContainer tasks = project.getTasks();
 
         // Create test suite component
-        SwiftXCTestSuite testSuite = createTestSuite(project);
+        final DefaultSwiftXCTestSuite testSuite = createTestSuite(project);
 
         // Create test suite test task
-        final Task testingTask = createTestingTask(project, testSuite);
-
-        // Configure tasks
-        configureTestSuiteBuildingTasks(project, testSuite);
-        configureTestSuiteWithTestedComponentWhenAvailable(project);
+        final XCTest testingTask = createTestingTask(project, testSuite);
 
         // Create testSuite lifecycle task
         Task test = tasks.create(testSuite.getName());
@@ -105,13 +102,29 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             Task check = tasks.getByName("check");
             check.dependsOn(test);
         }
+
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                // Create test suite executable
+                SwiftXCTestBinary binary = testSuite.createExecutable();
+                testSuite.getDevelopmentBinary().set(binary);
+
+                // Configure tasks
+                configureTestingTask(testSuite, testingTask);
+                configureTestSuiteBuildingTasks((ProjectInternal) project, testSuite);
+                configureTestSuiteWithTestedComponentWhenAvailable(project);
+
+                testSuite.getBinaries().realizeNow();
+            }
+        });
     }
 
     private void configureTestSuiteBuildingTasks(ProjectInternal project, SwiftXCTestSuite testSuite) {
         TaskContainer tasks = project.getTasks();
-        final SwiftXCTestBinary binary = testSuite.getTestExecutable();
+        final SwiftXCTestBinary binary = testSuite.getTestExecutable().get();
         final Names names = Names.of(binary.getName());
-        SwiftCompile compile = (SwiftCompile) tasks.getByName(names.getCompileTaskName("swift"));
+        SwiftCompile compile = binary.getCompileTask().get();
         final AbstractLinkTask link;
 
         // TODO - make this lazy
@@ -172,34 +185,41 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         link.setDebuggable(binary.isDebuggable());
 
         ((DefaultSwiftXCTestBinary)binary).getExecutableTestFile().set(link.getBinaryFile());
+        ((DefaultSwiftXCTestBinary)binary).getLinkTask().set(link);
     }
 
-    private static Task createTestingTask(final Project project, SwiftXCTestSuite testSuite) {
-        final TaskContainer tasks = project.getTasks();
+    private static XCTest createTestingTask(final Project project, SwiftXCTestSuite testSuite) {
+        TaskContainer tasks = project.getTasks();
 
-        final XCTest testTask = tasks.create("xcTest", XCTest.class);
-
-        SwiftXCTestBinary binary = testSuite.getDevelopmentBinary().get();
-        testTask.getTestInstallDirectory().set(binary.getInstallDirectory());
-        testTask.getRunScriptFile().set(binary.getRunScriptFile());
-        testTask.getWorkingDirectory().set(binary.getInstallDirectory());
+        XCTest testTask = tasks.create("xcTest", XCTest.class);
 
         testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
         testTask.setDescription("Executes XCTest suites");
         return testTask;
     }
 
-    private static SwiftXCTestSuite createTestSuite(Project project) {
+    private static void configureTestingTask(SwiftXCTestSuite testSuite, XCTest testTask) {
+        SwiftXCTestBinary binary = testSuite.getTestExecutable().get();
+        testTask.getTestInstallDirectory().set(binary.getInstallDirectory());
+        testTask.getRunScriptFile().set(binary.getRunScriptFile());
+        testTask.getWorkingDirectory().set(binary.getInstallDirectory());
+    }
+
+    private static DefaultSwiftXCTestSuite createTestSuite(final Project project) {
         // TODO - Reuse logic from Swift*Plugin
         // TODO - component name and extension name aren't the same
         // TODO - should use `src/xctext/swift` as the convention?
         // Add the component extension
-        SwiftXCTestSuite testSuite = project.getObjects().newInstance(DefaultSwiftXCTestSuite.class,
-            "test", project.getConfigurations());
+        DefaultSwiftXCTestSuite testSuite = project.getObjects().newInstance(DefaultSwiftXCTestSuite.class, "test", project.getConfigurations());
+        testSuite.getBinaries().whenElementKnown(new Action<SwiftBinary>() {
+            @Override
+            public void execute(SwiftBinary binary) {
+                project.getComponents().add(binary);
+            }
+        });
 
         project.getExtensions().add(SwiftXCTestSuite.class, "xctest", testSuite);
         project.getComponents().add(testSuite);
-        project.getComponents().add(testSuite.getDevelopmentBinary().get());
 
         // Setup component
         testSuite.getModule().set(GUtil.toCamelCase(project.getName() + "Test"));
@@ -216,44 +236,44 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         return new Action<T>() {
             @Override
             public void execute(T plugin) {
-                project.afterEvaluate(new Action<Project>() {
-                    @Override
-                    public void execute(Project project) {
-                        TaskContainer tasks = project.getTasks();
-                        final SwiftComponent testedComponent = project.getComponents().withType(SwiftComponent.class).getByName("main");
-                        SwiftXCTestSuite testSuite = project.getExtensions().getByType(SwiftXCTestSuite.class);
+                TaskContainer tasks = project.getTasks();
+                final SwiftComponent testedComponent = project.getComponents().withType(SwiftComponent.class).getByName("main");
+                SwiftXCTestSuite testSuite = project.getExtensions().getByType(SwiftXCTestSuite.class);
 
-                        // Connect test suite with tested component
-                        ((DefaultSwiftXCTestSuite)testSuite).getTestedComponent().set(testedComponent);
+                // Connect test suite with tested component
+                ((DefaultSwiftXCTestSuite)testSuite).getTestedComponent().set(testedComponent);
 
-                        // Configure test suite compile task from tested component compile task
-                        SwiftCompile compileMain = tasks.withType(SwiftCompile.class).getByName("compileDebugSwift");
-                        SwiftCompile compileTest = tasks.withType(SwiftCompile.class).getByName("compileTestSwift");
-                        compileTest.getModules().from(compileMain.getModuleFile());
+                // Test configuration extends main configuration
+                testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
+                project.getDependencies().add(((Configuration)(testSuite.getDevelopmentBinary().get().getCompileModules())).getName(), project);
 
-                        // Test configuration extends main configuration
-                        testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
-                        project.getDependencies().add(((DefaultSwiftBinary)testSuite.getDevelopmentBinary().get()).getImportPathConfiguration().getName(), project);
+                // Configure test suite link task from tested component compiled objects
+                final AbstractLinkTask linkTest = testSuite.getTestExecutable().get().getLinkTask().get();
 
-                        // Configure test suite link task from tested component compiled objects
-                        AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
-
-                        if (testedComponent instanceof SwiftApplication) {
-                            final UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
+                if (testedComponent instanceof SwiftApplication) {
+                    final UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
+                    testedComponent.getBinaries().whenElementFinalized(new Action<SwiftBinary>() {
+                        @Override
+                        public void execute(SwiftBinary swiftBinary) {
                             unexportMainSymbol.source(testedComponent.getDevelopmentBinary().get().getObjects());
-
-                            linkTest.source(unexportMainSymbol.getObjects());
                             linkTest.source(testedComponent.getDevelopmentBinary().get().getObjects().filter(new Spec<File>() {
                                 @Override
                                 public boolean isSatisfiedBy(File objectFile) {
                                     return !objectFile.equals(unexportMainSymbol.getMainObject());
                                 }
                             }));
-                        } else {
+                        }
+                    });
+
+                    linkTest.source(unexportMainSymbol.getObjects());
+                } else {
+                    testedComponent.getBinaries().whenElementFinalized(new Action<SwiftBinary>() {
+                        @Override
+                        public void execute(SwiftBinary swiftBinary) {
                             linkTest.source(testedComponent.getDevelopmentBinary().get().getObjects());
                         }
-                    }
-                });
+                    });
+                }
             }
         };
     }

@@ -23,6 +23,7 @@ import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkMachOBundle
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
 import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle
 import org.gradle.nativeplatform.test.xctest.tasks.XCTest
@@ -90,7 +91,15 @@ class XCTestConventionPluginTest extends Specification {
 
         then:
         project.components.test == project.xctest
-        project.components.testExecutable == project.xctest.developmentBinary.get()
+        project.xctest.binaries.get().name == ['testExecutable']
+        project.components.containsAll(project.xctest.binaries.get())
+
+        and:
+        def binaries = project.xctest.binaries.get()
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftXCTestBinary }.size() == 1
+
+        and:
+        project.xctest.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftXCTestBinary }
     }
 
     @Requires(TestPrecondition.MAC_OS_X)

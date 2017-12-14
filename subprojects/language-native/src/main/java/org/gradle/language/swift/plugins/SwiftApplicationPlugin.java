@@ -113,12 +113,12 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                 releaseApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, releaseExecutable.isOptimized());
                 releaseApiElements.getOutgoing().artifact(compileRelease.getModuleFile());
 
-                // Configure the binaries
-                application.getBinaries().realizeNow();
-
                 // Assemble builds the debug installation
                 application.getDevelopmentBinary().set(debugExecutable);
                 tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugExecutable.getInstallDirectory());
+
+                // Configure the binaries
+                application.getBinaries().realizeNow();
             }
         });
     }

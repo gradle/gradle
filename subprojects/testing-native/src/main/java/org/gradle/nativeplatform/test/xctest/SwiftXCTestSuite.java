@@ -40,5 +40,5 @@ public interface SwiftXCTestSuite extends SwiftComponent {
      *
      * @since 4.4
      */
-    SwiftXCTestBinary getTestExecutable();
+    Provider<? extends SwiftXCTestBinary> getTestExecutable();
 }
