@@ -34,10 +34,6 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             
-            configurations {
-                annotationProcessor
-            }
-            
             compileJava {
                 // Use forking to work around javac's jar cache
                 options.fork = true
@@ -81,11 +77,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
             }
-            
-            compileJava {
-                options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
-                options.annotationProcessorPath = configurations.annotationProcessor
-            }
+            compileJava.options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
         """
 
         expect:
@@ -116,10 +108,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 annotationProcessor project(":processor")
             }
             
-            compileJava {
-                options.compilerArgumentProviders << new HelperAnnotationProcessor("fromOptions")
-                options.annotationProcessorPath = configurations.annotationProcessor
-            }
+            compileJava.options.compilerArgumentProviders << new HelperAnnotationProcessor("fromOptions")
         """
 
         when:
@@ -129,6 +118,101 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         file("build/classes/java/main/TestAppHelper.java").text == 'class TestAppHelper {    String getValue() { return "fromOptions"; }}'
     }
 
+    def "processors in the compile classpath are respected, but deprecation warning is emitted"() {
+
+        buildFile << """
+            dependencies {
+                compile project(":processor")
+            }
+        """
+
+        when:
+        result = executer.expectDeprecationWarning().withTasks('compileJava').run()
+
+        then:
+        file('build/classes/java/main/TestAppHelper.class').exists()
+        result.output.contains(AnnotationProcessorDetector.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
+    }
+
+    def "empty processor path overrides processors in the compile classpath, and no deprecation warning is emitted"() {
+        buildFile << """
+            dependencies {
+                compile project(":processor")
+            }
+            
+            compileJava {
+              options.annotationProcessorPath = files()
+            }
+        """
+
+        file('src/main/java/TestApp.java').text = '''
+            @Helper
+            class TestApp {
+                public static void main(String[] args) {
+                    System.out.println("Hello world!");
+                }
+            }
+        '''
+
+        expect:
+        succeeds "compileJava"
+        !file('build/classes/java/main/TestAppHelper.class').exists()
+    }
+
+    def "empty custom processor configuration overrides processors in the compile classpath, and no deprecation warning is emitted"() {
+        buildFile << """
+            configurations {
+                apt
+            }
+            
+            dependencies {
+                compile project(":processor")
+            }
+            
+            compileJava {
+              options.annotationProcessorPath = configurations.apt
+            }
+        """
+
+        file('src/main/java/TestApp.java').text = '''
+            @Helper
+            class TestApp {
+                public static void main(String[] args) {
+                    System.out.println("Hello world!");
+                }
+            }
+        '''
+
+        expect:
+        succeeds "compileJava"
+        !file('build/classes/java/main/TestAppHelper.class').exists()
+    }
+
+
+    def "processors in the compile classpath don't emit deprecation warning if processing is disabled"() {
+        buildFile << """
+            dependencies {
+                compile project(":processor")
+            }
+            compileJava {
+              options.compilerArgs << "-proc:none"
+            }
+        """
+
+        file('src/main/java/TestApp.java').text = '''
+            @Helper
+            class TestApp {
+                public static void main(String[] args) {
+                    System.out.println("Hello world!");
+                }
+            }
+        '''
+
+        expect:
+        succeeds "compileJava"
+        !file('build/classes/java/main/TestAppHelper.class').exists()
+    }
+
     def "processorpath is respected even when specified from compilerArgs, but deprecation warning is emitted"() {
         buildFile << """
             configurations {
@@ -136,7 +220,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
             }
             
             dependencies {
-                compileOnly project(":annotation")
+                compile project(":annotation")
                 processor project(":processor")
             }
             

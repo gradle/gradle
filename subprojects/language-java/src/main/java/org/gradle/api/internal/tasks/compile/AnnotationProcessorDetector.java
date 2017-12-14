@@ -35,12 +35,12 @@ import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class AnnotationProcessorDetector {
+    public static final String COMPILE_CLASSPATH_DEPRECATION_MESSAGE = "Putting annotation processors on the compile classpath";
     public static final String PROCESSOR_PATH_DEPRECATION_MESSAGE = "Specifying the processor path in the CompilerOptions compilerArgs property";
 
     private final FileCollectionFactory fileCollectionFactory;
@@ -54,57 +54,113 @@ public class AnnotationProcessorDetector {
     /**
      * Calculates the annotation processor path to use given some compile options and compile classpath.
      *
+     * For backwards compatibility we still support the -processorpath option and we also look for processors
+     * on the compile classpath if the processor path was an empty {@link DefaultProcessorPath}. In Gradle 5.0 we will ignore
+     * -processorpath and the compile classpath. We will then use the annotationProcessorPath as the single source of truth.
+     *
      * @return An empty collection when annotation processing should not be performed, non-empty when it should.
      */
     public FileCollection getEffectiveAnnotationProcessorClasspath(final CompileOptions compileOptions, final FileCollection compileClasspath) {
         if (compileOptions.getCompilerArgs().contains("-proc:none")) {
             return fileCollectionFactory.empty("annotation processor path");
         }
-        if (compileOptions.getAnnotationProcessorPath() != null) {
-            return compileOptions.getAnnotationProcessorPath();
+        final FileCollection annotationProcessorPath = compileOptions.getAnnotationProcessorPath();
+        if (annotationProcessorPath != null && !(annotationProcessorPath instanceof DefaultProcessorPath)) {
+            return annotationProcessorPath;
         }
-        int pos = compileOptions.getCompilerArgs().indexOf("-processorpath");
-        if (pos >= 0) {
-            if (pos == compileOptions.getCompilerArgs().size() - 1) {
-                throw new InvalidUserDataException("No path provided for compiler argument -processorpath in requested compiler args: " + Joiner.on(" ").join(compileOptions.getCompilerArgs()));
-            }
-            DeprecationLogger.nagUserOfDeprecated(
-                PROCESSOR_PATH_DEPRECATION_MESSAGE,
-                "Instead, use the CompilerOptions annotationProcessorPath property directly");
-            List<File> files = new ArrayList<File>();
-            for (String path : Splitter.on(File.pathSeparatorChar).splitToList(compileOptions.getCompilerArgs().get(pos + 1))) {
-                files.add(new File(path));
-            }
-            return fileCollectionFactory.fixed("annotation processor path", files);
+        FileCollection processorPathFromCompilerArguments = getProcessorPathFromCompilerArguments(compileOptions);
+        if (processorPathFromCompilerArguments != null) {
+            return processorPathFromCompilerArguments;
         }
         if (compileClasspath == null) {
+            return annotationProcessorPath;
+        }
+        return getProcessorPathWithCompileClasspathFallback(compileOptions, compileClasspath, annotationProcessorPath);
+    }
+
+    private FileCollection getProcessorPathFromCompilerArguments(final CompileOptions compileOptions) {
+        final FileCollection annotationProcessorPath = compileOptions.getAnnotationProcessorPath();
+        int pos = compileOptions.getCompilerArgs().indexOf("-processorpath");
+        if (pos < 0) {
             return null;
         }
-        if (checkExplicitProcessorOption(compileOptions)) {
-            return compileClasspath;
+        if (pos == compileOptions.getCompilerArgs().size() - 1) {
+            throw new InvalidUserDataException("No path provided for compiler argument -processorpath in requested compiler args: " + Joiner.on(" ").join(compileOptions.getCompilerArgs()));
         }
-        return fileCollectionFactory.create(new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(compileClasspath);
-            }
-        }, new MinimalFileSet() {
-            @Override
-            public Set<File> getFiles() {
-                for (File file : compileClasspath) {
-                    boolean hasServices = cache.get(file);
-                    if (hasServices) {
+        final String processorpath = compileOptions.getCompilerArgs().get(pos + 1);
+        if (annotationProcessorPath == null) {
+            return fileCollectionFactory.fixed("annotation processor path", extractProcessorPath(processorpath));
+        }
+        return fileCollectionFactory.create(
+            new AbstractTaskDependency() {
+                @Override
+                public void visitDependencies(TaskDependencyResolveContext context) {
+                    context.add(annotationProcessorPath);
+                }
+            },
+            new MinimalFileSet() {
+                @Override
+                public Set<File> getFiles() {
+                    if (!annotationProcessorPath.isEmpty()) {
+                        return annotationProcessorPath.getFiles();
+                    }
+                    return extractProcessorPath(processorpath);
+                }
+
+                @Override
+                public final String getDisplayName() {
+                    return "annotation processor path";
+                }
+            });
+    }
+
+    private static Set<File> extractProcessorPath(String processorpath) {
+        DeprecationLogger.nagUserOfDeprecated(
+            PROCESSOR_PATH_DEPRECATION_MESSAGE,
+            "Instead, use the CompilerOptions.annotationProcessorPath property directly");
+        LinkedHashSet<File> files = new LinkedHashSet<File>();
+        for (String path : Splitter.on(File.pathSeparatorChar).splitToList(processorpath)) {
+            files.add(new File(path));
+        }
+        return files;
+    }
+
+    private FileCollection getProcessorPathWithCompileClasspathFallback(CompileOptions compileOptions, final FileCollection compileClasspath, final FileCollection annotationProcessorPath) {
+        final boolean hasExplicitProcessor = checkExplicitProcessorOption(compileOptions);
+        return fileCollectionFactory.create(
+            new AbstractTaskDependency() {
+                @Override
+                public void visitDependencies(TaskDependencyResolveContext context) {
+                    if (annotationProcessorPath != null) {
+                        context.add(annotationProcessorPath);
+                    }
+                    context.add(compileClasspath);
+                }
+            },
+            new MinimalFileSet() {
+                @Override
+                public Set<File> getFiles() {
+                    if (annotationProcessorPath != null && !annotationProcessorPath.isEmpty()) {
+                        return annotationProcessorPath.getFiles();
+                    }
+                    if (hasExplicitProcessor) {
                         return compileClasspath.getFiles();
                     }
+                    for (File file : compileClasspath) {
+                        boolean hasServices = cache.get(file);
+                        if (hasServices) {
+                            DeprecationLogger.nagUserOfDeprecated(COMPILE_CLASSPATH_DEPRECATION_MESSAGE, "Please add them to the processor path instead. If these processors were unintentionally leaked on the compile classpath, use the -proc:none compiler option to ignore them.");
+                            return compileClasspath.getFiles();
+                        }
+                    }
+                    return Collections.emptySet();
                 }
-                return Collections.emptySet();
-            }
 
-            @Override
-            public String getDisplayName() {
-                return "annotation processor path";
-            }
-        });
+                @Override
+                public final String getDisplayName() {
+                    return "annotation processor path";
+                }
+            });
     }
 
     private static boolean checkExplicitProcessorOption(CompileOptions compileOptions) {
@@ -135,7 +191,7 @@ public class AnnotationProcessorDetector {
                         zipFile.close();
                     }
                 } catch (IOException e) {
-                    DeprecationLogger.nagUserWith("Malformed jar [" + file.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on compile classpath.");
+                    DeprecationLogger.nagUserWith("Malformed jar [" + file.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on the compile classpath.");
                 }
             }
 

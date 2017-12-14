@@ -184,6 +184,13 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     @Incubating
     public static final String COMPILE_CLASSPATH_CONFIGURATION_NAME = "compileClasspath";
 
+    /**
+     * The name of the annotation processor configuration.
+     * @since 4.6
+     */
+    @Incubating
+    public static final String ANNOTATION_PROCESSOR_CONFIGURATION_NAME = "annotationProcessor";
+
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
 
     /**
@@ -220,6 +227,13 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      */
     @Incubating
     public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = "testCompileClasspath";
+
+    /**
+     * The name of the test annotation processor configuration.
+     * @since 4.6
+     */
+    @Incubating
+    public static final String TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME = "testAnnotationProcessor";
 
     /**
      * The name of the test runtime classpath configuration.

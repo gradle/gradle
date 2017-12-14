@@ -27,6 +27,9 @@ abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
             allprojects {
                 apply plugin: 'java'
                 ${jcenterRepository()}
+                tasks.withType(JavaCompile) {
+                    options.compilerArgs << "-proc:none"
+                }
             }
             project(":grammar-builder") {
                 apply plugin: "antlr"

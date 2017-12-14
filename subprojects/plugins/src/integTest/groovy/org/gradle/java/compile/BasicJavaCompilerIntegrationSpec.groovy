@@ -276,7 +276,8 @@ class Main {
         buildFile << """
             apply plugin: "java"
             dependencies {
-                compile project(":processor")
+                compileOnly project(":processor")
+                annotationProcessor project(":processor")
             }
         """
         settingsFile << "include 'processor'"
