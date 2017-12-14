@@ -18,20 +18,20 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 
 public class DefaultModuleVersionSelector implements ModuleVersionSelector {
 
     private String group;
     private String name;
-    private VersionConstraint moduleVersionConstraint;
+    private String version;
 
-    private DefaultModuleVersionSelector(String group, String name, VersionConstraint versionConstraint) {
+    // DO NOT USE THIS CONSTRUCTOR DIRECTLY
+    // It's only there for backwards compatibility with the Nebula plugin
+    public DefaultModuleVersionSelector(String group, String name, String version) {
         this.group = group;
         this.name = name;
-        this.moduleVersionConstraint = versionConstraint;
+        this.version = version;
     }
 
     public String getGroup() {
@@ -53,12 +53,7 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
     }
 
     public String getVersion() {
-        return moduleVersionConstraint.getPreferredVersion();
-    }
-
-    @Override
-    public VersionConstraint getVersionConstraint() {
-        return moduleVersionConstraint;
+        return version;
     }
 
     public boolean matchesStrictly(ModuleVersionIdentifier identifier) {
@@ -67,7 +62,7 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s", group, name, moduleVersionConstraint.getPreferredVersion());
+        return String.format("%s:%s:%s", group, name, version);
     }
 
     @Override
@@ -87,7 +82,7 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         if (name != null ? !name.equals(that.name) : that.name != null) {
             return false;
         }
-        if (moduleVersionConstraint != null ? !moduleVersionConstraint.equals(that.moduleVersionConstraint) : that.moduleVersionConstraint != null) {
+        if (version != null ? !version.equals(that.version) : that.version != null) {
             return false;
         }
 
@@ -98,19 +93,15 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
     public int hashCode() {
         int result = group != null ? group.hashCode() : 0;
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + moduleVersionConstraint.hashCode();
+        result = 31 * result + version.hashCode();
         return result;
     }
 
     public static ModuleVersionSelector newSelector(String group, String name, String preferredVersion) {
-        return new DefaultModuleVersionSelector(group, name, new DefaultMutableVersionConstraint(preferredVersion));
-    }
-
-    public static ModuleVersionSelector newSelector(String group, String name, VersionConstraint version) {
-        return new DefaultModuleVersionSelector(group, name, version);
+        return new DefaultModuleVersionSelector(group, name, preferredVersion);
     }
 
     public static ModuleVersionSelector newSelector(ModuleComponentSelector selector) {
-        return new DefaultModuleVersionSelector(selector.getGroup(), selector.getModule(), selector.getVersionConstraint());
+        return new DefaultModuleVersionSelector(selector.getGroup(), selector.getModule(), selector.getVersionConstraint().getPreferredVersion());
     }
 }

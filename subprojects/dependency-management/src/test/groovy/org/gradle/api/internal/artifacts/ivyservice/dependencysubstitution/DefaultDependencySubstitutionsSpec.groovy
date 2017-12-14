@@ -88,7 +88,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def componentSelectorConverter = Mock(ComponentSelectorConverter)
         substitutions.allWithDependencyResolveDetails(action, componentSelectorConverter)
 
-        def moduleOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", new DefaultMutableVersionConstraint("1.5"))
+        def moduleOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", "1.5")
         def moduleTarget = DefaultModuleComponentSelector.newSelector(moduleOldRequested)
         def moduleDetails = Mock(DependencySubstitutionInternal)
 
@@ -104,7 +104,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         })
         0 * _
 
-        def projectOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", new DefaultMutableVersionConstraint("1.5"))
+        def projectOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", "1.5")
         def projectTarget = TestComponentIdentifiers.newSelector(":api")
         def projectDetails = Mock(DependencySubstitutionInternal)
 
