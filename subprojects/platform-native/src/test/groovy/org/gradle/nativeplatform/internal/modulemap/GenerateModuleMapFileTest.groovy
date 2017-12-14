@@ -20,6 +20,8 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
+import static org.gradle.util.TextUtil.normaliseLineSeparators
+
 class GenerateModuleMapFileTest extends Specification {
     @Rule TemporaryFolder tempDir = new TemporaryFolder()
 
@@ -32,7 +34,7 @@ class GenerateModuleMapFileTest extends Specification {
         new GenerateModuleMapFile(moduleMapFile, "foo", [headers.absolutePath, moreHeaders.absolutePath]).run()
 
         then:
-        moduleMapFile.text == """module foo {
+        normaliseLineSeparators(moduleMapFile.text) == """module foo {
 \tumbrella "${headers.absolutePath}"
 \tumbrella "${moreHeaders.absolutePath}"
 \texport *
@@ -49,7 +51,7 @@ class GenerateModuleMapFileTest extends Specification {
         new GenerateModuleMapFile(moduleMapFile, "foo", [headers.absolutePath, moreHeaders.absolutePath, new File('does-not-exist').absolutePath]).run()
 
         then:
-        moduleMapFile.text == """module foo {
+        normaliseLineSeparators(moduleMapFile.text) == """module foo {
 \tumbrella "${headers.absolutePath}"
 \tumbrella "${moreHeaders.absolutePath}"
 \texport *
@@ -69,7 +71,7 @@ class GenerateModuleMapFileTest extends Specification {
         new GenerateModuleMapFile(moduleMapFile, "foo", [headers.absolutePath, moreHeaders.absolutePath]).run()
 
         then:
-        moduleMapFile.text == """module foo {
+        normaliseLineSeparators(moduleMapFile.text) == """module foo {
 \tumbrella "${headers.absolutePath}"
 \tumbrella "${moreHeaders.absolutePath}"
 \texport *
