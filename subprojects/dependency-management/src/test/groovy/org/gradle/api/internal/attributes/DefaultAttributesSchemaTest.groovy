@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.attributes
 
-import com.google.common.collect.LinkedListMultimap
 import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
@@ -231,17 +230,15 @@ class DefaultAttributesSchemaTest extends Specification {
         given:
         schema.attribute(attr)
 
-        def best = []
-        def candidates = LinkedListMultimap.create()
-        candidates.put("foo", "item1")
-        candidates.put("bar", "item2")
+        def best = [] as Set
+        def candidates = ["foo", "bar"] as Set
         def candidateDetails = new DefaultCandidateResult(candidates, "bar", best)
 
         when:
         schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
-        best == ["item2"]
+        best == ["bar"] as Set
     }
 
     static class DoNothingSelectionRule implements AttributeDisambiguationRule<String> {
@@ -256,17 +253,15 @@ class DefaultAttributesSchemaTest extends Specification {
         given:
         schema.attribute(attr).disambiguationRules.add(DoNothingSelectionRule)
 
-        def best = []
-        def candidates = LinkedListMultimap.create()
-        candidates.put("foo", "item1")
-        candidates.put("bar", "item2")
+        def best = [] as Set
+        def candidates = ["foo", "bar"] as Set
         def candidateDetails = new DefaultCandidateResult(candidates, "bar", best)
 
         when:
         schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
-        best == ["item2"]
+        best == ["bar"] as Set
     }
 
     def "selects all candidates when no disambiguation rules and requested is not one of the candidate values"() {
@@ -275,17 +270,15 @@ class DefaultAttributesSchemaTest extends Specification {
         given:
         schema.attribute(attr)
 
-        def best = []
-        def candidates = LinkedListMultimap.create()
-        candidates.put("foo", "item1")
-        candidates.put("bar", "item2")
+        def best = [] as Set
+        def candidates = ["foo", "bar"] as Set
         def candidateDetails = new DefaultCandidateResult(candidates, "other", best)
 
         when:
         schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
-        best == ["item1", "item2"]
+        best == ["foo", "bar"] as Set
     }
 
     def "selects all candidates when no rule expresses an opinion and requested is not one of the candidate values"() {
@@ -294,17 +287,15 @@ class DefaultAttributesSchemaTest extends Specification {
         given:
         schema.attribute(attr).disambiguationRules.add(DoNothingSelectionRule)
 
-        def best = []
-        def candidates = LinkedListMultimap.create()
-        candidates.put("foo", "item1")
-        candidates.put("bar", "item2")
+        def best = [] as Set
+        def candidates = ["foo", "bar"] as Set
         def candidateDetails = new DefaultCandidateResult(candidates, "other", best)
 
         when:
         schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
-        best == ["item1", "item2"]
+        best == ["foo", "bar"] as Set
     }
 
     def "custom rule can select best match"() {
@@ -316,27 +307,25 @@ class DefaultAttributesSchemaTest extends Specification {
         def value1 = flavor('value1')
         def value2 = flavor('value2')
 
-        def candidates = LinkedListMultimap.create()
-        candidates.put(value1, "item1")
-        candidates.put(value2, "item2")
+        def candidates = [value1, value2] as Set
 
         when:
-        def best = []
+        def best = [] as Set
         def candidateDetails = new DefaultCandidateResult(candidates, flavor('requested'), best)
 
         schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
-        best == ["item1"]
+        best == [value1] as Set
 
         when:
-        best = []
+        best = [] as Set
         candidateDetails = new DefaultCandidateResult(candidates, value2, best)
 
         schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
 
         then:
-        best == ["item1"]
+        best == [value1] as Set
     }
 
     def "merging creates schema with additional attributes defined by producer"() {
@@ -384,18 +373,16 @@ class DefaultAttributesSchemaTest extends Specification {
         def value1 = flavor('value')
         def value2 = flavor('otherValue')
 
-        def candidates = LinkedListMultimap.create()
-        candidates.put(value1, "item1")
-        candidates.put(value2, "item2")
+        def candidates = [value1, value2] as Set
 
         when:
-        def best = []
+        def best = [] as Set
         def candidateDetails = new DefaultCandidateResult(candidates, flavor('requested'), best)
 
         schema.mergeWith(producer).disambiguate(attr, candidateDetails)
 
         then:
-        best == ["item1"]
+        best == [value1] as Set
     }
 
     interface Flavor extends Named {}

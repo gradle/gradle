@@ -17,6 +17,8 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
@@ -28,6 +30,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChain<T>, DisambiguationRule<T> {
     private static final Object[] NO_PARAMS = new Object[0];
@@ -89,7 +92,9 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
                 AttributeDisambiguationRule<T> instance = instantiator.newInstance(rule, params);
                 instance.execute(details);
             } catch (Throwable t) {
-                throw new AttributeMatchException(String.format("Could not select value from candidates %s using %s.", details.getCandidateValues(), ModelType.of(rule).getDisplayName()), t);
+                Set<T> orderedValues = Sets.newTreeSet(Ordering.usingToString());
+                orderedValues.addAll(details.getCandidateValues());
+                throw new AttributeMatchException(String.format("Could not select value from candidates %s using %s.", orderedValues, ModelType.of(rule).getDisplayName()), t);
             }
         }
     }

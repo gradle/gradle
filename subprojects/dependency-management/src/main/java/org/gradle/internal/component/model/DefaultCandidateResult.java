@@ -16,23 +16,22 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.Multimap;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Set;
 
 public class DefaultCandidateResult<T> implements MultipleCandidatesResult<Object> {
-    private final Multimap<Object, T> candidatesByValue;
+    private final Set<Object> candidateValues;
     private final Object consumerValue;
-    private final List<T> best;
+    private final Set<Object> matches;
     private boolean done;
 
-    public DefaultCandidateResult(Multimap<Object, T> candidatesByValue, @Nullable Object consumerValue, List<T> best) {
-        this.candidatesByValue = candidatesByValue;
+    public DefaultCandidateResult(Set<Object> candidateValues, @Nullable Object consumerValue, Set<Object> matches) {
+        assert candidateValues.size() > 1;
+        this.candidateValues = candidateValues;
         this.consumerValue = consumerValue;
-        this.best = best;
+        this.matches = matches;
     }
 
     @Override
@@ -48,12 +47,12 @@ public class DefaultCandidateResult<T> implements MultipleCandidatesResult<Objec
 
     @Override
     public Set<Object> getCandidateValues() {
-        return candidatesByValue.keySet();
+        return candidateValues;
     }
 
     @Override
     public void closestMatch(Object candidate) {
         done = true;
-        best.addAll(candidatesByValue.get(candidate));
+        matches.add(candidate);
     }
 }

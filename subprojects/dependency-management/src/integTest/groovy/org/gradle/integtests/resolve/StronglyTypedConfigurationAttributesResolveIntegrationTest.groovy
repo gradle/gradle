@@ -158,7 +158,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
                 void execute(MultipleCandidatesDetails<Flavor> details) {
-                    assert details.candidateValues*.name == ['ONE', 'TWO']
+                    assert details.candidateValues*.name as Set == ['ONE', 'TWO'] as Set
                     details.candidateValues.each { producerValue ->
                         if (producerValue.name == 'TWO') {
                             details.closestMatch(producerValue)
@@ -1273,7 +1273,7 @@ All of them match the consumer attributes:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
+        failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
         failure.assertHasCause("The constructor for class FlavorSelectionRule should be annotated with @Inject.")
     }
@@ -1345,7 +1345,7 @@ All of them match the consumer attributes:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
+        failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("broken!")
     }
 }

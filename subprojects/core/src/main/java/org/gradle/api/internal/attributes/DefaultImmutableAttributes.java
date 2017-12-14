@@ -190,8 +190,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     }
 
     @Nullable
-    @Override
-    public <S> S coerce(Class<S> type) {
+    private <S> S coerce(Class<S> type) {
         if (value != null) {
             Isolatable<S> converted = value.coerce(type);
             if (converted != null) {
@@ -199,6 +198,24 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
             }
         }
         return null;
+    }
+
+    @Override
+    public <S> S coerce(Attribute<S> otherAttribute) {
+        Class<S> attributeType = otherAttribute.getType();
+        if (attributeType.isAssignableFrom(attribute.getType())) {
+            return (S) get();
+        }
+
+        S converted = coerce(attributeType);
+        if (converted != null) {
+            return converted;
+        }
+        String foundType = get().getClass().getName();
+        if (foundType.equals(attributeType.getName())) {
+            foundType += " with a different ClassLoader";
+        }
+        throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), attributeType.getName(), foundType));
     }
 
     @Override
