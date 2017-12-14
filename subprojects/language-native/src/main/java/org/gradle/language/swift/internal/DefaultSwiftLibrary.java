@@ -23,6 +23,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftLibrary;
@@ -73,13 +74,13 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     }
 
     @Override
-    public SwiftSharedLibrary getDevelopmentBinary() {
+    public Provider<? extends SwiftSharedLibrary> getDevelopmentBinary() {
         return getBinaries().get(SwiftSharedLibrary.class, new Spec<SwiftBinary>() {
             @Override
             public boolean isSatisfiedBy(SwiftBinary element) {
                 return element.isDebuggable() && !element.isOptimized();
             }
-        }).get();
+        });
     }
 
     @Override

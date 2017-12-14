@@ -19,8 +19,10 @@ package org.gradle.nativeplatform.test.xctest.internal;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
@@ -47,8 +49,8 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
     }
 
     @Override
-    public SwiftXCTestBinary getDevelopmentBinary() {
-        return testBinary;
+    public Provider<SwiftXCTestBinary> getDevelopmentBinary() {
+        return Providers.of(testBinary);
     }
 
     @Override

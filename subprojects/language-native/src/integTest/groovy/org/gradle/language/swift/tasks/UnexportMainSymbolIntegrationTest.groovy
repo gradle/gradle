@@ -32,7 +32,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         buildFile << """
             apply plugin: "swift-application"
             task unexport(type: UnexportMainSymbol) {
-                source { components.main.developmentBinary.objects }
+                source { components.main.developmentBinary.get().objects }
             }
         """
     }

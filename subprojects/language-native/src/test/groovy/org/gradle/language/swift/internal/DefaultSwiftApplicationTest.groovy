@@ -42,7 +42,7 @@ class DefaultSwiftApplicationTest extends Specification {
         app.binaries.realizeNow()
 
         when:
-        app.developmentBinary
+        app.developmentBinary.get()
 
         then:
         def ex = thrown(IllegalStateException)
@@ -53,6 +53,6 @@ class DefaultSwiftApplicationTest extends Specification {
         expect:
         def binary = app.createExecutable("debug", true, false, true)
         app.binaries.realizeNow()
-        app.developmentBinary == binary
+        app.developmentBinary.get() == binary
     }
 }

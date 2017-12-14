@@ -20,12 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.swift.SwiftBinary;
@@ -224,7 +227,12 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                 library.getBinaries().realizeNow();
 
                 if (sharedLibs) {
-                    tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getRuntimeFile());
+                    tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().map(new Transformer<Provider<RegularFile>, SwiftSharedLibrary>() {
+                        @Override
+                        public Provider<RegularFile> transform(SwiftSharedLibrary binary) {
+                            return binary.getRuntimeFile();
+                        }
+                    }));
                 } else {
                     // Should use the development binary as well
                     tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugStaticLibrary.getLinkFile());

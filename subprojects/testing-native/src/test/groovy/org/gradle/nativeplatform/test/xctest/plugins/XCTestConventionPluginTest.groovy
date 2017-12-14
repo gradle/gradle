@@ -90,7 +90,7 @@ class XCTestConventionPluginTest extends Specification {
 
         then:
         project.components.test == project.xctest
-        project.components.testExecutable == project.xctest.developmentBinary
+        project.components.testExecutable == project.xctest.developmentBinary.get()
     }
 
     @Requires(TestPrecondition.MAC_OS_X)

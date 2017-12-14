@@ -30,8 +30,8 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
         SwiftXCTestSuite testSuite = new DefaultSwiftXCTestSuite("test", Mock(ProjectLayout), Stub(FileOperations), TestUtil.objectFactory(), Stub(ConfigurationContainer))
         testSuite.testedComponent.set(componentUnderTest)
         expect:
-        testSuite.developmentBinary.name == "testExecutable"
-        testSuite.developmentBinary.debuggable
+        testSuite.developmentBinary.get().name == "testExecutable"
+        testSuite.developmentBinary.get().debuggable
         testSuite.testedComponent.get() == componentUnderTest
     }
 }

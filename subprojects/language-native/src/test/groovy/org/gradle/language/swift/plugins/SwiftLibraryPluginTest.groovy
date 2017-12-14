@@ -65,7 +65,7 @@ class SwiftLibraryPluginTest extends Specification {
         binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
 
         and:
-        project.library.developmentBinary == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }
+        project.library.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }
     }
 
     def "registers a component for the library with static linkage"() {
@@ -104,7 +104,7 @@ class SwiftLibraryPluginTest extends Specification {
         binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
 
         and:
-        project.library.developmentBinary == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }
+        project.library.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }
     }
 
     def "adds compile and link tasks for default linkage"() {

@@ -69,7 +69,7 @@ class DefaultSwiftLibraryTest extends Specification {
         library.binaries.realizeNow()
 
         when:
-        library.developmentBinary
+        library.developmentBinary.get()
 
         then:
         def ex = thrown(IllegalStateException)
@@ -80,7 +80,7 @@ class DefaultSwiftLibraryTest extends Specification {
         expect:
         def binary = library.createSharedLibrary("debug", true, false, true)
         library.binaries.realizeNow()
-        library.developmentBinary == binary
+        library.developmentBinary.get() == binary
     }
 
     interface TestConfiguration extends Configuration, FileCollectionInternal {

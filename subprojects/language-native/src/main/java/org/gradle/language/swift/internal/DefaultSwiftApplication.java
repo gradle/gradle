@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
@@ -47,12 +48,12 @@ public class DefaultSwiftApplication extends DefaultSwiftComponent implements Sw
     }
 
     @Override
-    public SwiftExecutable getDevelopmentBinary() {
+    public Provider<? extends SwiftExecutable> getDevelopmentBinary() {
         return getBinaries().get(SwiftExecutable.class, new Spec<SwiftExecutable>() {
             @Override
             public boolean isSatisfiedBy(SwiftExecutable element) {
                 return element.isDebuggable() && !element.isOptimized();
             }
-        }).get();
+        });
     }
 }

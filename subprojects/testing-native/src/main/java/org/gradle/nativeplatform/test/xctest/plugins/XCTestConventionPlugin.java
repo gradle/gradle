@@ -179,7 +179,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         final XCTest testTask = tasks.create("xcTest", XCTest.class);
 
-        SwiftXCTestBinary binary = testSuite.getDevelopmentBinary();
+        SwiftXCTestBinary binary = testSuite.getDevelopmentBinary().get();
         testTask.getTestInstallDirectory().set(binary.getInstallDirectory());
         testTask.getRunScriptFile().set(binary.getRunScriptFile());
         testTask.getWorkingDirectory().set(binary.getInstallDirectory());
@@ -199,7 +199,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
         project.getExtensions().add(SwiftXCTestSuite.class, "xctest", testSuite);
         project.getComponents().add(testSuite);
-        project.getComponents().add(testSuite.getDevelopmentBinary());
+        project.getComponents().add(testSuite.getDevelopmentBinary().get());
 
         // Setup component
         testSuite.getModule().set(GUtil.toCamelCase(project.getName() + "Test"));
@@ -233,24 +233,24 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
                         // Test configuration extends main configuration
                         testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
-                        project.getDependencies().add(((DefaultSwiftBinary)testSuite.getDevelopmentBinary()).getImportPathConfiguration().getName(), project);
+                        project.getDependencies().add(((DefaultSwiftBinary)testSuite.getDevelopmentBinary().get()).getImportPathConfiguration().getName(), project);
 
                         // Configure test suite link task from tested component compiled objects
                         AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");
 
                         if (testedComponent instanceof SwiftApplication) {
                             final UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
-                            unexportMainSymbol.source(testedComponent.getDevelopmentBinary().getObjects());
+                            unexportMainSymbol.source(testedComponent.getDevelopmentBinary().get().getObjects());
 
                             linkTest.source(unexportMainSymbol.getObjects());
-                            linkTest.source(testedComponent.getDevelopmentBinary().getObjects().filter(new Spec<File>() {
+                            linkTest.source(testedComponent.getDevelopmentBinary().get().getObjects().filter(new Spec<File>() {
                                 @Override
                                 public boolean isSatisfiedBy(File objectFile) {
                                     return !objectFile.equals(unexportMainSymbol.getMainObject());
                                 }
                             }));
                         } else {
-                            linkTest.source(testedComponent.getDevelopmentBinary().getObjects());
+                            linkTest.source(testedComponent.getDevelopmentBinary().get().getObjects());
                         }
                     }
                 });

@@ -20,12 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.Directory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.swift.SwiftApplication;
@@ -117,7 +120,12 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                 application.getBinaries().realizeNow();
 
                 // Assemble builds the debug installation
-                tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(application.getDevelopmentBinary().getInstallDirectory());
+                tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(application.getDevelopmentBinary().map(new Transformer<Provider<Directory>, SwiftExecutable>() {
+                    @Override
+                    public Provider<Directory> transform(SwiftExecutable binary) {
+                        return binary.getInstallDirectory();
+                    }
+                }));
             }
         });
     }
