@@ -96,7 +96,7 @@ jarTasks.all { jar ->
 apply plugin: 'test-fixtures'
 
 if (file("src/integTest").exists()) {
-    apply from: "$rootDir/gradle/integTest.gradle"
+    apply from: "$rootDir/gradle/integTest.gradle.kts"
 }
 
 if (file("src/crossVersionTest").exists()) {
