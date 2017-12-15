@@ -140,6 +140,66 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.target.toString() == 'com:bar:5.0'
     }
 
+    def "can provide a custom selection reason with useTarget"() {
+        def details = newDependencyResolveDetails("org", "foo", "1.0")
+
+        when:
+        details.because("forcefully upgrade dependency")
+        details.useTarget("org:bar:2.0")
+
+        then:
+        details.target.toString() == 'org:bar:2.0'
+        details.updated
+        details.selectionReason.selectedByRule
+        details.selectionReason.description == "forcefully upgrade dependency"
+
+    }
+
+    def "can provide a custom selection reason with useVersion"() {
+        def details = newDependencyResolveDetails("org", "foo", "1.0")
+
+        when:
+        details.because("forcefully upgrade dependency")
+        details.useVersion("2.0")
+
+        then:
+        details.target.toString() == 'org:foo:2.0'
+        details.updated
+        details.selectionReason.selectedByRule
+        details.selectionReason.description == "forcefully upgrade dependency"
+
+    }
+
+    def "can provide a custom selection reason with useTarget before calling withDescription"() {
+        def details = newDependencyResolveDetails("org", "foo", "1.0")
+
+        when:
+        details.useTarget("org:bar:2.0")
+        details.because("forcefully upgrade dependency")
+
+        then:
+        details.target.toString() == 'org:bar:2.0'
+        details.updated
+        details.selectionReason.selectedByRule
+        details.selectionReason.description == "forcefully upgrade dependency"
+
+    }
+
+    def "can provide a custom selection reason with useVersion before calling withDescription"() {
+        def details = newDependencyResolveDetails("org", "foo", "1.0")
+
+        when:
+        details.useVersion("2.0")
+        details.because("forcefully upgrade dependency")
+
+        then:
+        details.target.toString() == 'org:foo:2.0'
+        details.updated
+        details.selectionReason.selectedByRule
+        details.selectionReason.description == "forcefully upgrade dependency"
+
+    }
+
     private static def newDependencyResolveDetails(String group, String name, String version) {
         return new DefaultDependencyResolveDetails(new DefaultDependencySubstitution(newComponentSelector(group, name, version)), newVersionSelector(group, name, version))
     }
