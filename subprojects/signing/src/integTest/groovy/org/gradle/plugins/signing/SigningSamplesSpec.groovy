@@ -21,13 +21,15 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
 class SigningSamplesSpec extends AbstractIntegrationSpec {
-    @Rule public final Sample mavenSample = new Sample(temporaryFolder)
+    @Rule
+    public final Sample mavenSample = new Sample(temporaryFolder)
 
-    void setup(){
+    void setup() {
         using m2
     }
 
@@ -44,7 +46,7 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
     }
 
     @UsesSample('signing/conditional')
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "conditional signing"() {
         given:
         sample mavenSample
@@ -61,15 +63,22 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
     }
 
     @UsesSample('signing/gnupg-signatory')
+    @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
     def "use gnupg signatory"() {
-        given:
-        sample mavenSample
+        setup:
+        def symlink = GpgCmdFixture.setupGpgCmd(file('signing/gnupg-signatory'))
 
         when:
+        sample mavenSample
+
+        and:
         run "signArchives"
 
         then:
         file("signing", "gnupg-signatory", "build", "libs", "gnupg-signatory-1.0.jar.asc").assertExists()
+
+        cleanup:
+        GpgCmdFixture.cleanupGpgCmd(symlink)
     }
 
     MavenFileRepository getRepo() {

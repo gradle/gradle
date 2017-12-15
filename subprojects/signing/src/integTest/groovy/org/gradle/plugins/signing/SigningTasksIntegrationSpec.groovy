@@ -27,6 +27,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
             ${keyInfo.addAsPropertiesScript()}
 
             signing {
+                ${signingConfiguration()}
                 sign jar
             }
         """
@@ -55,6 +56,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
             ${javadocAndSourceJarsScript}
 
             signing {
+                ${signingConfiguration()}
                 sign jar, javadocJar, sourcesJar
             }
         """
@@ -81,6 +83,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         given:
         buildFile << """
             signing {
+                ${signingConfiguration()}
                 sign clean
             }
         """
@@ -99,6 +102,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
             ${keyInfo.addAsPropertiesScript()}
 
             signing {
+                ${signingConfiguration()}
                 sign jar
             }
 

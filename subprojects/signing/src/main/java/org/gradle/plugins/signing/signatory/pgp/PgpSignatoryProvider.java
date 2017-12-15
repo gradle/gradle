@@ -21,8 +21,11 @@ import org.gradle.plugins.signing.SigningExtension;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
 import org.gradle.util.ConfigureUtil;
 
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static org.codehaus.groovy.runtime.DefaultGroovyMethods.asType;
 
 /**
  * A {@link SignatoryProvider} of {@link PgpSignatory} instances.
@@ -33,8 +36,29 @@ public class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
 
     private final Map<String, PgpSignatory> signatories = new LinkedHashMap<String, PgpSignatory>();
 
-    public void configure(SigningExtension settings, Closure closure) {
-        ConfigureUtil.configure(closure, new Dsl(settings.getProject(), signatories, factory));
+    public void configure(final SigningExtension settings, Closure closure) {
+        ConfigureUtil.configure(closure, new Object() {
+            @SuppressWarnings("unused") // invoked by Groovy
+            public void methodMissing(String name, Object args) {
+                createSignatoryFor(settings.getProject(), name, asType(args, Object[].class));
+            }
+        });
+    }
+
+    private void createSignatoryFor(Project project, String name, Object[] args) {
+        switch (args.length) {
+            case 3:
+                String keyId = args[0].toString();
+                File keyRing = project.file(args[1].toString());
+                String password = args[2].toString();
+                signatories.put(name, factory.createSignatory(name, keyId, keyRing, password));
+                break;
+            case 0:
+                signatories.put(name, factory.createSignatory(project, name, true));
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid args (" + name + ": " + String.valueOf(args) + ")");
+        }
     }
 
     public PgpSignatory getDefaultSignatory(Project project) {
