@@ -265,20 +265,22 @@ class DefaultFileCollectionResolveContextTest extends Specification {
         def result = context.resolveAsFileCollections()
 
         then:
-        1 * provider.getOrNull() >> content
+        1 * provider.get() >> content
         result == [content]
     }
 
-    def "resolves a Provider which returns null"() {
+    def "fails when Provider has no value"() {
         Provider<?> provider = Mock()
+        def failure = new IllegalStateException("No value")
 
         when:
         context.add(provider)
-        def result = context.resolveAsFileCollections()
+        context.resolveAsFileCollections()
 
         then:
-        1 * provider.getOrNull() >> null
-        result == []
+        def e = thrown(IllegalStateException)
+        e == failure
+        1 * provider.get() >> { throw failure }
     }
 
     def "recursively resolves elements of an Iterable"() {
