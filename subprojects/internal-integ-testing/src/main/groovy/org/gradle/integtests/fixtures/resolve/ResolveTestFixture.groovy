@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
@@ -642,17 +643,26 @@ class GenerateGraphTask extends DefaultTask {
 
     def formatReason(ComponentSelectionReason reason) {
         def reasons = []
-        if (reason.conflictResolution) {
-            reasons << "conflict"
-        }
-        if (reason.forced) {
-            reasons << "forced"
-        }
-        if (reason.selectedByRule) {
-            reasons << "selectedByRule"
-        }
-        if (reason.compositeSubstitution) {
-            reasons << "compositeSubstitution"
+        if (reason in [VersionSelectionReasons.COMPOSITE_BUILD,
+                       VersionSelectionReasons.CONFLICT_RESOLUTION,
+                       VersionSelectionReasons.FORCED,
+                       VersionSelectionReasons.REQUESTED,
+                       VersionSelectionReasons.ROOT,
+                       VersionSelectionReasons.CONFLICT_RESOLUTION_BY_RULE,
+                       VersionSelectionReasons.SELECTED_BY_RULE
+        ]) {
+            if (reason.conflictResolution) {
+                reasons << "conflict"
+            }
+            if (reason.forced) {
+                reasons << "forced"
+            }
+            if (reason.selectedByRule) {
+                reasons << "selectedByRule"
+            }
+            if (reason.compositeSubstitution) {
+                reasons << "compositeSubstitution"
+            }
         }
         return reasons.empty ? reason.description : reasons.join(',')
     }
