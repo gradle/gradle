@@ -151,7 +151,7 @@ class PomReaderTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -182,7 +182,7 @@ class PomReaderTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -225,7 +225,7 @@ class PomReaderTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar')
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar', null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -268,9 +268,9 @@ class PomReaderTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey dependencyJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar')
-        MavenDependencyKey dependencyTestJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'test-jar', 'test')
-        MavenDependencyKey dependencyEjbClientKey = new MavenDependencyKey('group-two', 'artifact-two', 'ejb-client', 'client')
+        MavenDependencyKey dependencyJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar', null)
+        MavenDependencyKey dependencyTestJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'test-jar', 'test', null)
+        MavenDependencyKey dependencyEjbClientKey = new MavenDependencyKey('group-two', 'artifact-two', 'ejb-client', 'client', null)
 
         then:
         pomReader.getDependencies().size() == 3
@@ -300,7 +300,7 @@ class PomReaderTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 1
@@ -333,7 +333,7 @@ class PomReaderTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 1
@@ -377,7 +377,7 @@ class PomReaderTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar')
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar', null)
 
         then:
         pomReader.getDependencyMgt().size() == 1
@@ -421,9 +421,9 @@ class PomReaderTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey dependencyJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar')
-        MavenDependencyKey dependencyTestJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'test-jar', 'test')
-        MavenDependencyKey dependencyEjbClientKey = new MavenDependencyKey('group-two', 'artifact-two', 'ejb-client', 'client')
+        MavenDependencyKey dependencyJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar', null)
+        MavenDependencyKey dependencyTestJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'test-jar', 'test', null)
+        MavenDependencyKey dependencyEjbClientKey = new MavenDependencyKey('group-two', 'artifact-two', 'ejb-client', 'client', null)
 
         then:
         pomReader.getDependencyMgt().size() == 3
@@ -636,9 +636,9 @@ class PomReaderTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
-        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null)
-        MavenDependencyKey keyGroupFour = new MavenDependencyKey('group-four', 'artifact-four', 'ejb-client', null)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null)
+        MavenDependencyKey keyGroupFour = new MavenDependencyKey('group-four', 'artifact-four', 'ejb-client', null, null)
 
         then:
         pomReader.getDependencies().size() == 3
@@ -681,9 +681,9 @@ class PomReaderTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
-        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null)
-        MavenDependencyKey keyGroupFour = new MavenDependencyKey('group-four', 'artifact-four', 'ejb-client', null)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null)
+        MavenDependencyKey keyGroupFour = new MavenDependencyKey('group-four', 'artifact-four', 'ejb-client', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 3
@@ -724,8 +724,8 @@ class PomReaderTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
-        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 1
@@ -782,8 +782,8 @@ class PomReaderTest extends AbstractPomReaderTest {
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         pomReader.setPomParent(parentPomReader)
-        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
-        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 1

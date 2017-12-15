@@ -469,7 +469,17 @@ public class PomReader implements PomParent {
     }
 
     public PomDependencyMgt findDependencyDefaults(MavenDependencyKey dependencyKey) {
-        return getDependencyMgt().get(dependencyKey);
+        PomDependencyMgt candidate = getDependencyMgt().get(dependencyKey);
+        if (candidate != null) {
+            return getDependencyMgt().get(dependencyKey);
+        }
+        // lenient matching that ignores the scopes
+        for (MavenDependencyKey key : getDependencyMgt().keySet()) {
+            if (key.equalsWithoutScope(dependencyKey)) {
+                return getDependencyMgt().get(key);
+            }
+        }
+        return null;
     }
 
     public void resolveGAV() {
@@ -492,7 +502,7 @@ public class PomReader implements PomParent {
         }
 
         public MavenDependencyKey getId() {
-            return new MavenDependencyKey(getGroupId(), getArtifactId(), getType(), getClassifier());
+            return new MavenDependencyKey(getGroupId(), getArtifactId(), getType(), getClassifier(), getScope());
         }
 
         /* (non-Javadoc)
