@@ -105,12 +105,12 @@ public class VersionSelectionReasons {
                 return false;
             }
             DefaultComponentSelectionReason that = (DefaultComponentSelectionReason) o;
-            return forced == that.forced &&
-                conflictResolution == that.conflictResolution &&
-                selectedByRule == that.selectedByRule &&
-                expected == that.expected &&
-                compositeParticipant == that.compositeParticipant &&
-                Objects.equal(description, that.description);
+            return forced == that.forced
+                && conflictResolution == that.conflictResolution
+                && selectedByRule == that.selectedByRule
+                && expected == that.expected
+                && compositeParticipant == that.compositeParticipant
+                && Objects.equal(description, that.description);
         }
 
         @Override
