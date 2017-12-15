@@ -23,7 +23,6 @@ import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -198,7 +197,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
         public Set<File> getFiles() {
             if (result == null) {
                 result = Sets.newLinkedHashSet();
-                Map<String, ModuleMap> moduleMaps = Maps.newHashMap();
+                Map<ComponentIdentifier, ModuleMap> moduleMaps = Maps.newLinkedHashMap();
                 for (ResolvedArtifactResult artifact : importPathConfig.getIncoming().getArtifacts()) {
                     Usage usage = artifact.getVariant().getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
                     if (usage != null && Usage.C_PLUS_PLUS_API.equals(usage.getName())) {
@@ -214,11 +213,11 @@ public class DefaultSwiftBinary implements SwiftBinary {
                         }
 
                         ModuleMap moduleMap;
-                        if (moduleMaps.containsKey(moduleName)) {
-                            moduleMap = moduleMaps.get(moduleName);
+                        if (moduleMaps.containsKey(id)) {
+                            moduleMap = moduleMaps.get(id);
                         } else {
                             moduleMap = new ModuleMap(moduleName, Lists.<String>newArrayList());
-                            moduleMaps.put(moduleName, moduleMap);
+                            moduleMaps.put(id, moduleMap);
                         }
                         moduleMap.getPublicHeaderPaths().add(artifact.getFile().getAbsolutePath());
                     }
