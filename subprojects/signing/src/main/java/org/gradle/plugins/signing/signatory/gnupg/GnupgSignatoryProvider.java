@@ -25,8 +25,11 @@ import org.gradle.util.ConfigureUtil;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static org.codehaus.groovy.runtime.DefaultGroovyMethods.asType;
+
 /**
  * A {@link SignatoryProvider} of {@link GnupgSignatory} instances.
+ *
  * @since 4.5
  */
 @Incubating
@@ -36,8 +39,20 @@ public class GnupgSignatoryProvider implements SignatoryProvider<GnupgSignatory>
     private final Map<String, GnupgSignatory> signatories = new LinkedHashMap<String, GnupgSignatory>();
 
     @Override
-    public void configure(SigningExtension settings, Closure closure) {
-        ConfigureUtil.configure(closure, new Dsl(settings.getProject(), signatories, factory));
+    public void configure(final SigningExtension settings, Closure closure) {
+        ConfigureUtil.configure(closure, new Object() {
+            @SuppressWarnings("unused") // invoked by Groovy
+            public void methodMissing(String name, Object args) {
+                createSignatoryFor(settings.getProject(), name, asType(args, Object[].class));
+            }
+        });
+    }
+
+    private void createSignatoryFor(Project project, String name, Object[] args) {
+        if (args.length != 0) {
+            throw new IllegalArgumentException("Invalid args (" + name + ": " + String.valueOf(args) + ")");
+        }
+        signatories.put(name, factory.createSignatory(project, name, name));
     }
 
     @Override

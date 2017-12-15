@@ -108,7 +108,6 @@ public class GnupgSignatory extends SignatorySupport {
         }
         args.add("--no-tty");
         args.add("--batch");
-        args.add("--armor");
         args.add("--detach-sign");
         return args;
     }

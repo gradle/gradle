@@ -5,10 +5,8 @@ group = 'gradle'
 version = '1.0'
 
 // START SNIPPET configure-signatory
-import org.gradle.plugins.signing.signatory.gnupg.GnupgSignatoryProvider
-
 signing {
-    signatories = new GnupgSignatoryProvider()
+    useGpgCmd()
     sign configurations.archives
 }
 // END SNIPPET configure-signatory
