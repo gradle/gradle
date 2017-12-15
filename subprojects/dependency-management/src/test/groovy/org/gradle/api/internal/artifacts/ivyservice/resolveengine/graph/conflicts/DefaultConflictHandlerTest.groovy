@@ -61,7 +61,7 @@ class DefaultConflictHandlerTest extends Specification {
         def a = candidate("org", "a", "1", "2")
         def b = candidate("org", "b", "1")
 
-        replacements.getReplacementFor(DefaultModuleIdentifier.newId("org", "a")) >> DefaultModuleIdentifier.newId("org", "b")
+        replacements.getReplacementFor(DefaultModuleIdentifier.newId("org", "a")) >> new ModuleReplacementsData.Replacement(DefaultModuleIdentifier.newId("org", "b"), null)
 
         when:
         def aX = handler.registerModule(a)
