@@ -89,7 +89,11 @@ public class PropertyValidationAccess {
                 }
             }
             if (metadata.isAnnotationPresent(Nested.class)) {
-                queue.add(new ClassNode(qualifiedPropertyName, metadata.getDeclaredType()));
+                Class<?> declaredType = metadata.getDeclaredType();
+                // FIXME wolfs Validate nested Iterables
+                if (!Iterable.class.isAssignableFrom(declaredType)) {
+                    queue.add(new ClassNode(qualifiedPropertyName, declaredType));
+                }
             }
         }
     }

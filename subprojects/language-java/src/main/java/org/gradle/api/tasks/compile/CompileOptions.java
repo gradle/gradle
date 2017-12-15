@@ -40,6 +40,8 @@ import org.gradle.util.DeprecationLogger;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -76,7 +78,7 @@ public class CompileOptions extends AbstractOptions {
 
     private String extensionDirs;
 
-    private List<String> compilerArgs = Lists.newArrayList();
+    private List<CompilerArgument> compilerArgs = Lists.newArrayList();
 
     private boolean incremental;
 
@@ -330,8 +332,46 @@ public class CompileOptions extends AbstractOptions {
      * Note that if {@code --release} is added then {@code -target} and {@code -source}
      * are ignored.
      */
-    @Input
+    @Internal
     public List<String> getCompilerArgs() {
+        return new AbstractList<String>() {
+            @Override
+            public String get(int index) {
+                return compilerArgs.get(index).getAsArgument();
+            }
+
+            @Override
+            public String set(int index, String element) {
+                CompilerArgument result = compilerArgs.set(index, new PlainCompilerArgument(element));
+                return result == null ? null : result.getAsArgument();
+            }
+
+            @Override
+            public void add(int index, String element) {
+                compilerArgs.add(index, new PlainCompilerArgument(element));
+            }
+
+            @Override
+            public String remove(int index) {
+                CompilerArgument removed = compilerArgs.remove(index);
+                return removed == null ? null : removed.getAsArgument();
+            }
+
+            @Override
+            public int size() {
+                return compilerArgs.size();
+            }
+        };
+    }
+
+    /**
+     * Richly modeled compiler arguments.
+     *
+     * @since 4.5
+     */
+    @Nested
+    @Incubating
+    public List<CompilerArgument> getRichCompilerArgs() {
         return compilerArgs;
     }
 
@@ -340,7 +380,11 @@ public class CompileOptions extends AbstractOptions {
      * Defaults to the empty list.
      */
     public void setCompilerArgs(List<String> compilerArgs) {
-        this.compilerArgs = compilerArgs;
+        List<CompilerArgument> newCompilerArgs = new ArrayList<CompilerArgument>();
+        for (String compilerArg : compilerArgs) {
+            newCompilerArgs.add(new PlainCompilerArgument(compilerArg));
+        }
+        this.compilerArgs = newCompilerArgs;
     }
 
     /**
@@ -504,5 +548,30 @@ public class CompileOptions extends AbstractOptions {
     @Incubating
     public void setAnnotationProcessorGeneratedSourcesDirectory(Provider<File> file) {
         this.annotationProcessorGeneratedSourcesDirectory.set(file);
+    }
+
+    /**
+     * Argument to the Java compiler.
+     *
+     * @since 4.5
+     */
+    @Incubating
+    public interface CompilerArgument {
+        String getAsArgument();
+    }
+
+    private static class PlainCompilerArgument implements CompilerArgument {
+
+        private final String arg;
+
+        private PlainCompilerArgument(String arg) {
+            this.arg = arg;
+        }
+
+        @Input
+        @Override
+        public String getAsArgument() {
+            return arg;
+        }
     }
 }

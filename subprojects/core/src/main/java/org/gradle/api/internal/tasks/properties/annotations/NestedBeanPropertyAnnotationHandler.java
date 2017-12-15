@@ -16,19 +16,12 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Nested;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-
-import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
 
 public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -38,36 +31,5 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
 
     @Override
     public void visitPropertyValue(final PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
-        DefaultTaskInputPropertySpec propertySpec = specFactory.createInputPropertySpec(propertyValue.getPropertyName() + ".class", new NestedPropertyValue(propertyValue));
-        propertySpec.optional(propertyValue.isOptional());
-        visitor.visitInputProperty(propertySpec);
-    }
-
-    private static class NestedPropertyValue implements ValidatingValue {
-        private final PropertyValue propertyValue;
-
-        public NestedPropertyValue(PropertyValue propertyValue) {
-            this.propertyValue = propertyValue;
-        }
-
-        @Nullable
-        @Override
-        public Object call() {
-            Object value = propertyValue.getValue();
-            return value == null ? null : value.getClass().getName();
-        }
-
-        @Override
-        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-            Object value = propertyValue.getValue();
-            if (value == null) {
-                if (!optional) {
-                    String realPropertyName = propertyName.substring(0, propertyName.length() - ".class".length());
-                    context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", realPropertyName));
-                }
-            } else {
-                valueValidator.validate(propertyName, value, context, ERROR);
-            }
-        }
     }
 }
