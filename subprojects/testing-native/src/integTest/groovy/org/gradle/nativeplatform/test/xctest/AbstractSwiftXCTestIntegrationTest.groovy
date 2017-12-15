@@ -63,8 +63,9 @@ apply plugin: 'xctest'
         settingsFile << "rootProject.name = '${fixture.projectName}'"
         fixture.writeToProject(testDirectory)
 
-        when:
         succeeds("test")
+
+        when:
         succeeds("test")
 
         then:
