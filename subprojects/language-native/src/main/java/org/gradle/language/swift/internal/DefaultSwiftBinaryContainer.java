@@ -96,10 +96,13 @@ public class DefaultSwiftBinaryContainer<T extends SoftwareComponent> implements
 
     @Override
     public void whenElementFinalized(Action<? super T> action) {
-        if (state != State.Collecting) {
-            throw new IllegalStateException("Cannot add actions to this collection as it has already been realized.");
+        if (state == State.Finalized) {
+            for (T element : elements) {
+                action.execute(element);
+            }
+        } else {
+            finalizeActions = finalizeActions.add(action);
         }
-        finalizeActions = finalizeActions.add(action);
     }
 
     @Override
@@ -134,11 +137,12 @@ public class DefaultSwiftBinaryContainer<T extends SoftwareComponent> implements
             configureActions.execute(element);
         }
         configureActions = ImmutableActionSet.empty();
+        state = State.Finalized;
         for (T element : elements) {
             finalizeActions.execute(element);
         }
         finalizeActions = ImmutableActionSet.empty();
-        state = State.Finalized;
+
     }
 
     @Override

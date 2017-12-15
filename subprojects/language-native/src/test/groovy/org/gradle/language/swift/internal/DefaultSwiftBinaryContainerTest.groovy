@@ -169,17 +169,34 @@ class DefaultSwiftBinaryContainerTest extends Specification {
         e.message == 'Cannot add actions to this collection as it has already been realized.'
     }
 
-    def "cannot add when finalized actions while collection is realizing"() {
+    def "can add when finalized actions while collection is realizing"() {
         given:
-        container.add(Stub(SwiftBinary))
-        container.configureEach { container.whenElementFinalized {} }
+        def action = Mock(Action)
+        def binary = Stub(SwiftBinary)
+        container.add(binary)
+        container.configureEach { container.whenElementFinalized(action) }
 
         when:
         container.realizeNow()
 
         then:
-        def e = thrown(IllegalStateException)
-        e.message == 'Cannot add actions to this collection as it has already been realized.'
+        1 * action.execute(binary)
+        0 * action._
+    }
+
+    def "executes when finalized actions eagerly when collection is finalized"() {
+        given:
+        def action = Mock(Action)
+        def binary = Stub(SwiftBinary)
+        container.add(binary)
+        container.realizeNow()
+
+        when:
+        container.whenElementFinalized(action)
+
+        then:
+        1 * action.execute(binary)
+        0 * action._
     }
 
     def "can get by name before element is present and query after realized"() {
