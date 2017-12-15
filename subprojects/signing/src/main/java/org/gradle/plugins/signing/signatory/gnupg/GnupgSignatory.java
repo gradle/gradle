@@ -16,6 +16,7 @@
 package org.gradle.plugins.signing.signatory.gnupg;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -30,7 +31,9 @@ import java.util.List;
 
 /**
  * Signatory that uses the gnupg cli program.
+ * @since 4.5
  */
+@Incubating
 public class GnupgSignatory extends SignatorySupport {
 
     private static final Logger LOG = Logging.getLogger(GnupgSignatory.class);

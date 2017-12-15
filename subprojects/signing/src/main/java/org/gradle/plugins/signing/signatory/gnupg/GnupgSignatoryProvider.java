@@ -16,6 +16,7 @@
 package org.gradle.plugins.signing.signatory.gnupg;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.plugins.signing.SigningExtension;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -26,7 +27,9 @@ import java.util.Map;
 
 /**
  * A {@link SignatoryProvider} of {@link GnupgSignatory} instances.
+ * @since 4.5
  */
+@Incubating
 public class GnupgSignatoryProvider implements SignatoryProvider<GnupgSignatory> {
 
     private final GnupgSignatoryFactory factory = new GnupgSignatoryFactory();
