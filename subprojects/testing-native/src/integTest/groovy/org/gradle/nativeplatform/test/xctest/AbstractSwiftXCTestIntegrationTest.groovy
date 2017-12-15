@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
-import org.gradle.nativeplatform.fixtures.xctest.XCTestFinderFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -28,11 +27,9 @@ import spock.lang.Unroll
 @Requires([TestPrecondition.SWIFT_SUPPORT])
 abstract class AbstractSwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def setup() {
-        def xcTestFinder = new XCTestFinderFixture(toolChain)
         buildFile << """
 apply plugin: 'xctest'
 """
-        buildFile << xcTestFinder.buildscript()
     }
 
     TestExecutionResult getTestExecutionResult() {
@@ -72,7 +69,7 @@ apply plugin: 'xctest'
 
         then:
         result.assertTasksExecuted(tasksToCompileComponentUnderTest, ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-        result.assertTasksSkipped(tasksToCompileComponentUnderTest, ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksSkipped(*tasksToCompileComponentUnderTest, ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
     protected abstract String[] getTaskToAssembleComponentUnderTest()
