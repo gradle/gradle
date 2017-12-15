@@ -15,11 +15,14 @@
  */
 package org.gradle.plugins.signing.signatory.gnupg;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 
 /**
  * Creates {@link GnupgSignatory} instances.
+ * @since 4.5
  */
+@Incubating
 public class GnupgSignatoryFactory {
 
     public GnupgSignatory createSignatory(Project project) {
