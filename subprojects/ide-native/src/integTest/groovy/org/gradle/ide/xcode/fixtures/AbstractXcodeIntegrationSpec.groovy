@@ -16,6 +16,7 @@
 
 package org.gradle.ide.xcode.fixtures
 
+import com.google.common.base.Splitter
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
@@ -226,5 +227,10 @@ Actual: ${actual[key]}
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG]
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.PRODUCT_NAME == expectedProductName
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == swiftIncludes
+    }
+
+    static List<TestFile> toFiles(Object includePath) {
+        def includePathElements = Splitter.on('"').splitToList(String.valueOf(includePath))
+        return includePathElements.grep( { !it.trim().empty }).collect { new TestFile(it) }
     }
 }

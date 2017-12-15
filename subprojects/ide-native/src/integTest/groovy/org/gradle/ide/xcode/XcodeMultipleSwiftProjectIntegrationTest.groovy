@@ -207,10 +207,15 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
 
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'cppGreeter/cppGreeter.xcodeproj', 'hello/hello.xcodeproj')
 
-        def appProject = xcodeProject("app/app.xcodeproj").projectFile
-        appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS.startsWith toSpaceSeparatedList(file("hello/build/modules/main/debug"), file("cppGreeter/src/main/public"))
-        def helloProject = xcodeProject("hello/hello.xcodeproj").projectFile
-        helloProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS.startsWith toSpaceSeparatedList(file("cppGreeter/src/main/public"))
+        def appSwiftIncludeDirs = toFiles(xcodeProject("app/app.xcodeproj").projectFile.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS)
+        appSwiftIncludeDirs.size() == 3
+        appSwiftIncludeDirs[0..1] == [ file("hello/build/modules/main/debug"), file("cppGreeter/src/main/public") ]
+        appSwiftIncludeDirs[2].file("module.modulemap").assertExists()
+
+        def helloSwiftIncludeDirs = toFiles(xcodeProject("hello/hello.xcodeproj").projectFile.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS)
+        helloSwiftIncludeDirs.size() == 2
+        helloSwiftIncludeDirs[0] == file("cppGreeter/src/main/public")
+        helloSwiftIncludeDirs[1].file("module.modulemap").assertExists()
 
         when:
         def resultDebugApp = xcodebuild
