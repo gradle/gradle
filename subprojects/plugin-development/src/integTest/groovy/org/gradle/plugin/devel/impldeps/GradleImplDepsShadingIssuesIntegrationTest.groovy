@@ -17,6 +17,8 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsIntegrationTest {
@@ -140,6 +142,35 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
                     Class clazz = Class.forName("javax.servlet.AsyncContext")
                     URL source = clazz.classLoader.getResource("javax/servlet/http/HttpServletRequest.class")
                     assert source.toString().contains('servlet-api-3.1.0')
+                }
+            }
+        '''.stripIndent()
+
+        then:
+        succeeds 'test'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3780")
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can use different JGit API"() {
+        when:
+        buildFile << testableGroovyProject()
+
+        buildFile << """
+            dependencies {
+                testCompile 'org.eclipse.jgit:org.eclipse.jgit:4.9.1.201712030800-r'
+            }
+        """
+
+        file('src/test/groovy/JGitTest.groovy') << '''
+            import org.junit.Test
+            
+            class JGitTest {
+                @Test
+                void loadJGitResources() {
+                    assert org.eclipse.jgit.internal.JGitText.getPackage().getImplementationVersion() == "4.9.1.201712030800-r"
+                    assert org.eclipse.jgit.internal.JGitText.get() != null
+                    assert org.gradle.internal.impldep.org.eclipse.jgit.internal.JGitText.get() != null
                 }
             }
         '''.stripIndent()

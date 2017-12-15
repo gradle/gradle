@@ -24,6 +24,8 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -81,8 +83,24 @@ class ImplementationDependencyRelocator extends Remapper {
     }
 
     public boolean keepOriginalResource(String resource) {
-        return resource == null || maybeRelocateResource(resource) == null
-            || !resource.startsWith("com/sun/jna"); // in order to use a newer version of jna the resources must not be available in the old location
+        return resource == null
+            || maybeRelocateResource(resource) == null
+            || !mustBeRelocated(resource);
+    }
+
+    private final List<String> mustRelocateList = Arrays.asList(
+        // In order to use a newer version of jna the resources must not be available in the old location
+        "com/sun/jna",
+        // JGit properties work from their relocated locations and conflict if they are left in place.
+        "org/eclipse/jgit");
+
+    private final boolean mustBeRelocated(String resource) {
+        for (String mustRelocate : mustRelocateList) {
+            if (resource.startsWith(mustRelocate)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public ClassLiteralRemapping maybeRemap(String literal) {
