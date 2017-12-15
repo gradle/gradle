@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':wrapper')
+package org.gradle.buildinit.plugins
 
-    testFixturesImplementation project(":internalTesting")
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-    integTestRuntime rootProject.configurations.testRuntime.allDependencies
+class BuildInitPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getMainTask() {
+        return "init"
+    }
 }
-
-useTestFixtures()
-useClassycle()

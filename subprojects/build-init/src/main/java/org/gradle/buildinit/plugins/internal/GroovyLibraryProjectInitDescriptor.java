@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 public class GroovyLibraryProjectInitDescriptor extends GroovyProjectInitDescriptor {
 

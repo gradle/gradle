@@ -26,8 +26,9 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.NONE
-import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.NONE
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK
 
 @UsesNativeServices
 class InitBuildSpec extends Specification {
@@ -67,7 +68,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate(NONE)
+        1 * projectSetupDescriptor.generate(GROOVY, NONE)
     }
 
     def "should delegate to setup descriptor with specified type and modifier"() {
@@ -81,7 +82,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate(SPOCK)
+        1 * projectSetupDescriptor.generate(GROOVY, SPOCK)
     }
 
     def "should throw exception if requested test framework is not supported"() {

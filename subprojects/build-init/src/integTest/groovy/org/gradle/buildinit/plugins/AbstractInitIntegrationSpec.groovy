@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':wrapper')
 
-    testFixturesImplementation project(":internalTesting")
+package org.gradle.buildinit.plugins
 
-    integTestRuntime rootProject.configurations.testRuntime.allDependencies
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
+
+    protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
+        ScriptDslFixture.of(dsl, testDirectory)
+    }
 }
-
-useTestFixtures()
-useClassycle()
