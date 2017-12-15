@@ -17,6 +17,8 @@ package org.gradle.testing.junit5.internal;
 
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.workers.WorkerExecutor;
 
@@ -29,6 +31,8 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 public class JUnitPlatformTestExecutor implements TestExecuter<JUnitPlatformTestExecutionSpec> {
+    private static final Logger LOGGER = Logging.getLogger(JUnitPlatformTestExecutor.class);
+
     private final WorkerExecutor workerExecutor;
     private final JavaForkOptions forkOptions;
 
@@ -40,7 +44,6 @@ public class JUnitPlatformTestExecutor implements TestExecuter<JUnitPlatformTest
     @Override
     public void execute(final JUnitPlatformTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
         try (ServerSocketChannel server = startServer()) {
-
             workerExecutor.submit(JUnitPlatformLauncher.class, config -> {
                 config.params(testExecutionSpec.getOptions(), server.socket().getLocalPort());
                 config.setClasspath(testExecutionSpec.getClasspath());
@@ -57,7 +60,21 @@ public class JUnitPlatformTestExecutor implements TestExecuter<JUnitPlatformTest
         try (ObjectInputStream stream = new ObjectInputStream(Channels.newInputStream(socket))) {
             Object obj = stream.readObject();
             while (obj != null) {
-
+                if (obj instanceof JUnitPlatformEvent.Started) {
+                    JUnitPlatformEvent.Started event = (JUnitPlatformEvent.Started) obj;
+                    testResultProcessor.started(event.getTest(), event.getEvent());
+                } else if (obj instanceof JUnitPlatformEvent.Completed) {
+                    JUnitPlatformEvent.Completed event = (JUnitPlatformEvent.Completed) obj;
+                    testResultProcessor.completed(event.getTest().getId(), event.getEvent());
+                } else if (obj instanceof JUnitPlatformEvent.Output) {
+                    JUnitPlatformEvent.Output event = (JUnitPlatformEvent.Output) obj;
+                    testResultProcessor.output(event.getTest().getId(), event.getEvent());
+                } else if (obj instanceof JUnitPlatformEvent.Failure) {
+                    JUnitPlatformEvent.Failure event = (JUnitPlatformEvent.Failure) obj;
+                    testResultProcessor.failure(event.getTest().getId(), event.getResult());
+                } else {
+                    LOGGER.debug("Unknown JUnit Platform event: {}", obj);
+                }
 
                 obj = stream.readObject();
             }

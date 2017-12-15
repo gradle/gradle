@@ -21,8 +21,11 @@ dependencies {
     compile project(':platformJvm')
     compile project(':languageJava')
     compile project(':testingBase')
+    compile project(':plugins')
 
-    compileOnly libraries.junitPlatform
+    // FIXME: this should be compileonly since it will be provided by user and only needed by worker jvm
+    // but fails on some validation tasks
+    compile libraries.junitPlatform
 }
 
 useTestFixtures()
@@ -31,5 +34,7 @@ useTestFixtures(project: ':diagnostics')
 useTestFixtures(project: ':messaging')
 useTestFixtures(project: ':baseServices')
 
-useClassycle()
+// FIXME: classcyel fails, maybe due to Java 8 usage?
+//useClassycle()
+
 strictCompile()

@@ -16,6 +16,7 @@
 package org.gradle.testing.junit5.tasks;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.*;
@@ -33,17 +34,54 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Execute tests using the JUnit Platform. Tests are always run in a separate JVM. The sample below shows various
+ * configuration options:
+ *
+ * <code>
+ *     apply plugin: 'java'
+ *     apply plugin: 'junit-platform'
+ *
+ *     junit {
+ *         // set a system property for the test JVM
+ *         systemProperty 'some.prop', 'value'
+ *
+ *         // show standard out and standard err of the test JVM on the console
+ *         testLogging.showStandardStreams = true
+ *
+ *         // set heap size for the test JVM
+ *         minHeapSize = '128m'
+ *         maxHeapSize = '512m'
+ *
+ *         // set JVM arguments for the test JVM
+ *         jvmArgs '-XX:MaxPermSize=256m'
+ *
+ *         // listen to events in the test execution lifecycle
+ *         beforeTest { descriptor ->
+ *           logger.lifecycle("Running test: " + descriptor)
+ *         }
+ *
+ *         // listen to standard out and standard error of the test JVM
+ *         onOutput { descriptor, event ->
+ *           logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message)
+ *         }
+ *     }
+ * </code>
+ */
 public class JUnitPlatformTest extends AbstractTestTask implements JavaForkOptions {
     private final WorkerExecutor workerExecutor;
     private final JavaForkOptions forkOptions;
     private final JUnitPlatformOptions options;
-    private FileCollection classpath;
+
+    @Classpath
+    public final ConfigurableFileCollection classpath;
 
     @Inject
     public JUnitPlatformTest(WorkerExecutor workerExecutor, FileResolver fileResolver) {
         this.workerExecutor = workerExecutor;
         this.forkOptions = new DefaultJavaForkOptions(fileResolver);
-        this.options = new JUnitPlatformOptions();
+        this.options = new JUnitPlatformOptions(getProject());
+        this.classpath = getProject().files();
     }
 
     @Override
@@ -63,15 +101,6 @@ public class JUnitPlatformTest extends AbstractTestTask implements JavaForkOptio
 
     public void options(Action<JUnitPlatformOptions> configureAction) {
         configureAction.execute(options);
-    }
-
-    @Classpath
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
     }
 
     @Override
