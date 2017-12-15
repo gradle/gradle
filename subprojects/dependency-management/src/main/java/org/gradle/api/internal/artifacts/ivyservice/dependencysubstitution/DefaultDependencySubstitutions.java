@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -132,15 +133,22 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     @Override
     public Substitution substitute(final ComponentSelector substituted) {
         return new Substitution() {
+            ComponentSelectionReasonInternal substitutionReason = (ComponentSelectionReasonInternal) reason;
+            @Override
+            public Substitution because(String description) {
+                substitutionReason = substitutionReason.withReason(description);
+                return this;
+            }
+
             @Override
             public void with(ComponentSelector substitute) {
                 DefaultDependencySubstitution.validateTarget(substitute);
 
                 if (substituted instanceof UnversionedModuleComponentSelector) {
                     final ModuleIdentifier moduleId = ((UnversionedModuleComponentSelector) substituted).getModuleIdentifier();
-                    all(new ModuleMatchDependencySubstitutionAction(moduleId, substitute));
+                    all(new ModuleMatchDependencySubstitutionAction(substitutionReason, moduleId, substitute));
                 } else {
-                    all(new ExactMatchDependencySubstitutionAction(substituted, substitute));
+                    all(new ExactMatchDependencySubstitutionAction(substitutionReason, substituted, substitute));
                 }
             }
         };
@@ -196,11 +204,13 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         }
     }
 
-    private class ExactMatchDependencySubstitutionAction implements Action<DependencySubstitution> {
+    private static class ExactMatchDependencySubstitutionAction implements Action<DependencySubstitution> {
+        private final ComponentSelectionReasonInternal selectionReason;
         private final ComponentSelector substituted;
         private final ComponentSelector substitute;
 
-        public ExactMatchDependencySubstitutionAction(ComponentSelector substituted, ComponentSelector substitute) {
+        public ExactMatchDependencySubstitutionAction(ComponentSelectionReasonInternal selectionReason, ComponentSelector substituted, ComponentSelector substitute) {
+            this.selectionReason = selectionReason;
             this.substituted = substituted;
             this.substitute = substitute;
         }
@@ -208,16 +218,18 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         @Override
         public void execute(DependencySubstitution dependencySubstitution) {
             if (substituted.equals(dependencySubstitution.getRequested())) {
-                ((DependencySubstitutionInternal) dependencySubstitution).useTarget(substitute, reason);
+                ((DependencySubstitutionInternal) dependencySubstitution).useTarget(substitute, selectionReason);
             }
         }
     }
 
-    private class ModuleMatchDependencySubstitutionAction implements Action<DependencySubstitution> {
+    private static class ModuleMatchDependencySubstitutionAction implements Action<DependencySubstitution> {
+        private final ComponentSelectionReasonInternal selectionReason;
         private final ModuleIdentifier moduleId;
         private final ComponentSelector substitute;
 
-        public ModuleMatchDependencySubstitutionAction(ModuleIdentifier moduleId, ComponentSelector substitute) {
+        public ModuleMatchDependencySubstitutionAction(ComponentSelectionReasonInternal selectionReason, ModuleIdentifier moduleId, ComponentSelector substitute) {
+            this.selectionReason = selectionReason;
             this.moduleId = moduleId;
             this.substitute = substitute;
         }
@@ -227,7 +239,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             if (dependencySubstitution.getRequested() instanceof ModuleComponentSelector) {
                 ModuleComponentSelector requested = (ModuleComponentSelector) dependencySubstitution.getRequested();
                 if (moduleId.getGroup().equals(requested.getGroup()) && moduleId.getName().equals(requested.getModule())) {
-                    ((DependencySubstitutionInternal) dependencySubstitution).useTarget(substitute, reason);
+                    ((DependencySubstitutionInternal) dependencySubstitution).useTarget(substitute, selectionReason);
                 }
             }
         }
