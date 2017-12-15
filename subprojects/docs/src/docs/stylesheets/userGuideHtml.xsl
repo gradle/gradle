@@ -51,7 +51,7 @@
                 <main class="main-content">
                     <nav class="docs-navigation">
                         <ul>
-                            <li><a href="/userguide/userguide.html">Home</a></li>
+                            <li><a href="/userguide/userguide.html">Overview</a></li>
                             <li><a href="/release-notes.html">Release Notes</a></li>
                         </ul>
 
@@ -171,7 +171,7 @@
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#managing-dependencies" aria-expanded="false" aria-controls="managing-dependencies">Managing Dependencies</a>
                                 <ul id="managing-dependencies">
                                     <li><a href="/userguide/artifact_dependencies_tutorial.html">Dependency Management Basics</a></li>
-                                    <li><a href="/userguide/dependency_management.html">Dependency Management</a></li></ul></li>
+                                    <li><a href="/userguide/dependency_management.html">Advanced Dependency Management</a></li></ul></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing-artifacts" aria-expanded="false" aria-controls="publishing-artifacts">Publishing Artifacts</a>
                                 <ul id="publishing-artifacts">
                                     <li><a href="/userguide/artifact_management.html">Publishing Artifacts Overview</a></li>
@@ -216,6 +216,21 @@
                 </main>
                 <xsl:call-template name="footer.navigation"></xsl:call-template>
                 <script type="text/javascript">
+                    [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='"+ window.location.pathname +"']"), function(link) {
+                        // Add "active" to all links same as current URL
+                        link.classList.add("active");
+
+                        // Expand all parent navigation
+                        var parentListEl = link.closest("li");
+                        while (parentListEl !== null) {
+                            var dropDownEl = parentListEl.querySelector(".nav-dropdown");
+                            if (dropDownEl !== null) {
+                                dropDownEl.classList.add("expanded");
+                            }
+                            parentListEl = parentListEl.parentNode.closest("li");
+                        }
+                    });
+
                     // Expand/contract multi-level side navigation
                     [].forEach.call(document.querySelectorAll(".docs-navigation .nav-dropdown"), function registerSideNavActions(collapsibleElement) {
                         collapsibleElement.addEventListener("click", function toggleExpandedSideNav(evt) {
@@ -224,11 +239,6 @@
                             evt.target.setAttribute("aria-expanded", evt.target.classList.contains("expanded").toString());
                             return false;
                         }, false);
-                    });
-
-                    // Add "active" to all links same as current URL
-                    [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='"+ window.location.pathname +"']"), function(link) {
-                        link.classList.add("active");
                     });
                 </script>
             </body>

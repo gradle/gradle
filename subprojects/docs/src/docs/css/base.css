@@ -243,6 +243,10 @@ blockquote p:last-child {
     padding: 1.5rem;
 }
 
+.container {
+    margin: 2rem auto;
+}
+
 .content, .text-container {
     width: 45rem;
 }
@@ -683,6 +687,7 @@ h3.releaseinfo {
 /* Docs Navigation */
 .docs-navigation {
     display: none;
+    padding-left: 5px;
 }
 
 .docs-navigation a {
@@ -742,9 +747,11 @@ h3.releaseinfo {
     margin-top: 1.5em;
 }
 
-.main-content {
-    display: flex;
-    justify-content: center;
+@media screen and (min-width: 720px) {
+    .main-content {
+        display: flex;
+        justify-content: center;
+    }
 }
 
 /* User guide navigation appears for desktops */
@@ -774,8 +781,19 @@ h3.releaseinfo {
         top: 50px;
         width: 220px;
         padding-top: 15px;
-        font-size: 0.9rem;
+        font-size: 1rem;
         background-color: #F7F7F8;
+    }
+
+    /* Replace TOC header only on desktop */
+    .chapter .toc:before {
+        content: "Contents";
+        display: block;
+        font-weight: 500;
+        margin: 0.4rem 0 0.625rem 0;
+    }
+    .chapter .toc p:first-of-type {
+        display: none;
     }
 
     .chapter .toc a {
@@ -1091,23 +1109,11 @@ h3.releaseinfo {
 }
 
 .example-contents > p {
-    display: block;
     margin: 0;
-    margin-bottom: 0.2em;
 }
 
 .example-break, .figure-break {
-    display: none
-}
-
-.exampleLocation {
-    margin-top: 0.5em;
-    padding-left: 1.7em;
-    background: #FEFEDD;
-    color: #777744;
-    border: 1px solid #DBDBA8;
-    padding-top: 0.4em;
-    padding-bottom: 0.4em;
+    display: none;
 }
 
 .exampleLocation .emphasis em {
@@ -1132,7 +1138,7 @@ h3.releaseinfo {
     margin-bottom: 0;
 }
 
-.note, .tip {
+.note, .tip, .exampleLocation {
     border-left: 1px solid #ddddd8;
     color: rgba(0,0,0,0.6);
     margin: 0 0 1.5em 1.25em;
@@ -1206,8 +1212,9 @@ div.example code.filename {
 .section .title > a.section-anchor {
     display: inline-block;
     text-decoration: none !important;
-    margin-left: -0.85ch;
+    margin-left: -1ch;
     opacity: 0;
+    padding-right: 0.4ch;
 }
 
 .section .title > a.section-anchor:before {
