@@ -56,8 +56,8 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
-            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary", ":greeter:xcode",
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme", ":greeter:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile
@@ -69,7 +69,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         def resultDebugApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
 
         then:
@@ -79,7 +79,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         def resultReleaseApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
@@ -126,10 +126,10 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
-            ":deck:xcodeProject", ":deck:xcodeProjectWorkspaceSettings", ":deck:xcodeSchemeDeckSharedLibrary", ":deck:xcode",
-            ":card:xcodeProject", ":card:xcodeProjectWorkspaceSettings", ":card:xcodeSchemeCardSharedLibrary", ":card:xcode",
-            ":shuffle:xcodeProject", ":shuffle:xcodeProjectWorkspaceSettings", ":shuffle:xcodeSchemeShuffleSharedLibrary", ":shuffle:xcode",
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+            ":deck:xcodeProject", ":deck:xcodeProjectWorkspaceSettings", ":deck:xcodeScheme", ":deck:xcode",
+            ":card:xcodeProject", ":card:xcodeProjectWorkspaceSettings", ":card:xcodeScheme", ":card:xcode",
+            ":shuffle:xcodeProject", ":shuffle:xcodeProjectWorkspaceSettings", ":shuffle:xcodeScheme", ":shuffle:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile
@@ -143,7 +143,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         def resultDebugApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
 
         then:
@@ -155,7 +155,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         def resultReleaseHello = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('Deck SharedLibrary')
+            .withScheme('Deck')
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
@@ -196,7 +196,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary",
+        executedAndNotSkipped(":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile
@@ -208,7 +208,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         def resultDebugApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
 
         then:
@@ -218,7 +218,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         def resultReleaseGreeter = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('Greeter SharedLibrary')
+            .withScheme('Greeter')
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 

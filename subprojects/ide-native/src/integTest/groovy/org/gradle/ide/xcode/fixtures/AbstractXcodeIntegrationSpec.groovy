@@ -59,6 +59,10 @@ rootProject.name = "${rootProjectName}"
         file(OperatingSystem.current().getSharedLibraryName(str))
     }
 
+    protected TestFile staticLib(String str) {
+        file(OperatingSystem.current().getStaticLibraryName(str))
+    }
+
     protected TestFile xctest(String str) {
         file(str + ".xctest")
     }
@@ -167,7 +171,7 @@ Actual: ${actual[key]}
     void assertTargetIsUnitTest(ProjectFile.PBXTarget target, String expectedProductName) {
         target.assertIsUnitTest()
         assert target.productName == expectedProductName
-        assert target.name == "$expectedProductName XCTestBundle"
+        assert target.name == "$expectedProductName"
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
         assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
         assert target.buildConfigurationList.buildConfigurations.every {
@@ -181,7 +185,7 @@ Actual: ${actual[key]}
     void assertTargetIsDynamicLibrary(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
         target.assertIsDynamicLibrary()
         assert target.productName == expectedProductName
-        assert target.name == "$expectedProductName SharedLibrary"
+        assert target.name == expectedProductName
         assert target.productReference.path == sharedLib("build/lib/main/debug/$expectedBinaryName").absolutePath
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
         assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
@@ -191,10 +195,23 @@ Actual: ${actual[key]}
         assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release").absolutePath
     }
 
+    void assertTargetIsStaticLibrary(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
+        target.assertIsStaticLibrary()
+        assert target.productName == expectedProductName
+        assert target.name == expectedProductName
+        assert target.productReference.path == staticLib("build/lib/main/debug/static/$expectedBinaryName").absolutePath
+        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
+        assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
+        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug/static").absolutePath
+        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release/static").absolutePath
+    }
+
     void assertTargetIsTool(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
         target.assertIsTool()
         assert target.productName == expectedProductName
-        assert target.name == "$expectedProductName Executable"
+        assert target.name == expectedProductName
         assert target.productReference.path == exe("build/exe/main/debug/$expectedBinaryName").absolutePath
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
         assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }

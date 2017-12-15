@@ -135,6 +135,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
+                    executable.getDebuggerExecutableFile().set(link.getBinaryFile());
                     if (executable.isDebuggable() && executable.isOptimized()) {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override

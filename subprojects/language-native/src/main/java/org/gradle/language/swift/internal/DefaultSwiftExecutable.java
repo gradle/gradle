@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -37,6 +38,7 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     private final RegularFileProperty runScriptFile;
     private final Property<LinkExecutable> linkTaskProperty;
     private final Property<InstallExecutable> installTaskProperty;
+    private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
     public DefaultSwiftExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
@@ -46,6 +48,7 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
         this.runScriptFile = projectLayout.fileProperty();
         this.linkTaskProperty = objectFactory.property(LinkExecutable.class);
         this.installTaskProperty = objectFactory.property(InstallExecutable.class);
+        this.debuggerExecutableFile = projectLayout.fileProperty();
     }
 
     @Override
@@ -71,5 +74,10 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     @Override
     public Property<InstallExecutable> getInstallTask() {
         return installTaskProperty;
+    }
+
+    @Override
+    public Property<RegularFile> getDebuggerExecutableFile() {
+        return debuggerExecutableFile;
     }
 }

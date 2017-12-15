@@ -64,4 +64,11 @@ public interface SwiftExecutable extends SwiftBinary {
      * @since 4.5
      */
     Provider<InstallExecutable> getInstallTask();
+
+    /**
+     * Returns the executable file to use with a debugger for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<RegularFile> getDebuggerExecutableFile();
 }
