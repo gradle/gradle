@@ -17,10 +17,13 @@ package org.gradle.plugins.classycle
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
@@ -49,13 +52,17 @@ open class Classycle : DefaultTask() {
         get() = classesDirs.filter(File::exists)
 
     @get:Input
-    var excludePatterns: List<String> = emptyList()
+    val excludePatterns: ListProperty<String> = project.objects.listProperty()
 
     @get:Input
     lateinit var reportName: String
 
     @get:Internal
     lateinit var reportDir: File
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    val reportResourcesZip: RegularFileProperty = newInputFile()
 
     @get:OutputFile
     val reportFile
@@ -96,12 +103,12 @@ open class Classycle : DefaultTask() {
                             check absenceOfPackageCycles > 1 in org.gradle.*
                         """) {
 
-                        withFilesetOf(classesDirs, excludePatterns)
+                        withFilesetOf(classesDirs, excludePatterns.get())
                     }
                 } catch (ex: Exception) {
                     try {
                         "unzip"(
-                            "src" to rootProject.file("gradle/classycle_report_resources.zip"),
+                            "src" to reportResourcesZip.asFile.get(),
                             "dest" to reportDir)
                         "classycleReport"(
                             "reportFile" to analysisFile,
@@ -109,7 +116,7 @@ open class Classycle : DefaultTask() {
                             "mergeInnerClasses" to true,
                             "title" to "$name $reportName ($path)") {
 
-                            withFilesetOf(classesDirs, excludePatterns)
+                            withFilesetOf(classesDirs, excludePatterns.get())
                         }
                     } catch (ex: Exception) {
                         ex.printStackTrace()

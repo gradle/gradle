@@ -1,3 +1,6 @@
+plugins {
+    id 'classycle'
+}
 
 // Compiler daemon
 sourceCompatibility = 1.6
@@ -25,7 +28,6 @@ useTestFixtures(project: ":dependencyManagement")
 useTestFixtures(project: ":diagnostics")
 useTestFixtures(project: ':platformBase')
 
-useClassycle()
 strictCompile()
 
 integTest {

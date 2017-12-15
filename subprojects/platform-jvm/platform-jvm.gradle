@@ -1,3 +1,7 @@
+plugins {
+    id 'classycle'
+}
+
 sourceCompatibility = 1.6
 
 dependencies {
@@ -14,5 +18,4 @@ useTestFixtures()
 useTestFixtures(project: ':diagnostics')
 useTestFixtures(project: ':platformBase')
 
-useClassycle()
 strictCompile()

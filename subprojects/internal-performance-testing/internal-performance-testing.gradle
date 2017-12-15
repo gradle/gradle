@@ -15,6 +15,7 @@
  */
 plugins {
     id 'javascript-base'
+    id 'classycle'
 }
 
 configurations {
@@ -48,6 +49,5 @@ sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
 
 useTestFixtures(sourceSet: 'main')
 useTestFixtures(project: ':toolingApi', sourceSet: 'main')
-useClassycle()
 
 apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"

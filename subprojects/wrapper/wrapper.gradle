@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'classycle'
+}
 
 // Wrapper main entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
@@ -55,4 +58,3 @@ integTestTasks.all {
 }
 
 useTestFixtures()
-useClassycle()

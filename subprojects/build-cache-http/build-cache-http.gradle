@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'classycle'
+}
 
 dependencies {
     compile project(':resources')
@@ -25,5 +28,4 @@ dependencies {
     integTestCompile libraries.jetty
 }
 
-useClassycle()
 strictCompile()

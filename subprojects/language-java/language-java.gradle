@@ -1,3 +1,7 @@
+plugins {
+    id 'classycle'
+}
+
 // Compiler daemon
 sourceCompatibility = 1.6
 
@@ -11,8 +15,11 @@ dependencies {
     integTestRuntime project(':plugins')
 }
 
-// These public packages have classes that are tangled with the corresponding internal package.
-useClassycle(exclude: ["org/gradle/api/tasks/compile/**", "org/gradle/external/javadoc/**", ])
+classycle {
+    // These public packages have classes that are tangled with the corresponding internal package.
+    excludePatterns = ['org/gradle/api/tasks/compile/**',
+                       'org/gradle/external/javadoc/**']
+}
 
 strictCompile()
 useTestFixtures()

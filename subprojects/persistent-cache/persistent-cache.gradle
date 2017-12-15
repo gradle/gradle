@@ -15,6 +15,7 @@
  */
 plugins {
     id 'java-library'
+    id 'classycle'
 }
 
 dependencies {
@@ -29,5 +30,4 @@ dependencies {
 }
 
 useTestFixtures()
-useClassycle()
 strictCompile()

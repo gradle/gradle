@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'classycle'
+}
 
 dependencies {
     compile libraries.groovy
@@ -37,8 +40,10 @@ useTestFixtures(project: ':diagnostics')
 useTestFixtures(project: ':baseServices')
 
 strictCompile()
-useClassycle(exclude: ['org/gradle/nativeplatform/plugins/**',
+
+classycle {
+    excludePatterns = ['org/gradle/nativeplatform/plugins/**',
                        'org/gradle/nativeplatform/tasks/**',
                        'org/gradle/nativeplatform/internal/resolve/**',
-                       'org/gradle/nativeplatform/toolchain/internal/**'])
-
+                       'org/gradle/nativeplatform/toolchain/internal/**']
+}

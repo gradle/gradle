@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'classycle'
+}
 
 apply from: 'templates.gradle'
 
@@ -26,8 +29,6 @@ dependencies {
 
     testFixturesCompile project(':internalPerformanceTesting')
 }
-
-useClassycle()
 
 tasks.withType(org.gradle.testing.PerformanceTest) {
     systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]

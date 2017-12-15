@@ -1,3 +1,7 @@
+plugins {
+    id 'classycle'
+}
+
 dependencies {
     integTestCompile libraries.groovy
     integTestCompile libraries.ant
@@ -42,8 +46,6 @@ integTestTasks.all { task ->
 parallelIntegTest {
     systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
 }
-
-useClassycle()
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 

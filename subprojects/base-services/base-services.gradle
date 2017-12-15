@@ -6,6 +6,7 @@
  */
 plugins {
     id 'java-library'
+    id 'classycle'
 }
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
@@ -36,4 +37,3 @@ task buildReceiptResource(type: Copy) {
 sourceSets.main.output.dir generatedTestResourcesDir, builtBy: buildReceiptResource
 
 useTestFixtures()
-useClassycle()

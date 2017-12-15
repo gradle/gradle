@@ -1,5 +1,9 @@
 import org.gradle.build.GradleStartScriptGenerator
 
+plugins {
+    id 'classycle'
+}
+
 // Main entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
@@ -55,7 +59,5 @@ task startScripts(type: GradleStartScriptGenerator) {
     startScriptsDir = new File("$buildDir/startScripts")
     launcherJar = jar.outputs.files
 }
-
-useClassycle()
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

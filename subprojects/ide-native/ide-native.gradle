@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'classycle'
+}
 
 dependencies {
     compile libraries.groovy
@@ -29,4 +32,3 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ":platformNative")
 useTestFixtures(project: ":versionControl")
-useClassycle()

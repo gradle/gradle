@@ -32,6 +32,7 @@ val classycleBaseName = "classycle"
 open class ClassyclePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
+        val extension = extensions.create(classycleBaseName, ClassycleExtension::class.java, project)
         configurations.create(classycleBaseName)
         dependencies.add(classycleBaseName, "classycle:classycle:1.4@jar")
         tasks {
@@ -40,8 +41,10 @@ open class ClassyclePlugin : Plugin<Project> {
                 val taskName = getTaskName(classycle.name, null)
                 val sourceSetTask = createTask(taskName, Classycle::class) {
                     classesDirs = output.classesDirs
+                    excludePatterns.set(extension.excludePatterns)
                     reportName = name
                     reportDir = reporting.file(classycle.name)
+                    reportResourcesZip.set(extension.reportResourcesZip)
                     dependsOn(output)
                 }
                 classycle.dependsOn(sourceSetTask)

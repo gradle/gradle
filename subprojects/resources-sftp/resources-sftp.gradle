@@ -15,6 +15,7 @@
  */
 plugins {
     id 'java-library'
+    id 'classycle'
 }
 
 dependencies {
@@ -32,7 +33,6 @@ useTestFixtures(project: ":dependencyManagement")
 useTestFixtures(project: ":ivy")
 useTestFixtures(project: ":maven")
 useTestFixtures()
-useClassycle()
 strictCompile()
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

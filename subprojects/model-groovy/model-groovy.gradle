@@ -20,6 +20,7 @@
  */
 plugins {
     id 'java-library'
+    id 'classycle'
 }
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
@@ -36,5 +37,4 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ':modelCore', sourceSet: 'test')
-useClassycle()
 strictCompile()

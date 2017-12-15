@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'classycle'
+}
 
 dependencies {
     compile project(":core")
@@ -26,6 +29,5 @@ dependencies {
     integTestRuntime project(':toolingApiBuilders')
 }
 
-useClassycle()
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 

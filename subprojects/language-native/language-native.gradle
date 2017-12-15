@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'classycle'
+}
 
 dependencies {
     compile project(':core')
@@ -29,6 +32,8 @@ useTestFixtures(project: ":platformBase")
 useTestFixtures(project: ":messaging")
 useTestFixtures(project: ":platformNative", sourceSet: 'testFixtures')
 
-useClassycle(exclude: ['org/gradle/language/nativeplatform/internal/**'])
-strictCompile()
+classycle {
+    excludePatterns = ['org/gradle/language/nativeplatform/internal/**']
+}
 
+strictCompile()

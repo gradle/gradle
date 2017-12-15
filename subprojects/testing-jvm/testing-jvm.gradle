@@ -42,5 +42,5 @@ useTestFixtures(project: ':messaging')
 useTestFixtures(project: ':baseServices')
 
 // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
-//useClassycle()
+// classycle
 //strictCompile()
