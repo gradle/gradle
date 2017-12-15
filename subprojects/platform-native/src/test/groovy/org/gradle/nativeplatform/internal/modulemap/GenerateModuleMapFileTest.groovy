@@ -20,6 +20,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
+import static org.gradle.nativeplatform.internal.modulemap.GenerateModuleMapFile.generateFile
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class GenerateModuleMapFileTest extends Specification {
@@ -31,7 +32,7 @@ class GenerateModuleMapFileTest extends Specification {
         def moreHeaders = tempDir.newFolder('moreHeaders')
 
         when:
-        new GenerateModuleMapFile(moduleMapFile, "foo", [headers.absolutePath, moreHeaders.absolutePath]).run()
+        generateFile(moduleMapFile, "foo", [headers.absolutePath, moreHeaders.absolutePath])
 
         then:
         normaliseLineSeparators(moduleMapFile.text) == """module foo {
@@ -48,7 +49,7 @@ class GenerateModuleMapFileTest extends Specification {
         def moreHeaders = tempDir.newFolder('moreHeaders')
 
         when:
-        new GenerateModuleMapFile(moduleMapFile, "foo", [headers.absolutePath, moreHeaders.absolutePath, new File('does-not-exist').absolutePath]).run()
+        generateFile(moduleMapFile, "foo", [headers.absolutePath, moreHeaders.absolutePath, new File('does-not-exist').absolutePath])
 
         then:
         normaliseLineSeparators(moduleMapFile.text) == """module foo {
@@ -68,7 +69,7 @@ class GenerateModuleMapFileTest extends Specification {
         assert !moduleMapFile.parentFile.exists()
 
         when:
-        new GenerateModuleMapFile(moduleMapFile, "foo", [headers.absolutePath, moreHeaders.absolutePath]).run()
+        generateFile(moduleMapFile, "foo", [headers.absolutePath, moreHeaders.absolutePath])
 
         then:
         normaliseLineSeparators(moduleMapFile.text) == """module foo {

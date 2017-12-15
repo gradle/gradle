@@ -23,7 +23,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -31,23 +30,7 @@ import java.util.List;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.filter;
 
-public class GenerateModuleMapFile implements Runnable {
-    private final File moduleMapFile;
-    private final String moduleName;
-    private final List<String> publicHeaderDirs;
-
-    @Inject
-    public GenerateModuleMapFile(File moduleMapFile, String moduleName, List<String> publicHeaderDirs) {
-        this.moduleMapFile = moduleMapFile;
-        this.moduleName = moduleName;
-        this.publicHeaderDirs = publicHeaderDirs;
-    }
-
-    @Override
-    public void run() {
-        generateFile(moduleMapFile, moduleName, publicHeaderDirs);
-    }
-
+public class GenerateModuleMapFile {
     public static void generateFile(File moduleMapFile, String moduleName, List<String> publicHeaderDirs) {
         List<String> lines = Lists.newArrayList(
             "module " + moduleName + " {"
