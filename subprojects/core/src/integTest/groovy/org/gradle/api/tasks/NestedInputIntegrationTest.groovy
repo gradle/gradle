@@ -152,4 +152,76 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         // Should have been executed
         skipped(':consumer')
     }
+
+    def "Changing nested inputs during execution time is detected"() {
+        buildFile << """
+            class TaskWithNestedProperty extends DefaultTask {
+                @Nested
+                Object bean
+                
+                @OutputFile
+                RegularFileProperty outputFile = newOutputFile()
+                
+                @TaskAction
+                void writeInputToFile() {
+                    outputFile.getAsFile().get().text = bean
+                }
+            }
+            
+            class NestedBeanWithInput {
+                @Input
+                String firstInput
+                
+                String toString() {
+                    firstInput
+                }
+            }
+            
+            class NestedBeanWithOtherInput {
+                @Input
+                String secondInput
+                
+                String toString() {
+                    secondInput
+                }
+            }
+            
+            task taskWithNestedProperty(type: TaskWithNestedProperty) {
+                firstInput = new NestedBeanWithInput(firstInput: project.findProperty('firstInput'))
+                outputFile.set(project.layout.buildDirectory.file('output.txt'))
+            }
+            
+            task configureTask {
+                doLast {
+                    taskWithNestedProperty.bean = new NestedBeanWithOtherInput(secondInput: project.findProperty('secondInput'))
+                }
+            }
+            
+            taskWithNestedProperty.dependsOn(configureTask)
+        """
+
+        def task = ':taskWithNestedProperty'
+        when:
+        run task, '-PfirstInput=first', '-PsecondInput=second'
+
+        then:
+        executedAndNotSkipped(task)
+        def outputFile = file('build/output.txt')
+        outputFile.text == 'second'
+
+        when:
+        run task, '-PfirstInput=different', '-PsecondInput=second'
+
+        then:
+        skipped(task)
+        outputFile.text == 'second'
+
+        when:
+        run task, '-PfirstInput=different', '-PsecondInput=secondSecond'
+
+        then:
+        executedAndNotSkipped(task)
+        outputFile.text == 'secondSecond'
+    }
+
 }
