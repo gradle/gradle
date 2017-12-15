@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
  * declared in the build script (instead of published)
  */
 class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
-    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
+    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration('runtime')
 
     def setup() {
         ExperimentalFeaturesFixture.enable(settingsFile)
@@ -45,6 +45,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         settingsFile.text = """
             rootProject.name = 'test'
         """
+        resolve.expectDefaultConfiguration('default')
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
 
@@ -343,6 +344,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
 
     void "dependency constraints defined for a build are applied when resolving a configuration that uses that build as an included build"() {
         given:
+        resolve.expectDefaultConfiguration('default')
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
 
@@ -378,10 +380,10 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+                edge("org:foo:1.0", "org:foo:1.1:runtime").byConflictResolution()
                 edge("org:included:1.0", "project :included", "org:included:1.0") {
                     noArtifacts()
-                    module("org:foo:1.1")
+                    module("org:foo:1.1:runtime")
                 }.compositeSubstitute()
             }
         }
