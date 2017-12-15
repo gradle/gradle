@@ -43,91 +43,81 @@ class BuildOperationNotificationsFixture {
         return """
         rootProject {
             if(gradle.getParent() == null) {
-                def listener = new BuildOperationNotificationsEvaluationListener();
+                def listener = new BuildOperationNotificationsEvaluationListener(Logging.getLogger(BuildOperationNotificationsEvaluationListener))
                 def registrar = project.services.get($BuildOperationNotificationListenerRegistrar.name)
                 registrar.register(listener)
             }
         } 
         
-        class BuildOperationNotificationsEvaluationListener implements $BuildOperationNotificationListener2.name {
-            private final static Logger LOGGER = Logging.getLogger(BuildOperationNotificationsEvaluationListener)
-            
-            @Override
-            void started($BuildOperationStartedNotification.name notification) {
-                triggerGetters(notification.notificationOperationDetails)
-            }
-    
-            @Override
-            void progress($BuildOperationProgressNotification.name notification) {
-                triggerGetters(notification.notificationOperationProgressDetails)
-            }
-    
-            @Override
-            void finished($BuildOperationFinishedNotification.name notification) {
-                triggerGetters(notification.notificationOperationResult)
-            }
-            
-            
-            void triggerGetters(Object object) {
-                def clazz = object.getClass()
-    
-                Class<?>[] interfaces = clazz.getInterfaces()
-                def found = false
-                for (Class<?> i : interfaces) {
-                    def interfaceName = i.name
-                    if (interfaceName.endsWith('Details') || interfaceName.endsWith('Result')) {
-                        found = true
-                        LOGGER.info "   Checking \$interfaceName"   
-                        def methods = i.getMethods()
-                        for (java.lang.reflect.Method method : methods) {
-                            LOGGER.info "       \${method.name} - \${method.invoke(object)}"
-                        }
-                    }
-    
-                }
-                if(!found) {
-                    throw new GradleException("Havn't found BuildOperationNotification Details/Result interface to inspect")
-                }
-                
-            }
-        }
+        $EVALUATION_LISTENER_SOURCE
         """
     }
 
-    static class BuildOperationNotificationsEvaluationListener implements BuildOperationNotificationListener2 {
-
-        @Override
-        void started(BuildOperationStartedNotification notification) {
-            triggerGetters(notification.notificationOperationDetails)
-            notification.notificationOperationDetails.
-                println "BuildOperationNotificationsEvaluationListener.started"
-        }
-
-        @Override
-        void progress(BuildOperationProgressNotification notification) {
-            println "BuildOperationNotificationsEvaluationListener.progress"
-        }
-
-        @Override
-        void finished(BuildOperationFinishedNotification notification) {
-            println "BuildOperationNotificationsEvaluationListener.finished"
-        }
-
-        void triggerGetters(Object object) {
-            def clazz = object.getClass()
-
-            Class<?>[] interfaces = clazz.getInterfaces()
-            for (Class<?> i : interfaces) {
-                def interfaceName = i.name
-                if (interfaceName.endsWith('Details') || interfaceName.endsWith('Result')) {
-                    def methods = i.getMethods()
-                    for (java.lang.reflect.Method method : methods) {
-                        println method.name
+    static String EVALUATION_LISTENER_SOURCE = """
+        import org.gradle.api.logging.Logger
+    
+        class BuildOperationNotificationsEvaluationListener implements $BuildOperationNotificationListener2.name {
+                private final Logger logger
+                
+                public BuildOperationNotificationsEvaluationListener(Logger logger) {
+                    this.logger = logger
+                }
+                
+                @Override
+                void started($BuildOperationStartedNotification.name notification) {
+                    verify(notification.getNotificationOperationDetails(), 'Details')
+                }
+        
+                @Override
+                void progress($BuildOperationProgressNotification.name notification) {
+                    verify(notification.getNotificationOperationProgressDetails())
+                }
+        
+                @Override
+                void finished($BuildOperationFinishedNotification.name notification) {
+                    verify(notification.getNotificationOperationResult(), 'Result')
+                }
+                
+                private void verify(Object obj, String postFix = null){
+                    List<Class<?>> matchingInterfaces = findInterfaces(obj, postFix)
+                    if(matchingInterfaces.size() == 0) {
+                        if(postFix == null){
+                            throw new org.gradle.api.GradleException("No interface implemented by \${obj.getClass()}.")
+                        } else {
+                            throw new org.gradle.api.GradleException("No interface with postfix '\$postFix' found.")
+                        }
+                        
+                    }
+                    
+                    matchingInterfaces.each{ i ->
+                        triggerInterfaceMethods(obj, i)
                     }
                 }
-
+                
+                List<Class<?>> findInterfaces(Object object, String interfacePostfix){
+                    def clazz = object.getClass()
+                    Class<?>[] interfaces = clazz.getInterfaces()
+                    
+                    if(interfacePostfix == null) {
+                        return interfaces 
+                    }
+                    List<Class<?>> matchingInterfaces = new ArrayList()
+                    for (Class<?> i : interfaces) {
+                        def interfaceName = i.name
+                        if (interfaceName.endsWith(interfacePostfix)) {
+                            matchingInterfaces.add(i)
+                        }
+                    }
+                    return matchingInterfaces;
+                }
+                
+                void triggerInterfaceMethods(Object object, Class<?> iF) {
+                    logger.info "   Checking \${iF.getName()}"   
+                    def methods = iF.getMethods()
+                    for (java.lang.reflect.Method method : methods) {
+                        logger.info "       \${method.name}() -> \${method.invoke(object)}"
+                    }
+                }
             }
-        }
-    }
-
+    """
 }
