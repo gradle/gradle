@@ -146,7 +146,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve a, c
         traverses b, d
 
-        moduleReplacements.getReplacementFor(new DefaultModuleIdentifier("group", "a")) >> new DefaultModuleIdentifier("group", "b")
+        moduleReplacements.getReplacementFor(DefaultModuleIdentifier.newId("group", "a")) >> new ModuleReplacementsData.Replacement(DefaultModuleIdentifier.newId("group", "b"), null)
         1 * conflictResolver.select(!null) >> {  args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates

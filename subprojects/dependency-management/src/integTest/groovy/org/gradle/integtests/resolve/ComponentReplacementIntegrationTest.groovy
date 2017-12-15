@@ -65,6 +65,13 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    void declaredReplacementWithReason(String rep, String reason) {
+        def d = new TestDependency(rep)
+        buildFile <<  """
+            dependencies.modules.module('${d.group}:${d.name}') { replacedBy '${d.pointsTo.group}:${d.pointsTo.name}', '$reason' }
+        """
+    }
+
     void resolvedFiles(String ... files) {
         run("resolvedFiles")
         assert file('resolved-files').listFiles()*.name as Set == files as Set
@@ -351,4 +358,39 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredReplacements 'a->b', 'a->c'
         expect: resolvedModules 'b', 'c'
     }
+
+    def "can provide custom replacement reason"() {
+        declaredDependencies 'a', 'b'
+        declaredReplacementWithReason('a->b', 'A replaced with B')
+
+        when:
+        buildFile << """
+            task check {
+                doLast {
+                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
+                    assert modules.find { it.id.module == 'b' }.selectionReason.description == "A replaced with B"
+                }
+            }
+        """
+
+        then:
+        resolvedModules 'b'
+
+        when:
+        run 'dependencyInsight', '--configuration=conf', '--dependency=a'
+
+        then:
+        output.contains(""":dependencyInsight
+org:b:1 (A replaced with B)
+
+org:a:1 -> org:b:1
+\\--- conf""")
+
+        when:
+        run 'check'
+
+        then:
+        noExceptionThrown()
+    }
+
 }
