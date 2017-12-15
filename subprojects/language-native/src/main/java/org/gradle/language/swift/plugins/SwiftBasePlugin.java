@@ -56,7 +56,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInter
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
-import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 /**
@@ -260,11 +259,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         return stripSymbols;
     }
 
-    private static class SwiftCppUsageCompatibilityRule implements AttributeCompatibilityRule<Usage> {
-        @Inject
-        public SwiftCppUsageCompatibilityRule() {
-        }
-
+    static class SwiftCppUsageCompatibilityRule implements AttributeCompatibilityRule<Usage> {
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
             if (Usage.SWIFT_API.equals(details.getConsumerValue().getName())
