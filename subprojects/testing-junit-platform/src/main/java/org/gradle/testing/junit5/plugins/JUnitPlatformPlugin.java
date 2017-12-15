@@ -32,13 +32,9 @@ public class JUnitPlatformPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        project.getPluginManager().withPlugin("java", new Action<AppliedPlugin>() {
-            @Override
-            public void execute(AppliedPlugin appliedPlugin) {
-                JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
-                configureTest(project, javaConvention);
-            }
-        });
+        project.getPluginManager().apply("java");
+        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
+        configureTest(project, javaConvention);
     }
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
