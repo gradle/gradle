@@ -146,7 +146,7 @@ buildscript {
 }
 """
         and:
-        module.mavenRootMetaData.expectDownloadMissing()
+        module.rootMetaData.expectDownloadMissing()
         mavenGcsRepo.directoryList("org.gradle", "test").expectDownload()
         module.metaData.expectDownload()
         module.pom.expectDownload()
