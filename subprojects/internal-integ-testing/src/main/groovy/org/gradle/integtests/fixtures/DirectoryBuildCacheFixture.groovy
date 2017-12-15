@@ -78,6 +78,10 @@ trait DirectoryBuildCacheFixture extends BuildCacheFixture {
         cacheDir.listFiles().findAll { it.name.endsWith(DirectoryBuildCacheServiceFactory.FAILED_READ_SUFFIX) }.sort()
     }
 
+    static List<TestFile> listCacheFiles(File cacheDir) {
+        listCacheFiles(new TestFile(cacheDir))
+    }
+
     static List<TestFile> listCacheFiles(TestFile cacheDir) {
         cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{32}/ }.sort()
     }

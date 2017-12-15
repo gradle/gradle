@@ -39,6 +39,7 @@ public class BuildSourceBuilder {
     };
     public static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
     };
+    public static final String BUILD_SRC = "buildSrc";
 
     private final NestedBuildFactory nestedBuildFactory;
     private final ClassLoaderScope classLoaderScope;

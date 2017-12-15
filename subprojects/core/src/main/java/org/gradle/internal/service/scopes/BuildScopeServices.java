@@ -120,6 +120,7 @@ import org.gradle.initialization.NotifyingSettingsProcessor;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
 import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
+import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsLoaderFactory;
@@ -349,17 +350,19 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected SettingsProcessor createSettingsProcessor(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, Instantiator instantiator,
                                                         ServiceRegistryFactory serviceRegistryFactory, IGradlePropertiesLoader propertiesLoader, BuildOperationExecutor buildOperationExecutor) {
         return new NotifyingSettingsProcessor(
-            new PropertiesLoadingSettingsProcessor(
-                new ScriptEvaluatingSettingsProcessor(
-                    scriptPluginFactory,
-                    new SettingsFactory(
-                        instantiator,
-                        serviceRegistryFactory,
-                        scriptHandlerFactory
+            new RootBuildCacheControllerSettingsProcessor(
+                new PropertiesLoadingSettingsProcessor(
+                    new ScriptEvaluatingSettingsProcessor(
+                        scriptPluginFactory,
+                        new SettingsFactory(
+                            instantiator,
+                            serviceRegistryFactory,
+                            scriptHandlerFactory
+                        ),
+                        propertiesLoader
                     ),
                     propertiesLoader
-                ),
-                propertiesLoader
+                )
             ),
             buildOperationExecutor);
     }
