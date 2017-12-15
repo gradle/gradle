@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 public class VersionSelectionReasons {
@@ -91,8 +92,30 @@ public class VersionSelectionReasons {
         }
 
         @Override
-        public ComponentSelectionReasonInternal withDescription(String description) {
+        public ComponentSelectionReasonInternal withReason(String description) {
             return new DefaultComponentSelectionReason(forced, conflictResolution, selectedByRule, expected, compositeParticipant, description);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            DefaultComponentSelectionReason that = (DefaultComponentSelectionReason) o;
+            return forced == that.forced &&
+                conflictResolution == that.conflictResolution &&
+                selectedByRule == that.selectedByRule &&
+                expected == that.expected &&
+                compositeParticipant == that.compositeParticipant &&
+                Objects.equal(description, that.description);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(forced, conflictResolution, selectedByRule, expected, compositeParticipant, description);
         }
     }
 }

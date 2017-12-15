@@ -336,6 +336,65 @@ org:leaf:2.0 -> 1.0
 """
     }
 
+    def "shows custom selection reason using eachDependency"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+        mavenRepo.module("org", "bar", "1.0").publish()
+        mavenRepo.module("org.test", "bar", "2.0").publish()
+        mavenRepo.module("org", "baz", "1.0").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    resolutionStrategy.eachDependency {
+                        switch (it.requested.name) {
+                           case 'foo':
+                              it.because('because I am in control').useVersion('2.0')
+                              break
+                           case 'bar':
+                              it.because('why not?').useTarget('org.test:bar:2.0')
+                              break
+                           default:
+                              useVersion(it.requested.version)
+                        }
+                    }
+                }
+            }
+            dependencies {
+                conf 'org:foo:1.0'
+                conf 'org:bar:1.0'
+                conf 'org:baz:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                configuration = configurations.conf
+                setDependencySpec { true }
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains """
+org.test:bar:2.0 (why not?)
+
+org:bar:1.0 -> org.test:bar:2.0
+\\--- conf
+
+org:baz:1.0 (selected by rule)
+\\--- conf
+
+org:foo:2.0 (because I am in control)
+
+org:foo:1.0 -> 2.0
+\\--- conf
+"""
+    }
+
     def "shows substituted modules"() {
         given:
         mavenRepo.module("org", "new-leaf", "77").publish()

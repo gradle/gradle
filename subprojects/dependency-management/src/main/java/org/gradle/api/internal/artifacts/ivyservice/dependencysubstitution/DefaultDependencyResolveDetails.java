@@ -47,7 +47,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     private ComponentSelectionReasonInternal selectionReason() {
         ComponentSelectionReasonInternal reason = VersionSelectionReasons.SELECTED_BY_RULE;
         if (customDescription != null) {
-            reason = reason.withDescription(customDescription);
+            reason = reason.withReason(customDescription);
         }
         return reason;
     }
