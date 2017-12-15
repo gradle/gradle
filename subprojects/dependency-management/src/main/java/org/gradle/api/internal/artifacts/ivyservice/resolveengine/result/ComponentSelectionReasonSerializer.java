@@ -23,13 +23,19 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*;
 
+@NotThreadSafe
 public class ComponentSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
 
-    private static final BiMap<Byte, ComponentSelectionReason> REASONS = HashBiMap.create(7);
+    private static final BiMap<Byte, ComponentSelectionReasonInternal> REASONS = HashBiMap.create(7);
+
+    private final BiMap<String, Integer> customReasons = HashBiMap.create();
+
+    private OperationType lastOperationType = OperationType.read;
 
     static {
         REASONS.put((byte) 1, REQUESTED);
@@ -43,19 +49,101 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
     }
 
     public ComponentSelectionReason read(Decoder decoder) throws IOException {
+        prepareForOperation(OperationType.read);
         byte id = decoder.readByte();
-        ComponentSelectionReason out = REASONS.get(id);
+        ComponentSelectionReasonInternal out = REASONS.get(id);
         if (out == null) {
             throw new IllegalArgumentException("Unable to find selection reason with id: " + id);
+        }
+        if (!decoder.readBoolean()) {
+            String reason = readCustomReason(decoder);
+            out = out.withReason(reason);
         }
         return out;
     }
 
+    private String readCustomReason(Decoder decoder) throws IOException {
+        boolean alreadyKnown = decoder.readBoolean();
+        if (alreadyKnown) {
+            return customReasons.inverse().get(decoder.readSmallInt());
+        } else {
+            String description = decoder.readString();
+            customReasons.put(description, customReasons.size());
+            return description;
+        }
+    }
+
     public void write(Encoder encoder, ComponentSelectionReason value) throws IOException {
-        Byte id = REASONS.inverse().get(value);
+        prepareForOperation(OperationType.write);
+        ComponentSelectionReason key = baseReason(value);
+        Byte id = REASONS.inverse().get(key);
         if (id == null) {
             throw new IllegalArgumentException("Unknown selection reason: " + value);
         }
         encoder.writeByte(id);
+        if (key == value) {
+            encoder.writeBoolean(true);
+        } else {
+            writeDescription(encoder, value.getDescription());
+        }
+    }
+
+    private void writeDescription(Encoder encoder, String description) throws IOException {
+        encoder.writeBoolean(false); // non standard reason
+        Integer index = customReasons.get(description);
+        encoder.writeBoolean(index != null); // already known custom reason
+        if (index == null) {
+            index = customReasons.size();
+            customReasons.put(description, index);
+            encoder.writeString(description);
+        } else {
+            encoder.writeSmallInt(index);
+        }
+    }
+
+    private static ComponentSelectionReason baseReason(ComponentSelectionReason value) {
+        if (value == null) {
+            return null;
+        }
+        if (value.isExpected()) {
+            if (ROOT.getDescription().equals(value.getDescription())) {
+                return ROOT;
+            }
+            return REQUESTED;
+        }
+        if (value.isForced()) {
+            return FORCED;
+        }
+        if (value.isConflictResolution()) {
+            if (value.isSelectedByRule()) {
+                return CONFLICT_RESOLUTION_BY_RULE;
+            }
+            return CONFLICT_RESOLUTION;
+        }
+        if (value.isSelectedByRule()) {
+            return SELECTED_BY_RULE;
+        }
+        if (value.isCompositeSubstitution()) {
+            return COMPOSITE_BUILD;
+        }
+        return value;
+    }
+
+    /**
+     * This serializer assumes that we are using it alternatively for writes, then reads, in cycles.
+     * After each cycle completed, state has to be reset.
+     *
+     * @param operationType the current operation type
+     */
+    private void prepareForOperation(OperationType operationType) {
+        if (operationType != lastOperationType) {
+            customReasons.clear();
+            lastOperationType = operationType;
+        }
+    }
+
+    private enum OperationType {
+        read,
+        write
     }
 }
