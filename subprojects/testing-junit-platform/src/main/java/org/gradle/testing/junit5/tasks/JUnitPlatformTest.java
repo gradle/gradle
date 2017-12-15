@@ -24,7 +24,7 @@ import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
-import org.gradle.testing.junit5.JUnitPlatformOptions;
+import org.gradle.testing.junit5.internal.JUnitPlatformOptions;
 import org.gradle.testing.junit5.internal.JUnitPlatformTestExecutionSpec;
 import org.gradle.testing.junit5.internal.JUnitPlatformTestExecutor;
 import org.gradle.workers.WorkerExecutor;
@@ -71,17 +71,21 @@ import java.util.Map;
 public class JUnitPlatformTest extends AbstractTestTask implements JavaForkOptions {
     private final WorkerExecutor workerExecutor;
     private final JavaForkOptions forkOptions;
-    private final JUnitPlatformOptions options;
 
     @Classpath
     public final ConfigurableFileCollection classpath;
+
+    @InputFiles
+    public final ConfigurableFileCollection classpathRoots;
+
+    // TODO add additional selectors supported by JUnit platform DiscoverySelectors
 
     @Inject
     public JUnitPlatformTest(WorkerExecutor workerExecutor, FileResolver fileResolver) {
         this.workerExecutor = workerExecutor;
         this.forkOptions = new DefaultJavaForkOptions(fileResolver);
-        this.options = new JUnitPlatformOptions(getProject());
         this.classpath = getProject().files();
+        this.classpathRoots = getProject().files();
     }
 
     @Override
@@ -91,16 +95,7 @@ public class JUnitPlatformTest extends AbstractTestTask implements JavaForkOptio
 
     @Override
     protected JUnitPlatformTestExecutionSpec createTestExecutionSpec() {
-        return new JUnitPlatformTestExecutionSpec(options, classpath);
-    }
-
-    @Nested
-    public JUnitPlatformOptions getOptions() {
-        return options;
-    }
-
-    public void options(Action<JUnitPlatformOptions> configureAction) {
-        configureAction.execute(options);
+        return new JUnitPlatformTestExecutionSpec(new JUnitPlatformOptions(this), classpath);
     }
 
     @Override

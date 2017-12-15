@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.testing.junit5;
+package org.gradle.testing.junit5.internal;
 
-import org.gradle.api.Project;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.tasks.InputFiles;
+import org.gradle.testing.junit5.tasks.JUnitPlatformTest;
 
+import java.io.File;
 import java.io.Serializable;
+import java.util.Set;
 
-/**
- * JUnit Platform specific test options.
- */
 public class JUnitPlatformOptions implements Serializable {
-    @InputFiles
-    public final ConfigurableFileCollection classpathRoots;
+    private final Set<File> classpathRoots;
 
-    public JUnitPlatformOptions(Project project) {
-        this.classpathRoots = project.files();
+    public JUnitPlatformOptions(JUnitPlatformTest task) {
+        this.classpathRoots = task.classpathRoots.getFiles();
     }
 
-    // TODO should be able to easily add the other selector options here
+    public Set<File> getClasspathRoots() {
+        return classpathRoots;
+    }
+
+    // TODO add additional selectors supported by JUnit platform DiscoverySelectors
 }

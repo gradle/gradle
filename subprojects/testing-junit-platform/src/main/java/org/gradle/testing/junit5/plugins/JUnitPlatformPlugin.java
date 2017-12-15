@@ -18,11 +18,14 @@ package org.gradle.testing.junit5.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.AppliedPlugin;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.testing.junit5.tasks.JUnitPlatformTest;
+
+import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * This plugin adds support for execution of tests using the JUnit Platform for projects using the {@code java} plugin.
@@ -41,8 +44,28 @@ public class JUnitPlatformPlugin implements Plugin<Project> {
         project.getTasks().withType(JUnitPlatformTest.class, new Action<JUnitPlatformTest>() {
             @Override
             public void execute(JUnitPlatformTest test) {
+                DslObject htmlReport = new DslObject(test.getReports().getHtml());
+                DslObject xmlReport = new DslObject(test.getReports().getJunitXml());
+
+                xmlReport.getConventionMapping().map("destination", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return new File(pluginConvention.getTestResultsDir(), test.getName());
+                    }
+                });
+                htmlReport.getConventionMapping().map("destination", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return new File(pluginConvention.getTestReportDir(), test.getName());
+                    }
+                });
+                test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return new File(pluginConvention.getTestResultsDir(), test.getName() + "/binary");
+                    }
+                });
+                test.workingDir(project.getProjectDir());
+
                 SourceSet sourceSet = pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
-                test.getOptions().classpathRoots.from(sourceSet.getOutput().getClassesDirs());
+                test.classpathRoots.from(sourceSet.getOutput().getClassesDirs());
                 test.classpath.from(sourceSet.getRuntimeClasspath());
             }
         });

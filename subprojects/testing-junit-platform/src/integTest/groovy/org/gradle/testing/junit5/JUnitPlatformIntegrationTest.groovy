@@ -4,6 +4,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import spock.lang.Timeout
 
 class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -13,6 +14,7 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
         executer.noExtraLogging()
     }
 
+    @Timeout(30)
     def executesAllTestsInClasspathRoots() {
         when:
         executer.withTasks('build').run()

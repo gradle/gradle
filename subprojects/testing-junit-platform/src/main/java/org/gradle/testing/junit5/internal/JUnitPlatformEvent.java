@@ -15,81 +15,50 @@
  */
 package org.gradle.testing.junit5.internal;
 
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.junit.platform.launcher.TestIdentifier;
 
-public interface JUnitPlatformEvent {
-    class Started implements JUnitPlatformEvent {
-        private final TestDescriptorInternal test;
-        private final TestStartEvent event;
+import java.io.Serializable;
 
-        public Started(TestDescriptorInternal test, TestStartEvent event) {
-            this.test = test;
-            this.event = event;
-        }
+public class JUnitPlatformEvent implements Serializable {
+    private final TestIdentifier test;
+    private final Type type;
+    private final long time;
+    private final String message;
+    private final Throwable error;
 
-        public TestDescriptorInternal getTest() {
-            return test;
-        }
-
-        public TestStartEvent getEvent() {
-            return event;
-        }
+    public JUnitPlatformEvent(TestIdentifier test, Type type, long time, String message, Throwable error) {
+        this.test = test;
+        this.type = type;
+        this.time = time;
+        this.message = message;
+        this.error = error;
     }
 
-    class Completed implements JUnitPlatformEvent {
-        private final TestDescriptorInternal test;
-        private final TestCompleteEvent event;
-
-        public Completed(TestDescriptorInternal test, TestCompleteEvent event) {
-            this.test = test;
-            this.event = event;
-        }
-
-        public TestDescriptorInternal getTest() {
-            return test;
-        }
-
-        public TestCompleteEvent getEvent() {
-            return event;
-        }
+    public TestIdentifier getTest() {
+        return test;
     }
 
-    class Output implements JUnitPlatformEvent  {
-        private final TestDescriptorInternal test;
-        private final TestOutputEvent event;
-
-        public Output(TestDescriptorInternal test, TestOutputEvent event) {
-            this.test = test;
-            this.event = event;
-        }
-
-        public TestDescriptorInternal getTest() {
-            return test;
-        }
-
-        public TestOutputEvent getEvent() {
-            return event;
-        }
+    public Type getType() {
+        return type;
     }
 
-    class Failure implements JUnitPlatformEvent  {
-        private final TestDescriptorInternal test;
-        private final Throwable result;
+    public long getTime() {
+        return time;
+    }
 
-        public Failure(TestDescriptorInternal test, Throwable result) {
-            this.test = test;
-            this.result = result;
-        }
+    public String getMessage() {
+        return message;
+    }
 
-        public TestDescriptorInternal getTest() {
-            return test;
-        }
+    public Throwable getError() {
+        return error;
+    }
 
-        public Throwable getResult() {
-            return result;
-        }
+    public enum Type {
+        START,
+        OUTPUT,
+        SKIPPED,
+        FAILED,
+        SUCCEEDED;
     }
 }

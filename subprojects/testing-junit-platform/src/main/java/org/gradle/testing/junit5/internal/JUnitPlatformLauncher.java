@@ -15,7 +15,6 @@
  */
 package org.gradle.testing.junit5.internal;
 
-import org.gradle.testing.junit5.JUnitPlatformOptions;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
@@ -23,10 +22,8 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.UncheckedIOException;
+import java.io.*;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.Channels;
 import java.nio.channels.SocketChannel;
@@ -46,29 +43,37 @@ public class JUnitPlatformLauncher implements Runnable {
 
     @Override
     public void run() {
-        Set<Path> classpathRoots = options.classpathRoots.getFiles().stream()
-            .map(File::toPath)
-            .collect(Collectors.toSet());
+        try {
+            // JUnit looks in the system classloader, if context classloader isn't set
+            Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 
-        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-            .selectors(DiscoverySelectors.selectClasspathRoots(classpathRoots))
-            .build();
+            Set<Path> classpathRoots = options.getClasspathRoots().stream()
+                .map(File::toPath)
+                .collect(Collectors.toSet());
 
-        try (
-            SocketChannel socket = connectToServer();
-            ObjectOutputStream outputStream = new ObjectOutputStream(Channels.newOutputStream(socket))
-        ) {
-            Launcher launcher = LauncherFactory.create();
-            launcher.registerTestExecutionListeners(new JUnitPlatformSerializingListener(outputStream));
-            launcher.execute(request);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
+                .selectors(DiscoverySelectors.selectClasspathRoots(classpathRoots))
+                .build();
+
+            try (
+                SocketChannel socket = connectToServer();
+                ObjectOutputStream outputStream = new ObjectOutputStream(Channels.newOutputStream(socket))
+            ) {
+                Launcher launcher = LauncherFactory.create();
+                launcher.registerTestExecutionListeners(new JUnitPlatformSerializingListener(outputStream));
+                launcher.execute(request);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw e;
         }
     }
 
     private SocketChannel connectToServer() {
         try {
-            InetSocketAddress addr = new InetSocketAddress(port);
+            InetSocketAddress addr = new InetSocketAddress(InetAddress.getLoopbackAddress(), port);
             return SocketChannel.open(addr);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

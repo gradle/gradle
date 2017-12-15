@@ -17,7 +17,6 @@ package org.gradle.testing.junit5.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
-import org.gradle.testing.junit5.JUnitPlatformOptions;
 
 public class JUnitPlatformTestExecutionSpec implements TestExecutionSpec {
     private final JUnitPlatformOptions options;

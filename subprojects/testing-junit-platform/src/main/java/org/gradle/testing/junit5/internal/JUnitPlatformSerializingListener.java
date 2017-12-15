@@ -30,10 +30,10 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class JUnitPlatformSerializingListener implements TestExecutionListener {
-    private final Map<String, TestDescriptorInternal> descriptorCache = new ConcurrentHashMap<>();
     private final ObjectOutputStream outputStream;
 
     public JUnitPlatformSerializingListener(ObjectOutputStream outputStream) {
@@ -57,44 +57,23 @@ public class JUnitPlatformSerializingListener implements TestExecutionListener {
 
     @Override
     public void executionSkipped(TestIdentifier testIdentifier, String reason) {
-        TestDescriptorInternal test = getDescriptor(testIdentifier);
-        TestCompleteEvent event = new TestCompleteEvent(Instant.now().getEpochSecond(), TestResult.ResultType.SKIPPED);
-        sendEvent(new JUnitPlatformEvent.Completed(test, event));
+        sendEvent(new JUnitPlatformEvent(testIdentifier, JUnitPlatformEvent.Type.SKIPPED, Instant.now().getEpochSecond(), null, null));
     }
 
     @Override
     public void executionStarted(TestIdentifier testIdentifier) {
-        TestDescriptorInternal test = getDescriptor(testIdentifier);
-        TestStartEvent event = new TestStartEvent(Instant.now().getEpochSecond(), test.getParent().getId());
-        sendEvent(new JUnitPlatformEvent.Started(test, event));
+        sendEvent(new JUnitPlatformEvent(testIdentifier, JUnitPlatformEvent.Type.START, Instant.now().getEpochSecond(), null, null));
     }
 
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        TestDescriptorInternal test = getDescriptor(testIdentifier);
-
-        testExecutionResult.getThrowable().ifPresent(failure -> {
-            sendEvent(new JUnitPlatformEvent.Failure(test, failure));
-        });
-
-        TestResult.ResultType result = testExecutionResult.getStatus() == TestExecutionResult.Status.SUCCESSFUL
-            ? TestResult.ResultType.SUCCESS : TestResult.ResultType.FAILURE;
-        TestCompleteEvent event = new TestCompleteEvent(Instant.now().getEpochSecond(), result);
-        sendEvent(new JUnitPlatformEvent.Completed(test, event));
+        JUnitPlatformEvent.Type type =  testExecutionResult.getStatus() == TestExecutionResult.Status.SUCCESSFUL ? JUnitPlatformEvent.Type.SUCCEEDED : JUnitPlatformEvent.Type.FAILED;
+        sendEvent(new JUnitPlatformEvent(testIdentifier, type, Instant.now().getEpochSecond(), null, testExecutionResult.getThrowable().orElse(null)));
     }
 
     @Override
     public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
         // ignore for now
-    }
-
-    private TestDescriptorInternal getDescriptor(TestIdentifier test) {
-        return descriptorCache.computeIfAbsent(test.getUniqueId(), id -> {
-            TestDescriptorInternal parent = test.getParentId()
-                .map(descriptorCache::get)
-                .orElse(null);
-           return new JUnitPlatformTestDescriptor(test, parent);
-        });
     }
 
     private void sendEvent(JUnitPlatformEvent event) {

@@ -15,24 +15,28 @@
  */
 package org.gradle.testing.junit5.internal;
 
-import org.gradle.api.internal.tasks.testing.TestExecuter;
-import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerExecutor;
+import org.junit.platform.launcher.TestIdentifier;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.Channels;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class JUnitPlatformTestExecutor implements TestExecuter<JUnitPlatformTestExecutionSpec> {
-    private static final Logger LOGGER = Logging.getLogger(JUnitPlatformTestExecutor.class);
-
     private final WorkerExecutor workerExecutor;
     private final JavaForkOptions forkOptions;
 
@@ -45,50 +49,82 @@ public class JUnitPlatformTestExecutor implements TestExecuter<JUnitPlatformTest
     public void execute(final JUnitPlatformTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
         try (ServerSocketChannel server = startServer()) {
             workerExecutor.submit(JUnitPlatformLauncher.class, config -> {
+                config.setIsolationMode(IsolationMode.PROCESS);
                 config.params(testExecutionSpec.getOptions(), server.socket().getLocalPort());
                 config.setClasspath(testExecutionSpec.getClasspath());
                 forkOptions.copyTo(config.getForkOptions());
             });
 
-            handleEvents(server.accept(), testResultProcessor);
+            new Thread(new EventHandler(server.accept(), testResultProcessor)).start();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private void handleEvents(SocketChannel socket, TestResultProcessor testResultProcessor) {
-        try (ObjectInputStream stream = new ObjectInputStream(Channels.newInputStream(socket))) {
-            Object obj = stream.readObject();
-            while (obj != null) {
-                if (obj instanceof JUnitPlatformEvent.Started) {
-                    JUnitPlatformEvent.Started event = (JUnitPlatformEvent.Started) obj;
-                    testResultProcessor.started(event.getTest(), event.getEvent());
-                } else if (obj instanceof JUnitPlatformEvent.Completed) {
-                    JUnitPlatformEvent.Completed event = (JUnitPlatformEvent.Completed) obj;
-                    testResultProcessor.completed(event.getTest().getId(), event.getEvent());
-                } else if (obj instanceof JUnitPlatformEvent.Output) {
-                    JUnitPlatformEvent.Output event = (JUnitPlatformEvent.Output) obj;
-                    testResultProcessor.output(event.getTest().getId(), event.getEvent());
-                } else if (obj instanceof JUnitPlatformEvent.Failure) {
-                    JUnitPlatformEvent.Failure event = (JUnitPlatformEvent.Failure) obj;
-                    testResultProcessor.failure(event.getTest().getId(), event.getResult());
-                } else {
-                    LOGGER.debug("Unknown JUnit Platform event: {}", obj);
-                }
+    private static class EventHandler implements Runnable {
+        private final Map<String, TestDescriptorInternal> descriptorCache = new ConcurrentHashMap<>();
+        private final SocketChannel socket;
+        private final TestResultProcessor testResultProcessor;
 
-                obj = stream.readObject();
+        public EventHandler(SocketChannel socket, TestResultProcessor testResultProcessor) {
+            this.socket = socket;
+            this.testResultProcessor = testResultProcessor;
+        }
+
+        @Override
+        public void run() {
+            try (ObjectInputStream stream = new ObjectInputStream(Channels.newInputStream(socket))) {
+                Object obj = stream.readObject();
+                while (obj != null) {
+                    JUnitPlatformEvent event = (JUnitPlatformEvent) obj;
+                    TestDescriptorInternal test = getDescriptor(event.getTest());
+                    switch (event.getType()) {
+                        case START:
+                            Object parentId = Optional.ofNullable(test.getParent())
+                                .map(TestDescriptorInternal::getId)
+                                .orElse(null);
+                            testResultProcessor.started(test, new TestStartEvent(event.getTime(), parentId));
+                            break;
+                        case OUTPUT:
+                            // TODO differentiate between err and out
+                            testResultProcessor.output(test.getId(), new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, event.getMessage()));
+                            break;
+                        case SKIPPED:
+                            testResultProcessor.completed(test.getId(), new TestCompleteEvent(event.getTime(), TestResult.ResultType.SKIPPED));
+                            break;
+                        case FAILED:
+                            testResultProcessor.failure(test.getId(), event.getError());
+                            testResultProcessor.completed(test.getId(), new TestCompleteEvent(event.getTime(), TestResult.ResultType.FAILURE));
+                            break;
+                        case SUCCEEDED:
+                            testResultProcessor.completed(test.getId(), new TestCompleteEvent(event.getTime(), TestResult.ResultType.SUCCESS));
+                            break;
+                    }
+                    obj = stream.readObject();
+                }
+            } catch (EOFException e) {
+                // test execution is done
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            } catch (ClassNotFoundException e) {
+                // TODO better exception
+                throw new RuntimeException(e);
             }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } catch (ClassNotFoundException e) {
-            // TODO better exception
-            throw new RuntimeException(e);
+        }
+
+        private TestDescriptorInternal getDescriptor(TestIdentifier test) {
+            return descriptorCache.computeIfAbsent(test.getUniqueId(), id -> {
+                TestDescriptorInternal parent = test.getParentId()
+                    .map(descriptorCache::get)
+                    .orElse(null);
+                return new JUnitPlatformTestDescriptor(test, parent);
+            });
         }
     }
 
     private ServerSocketChannel startServer() {
         try {
-            InetSocketAddress addr = new InetSocketAddress(0);
+            InetSocketAddress addr = new InetSocketAddress(InetAddress.getLoopbackAddress(), 0);
             ServerSocketChannel server = ServerSocketChannel.open();
             server.bind(addr);
             return server;

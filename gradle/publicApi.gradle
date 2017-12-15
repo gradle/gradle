@@ -41,6 +41,7 @@ ext.publicApiIncludes = [
     'org/gradle/process/**',
     'org/gradle/testfixtures/**',
     'org/gradle/testing/jacoco/**',
+    'org/gradle/testing/junit5/**',
     'org/gradle/tooling/**',
     'org/gradle/model/**',
     'org/gradle/testkit/**',

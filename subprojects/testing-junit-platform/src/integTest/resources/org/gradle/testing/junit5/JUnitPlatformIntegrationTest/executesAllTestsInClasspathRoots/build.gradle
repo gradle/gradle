@@ -1,5 +1,5 @@
 apply plugin: 'java'
-apply plugin: 'java-platform'
+apply plugin: 'junit-platform'
 
 repositories {
     mavenCentral()
