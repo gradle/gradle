@@ -70,4 +70,16 @@ public interface DependencyResolveDetails {
      * Never returns null. Target module is updated when methods like {@link #useVersion(String)} are used.
      */
     ModuleVersionSelector getTarget();
+
+    /**
+     * Sets a human readable description for the reason the component is selected. The description will only
+     * be used if the rule is actually selecting a target, either using {@link #useVersion(String)} or {@link #useTarget(Object)}
+     *
+     * @param description a description of the selection reason
+     *
+     * @return this details object
+     *
+     * @since 4.5
+     */
+    DependencyResolveDetails because(String description);
 }
