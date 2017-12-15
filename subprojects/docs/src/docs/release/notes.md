@@ -58,7 +58,7 @@ It is now possible to generate new Gradle builds using the Kotlin DSL with the h
 
     gradle init --dsl kotlin 
 
-The new option defaults to `groovy` and is supported by all build setup types except migration from Maven builds, this will be addressed in a future Gradle release.
+The new option defaults to `groovy` and is supported by all build setup types except migration from Maven builds.
 
 See the user guide section on the [`init` plugin](userguide/build_init_plugin.html) for more information.
 
