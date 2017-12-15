@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.test.xctest
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 
-class SwiftXCTestWithStaticLibraryIntegrationTest extends AbstractSwiftXCTestWithComponentIntegrationTest {
+class SwiftXCTestWithStaticLibraryLinkageIntegrationTest extends AbstractSwiftXCTestWithComponentIntegrationTest {
     def setup() {
         buildFile << """
             apply plugin: 'swift-library'

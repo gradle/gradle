@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift
 
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
@@ -25,37 +24,23 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithOptionalFeature
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.util.Matchers.containsText
-
 @Requires(TestPrecondition.SWIFT_SUPPORT)
-class SwiftApplicationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def "skip compile, link and install tasks when no source"() {
-        given:
+class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
+    @Override
+    protected List<String> getTasksToAssembleDevelopmentBinary() {
+        [":compileDebugSwift", ":linkDebug", ":installDebug"]
+    }
+
+    @Override
+    protected void makeSingleProject() {
         buildFile << """
             apply plugin: 'swift-application'
         """
-
-        expect:
-        succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        // TODO - should skip the task as NO-SOURCE
-        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
     }
 
-    def "build fails when compilation fails"() {
-        given:
-        buildFile << """
-            apply plugin: 'swift-application'
-         """
-
-        and:
-        file("src/main/swift/broken.swift") << "broken!"
-
-        expect:
-        fails "assemble"
-        failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
-        failure.assertHasCause("A build operation failed.")
-        failure.assertThatCause(containsText("Swift compiler failed while compiling swift file(s)"))
+    @Override
+    protected String getDevelopmentBinaryCompileTask() {
+        return ':compileDebugSwift'
     }
 
     def "relinks when an upstream dependency changes in ABI compatible way"() {

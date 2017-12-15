@@ -16,56 +16,25 @@
 
 package org.gradle.language.swift
 
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
-class SwiftLibraryLinkageIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-
-    def "can create static only library"() {
-        def library = new SwiftLib()
-        buildFile << """
-            apply plugin: 'swift-library'
-
-            library {
-                linkage = [Linkage.STATIC]
-            }
-        """
-        settingsFile << """
-            rootProject.name = 'foo'
-        """
-        library.writeToProject(testDirectory)
-
-        when:
-        succeeds('assemble')
-
-        then:
-        result.assertTasksExecuted(':compileDebugStaticSwift', ':createDebugStatic', ':assemble')
-        staticLibrary('build/lib/main/debug/static/Foo').assertExists()
+class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTest {
+    @Override
+    protected List<String> getTasksToAssembleDevelopmentBinary() {
+        return [":compileDebugSwift", ":linkDebug"]
     }
 
-    def "can create shared library binary when explicitly request a shared linkage"() {
-        def library = new SwiftLib()
+    @Override
+    protected void makeSingleProject() {
         buildFile << """
             apply plugin: 'swift-library'
-
-            library {
-                linkage = [Linkage.SHARED]
-            }
+            library.linkage = [Linkage.SHARED, Linkage.STATIC]
         """
-        settingsFile << """
-            rootProject.name = 'foo'
-        """
-        library.writeToProject(testDirectory)
+    }
 
-        when:
-        succeeds('assemble')
-
-        then:
-        result.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':assemble')
-        sharedLibrary('build/lib/main/debug/Foo').assertExists()
+    @Override
+    protected String getDevelopmentBinaryCompileTask() {
+        return ":compileDebugSwift"
     }
 
     def "creates shared library binary by default when both linkage specified"() {
@@ -90,7 +59,7 @@ class SwiftLibraryLinkageIntegrationTest extends AbstractInstalledToolChainInteg
         sharedLibrary('build/lib/main/debug/Foo').assertExists()
     }
 
-    def "can create static library binary when enabling static linkage"() {
+    def "can create static library binary when assembling static linkage"() {
         def library = new SwiftLib()
         buildFile << """
             apply plugin: 'swift-library'
@@ -110,26 +79,5 @@ class SwiftLibraryLinkageIntegrationTest extends AbstractInstalledToolChainInteg
         then:
         result.assertTasksExecuted(':compileDebugStaticSwift', ':createDebugStatic', ':assembleDebugStatic')
         staticLibrary('build/lib/main/debug/static/Foo').assertExists()
-    }
-
-    def "fails when no linkage is specified"() {
-        def library = new SwiftLib()
-        buildFile << """
-            apply plugin: 'swift-library'
-
-            library {
-                linkage = []
-            }
-        """
-        settingsFile << """
-            rootProject.name = 'foo'
-        """
-        library.writeToProject(testDirectory)
-
-        when:
-        def result = fails('assemble')
-
-        then:
-        result.assertHasCause('A linkage needs to be specified for the library.')
     }
 }
