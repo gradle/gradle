@@ -209,8 +209,6 @@ public class DefaultSwiftBinary implements SwiftBinary {
                             moduleName = ((ModuleComponentIdentifier) id).getModule();
                         } else if (ProjectComponentIdentifier.class.isAssignableFrom(id.getClass())) {
                             moduleName = ((ProjectComponentIdentifier) id).getProjectName();
-                        } else if (LibraryBinaryIdentifier.class.isAssignableFrom(id.getClass())) {
-                            moduleName = ((LibraryBinaryIdentifier) id).getLibraryName();
                         } else {
                             throw new IllegalArgumentException("Could not determine the name of " + id.getDisplayName() + ": unknown component identifier type: " + id.getClass().getSimpleName());
                         }
