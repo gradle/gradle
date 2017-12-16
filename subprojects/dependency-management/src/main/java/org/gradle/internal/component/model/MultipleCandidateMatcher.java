@@ -90,28 +90,10 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         this.schema = schema;
         this.requested = requested;
         this.candidates = (candidates instanceof List) ? (List<? extends T>) candidates : ImmutableList.copyOf(candidates);
-        this.allAttributes = collectAllAttributes(requested, candidates);
+        this.allAttributes = schema.getAttributes().toArray(new Attribute<?>[0]);
         attributeValues = new Object[(1 + candidates.size()) * this.allAttributes.length];
         compatibleCandidates = new BitSet(candidates.size());
         compatibleCandidates.set(0, candidates.size());
-    }
-
-    /*
-     * TODO this computation is expensive, it should just use schema.getAttributes()
-     * Unfortunately the Android plugin doesn't register some of its attributes with
-     * the schema. We should deprecate and remove this possibility.
-     *
-     * TODO we currently keep the order to make matching error messages predictable. E.g.
-     * if two attributes are not assignable, we always complain about the first one. This
-     * doesn't seem terribly useful beyond our own testing needs. Maybe get rid of this to
-     * save some more memory?
-     */
-    private static <T extends HasAttributes> Attribute<?>[] collectAllAttributes(ImmutableAttributes requested, Collection<? extends T> candidates) {
-        Set<Attribute<?>> allAttributes = Sets.newLinkedHashSet(requested.keySet());
-        for (T candidate : candidates) {
-            allAttributes.addAll(candidate.getAttributes().keySet());
-        }
-        return allAttributes.toArray(new Attribute<?>[0]);
     }
 
     public List<T> getMatches() {

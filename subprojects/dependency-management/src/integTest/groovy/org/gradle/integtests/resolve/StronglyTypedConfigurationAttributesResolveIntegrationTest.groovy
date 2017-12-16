@@ -135,14 +135,14 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
         then:
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Unexpected type for attribute 'buildType' provided. Expected a value of type BuildType but found a value of type java.lang.String.")
+        failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.String.")
 
         when:
         fails ':a:checkRelease'
 
         then:
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Unexpected type for attribute 'buildType' provided. Expected a value of type BuildType but found a value of type java.lang.String.")
+        failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.String.")
     }
 
     def "selects best compatible match using consumers disambiguation rules when multiple are compatible"() {

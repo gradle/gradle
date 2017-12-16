@@ -20,8 +20,12 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.CompatibilityCheckResult;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 
+import java.util.Set;
+
 public interface AttributeSelectionSchema {
     boolean hasAttribute(Attribute<?> attribute);
+
+    Set<Attribute<?>> getAttributes();
 
     void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result);
 

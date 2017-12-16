@@ -23,6 +23,7 @@ import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 import org.gradle.internal.Cast;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -37,7 +38,7 @@ import java.util.Set;
  */
 class PreferJavaRuntimeVariant extends EmptySchema {
     private static final Set<String> DEFAULT_JAVA_USAGES = ImmutableSet.of(Usage.JAVA_API, Usage.JAVA_RUNTIME);
-
+    private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Collections.<Attribute<?>>singleton(Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class));
     private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = new PreferJavaRuntimeVariant();
 
     static PreferJavaRuntimeVariant schema() {
@@ -45,6 +46,11 @@ class PreferJavaRuntimeVariant extends EmptySchema {
     }
 
     private PreferJavaRuntimeVariant() {
+    }
+
+    @Override
+    public Set<Attribute<?>> getAttributes() {
+        return SUPPORTED_ATTRIBUTES;
     }
 
     @Override
