@@ -271,7 +271,11 @@ public class SwiftCompile extends DefaultTask {
         spec.setModuleName(moduleName.getOrNull());
         spec.setModuleFile(moduleFile.get().getAsFile());
         for (File file : modules.getFiles()) {
-            spec.include(file.getParentFile());
+            if (file.isFile()) {
+                spec.include(file.getParentFile());
+            } else {
+                spec.include(file);
+            }
         }
 
         spec.setTargetPlatform(targetPlatform);

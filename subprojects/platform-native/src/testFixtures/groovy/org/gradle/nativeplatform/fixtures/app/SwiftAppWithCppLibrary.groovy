@@ -16,18 +16,17 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
+class SwiftAppWithCppLibrary extends SwiftAppWithLibraries {
+    final logger = new CppGreeterFunction().asLib()
+    final greeter = new SwiftGreeterUsingCppFunction(logger, 'log')
 
-class SwiftMainWithDep extends SwiftMain {
-    def greeterModule = "Greeter"
-
-    SwiftMainWithDep(GreeterElement greeter, SumElement sum) {
-        super(greeter, sum)
+    @Override
+    SourceElement getLogLibrary() {
+        return logger
     }
 
     @Override
-    SourceFile getSourceFile() {
-        def delegate = super.getSourceFile()
-        sourceFile(delegate.path, delegate.name, "import ${greeterModule}\n${delegate.content}")
+    SourceElement getLibrary() {
+        return greeter
     }
 }

@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
@@ -33,6 +32,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.plugins.SwiftApplicationPlugin;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
@@ -233,7 +233,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
                         // Test configuration extends main configuration
                         testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
-                        project.getDependencies().add(((Configuration)(testSuite.getDevelopmentBinary().getCompileModules())).getName(), project);
+                        project.getDependencies().add(((DefaultSwiftBinary)testSuite.getDevelopmentBinary()).getImportPathConfiguration().getName(), project);
 
                         // Configure test suite link task from tested component compiled objects
                         AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkTest");

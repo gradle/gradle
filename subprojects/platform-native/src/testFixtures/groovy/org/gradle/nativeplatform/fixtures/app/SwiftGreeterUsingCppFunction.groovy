@@ -18,16 +18,31 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class SwiftMainWithDep extends SwiftMain {
-    def greeterModule = "Greeter"
+class SwiftGreeterUsingCppFunction extends SourceFileElement implements GreeterElement {
+    final GreeterElement cppGreeter
+    final String moduleName
 
-    SwiftMainWithDep(GreeterElement greeter, SumElement sum) {
-        super(greeter, sum)
+    SwiftGreeterUsingCppFunction(GreeterElement cppGreeter, String moduleName = 'cppGreeter') {
+        this.cppGreeter = cppGreeter
+        this.moduleName = moduleName
     }
 
     @Override
     SourceFile getSourceFile() {
-        def delegate = super.getSourceFile()
-        sourceFile(delegate.path, delegate.name, "import ${greeterModule}\n${delegate.content}")
+        sourceFile("swift", "greeter.swift", """
+            import ${moduleName}
+
+            public class Greeter {
+                public init() {}
+                public func sayHello() {
+                    sayGreeting()
+                }
+            }
+        """)
+    }
+
+    @Override
+    String getExpectedOutput() {
+        return cppGreeter.expectedOutput
     }
 }

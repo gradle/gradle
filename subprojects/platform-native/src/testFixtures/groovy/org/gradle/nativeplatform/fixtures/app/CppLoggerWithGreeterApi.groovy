@@ -16,18 +16,34 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.SourceFile
+import static org.gradle.nativeplatform.fixtures.app.SourceFileElement.ofFile
 
-class SwiftMainWithDep extends SwiftMain {
-    def greeterModule = "Greeter"
+class CppLoggerWithGreeterApi extends CppSourceFileElement {
+    final SourceFileElement header = ofFile(sourceFile("headers", "logger.h", """
+#ifdef _WIN32
+#define EXPORT_FUNC __declspec(dllexport)
+#else
+#define EXPORT_FUNC
+#endif
 
-    SwiftMainWithDep(GreeterElement greeter, SumElement sum) {
-        super(greeter, sum)
-    }
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    @Override
-    SourceFile getSourceFile() {
-        def delegate = super.getSourceFile()
-        sourceFile(delegate.path, delegate.name, "import ${greeterModule}\n${delegate.content}")
-    }
+void sayGreeting();
+void logGreeting();
+
+#ifdef __cplusplus
+}
+#endif
+"""))
+
+    final SourceFileElement source = ofFile(sourceFile("cpp", "logger.cpp", """
+#include <iostream>
+#include "logger.h"
+
+void logGreeting() {
+    std::cout << "${HelloWorldApp.HELLO_WORLD}" << std::endl;
+}
+"""))
 }

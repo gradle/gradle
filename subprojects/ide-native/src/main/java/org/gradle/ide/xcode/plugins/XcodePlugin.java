@@ -57,6 +57,7 @@ import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.plugins.CppApplicationPlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.plugins.SwiftApplicationPlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
@@ -202,7 +203,7 @@ public class XcodePlugin extends IdePlugin {
         String targetName = component.getModule().get() + " " + toString(productType);
         XcodeTarget target = newTarget(targetName, component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), component.getDevelopmentBinary().getInstallDirectory(), component.getDevelopmentBinary().getInstallDirectory(), sources);
         target.getCompileModules().from(component.getDevelopmentBinary().getCompileModules());
-        target.addTaskDependency(filterArtifactsFromImplicitBuilds((Configuration) component.getDevelopmentBinary().getCompileModules()).getBuildDependencies());
+        target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getDevelopmentBinary()).getImportPathConfiguration()).getBuildDependencies());
         xcode.getProject().addTarget(target);
     }
 
@@ -227,7 +228,7 @@ public class XcodePlugin extends IdePlugin {
                 String targetName = component.getModule().get() + " " + XcodePlugin.toString(productType);
                 XcodeTarget target = newTarget(targetName, component.getModule().get(), productType, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), linkDebug.getBinaryFile(), linkRelease.getBinaryFile(), sources);
                 target.getCompileModules().from(component.getDevelopmentBinary().getCompileModules());
-                target.addTaskDependency(filterArtifactsFromImplicitBuilds((Configuration) component.getDevelopmentBinary().getCompileModules()).getBuildDependencies());
+                target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getDevelopmentBinary()).getImportPathConfiguration()).getBuildDependencies());
                 xcode.getProject().addTarget(target);
 
                 createSchemeTask(project.getTasks(), targetName, xcode.getProject());
