@@ -75,6 +75,11 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
         }
     }
 
+    @Override
+    public boolean doesSomething() {
+        return !rules.isEmpty();
+    }
+
     private static class InstantiatingAction<T> implements Action<MultipleCandidatesDetails<T>> {
         private final Class<? extends AttributeDisambiguationRule<T>> rule;
         private final Object[] params;

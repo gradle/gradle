@@ -24,8 +24,6 @@ import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.model.ComponentAttributeMatcher
-import org.gradle.internal.component.model.DefaultCandidateResult
-import org.gradle.internal.component.model.DefaultCompatibilityCheckResult
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -83,13 +81,8 @@ class DefaultAttributesSchemaTest extends Specification {
         schema.attribute(attribute)
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<String>("a", "b")
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
-        !details.isCompatible()
-
-        def details2 = new DefaultCompatibilityCheckResult<String>("a", "a")
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details2)
-        details2.isCompatible()
+        !schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, "a", "b")
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, "a", "a")
 
         !schema.matcher().isMatching(attribute, "a", "b")
         schema.matcher().isMatching(attribute, "a", "a")
@@ -110,13 +103,8 @@ class DefaultAttributesSchemaTest extends Specification {
         schema.attribute(attribute).compatibilityRules.add(DoNothingRule)
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<String>("a", "b")
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
-        !details.isCompatible()
-
-        def details2 = new DefaultCompatibilityCheckResult<String>("a", "a")
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details2)
-        details2.isCompatible()
+        !schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, "a", "b")
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, "a", "a")
 
         !schema.matcher().isMatching(attribute, "a", "b")
         schema.matcher().isMatching(attribute, "a", "a")
@@ -135,9 +123,7 @@ class DefaultAttributesSchemaTest extends Specification {
         schema.attribute(attribute).compatibilityRules.add(BrokenRule)
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<String>("a", "a")
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, details)
-        details.isCompatible()
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attribute, "a", "a")
 
         schema.matcher().isMatching(attribute, "a", "a")
     }
@@ -190,13 +176,8 @@ class DefaultAttributesSchemaTest extends Specification {
         def value2 = flavor('otherValue')
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<Flavor>(value1, value2)
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, details)
-        details.isCompatible()
-
-        def details2 = new DefaultCompatibilityCheckResult<Flavor>(value2, value1)
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, details2)
-        !details2.isCompatible()
+        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, value1, value2)
+        !schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, value2, value1)
 
         schema.matcher().isMatching(attr, value2, value1)
         !schema.matcher().isMatching(attr, value1, value2)
@@ -217,9 +198,7 @@ class DefaultAttributesSchemaTest extends Specification {
         schema.attribute(attr).compatibilityRules.add(BrokenRule)
 
         expect:
-        def details = new DefaultCompatibilityCheckResult<String>("a", "b")
-        schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, details)
-        !details.isCompatible()
+        !schema.mergeWith(EmptySchema.INSTANCE).matchValue(attr, "a", "b")
 
         !schema.matcher().isMatching(attr, "a", "b")
     }
@@ -229,13 +208,10 @@ class DefaultAttributesSchemaTest extends Specification {
 
         given:
         schema.attribute(attr)
-
-        def best = [] as Set
         def candidates = ["foo", "bar"] as Set
-        def candidateDetails = new DefaultCandidateResult(candidates, "bar", best)
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        def best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "bar", candidates)
 
         then:
         best == ["bar"] as Set
@@ -252,13 +228,10 @@ class DefaultAttributesSchemaTest extends Specification {
 
         given:
         schema.attribute(attr).disambiguationRules.add(DoNothingSelectionRule)
-
-        def best = [] as Set
         def candidates = ["foo", "bar"] as Set
-        def candidateDetails = new DefaultCandidateResult(candidates, "bar", best)
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        def best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "bar", candidates)
 
         then:
         best == ["bar"] as Set
@@ -269,16 +242,13 @@ class DefaultAttributesSchemaTest extends Specification {
 
         given:
         schema.attribute(attr)
-
-        def best = [] as Set
         def candidates = ["foo", "bar"] as Set
-        def candidateDetails = new DefaultCandidateResult(candidates, "other", best)
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        def best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "other", candidates)
 
         then:
-        best == ["foo", "bar"] as Set
+        best == candidates
     }
 
     def "selects all candidates when no rule expresses an opinion and requested is not one of the candidate values"() {
@@ -286,16 +256,13 @@ class DefaultAttributesSchemaTest extends Specification {
 
         given:
         schema.attribute(attr).disambiguationRules.add(DoNothingSelectionRule)
-
-        def best = [] as Set
         def candidates = ["foo", "bar"] as Set
-        def candidateDetails = new DefaultCandidateResult(candidates, "other", best)
 
         when:
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        def best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "other", candidates)
 
         then:
-        best == ["foo", "bar"] as Set
+        best == candidates
     }
 
     def "custom rule can select best match"() {
@@ -310,19 +277,13 @@ class DefaultAttributesSchemaTest extends Specification {
         def candidates = [value1, value2] as Set
 
         when:
-        def best = [] as Set
-        def candidateDetails = new DefaultCandidateResult(candidates, flavor('requested'), best)
-
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        def best= schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, flavor('requested'), candidates)
 
         then:
         best == [value1] as Set
 
         when:
-        best = [] as Set
-        candidateDetails = new DefaultCandidateResult(candidates, value2, best)
-
-        schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, candidateDetails)
+        best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, value2, candidates)
 
         then:
         best == [value1] as Set
@@ -357,9 +318,7 @@ class DefaultAttributesSchemaTest extends Specification {
 
         expect:
         def merged = schema.mergeWith(producer)
-        def result = new DefaultCompatibilityCheckResult<Object>(flavor('value'), flavor('otherValue'))
-        merged.matchValue(attr, result)
-        result.compatible
+        merged.matchValue(attr, flavor('value'), flavor('otherValue'))
     }
 
     def "uses the producers selection rules when the consumer does not express an opinion"() {
@@ -376,10 +335,7 @@ class DefaultAttributesSchemaTest extends Specification {
         def candidates = [value1, value2] as Set
 
         when:
-        def best = [] as Set
-        def candidateDetails = new DefaultCandidateResult(candidates, flavor('requested'), best)
-
-        schema.mergeWith(producer).disambiguate(attr, candidateDetails)
+        def best = schema.mergeWith(producer).disambiguate(attr, flavor('requested'), candidates)
 
         then:
         best == [value1] as Set

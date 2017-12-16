@@ -19,40 +19,46 @@ package org.gradle.internal.component.model;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.Set;
 
-public class DefaultCandidateResult<T> implements MultipleCandidatesResult<Object> {
-    private final Set<Object> candidateValues;
-    private final Object consumerValue;
-    private final Set<Object> matches;
-    private boolean done;
+public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResult<T> {
+    private final Set<T> candidateValues;
+    private final T consumerValue;
+    private Set<T> matches;
 
-    public DefaultCandidateResult(Set<Object> candidateValues, @Nullable Object consumerValue, Set<Object> matches) {
+    public DefaultMultipleCandidateResult(@Nullable T consumerValue, Set<T> candidateValues) {
         assert candidateValues.size() > 1;
         this.candidateValues = candidateValues;
         this.consumerValue = consumerValue;
-        this.matches = matches;
     }
 
     @Override
     public boolean hasResult() {
-        return done;
+        return matches != null;
+    }
+
+    public Set<T> getMatches() {
+        assert matches != null;
+        return matches;
     }
 
     @Nullable
     @Override
-    public Object getConsumerValue() {
+    public T getConsumerValue() {
         return consumerValue;
     }
 
     @Override
-    public Set<Object> getCandidateValues() {
+    public Set<T> getCandidateValues() {
         return candidateValues;
     }
 
     @Override
-    public void closestMatch(Object candidate) {
-        done = true;
+    public void closestMatch(T candidate) {
+        if (matches == null) {
+            matches = new HashSet<T>(4);
+        }
         matches.add(candidate);
     }
 }

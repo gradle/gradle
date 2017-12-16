@@ -29,9 +29,11 @@ import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
+import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -138,9 +140,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested) {
-            DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
-            effectiveSchema.matchValue(attribute, result);
-            return result.isCompatible();
+            return effectiveSchema.matchValue(attribute, requested, candidate);
         }
 
         @Override
@@ -167,51 +167,65 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
-        public void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result) {
+        public Set<Object> disambiguate(Attribute<?> attribute, Object requested, Set<Object> candidates) {
+            DefaultMultipleCandidateResult<Object> result = null;
+
             DisambiguationRule<Object> rules = disambiguationRules(attribute);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return;
+            if (rules.doesSomething()) {
+                result = new DefaultMultipleCandidateResult<Object>(requested, candidates);
+                rules.execute(result);
+                if (result.hasResult()) {
+                    return result.getMatches();
+                }
             }
 
             rules = producerSchema.disambiguationRules(attribute);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return;
+            if (rules.doesSomething()) {
+                if (result == null) {
+                    result = new DefaultMultipleCandidateResult<Object>(requested, candidates);
+                }
+                rules.execute(result);
+                if (result.hasResult()) {
+                    return result.getMatches();
+                }
             }
 
-            Object requested = result.getConsumerValue();
-            if (requested != null && result.getCandidateValues().contains(requested)) {
-                result.closestMatch(requested);
-                return;
+            if (requested != null && candidates.contains(requested)) {
+                return Collections.singleton(requested);
             }
 
-            // Select all candidates
-            for (Object candidate : result.getCandidateValues()) {
-                result.closestMatch(candidate);
-            }
+            return candidates;
         }
 
         @Override
-        public void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result) {
-            if (result.getConsumerValue().equals(result.getProducerValue())) {
-                result.compatible();
-                return;
+        public boolean matchValue(Attribute<?> attribute, Object requested, Object candidate) {
+            if (requested.equals(candidate)) {
+                return true;
             }
+
+            CompatibilityCheckResult<Object> result = null;
 
             CompatibilityRule<Object> rules = compatibilityRules(attribute);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return;
-            }
-            rules = producerSchema.compatibilityRules(attribute);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return;
+            if (rules.doesSomething()) {
+                result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
+                rules.execute(result);
+                if (result.hasResult()) {
+                    return result.isCompatible();
+                }
             }
 
-            // If no result, the values are not compatible
-            result.incompatible();
+            rules = producerSchema.compatibilityRules(attribute);
+            if (rules.doesSomething()) {
+                if (result == null) {
+                    result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
+                }
+                rules.execute(result);
+                if (result.hasResult()) {
+                    return result.isCompatible();
+                }
+            }
+
+            return false;
         }
 
         @Override

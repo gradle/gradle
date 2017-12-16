@@ -51,9 +51,8 @@ public class ComponentAttributeMatcher {
             AttributeValue<?> candidateValue = candidateAttributes.findEntry(attribute.getName());
             if (candidateValue.isPresent()) {
                 Object coercedValue = candidateValue.coerce(attribute);
-                DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<Object>(requestedValue.get(), coercedValue);
-                schema.matchValue(attribute, result);
-                if (!result.isCompatible()) {
+                boolean match = schema.matchValue(attribute, requestedValue.get(), coercedValue);
+                if (!match) {
                     return false;
                 }
             }

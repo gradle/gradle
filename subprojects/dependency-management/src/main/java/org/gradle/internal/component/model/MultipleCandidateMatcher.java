@@ -23,7 +23,6 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 
 import java.util.BitSet;
 import java.util.Collection;
@@ -157,9 +156,8 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             return MatchResult.EXTRA;
         }
 
-        DefaultCompatibilityCheckResult<Object> details = new DefaultCompatibilityCheckResult<Object>(requestedValue, coercedValue);
-        schema.matchValue(attribute, details);
-        if (details.isCompatible()) {
+        boolean match = schema.matchValue(attribute, requestedValue, coercedValue);
+        if (match) {
             return MatchResult.MATCH;
         } else {
             compatible.clear(c);
@@ -214,12 +212,8 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             return;
         }
 
-        Set<Object> matchedValues = Sets.newHashSetWithExpectedSize(candidateValues.size());
-        MultipleCandidatesResult<Object> result = new DefaultCandidateResult<T>(candidateValues, getRequestedValue(a), matchedValues);
-        schema.disambiguate(allAttributes[a], result);
-        if (result.hasResult()) {
-            removeCandidatesWithValueNotIn(a, matchedValues);
-        }
+        Set<Object> matches = schema.disambiguate(allAttributes[a], getRequestedValue(a), candidateValues);
+        removeCandidatesWithValueNotIn(a, matches);
     }
 
     private Set<Object> getCandidateValues(int a) {

@@ -57,6 +57,11 @@ class PreferJavaRuntimeVariant extends EmptySchema {
     public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
         if (Usage.USAGE_ATTRIBUTE.getName().equals(attribute.getName())) {
             return Cast.uncheckedCast(new DisambiguationRule<String>() {
+                @Override
+                public boolean doesSomething() {
+                    return true;
+                }
+
                 public void execute(MultipleCandidatesResult<String> details) {
                     if (details.getConsumerValue() == null) {
                         if (details.getCandidateValues().equals(DEFAULT_JAVA_USAGES)) {

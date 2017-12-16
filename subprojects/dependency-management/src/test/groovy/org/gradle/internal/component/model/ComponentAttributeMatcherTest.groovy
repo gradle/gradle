@@ -22,8 +22,6 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.attributes.CompatibilityCheckResult
-import org.gradle.api.internal.attributes.MultipleCandidatesResult
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -185,8 +183,8 @@ class ComponentAttributeMatcherTest extends Specification {
         schema.accept(attr, "requested", "value2")
         schema.select(attr, rule)
 
-        rule.execute({it.consumerValue == "requested"}) >> { MultipleCandidatesDetails details -> details.closestMatch("value2") }
-        rule.execute({it.consumerValue == null}) >> { MultipleCandidatesDetails details -> details.closestMatch("value1") }
+        rule.execute({ it.consumerValue == "requested" }) >> { MultipleCandidatesDetails details -> details.closestMatch("value2") }
+        rule.execute({ it.consumerValue == null }) >> { MultipleCandidatesDetails details -> details.closestMatch("value1") }
 
         given:
         def candidate1 = attributes()
@@ -239,7 +237,7 @@ class ComponentAttributeMatcherTest extends Specification {
         matcher.match(schema, [candidate2, candidate3, candidate4], requested, null) == [candidate3]
     }
 
-    def "disambiguates using ignored producer attributes" () {
+    def "disambiguates using ignored producer attributes"() {
         def key1 = Attribute.of("a1", String)
         def key2 = Attribute.of("a2", String)
         schema.attribute(key1)
@@ -408,41 +406,37 @@ class ComponentAttributeMatcherTest extends Specification {
         }
 
         @Override
-        void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result) {
+        boolean matchValue(Attribute<?> attribute, Object requested, Object candidate) {
             if (attributes.contains(attribute)) {
                 if (compatibleValues.containsKey(attribute)) {
-                    if (compatibleValues.get(attribute).get(result.consumerValue).contains(result.producerValue)) {
-                        result.compatible()
-                        return
+                    if (compatibleValues.get(attribute).get(requested).contains(candidate)) {
+                        return true
                     }
                 }
-                if (result.consumerValue == result.producerValue) {
-                    result.compatible()
-                    return
+                if (requested == candidate) {
+                    return true
                 }
             }
 
-            result.incompatible()
+            return false
         }
 
         @Override
-        void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result) {
+        Set<Object> disambiguate(Attribute<?> attribute, Object requested, Set<Object> candidates) {
+            def result = new DefaultMultipleCandidateResult(requested, candidates)
 
             def rule = rules.get(attribute)
             if (rule != null) {
                 rule.execute(result)
-                return
+                return result.matches
             }
 
             def preferred = preferredValue.get(attribute)
-            if (preferred != null && result.candidateValues.contains(preferred)) {
-                result.closestMatch(preferred)
-                return
+            if (preferred != null && candidates.contains(preferred)) {
+                return [preferred]
             }
 
-            for (Object match : result.candidateValues) {
-                result.closestMatch(match)
-            }
+            candidates
         }
     }
 }

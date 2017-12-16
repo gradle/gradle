@@ -17,8 +17,6 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.CompatibilityCheckResult;
-import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 
 import java.util.Set;
 
@@ -27,7 +25,7 @@ public interface AttributeSelectionSchema {
 
     Set<Attribute<?>> getAttributes();
 
-    void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result);
+    Set<Object> disambiguate(Attribute<?> attribute, Object requested, Set<Object> candidates);
 
-    void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result);
+    boolean matchValue(Attribute<?> attribute, Object requested, Object candidate);
 }

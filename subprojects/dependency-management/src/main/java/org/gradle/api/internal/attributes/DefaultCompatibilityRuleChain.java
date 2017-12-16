@@ -71,6 +71,11 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
         }
     }
 
+    @Override
+    public boolean doesSomething() {
+        return !rules.isEmpty();
+    }
+
     private static class InstantiatingAction<T> implements Action<CompatibilityCheckDetails<T>> {
         private final Class<? extends AttributeCompatibilityRule<T>> rule;
         private final Object[] params;
