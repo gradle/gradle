@@ -67,9 +67,8 @@ import java.util.Set;
  * The information which candidates are compatible and which candidates are still valid during disambiguation is kept in two {@link BitSet}s. The nth bit is set if the nth candidate
  * is compatible. The longest match is kept using two integers, one containing the length of the match, the other containing the index of the candidate that was the longest.
  *
- * The candidate values are put in the table and checked for compatibility at the same time. This could be further optimized by only allocating a small table first and reusing a row
- * if the candidate didn't match. In most cases only a small subset of candidates makes it through the initial matching, so allocating a smaller table could save a lot of memory in the
- * common case.
+ * The candidate values are put in the table and checked for compatibility at the same time. If a candidate doesn't match, its row in the table is reused to further save memory.
+ * The table is initially small and only expanded to the maximum needed size if there are lots of compatible candidates. See {@link #initialTableSize(int, int, int)} for more details.
  * </p>
  */
 class MultipleCandidateMatcher<T extends HasAttributes> {
@@ -78,29 +77,29 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     private final List<? extends T> candidates;
 
     private final Attribute<?>[] allAttributes;
-    private final Object[] attributeValues;
-    private final BitSet compatibleCandidates;
+    private final BitSet compatible;
+    private Object[] attributeValues;
 
     private int candidateWithLongestMatch;
     private int lengthOfLongestMatch;
 
-    private BitSet disambiguatedCandidates;
+    private BitSet remaining;
 
     MultipleCandidateMatcher(AttributeSelectionSchema schema, Collection<? extends T> candidates, ImmutableAttributes requested) {
         this.schema = schema;
         this.requested = requested;
         this.candidates = (candidates instanceof List) ? (List<? extends T>) candidates : ImmutableList.copyOf(candidates);
         this.allAttributes = schema.getAttributes().toArray(new Attribute<?>[0]);
-        attributeValues = new Object[(1 + candidates.size()) * this.allAttributes.length];
-        compatibleCandidates = new BitSet(candidates.size());
-        compatibleCandidates.set(0, candidates.size());
+        attributeValues = new Object[initialTableSize(candidates.size(), allAttributes.length, requested.keySet().size())];
+        compatible = new BitSet(candidates.size());
+        compatible.set(0, candidates.size());
     }
 
     public List<T> getMatches() {
         fillRequestedValues();
         findCompatibleCandidates();
-        if (compatibleCandidates.cardinality() <= 1) {
-            return getCandidates(compatibleCandidates);
+        if (compatible.cardinality() <= 1) {
+            return getCandidates(compatible);
         }
         if (longestMatchIsSuperSetOfAllOthers()) {
             return Collections.singletonList(candidates.get(candidateWithLongestMatch));
@@ -163,14 +162,14 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         if (details.isCompatible()) {
             return MatchResult.MATCH;
         } else {
-            compatibleCandidates.clear(c);
+            compatible.clear(c);
             return MatchResult.NO_MATCH;
         }
     }
 
 
     private boolean longestMatchIsSuperSetOfAllOthers() {
-        for (int c = compatibleCandidates.nextSetBit(0); c >= 0; c = compatibleCandidates.nextSetBit(c + 1)) {
+        for (int c = compatible.nextSetBit(0); c >= 0; c = compatible.nextSetBit(c + 1)) {
             if (c == candidateWithLongestMatch) {
                 continue;
             }
@@ -196,17 +195,17 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
 
 
     private List<T> disambiguateCompatibleCandidates() {
-        disambiguatedCandidates = new BitSet(candidates.size());
-        disambiguatedCandidates.or(compatibleCandidates);
+        remaining = new BitSet(candidates.size());
+        remaining.or(compatible);
 
         for (int a = 0; a < allAttributes.length; a++) {
             disambiguateAttribute(a);
 
-            if (disambiguatedCandidates.cardinality() == 0) {
-                return getCandidates(compatibleCandidates);
+            if (remaining.cardinality() == 0) {
+                return getCandidates(compatible);
             }
         }
-        return getCandidates(disambiguatedCandidates);
+        return getCandidates(remaining);
     }
 
     private void disambiguateAttribute(int a) {
@@ -224,17 +223,17 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private Set<Object> getCandidateValues(int a) {
-        Set<Object> candidateValues = Sets.newHashSetWithExpectedSize(compatibleCandidates.cardinality());
-        for (int c = compatibleCandidates.nextSetBit(0); c >= 0; c = compatibleCandidates.nextSetBit(c + 1)) {
+        Set<Object> candidateValues = Sets.newHashSetWithExpectedSize(compatible.cardinality());
+        for (int c = compatible.nextSetBit(0); c >= 0; c = compatible.nextSetBit(c + 1)) {
             candidateValues.add(getCandidateValue(c, a));
         }
         return candidateValues;
     }
 
     private void removeCandidatesWithValueNotIn(int a, Set<Object> matchedValues) {
-        for (int c = compatibleCandidates.nextSetBit(0); c >= 0; c = compatibleCandidates.nextSetBit(c + 1)) {
+        for (int c = compatible.nextSetBit(0); c >= 0; c = compatible.nextSetBit(c + 1)) {
             if (!matchedValues.contains(getCandidateValue(c, a))) {
-                disambiguatedCandidates.clear(c);
+                remaining.clear(c);
             }
         }
     }
@@ -262,7 +261,9 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private void setCandidateValue(int c, int a, Object value) {
-        attributeValues[getValueIndex(c, a)] = value;
+        int index = getValueIndex(c, a);
+        ensureTableSize(index);
+        attributeValues[index] = value;
     }
 
     private Object getCandidateValue(int c, int a) {
@@ -270,8 +271,48 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private int getValueIndex(int c, int a) {
-        return (1 + c) * allAttributes.length + a;
+        return (1 + c - reusedSlotsBefore(c)) * allAttributes.length + a;
     }
+
+    /**
+     * The number of candidates before this one which did not match. Their table row can be reused.
+     */
+    private int reusedSlotsBefore(int c) {
+        int slots = 0;
+        for (int slot = compatible.nextClearBit(0); slot >= 0 && slot < c; slot = compatible.nextClearBit(slot + 1)) {
+            slots++;
+        }
+        return slots;
+    }
+
+    private void ensureTableSize(int index) {
+        if (attributeValues.length <= index) {
+            Object[] newTable = new Object[fullTableSize(candidates.size(), allAttributes.length)];
+            System.arraycopy(attributeValues, 0, newTable, 0, attributeValues.length);
+            attributeValues = newTable;
+        }
+    }
+
+    /**
+     * A sensible initial size for the matching table: One row for the requested values, one row for
+     * matching the next candidate, additional rows for the number of expected matches. This number is
+     * proportional to the number of candidates (which increases the likelihood of matches) and
+     * inversely proportional to the number of requested attributes (which makes matches less likely).
+     * One column for each attribute.
+     */
+    private static int initialTableSize(int candidates, int allAttributes, int requestedAttributes) {
+        int expectedCompatibleCandidates = Math.max(1, candidates / Math.max(1, requestedAttributes));
+        return (1 + 1 + expectedCompatibleCandidates) * allAttributes;
+    }
+
+    /**
+     * The maximums size that the matching table can take - one row for the requested values,
+     * one row for each candidate and one column for every attribute.
+     */
+    private int fullTableSize(int candidates, int allAttributes) {
+        return (1 + candidates) * allAttributes;
+    }
+
 
     private enum MatchResult {
         MATCH,
