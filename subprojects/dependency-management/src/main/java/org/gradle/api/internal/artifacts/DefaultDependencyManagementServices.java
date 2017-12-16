@@ -64,7 +64,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
-import org.gradle.api.internal.artifacts.transform.VariantAttributeMatchingCache;
+import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -270,7 +270,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             startParameter.isBuildProjectDependencies(),
                             attributesSchema,
                             new DefaultArtifactTransforms(
-                                new VariantAttributeMatchingCache(
+                                new ConsumerProvidedVariantFinder(
                                     variantTransforms,
                                     attributesSchema,
                                     attributesFactory),

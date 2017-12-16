@@ -41,7 +41,7 @@ import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORM
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DefaultArtifactTransformsTest extends Specification {
-    def matchingCache = Mock(VariantAttributeMatchingCache)
+    def matchingCache = Mock(ConsumerProvidedVariantFinder)
     def producerSchema = Mock(AttributesSchemaInternal)
     def consumerSchema = Mock(AttributesSchemaInternal)
     def attributeMatcher = Mock(AttributeMatcher)

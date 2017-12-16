@@ -29,13 +29,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class VariantAttributeMatchingCache {
+/**
+ * Finds all the variants that can be created from a given producer variant using
+ * the consumer's variant transformations. Transformations can be chained. If multiple
+ * chains can lead to the same outcome, the shortest path is selected.
+ *
+ * Caches the results, as often the same request is made for many components in a
+ * dependency graph.
+ */
+public class ConsumerProvidedVariantFinder {
     private final VariantTransformRegistry variantTransforms;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
     private final Map<AttributeContainer, AttributeSpecificCache> attributeSpecificCache = Maps.newConcurrentMap();
 
-    public VariantAttributeMatchingCache(VariantTransformRegistry variantTransforms, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory) {
+    public ConsumerProvidedVariantFinder(VariantTransformRegistry variantTransforms, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory) {
         this.variantTransforms = variantTransforms;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
