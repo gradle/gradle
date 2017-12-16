@@ -27,4 +27,3 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
         result.testClass('org.gradle.OtherTest').assertTestPassed('otherTest2')
     }
 }
-

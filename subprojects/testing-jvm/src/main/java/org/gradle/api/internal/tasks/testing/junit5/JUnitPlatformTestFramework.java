@@ -8,6 +8,7 @@ import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.tasks.testing.junit5.JUnitPlatformOptions;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
@@ -56,7 +57,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
     private static class TestClassProcessorFactoryImpl implements  WorkerTestClassProcessorFactory, Serializable {
         @Override
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new JUnitPlatformTestClassProcessor(serviceRegistry.get(ActorFactory.class), serviceRegistry.get(Clock.class));
+            return new JUnitPlatformTestClassProcessor(serviceRegistry.get(Clock.class));
         }
     }
 }

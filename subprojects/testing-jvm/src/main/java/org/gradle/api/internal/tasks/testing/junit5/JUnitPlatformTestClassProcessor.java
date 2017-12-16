@@ -1,11 +1,8 @@
 package org.gradle.api.internal.tasks.testing.junit5;
 
 import org.gradle.api.internal.tasks.testing.*;
-import org.gradle.api.internal.tasks.testing.junit.JUnitSpec;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.actor.Actor;
-import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
@@ -26,22 +23,17 @@ import java.util.function.Predicate;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 public class JUnitPlatformTestClassProcessor implements TestClassProcessor {
-    private final ActorFactory actorFactory;
     private final Clock clock;
     private Launcher launcher;
-    private Actor resultProcessorActor;
 
-    public JUnitPlatformTestClassProcessor(ActorFactory actorFactory, Clock clock) {
-        this.actorFactory = actorFactory;
+    public JUnitPlatformTestClassProcessor(Clock clock) {
         this.clock = clock;
     }
 
     @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
-        resultProcessorActor = actorFactory.createBlockingActor(resultProcessor);
-        TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         this.launcher = LauncherFactory.create();
-        launcher.registerTestExecutionListeners(new GradleTestExecutionListener(threadSafeResultProcessor, clock));
+        launcher.registerTestExecutionListeners(new GradleTestExecutionListener(new InspectingTestResultProcessor(resultProcessor), clock));
     }
 
     @Override
@@ -56,7 +48,59 @@ public class JUnitPlatformTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stop() {
-        resultProcessorActor.stop();
+        // do nothing
+    }
+
+    private static class InspectingTestResultProcessor implements TestResultProcessor {
+        private final TestResultProcessor delegate;
+
+        public InspectingTestResultProcessor(TestResultProcessor delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void started(TestDescriptorInternal test, TestStartEvent event) {
+            try {
+                System.out.println("Processor started: " + test + " (" + event + ")");
+                delegate.started(test, event);
+            } catch (Throwable e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public void completed(Object testId, TestCompleteEvent event) {
+            try {
+                System.out.println("Processor completed: " + testId + " (" + event + ")");
+                delegate.completed(testId, event);
+            } catch (Throwable e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public void output(Object testId, TestOutputEvent event) {
+            try {
+                System.out.println("Processor output: " + testId + " (" + event + ")");
+                delegate.output(testId, event);
+            } catch (Throwable e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public void failure(Object testId, Throwable result) {
+            try {
+                System.out.println("Processor failure: " + testId + " (" + result.getMessage() + ")");
+                delegate.failure(testId, result);
+            } catch (Throwable e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private static class GradleTestExecutionListener implements TestExecutionListener {
@@ -170,73 +214,23 @@ public class JUnitPlatformTestClassProcessor implements TestClassProcessor {
                             return descriptorCache.get(s);
                         }
                     }).orElse(null);
-                    return new JUnitPlatformTestDescriptor(test, parent);
+                    if (test.getSource().isPresent()) {
+                        TestSource rawSource = test.getSource().get();
+                        if (rawSource instanceof MethodSource) {
+                            MethodSource source = (MethodSource) rawSource;
+                            return new DefaultTestMethodDescriptor(test.getUniqueId(), source.getClassName(), source.getMethodName());
+                        } else if (rawSource instanceof ClassSource) {
+                            ClassSource source = (ClassSource) rawSource;
+                            return new DefaultTestClassDescriptor(test.getUniqueId(), source.getClassName());
+                        }
+                    }
+                    if (test.isContainer()) {
+                        return new DefaultTestSuiteDescriptor(test.getUniqueId(), test.getLegacyReportingName());
+                    } else {
+                        return new DefaultTestDescriptor(test.getUniqueId(), null, test.getLegacyReportingName());
+                    }
                 }
             });
-        }
-    }
-
-    private static class JUnitPlatformTestDescriptor implements TestDescriptorInternal {
-        private final TestDescriptorInternal parent;
-        private final Object id;
-        private final String name;
-        private final String className;
-        private final boolean composite;
-
-        public JUnitPlatformTestDescriptor(TestIdentifier test, TestDescriptorInternal parent) {
-            this.parent = parent;
-            this.id = test.getUniqueId();
-            this.name = test.getLegacyReportingName();
-            this.composite = test.isContainer();
-
-            if (test.getSource().isPresent()) {
-                TestSource rawSource = test.getSource().get();
-                if (rawSource instanceof MethodSource) {
-                    MethodSource source = (MethodSource) rawSource;
-                    this.className = source.getClassName();
-                } else if (rawSource instanceof ClassSource) {
-                    ClassSource source = (ClassSource) rawSource;
-                    this.className = source.getClassName();
-                } else {
-                    this.className = null;
-                }
-            } else {
-                this.className = null;
-            }
-
-        }
-
-        @Nullable
-        @Override
-        public TestDescriptorInternal getParent() {
-            return parent;
-        }
-
-        @Override
-        public Object getId() {
-            return id;
-        }
-
-        @Nullable
-        @Override
-        public Object getOwnerBuildOperationId() {
-            return null;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Nullable
-        @Override
-        public String getClassName() {
-            return className;
-        }
-
-        @Override
-        public boolean isComposite() {
-            return composite;
         }
     }
 }
