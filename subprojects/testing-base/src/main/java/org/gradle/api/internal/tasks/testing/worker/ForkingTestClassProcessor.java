@@ -110,7 +110,8 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getExternalModule("native-platform").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("kryo").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("commons-lang").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("junit").getImplementationClasspath().getAsURLs()
+            moduleRegistry.getExternalModule("junit").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("junit-platform-launcher").getImplementationClasspath().getAsURLs()
         );
     }
 

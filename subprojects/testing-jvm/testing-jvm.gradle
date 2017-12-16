@@ -26,7 +26,7 @@ dependencies {
     compile libraries.testng
     compile libraries.bsh
 
-    compileOnly libraries.junitPlatform
+    compile libraries.junitPlatform
 
     testCompile 'com.google.inject:guice:2.0@jar' // this is for TestNG
 

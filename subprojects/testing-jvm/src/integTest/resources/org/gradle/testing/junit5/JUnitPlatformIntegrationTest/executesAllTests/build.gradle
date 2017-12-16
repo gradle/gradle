@@ -1,0 +1,19 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.2'
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.2'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'started', 'skipped', 'failed', 'started'
+        showStandardStreams = true
+    }
+    systemProperty 'java.util.logging.config.file', file('logging.properties').absolutePath
+}
