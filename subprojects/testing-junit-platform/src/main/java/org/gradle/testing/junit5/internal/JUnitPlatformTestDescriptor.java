@@ -19,14 +19,21 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.junit.platform.launcher.TestIdentifier;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 
-public class JUnitPlatformTestDescriptor implements TestDescriptorInternal {
-    private final TestIdentifier test;
+public class JUnitPlatformTestDescriptor implements TestDescriptorInternal, Serializable {
     private final TestDescriptorInternal parent;
+    private final Object id;
+    private final String name;
+    private final String className;
+    private final boolean composite;
 
     public JUnitPlatformTestDescriptor(TestIdentifier test, TestDescriptorInternal parent) {
-        this.test = test;
         this.parent = parent;
+        this.id = test.getUniqueId();
+        this.name = test.getLegacyReportingName();
+        this.className = null; // TODO
+        this.composite = test.isContainer();
     }
 
     @Nullable
@@ -37,7 +44,7 @@ public class JUnitPlatformTestDescriptor implements TestDescriptorInternal {
 
     @Override
     public Object getId() {
-        return test.getUniqueId();
+        return id;
     }
 
     @Nullable
@@ -48,17 +55,17 @@ public class JUnitPlatformTestDescriptor implements TestDescriptorInternal {
 
     @Override
     public String getName() {
-        return test.getLegacyReportingName();
+        return name;
     }
 
     @Nullable
     @Override
     public String getClassName() {
-        return null;
+        return className;
     }
 
     @Override
     public boolean isComposite() {
-        return test.isContainer();
+        return composite;
     }
 }

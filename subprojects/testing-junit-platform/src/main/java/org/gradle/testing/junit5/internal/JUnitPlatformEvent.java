@@ -15,18 +15,19 @@
  */
 package org.gradle.testing.junit5.internal;
 
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.junit.platform.launcher.TestIdentifier;
 
 import java.io.Serializable;
 
 public class JUnitPlatformEvent implements Serializable {
-    private final TestIdentifier test;
+    private final TestDescriptorInternal test;
     private final Type type;
     private final long time;
     private final String message;
     private final Throwable error;
 
-    public JUnitPlatformEvent(TestIdentifier test, Type type, long time, String message, Throwable error) {
+    public JUnitPlatformEvent(TestDescriptorInternal test, Type type, long time, String message, Throwable error) {
         this.test = test;
         this.type = type;
         this.time = time;
@@ -34,7 +35,7 @@ public class JUnitPlatformEvent implements Serializable {
         this.error = error;
     }
 
-    public TestIdentifier getTest() {
+    public TestDescriptorInternal getTest() {
         return test;
     }
 

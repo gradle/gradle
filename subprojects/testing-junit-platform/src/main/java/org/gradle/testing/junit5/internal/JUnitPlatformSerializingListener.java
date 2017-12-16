@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class JUnitPlatformSerializingListener implements TestExecutionListener {
+    private final Map<String, TestDescriptorInternal> descriptorCache = new ConcurrentHashMap<>();
     private final ObjectOutputStream outputStream;
 
     public JUnitPlatformSerializingListener(ObjectOutputStream outputStream) {
@@ -42,37 +43,47 @@ public class JUnitPlatformSerializingListener implements TestExecutionListener {
 
     @Override
     public void testPlanExecutionStarted(TestPlan testPlan) {
+        System.out.println("Test plan started: " + testPlan.countTestIdentifiers(id -> true));
         // ignore for now
     }
 
     @Override
     public void testPlanExecutionFinished(TestPlan testPlan) {
+        System.out.println("Test plan ended");
         // ignore for now
     }
 
     @Override
     public void dynamicTestRegistered(TestIdentifier testIdentifier) {
+        System.out.println("Dynamic test: " + testIdentifier);
         // ignore for now
     }
 
     @Override
     public void executionSkipped(TestIdentifier testIdentifier, String reason) {
-        sendEvent(new JUnitPlatformEvent(testIdentifier, JUnitPlatformEvent.Type.SKIPPED, Instant.now().getEpochSecond(), null, null));
+        System.out.println("Test skipped: " + testIdentifier);
+        TestDescriptorInternal test = getDescriptor(testIdentifier);
+        sendEvent(new JUnitPlatformEvent(test, JUnitPlatformEvent.Type.SKIPPED, Instant.now().getEpochSecond(), null, null));
     }
 
     @Override
     public void executionStarted(TestIdentifier testIdentifier) {
-        sendEvent(new JUnitPlatformEvent(testIdentifier, JUnitPlatformEvent.Type.START, Instant.now().getEpochSecond(), null, null));
+        System.out.println("Test started: " + testIdentifier);
+        TestDescriptorInternal test = getDescriptor(testIdentifier);
+        sendEvent(new JUnitPlatformEvent(test, JUnitPlatformEvent.Type.START, Instant.now().getEpochSecond(), null, null));
     }
 
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+        System.out.println("Test finished: " + testIdentifier + " " + testExecutionResult.getStatus());
+        TestDescriptorInternal test = getDescriptor(testIdentifier);
         JUnitPlatformEvent.Type type =  testExecutionResult.getStatus() == TestExecutionResult.Status.SUCCESSFUL ? JUnitPlatformEvent.Type.SUCCEEDED : JUnitPlatformEvent.Type.FAILED;
-        sendEvent(new JUnitPlatformEvent(testIdentifier, type, Instant.now().getEpochSecond(), null, testExecutionResult.getThrowable().orElse(null)));
+        sendEvent(new JUnitPlatformEvent(test, type, Instant.now().getEpochSecond(), null, testExecutionResult.getThrowable().orElse(null)));
     }
 
     @Override
     public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
+        System.out.println("Test reporting: " + testIdentifier + " " + entry);
         // ignore for now
     }
 
@@ -82,5 +93,15 @@ public class JUnitPlatformSerializingListener implements TestExecutionListener {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+
+    private TestDescriptorInternal getDescriptor(TestIdentifier test) {
+        return descriptorCache.computeIfAbsent(test.getUniqueId(), id -> {
+            TestDescriptorInternal parent = test.getParentId()
+                .map(descriptorCache::get)
+                .orElse(null);
+            return new JUnitPlatformTestDescriptor(test, parent);
+        });
     }
 }

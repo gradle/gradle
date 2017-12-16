@@ -65,8 +65,9 @@ public class JUnitPlatformPlugin implements Plugin<Project> {
                 test.workingDir(project.getProjectDir());
 
                 SourceSet sourceSet = pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
-                test.classpathRoots.from(sourceSet.getOutput().getClassesDirs());
+                test.classpathRoots.from(sourceSet.getOutput());
                 test.classpath.from(sourceSet.getRuntimeClasspath());
+                test.dependsOn(sourceSet.getClassesTaskName());
             }
         });
         JUnitPlatformTest test = project.getTasks().create(TEST_TASK_NAME, JUnitPlatformTest.class);

@@ -21,7 +21,6 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.workers.IsolationMode;
 import org.gradle.workers.WorkerExecutor;
-import org.junit.platform.launcher.TestIdentifier;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -32,9 +31,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.Channels;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class JUnitPlatformTestExecutor implements TestExecuter<JUnitPlatformTestExecutionSpec> {
     private final WorkerExecutor workerExecutor;
@@ -62,7 +59,6 @@ public class JUnitPlatformTestExecutor implements TestExecuter<JUnitPlatformTest
     }
 
     private static class EventHandler implements Runnable {
-        private final Map<String, TestDescriptorInternal> descriptorCache = new ConcurrentHashMap<>();
         private final SocketChannel socket;
         private final TestResultProcessor testResultProcessor;
 
@@ -77,27 +73,26 @@ public class JUnitPlatformTestExecutor implements TestExecuter<JUnitPlatformTest
                 Object obj = stream.readObject();
                 while (obj != null) {
                     JUnitPlatformEvent event = (JUnitPlatformEvent) obj;
-                    TestDescriptorInternal test = getDescriptor(event.getTest());
                     switch (event.getType()) {
                         case START:
-                            Object parentId = Optional.ofNullable(test.getParent())
+                            Object parentId = Optional.ofNullable(event.getTest().getParent())
                                 .map(TestDescriptorInternal::getId)
                                 .orElse(null);
-                            testResultProcessor.started(test, new TestStartEvent(event.getTime(), parentId));
+                            testResultProcessor.started(event.getTest(), new TestStartEvent(event.getTime(), parentId));
                             break;
                         case OUTPUT:
                             // TODO differentiate between err and out
-                            testResultProcessor.output(test.getId(), new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, event.getMessage()));
+                            testResultProcessor.output(event.getTest().getId(), new DefaultTestOutputEvent(TestOutputEvent.Destination.StdOut, event.getMessage()));
                             break;
                         case SKIPPED:
-                            testResultProcessor.completed(test.getId(), new TestCompleteEvent(event.getTime(), TestResult.ResultType.SKIPPED));
+                            testResultProcessor.completed(event.getTest().getId(), new TestCompleteEvent(event.getTime(), TestResult.ResultType.SKIPPED));
                             break;
                         case FAILED:
-                            testResultProcessor.failure(test.getId(), event.getError());
-                            testResultProcessor.completed(test.getId(), new TestCompleteEvent(event.getTime(), TestResult.ResultType.FAILURE));
+                            testResultProcessor.failure(event.getTest().getId(), event.getError());
+                            testResultProcessor.completed(event.getTest().getId(), new TestCompleteEvent(event.getTime(), TestResult.ResultType.FAILURE));
                             break;
                         case SUCCEEDED:
-                            testResultProcessor.completed(test.getId(), new TestCompleteEvent(event.getTime(), TestResult.ResultType.SUCCESS));
+                            testResultProcessor.completed(event.getTest().getId(), new TestCompleteEvent(event.getTime(), TestResult.ResultType.SUCCESS));
                             break;
                     }
                     obj = stream.readObject();
@@ -110,15 +105,6 @@ public class JUnitPlatformTestExecutor implements TestExecuter<JUnitPlatformTest
                 // TODO better exception
                 throw new RuntimeException(e);
             }
-        }
-
-        private TestDescriptorInternal getDescriptor(TestIdentifier test) {
-            return descriptorCache.computeIfAbsent(test.getUniqueId(), id -> {
-                TestDescriptorInternal parent = test.getParentId()
-                    .map(descriptorCache::get)
-                    .orElse(null);
-                return new JUnitPlatformTestDescriptor(test, parent);
-            });
         }
     }
 
