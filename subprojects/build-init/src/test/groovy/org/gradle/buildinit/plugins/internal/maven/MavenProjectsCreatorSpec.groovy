@@ -141,4 +141,45 @@ class MavenProjectsCreatorSpec extends Specification {
         then:
         gradleProject.contains("compileOnly group: 'org.gradle', name: 'build-init', version:'1.0.0'")
     }
+
+
+    def "creates multi module project with same artifactId"() {
+        given:
+        def parentPom = temp.file("pom.xml")
+        parentPom.text = """<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gradle.parent</groupId>
+  <artifactId>webinar</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>webinar</module>
+  </modules>
+</project>
+"""
+
+        temp.file("webinar/pom.xml").text = """<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gradle.parent.subgroup</groupId>
+  <artifactId>webinar</artifactId>
+  <packaging>jar</packaging>
+
+  <parent>
+    <groupId>org.gradle.parent</groupId>
+    <artifactId>webinar</artifactId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+</project>
+"""
+
+        when:
+        def mavenProjects = creator.create(settings.buildSettings(), parentPom) as List
+
+        then:
+        mavenProjects.size() == 2
+        mavenProjects[0].name == 'webinar'
+        mavenProjects[1].name == 'webinar'
+    }
+
 }
