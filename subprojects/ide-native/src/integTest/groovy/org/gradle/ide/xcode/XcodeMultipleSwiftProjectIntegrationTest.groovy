@@ -201,9 +201,9 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
-            ":cppGreeter:xcodeProject", ":cppGreeter:xcodeProjectWorkspaceSettings", ":cppGreeter:xcodeSchemeCppGreeterSharedLibrary", ":cppGreeter:xcode",
-            ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeSchemeHelloSharedLibrary", ":hello:xcode",
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+            ":cppGreeter:xcodeProject", ":cppGreeter:xcodeProjectWorkspaceSettings", ":cppGreeter:xcodeScheme", ":cppGreeter:xcode",
+            ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeScheme", ":hello:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'cppGreeter/cppGreeter.xcodeproj', 'hello/hello.xcodeproj')
@@ -221,7 +221,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         when:
         def resultDebugApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
 
         then:
@@ -232,7 +232,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         when:
         def resultReleaseHello = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('Hello SharedLibrary')
+            .withScheme('Hello')
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 

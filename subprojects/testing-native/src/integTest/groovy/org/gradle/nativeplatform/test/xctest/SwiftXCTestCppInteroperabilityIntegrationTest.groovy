@@ -23,15 +23,12 @@ import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDepXCTest
-import org.gradle.nativeplatform.fixtures.xctest.XCTestFinderFixture
 
 class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     def setup() {
-        def xcTestFinder = new XCTestFinderFixture(swiftToolChain)
         buildFile << """
             apply plugin: 'xctest'
         """
-        buildFile << xcTestFinder.buildscript()
     }
 
     def "can depend on a c++ library"() {

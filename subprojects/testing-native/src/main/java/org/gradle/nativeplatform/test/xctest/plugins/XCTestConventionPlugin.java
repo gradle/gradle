@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
@@ -256,7 +255,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
                         // Test configuration extends main configuration
                         testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
-                        project.getDependencies().add(((Configuration)(testSuite.getDevelopmentBinary().get().getCompileModules())).getName(), project);
+                        project.getDependencies().add(((DefaultSwiftXCTestBinary) testSuite.getDevelopmentBinary().get()).getImportPathConfiguration().getName(), project);
 
                         // Configure test suite link task from tested component compiled objects
                         final AbstractLinkTask linkTest = ((SwiftXCTestBinary) testExecutable).getLinkTask().get();
