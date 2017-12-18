@@ -38,7 +38,7 @@ class SamplesSmokeTest(
         build("tasks")
     }
 
-    //@Test
+    @Test
     fun `uses the right Kotlin Gradle Plugin version on `() {
 
         val projectPaths = listOf(":") + listSubProjectPaths().map { "$it:" }
