@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.internal.tasks;
 
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Exclusion;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
@@ -26,6 +27,7 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
+import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.xml.XmlTransformer;
@@ -60,6 +62,14 @@ public class MavenPomFileGenerator {
 
     private Model getModel() {
         return model;
+    }
+
+    public void addApiDependencyManagement(MavenDependency apiDependency) {
+        addDependencyManagement(apiDependency, "compile");
+    }
+
+    public void addRuntimeDependencyManagement(MavenDependency dependency) {
+        addDependencyManagement(dependency, "runtime");
     }
 
     public void addRuntimeDependency(MavenDependencyInternal dependency) {
@@ -97,6 +107,21 @@ public class MavenPomFileGenerator {
         }
 
         getModel().addDependency(mavenDependency);
+    }
+
+    private void addDependencyManagement(MavenDependency dependency, String scope) {
+        Dependency mavenDependency = new Dependency();
+        mavenDependency.setGroupId(dependency.getGroupId());
+        mavenDependency.setArtifactId(dependency.getArtifactId());
+        mavenDependency.setVersion(mapToMavenSyntax(dependency.getVersion()));
+        mavenDependency.setScope(scope);
+
+        DependencyManagement dependencyManagement = getModel().getDependencyManagement();
+        if (dependencyManagement == null) {
+            dependencyManagement = new DependencyManagement();
+            getModel().setDependencyManagement(dependencyManagement);
+        }
+        dependencyManagement.addDependency(mavenDependency);
     }
 
     private String mapToMavenSyntax(String version) {

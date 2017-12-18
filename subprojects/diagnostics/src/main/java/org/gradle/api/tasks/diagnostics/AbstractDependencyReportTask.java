@@ -102,5 +102,5 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
     }
 
     @Internal
-    abstract public ConfigurationContainer getTaskConfigurations();
+    public abstract ConfigurationContainer getTaskConfigurations();
 }

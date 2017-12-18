@@ -17,12 +17,33 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.process.internal.streams.EmptyStdInStreamsHandler
+import org.gradle.process.internal.streams.ForwardStdinStreamsHandler
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+import java.util.concurrent.Executor
+
 @UsesNativeServices
 class DefaultExecHandleBuilderTest extends Specification {
-    private final DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.resolver())
+    private final DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.resolver(), Mock(Executor))
+
+    def defaultsToEmptyStandardInput() {
+        expect:
+        builder.standardInput.read() < 0
+        builder.inputHandler instanceof EmptyStdInStreamsHandler
+    }
+
+    def canAttachAStandardInputStream() {
+        def inputStream = new ByteArrayInputStream()
+
+        when:
+        builder.standardInput = inputStream
+
+        then:
+        builder.standardInput == inputStream
+        builder.inputHandler instanceof ForwardStdinStreamsHandler
+    }
 
     def handlesCommandLineWithNoArgs() {
         when:

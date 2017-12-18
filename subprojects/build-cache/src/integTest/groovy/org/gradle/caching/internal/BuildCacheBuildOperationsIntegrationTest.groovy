@@ -160,6 +160,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         sizeDiff > -100 && sizeDiff < 100
 
         unpackOp.result.archiveEntryCount == 4
+        unpackOp.result.originalExecutionTime > 0
     }
 
     def "records load failure"() {
@@ -227,10 +228,10 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         succeeds("t")
 
         then:
-        def failedLoadOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)
-        failedLoadOp.details.cacheKey != null
-        failedLoadOp.result == null
-        failedLoadOp.failure =~ /org.gradle.api.UncheckedIOException:.* not.there/
+        def failedUnpackOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)
+        failedUnpackOp.details.cacheKey != null
+        failedUnpackOp.result == null
+        failedUnpackOp.failure =~ /org.gradle.api.UncheckedIOException:.* not.there/
     }
 
     def "records ops for miss then store"() {
@@ -320,6 +321,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         }
 
         unpackOp.result.archiveEntryCount == 4
+        unpackOp.result.originalExecutionTime > 0
         unpackOp.details.archiveSize == remoteHitLoadOp.result.archiveSize
 
         operations.orderedSerialSiblings(remoteHitLoadOp, unpackOp)

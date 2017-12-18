@@ -51,7 +51,7 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
     MutableMavenModuleResolveMetadata metadata
 
     def "setup"() {
-        pomFile = tmpDir.file('foo')
+        pomFile = tmpDir.file('test-pom.xml')
     }
 
     protected void parsePom() {

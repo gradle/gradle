@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Factory;
 
 public abstract class LanguageLibraryProjectInitDescriptor implements ProjectInitDescriptor {
@@ -34,6 +35,11 @@ public abstract class LanguageLibraryProjectInitDescriptor implements ProjectIni
         this.templateOperationFactory = templateOperationFactory;
         this.libraryVersionProvider = libraryVersionProvider;
         this.globalSettingsDescriptor = globalSettingsDescriptor;
+    }
+
+    @Override
+    public boolean supports(BuildInitDsl dsl) {
+        return true;
     }
 
     protected TemplateOperation whenNoSourcesAvailable(TemplateOperation... operations) {

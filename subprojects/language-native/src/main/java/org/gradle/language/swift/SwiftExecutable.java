@@ -20,6 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
 
 /**
  * An executable built from Swift source.
@@ -48,4 +50,25 @@ public interface SwiftExecutable extends SwiftBinary {
      * @since 4.4
      */
     Provider<RegularFile> getRunScriptFile();
+
+    /**
+     * Returns the link task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<LinkExecutable> getLinkTask();
+
+    /**
+     * Returns the install task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<InstallExecutable> getInstallTask();
+
+    /**
+     * Returns the executable file to use with a debugger for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<RegularFile> getDebuggerExecutableFile();
 }

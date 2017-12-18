@@ -22,9 +22,9 @@ import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.ExecResult;
-import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +37,11 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompiler.class);
 
     private final CompileSpecToArguments<JavaCompileSpec> argumentsGenerator = new CommandLineJavaCompilerArgumentsGenerator();
+    private final ExecHandleFactory execHandleFactory;
+
+    public CommandLineJavaCompiler(ExecHandleFactory execHandleFactory) {
+        this.execHandleFactory = execHandleFactory;
+    }
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
@@ -51,7 +56,7 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
     }
 
     private ExecHandle createCompilerHandle(String executable, JavaCompileSpec spec) {
-        ExecHandleBuilder builder = new DefaultExecHandleBuilder();
+        ExecHandleBuilder builder = execHandleFactory.newExec();
         builder.setWorkingDir(spec.getWorkingDir());
         builder.setExecutable(executable);
         argumentsGenerator.collectArguments(spec, new ExecSpecBackedArgCollector(builder));

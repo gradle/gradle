@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.Sets;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,7 +30,7 @@ public class ClassSetAnalysis {
         this.data = data;
     }
 
-    public DependentsSet getRelevantDependents(Iterable<String> classes, Set<Integer> constants) {
+    public DependentsSet getRelevantDependents(Iterable<String> classes, IntSet constants) {
         Set<String> result = null;
         for (String cls : classes) {
             DependentsSet d = getRelevantDependents(cls, constants);
@@ -48,7 +49,7 @@ public class ClassSetAnalysis {
         return result == null ? DefaultDependentsSet.EMPTY : new DefaultDependentsSet(result);
     }
 
-    public DependentsSet getRelevantDependents(String className, Set<Integer> constants) {
+    public DependentsSet getRelevantDependents(String className, IntSet constants) {
         DependentsSet deps = data.getDependents(className);
         if (deps != null && deps.isDependencyToAll()) {
             return deps;

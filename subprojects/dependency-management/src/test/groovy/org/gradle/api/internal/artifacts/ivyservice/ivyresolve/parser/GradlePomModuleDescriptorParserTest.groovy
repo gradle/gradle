@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.hash.HashUtil
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -201,7 +202,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         hasDefaultDependencyArtifact(dep)
     }
 
-    def "throws exception if parent pom dependency management section does not provide default values for dependency"() {
+    def "uses empty version if parent pom dependency management section does not provide default values for dependency"() {
         given:
         def parent = tmpDir.file("parent.xml") << """
 <project>
@@ -250,9 +251,8 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        Throwable t = thrown(MetaDataParseException)
-        t.cause instanceof UnresolvedDependencyVersionException
-        t.cause.message == "Unable to resolve version for dependency 'group-two:artifact-two:jar'"
+        def dep = single(metadata.dependencies)
+        dep.selector == moduleId('group-two', 'artifact-two', '')
     }
 
     def "uses parent pom dependency management section to provide default values for a dependency"() {
@@ -1883,8 +1883,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         hasDependencyArtifact(depTest, 'artifact-two', 'test-jar', 'jar', 'tests')
     }
 
-    @Issue("GRADLE-2931")
-    def "throws exception if parent dependency management doesn't provide correct defaults for dependency"() {
+    def "parent dependency management applies does not apply to dependency with different type"() {
         given:
         def parent = tmpDir.file("parent.xml") << """
 <project>
@@ -1939,9 +1938,12 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        Throwable t = thrown(MetaDataParseException)
-        t.cause instanceof UnresolvedDependencyVersionException
-        t.cause.message == "Unable to resolve version for dependency 'group-two:artifact-two:test-jar'"
+        metadata.dependencies.size() == 2
+        def dep1 = metadata.dependencies.find { it.dependencyArtifact == null }
+        dep1.selector == moduleId('group-two', 'artifact-two', '1.1')
+        def dep2 = metadata.dependencies.find { it.dependencyArtifact != null }
+        dep2.selector == moduleId('group-two', 'artifact-two', '')
+        dep2.dependencyArtifact == new DefaultIvyArtifactName('artifact-two', 'test-jar', 'jar', 'tests')
     }
 
     @Issue("GRADLE-2931")

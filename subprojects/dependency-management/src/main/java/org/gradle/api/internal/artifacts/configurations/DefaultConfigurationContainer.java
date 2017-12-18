@@ -42,7 +42,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.vcs.internal.VcsMappingsInternal;
+import org.gradle.vcs.internal.VcsMappingsStore;
 
 import java.util.Collection;
 import java.util.Set;
@@ -73,7 +73,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
                                          FileCollectionFactory fileCollectionFactory,
                                          final DependencySubstitutionRules globalDependencySubstitutionRules,
-                                         final VcsMappingsInternal vcsMappingsInternal,
+                                         final VcsMappingsStore vcsMappingsStore,
                                          final ComponentIdentifierFactory componentIdentifierFactory,
                                          BuildOperationExecutor buildOperationExecutor,
                                          TaskResolver taskResolver,
@@ -95,7 +95,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         resolutionStrategyFactory = new Factory<ResolutionStrategyInternal>() {
             @Override
             public ResolutionStrategyInternal create() {
-                return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter);
+                return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsStore, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter);
             }
         };
         this.rootComponentMetadataBuilder = new DefaultRootComponentMetadataBuilder(dependencyMetaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, configurationComponentMetaDataBuilder, this);

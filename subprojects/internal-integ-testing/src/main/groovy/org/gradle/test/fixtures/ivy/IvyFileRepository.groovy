@@ -69,10 +69,9 @@ class IvyFileRepository implements IvyRepository {
     }
 
     private IvyFileModule createModule(String organisation, String module, String revision) {
-        def revisionString = revision.toString()
         def modulePath = getDirPath(organisation, module, revision)
         def moduleDir = rootDir.file(modulePath)
-        return new IvyFileModule(ivyFilePattern, artifactFilePattern, modulePath, moduleDir, organisation, module, revisionString, m2Compatible)
+        return new IvyFileModule(ivyFilePattern, artifactFilePattern, modulePath, moduleDir, organisation, module, revision, m2Compatible)
     }
 }
 

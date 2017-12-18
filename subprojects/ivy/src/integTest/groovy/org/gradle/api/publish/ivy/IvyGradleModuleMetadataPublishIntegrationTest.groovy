@@ -300,4 +300,61 @@ class TestVariant implements org.gradle.api.internal.component.SoftwareComponent
         variant.dependencyConstraints[0].rejectsVersion == []
     }
 
+    def "publishes component with version rejects"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    attributes: configurations.implementation.attributes))
+
+            dependencies {
+                implementation("org:foo") {
+                    version {
+                        prefer '1.0'
+                        reject '1.1', '[1.3,1.4]'
+                    }
+                }
+                implementation("org:bar:2.0")
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from comp
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module('group', 'root', '1.0')
+        module.assertPublished()
+        module.parsedModuleMetadata.variants.size() == 1
+        def variant = module.parsedModuleMetadata.variants[0]
+        variant.dependencies.size() == 2
+
+        variant.dependencies[0].group == 'org'
+        variant.dependencies[0].module == 'foo'
+        variant.dependencies[0].version == '1.0'
+        variant.dependencies[0].rejectsVersion == ['1.1', '[1.3,1.4]']
+
+        variant.dependencies[1].group == 'org'
+        variant.dependencies[1].module == 'bar'
+        variant.dependencies[1].version == '2.0'
+        variant.dependencies[1].rejectsVersion == []
+    }
 }

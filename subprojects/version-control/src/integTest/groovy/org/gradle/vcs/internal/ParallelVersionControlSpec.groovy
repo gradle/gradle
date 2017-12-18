@@ -80,7 +80,7 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
 
         def source = repo.workTree.file('source')
         source.text = 'hello world'
-        repo.commit('initial commit', source)
+        repo.commit('initial commit')
 
         expect:
         succeeds('clone', '--parallel', '--max-workers=4')
@@ -104,7 +104,7 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
 
         def source = repo.workTree.file('source')
         source.text = 'hello world'
-        repo.commit('initial commit', source)
+        repo.commit('initial commit')
 
         expect:
         succeeds('clone', '--parallel', '--max-workers=4')

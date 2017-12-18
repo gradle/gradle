@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.DelegatingIvyModule
 
 class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements PublishedJavaModule {
-    private final IvyFileModule backingModule
+    final IvyFileModule backingModule
     final List<ModuleArtifact> additionalArtifacts = []
 
     IvyJavaModule(IvyFileModule backingModule) {

@@ -28,17 +28,39 @@ Think of every feature section as a mini blog post.
 
 In this release, the Gradle team added a new chapter in the user guide documenting the [Provider API](userguide/lazy_configuration.html).
 
-### Cacheable C/C++ compilation  
+### Faster C/C++ compilation and builds
 
-We introduced [experimental C/C++ caching support](https://docs.gradle.org/4.3/release-notes.html#experimental-task-output-caching-for-c/c++-compilation) in Gradle 4.3, but this feature was hidden behind an additional flag.
+#### Build Cache Support
 
-In this release, we have removed the special flag.  If you [enable the build cache](current/userguide/build_cache.html#sec:build_cache_enable), Gradle will try to reuse task outputs from C/C++ compile tasks when all inputs (compiler flags, source, dependencies) are identical.
+We introduced [experimental C/C++ caching support](https://docs.gradle.org/4.3/release-notes.html#experimental-task-output-caching-for-c/c++-compilation) in Gradle 4.3, but this feature was hidden behind an additional flag until we had fixed some underlying correctness issues.
 
-### Improvement to C/C++ incremental compilation
+In this release, we have fixed some underlying issues with calculating the correct build cache key for C++ compilation and have removed the special flag.  If you [enable the build cache](userguide/build_cache.html#sec:build_cache_enable), Gradle will try to reuse task outputs from C/C++ compile tasks when all inputs (compiler flags, source, dependencies) are identical, which can [greatly reduce](https://blog.gradle.org/introducing-gradle-build-cache) build times.
 
-Gradle's incremental C/C++ compilation works by analysing and understanding the dependencies between source files and the header files that they include. Gradle can use this information to compile only those source files that are affected by a change to a header file. This means much faster builds. However, in some cases Gradle cannot analyze all of these dependencies, and in these cases it assumes all source files depend on all header files and recompiles all source files when any header file changes regardless of whether the change affects the compiler output or not. This also affects how well the Gradle build cache can be used to skip the compilation. None of this is good for performance.
+Please note that there are [some caveats](userguide/build_cache.html#sec:task_output_caching_known_issues_caveats) when using the build cache.  In particular for C++, object files that contain absolute paths (e.g., object files with debug information) are reusable and cacheable, but may cause problems when debugging.
 
-In this release, Gradle's incremental C/C++ compilation is now able to understand most dependencies between source files and header files. This means much better incremental compilation and more build cache hits. And this means faster builds.
+#### Incremental Compilation
+
+Gradle's incremental C/C++ compilation works by analysing and understanding the dependencies between source files and the header files that they include. Gradle can use this information to compile only those source files that are affected by a change in a header file. In some cases, Gradle could not analyze all of these dependencies and would assume all source files depend on all header files. Changes to any header file would require recompiling all source files, regardless of whether the compiler output would change or not. This also affected how well the Gradle build cache could be used to skip compilation.
+
+In this release, Gradle's incremental C/C++ compilation is now able to understand most dependencies between source files and header files. This means incremental compilation will occur more often and builds are more likely to see cache hits.
+
+### Arbitrary task property names
+
+When registering task properties via the runtime API, property names are not required to be Java identifiers anymore, and can be any non-empty string.
+
+### ANTLR task is now cacheable by default
+
+When generating grammar sources with ANTLR, now the task's outputs are stored and retrieved from the build cache.
+
+### The `init` task can now generate Kotlin DSL build scripts
+
+It is now possible to generate new Gradle builds using the Kotlin DSL with the help of the `init` task and its new `--dsl` option:
+
+    gradle init --dsl kotlin 
+
+The new option defaults to `groovy` and is supported by all build setup types except migration from Maven builds.
+
+See the user guide section on the [`init` plugin](userguide/build_init_plugin.html) for more information.
 
 ## Promoted features
 
@@ -64,9 +86,27 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Deprecation of no-search-upward command line options 
+
+The command line options for searching in parent directories for a `settings.gradle` file (`-u`/`--no-search-upward`) has been deprecated and will be removed in Gradle 5.0. A Gradle project should always define a `settings.gradle` file to avoid the performance overhead of walking parent directories.
+
+### Deprecation of `TaskInputs` and `TaskOutputs` methods
+
+Gradle 5.0 will remove support for the following methods:
+
+- `TaskInputs.getHasInputs()`
+- `TaskInputs.getHasSourceFiles()`
+- `TaskInputs.getSourceFiles()`
+- `TaskInputs.getProperties()`
+- `TaskOutputs.getHasOutput()`
+
+You can declare individual task properties and observe their values instead of calling these methods. The `TaskInputs.property()` and `properties()` methods can be used to declare non-file inputs.
+
 ## Potential breaking changes
 
 * Two overloaded `ValidateTaskProperties.setOutputFile()` methods were removed. They are replaced with auto-generated setters when the task is accessed from a build script.
+
+* The `maven-publish` plugin now produces more complete `maven-metadata.xml` files, including maintaining a list of `<snapshotVersion>` elements. Some older versions of Maven may not be able to consume this metadata.
 
 <!--
 ### Example breaking change
@@ -76,6 +116,23 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 When connecting to an HTTP build cache backend via [HttpBuildCache](dsl/org.gradle.caching.http.HttpBuildCache.html), Gradle does not follow redirects any more, and treats them as errors instead.
 Getting a redirect from the build cache backend is mostly a configuration error (e.g. using an http url instead of https), and has negative effects on performance.
+
+### Incubating `Depend` task removed
+
+TBD - removed `Depend` task, this capability has been merged into the compile tasks.
+
+### Gradle no longer tracks the canonical path of input file tree roots
+
+Gradle was inconsistently handling symlinks when snapshotting inputs. For the root of a file tree it would take the canonical path into account. For individual files and contents of trees,
+it would only consider the normalized path instead. Gradle will now always use the normalized path. This means that a task will not rerun if a directory is replaced with a symlink to the exact same contents.
+If you have a use case that requires reacting to the canonical path of inputs, please open an issue and we'll consider an opt-in API that will canonicalize all inputs, not just tree roots.
+
+### Project.file() no longer normalizes case
+
+The `Project.file()` and related methods used to normalize the case on case-insensitive file systems. This means that the method would check whether any parts of the hierarchy of a given file already
+existed in a different case and would adjust the given file accordingly. This lead to lots of IO during configuration time without a strong benefit. 
+
+The `Project.file()` method will now ignore case and only normalize redundant segments like `/../`. It will not touch the file system.
 
 ## External contributions
 
@@ -88,6 +145,7 @@ We would like to thank the following community members for making contributions 
 - [Nikita Skvortsov](https://github.com/nskvortsov) — Optimize generated IDEA dependencies (gradle/gradle#3460)
 - [Theodore Ni](https://github.com/tjni) — Ignored TestNG tests should not throw an exception (gradle/gradle#3570)
 - [James Wald](https://github.com/jameswald) — Introduce command line option for Wrapper task to set distribution SHA256 sum (gradle/gradle#1777)
+- [zosrothko](https://github.com/zosrothko) — Restore Eclipse contribution instructions (gradle/gradle#3715)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

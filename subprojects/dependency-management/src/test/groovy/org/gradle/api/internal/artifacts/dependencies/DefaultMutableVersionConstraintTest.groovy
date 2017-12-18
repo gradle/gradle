@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dependencies
 
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -96,5 +97,74 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.rejectedVersions == [']2.0,)']
     }
 
+    def "can declare rejected versions"() {
+        given:
+        def version = new DefaultMutableVersionConstraint('1.0')
+
+        when:
+        version.reject('1.0.1')
+
+        then:
+        version.preferredVersion == '1.0'
+        version.rejectedVersions == ['1.0.1']
+
+        when:
+        version.reject('1.0.2')
+
+        then:
+        version.preferredVersion == '1.0'
+        version.rejectedVersions == ['1.0.1', '1.0.2']
+    }
+
+    def "calling 'prefers' resets the list of rejects"() {
+        given:
+        def version = new DefaultMutableVersionConstraint('1.0')
+        version.reject('1.0.1')
+
+        when:
+        version.prefer('1.1')
+
+        then:
+        version.preferredVersion == '1.1'
+        version.rejectedVersions == []
+    }
+
+    def "calling 'strictly' resets the list of rejects"() {
+        given:
+        def version = new DefaultMutableVersionConstraint('1.0')
+        version.reject('1.0.1')
+
+        when:
+        version.strictly('1.1')
+
+        then:
+        version.preferredVersion == '1.1'
+        version.rejectedVersions == [']1.1,)']
+    }
+
+    def "cannot use an empty list of rejections"() {
+        given:
+        def version = new DefaultMutableVersionConstraint('1.0')
+
+        when:
+        version.reject()
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "The 'reject' clause requires at least one rejected version"
+    }
+
+    def "calling rejectAll is equivalent to having empty preferred version and '+' reject"() {
+        given:
+        def version = new DefaultMutableVersionConstraint('1.0')
+        version.reject('1.1', '1.2')
+
+        when:
+        version.rejectAll()
+
+        then:
+        version.preferredVersion == ''
+        version.getRejectedVersions() == ['+']
+    }
 
 }

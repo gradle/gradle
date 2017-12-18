@@ -18,7 +18,6 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
@@ -36,7 +35,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -103,20 +102,18 @@ public class ComponentAttributeMatcher {
         Set<Attribute<Object>> requestedAttributes = Cast.uncheckedCast(requested.keySet());
         Set<Attribute<Object>> candidateAttributes = Cast.uncheckedCast(candidate.keySet());
 
-        for (Iterator<Attribute<Object>> requestedIterator = requestedAttributes.iterator(); details.compatible && requestedIterator.hasNext();) {
-            Attribute<Object> attribute = requestedIterator.next();
+        for (Attribute<Object> attribute : requestedAttributes) {
             AttributeValue<?> requestedValue = requested.findEntry(attribute);
             AttributeValue<?> actualValue = candidate.findEntry(attribute.getName());
             if (actualValue.isPresent()) {
                 details.update(attribute, schema, requestedValue, actualValue);
             }
-        }
-        if (!details.compatible) {
-            return;
+            if (!details.compatible) {
+                return;
+            }
         }
 
-        for (Iterator<Attribute<Object>> candidateIterator = candidateAttributes.iterator(); details.compatible && candidateIterator.hasNext();) {
-            Attribute<Object> attribute = candidateIterator.next();
+        for (Attribute<Object> attribute : candidateAttributes) {
             if (requestedAttributes.contains(attribute)) {
                 continue;
             }
@@ -230,8 +227,8 @@ public class ComponentAttributeMatcher {
     }
 
     private static class MatchDetails<T extends HasAttributes> {
-        private final Map<Attribute<?>, Object> explicitMatches = Maps.newHashMap();
-        private final Map<Attribute<?>, Object> implicitMatches = Maps.newHashMap();
+        private Map<Attribute<?>, Object> explicitMatches;
+        private Map<Attribute<?>, Object> implicitMatches;
         private final ImmutableAttributes candidateAttributes;
         private final T candidate;
 
@@ -260,6 +257,9 @@ public class ComponentAttributeMatcher {
             DefaultCompatibilityCheckResult<Object> details = new DefaultCompatibilityCheckResult<Object>(consumerValue.get(), val);
             schema.matchValue(attribute, details);
             if (details.isCompatible()) {
+                if (explicitMatches == null) {
+                    explicitMatches = new HashMap<Attribute<?>, Object>(2, 0.5f);
+                }
                 explicitMatches.put(attribute, val);
             } else {
                 compatible = false;
@@ -267,15 +267,25 @@ public class ComponentAttributeMatcher {
         }
 
         void updateForMissingRequestedValue(Attribute<Object> attribute, Object producerValue) {
+            if (implicitMatches == null) {
+                implicitMatches = new HashMap<Attribute<?>, Object>(2, 0.5f);
+            }
             implicitMatches.put(attribute, producerValue);
         }
 
         Set<Attribute<?>> getExplicitMatches() {
-            return explicitMatches.keySet();
+            return explicitMatches == null ? Collections.<Attribute<?>>emptySet() : explicitMatches.keySet();
+        }
+
+        Set<Attribute<?>> getImplicitMatches() {
+            return implicitMatches == null ? Collections.<Attribute<?>>emptySet() : implicitMatches.keySet();
         }
 
         Set<Attribute<?>> getAllMatches() {
-            return Sets.union(explicitMatches.keySet(), implicitMatches.keySet());
+            return Sets.union(
+                getExplicitMatches(),
+                getImplicitMatches()
+            );
         }
 
         boolean isStrictSuperSetOf(MatchDetails<?> other) {
@@ -288,8 +298,8 @@ public class ComponentAttributeMatcher {
         }
 
         Object getValue(Attribute<?> key) {
-            Object o = explicitMatches.get(key);
-            return o != null ? o : implicitMatches.get(key);
+            Object o = explicitMatches == null ? null : explicitMatches.get(key);
+            return o != null ? o : implicitMatches == null ? null : implicitMatches.get(key);
         }
     }
 }

@@ -21,7 +21,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.DisambiguationRule;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 
 import java.util.Set;
@@ -37,10 +36,7 @@ import java.util.Set;
  * declaring no preference for a particular variant.
  */
 class PreferJavaRuntimeVariant extends EmptySchema {
-    private static final NamedObjectInstantiator INSTANTIATOR = NamedObjectInstantiator.INSTANCE;
-    private static final Usage JAVA_API = INSTANTIATOR.named(Usage.class, Usage.JAVA_API);
-    private static final Usage JAVA_RUNTIME = INSTANTIATOR.named(Usage.class, Usage.JAVA_RUNTIME);
-    private static final Set<Usage> DEFAULT_JAVA_USAGES = ImmutableSet.of(JAVA_API, JAVA_RUNTIME);
+    private static final Set<String> DEFAULT_JAVA_USAGES = ImmutableSet.of(Usage.JAVA_API, Usage.JAVA_RUNTIME);
 
     private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = new PreferJavaRuntimeVariant();
 
@@ -53,12 +49,12 @@ class PreferJavaRuntimeVariant extends EmptySchema {
 
     @Override
     public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
-        if (attribute.getType().equals(Usage.class)) {
-            return Cast.uncheckedCast(new DisambiguationRule<Usage>() {
-                public void execute(MultipleCandidatesResult<Usage> details) {
+        if (Usage.USAGE_ATTRIBUTE.getName().equals(attribute.getName())) {
+            return Cast.uncheckedCast(new DisambiguationRule<String>() {
+                public void execute(MultipleCandidatesResult<String> details) {
                     if (details.getConsumerValue() == null) {
                         if (details.getCandidateValues().equals(DEFAULT_JAVA_USAGES)) {
-                            details.closestMatch(JAVA_RUNTIME);
+                            details.closestMatch(Usage.JAVA_RUNTIME);
                         }
                     }
                 }

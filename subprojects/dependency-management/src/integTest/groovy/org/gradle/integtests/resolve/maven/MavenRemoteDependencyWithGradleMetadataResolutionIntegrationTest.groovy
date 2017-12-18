@@ -51,7 +51,6 @@ dependencies {
 }
 """
 
-        m.pom.expectGet()
         m.moduleMetadata.expectGet()
         m.artifact.expectGet()
 
@@ -61,7 +60,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
 
@@ -72,13 +71,12 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
 
         when:
         server.resetExpectations()
-        m.pom.expectHead()
         m.moduleMetadata.expectHead()
         m.artifact.expectHead()
 
@@ -88,7 +86,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
     }
@@ -109,8 +107,8 @@ dependencies {
 }
 """
 
+        m.moduleMetadata.expectGetMissing()
         m.pom.expectGet()
-        m.moduleMetadata.expectGetMissing()
         m.artifact.expectGet()
 
         when:
@@ -136,66 +134,8 @@ dependencies {
 
         when:
         server.resetExpectations()
+        m.moduleMetadata.expectGetMissing()
         m.pom.expectHead()
-        m.moduleMetadata.expectGetMissing()
-        m.artifact.expectHead()
-
-        executer.withArgument("--refresh-dependencies")
-        run("checkDeps")
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("test:a:1.2")
-            }
-        }
-    }
-
-    def "downloads and caches the module metadata when present and pom is not present"() {
-        def m = mavenHttpRepo.module("test", "a", "1.2").withNoPom().withModuleMetadata().publish()
-
-        given:
-        buildFile << """
-repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
-
-        m.pom.expectGetMissing()
-        m.moduleMetadata.expectGet()
-        m.artifact.expectGet()
-
-        when:
-        run("checkDeps")
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("test:a:1.2")
-            }
-        }
-
-        when:
-        server.resetExpectations()
-        run("checkDeps")
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("test:a:1.2")
-            }
-        }
-
-        when:
-        server.resetExpectations()
-        m.pom.expectGetMissing()
-        m.moduleMetadata.expectHead()
         m.artifact.expectHead()
 
         executer.withArgument("--refresh-dependencies")
@@ -267,7 +207,6 @@ task checkRelease {
 }
 """
 
-        a.pom.expectGet()
         a.moduleMetadata.expectGet()
         a.artifact(classifier: 'debug').expectGet()
         b.pom.expectGet()
@@ -349,7 +288,6 @@ task checkRelease {
 }
 """
 
-        a.pom.expectGet()
         a.moduleMetadata.expectGet()
         a.artifact(classifier: 'api').expectGet()
         a.artifact(classifier: 'runtime').expectGet()
@@ -373,7 +311,6 @@ task checkRelease {
 
         and:
         server.resetExpectations()
-        a.pom.expectHead()
         a.moduleMetadata.expectHead()
         a.artifact(classifier: 'api').expectHead()
         a.artifact(classifier: 'runtime').expectHead()
@@ -425,7 +362,6 @@ task checkDebug {
 }
 """
 
-        a.pom.expectGet()
         a.moduleMetadata.expectGet()
         a.getArtifact().expectGet()
         a.getArtifact(type: 'zip').expectGet()
@@ -443,7 +379,6 @@ task checkDebug {
 
         and:
         server.resetExpectations()
-        a.pom.expectHead()
         a.moduleMetadata.expectHead()
         a.getArtifact().expectHead()
         a.getArtifact(type: 'zip').expectHead()
@@ -498,7 +433,6 @@ task checkDebug {
 }
 """
 
-        a.pom.expectGet()
         a.moduleMetadata.expectGet()
         a.getArtifact("file1.jar").expectGet()
         a.getArtifact("file2.jar").expectGet()
@@ -518,7 +452,6 @@ task checkDebug {
 
         and:
         server.resetExpectations()
-        a.pom.expectHead()
         a.moduleMetadata.expectHead()
         a.getArtifact("file1.jar").expectHead()
         a.getArtifact("file2.jar").expectHead()
@@ -612,13 +545,10 @@ task checkRelease {
 }
 """
 
-        a.pom.expectGet()
         a.moduleMetadata.expectGet()
         a.artifact(classifier: 'debug').expectGet()
-        b.pom.expectGet()
         b.moduleMetadata.expectGet()
         b.artifact.expectGet()
-        c.pom.expectGet()
         c.moduleMetadata.expectGet()
         c.artifact(classifier: 'debug').expectGet()
 
@@ -692,7 +622,6 @@ task checkRelease {
 }
 """
 
-        a.pom.expectGet()
         a.moduleMetadata.expectGet()
         a.artifact(classifier: 'debug').expectGet()
 
@@ -733,9 +662,8 @@ dependencies {
 }
 """
 
-        m.pom.expectGetMissing()
         m.moduleMetadata.expectGetMissing()
-        m.artifact.expectHeadMissing()
+        m.pom.expectGetMissing()
 
         when:
         fails("checkDeps")
@@ -744,16 +672,14 @@ dependencies {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("""Could not find test:a:1.2.
 Searched in the following locations:
-    ${m.pom.uri}
     ${m.moduleMetadata.uri}
-    ${m.artifact.uri}
+    ${m.pom.uri}
 Required by:
     project :""")
 
         when:
         server.resetExpectations()
         m.publish()
-        m.pom.expectGetMissing()
         m.moduleMetadata.expectGet()
         m.artifact.expectGet()
 
@@ -762,7 +688,7 @@ Required by:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
     }
@@ -783,7 +709,6 @@ dependencies {
 }
 """
 
-        m.pom.expectGet()
         m.moduleMetadata.expectGetBroken()
 
         when:
@@ -796,8 +721,6 @@ dependencies {
 
         when:
         server.resetExpectations()
-        // TODO - should not be required
-        m.pom.expectHead()
         m.moduleMetadata.expectGet()
         m.artifact.expectGet()
 
@@ -806,7 +729,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
     }
@@ -828,7 +751,6 @@ dependencies {
 }
 """
 
-        m.pom.expectGet()
         m.moduleMetadata.expectGet()
 
         when:
@@ -841,7 +763,6 @@ dependencies {
 
         when:
         server.resetExpectations()
-        m.pom.expectHead()
         m.moduleMetadata.expectHead()
 
         fails("checkDeps")
@@ -869,7 +790,6 @@ dependencies {
 }
 """
 
-        m.pom.expectGet()
         m.moduleMetadata.expectGet()
 
         when:
@@ -883,7 +803,6 @@ dependencies {
 
         when:
         server.resetExpectations()
-        m.pom.expectHead()
         m.moduleMetadata.expectHead()
 
         fails("checkDeps")
@@ -930,7 +849,6 @@ dependencies {
 }
 """
 
-        m.pom.expectGet()
         m.moduleMetadata.expectGet()
         m.artifact(classifier: 'extra').expectGetMissing()
         m.getArtifact("file1.jar").expectGetMissing()

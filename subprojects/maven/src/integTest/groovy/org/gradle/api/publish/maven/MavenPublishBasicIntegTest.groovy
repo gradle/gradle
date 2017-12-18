@@ -84,7 +84,14 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         module.parsedPom.scopes.isEmpty()
 
         and:
-        resolveArtifacts(module) == []
+        resolveArtifacts(module) {
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles()
+            }
+        }
     }
 
     def "can publish simple component"() {
@@ -129,6 +136,12 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.assertPublished()
         localModule.assertNotPublished()
 
+        and:
+        repoModule.rootMetaData.groupId == "group"
+        repoModule.rootMetaData.artifactId == "root"
+        repoModule.rootMetaData.versions == ["1.0"]
+        repoModule.rootMetaData.releaseVersion == "1.0"
+
         when:
         succeeds 'publishToMavenLocal'
 
@@ -136,7 +149,9 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         localModule.assertPublished()
 
         and:
-        resolveArtifacts(repoModule) == ['root-1.0.jar']
+        resolveArtifacts(repoModule) {
+            expectFiles 'root-1.0.jar'
+        }
     }
 
     def "can publish to custom maven local repo defined in settings.xml"() {
@@ -169,41 +184,6 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         then:
         localM2Repo.module("group", "root", "1.0").assertNotPublished()
         javaLibrary(customLocalRepo.module("group", "root", "1.0")).assertPublished()
-    }
-
-    def "can publish a snapshot version"() {
-        settingsFile << 'rootProject.name = "snapshotPublish"'
-        buildFile << """
-    apply plugin: 'java'
-    apply plugin: 'maven-publish'
-
-    group = 'org.gradle'
-    version = '1.0-SNAPSHOT'
-
-    publishing {
-        repositories {
-            maven { url "${mavenRepo.uri}" }
-        }
-        publications {
-            pub(MavenPublication) {
-                from components.java
-            }
-        }
-    }
-"""
-
-        when:
-        succeeds 'publish'
-
-        then:
-        def module = mavenRepo.module('org.gradle', 'snapshotPublish', '1.0-SNAPSHOT')
-        module.assertArtifactsPublished("snapshotPublish-${module.publishArtifactVersion}.module", "snapshotPublish-${module.publishArtifactVersion}.jar", "snapshotPublish-${module.publishArtifactVersion}.pom", "maven-metadata.xml")
-
-        and:
-        resolveArtifacts(module) == ["snapshotPublish-${module.publishArtifactVersion}.jar"]
-
-        and:
-        module.parsedPom.version == '1.0-SNAPSHOT'
     }
 
     def "reports failure publishing when model validation fails"() {

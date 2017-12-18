@@ -37,8 +37,8 @@ import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
 import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.BuildCacheKey;
@@ -82,8 +82,8 @@ public class TaskOutputCacheCommandFactory {
         this.stringInterner = stringInterner;
     }
 
-    public BuildCacheLoadCommand<TaskOutputOriginMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState, Timer clock) {
-        return new LoadCommand(cacheKey, outputProperties, task, taskOutputsGenerationListener, taskArtifactState, clock);
+    public BuildCacheLoadCommand<TaskOutputOriginMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState, Timer clock) {
+        return new LoadCommand(cacheKey, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState, clock);
     }
 
     public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TaskInternal task, Timer clock) {
@@ -95,14 +95,16 @@ public class TaskOutputCacheCommandFactory {
         private final TaskOutputCachingBuildCacheKey cacheKey;
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
         private final TaskInternal task;
+        private final TaskProperties taskProperties;
         private final TaskOutputsGenerationListener taskOutputsGenerationListener;
         private final TaskArtifactState taskArtifactState;
         private final Timer clock;
 
-        private LoadCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState, Timer clock) {
+        private LoadCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState, Timer clock) {
             this.cacheKey = cacheKey;
             this.outputProperties = outputProperties;
             this.task = task;
+            this.taskProperties = taskProperties;
             this.taskOutputsGenerationListener = taskOutputsGenerationListener;
             this.taskArtifactState = taskArtifactState;
             this.clock = clock;
@@ -139,6 +141,11 @@ public class TaskOutputCacheCommandFactory {
                 @Override
                 public long getArtifactEntryCount() {
                     return unpackResult.getEntries();
+                }
+
+                @Override
+                public long getOriginalExecutionTime() {
+                    return unpackResult.getOriginMetadata().getOriginalExecutionTime();
                 }
 
                 @Override
@@ -189,7 +196,7 @@ public class TaskOutputCacheCommandFactory {
         }
 
         private void cleanLocalState() {
-            for (File localStateFile : ((TaskLocalStateInternal) task.getLocalState()).getFiles()) {
+            for (File localStateFile : taskProperties.getLocalStateFiles()) {
                 try {
                     remove(localStateFile);
                 } catch (IOException ex) {

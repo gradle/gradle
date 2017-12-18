@@ -22,6 +22,9 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
+import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
+import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -37,6 +40,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private AnnotationProcessingTaskFactory factory
     private ITaskFactory delegate
     private TaskClassInfoStore taskClassInfoStore
+    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))
 
     private Map args = new HashMap()
 
@@ -51,7 +55,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         delegate = Mock(ITaskFactory)
-        taskClassInfoStore = new DefaultTaskClassInfoStore(new DefaultTaskClassValidatorExtractor())
+        taskClassInfoStore = new DefaultTaskClassInfoStore()
         factory = new AnnotationProcessingTaskFactory(taskClassInfoStore, delegate)
         testDir = temporaryFolder.testDirectory
         existingFile = testDir.file("file.txt").touch()
@@ -555,7 +559,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value)
 
         expect:
-        task.inputs.properties[prop] == expected
+        inputProperties(task)[prop] == expected
 
         where:
         type                                      | prop         | value                    | expected
@@ -635,14 +639,15 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def propertyExtractionJavaBeanSpec() {
         given:
         def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, "c", "C", "d", "U", "a", "b")
+        def properties = inputProperties(task)
 
         expect:
-        task.inputs.properties["cCompiler"] != null
-        task.inputs.properties["CFlags"] != null
-        task.inputs.properties["dns"] != null
-        task.inputs.properties["URL"] != null
-        task.inputs.properties["a"] != null
-        task.inputs.properties["b"] != null
+        properties["cCompiler"] != null
+        properties["CFlags"] != null
+        properties["dns"] != null
+        properties["URL"] != null
+        properties["a"] != null
+        properties["b"] != null
     }
 
     private TaskInternal expectTaskCreated(final Class type, final Object... params) {
@@ -670,5 +675,9 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def expectedMessage = causes.length > 1 ? "Some problems were found with the configuration of $task" : "A problem was found with the configuration of $task"
         assert exception.message.contains(expectedMessage)
         assert exception.causes.collect({ it.message }) as Set == causes as Set
+    }
+
+    private Map<String, Object> inputProperties(TaskInternal task) {
+        TaskPropertyTestUtils.getProperties(task, propertyWalker)
     }
 }

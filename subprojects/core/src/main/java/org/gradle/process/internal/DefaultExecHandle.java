@@ -21,14 +21,11 @@ import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
-import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.operations.BuildOperationIdentifierPreservingRunnable;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
-import org.gradle.process.internal.streams.StreamsHandler;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -36,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -84,10 +82,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
      * The variables to set in the environment the executable is run in.
      */
     private final Map<String, String> environment;
-    private final StreamsHandler streamsHandler;
+    private final StreamsHandler outputHandler;
+    private final StreamsHandler inputHandler;
     private final boolean redirectErrorStream;
     private final ProcessLauncher processLauncher;
-    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
     private int timeoutMillis;
     private boolean daemon;
 
@@ -97,7 +95,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final Lock lock;
     private final Condition stateChanged;
 
-    private final ManagedExecutor executor;
+    private final Executor executor;
 
     /**
      * State of this ExecHandle.
@@ -116,21 +114,23 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final ExecHandleShutdownHookAction shutdownHookAction;
 
     DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
-                      Map<String, String> environment, StreamsHandler streamsHandler,
-                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon) {
+                      Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
+                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
+                      Executor executor) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
         this.arguments = arguments;
         this.environment = environment;
-        this.streamsHandler = streamsHandler;
+        this.outputHandler = outputHandler;
+        this.inputHandler = inputHandler;
         this.redirectErrorStream = redirectErrorStream;
         this.timeoutMillis = timeoutMillis;
         this.daemon = daemon;
+        this.executor = executor;
         this.lock = new ReentrantLock();
         this.stateChanged = lock.newCondition();
         this.state = ExecHandleState.INIT;
-        executor = executorFactory.create(format("Run %s", displayName));
         processLauncher = NativeServices.getInstance().get(ProcessLauncher.class);
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
         broadcast = new ListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
@@ -193,28 +193,32 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private void setEndStateInfo(ExecHandleState newState, int exitValue, Throwable failureCause) {
         ShutdownHookActionRegister.removeAction(shutdownHookAction);
-
         ExecHandleState currentState;
         lock.lock();
         try {
             currentState = this.state;
-            setState(newState);
-            ExecResultImpl newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
-            if (execResult != null) {
-                String message = "Attempted to overwrite exec result: " + execResult + " -> " + newResult;
-                throw execExceptionFor(new RuntimeException(message), currentState);
+        } finally {
+            lock.unlock();
+        }
+
+        ExecResultImpl newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
+        if (!currentState.isTerminal() && newState != ExecHandleState.DETACHED) {
+            try {
+                broadcast.getSource().executionFinished(this, newResult);
+            } catch (Exception e) {
+                newResult = new ExecResultImpl(exitValue, execExceptionFor(e, currentState), displayName);
             }
+        }
+
+        lock.lock();
+        try {
+            setState(newState);
             this.execResult = newResult;
         } finally {
             lock.unlock();
         }
 
         LOGGER.debug("Process '{}' finished with exit value {} (state: {})", displayName, exitValue, newState);
-
-        if (currentState != ExecHandleState.DETACHED && newState != ExecHandleState.DETACHED) {
-            broadcast.getSource().executionFinished(this, execResult);
-        }
-        executor.requestStop();
     }
 
     @Nullable
@@ -243,7 +247,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             }
             setState(ExecHandleState.STARTING);
 
-            execHandleRunner = new ExecHandleRunner(this, streamsHandler, processLauncher, executorFactory);
+            execHandleRunner = new ExecHandleRunner(this, new CompositeStreamsHandler(), processLauncher, executor);
             executor.execute(new BuildOperationIdentifierPreservingRunnable(execHandleRunner));
 
             while (stateIn(ExecHandleState.STARTING)) {
@@ -286,7 +290,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     public ExecResult waitForFinish() {
         lock.lock();
         try {
-            while (!stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.ABORTED, ExecHandleState.FAILED, ExecHandleState.DETACHED)) {
+            while (!state.isTerminal()) {
                 try {
                     stateChanged.await();
                 } catch (InterruptedException e) {
@@ -298,7 +302,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             lock.unlock();
         }
 
-        executor.stop();
+        // At this point:
+        // If in daemon mode, the process has started successfully and all streams to the process have been closed
+        // If in fork mode, the process has completed and all cleanup has been done
+        // In both cases, all asynchronous work for the process has completed and we're done
 
         return result();
     }
@@ -394,6 +401,26 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         @Override
         public String toString() {
             return "{exitValue=" + exitValue + ", failure=" + failure + "}";
+        }
+    }
+
+    private class CompositeStreamsHandler implements StreamsHandler {
+        @Override
+        public void connectStreams(Process process, String processName, Executor executor) {
+            inputHandler.connectStreams(process, processName, executor);
+            outputHandler.connectStreams(process, processName, executor);
+        }
+
+        @Override
+        public void start() {
+            inputHandler.start();
+            outputHandler.start();
+        }
+
+        @Override
+        public void stop() {
+            inputHandler.stop();
+            outputHandler.stop();
         }
     }
 }

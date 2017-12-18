@@ -43,7 +43,7 @@ final class ImmutableModuleExclusionSet implements Set<AbstractModuleExclusion> 
         this.hashCode = delegate.hashCode();
     }
 
-    private void precomputeCaches() {
+    private synchronized void precomputeCaches() {
         if (excludedModules != null) {
             return;
         }

@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.File;
 import java.util.Collections;
@@ -33,8 +34,7 @@ public class ClassDependentsAccumulator {
     private final Set<String> dependenciesToAll = Sets.newHashSet();
     private final Map<String, String> filePathToClassName = new HashMap<String, String>();
     private final Map<String, Set<String>> dependents = new HashMap<String, Set<String>>();
-    private final Multimap<String, Integer> classesToConstants = HashMultimap.create();
-    private final Multimap<Integer, String> literalsToClasses = HashMultimap.create();
+    private final Map<String, IntSet> classesToConstants = new HashMap<String, IntSet>();
     private final Set<String> seenClasses = Sets.newHashSet();
     private final Multimap<String, String> parentToChildren = HashMultimap.create();
 
@@ -47,22 +47,17 @@ public class ClassDependentsAccumulator {
     }
 
     public void addClass(ClassAnalysis classAnalysis) {
-        addClass(classAnalysis.getClassName(), classAnalysis.isDependencyToAll(), classAnalysis.getClassDependencies(), classAnalysis.getConstants(), classAnalysis.getLiterals(), classAnalysis.getSuperTypes());
+        addClass(classAnalysis.getClassName(), classAnalysis.isDependencyToAll(), classAnalysis.getClassDependencies(), classAnalysis.getConstants(), classAnalysis.getSuperTypes());
     }
 
-    public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies, Set<Integer> constants, Set<Integer> literals, Set<String> superTypes) {
+    public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies, IntSet constants, Set<String> superTypes) {
         if (seenClasses.contains(className)) {
             // same classes may be found in different classpath trees/jars
             // and we keep only the first one
             return;
         }
         seenClasses.add(className);
-        for (Integer constant : constants) {
-            classesToConstants.put(className, constant);
-        }
-        for (Integer literal : literals) {
-            literalsToClasses.put(literal, className);
-        }
+        classesToConstants.put(className, constants);
         if (dependencyToAll) {
             dependenciesToAll.add(className);
             dependents.remove(className);
@@ -101,15 +96,11 @@ public class ClassDependentsAccumulator {
         return builder.build();
     }
 
-    public Multimap<String, Integer> getClassesToConstants() {
+    public Map<String, IntSet> getClassesToConstants() {
         return classesToConstants;
     }
 
-    public Multimap<Integer, String> getLiteralsToClasses() {
-        return literalsToClasses;
-    }
-
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), getLiteralsToClasses(), parentToChildren);
+        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), parentToChildren);
     }
 }

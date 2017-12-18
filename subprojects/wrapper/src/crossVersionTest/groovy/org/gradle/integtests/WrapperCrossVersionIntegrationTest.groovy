@@ -104,6 +104,7 @@ task hello {
     }
 }
 """
+        settingsFile << "rootProject.name = 'wrapper'"
         version(wrapperVersion).withTasks('wrapper').run()
 
         def executer = wrapperExecuter(wrapperVersion)

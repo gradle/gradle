@@ -36,6 +36,7 @@ import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -74,6 +75,15 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileSystemMirror = fileSystemMirror;
         snapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, directoryFileTreeFactory, this);
+    }
+
+    @Override
+    public boolean exists(File file) {
+        FileSnapshot snapshot = fileSystemMirror.getFile(file.getAbsolutePath());
+        if (snapshot != null) {
+            return snapshot.getType() != FileType.Missing;
+        }
+        return file.exists();
     }
 
     @Override
@@ -248,6 +258,25 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         @Override
         public void appendToHasher(BuildCacheHasher hasher) {
             hasher.putHash(hashCode);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            HashBackedSnapshot that = (HashBackedSnapshot) o;
+
+            return hashCode.equals(that.hashCode);
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode.hashCode();
         }
     }
 

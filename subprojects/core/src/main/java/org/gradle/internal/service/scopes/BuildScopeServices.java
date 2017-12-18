@@ -58,14 +58,16 @@ import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
-import org.gradle.api.internal.project.taskfactory.DefaultTaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
-import org.gradle.api.internal.project.taskfactory.TaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
+import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker;
+import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
@@ -156,6 +158,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -232,12 +235,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator);
     }
 
-    protected TaskClassValidatorExtractor createTaskClassValidatorExtractor(List<PropertyAnnotationHandler> annotationHandlers) {
-        return new DefaultTaskClassValidatorExtractor(annotationHandlers);
+    protected PropertyMetadataStore createPropertyMetadataStore(List<PropertyAnnotationHandler> annotationHandlers) {
+        return new DefaultPropertyMetadataStore(annotationHandlers);
     }
 
-    protected TaskClassInfoStore createTaskClassInfoStore(TaskClassValidatorExtractor validatorExtractor) {
-        return new DefaultTaskClassInfoStore(validatorExtractor);
+    protected PropertyWalker createPropertyWalker(PropertyMetadataStore propertyMetadataStore) {
+        return new DefaultPropertyWalker(propertyMetadataStore);
+    }
+
+    protected TaskClassInfoStore createTaskClassInfoStore() {
+        return new DefaultTaskClassInfoStore();
     }
 
     protected ITaskFactory createITaskFactory(TaskClassInfoStore taskClassInfoStore) {
@@ -303,11 +310,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(TextResourceLoader.class),
             get(StreamHasher.class),
             get(FileHasher.class),
+            get(ExecFactory.class),
             get(AutoAppliedPluginHandler.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, NestedBuildFactory nestedBuildFactory,
-                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
+                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator,
@@ -318,7 +326,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new BuildSourceBuilder(
                 nestedBuildFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
-                cacheRepository,
                 buildOperationExecutor,
                 cachedClasspathTransformer,
                 new BuildSrcBuildListenerFactory(

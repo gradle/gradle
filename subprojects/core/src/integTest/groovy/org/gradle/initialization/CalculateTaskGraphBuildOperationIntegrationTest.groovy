@@ -16,14 +16,18 @@
 
 package org.gradle.initialization
 
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 
 class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+    @SuppressWarnings("GroovyUnusedDeclaration")
+    final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     def "requested and filtered tasks are exposed"() {
         settingsFile << """
@@ -113,7 +117,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         then:
         taskGraphCalculations.size() == 3
         taskGraphCalculations[0].details.buildPath == ":buildSrc"
-        taskGraphCalculations[0].result.requestedTaskPaths == [":build", ":clean"]
+        taskGraphCalculations[0].result.requestedTaskPaths == [":build"]
         taskGraphCalculations[1].details.buildPath == ":"
         taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
         taskGraphCalculations[2].details.buildPath== ":b"

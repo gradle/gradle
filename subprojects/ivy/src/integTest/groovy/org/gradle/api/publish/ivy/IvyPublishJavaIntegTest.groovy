@@ -34,6 +34,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     void "can publish jar and descriptor to ivy repository"() {
+        requiresExternalDependencies = true
         given:
         createBuildScripts("""
             publishing {
@@ -64,8 +65,57 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertRuntimeDependencies('commons-io:commons-io:1.4')
 
         and:
-        resolveArtifacts(javaLibrary) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
+        resolveArtifacts(javaLibrary) {
+            expectFiles "commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"
+        }
+    }
 
+    void "can publish java-library-platform to ivy repository"() {
+        requiresExternalDependencies = true
+
+        given:
+        createBuildScripts("""
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.javaLibraryPlatform
+                    }
+                }
+            }
+
+            $dependencies            
+""")
+
+        when:
+        run "publish"
+
+        then:
+        def backingModule = javaLibrary.backingModule
+
+        backingModule.assertPublished()
+        backingModule.assertArtifactsPublished(backingModule.ivyFile.name, backingModule.moduleMetadataFile.name)
+
+        // No files are published for either variant
+        with(javaLibrary.parsedModuleMetadata) {
+            variants*.name as Set == ['api', 'runtime'] as Set
+            variant('api').files.empty
+            variant('runtime').files.empty
+        }
+
+        with(javaLibrary.parsedIvy) {
+            configurations.keySet() == ["default", "compile", "runtime"] as Set
+            configurations["default"].extend == ["runtime", "compile"] as Set
+            configurations["runtime"].extend == null
+
+            artifacts.empty
+        }
+        javaLibrary.assertApiDependencies('commons-collections:commons-collections:3.2.2')
+        javaLibrary.assertRuntimeDependencies('commons-io:commons-io:1.4')
+
+        and:
+        resolveArtifacts(javaLibrary) {
+            expectFiles "commons-collections-3.2.2.jar", "commons-io-1.4.jar"
+        }
     }
 
     @Unroll("'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin")
@@ -132,7 +182,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     }
 
-    public void "ignores extra artifacts added to configurations"() {
+    void "ignores extra artifacts added to configurations"() {
         given:
         createBuildScripts("""
             task extraJar(type: Jar) {
@@ -163,6 +213,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     void "can publish additional artifacts for java project"() {
+        requiresExternalDependencies = true
         given:
         createBuildScripts("""
             $dependencies
@@ -196,12 +247,27 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.parsedIvy.expectArtifact("publishTest", "jar", "source").hasAttributes("jar", "sources", ["runtime"], "source")
 
         and:
-        resolveArtifacts(javaLibrary) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
-        resolveAdditionalArtifacts(javaLibrary) == ["publishTest-1.9-source.jar"]
+        resolveArtifacts(javaLibrary) {
+            withoutModuleMetadata {
+                expectFiles "commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar", "publishTest-1.9-source.jar"
+            }
+            withModuleMetadata {
+                // additional files are not published in Gradle metadata
+                expectFiles "commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"
+            }
+        }
+
+        and:
+        resolveArtifacts(javaLibrary) {
+            additionalArtifacts = javaLibrary.additionalArtifacts
+            expectFiles "publishTest-1.9-source.jar"
+        }
     }
 
     @Issue("GRADLE-3514")
     void "generated ivy descriptor includes dependency exclusions"() {
+        requiresExternalDependencies = true
+
         given:
         createBuildScripts("""
             $dependencies
@@ -273,19 +339,19 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         and:
-        resolveArtifacts(javaLibrary) == [
-            "camel-jackson-2.15.3.jar",
-            "commons-beanutils-1.8.3.jar",
-            "commons-collections-3.2.2.jar",
-            "commons-dbcp-1.4.jar",
-            "commons-io-1.4.jar",
-            "jackson-annotations-2.4.0.jar",
-            "jackson-core-2.4.3.jar",
-            "jackson-databind-2.4.3.jar",
-            "jackson-module-jaxb-annotations-2.4.3.jar",
-            "publishTest-1.9.jar",
-            "spring-core-2.5.6.jar"
-        ]
+        resolveArtifacts(javaLibrary) {
+            expectFiles "camel-jackson-2.15.3.jar",
+                "commons-beanutils-1.8.3.jar",
+                "commons-collections-3.2.2.jar",
+                "commons-dbcp-1.4.jar",
+                "commons-io-1.4.jar",
+                "jackson-annotations-2.4.0.jar",
+                "jackson-core-2.4.3.jar",
+                "jackson-databind-2.4.3.jar",
+                "jackson-module-jaxb-annotations-2.4.3.jar",
+                "publishTest-1.9.jar",
+                "spring-core-2.5.6.jar"
+        }
     }
 
     void "defaultDependencies are included in published ivy descriptor"() {
@@ -370,10 +436,10 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     def "can publish java-library with strict dependencies"() {
+        requiresExternalDependencies = true
+
         given:
         createBuildScripts("""
-
-            ${jcenterRepository()}
 
             dependencies {
                 api "org.springframework:spring-core:2.5.6"
@@ -422,16 +488,15 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         and:
-        resolveArtifacts(javaLibrary) == [
-            'commons-collections-3.2.2.jar', 'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
-        ]
+        resolveArtifacts(javaLibrary) {
+            expectFiles 'commons-collections-3.2.2.jar', 'commons-logging-1.1.1.jar', 'publishTest-1.9.jar', 'spring-core-2.5.6.jar'
+        }
     }
 
     def "can publish java-library with dependency constraints"() {
+        requiresExternalDependencies = true
         given:
         createBuildScripts("""
-
-            ${jcenterRepository()}
 
             dependencies {
                 api "org.springframework:spring-core:1.2.9"
@@ -493,20 +558,18 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         and:
-        resolveArtifacts(javaLibrary) == [
-            'commons-compress-1.5.jar', 'commons-logging-1.2.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.6.jar'
-        ]
-
-        when:
-        resolveModuleMetadata = false
-
-        then: "constraints are not published to POM files"
-        resolveArtifacts(javaLibrary) == [
-            'commons-compress-1.5.jar', 'commons-logging-1.0.4.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.2.jar'
-        ]
+        resolveArtifacts(javaLibrary) {
+            withModuleMetadata {
+                expectFiles 'commons-compress-1.5.jar', 'commons-logging-1.2.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.6.jar'
+            }
+            withoutModuleMetadata {
+                expectFiles 'commons-compress-1.5.jar', 'commons-logging-1.0.4.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.2.jar'
+            }
+        }
     }
 
     def "can publish java-library with dependencies without version"() {
+        requiresExternalDependencies = true
         given:
         createBuildScripts("""
 
@@ -529,19 +592,12 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 """)
 
         when:
-        // This currently fails, because the ivy.xml does not provide a version. There are several options to fix this.
-        // One or more of them will be implemented and then this test needs to be updated.
-        // - Do not publish the incomplete ivy.xml (only the module metadata)
-        // - Publish constraints to ivy by substituting the empty version with the one from the constraint
-        fails "publish"
+        succeeds "publish"
 
         then:
-        failure.assertHasCause("Could not parse Ivy file ")
-        failure.assertHasCause("xml parsing: ivy.xml:13:98: cvc-complex-type.4: Attribute 'rev' must appear on element 'dependency'.")
-
-        /*javaLibrary.assertPublished()
+        javaLibrary.assertPublished()
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
-        javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:3.2.2@runtime")
+        javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:@runtime")
 
         and:
         javaLibrary.parsedModuleMetadata.variant('api') {
@@ -549,7 +605,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('commons-collections:commons-collections:1') {
+            dependency('commons-collections:commons-collections:') {
                 rejects()
                 noMoreExcludes()
             }
@@ -558,7 +614,89 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         and:
-        resolveArtifacts(javaLibrary)*/
+        resolveArtifacts(javaLibrary) {
+            withModuleMetadata {
+                expectFiles 'commons-collections-3.2.2.jar', 'publishTest-1.9.jar'
+            }
+            withoutModuleMetadata {
+                // Constraints cannot be published to Ivy files. Since we publish the _declared_ dependency
+                // versions and not the resolved ones, this can't be resolved
+                shouldFail {
+                    assertHasDescription 'Could not resolve all files for configuration'
+                    assertHasCause 'Could not find commons-collections:commons-collections:.'
+                }
+            }
+        }
+    }
+
+    def "can publish java-library with rejected versions"() {
+        requiresExternalDependencies = true
+
+        given:
+        createBuildScripts("""
+
+            dependencies {
+                constraints {
+                    api("commons-logging:commons-logging") {
+                        version {
+                            rejectAll()
+                        }
+                    }
+                }
+                implementation("commons-collections:commons-collections") {
+                    version { 
+                        prefer '[3.2, 4)'
+                        reject '3.2.1', '[3.2.2,)'
+                    }
+                }
+            }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
+        javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:[3.2, 4)@runtime")
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            constraint('commons-logging:commons-logging:') {
+                rejects '+'
+            }
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('commons-collections:commons-collections:[3.2, 4)') {
+                noMoreExcludes()
+                rejects '3.2.1', '[3.2.2,)'
+            }
+            constraint('commons-logging:commons-logging:') {
+                rejects '+'
+            }
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(javaLibrary) {
+            withModuleMetadata {
+                expectFiles 'commons-collections-3.2.jar', 'publishTest-1.9.jar'
+            }
+            withoutModuleMetadata {
+                expectFiles 'commons-collections-3.2.2.jar', 'publishTest-1.9.jar'
+            }
+        }
     }
 
     private void createBuildScripts(def append) {

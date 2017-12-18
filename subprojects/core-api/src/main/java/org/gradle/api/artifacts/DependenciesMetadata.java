@@ -17,49 +17,45 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 import java.util.Collection;
 import java.util.Map;
 
 /**
- * Describes the dependencies of a variant declared in a resolved component's metadata, which typically originate from
- * a component descriptor (Gradle metadata file, Ivy file, Maven POM). This interface can be used to adjust the dependencies
- * of a published component via metadata rules (see {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler}.
+ * Describes metadata about a dependency - direct dependencies or dependency constraints - declared in a resolved component's metadata.
  *
+ * @param <T> type of the dependency metadata in this collection
  * @since 4.4
  */
-@Incubating
-public interface DependenciesMetadata extends Collection<DependencyMetadata> {
+public interface DependenciesMetadata<T extends DependencyMetadata> extends Collection<T> {
 
     /**
-     * Add a dependency using the string notation: <code><i>group</i>:<i>name</i>:<i>version</i></code>.
+     * Add a dependency or a dependency constraint using the string notation: <code><i>group</i>:<i>name</i>:<i>version</i></code>.
      *
      * @param dependencyNotation the dependency
      */
     void add(String dependencyNotation);
 
     /**
-     * Add a dependency using the map notation: <code>group: <i>group</i>, name: <i>name</i>, version: <i>version</i></code>.
+     * Add a dependency or a dependency constraint using the map notation: <code>group: <i>group</i>, name: <i>name</i>, version: <i>version</i></code>.
      *
      * @param dependencyNotation the dependency
      */
     void add(Map<String, String> dependencyNotation);
 
     /**
-     * Add a dependency using the string notation: <code><i>group</i>:<i>name</i>:<i>version</i></code>.
+     * Add a dependency or a dependency constraint using the string notation: <code><i>group</i>:<i>name</i>:<i>version</i></code>.
      *
      * @param dependencyNotation the dependency
      * @param configureAction action to configure details of the dependency - see {@link DependencyMetadata}
      */
-    void add(String dependencyNotation, Action<DependencyMetadata> configureAction);
+    void add(String dependencyNotation, Action<T> configureAction);
 
     /**
-     * Add a dependency using the map notation: <code>group: <i>group</i>, name: <i>name</i>, version: <i>version</i></code>.
+     * Add a dependency or a dependency constraint using the map notation: <code>group: <i>group</i>, name: <i>name</i>, version: <i>version</i></code>.
      *
      * @param dependencyNotation the dependency
      * @param configureAction action to configure details of the dependency - see {@link DependencyMetadata}
      */
-    void add(Map<String, String> dependencyNotation, Action<DependencyMetadata> configureAction);
-
+    void add(Map<String, String> dependencyNotation, Action<T> configureAction);
 }

@@ -18,7 +18,7 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishEarIntegTest extends AbstractMavenPublishIntegTest {
-    public void "can publish ear module"() {
+    void "can publish ear module"() {
         def earModule = mavenRepo.module("org.gradle.test", "publishEar", "1.9")
 
         given:
@@ -67,6 +67,13 @@ publishing {
         earModule.parsedPom.scopes.isEmpty()
 
         and:
-        resolveArtifacts(earModule) == ["publishEar-1.9.ear"]
+        resolveArtifacts(earModule) {
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "publishEar-1.9.ear"
+            }
+        }
     }
 }

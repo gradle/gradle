@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Provider
 import org.gradle.language.swift.SwiftBinary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -105,7 +106,7 @@ class DefaultSwiftComponentTest extends Specification {
         }
 
         @Override
-        SwiftBinary getDevelopmentBinary() {
+        Provider<? extends SwiftBinary> getDevelopmentBinary() {
             throw new UnsupportedOperationException()
         }
     }

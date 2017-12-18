@@ -176,4 +176,14 @@ class ModuleResolveState implements CandidateModule {
     public List<SelectorState> getSelectors() {
         return selectors;
     }
+
+    public List<ComponentState> getUnattachedEdgesTo(ComponentState target) {
+        List<ComponentState> result = Lists.newArrayListWithCapacity(unattachedDependencies.size());
+        for (EdgeState unattachedDependency : unattachedDependencies) {
+            if (unattachedDependency.getTargetComponent().equals(target)) {
+                result.add(unattachedDependency.getFrom().getComponent());
+            }
+        }
+        return result;
+    }
 }

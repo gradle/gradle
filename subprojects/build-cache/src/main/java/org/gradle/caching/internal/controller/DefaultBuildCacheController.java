@@ -88,7 +88,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         } else {
             this.local = NullLocalBuildCacheServiceHandle.INSTANCE;
             this.legacyLocal = toHandle(config.local, config.localPush, BuildCacheServiceRole.LOCAL, buildOperationExecutor, logStackTraces);
-            this.tmp = new DefaultBuildCacheTempFileStore(new File(gradleUserHomeDir, "build-cache-tmp"), BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX);
+            this.tmp = new DefaultBuildCacheTempFileStore(new File(gradleUserHomeDir, "build-cache-tmp"));
         }
 
         this.remote = toHandle(config.remote, config.remotePush, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces);
@@ -180,7 +180,8 @@ public class DefaultBuildCacheController implements BuildCacheController {
                     }
 
                     context.setResult(new UnpackOperationResult(
-                        result.getArtifactEntryCount()
+                        result.getArtifactEntryCount(),
+                        result.getOriginalExecutionTime()
                     ));
                 }
 

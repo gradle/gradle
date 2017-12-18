@@ -17,15 +17,20 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
 
 class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
+    boolean isWellBehaved(boolean mavenCompatible, boolean gradleCompatible = true) {
+        (GradleMetadataResolveRunner.useIvy() || mavenCompatible) && (!GradleMetadataResolveRunner.gradleMetadataEnabled || gradleCompatible)
+    }
+
     @Unroll
     def "uses '#rule' rule to choose component for #selector"() {
         given:
-        boolean expectWellBehaved = GradleMetadataResolveRunner.useIvy() || mavenCompatible
+        Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
 
         buildFile << """
             dependencies {
@@ -49,7 +54,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         def chosenModule = setupInterations(selector, chosenVersion, downloadedMetadata)
 
         then:
-        checkDependencies(!expectWellBehaved) {
+        checkDependencies {
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge("org.utils:api:${selector}", "org.utils:${chosenModule}:${chosenVersion}")
@@ -58,26 +63,26 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         }
 
         when:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
 
         then:
-        checkDependencies(!expectWellBehaved)
+        checkDependencies()
 
         and:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
 
         where:
-        selector             | rule            | chosenVersion | candidates       | downloadedMetadata | mavenCompatible
-        "1.+"                | "select 1.1"    | "1.1"         | '["1.2", "1.1"]' | ['1.1']            | true
-        "1.+"                | "select status" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false
-        "1.+"                | "select branch" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false
-        "latest.integration" | "select 2.1"    | "2.1"         | '["2.1"]'        | ['2.1']            | true
-        "latest.milestone"   | "select 2.0"    | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false
-        "latest.milestone"   | "select status" | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false
-        "latest.milestone"   | "select branch" | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false
-        "1.1"                | "select 1.1"    | "1.1"         | '["1.1"]'        | ['1.1']            | true
-        "1.1"                | "select status" | "1.1"         | '["1.1"]'        | ['1.1']            | false
-        "1.1"                | "select branch" | "1.1"         | '["1.1"]'        | ['1.1']            | false
+        selector             | rule            | chosenVersion | candidates       | downloadedMetadata | mavenCompatible | gradleCompatible
+        "1.+"                | "select 1.1"    | "1.1"         | '["1.2", "1.1"]' | ['1.1']            | true            | true
+        "1.+"                | "select status" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false           | true
+        "1.+"                | "select branch" | "1.1"         | '["1.2", "1.1"]' | ['1.2', '1.1']     | false           | false
+        "latest.integration" | "select 2.1"    | "2.1"         | '["2.1"]'        | ['2.1']            | true            | true
+        "latest.milestone"   | "select 2.0"    | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false           | true
+        "latest.milestone"   | "select status" | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false           | true
+        "latest.milestone"   | "select branch" | "2.0"         | '["2.0"]'        | ['2.1', '2.0']     | false           | false
+        "1.1"                | "select 1.1"    | "1.1"         | '["1.1"]'        | ['1.1']            | true            | true
+        "1.1"                | "select status" | "1.1"         | '["1.1"]'        | ['1.1']            | false           | true
+        "1.1"                | "select branch" | "1.1"         | '["1.1"]'        | ['1.1']            | false           | false
     }
 
     private String setupInterations(String selector, String chosenVersion, List<String> downloadedMetadata, Closure<Void> more = {}) {
@@ -112,7 +117,8 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
     @Unroll
     def "uses '#rule' rule to reject all candidates for dynamic version #selector"() {
         given:
-        boolean expectWellBehaved = GradleMetadataResolveRunner.useIvy() || mavenCompatible
+        Assume.assumeTrue isWellBehaved(mavenCompatible)
+
         buildFile << """
 
             dependencies {
@@ -140,10 +146,10 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         setupInterations(selector, null, downloadedMetadata)
 
         then:
-        checkDependencies(':checkLenient', !expectWellBehaved)
+        checkDependencies(':checkLenient')
 
         when:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
         repositoryInteractions {
             'org.utils:api' {
                 expectHeadVersionListing()
@@ -155,7 +161,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         failureHasCause("Could not find any version that matches org.utils:api:${selector}.")
 
         when:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
         repositoryInteractions {
             'org.utils:api' {
                 expectHeadVersionListing()
@@ -167,7 +173,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         failureHasCause("Could not find any version that matches org.utils:api:${selector}.")
 
         and:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
 
         where:
         selector             | rule                       | candidates              | downloadedMetadata    | mavenCompatible
@@ -214,9 +220,9 @@ Versions rejected by component selection rules:
     1.0
 Searched in the following locations:
     ${versionListingURI('org.utils', 'api')}
-${triedMetadata('org.utils', 'api', "1.2")}
-${triedMetadata('org.utils', 'api', "1.1")}
-${triedMetadata('org.utils', 'api', "1.0")}
+${triedMetadata('org.utils', 'api', "1.2", false, gradleMetadataEnabled || !experimentalEnabled)}
+${triedMetadata('org.utils', 'api', "1.1", false, gradleMetadataEnabled || !experimentalEnabled)}
+${triedMetadata('org.utils', 'api', "1.0", false, gradleMetadataEnabled || !experimentalEnabled)}
 Required by:
 """)
 
@@ -250,7 +256,8 @@ Required by:
     @Unroll
     def "uses '#rule' rule to reject candidate for static version #selector"() {
         given:
-        boolean expectWellBehaved = GradleMetadataResolveRunner.useIvy() || mavenCompatible
+        Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
+
         buildFile << """
             dependencies {
                 conf "org.utils:api:${selector}"
@@ -277,33 +284,27 @@ Required by:
         setupInterations(selector, null, downloadedMetadata)
 
         then:
-        checkDependencies(':checkLenient', !expectWellBehaved)
+        checkDependencies(':checkLenient')
 
         when:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
 
         then:
         fails ':checkDeps'
-        if (expectWellBehaved) {
-            failureHasCause("Could not find org.utils:api:${selector}.")
-        }
 
         when:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
 
         then:
         fails ':checkDeps'
-        if (expectWellBehaved) {
-            failureHasCause("Could not find org.utils:api:${selector}.")
-        }
 
         where:
-        selector | rule            | candidates | downloadedMetadata | mavenCompatible
-        "1.0"    | "reject all"    | '["1.0"]'  | ['1.0']            | true
-        "1.0"    | "select 1.1"    | '["1.0"]'  | ['1.0']            | true
-        "1.0"    | "select status" | '["1.0"]'  | ['1.0']            | true
-        "1.0"    | "select branch" | '["1.0"]'  | ['1.0']            | false
-        "1.1"    | "reject all"    | '["1.1"]'  | ['1.1']            | true
+        selector | rule            | candidates | downloadedMetadata | mavenCompatible | gradleCompatible
+        "1.0"    | "reject all"    | '["1.0"]'  | ['1.0']            | true            | true
+        "1.0"    | "select 1.1"    | '["1.0"]'  | ['1.0']            | true            | true
+        "1.0"    | "select status" | '["1.0"]'  | ['1.0']            | true            | true
+        "1.0"    | "select branch" | '["1.0"]'  | ['1.0']            | false           | false
+        "1.1"    | "reject all"    | '["1.1"]'  | ['1.1']            | true            | true
     }
 
     @Unroll
@@ -361,7 +362,7 @@ Required by:
         then:
         if (GradleMetadataResolveRunner.useIvy()) {
             file("libs").assertHasDescendants("api-1.1.jar")
-            file("libs/api-1.1.jar").assertIsDifferentFrom(ivyHttpRepo.module('org.utils', 'api','1.1').jarFile)
+            file("libs/api-1.1.jar").assertIsDifferentFrom(ivyHttpRepo.module('org.utils', 'api', '1.1').jarFile)
             file("libs/api-1.1.jar").assertIsCopyOf(module2.jarFile)
         }
 
@@ -372,7 +373,8 @@ Required by:
     @Unroll
     def "can control selection of components by module rule #rule for #selector"() {
         given:
-        boolean expectWellBehaved = GradleMetadataResolveRunner.useIvy() || mavenCompatible
+        Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
+
         buildFile << """
             dependencies {
                 conf "org.utils:api:${selector}"
@@ -416,16 +418,16 @@ Required by:
         }
 
         then:
-        checkDependencies(!expectWellBehaved)
+        checkDependencies()
 
         and:
-        resetExpectations(!expectWellBehaved)
+        resetExpectations()
 
         where:
-        selector           | rule            | chosen | candidates       | downloadedMetadata | mavenCompatible
-        "1.+"              | "select 1.1"    | "1.1"  | '["1.2", "1.1"]' | ['1.1']            | true
-        "latest.milestone" | "select status" | "2.0"  | '["2.0"]'        | ['2.1', '2.0']     | false
-        "1.1"              | "select branch" | "1.1"  | '["1.1"]'        | ['1.1']            | false
+        selector           | rule            | chosen | candidates       | downloadedMetadata | mavenCompatible | gradleCompatible
+        "1.+"              | "select 1.1"    | "1.1"  | '["1.2", "1.1"]' | ['1.1']            | true            | true
+        "latest.milestone" | "select status" | "2.0"  | '["2.0"]'        | ['2.1', '2.0']     | false           | true
+        "1.1"              | "select branch" | "1.1"  | '["1.1"]'        | ['1.1']            | false           | false
     }
 
     @Issue("GRADLE-3236")

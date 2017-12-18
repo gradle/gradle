@@ -182,7 +182,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return new Factory<JavaExecHandleBuilder>() {
             public JavaExecHandleBuilder create() {
                 GradleInvocation invocation = buildInvocation();
-                JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver());
+                JavaExecHandleBuilder builder = TestFiles.execFactory().newJavaExec();
                 builder.workingDir(getWorkingDir());
                 builder.setExecutable(new File(getJavaHome(), "bin/java"));
                 Collection<File> classpath = cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getAdditionalClassPath().getAsFiles());

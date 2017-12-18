@@ -16,38 +16,40 @@
 
 package org.gradle.language.swift.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
 
 import javax.inject.Inject;
 
 public class DefaultSwiftApplication extends DefaultSwiftComponent implements SwiftApplication {
-    private final DefaultSwiftExecutable debug;
-    private final DefaultSwiftExecutable release;
+    private final ProjectLayout projectLayout;
+    private final ObjectFactory objectFactory;
+    private final ConfigurationContainer configurations;
+    private final Property<SwiftExecutable> developmentBinary;
 
     @Inject
     public DefaultSwiftApplication(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
-        debug = objectFactory.newInstance(DefaultSwiftExecutable.class, name + "Debug", projectLayout, objectFactory, getModule(), true, false, true, getSwiftSource(), configurations, getImplementationDependencies());
-        release = objectFactory.newInstance(DefaultSwiftExecutable.class, name + "Release", projectLayout, objectFactory, getModule(), true, true, false, getSwiftSource(), configurations, getImplementationDependencies());
+        this.projectLayout = projectLayout;
+        this.objectFactory = objectFactory;
+        this.configurations = configurations;
+        this.developmentBinary = objectFactory.property(SwiftExecutable.class);
+    }
+
+    public SwiftExecutable createExecutable(String nameSuffix, boolean debuggable, boolean optimized, boolean testable) {
+        SwiftExecutable result = objectFactory.newInstance(DefaultSwiftExecutable.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getModule(), debuggable, optimized, testable, getSwiftSource(), configurations, getImplementationDependencies());
+        getBinaries().add(result);
+        return result;
     }
 
     @Override
-    public SwiftExecutable getDevelopmentBinary() {
-        return debug;
-    }
-
-    @Override
-    public SwiftExecutable getDebugExecutable() {
-        return debug;
-    }
-
-    @Override
-    public SwiftExecutable getReleaseExecutable() {
-        return release;
+    public Property<SwiftExecutable> getDevelopmentBinary() {
+        return developmentBinary;
     }
 }

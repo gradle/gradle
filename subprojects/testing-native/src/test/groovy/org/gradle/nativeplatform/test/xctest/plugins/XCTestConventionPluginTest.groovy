@@ -23,6 +23,7 @@ import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkMachOBundle
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
 import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle
 import org.gradle.nativeplatform.test.xctest.tasks.XCTest
@@ -45,6 +46,7 @@ class XCTestConventionPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
 
         then:
         project.xctest instanceof SwiftXCTestSuite
@@ -61,6 +63,7 @@ class XCTestConventionPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(SwiftLibraryPlugin)
+        project.evaluate()
 
         then:
         project.xctest.testedComponent.orNull == project.library
@@ -75,6 +78,7 @@ class XCTestConventionPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(SwiftApplicationPlugin)
+        project.evaluate()
 
         then:
         project.xctest.testedComponent.orNull == project.application
@@ -83,10 +87,19 @@ class XCTestConventionPluginTest extends Specification {
     def "registers a component for the test suite"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
 
         then:
         project.components.test == project.xctest
-        project.components.testExecutable == project.xctest.developmentBinary
+        project.xctest.binaries.get().name == ['testExecutable']
+        project.components.containsAll(project.xctest.binaries.get())
+
+        and:
+        def binaries = project.xctest.binaries.get()
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftXCTestBinary }.size() == 1
+
+        and:
+        project.xctest.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftXCTestBinary }
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
@@ -96,6 +109,7 @@ class XCTestConventionPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
 
         then:
         def compileSwift = project.tasks.compileTestSwift
@@ -127,6 +141,7 @@ class XCTestConventionPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
 
         then:
         def compileSwift = project.tasks.compileTestSwift
@@ -155,6 +170,7 @@ class XCTestConventionPluginTest extends Specification {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
         project.buildDir = project.file("output")
+        project.evaluate()
 
         then:
         def compileSwift = project.tasks.compileTestSwift

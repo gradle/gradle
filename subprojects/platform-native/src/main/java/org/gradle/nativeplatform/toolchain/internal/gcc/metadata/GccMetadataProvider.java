@@ -59,6 +59,10 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         return new GccMetadataProvider(execActionFactory, GccCompilerType.CLANG);
     }
 
+    public static GccMetadata broken(String message) {
+        return new BrokenResult(message);
+    }
+
     GccMetadataProvider(ExecActionFactory execActionFactory, GccCompilerType compilerType) {
         super(execActionFactory);
         this.compilerType = compilerType;
@@ -260,7 +264,7 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         }
     }
 
-    public static class BrokenResult extends AbstractBrokenMetadata implements GccMetadata {
+    private static class BrokenResult extends AbstractBrokenMetadata implements GccMetadata {
 
         public BrokenResult(String message) {
             super(message);

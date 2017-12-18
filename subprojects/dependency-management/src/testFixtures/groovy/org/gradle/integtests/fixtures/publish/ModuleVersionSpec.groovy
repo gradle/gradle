@@ -31,11 +31,10 @@ class ModuleVersionSpec {
 
     private final List<Object> dependsOn = []
     private final List<Object> constraints = []
+    private final Map<String, Map<String, String>> variants = [:]
     private final List<Closure<?>> withModule = []
     private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
     private List<ArtifactExpectation> expectGetArtifact = []
-
-    private boolean alwaysExpectGradleMetadata
 
     static class ArtifactExpectation {
         final InteractionExpectation type
@@ -58,9 +57,12 @@ class ModuleVersionSpec {
         expectGetArtifact()
     }
 
-    void expectGetMetadata(boolean alwaysExpectGradleMetadata = false) {
-        this.alwaysExpectGradleMetadata = alwaysExpectGradleMetadata
+    void expectGetMetadata() {
         expectGetMetadata << InteractionExpectation.GET
+    }
+
+    void expectGetMetadataMissing() {
+        expectGetMetadata << InteractionExpectation.GET_MISSING
     }
 
     void expectHeadMetadata() {
@@ -83,8 +85,16 @@ class ModuleVersionSpec {
         expectGetArtifact << new ArtifactExpectation(InteractionExpectation.HEAD, artifact)
     }
 
+    void expectHeadArtifactMissing(String artifact = '') {
+        expectGetArtifact << new ArtifactExpectation(InteractionExpectation.HEAD_MISSING, artifact)
+    }
+
     void maybeGetMetadata() {
         expectGetMetadata << InteractionExpectation.MAYBE
+    }
+
+    void variant(String variant, Map<String, String> attributes) {
+        variants << [(variant): attributes]
     }
 
     void dependsOn(coord) {
@@ -116,7 +126,8 @@ class ModuleVersionSpec {
 
     void build(HttpRepository repository) {
         def module = repository.module(groupId, artifactId, version)
-        def gradleMetadataEnabled = alwaysExpectGradleMetadata || GradleMetadataResolveRunner.isGradleMetadataEnabled()
+        def gradleMetadataEnabled = GradleMetadataResolveRunner.isGradleMetadataEnabled()
+        def newResolveBehaviorEnabled = GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
         if (gradleMetadataEnabled) {
             module.withModuleMetadata()
         }
@@ -125,33 +136,49 @@ class ModuleVersionSpec {
                 case InteractionExpectation.NONE:
                     break
                 case InteractionExpectation.MAYBE:
-                    if (module instanceof MavenModule) {
+                    if (newResolveBehaviorEnabled) {
+                        module.moduleMetadata.allowGetOrHead()
+                    } else if (module instanceof MavenModule) {
                         module.pom.allowGetOrHead()
                     } else if (module instanceof IvyModule) {
                         module.ivy.allowGetOrHead()
                     }
-                    if (gradleMetadataEnabled) {
-                        module.moduleMetadata.allowGetOrHead()
-                    }
                     break
                 case InteractionExpectation.HEAD:
-                    if (module instanceof MavenModule) {
+                    if (newResolveBehaviorEnabled && !gradleMetadataEnabled) {
+                        module.moduleMetadata.allowGetOrHead()
+                    }
+                    if (newResolveBehaviorEnabled && gradleMetadataEnabled) {
+                        module.moduleMetadata.expectHead()
+                    } else if (module instanceof MavenModule) {
                         module.pom.expectHead()
                     } else if (module instanceof IvyModule) {
                         module.ivy.expectHead()
                     }
-                    if (gradleMetadataEnabled) {
-                        module.moduleMetadata.expectHead()
+
+                    break
+                case InteractionExpectation.GET_MISSING:
+                    // Assume all metadata files are missing
+                    if (newResolveBehaviorEnabled) {
+                        module.moduleMetadata.expectGetMissing()
+                    }
+
+                    if (module instanceof MavenModule) {
+                        module.pom.expectGetMissing()
+                    } else if (module instanceof IvyModule) {
+                        module.ivy.expectGetMissing()
                     }
                     break
                 default:
-                    if (module instanceof MavenModule) {
+                    if (newResolveBehaviorEnabled && !gradleMetadataEnabled) {
+                        module.moduleMetadata.allowGetOrHead()
+                    }
+                    if (newResolveBehaviorEnabled && gradleMetadataEnabled) {
+                        module.moduleMetadata.expectGet()
+                    } else if (module instanceof MavenModule) {
                         module.pom.expectGet()
                     } else if (module instanceof IvyModule) {
                         module.ivy.expectGet()
-                    }
-                    if (gradleMetadataEnabled) {
-                        module.moduleMetadata.expectGet()
                     }
             }
         }
@@ -175,6 +202,9 @@ class ModuleVersionSpec {
                     case InteractionExpectation.HEAD:
                         artifact.expectHead()
                         break
+                    case InteractionExpectation.HEAD_MISSING:
+                        artifact.expectHeadMissing()
+                        break
                     case InteractionExpectation.MAYBE:
                         artifact.allowGetOrHead()
                         break
@@ -183,6 +213,12 @@ class ModuleVersionSpec {
                 }
             }
         }
+        if (variants) {
+            variants.each {
+                module.variant(it.key, it.value)
+            }
+        }
+
         if (dependsOn) {
             dependsOn.each {
                 if (it instanceof CharSequence) {

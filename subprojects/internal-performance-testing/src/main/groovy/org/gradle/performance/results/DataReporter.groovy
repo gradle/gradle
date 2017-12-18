@@ -16,6 +16,6 @@
 
 package org.gradle.performance.results
 
-public interface DataReporter<T> {
+interface DataReporter<T extends PerformanceTestResult> extends Closeable {
     void report(T results)
 }

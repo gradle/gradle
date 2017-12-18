@@ -125,7 +125,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
             }
         """
         libraryPath.file("settings.gradle").touch()
-        libraryRepo.commit("initial commit", libraryRepo.listFiles())
+        libraryRepo.commit("initial commit")
         libraryRepo.close()
     }
 
@@ -139,7 +139,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
             version = '1.0'
         """
         logPath.file("settings.gradle").touch()
-        logRepo.commit("initial commit", logRepo.listFiles())
+        logRepo.commit("initial commit")
         logRepo.close()
     }
 }

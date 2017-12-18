@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -229,5 +230,42 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Override
     public synchronized ConfigurationMetadata getConfiguration(final String name) {
         return populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AbstractModuleComponentResolveMetadata that = (AbstractModuleComponentResolveMetadata) o;
+        return changing == that.changing
+            && missing == that.missing
+            && Objects.equal(moduleVersionIdentifier, that.moduleVersionIdentifier)
+            && Objects.equal(componentIdentifier, that.componentIdentifier)
+            && Objects.equal(status, that.status)
+            && Objects.equal(statusScheme, that.statusScheme)
+            && Objects.equal(moduleSource, that.moduleSource)
+            && Objects.equal(configurationDefinitions, that.configurationDefinitions)
+            && Objects.equal(variants, that.variants)
+            && Objects.equal(contentHash, that.contentHash);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(
+            moduleVersionIdentifier,
+            componentIdentifier,
+            changing,
+            missing,
+            status,
+            statusScheme,
+            moduleSource,
+            configurationDefinitions,
+            variants,
+            contentHash);
     }
 }

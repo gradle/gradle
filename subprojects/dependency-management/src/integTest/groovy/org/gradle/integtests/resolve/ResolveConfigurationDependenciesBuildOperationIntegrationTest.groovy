@@ -18,12 +18,16 @@ package org.gradle.integtests.resolve
 
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import spock.lang.Unroll
 
 class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
+
+    @SuppressWarnings("GroovyUnusedDeclaration")
+    def operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     def "resolved configurations are exposed via build operation"() {
         setup:
@@ -258,7 +262,58 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         "script plugin" | 'buildscript' | "scriptPlugin.gradle"
         "settings"      | 'buildscript' | 'settings.gradle'
         "init"          | 'initscript'  | 'init.gradle'
+    }
 
+    def "included build classpath configuration resolution result is exposed"() {
+        setup:
+        def m1 = mavenHttpRepo.module('org.foo', 'some-dep').publish()
+
+        file("projectB/settings.gradle") << """
+        rootProject.name = 'project-b'
+        include "sub1"
+        """
+
+        file("projectB/build.gradle") << """
+                buildscript {
+                    repositories {
+                        maven { url '${mavenHttpRepo.uri}' }
+                    }
+                    dependencies {
+                        classpath "org.foo:some-dep:1.0"
+                    }
+                }
+                allprojects {
+                    apply plugin: 'java'
+                    group "org.sample"
+                    version "1.0"
+                }
+                
+        """
+
+        settingsFile << """
+            includeBuild 'projectB'
+        """
+
+        buildFile << """
+            buildscript {
+                dependencies {
+
+                    classpath 'org.sample:sub1:1.0'
+                }
+            }
+            task foo
+        """
+
+        m1.allowAll()
+        executer.requireIsolatedDaemons()
+        when:
+        run "foo"
+
+        then:
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType) {
+            it.details.configurationName == 'classpath' && it.details.buildPath == ':project-b'
+        }
+        op.result.resolvedDependenciesCount == 1
     }
 
     private void setupComposite() {

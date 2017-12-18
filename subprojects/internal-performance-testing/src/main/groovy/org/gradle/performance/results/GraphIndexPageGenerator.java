@@ -55,17 +55,17 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     end();
                     div().classAttr("charts");
                         h3().text("Average total time").end();
-                        String totalTimeChartId = "totalTimeChart" + testHistory.getId().replaceAll("[^a-zA-Z]", "_");
+                        String totalTimeChartId = "totalTimeChart" + urlEncode(testHistory.getId());
                         div().id(totalTimeChartId).classAttr("chart");
                             p().text("Loading...").end();
                         end();
                         script();
-                            text("performanceTests.createPerformanceGraph('tests/" + testHistory.getId() + ".json', function(data) { return data.totalTime }, 'total time', 's', '" + totalTimeChartId + "');");
+                            text("performanceTests.createPerformanceGraph('tests/" + urlEncode(testHistory.getId()) + ".json', function(data) { return data.totalTime }, 'total time', 's', '" + totalTimeChartId + "');");
                         end();
                     end();
 
                     div().classAttr("details");
-                        String url = "tests/" + testHistory.getId() + ".html";
+                        String url = "tests/" + urlEncode(testHistory.getId()) + ".html";
                         a().href(url).text("details...").end();
                     end();
                 }

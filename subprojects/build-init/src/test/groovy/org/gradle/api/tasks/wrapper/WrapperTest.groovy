@@ -18,6 +18,7 @@ package org.gradle.api.tasks.wrapper
 
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.AbstractTaskTest
+import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
 import org.gradle.util.GradleVersion
@@ -147,7 +148,7 @@ class WrapperTest extends AbstractTaskTest {
 
     def "check inputs"() {
         expect:
-        wrapper.getInputs().getProperties().keySet() == WrapUtil.toSet(
+        TaskPropertyTestUtils.getProperties(wrapper).keySet() == WrapUtil.toSet(
             "distributionBase", "distributionPath", "distributionUrl", "distributionSha256Sum",
             "distributionType", "archiveBase", "archivePath", "gradleVersion")
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.internal;
 
+import com.google.common.base.Strings;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.Dependency;
@@ -53,6 +54,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+/**
+ * <p>The Gradle module metadata file generator is responsible for generating a JSON file
+ * describing module metadata. In particular, this file format is capable of handling different
+ * variants with different dependency sets.</p>
+ *
+ * <p>Whenever you change this class, make sure you also:</p>
+ *
+ * <ul>
+ *     <li>Update the corresponding {@link ModuleMetadataParser module metadata parser}</li>
+ *     <li>Update the module metadata specification (subprojects/docs/src/docs/design/gradle-module-metadata-specification.md)</li>
+ *     <li>Update {@link org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSerializer the module metadata serializer} </li>
+ *     <li>Add a sample for the module metadata serializer test, to make sure that serialized metadata is idempotent</li>
+ * </ul>
+ */
 public class ModuleMetadataFileGenerator {
     private final BuildInvocationScopeId buildInvocationScopeId;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
@@ -111,17 +126,25 @@ public class ModuleMetadataFileGenerator {
     }
 
     private void writeVersionConstraint(VersionConstraint versionConstraint, JsonWriter jsonWriter) throws IOException {
+        if (DefaultImmutableVersionConstraint.of().equals(versionConstraint)) {
+            return;
+        }
+
         jsonWriter.name("version");
         jsonWriter.beginObject();
-        jsonWriter.name("prefers");
-        jsonWriter.value(versionConstraint.getPreferredVersion());
-        jsonWriter.name("rejects");
-        jsonWriter.beginArray();
-        List<String> rejectedVersions = versionConstraint.getRejectedVersions();
-        for (String reject : rejectedVersions) {
-            jsonWriter.value(reject);
+        if (!versionConstraint.getPreferredVersion().isEmpty()) {
+            jsonWriter.name("prefers");
+            jsonWriter.value(versionConstraint.getPreferredVersion());
         }
-        jsonWriter.endArray();
+        List<String> rejectedVersions = versionConstraint.getRejectedVersions();
+        if (!rejectedVersions.isEmpty()) {
+            jsonWriter.name("rejects");
+            jsonWriter.beginArray();
+            for (String reject : rejectedVersions) {
+                jsonWriter.value(reject);
+            }
+            jsonWriter.endArray();
+        }
         jsonWriter.endObject();
     }
 
@@ -363,12 +386,12 @@ public class ModuleMetadataFileGenerator {
             } else if (dependency instanceof DependencyConstraint) {
                 vc = ((DependencyConstraint) dependency).getVersionConstraint();
             } else {
-                vc = DefaultImmutableVersionConstraint.of(dependency.getVersion());
+                vc = DefaultImmutableVersionConstraint.of(Strings.nullToEmpty(dependency.getVersion()));
             }
             writeVersionConstraint(vc, jsonWriter);
-            if (dependency instanceof ModuleDependency) {
-                writeExcludes((ModuleDependency) dependency, jsonWriter);
-            }
+        }
+        if (dependency instanceof ModuleDependency) {
+            writeExcludes((ModuleDependency) dependency, jsonWriter);
         }
         jsonWriter.endObject();
     }

@@ -53,7 +53,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalCo
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
@@ -64,7 +63,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceA
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.vcs.VcsDependencyResolver;
-import org.gradle.api.internal.artifacts.vcs.VcsWorkingDirectoryRoot;
+import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -103,7 +102,7 @@ import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.vcs.internal.VcsMappingFactory;
-import org.gradle.vcs.internal.VcsMappingsInternal;
+import org.gradle.vcs.internal.VcsMappingsStore;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 
 import java.util.Collections;
@@ -309,10 +308,6 @@ class DependencyManagementBuildScopeServices {
             experimentalFeatures);
     }
 
-    ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
-        return new ResolutionResultsStoreFactory(temporaryFileProvider);
-    }
-
     ProjectPublicationRegistry createProjectPublicationRegistry() {
         return new DefaultProjectPublicationRegistry();
     }
@@ -336,12 +331,12 @@ class DependencyManagementBuildScopeServices {
     private static class VcsOrProjectResolverProviderFactory implements ResolverProviderFactory {
         private final VcsDependencyResolver vcsDependencyResolver;
         private final ProjectDependencyResolver projectDependencyResolver;
-        private final VcsMappingsInternal vcsMappingsInternal;
+        private final VcsMappingsStore vcsMappingsStore;
 
-        private VcsOrProjectResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsMappingsInternal vcsMappingsInternal) {
+        private VcsOrProjectResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsMappingsStore vcsMappingsStore) {
             this.vcsDependencyResolver = vcsDependencyResolver;
             this.projectDependencyResolver = projectDependencyResolver;
-            this.vcsMappingsInternal = vcsMappingsInternal;
+            this.vcsMappingsStore = vcsMappingsStore;
         }
 
         @Override
@@ -351,15 +346,15 @@ class DependencyManagementBuildScopeServices {
 
         @Override
         public ComponentResolvers create(ResolveContext context) {
-            return vcsMappingsInternal.hasRules() ? vcsDependencyResolver : projectDependencyResolver;
+            return vcsMappingsStore.hasRules() ? vcsDependencyResolver : projectDependencyResolver;
         }
     }
 
-    VcsDependencyResolver createVcsDependencyResolver(ServiceRegistry serviceRegistry, VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, ProjectRegistry<ProjectInternal> projectRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
-        return new VcsDependencyResolver(vcsWorkingDirectoryRoot, projectDependencyResolver, serviceRegistry, localComponentRegistry, vcsMappingsInternal, vcsMappingFactory, versionControlSystemFactory);
+    VcsDependencyResolver createVcsDependencyResolver(ServiceRegistry serviceRegistry, VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, ProjectRegistry<ProjectInternal> projectRegistry, VcsMappingsStore vcsMappingsStore, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+        return new VcsDependencyResolver(vcsWorkingDirectoryRoot, projectDependencyResolver, serviceRegistry, localComponentRegistry, vcsMappingsStore, vcsMappingFactory, versionControlSystemFactory);
     }
 
-    ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsMappingsInternal vcsMappingsInternal) {
-        return new VcsOrProjectResolverProviderFactory(vcsDependencyResolver, projectDependencyResolver, vcsMappingsInternal);
+    ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsMappingsStore vcsMappingsStore) {
+        return new VcsOrProjectResolverProviderFactory(vcsDependencyResolver, projectDependencyResolver, vcsMappingsStore);
     }
 }

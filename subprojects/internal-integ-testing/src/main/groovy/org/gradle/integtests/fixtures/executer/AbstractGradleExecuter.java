@@ -31,6 +31,7 @@ import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
@@ -839,17 +840,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         if (!searchUpwards) {
-            boolean settingsFoundAboveInTestDir = false;
-            TestFile dir = new TestFile(getWorkingDir());
-            while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
-                if (dir.file("settings.gradle").isFile()) {
-                    settingsFoundAboveInTestDir = true;
-                    break;
-                }
-                dir = dir.getParentFile();
-            }
-
-            if (!settingsFoundAboveInTestDir) {
+            // needed for cross-version tests with older versions
+            if (!isSettingsFileAvailable() && distribution.getVersion().getBaseVersion().compareTo(GradleVersion.version("4.5")) < 0) {
                 allArgs.add("--no-search-upward");
             }
         }
@@ -871,6 +863,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         allArgs.addAll(args);
         allArgs.addAll(tasks);
         return allArgs;
+    }
+
+    private boolean isSettingsFileAvailable() {
+        boolean settingsFoundAboveInTestDir = false;
+        TestFile dir = new TestFile(getWorkingDir());
+        while (dir != null && getTestDirectoryProvider().getTestDirectory().isSelfOrDescendent(dir)) {
+            if (dir.file("settings.gradle").isFile()) {
+                settingsFoundAboveInTestDir = true;
+                break;
+            }
+            dir = dir.getParentFile();
+        }
+        return settingsFoundAboveInTestDir;
     }
 
     /**
@@ -917,6 +922,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (interactive) {
             properties.put(ConsoleStateUtil.INTERACTIVE_TOGGLE, "true");
+        }
+
+        if (!searchUpwards) {
+            if (!isSettingsFileAvailable()) {
+                properties.put(BuildLayoutParameters.NO_SEARCH_UPWARDS_PROPERTY_KEY, "true");
+            }
         }
 
         return properties;

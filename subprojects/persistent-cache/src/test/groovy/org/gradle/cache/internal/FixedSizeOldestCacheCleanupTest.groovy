@@ -17,7 +17,6 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.PersistentCache
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -28,17 +27,11 @@ class FixedSizeOldestCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def persistentCache = Mock(PersistentCache)
-    def cleanupAction = new FixedSizeOldestCacheCleanup(new TestBuildOperationExecutor(),10, ".part")
+    def cleanupAction = new FixedSizeOldestCacheCleanup(10L)
 
-    def "filters for cache entry files"() {
-        expect:
-        !cleanupAction.canBeDeleted("cache.properties")
-        !cleanupAction.canBeDeleted("gc.properties")
-        !cleanupAction.canBeDeleted("cache.lock")
-
-        cleanupAction.canBeDeleted("0"*32)
-        cleanupAction.canBeDeleted("ABCDEFABCDEFABCDEFABCDEFABCDEF00")
-        cleanupAction.canBeDeleted("abcdefabcdefabcdefabcdefabcdef00")
+    def setup() {
+        persistentCache.getBaseDir() >> cacheDir
+        persistentCache.reservedCacheFiles >> Collections.emptyList()
     }
 
     def "finds eligible files"() {
@@ -47,9 +40,8 @@ class FixedSizeOldestCacheCleanupTest extends Specification {
             createCacheEntry(1024*1024), // 1MB
             createCacheEntry(1024*1024*10), // 10MB
         ]
-        cacheDir.file("cache.lock").touch()
         expect:
-        def eligibleFiles = Arrays.asList(cleanupAction.findEligibleFiles(cacheDir))
+        def eligibleFiles = Arrays.asList(cleanupAction.findEligibleFiles(persistentCache))
         eligibleFiles.size() == cacheEntries.size()
         eligibleFiles.containsAll(cacheEntries)
     }
@@ -79,24 +71,11 @@ class FixedSizeOldestCacheCleanupTest extends Specification {
         filesToDelete.size() == 0
     }
 
-    def "deletes files"() {
-        def cacheEntries = [
-            createCacheEntry(1024), // 1KB
-            createCacheEntry(1024*1024), // 1MB
-            createCacheEntry(1024*1024*5), // 5MB
-        ]
-        when:
-        cleanupAction.cleanupFiles(persistentCache, cacheEntries)
-        then:
-        cacheEntries.each {
-            it.assertDoesNotExist()
-        }
-    }
-
-    def createCacheEntry(int size, int timestamp=0) {
-        def cacheEntry = cacheDir.file(String.format("%032x", size))
+    private Random r = new Random()
+    def createCacheEntry(int size=1024, long timestamp=0) {
+        def cacheEntry = cacheDir.file(String.format("%032x", r.nextInt()))
         def data = new byte[size]
-        new Random().nextBytes(data)
+        r.nextBytes(data)
         cacheEntry.bytes = data
         cacheEntry.lastModified = timestamp
         return cacheEntry

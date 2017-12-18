@@ -151,7 +151,7 @@ class GradleModuleMetadata {
             if (dependencies == null) {
                 dependencies = (values.dependencies ?: []).collect {
                     def exclusions = it.excludes ? it.excludes.collect { "${it.group}:${it.module}" } : []
-                    new Dependency(it.group, it.module, it.version.prefers, it.version.rejects ?: [], exclusions)
+                    new Dependency(it.group, it.module, it.version?.prefers, it.version?.rejects ?: [], exclusions)
                 }
             }
             dependencies

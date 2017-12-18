@@ -29,7 +29,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Represents dependency information as stored in an external descriptor file.
@@ -65,9 +64,4 @@ public abstract class ExternalDependencyDescriptor {
     public abstract List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations);
 
     public abstract List<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration);
-
-    /**
-     * Returns the set of source configurations that this dependency should be attached to.
-     */
-    public abstract Set<String> getModuleConfigurations();
 }

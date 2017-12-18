@@ -17,6 +17,7 @@ package org.gradle.test.fixtures.ivy
 
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Action
+import org.gradle.api.attributes.Usage
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
@@ -43,7 +44,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final Map extendsFrom = [:]
     final Map extraAttributes = [:]
     final Map extraInfo = [:]
-    final List<VariantMetadata> variants = [new VariantMetadata("default")]
+    private final List<VariantMetadata> variants = [new VariantMetadata("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API]), new VariantMetadata("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME])]
     String branch = null
     String status = "integration"
     MetadataPublish metadataPublish = MetadataPublish.ALL
@@ -109,6 +110,13 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    @Override
+    IvyFileModule variant(String variant, Map<String, String> attributes) {
+        variants.add(new VariantMetadata(variant, attributes))
+        configuration(variant) //add variant also as configuration for plain ivy publishing
+        return this
+    }
+
     IvyFileModule withXml(Closure action) {
         transformer.addAction(action);
         return this
@@ -158,8 +166,16 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
     @Override
     IvyModule dependencyConstraint(Module target) {
-        dependencyConstraints << [group: target.group, module: target.module, version: target.version]
-        return null
+        dependencyConstraints << [organisation: target.group, module: target.module, revision: target.version]
+        return this
+    }
+
+    @Override
+    IvyModule dependencyConstraint(Map<String, ?> attributes, Module module) {
+        def allAttrs = [organisation: module.group, module: module.module, revision: module.version]
+        allAttrs.putAll(attributes)
+        dependencyConstraints << allAttrs
+        return this
     }
 
     IvyFileModule dependsOn(Map<String, ?> attributes) {
@@ -352,7 +368,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                         new DependencySpec(d.organisation, d.module, d.revision, d.rejects, d.exclusions)
                     },
                     dependencyConstraints.collect { d ->
-                        new DependencyConstraintSpec(d.group, d.module, d.version, d.rejects)
+                        new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.rejects)
                     },
                     artifacts.collect { moduleArtifact(it) }
                 )

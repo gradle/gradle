@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.compile.incremental.asm;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -27,7 +29,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.TypePath;
 import org.objectweb.asm.commons.InstructionAdapter;
 
 import java.lang.annotation.RetentionPolicy;
@@ -39,28 +40,24 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private static final MethodVisitor EMPTY_VISITOR = new MethodVisitor(API, null) {
     };
 
-    private final LiteralAdapter literalAdapter;
-    private final AnnotationVisitor annotationVisitor;
-    private final Set<Integer> constants;
-    private final Set<Integer> literals;
+    private final LocalVariableVisitor localVariableVisitor;
+    private final IntSet constants;
     private final Set<String> superTypes;
     private final Set<String> types;
     private final Predicate<String> typeFilter;
     private boolean isAnnotationType;
     private boolean dependencyToAll;
 
-    public ClassDependenciesVisitor(Set<Integer> constantsCollector) {
-        this(constantsCollector, null, null, null, null);
+    public ClassDependenciesVisitor(IntSet constantsCollector) {
+        this(constantsCollector, null, null, null);
     }
 
-    private ClassDependenciesVisitor(Set<Integer> constantsCollector, Set<Integer> literalsCollector, Set<String> types, Predicate<String> typeFilter, ClassReader reader) {
+    private ClassDependenciesVisitor(IntSet constantsCollector, Set<String> types, Predicate<String> typeFilter, ClassReader reader) {
         super(API);
         this.constants = constantsCollector;
-        this.literals = literalsCollector;
         this.types = types;
         this.superTypes = types == null ? null : Sets.<String>newHashSet();
-        this.annotationVisitor = literals == null ? null : new LiteralRecordingAnnotationVisitor();
-        this.literalAdapter = literals == null ? null : new LiteralAdapter();
+        this.localVariableVisitor = types == null ? null : new LocalVariableVisitor();
         this.typeFilter = typeFilter;
         if (reader != null) {
             collectClassDependencies(reader);
@@ -68,16 +65,15 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     }
 
     public static ClassAnalysis analyze(String className, ClassReader reader) {
-        Set<Integer> constants = Sets.newHashSet();
-        Set<Integer> literals = Sets.newHashSet();
+        IntSet constants = new IntOpenHashSet(2);
         Set<String> classDependencies = Sets.newHashSet();
-        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, literals, classDependencies, new ClassRelevancyFilter(className), reader);
+        ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants, classDependencies, new ClassRelevancyFilter(className), reader);
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        return new ClassAnalysis(className, classDependencies, visitor.isDependencyToAll(), constants, literals, visitor.getSuperTypes());
+        return new ClassAnalysis(className, classDependencies, visitor.isDependencyToAll(), constants, visitor.getSuperTypes());
     }
 
-    public static Set<Integer> retrieveConstants(ClassReader reader) {
-        Set<Integer> constants = Sets.newHashSet();
+    public static IntSet retrieveConstants(ClassReader reader) {
+        IntSet constants = new IntOpenHashSet(2);
         ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(constants);
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return constants;
@@ -174,15 +170,12 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (literals == null) {
-            return null;
-        }
         Type methodType = Type.getMethodType(desc);
         maybeAddDependentType(methodType.getReturnType().getClassName());
         for (Type argType : methodType.getArgumentTypes()) {
             maybeAddDependentType(argType.getClassName());
         }
-        return literalAdapter;
+        return localVariableVisitor;
     }
 
     @Override
@@ -190,14 +183,8 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         if (isAnnotationType && "Ljava/lang/annotation/Retention;".equals(desc)) {
             return new RetentionPolicyAnalyzer();
         }
-        return annotationVisitor;
+        return null;
     }
-
-    @Override
-    public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
-        return annotationVisitor;
-    }
-
     private static boolean isPrivate(int access) {
         return (access & Opcodes.ACC_PRIVATE) != 0;
     }
@@ -210,9 +197,9 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         return dependencyToAll;
     }
 
-    private class LiteralAdapter extends InstructionAdapter {
+    private class LocalVariableVisitor extends InstructionAdapter {
 
-        protected LiteralAdapter() {
+        protected LocalVariableVisitor() {
             super(API, EMPTY_VISITOR);
         }
 
@@ -220,93 +207,6 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
             maybeAddDependentType(descTypeOf(desc));
             super.visitLocalVariable(name, desc, signature, start, end, index);
-        }
-
-        @Override
-        public AnnotationVisitor visitAnnotationDefault() {
-            return annotationVisitor;
-        }
-
-        @Override
-        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            return annotationVisitor;
-        }
-
-        @Override
-        public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
-            return annotationVisitor;
-        }
-
-        @Override
-        public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
-            return annotationVisitor;
-        }
-
-        @Override
-        public AnnotationVisitor visitInsnAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
-            return annotationVisitor;
-        }
-
-        @Override
-        public AnnotationVisitor visitTryCatchAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
-            return annotationVisitor;
-        }
-
-        @Override
-        public AnnotationVisitor visitLocalVariableAnnotation(int typeRef, TypePath typePath, Label[] start, Label[] end, int[] index, String desc, boolean visible) {
-            return annotationVisitor;
-        }
-
-        @Override
-        public void iconst(int cst) {
-            literals.add(cst);
-            super.iconst(cst);
-        }
-
-        @Override
-        public void fconst(float cst) {
-            literals.add(Float.valueOf(cst).hashCode());
-            super.fconst(cst);
-        }
-
-        @Override
-        public void dconst(double cst) {
-            literals.add(Double.valueOf(cst).hashCode());
-            super.dconst(cst);
-        }
-
-        @Override
-        public void lconst(long cst) {
-            literals.add(Long.valueOf(cst).hashCode());
-            super.lconst(cst);
-        }
-
-        @Override
-        public void visitLdcInsn(Object cst) {
-            recordConstant(cst);
-            super.visitLdcInsn(cst);
-        }
-    }
-
-    protected void recordConstant(Object cst) {
-        if (cst != null && !(cst instanceof Class)) {
-            literals.add(cst.hashCode());
-        }
-    }
-
-    private class LiteralRecordingAnnotationVisitor extends AnnotationVisitor {
-        public LiteralRecordingAnnotationVisitor() {
-            super(ClassDependenciesVisitor.API, null);
-        }
-
-        @Override
-        public void visit(String name, Object value) {
-            recordConstant(value);
-        }
-
-        @Override
-        public AnnotationVisitor visitAnnotation(String name, String desc) {
-            return this;
         }
     }
 

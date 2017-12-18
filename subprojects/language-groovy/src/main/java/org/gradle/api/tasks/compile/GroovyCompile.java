@@ -33,7 +33,6 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -84,9 +83,8 @@ public class GroovyCompile extends AbstractCompile {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
             WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);
             IsolatedClassloaderWorkerFactory inProcessWorkerFactory = getServices().get(IsolatedClassloaderWorkerFactory.class);
-            JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
             FileResolver fileResolver = getServices().get(FileResolver.class);
-            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, javaCompilerFactory, workerDaemonFactory, inProcessWorkerFactory, fileResolver);
+            GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, workerDaemonFactory, inProcessWorkerFactory, fileResolver);
             Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
             compiler = new CleaningGroovyCompiler(delegatingCompiler, getOutputs());
         }

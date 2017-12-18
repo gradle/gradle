@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
@@ -27,6 +28,10 @@ import java.util.Set;
 public interface MavenPomInternal extends MavenPom {
 
     MavenProjectIdentity getProjectIdentity();
+
+    Set<MavenDependency> getApiDependencyManagement();
+
+    Set<MavenDependency> getRuntimeDependencyManagement();
 
     Set<MavenDependencyInternal> getApiDependencies();
 

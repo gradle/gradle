@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
 
 @RunWith(GradleMetadataResolveRunner)
 abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependencyResolutionTest {
-    final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
+    ResolveTestFixture resolve
 
     private final RemoteRepositorySpec repoSpec = new RemoteRepositorySpec()
 
@@ -33,14 +33,24 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         GradleMetadataResolveRunner.useIvy()
     }
 
+    boolean useMaven() {
+        !useIvy()
+    }
+
     boolean isGradleMetadataEnabled() {
         GradleMetadataResolveRunner.isGradleMetadataEnabled()
     }
 
+    boolean isExperimentalEnabled() {
+        GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
+    }
+
+    String getTestConfiguration() { 'conf' }
+
     String getRootProjectName() { 'test' }
 
-    void resetExpectations(boolean expectFailure = false) {
-        server.resetExpectations(expectFailure)
+    void resetExpectations() {
+        server.resetExpectations()
         repoSpec.nextStep()
     }
 
@@ -60,36 +70,18 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
 
     String metadataURI(String group, String module, String version) {
         if (GradleMetadataResolveRunner.useIvy()) {
-            def httpModule = ivyHttpRepo.module(group, module, version)
-            return httpModule.ivy.uri
+            def ivyModule = ivyHttpRepo.module(group, module, version)
+            if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                return ivyModule.moduleMetadata.uri
+            }
+            return ivyModule.ivy.uri
         } else {
-            def httpModule = mavenHttpRepo.module(group, module, version)
-            return httpModule.pom.uri
+            def mavenModule = mavenHttpRepo.module(group, module, version)
+            if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                return mavenModule.moduleMetadata.uri
+            }
+            return mavenModule.pom.uri
         }
-    }
-
-    String triedMetadata(String group, String module, String version, boolean includeJar = false) {
-        def uris = []
-        if (GradleMetadataResolveRunner.useIvy()) {
-            def httpModule = ivyHttpRepo.module(group, module, version)
-            uris << httpModule.ivy.uri
-            if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
-                uris << httpModule.moduleMetadata.uri
-            }
-            if (includeJar) {
-                uris << httpModule.artifact.uri
-            }
-        } else {
-            def httpModule = mavenHttpRepo.module(group, module, version)
-            uris << httpModule.pom.uri
-            if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
-                uris << httpModule.moduleMetadata.uri
-            }
-            if (includeJar) {
-                uris << httpModule.artifact.uri
-            }
-        }
-        uris.collect { "    $it" }.join('\n')
     }
 
     private String getMavenRepository() {
@@ -117,8 +109,10 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
     }
 
     def setup() {
+        resolve = new ResolveTestFixture(buildFile, testConfiguration)
+        resolve.expectDefaultConfiguration(GradleMetadataResolveRunner.isGradleMetadataEnabled() ? "runtime" : "default")
         settingsFile << "rootProject.name = '$rootProjectName'"
-        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+        if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
             ExperimentalFeaturesFixture.enable(settingsFile)
         }
         resolve.prepare()
@@ -126,7 +120,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
             $repository
 
             configurations {
-                conf
+                $testConfiguration
             }
         """
     }

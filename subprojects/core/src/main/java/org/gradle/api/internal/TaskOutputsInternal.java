@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal;
 
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.internal.tasks.ValidatingValue;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.TaskOutputs;
 
 import javax.annotation.Nullable;
@@ -32,17 +29,12 @@ import java.util.Set;
 @NonNullApi
 public interface TaskOutputsInternal extends TaskOutputs {
 
-    Spec<? super TaskInternal> getUpToDateSpec();
+    /**
+     * Calls the corresponding visitor methods for all outputs added via the runtime API.
+     */
+    void visitRegisteredProperties(PropertyVisitor visitor);
 
-    ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties();
-
-    TaskOutputFilePropertyBuilder file(ValidatingValue path);
-
-    TaskOutputFilePropertyBuilder dir(ValidatingValue path);
-
-    TaskOutputFilePropertyBuilder files(ValidatingValue paths);
-
-    TaskOutputFilePropertyBuilder dirs(ValidatingValue paths);
+    AndSpec<? super TaskInternal> getUpToDateSpec();
 
     /**
      * Returns the output files and directories recorded during the previous execution of the task.
@@ -54,12 +46,6 @@ public interface TaskOutputsInternal extends TaskOutputs {
     /**
      * Yields information about the cacheability of the outputs.
      */
-    TaskOutputCachingState getCachingState();
+    TaskOutputCachingState getCachingState(TaskProperties taskProperties);
 
-    /**
-     * Returns whether the task has declared any outputs.
-     */
-    boolean hasDeclaredOutputs();
-
-    void validate(TaskValidationContext context);
 }

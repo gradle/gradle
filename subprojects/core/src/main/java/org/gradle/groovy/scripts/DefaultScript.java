@@ -53,6 +53,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -77,6 +78,7 @@ public abstract class DefaultScript extends BasicScript {
         loggingManager = services.get(LoggingManager.class);
         Instantiator instantiator = services.get(Instantiator.class);
         FileLookup fileLookup = services.get(FileLookup.class);
+        ExecFactory execFactory = services.get(ExecFactory.class);
         DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
         StreamHasher streamHasher = services.get(StreamHasher.class);
         FileHasher fileHasher = services.get(FileHasher.class);
@@ -85,9 +87,9 @@ public abstract class DefaultScript extends BasicScript {
         } else {
             File sourceFile = getScriptSource().getResource().getLocation().getFile();
             if (sourceFile != null) {
-                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(sourceFile.getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher);
+                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(sourceFile.getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory);
             } else {
-                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher);
+                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory);
             }
         }
 

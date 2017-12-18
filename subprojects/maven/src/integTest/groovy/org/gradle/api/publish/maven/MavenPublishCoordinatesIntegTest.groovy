@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.publish.maven
+
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
@@ -67,7 +68,9 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.assertPublished()
 
         and:
-        resolveArtifacts(repoModule) == ['custom-2.2.jar']
+        resolveArtifacts(repoModule) {
+            expectFiles 'custom-2.2.jar'
+        }
     }
 
     def "can produce multiple separate publications for single project"() {
@@ -126,8 +129,18 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         apiModule.moduleDir.file('custom-api-2.jar').assertIsCopyOf(file('build/libs/root-api-1.0.jar'))
 
         and:
-        resolveArtifacts(module) == ['custom-2.2.jar']
-        resolveArtifacts(apiModule) == ['custom-api-2.jar']
+        resolveArtifacts(module) {
+            expectFiles 'custom-2.2.jar'
+        }
+        resolveArtifacts(apiModule) {
+            withModuleMetadata {
+                // customizing publications is not supported with Gradle metadata
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles 'custom-api-2.jar'
+            }
+        }
     }
 
 }

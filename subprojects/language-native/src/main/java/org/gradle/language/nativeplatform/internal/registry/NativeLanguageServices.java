@@ -29,7 +29,6 @@ public class NativeLanguageServices extends AbstractPluginServiceRegistry {
     public void registerGradleServices(ServiceRegistration registration) {
         registration.add(DefaultCompilationStateCacheFactory.class);
         registration.add(CachingCSourceParser.class);
-        registration.add(DefaultIncrementalCompilerBuilder.class);
     }
 
     @Override
@@ -40,5 +39,10 @@ public class NativeLanguageServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(NativeDependencyCache.class);
+    }
+
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.add(DefaultIncrementalCompilerBuilder.class);
     }
 }

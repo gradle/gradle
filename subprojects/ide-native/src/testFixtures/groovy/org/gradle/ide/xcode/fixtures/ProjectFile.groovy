@@ -224,12 +224,24 @@ class ProjectFile {
             assertIs(ProductType.DYNAMIC_LIBRARY)
         }
 
+        void assertIsStaticLibrary() {
+            assertIs(ProductType.STATIC_LIBRARY)
+        }
+
         void assertIsUnitTest() {
-            assertIs(ProductType.UNIT_TEST)
+            assert isUnitTest()
         }
 
         void assertIs(ProductType productType) {
-            assert getProperty("productType") == productType.identifier
+            assert is(productType)
+        }
+
+        boolean isUnitTest() {
+            return is(ProductType.UNIT_TEST)
+        }
+
+        boolean is(ProductType productType) {
+            return getProperty("productType") == productType.identifier
         }
 
         @Override

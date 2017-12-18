@@ -16,11 +16,17 @@
 
 package org.gradle.vcs.internal;
 
+import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CleanupActionFactory;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.vcs.SourceControl;
+import org.gradle.vcs.VcsMappings;
+
+import java.io.File;
 
 public class VersionControlServices extends AbstractPluginServiceRegistry {
     @Override
@@ -38,6 +44,11 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new VersionControlBuildSessionServices());
     }
 
+    @Override
+    public void registerSettingsServices(ServiceRegistration registration) {
+        registration.addProvider(new VersionControlSettingsServices());
+    }
+
     private static class VersionControlGlobalServices {
         VcsMappingFactory createVcsMappingFactory() {
             return new DefaultVcsMappingFactory();
@@ -45,19 +56,27 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildTreeServices {
-        protected VcsMappingsInternal createVcsMappingsInternal(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultVcsMappings.class, instantiator);
-        }
-
-        protected SourceControl createSourceControl(Instantiator instantiator, VcsMappingsInternal vcsMappingsInternal) {
-            return instantiator.newInstance(DefaultSourceControl.class, vcsMappingsInternal);
+        protected VcsMappingsStore createVcsMappingsStore(Instantiator instantiator) {
+            return new DefaultVcsMappingsStore();
         }
     }
 
     private static class VersionControlBuildSessionServices {
-        VersionControlSystemFactory createVersionControlSystemFactory(CacheRepository cacheRepository) {
-            return new DefaultVersionControlSystemFactory(cacheRepository);
+        VersionControlSystemFactory createVersionControlSystemFactory(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, CleanupActionFactory cleanupActionFactory, CacheRepository cacheRepository) {
+            return new DefaultVersionControlSystemFactory(vcsWorkingDirectoryRoot, cacheRepository, cleanupActionFactory);
+        }
+        VcsWorkingDirectoryRoot createVcsWorkingDirectoryRoot(ProjectCacheDir projectCacheDir) {
+            return new VcsWorkingDirectoryRoot(new File(projectCacheDir.getDir(), "vcsWorkingDirs"));
+        }
+    }
+
+    private static class VersionControlSettingsServices {
+        VcsMappings createVcsMappings(Instantiator instantiator, VcsMappingsStore vcsMappingsStore, Gradle gradle) {
+            return instantiator.newInstance(DefaultVcsMappings.class, instantiator, vcsMappingsStore, gradle);
         }
 
+        protected SourceControl createSourceControl(Instantiator instantiator, VcsMappings vcsMappings) {
+            return instantiator.newInstance(DefaultSourceControl.class, vcsMappings);
+        }
     }
 }

@@ -21,7 +21,6 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
@@ -31,7 +30,6 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         return new ObjectiveCHelloWorldApp()
     }
 
-    @ToBeImplemented("We rebuild everything when the include path changes. Should work when objective c uses discovered inputs")
     @Unroll
     def "does not recompile when include path has #testCase"() {
         given:
@@ -64,11 +62,8 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         run "mainExecutable"
 
         then:
-        // The compile task should be skipped instead!
-        executedAndNotSkipped compileTask
-        // And nothing should be recompiled
-        // and:
-        // outputs.noneRecompiled()
+        skipped compileTask
+        outputs.noneRecompiled()
 
         where:
         testCase                       | headerDirs

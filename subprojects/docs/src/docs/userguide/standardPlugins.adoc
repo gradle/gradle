@@ -156,7 +156,7 @@ These plugins provide some integration with various runtime technologies.
 | -
 | Adds support for building ZIP and TAR distributions.
 
-| <<javaLibraryDistribution_plugin, `java-library-distribution` >>
+| <<java_library_distribution_plugin, `java-library-distribution` >>
 | `java`, `distribution`
 | -
 | Adds support for building ZIP and TAR distributions for a Java library.
@@ -261,7 +261,7 @@ These plugins provide help with your software development process.
 | Works with
 | Description
 
-| <<buildDashboard_plugin, `build-dashboard` >>
+| <<build_dashboard_plugin, `build-dashboard` >>
 | reporting-base
 | -
 | Generates build dashboard report.
@@ -281,7 +281,7 @@ These plugins provide help with your software development process.
 | native language plugins
 | Adds integration with Visual Studio.
 
-| <<javaGradle_plugin, `java-gradle-plugin` >>
+| <<java_gradle_plugin, `java-gradle-plugin` >>
 | java
 |
 | Assists with development of Gradle plugins by providing standard plugin build configuration and validation.

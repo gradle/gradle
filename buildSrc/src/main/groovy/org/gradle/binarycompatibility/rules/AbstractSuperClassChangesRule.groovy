@@ -16,11 +16,11 @@
 
 package org.gradle.binarycompatibility.rules
 
-import me.champeau.gradle.japicmp.report.Violation
+import com.google.common.base.Optional
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
 import javassist.CtClass
-import com.google.common.base.Optional
+import me.champeau.gradle.japicmp.report.Violation
 
 import java.util.regex.Pattern
 
@@ -57,7 +57,9 @@ abstract class AbstractSuperClassChangesRule extends AbstractGradleViolationRule
     protected abstract Violation checkSuperClassChanges(JApiClass apiClass, CtClass oldClass, CtClass newClass)
 
     protected boolean isInternal(CtClass c) {
-        if (c.name.contains('.internal.')) {
+        if (c.name.startsWith("java.")) {
+            return false
+        } else if (c.name.contains('.internal.')) {
             return true
         } else {
             return !publicApiPatterns.any { it.matcher(c.name).find() }

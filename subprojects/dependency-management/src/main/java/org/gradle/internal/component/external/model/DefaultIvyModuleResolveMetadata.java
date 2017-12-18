@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
@@ -134,27 +135,27 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
-        for (ExternalDependencyDescriptor dependency : dependencies) {
-            IvyDependencyDescriptor defaultDependencyMetadata = (IvyDependencyDescriptor) dependency;
-            if (include(defaultDependencyMetadata, config.getName(), config.getHierarchy())) {
-                filteredDependencies.add(contextualize(config, getComponentId(), defaultDependencyMetadata));
+        for (IvyDependencyDescriptor dependency : dependencies) {
+            if (include(dependency, config.getName(), config.getHierarchy())) {
+                filteredDependencies.add(contextualize(config, getComponentId(), dependency));
             }
         }
         return filteredDependencies.build();
     }
 
-    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor incoming) {
+    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, IvyDependencyDescriptor incoming) {
         return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
     }
 
-    private boolean include(ExternalDependencyDescriptor dependency, String configName, Collection<String> hierarchy) {
-        for (String moduleConfiguration : dependency.getModuleConfigurations()) {
+    private boolean include(IvyDependencyDescriptor dependency, String configName, Collection<String> hierarchy) {
+        Set<String> dependencyConfigurations = dependency.getConfMappings().keySet();
+        for (String moduleConfiguration : dependencyConfigurations) {
             if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
                 return true;
             }
             if (moduleConfiguration.equals("*")) {
                 boolean include = true;
-                for (String conf2 : dependency.getModuleConfigurations()) {
+                for (String conf2 : dependencyConfigurations) {
                     if (conf2.startsWith("!") && conf2.substring(1).equals(configName)) {
                         include = false;
                         break;
@@ -229,5 +230,37 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     @Override
     public ImmutableList<IvyDependencyDescriptor> getDependencies() {
         return dependencies;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DefaultIvyModuleResolveMetadata that = (DefaultIvyModuleResolveMetadata) o;
+        return Objects.equal(dependencies, that.dependencies)
+            && Objects.equal(artifactDefinitions, that.artifactDefinitions)
+            && Objects.equal(excludes, that.excludes)
+            && Objects.equal(extraAttributes, that.extraAttributes)
+            && Objects.equal(branch, that.branch)
+            && Objects.equal(artifacts, that.artifacts);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(),
+            dependencies,
+            artifactDefinitions,
+            excludes,
+            extraAttributes,
+            branch,
+            artifacts);
     }
 }

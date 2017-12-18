@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
@@ -38,7 +39,7 @@ public interface TaskArtifactState {
      */
     boolean isUpToDate(Collection<String> messages);
 
-    IncrementalTaskInputs getInputChanges();
+    IncrementalTaskInputs getInputChanges(TaskProperties taskProperties);
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.

@@ -62,6 +62,8 @@ interface MavenModule extends Module {
 
     MavenModule dependencyConstraint(Module module)
 
+    MavenModule dependencyConstraint(Map<String, ?> attributes, Module module)
+
     MavenModule hasPackaging(String packaging)
 
     /**
@@ -120,6 +122,8 @@ interface MavenModule extends Module {
     MavenPom getParsedPom()
 
     ModuleArtifact getRootMetaData()
+
+    ModuleArtifact getSnapshotMetaData()
 
     boolean getUniqueSnapshots()
 

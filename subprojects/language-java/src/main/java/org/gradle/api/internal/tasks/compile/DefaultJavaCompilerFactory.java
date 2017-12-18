@@ -16,25 +16,28 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.workers.internal.WorkerDaemonFactory;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.tools.JavaCompiler;
-import java.io.File;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
-    private final File daemonWorkingDir;
+    private final WorkerDirectoryProvider workingDirProvider;
     private final WorkerDaemonFactory workerDaemonFactory;
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
     private final FileResolver fileResolver;
+    private final ExecHandleFactory execHandleFactory;
 
-    public DefaultJavaCompilerFactory(File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, FileResolver fileResolver) {
-        this.daemonWorkingDir = daemonWorkingDir;
+    public DefaultJavaCompilerFactory(WorkerDirectoryProvider workingDirProvider, WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, FileResolver fileResolver, ExecHandleFactory execHandleFactory) {
+        this.workingDirProvider = workingDirProvider;
         this.workerDaemonFactory = workerDaemonFactory;
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
         this.fileResolver = fileResolver;
+        this.execHandleFactory = execHandleFactory;
     }
 
     @Override
@@ -54,12 +57,12 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         if (CommandLineJavaCompileSpec.class.isAssignableFrom(type)) {
-            return new CommandLineJavaCompiler();
+            return new CommandLineJavaCompiler(execHandleFactory);
         }
 
         Compiler<JavaCompileSpec> compiler = new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
         if (ForkingJavaCompileSpec.class.isAssignableFrom(type) && !jointCompilation) {
-            return new DaemonJavaCompiler(daemonWorkingDir, compiler, workerDaemonFactory, fileResolver);
+            return new DaemonJavaCompiler(workingDirProvider.getIdleWorkingDirectory(), compiler, workerDaemonFactory, fileResolver);
         }
 
         return compiler;

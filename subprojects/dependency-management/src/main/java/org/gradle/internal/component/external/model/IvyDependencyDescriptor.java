@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -93,11 +94,6 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
     public String getDynamicConstraintVersion() {
         return dynamicConstraintVersion;
-    }
-
-    @Override
-    public Set<String> getModuleConfigurations() {
-        return confs.keySet();
     }
 
     public SetMultimap<String, String> getConfMappings() {
@@ -236,5 +232,37 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        IvyDependencyDescriptor that = (IvyDependencyDescriptor) o;
+        return changing == that.changing
+            && transitive == that.transitive
+            && optional == that.optional
+            && Objects.equal(selector, that.selector)
+            && Objects.equal(dynamicConstraintVersion, that.dynamicConstraintVersion)
+            && Objects.equal(confs, that.confs)
+            && Objects.equal(excludes, that.excludes)
+            && Objects.equal(dependencyArtifacts, that.dependencyArtifacts);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(selector,
+            dynamicConstraintVersion,
+            changing,
+            transitive,
+            optional,
+            confs,
+            excludes,
+            dependencyArtifacts);
     }
 }

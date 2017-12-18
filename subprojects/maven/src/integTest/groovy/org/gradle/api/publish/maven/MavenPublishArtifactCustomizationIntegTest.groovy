@@ -40,9 +40,34 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-customjar.jar", "projectText-1.0.reg")
 
         and:
-        resolveArtifact(module, 'txt', '') == ["projectText-1.0.txt"]
-        resolveArtifact(module, 'reg', '') == ["projectText-1.0.reg"]
-        resolveArtifact(module, 'jar', 'customjar') == ["projectText-1.0-customjar.jar"]
+        resolveArtifacts(module) {
+            ext = 'txt'
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0.txt"
+            }
+        }
+        resolveArtifacts(module) {
+            ext = 'reg'
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0.reg"
+            }
+        }
+        resolveArtifacts(module) {
+            ext = 'jar'
+            classifier = 'customjar'
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0-customjar.jar"
+            }
+        }
     }
 
     /**
@@ -75,7 +100,18 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         module.assertArtifactsPublished("projectText-1.0-classified.jar", "projectText-1.0.pom")
 
         and:
-        resolveArtifact(module, 'jar', 'classified') == ["projectText-1.0-classified.jar"]
+        resolveArtifacts(module) {
+            classifier = 'classified'
+            ext = 'jar'
+            withModuleMetadata {
+                // here we have a publication, but artifacts have been modified, which
+                // disables publication
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0-classified.jar"
+            }
+        }
     }
 
     /**
@@ -105,7 +141,19 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-customjar.jar")
 
         and:
-        resolveArtifacts(module, [classifier: 'customjar']) == ["projectText-1.0-customjar.jar", "projectText-1.0.txt"]
+        resolveArtifacts(module) {
+            classifier = 'customjar'
+            withModuleMetadata {
+                shouldFail {
+                    // We have a publication but artifacts have been modified, which currently disables publication
+                    assertHasDescription 'Could not resolve all files'
+                    assertHasCause 'Could not find group:projectText:1.0.'
+                }
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0-customjar.jar"
+            }
+        }
     }
 
     /**
@@ -164,8 +212,40 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0-regular.txt")
 
         and:
-        resolveArtifacts(module, [classifier: 'documentation', type: 'htm'], [classifier: 'output', type: 'txt'], [classifier: 'regular', type: 'txt']) ==
-            ["projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0-regular.txt", "projectText-1.0.war"]
+        resolveArtifacts(module) {
+            classifier = 'documentation'
+            ext = 'htm'
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0-documentation.htm"
+            }
+        }
+
+        and:
+        resolveArtifacts(module) {
+            classifier = 'output'
+            ext = 'txt'
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0-output.txt"
+            }
+        }
+
+        and:
+        resolveArtifacts(module) {
+            classifier = 'regular'
+            ext = 'txt'
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0-regular.txt"
+            }
+        }
     }
 
     def "can attach custom file artifacts with map notation"() {
@@ -190,8 +270,40 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.war", "projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0-regular.txt")
 
         and:
-        resolveArtifacts(module, [classifier: 'documentation', type: 'htm'], [classifier: 'output', type: 'txt'], [classifier: 'regular', type: 'txt']) ==
-            ["projectText-1.0-documentation.htm", "projectText-1.0-output.txt", "projectText-1.0-regular.txt", "projectText-1.0.war"]
+        resolveArtifacts(module) {
+            classifier = 'documentation'
+            ext = 'htm'
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0-documentation.htm"
+            }
+        }
+
+        and:
+        resolveArtifacts(module) {
+            classifier = 'output'
+            ext = 'txt'
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0-output.txt"
+            }
+        }
+
+        and:
+        resolveArtifacts(module) {
+            classifier = 'regular'
+            ext = 'txt'
+            withModuleMetadata {
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles "projectText-1.0-regular.txt"
+            }
+        }
     }
 
     def "can configure custom artifacts post creation"() {

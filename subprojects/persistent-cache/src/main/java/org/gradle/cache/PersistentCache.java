@@ -19,6 +19,7 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.Closeable;
 import java.io.File;
+import java.util.Collection;
 
 /**
  * Represents a directory that can be used for caching.
@@ -38,6 +39,11 @@ public interface PersistentCache extends CacheAccess, Closeable {
      * Returns the base directory for this cache.
      */
     File getBaseDir();
+
+    /**
+     * Returns the files used by this cache for internal tracking.
+     */
+    Collection<File> getReservedCacheFiles();
 
     /**
      * Creates an indexed cache implementation that is contained within this cache. This method may be used at any time.

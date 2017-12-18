@@ -25,6 +25,7 @@ import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
@@ -42,11 +43,9 @@ public abstract class AbstractFileResolver implements FileResolver {
     private final FileSystem fileSystem;
     private final NotationParser<Object, Object> fileNotationParser;
     private final Factory<PatternSet> patternSetFactory;
-    private final FileNormaliser fileNormaliser;
 
     protected AbstractFileResolver(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
         this.fileSystem = fileSystem;
-        this.fileNormaliser = new FileNormaliser(fileSystem);
         this.fileNotationParser = FileOrUriNotationConverter.parser(fileSystem);
         this.patternSetFactory = patternSetFactory;
     }
@@ -85,21 +84,13 @@ public abstract class AbstractFileResolver implements FileResolver {
     public File resolve(Object path, PathValidation validation) {
         File file = doResolve(path);
 
-        file = fileNormaliser.normalise(file);
+        file = FileUtils.normalize(file);
 
         validate(file, validation);
 
         return file;
     }
 
-
-    public Factory<File> resolveLater(final Object path) {
-        return new Factory<File>() {
-            public File create() {
-                return resolve(path);
-            }
-        };
-    }
 
     @Nullable
     public URI resolveUri(Object path) {
