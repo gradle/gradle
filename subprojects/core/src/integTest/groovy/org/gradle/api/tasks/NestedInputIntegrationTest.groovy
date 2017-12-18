@@ -149,7 +149,13 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         skipped(':consumer')
     }
 
-    def "changing nested inputs during execution time is detected"() {
+    @Unroll
+    def "re-configuring #change in a nested bean during execution time is detected"() {
+        def firstInputFile = 'firstInput.txt'
+        def firstOutputFile = 'build/firstOutput.txt'
+        def secondInputFile = 'secondInput.txt'
+        def secondOutputFile = 'build/secondOutput.txt'
+
         buildFile << """
             class TaskWithNestedProperty extends DefaultTask {
                 @Nested
@@ -161,15 +167,26 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 void writeInputToFile() {
                     outputFile.getAsFile().get().text = bean
+                    bean.doStuff()
                 }
             }
             
             class NestedBeanWithInput {
                 @Input
                 String firstInput
+                                 
+                @InputFile
+                File firstInputFile
+
+                @OutputFile
+                File firstOutputFile
                 
                 String toString() {
                     firstInput
+                }              
+
+                void doStuff() {
+                    firstOutputFile.text = firstInputFile.text
                 }
             }
             
@@ -177,19 +194,31 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 @Input
                 String secondInput
                 
+                @InputFile
+                File secondInputFile
+
+                @OutputFile
+                File secondOutputFile
+                
                 String toString() {
                     secondInput
+                }
+
+                void doStuff() {
+                    secondOutputFile.text = secondInputFile.text
                 }
             }
             
             task taskWithNestedProperty(type: TaskWithNestedProperty) {
-                firstInput = new NestedBeanWithInput(firstInput: project.findProperty('firstInput'))
+                def firstString = project.findProperty('firstInput')
+                firstInput = new NestedBeanWithInput(firstInput: firstString, firstOutputFile: file("${firstOutputFile}"), firstInputFile: file("${firstInputFile}"))
                 outputFile.set(project.layout.buildDirectory.file('output.txt'))
             }
             
             task configureTask {
+                def secondString = project.findProperty('secondInput')
                 doLast {
-                    taskWithNestedProperty.bean = new NestedBeanWithOtherInput(secondInput: project.findProperty('secondInput'))
+                    taskWithNestedProperty.bean = new NestedBeanWithOtherInput(secondInput: secondString, secondOutputFile: file("${secondOutputFile}"), secondInputFile: file("${secondInputFile}"))
                 }
             }
             
@@ -197,27 +226,60 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         """
 
         def task = ':taskWithNestedProperty'
+        file(firstInputFile).text = "first input file"
+        file(secondInputFile).text = "second input file"
+
+        def inputProperties = [
+                first: 'first',
+                second: 'second'
+        ]
+        def inputFiles = [
+                first: file(firstInputFile),
+                second: file(secondInputFile)
+        ]
+        def outputFiles = [
+                first: file(firstOutputFile),
+                second: file(secondOutputFile)
+        ]
+
+        def changes = [
+                inputProperty: { String property ->
+                    inputProperties[property] = inputProperties[property] + ' changed'
+                },
+                inputFile: { String property ->
+                    inputFiles[property] << ' changed'
+                },
+                outputFile: { String property ->
+                    outputFiles[property] << ' changed'
+                }
+        ]
+
+        def runTask = { ->
+            run task, '-PfirstInput=' + inputProperties.first, '-PsecondInput=' + inputProperties.second
+        }
+
         when:
-        run task, '-PfirstInput=first', '-PsecondInput=second'
+        runTask()
 
         then:
         executedAndNotSkipped(task)
-        def outputFile = file('build/output.txt')
-        outputFile.text == 'second'
 
         when:
-        run task, '-PfirstInput=different', '-PsecondInput=second'
+        changes[change]('first')
+        runTask()
 
         then:
         skipped(task)
-        outputFile.text == 'second'
 
         when:
-        run task, '-PfirstInput=different', '-PsecondInput=secondSecond'
+        changes[change]('second')
+        runTask()
 
         then:
         executedAndNotSkipped(task)
-        outputFile.text == 'secondSecond'
+
+        where:
+        change << ['inputProperty', 'inputFile', 'outputFile']
     }
 
 }
