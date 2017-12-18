@@ -17,12 +17,14 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Answers the question why a component was selected during the dependency resolution.
  *
  * @since 1.3
  */
+@UsedByScanPlugin
 @Incubating
 public interface ComponentSelectionReason {
 

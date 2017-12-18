@@ -19,6 +19,7 @@ package org.gradle.api.artifacts.result;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.Set;
 
@@ -26,6 +27,7 @@ import java.util.Set;
  * Contains the information about the result of dependency resolution. You can use this type to determine all the component instances that are included
  * in the resolved dependency graph, and the dependencies between them.
  */
+@UsedByScanPlugin
 @Incubating
 public interface ResolutionResult {
 
