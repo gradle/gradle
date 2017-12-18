@@ -64,9 +64,9 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':generator', ':consumer')
 
         where:
-        kind        | type                 | generatorAction
-        'File'      | RegularFileProperty  | '.getAsFile().get().text = "Hello"'
-        'Directory' | DirectoryProperty    | '''.file('output.txt').get().getAsFile().text = "Hello"'''
+        kind        | type                | generatorAction
+        'File'      | RegularFileProperty | '.getAsFile().get().text = "Hello"'
+        'Directory' | DirectoryProperty   | '''.file('output.txt').get().getAsFile().text = "Hello"'''
     }
 
     def "nested FileCollection input adds a task dependency"() {
@@ -191,6 +191,48 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    def "re-configuring a nested bean from #from to #to during execution time is detected"() {
+        def fixture = new NestedBeanTestFixture()
+
+        buildFile << fixture.taskWithNestedProperty()
+        buildFile << """      
+            taskWithNestedProperty.bean = ${from}
+
+            task configureTask {
+                doLast {
+                    taskWithNestedProperty.bean = ${to}
+                }
+            }
+            
+            taskWithNestedProperty.dependsOn(configureTask)
+        """
+
+        fixture.prepareInputFiles()
+
+        when:
+        fixture.runTask()
+
+        then:
+        executedAndNotSkipped(fixture.task)
+
+        when:
+        fixture.changeFirstBean('inputProperty')
+        fixture.runTask()
+
+        then:
+        if (to == 'null') {
+            skipped(fixture.task)
+        } else {
+            executedAndNotSkipped(fixture.task)
+        }
+
+        where:
+        from        | to
+        'firstBean' | 'null'
+        'null'      | 'firstBean'
+    }
+
+    @Unroll
     def "re-configuring #change in nested bean after the task started executing has no effect"() {
         def fixture = new NestedBeanTestFixture()
         fixture.prepareInputFiles()
@@ -223,6 +265,42 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         change << ['inputProperty', 'inputFile', 'outputFile']
+    }
+
+    @Unroll
+    def "re-configuring a nested bean from #from to #to after the task started executing has no effect"() {
+        def fixture = new NestedBeanTestFixture()
+        fixture.prepareInputFiles()
+        buildFile << fixture.taskWithNestedProperty()
+        buildFile << """   
+            taskWithNestedProperty.bean = ${from}
+            
+            taskWithNestedProperty.doLast {
+                bean = ${to}
+            }
+        """
+
+        when:
+        fixture.runTask()
+
+        then:
+        executedAndNotSkipped(fixture.task)
+
+        when:
+        fixture.changeFirstBean('inputProperty')
+        fixture.runTask()
+
+        then:
+        if (from == 'null') {
+            skipped(fixture.task)
+        } else {
+            executedAndNotSkipped(fixture.task)
+        }
+
+        where:
+        from        | to
+        'firstBean' | 'null'
+        'null'      | 'firstBean'
     }
 
     class NestedBeanTestFixture {
@@ -278,7 +356,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         String taskWithNestedProperty() {
             """
             class TaskWithNestedProperty extends DefaultTask {
-                @Nested
+                @Nested     
+                @Optional
                 Object bean
     
                 @OutputFile
@@ -286,8 +365,10 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     
                 @TaskAction
                 void writeInputToFile() {
-                    outputFile.getAsFile().get().text = bean
-                    bean.doStuff()
+                    outputFile.getAsFile().get().text = bean == null ? 'null' : bean.toString()
+                    if (bean != null) {
+                        bean.doStuff()     
+                    }
                 }
             }
     
