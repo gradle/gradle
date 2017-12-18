@@ -372,7 +372,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
     
-            class NestedBeanWithInput {
+            class NestedBean {
                 @Input
                 String firstInput
     
@@ -391,7 +391,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
     
-            class NestedBeanWithOtherInput {
+            class OtherNestedBean {
                 @Input
                 String secondInput
     
@@ -411,10 +411,10 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             }
             
             def firstString = project.findProperty('firstInput')
-            def firstBean = new NestedBeanWithInput(firstInput: firstString, firstOutputFile: file("${firstOutputFile}"), firstInputFile: file("${firstInputFile}"))
+            def firstBean = new NestedBean(firstInput: firstString, firstOutputFile: file("${firstOutputFile}"), firstInputFile: file("${firstInputFile}"))
 
             def secondString = project.findProperty('secondInput')
-            def secondBean = new NestedBeanWithOtherInput(secondInput: secondString, secondOutputFile: file("${secondOutputFile}"), secondInputFile: file("${secondInputFile}"))
+            def secondBean = new OtherNestedBean(secondInput: secondString, secondOutputFile: file("${secondOutputFile}"), secondInputFile: file("${secondInputFile}"))
 
             task taskWithNestedProperty(type: TaskWithNestedProperty) {
                 bean = firstBean
