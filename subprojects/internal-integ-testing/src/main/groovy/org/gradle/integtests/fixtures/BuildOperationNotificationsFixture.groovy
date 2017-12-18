@@ -24,6 +24,8 @@ import org.gradle.internal.operations.notify.BuildOperationProgressNotification
 import org.gradle.internal.operations.notify.BuildOperationStartedNotification
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
+import java.lang.reflect.InvocationTargetException
+
 /**
  * Implicitly tests that the build emits usable build operation notifications,
  * with the listener subscribing as the root project is loaded.
@@ -50,7 +52,7 @@ class BuildOperationNotificationsFixture {
         """
             rootProject {
                 if(gradle.getParent() == null) {
-                    def listener = new BuildOperationNotificationsEvaluationListener(Logging.getLogger(BuildOperationNotificationsEvaluationListener))
+                    def listener = new BuildOperationNotificationsEvaluationListener()
                     def registrar = project.services.get($BuildOperationNotificationListenerRegistrar.name)
                     registrar.register(listener)
                 }
@@ -60,16 +62,8 @@ class BuildOperationNotificationsFixture {
         """
     }
 
-    static String EVALUATION_LISTENER_SOURCE = """
-        import org.gradle.api.logging.Logger
-    
+    public static final String EVALUATION_LISTENER_SOURCE = """
         class BuildOperationNotificationsEvaluationListener implements $BuildOperationNotificationListener2.name {
-                private final Logger logger
-                
-                public BuildOperationNotificationsEvaluationListener(Logger logger) {
-                    this.logger = logger
-                }
-                
                 @Override
                 void started($BuildOperationStartedNotification.name notification) {
                     verify(notification.getNotificationOperationDetails(), 'Details')
@@ -112,7 +106,17 @@ class BuildOperationNotificationsFixture {
                 
                 void invokeMethods(Object object, Class<?> clazz) {
                     for (def method : clazz.methods) {
-                        method.invoke(object)
+                        try {
+                            if (method.parameterTypes.empty) {
+                                method.invoke(object)
+                            }
+                        } catch (any) {
+                            def cause = any
+                            if (any instanceof $InvocationTargetException.name) {
+                                cause = any.cause
+                            }
+                            throw new RuntimeException("Failed to invoke \$method.name() of \$clazz.name", cause)                         
+                        }
                     }
                 }
             }

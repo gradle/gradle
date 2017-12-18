@@ -26,7 +26,8 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    BuildOperationNotificationsFixture operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
+    @SuppressWarnings("GroovyUnusedDeclaration")
+    def operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     def "resolved configurations are exposed via build operation"() {
         setup:

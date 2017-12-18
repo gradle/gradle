@@ -17,67 +17,71 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.GradleException
-import org.gradle.api.logging.Logger
 import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
+import org.gradle.internal.operations.notify.BuildOperationNotificationListener2
 import org.gradle.internal.operations.notify.BuildOperationProgressNotification
 import org.gradle.internal.operations.notify.BuildOperationStartedNotification
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@Unroll
 class BuildOperationNotificationsFixtureTest extends Specification {
 
-
-    @Unroll
     def "listener evaluates build op #notificationMethod notifications (#testedIf.simpleName)"() {
         given:
-        def logger = Mock(Logger)
-        def listener = listener(logger)
+        def listener = listener()
 
         when:
         listener."$notificationMethod"(notificationEvent)
 
         then:
-        expectedOutputs.each { expectedOutput ->
-            1 * logger.info(_) >> {
-                assert it[0].trim() == expectedOutput
-            }
-        }
-        _ * logger.info(_)
+        noExceptionThrown()
 
         where:
-        notificationMethod | testedIf       | notificationEvent                    | expectedOutputs
-        'started'          | SimpleDetails  | startedNotification(SimpleDetails)   | ["Checking $SimpleDetails.name", "simpleDetailsMethod() -> simpleDetailsValue"]
-        'started'          | EmptyDetails   | startedNotification(EmptyDetails)    | ["Checking $EmptyDetails.name"]
-        'progress'         | SimpleProgress | progressNotification(SimpleProgress) | ["Checking $SimpleProgress.name", "output() -> output"]
-        'finished'         | SimpleResult   | finishedNotification(SimpleResult)   | ["Checking $SimpleResult.name", 'simpleResultMethod() -> simpleResultValue']
-        'finished'         | NestedResult   | finishedNotification(NestedResult)   | ["Checking $NestedResult.name", "getNested() -> Nested"]
+        notificationMethod | testedIf       | notificationEvent
+        'started'          | SimpleDetails  | startedNotification(SimpleDetails)
+        'started'          | EmptyDetails   | startedNotification(EmptyDetails)
+        'progress'         | SimpleProgress | progressNotification(SimpleProgress)
+        'finished'         | SimpleResult   | finishedNotification(SimpleResult)
+        'finished'         | NestedResult   | finishedNotification(NestedResult)
     }
 
-    @Unroll
-    def "listener throws GradleException when no valid object has been found to d"() {
+    def "throws if public type cannot be determined"() {
         given:
-        def listener = listener(Mock(Logger))
+        def listener = listener()
 
         when:
         listener."$notificationMethod"(notificationEvent)
 
         then:
         def e = thrown(GradleException)
-
         e.message == expectedMessage
 
         where:
         notificationMethod | notificationEvent                 | expectedMessage
-        'started'          | startedNotification(SimpleResult) | "No interface with postfix 'Details' found."
+        'started'          | startedNotification(SimpleResult) | "No interface with suffix 'Details' found."
         'progress'         | progressNotification()            | "No interface implemented by class java.lang.Object."
-        'finished'         | finishedNotification(Nested)      | "No interface with postfix 'Result' found."
-
+        'finished'         | finishedNotification(Nested)      | "No interface with suffix 'Result' found."
     }
 
-    def listener(Logger logger) {
+    def "throws if method of type throws"() {
+        given:
+        def listener = listener()
+
+        when:
+        listener.started(startedNotification(ErroringDetails))
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Failed to invoke erroring() of $ErroringDetails.name"
+        e.cause instanceof RuntimeException
+        e.cause.message == "!"
+    }
+
+    BuildOperationNotificationListener2 listener() {
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(BuildOperationNotificationsFixture.getClassLoader())
         Class theParsedClass = groovyClassLoader.parseClass(BuildOperationNotificationsFixture.EVALUATION_LISTENER_SOURCE)
-        return theParsedClass.newInstance(logger)
+        return theParsedClass.newInstance() as BuildOperationNotificationListener2
     }
 
     def progressNotification(Class<SimpleProgress> progressClazz = null) {
@@ -103,6 +107,10 @@ class BuildOperationNotificationsFixtureTest extends Specification {
 
     static trait SimpleDetails {
         String simpleDetailsMethod() { "simpleDetailsValue" }
+    }
+
+    static trait ErroringDetails {
+        String erroring() { throw new RuntimeException("!") }
     }
 
     static trait SimpleProgress {
