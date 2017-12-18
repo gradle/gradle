@@ -150,136 +150,197 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "re-configuring #change in a nested bean during execution time is detected"() {
-        def firstInputFile = 'firstInput.txt'
-        def firstOutputFile = 'build/firstOutput.txt'
-        def secondInputFile = 'secondInput.txt'
-        def secondOutputFile = 'build/secondOutput.txt'
+    def "re-configuring #change in nested bean during execution time is detected"() {
+        def fixture = new NestedBeanTestFixture()
 
+        buildFile << fixture.taskWithNestedProperty()
         buildFile << """
-            class TaskWithNestedProperty extends DefaultTask {
-                @Nested
-                Object bean
-                
-                @OutputFile
-                RegularFileProperty outputFile = newOutputFile()
-                
-                @TaskAction
-                void writeInputToFile() {
-                    outputFile.getAsFile().get().text = bean
-                    bean.doStuff()
-                }
-            }
-            
-            class NestedBeanWithInput {
-                @Input
-                String firstInput
-                                 
-                @InputFile
-                File firstInputFile
-
-                @OutputFile
-                File firstOutputFile
-                
-                String toString() {
-                    firstInput
-                }              
-
-                void doStuff() {
-                    firstOutputFile.text = firstInputFile.text
-                }
-            }
-            
-            class NestedBeanWithOtherInput {
-                @Input
-                String secondInput
-                
-                @InputFile
-                File secondInputFile
-
-                @OutputFile
-                File secondOutputFile
-                
-                String toString() {
-                    secondInput
-                }
-
-                void doStuff() {
-                    secondOutputFile.text = secondInputFile.text
-                }
-            }
-            
-            task taskWithNestedProperty(type: TaskWithNestedProperty) {
-                def firstString = project.findProperty('firstInput')
-                firstInput = new NestedBeanWithInput(firstInput: firstString, firstOutputFile: file("${firstOutputFile}"), firstInputFile: file("${firstInputFile}"))
-                outputFile.set(project.layout.buildDirectory.file('output.txt'))
-            }
-            
             task configureTask {
-                def secondString = project.findProperty('secondInput')
                 doLast {
-                    taskWithNestedProperty.bean = new NestedBeanWithOtherInput(secondInput: secondString, secondOutputFile: file("${secondOutputFile}"), secondInputFile: file("${secondInputFile}"))
+                    taskWithNestedProperty.bean = secondBean
                 }
             }
             
             taskWithNestedProperty.dependsOn(configureTask)
         """
 
-        def task = ':taskWithNestedProperty'
-        file(firstInputFile).text = "first input file"
-        file(secondInputFile).text = "second input file"
-
-        def inputProperties = [
-                first: 'first',
-                second: 'second'
-        ]
-        def inputFiles = [
-                first: file(firstInputFile),
-                second: file(secondInputFile)
-        ]
-        def outputFiles = [
-                first: file(firstOutputFile),
-                second: file(secondOutputFile)
-        ]
-
-        def changes = [
-                inputProperty: { String property ->
-                    inputProperties[property] = inputProperties[property] + ' changed'
-                },
-                inputFile: { String property ->
-                    inputFiles[property] << ' changed'
-                },
-                outputFile: { String property ->
-                    outputFiles[property] << ' changed'
-                }
-        ]
-
-        def runTask = { ->
-            run task, '-PfirstInput=' + inputProperties.first, '-PsecondInput=' + inputProperties.second
-        }
+        fixture.prepareInputFiles()
 
         when:
-        runTask()
+        fixture.runTask()
 
         then:
-        executedAndNotSkipped(task)
+        executedAndNotSkipped(fixture.task)
 
         when:
-        changes[change]('first')
-        runTask()
+        fixture.changeFirstBean(change)
+        fixture.runTask()
 
         then:
-        skipped(task)
+        skipped(fixture.task)
 
         when:
-        changes[change]('second')
-        runTask()
+        fixture.changeSecondBean(change)
+        fixture.runTask()
 
         then:
-        executedAndNotSkipped(task)
+        executedAndNotSkipped(fixture.task)
 
         where:
         change << ['inputProperty', 'inputFile', 'outputFile']
+    }
+
+    @Unroll
+    def "re-configuring #change in nested bean after the task started executing has no effect"() {
+        def fixture = new NestedBeanTestFixture()
+        fixture.prepareInputFiles()
+        buildFile << fixture.taskWithNestedProperty()
+        buildFile << """
+            taskWithNestedProperty.doLast {
+                bean = secondBean
+            }
+        """
+
+        when:
+        fixture.runTask()
+
+        then:
+        executedAndNotSkipped(fixture.task)
+
+        when:
+        fixture.changeFirstBean(change)
+        fixture.runTask()
+
+        then:
+        executedAndNotSkipped(fixture.task)
+
+        when:
+        fixture.changeSecondBean(change)
+        fixture.runTask()
+
+        then:
+        skipped(fixture.task)
+
+        where:
+        change << ['inputProperty', 'inputFile', 'outputFile']
+    }
+
+    class NestedBeanTestFixture {
+        def firstInputFile = 'firstInput.txt'
+        def firstOutputFile = 'build/firstOutput.txt'
+        def secondInputFile = 'secondInput.txt'
+        def secondOutputFile = 'build/secondOutput.txt'
+
+        def task = ':taskWithNestedProperty'
+
+        def inputProperties = [
+            first: 'first',
+            second: 'second'
+        ]
+        def inputFiles = [
+            first: file(firstInputFile),
+            second: file(secondInputFile)
+        ]
+        def outputFiles = [
+            first: file(firstOutputFile),
+            second: file(secondOutputFile)
+        ]
+
+        def changes = [
+            inputProperty: { String property ->
+                inputProperties[property] = inputProperties[property] + ' changed'
+            },
+            inputFile: { String property ->
+                inputFiles[property] << ' changed'
+            },
+            outputFile: { String property ->
+                outputFiles[property] << ' changed'
+            }
+        ]
+
+        def changeFirstBean(String change) {
+            changes[change]('first')
+        }
+
+        def changeSecondBean(String change) {
+            changes[change]('second')
+        }
+
+        def prepareInputFiles() {
+            file(firstInputFile).text = "first input file"
+            file(secondInputFile).text = "second input file"
+        }
+
+        def runTask() {
+            result = executer.withTasks(task, '-PfirstInput=' + inputProperties.first, '-PsecondInput=' + inputProperties.second).run()
+        }
+
+        String taskWithNestedProperty() {
+            """
+            class TaskWithNestedProperty extends DefaultTask {
+                @Nested
+                Object bean
+    
+                @OutputFile
+                RegularFileProperty outputFile = newOutputFile()
+    
+                @TaskAction
+                void writeInputToFile() {
+                    outputFile.getAsFile().get().text = bean
+                    bean.doStuff()
+                }
+            }
+    
+            class NestedBeanWithInput {
+                @Input
+                String firstInput
+    
+                @InputFile
+                File firstInputFile
+    
+                @OutputFile
+                File firstOutputFile
+    
+                String toString() {
+                    firstInput
+                }
+    
+                void doStuff() {
+                    firstOutputFile.text = firstInputFile.text
+                }
+            }
+    
+            class NestedBeanWithOtherInput {
+                @Input
+                String secondInput
+    
+                @InputFile
+                File secondInputFile
+    
+                @OutputFile
+                File secondOutputFile
+    
+                String toString() {
+                    secondInput
+                }
+    
+                void doStuff() {
+                    secondOutputFile.text = secondInputFile.text
+                }
+            }
+            
+            def firstString = project.findProperty('firstInput')
+            def firstBean = new NestedBeanWithInput(firstInput: firstString, firstOutputFile: file("${firstOutputFile}"), firstInputFile: file("${firstInputFile}"))
+
+            def secondString = project.findProperty('secondInput')
+            def secondBean = new NestedBeanWithOtherInput(secondInput: secondString, secondOutputFile: file("${secondOutputFile}"), secondInputFile: file("${secondInputFile}"))
+
+            task taskWithNestedProperty(type: TaskWithNestedProperty) {
+                bean = firstBean
+                outputFile.set(project.layout.buildDirectory.file('output.txt'))
+            }
+        """
+        }
     }
 
 }
