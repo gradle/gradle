@@ -24,6 +24,16 @@ import org.gradle.internal.operations.notify.BuildOperationProgressNotification
 import org.gradle.internal.operations.notify.BuildOperationStartedNotification
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
+/**
+ * Implicitly tests that the build emits usable build operation notifications,
+ * with the listener subscribing as the root project is loaded.
+ *
+ * This exercises the store-and-replay behaviour of the notification dispatcher
+ * that allows a listener to observe all of the notifications from the very start of the build.
+ *
+ * This fixture reflectively exercises the details/results objects of the notifications,
+ * ensuring that they are “usable”.
+ */
 class BuildOperationNotificationsFixture {
 
     private final File initScript
@@ -34,22 +44,19 @@ class BuildOperationNotificationsFixture {
         executer.beforeExecute {
             it.usingInitScript(this.initScript)
         }
-        executer.afterExecute {
-            it.reset()
-        }
     }
 
-    String injectNotificationListenerBuildLogic() {
-        return """
-        rootProject {
-            if(gradle.getParent() == null) {
-                def listener = new BuildOperationNotificationsEvaluationListener(Logging.getLogger(BuildOperationNotificationsEvaluationListener))
-                def registrar = project.services.get($BuildOperationNotificationListenerRegistrar.name)
-                registrar.register(listener)
-            }
-        } 
-        
-        $EVALUATION_LISTENER_SOURCE
+    static String injectNotificationListenerBuildLogic() {
+        """
+            rootProject {
+                if(gradle.getParent() == null) {
+                    def listener = new BuildOperationNotificationsEvaluationListener(Logging.getLogger(BuildOperationNotificationsEvaluationListener))
+                    def registrar = project.services.get($BuildOperationNotificationListenerRegistrar.name)
+                    registrar.register(listener)
+                }
+            } 
+            
+            $EVALUATION_LISTENER_SOURCE
         """
     }
 
@@ -78,44 +85,34 @@ class BuildOperationNotificationsFixture {
                     verify(notification.getNotificationOperationResult(), 'Result')
                 }
                 
-                private void verify(Object obj, String postFix = null){
-                    List<Class<?>> matchingInterfaces = findInterfaces(obj, postFix)
-                    if(matchingInterfaces.size() == 0) {
-                        if(postFix == null){
+                private void verify(Object obj, String suffix = null) {
+                    def matchingInterfaces = findPublicInterfaces(obj, suffix)
+                    if (matchingInterfaces.empty) {
+                        if (suffix == null) {
                             throw new org.gradle.api.GradleException("No interface implemented by \${obj.getClass()}.")
                         } else {
-                            throw new org.gradle.api.GradleException("No interface with postfix '\$postFix' found.")
+                            throw new org.gradle.api.GradleException("No interface with suffix '\$suffix' found.")
                         }
-                        
                     }
                     
-                    matchingInterfaces.each{ i ->
-                        triggerInterfaceMethods(obj, i)
+                    matchingInterfaces.each { i ->
+                        invokeMethods(obj, i)
                     }
                 }
                 
-                List<Class<?>> findInterfaces(Object object, String interfacePostfix){
-                    def clazz = object.getClass()
-                    Class<?>[] interfaces = clazz.getInterfaces()
+                List<Class<?>> findPublicInterfaces(Object object, String suffix) {
+                    def interfaces = object.getClass().interfaces
                     
-                    if(interfacePostfix == null) {
-                        return interfaces 
+                    if (suffix == null) {
+                        interfaces 
+                    } else {
+                        interfaces.findAll { it.name.endsWith(suffix) }
                     }
-                    List<Class<?>> matchingInterfaces = new ArrayList()
-                    for (Class<?> i : interfaces) {
-                        def interfaceName = i.name
-                        if (interfaceName.endsWith(interfacePostfix)) {
-                            matchingInterfaces.add(i)
-                        }
-                    }
-                    return matchingInterfaces;
                 }
                 
-                void triggerInterfaceMethods(Object object, Class<?> iF) {
-                    logger.info "   Checking \${iF.getName()}"   
-                    def methods = iF.getMethods()
-                    for (java.lang.reflect.Method method : methods) {
-                        logger.info "       \${method.name}() -> \${method.invoke(object)}"
+                void invokeMethods(Object object, Class<?> clazz) {
+                    for (def method : clazz.methods) {
+                        method.invoke(object)
                     }
                 }
             }

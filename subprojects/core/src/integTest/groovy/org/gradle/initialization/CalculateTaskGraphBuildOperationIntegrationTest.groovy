@@ -25,7 +25,9 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
-    final BuildOperationNotificationsFixture operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
+
+    @SuppressWarnings("GroovyUnusedDeclaration")
+    final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     def "requested and filtered tasks are exposed"() {
         settingsFile << """
