@@ -44,7 +44,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -70,8 +69,8 @@ public class DefaultPropertyWalker implements PropertyWalker {
             PropertyNode node = queue.remove();
             Object nested = node.getBean();
             Set<PropertyMetadata> nestedTypeMetadata = propertyMetadataStore.getTypeMetadata(nested.getClass());
-            if (node.parentPropertyName != null && (nested instanceof Collection<?>) && shouldBeTraversed(nestedTypeMetadata)) {
-                Collection nestedBeans = (Collection) nested;
+            if (node.parentPropertyName != null && (nested instanceof Iterable<?>) && shouldBeTraversed(nestedTypeMetadata)) {
+                Iterable<?> nestedBeans = (Iterable<?>) nested;
                 int count = 0;
                 for (Object nestedBean : nestedBeans) {
                     String nestedPropertyName = node.parentPropertyName + "$" + ++count;

@@ -327,7 +327,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         }
     }
 
-    public class DefaultPropertyMetadata implements PropertyMetadata {
+    private class DefaultPropertyMetadata implements PropertyMetadata {
         private final Set<Class<? extends Annotation>> propertyTypeAnnotations;
         private final String fieldName;
         private final Method method;
