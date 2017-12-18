@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -51,6 +52,7 @@ class DefaultTaskInputsTest extends Specification {
     def project = Stub(ProjectInternal) {
         getFileFileResolver() >> resolver
     }
+    def classloaderHasher = Mock(ClassLoaderHierarchyHasher)
     def task = Mock(TaskInternal) {
         getName() >> "task"
         toString() >> "task 'task'"
@@ -60,7 +62,7 @@ class DefaultTaskInputsTest extends Specification {
         getDestroyables() >> Stub(TaskDestroyablesInternal)
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
-    def walker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))
+    def walker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]), classloaderHasher)
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, new DefaultPropertySpecFactory(task, resolver))
 
     def "default values"() {

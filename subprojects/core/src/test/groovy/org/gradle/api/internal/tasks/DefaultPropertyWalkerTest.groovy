@@ -34,11 +34,16 @@ import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.caching.internal.DefaultBuildCacheHasher
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
     def visitor = Mock(PropertyVisitor)
+    def classloaderHasher = Stub(ClassLoaderHierarchyHasher) {
+        getClassLoaderHash(_) >> new DefaultBuildCacheHasher().putString("classloader").hash()
+    }
 
     def "visits properties"() {
         def task = project.tasks.create("myTask", MyTask)
@@ -51,6 +56,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFile' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFiles' })
         1 * visitor.visitInputProperty({ it.propertyName == 'bean.class' && it.value == NestedBean.name })
+        1 * visitor.visitInputProperty({ it.propertyName == 'bean.$$implementation$$' })
         1 * visitor.visitInputProperty({ it.propertyName == 'bean.nestedInput' && it.value == 'nested' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'bean.inputDir' })
 
@@ -113,6 +119,6 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
-        new DefaultPropertyWalker(new DefaultPropertyMetadataStore(annotationHandlers as List)).visitProperties(specFactory, visitor, task)
+        new DefaultPropertyWalker(new DefaultPropertyMetadataStore(annotationHandlers as List), classloaderHasher).visitProperties(specFactory, visitor, task)
     }
 }

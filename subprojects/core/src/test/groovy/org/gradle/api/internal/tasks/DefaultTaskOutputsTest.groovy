@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -54,6 +55,7 @@ class DefaultTaskOutputsTest extends Specification {
             new SimpleFileCollection(it*.call().flatten().collect { new File((String) it) })
         }
     ]   as FileResolver
+    def classloaderHasher = Mock(ClassLoaderHierarchyHasher)
     def project = Stub(ProjectInternal) {
         getFileFileResolver() >> resolver
     }
@@ -82,7 +84,7 @@ class DefaultTaskOutputsTest extends Specification {
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
 
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultPropertyMetadataStore([])), new DefaultPropertySpecFactory(task, resolver))
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]), classloaderHasher), new DefaultPropertySpecFactory(task, resolver))
 
     void hasNoOutputsByDefault() {
         setup:

@@ -240,8 +240,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultPropertyMetadataStore(annotationHandlers);
     }
 
-    protected PropertyWalker createPropertyWalker(PropertyMetadataStore propertyMetadataStore) {
-        return new DefaultPropertyWalker(propertyMetadataStore);
+    protected PropertyWalker createPropertyWalker(PropertyMetadataStore propertyMetadataStore, ClassLoaderHierarchyHasher hasher) {
+        return new DefaultPropertyWalker(propertyMetadataStore, hasher);
     }
 
     protected TaskClassInfoStore createTaskClassInfoStore() {
