@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.vcs;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -98,16 +97,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     return;
                 }
 
-                File dependencyWorkingDir = new File(populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion), spec.getRootDir());
-
                 //TODO: Allow user to provide settings script in VcsMapping
-                if (!(new File(dependencyWorkingDir, "settings.gradle").exists())
-                    && !(new File(dependencyWorkingDir, "settings.gradle.kts").exists())) {
-                    throw new GradleException(
-                        String.format(
-                            "Included build from '%s' must contain a settings file.",
-                            spec.getDisplayName()));
-                }
+                File dependencyWorkingDir = new File(populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion), spec.getRootDir());
 
                 // TODO: This shouldn't rely on the service registry to find NestedBuildFactory
                 IncludedBuildRegistry includedBuildRegistry = serviceRegistry.get(IncludedBuildRegistry.class);

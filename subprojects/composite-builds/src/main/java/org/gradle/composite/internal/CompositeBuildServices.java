@@ -45,7 +45,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
         public IncludedBuildRegistry createIncludedBuildRegistry(CompositeBuildContext context, DefaultProjectPathRegistry projectRegistry, Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildLayoutFactory buildLayoutFactory) {
             IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, startParameter, workerLeaseService, buildLayoutFactory);
             IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory);
-            return new DefaultIncludedBuildRegistry(includedBuildFactory, projectRegistry, dependencySubstitutionsBuilder, context);
+            return new DefaultIncludedBuildRegistry(includedBuildFactory, projectRegistry, dependencySubstitutionsBuilder, context, buildLayoutFactory);
         }
 
         public DefaultProjectPathRegistry createProjectPathRegistry() {
