@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.plugins
 
+import org.gradle.api.ProjectConfigurationException
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftLibrary
 import org.gradle.language.swift.SwiftSharedLibrary
@@ -65,7 +66,7 @@ class SwiftLibraryPluginTest extends Specification {
         binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }.size() == 1
 
         and:
-        project.library.developmentBinary == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }
+        project.library.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }
     }
 
     def "registers a component for the library with static linkage"() {
@@ -83,6 +84,9 @@ class SwiftLibraryPluginTest extends Specification {
         def binaries = project.library.binaries.get()
         binaries.findAll { it.debuggable && it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
         binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
+
+        and:
+        project.library.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftStaticLibrary }
     }
 
     def "registers a component for the library with both linkage"() {
@@ -104,7 +108,7 @@ class SwiftLibraryPluginTest extends Specification {
         binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftStaticLibrary }.size() == 1
 
         and:
-        project.library.developmentBinary == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }
+        project.library.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftSharedLibrary }
     }
 
     def "adds compile and link tasks for default linkage"() {
@@ -246,6 +250,23 @@ class SwiftLibraryPluginTest extends Specification {
         def createRelease = project.tasks.createReleaseStatic
         createRelease instanceof CreateStaticLibrary
         createRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/static/" + OperatingSystem.current().getStaticLibraryName("TestLib"))
+    }
+
+    def "cannot change the library linkages after binaries have been calculated"() {
+        given:
+        project.pluginManager.apply(SwiftLibraryPlugin)
+        project.library.linkage = [Linkage.STATIC]
+        project.library.binaries.configureEach {
+            project.library.linkage.add(Linkage.SHARED)
+        }
+
+        when:
+        project.evaluate()
+
+        then:
+        def e = thrown(ProjectConfigurationException)
+        e.cause instanceof IllegalStateException
+        e.cause.message == 'This property is locked and cannot be changed.'
     }
 
     def "output file names are calculated from module name defined on extension"() {

@@ -335,6 +335,27 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         assertMainSymbolIsAbsent(sharedLibrary("build/lib/main/debug/Greeter"))
     }
 
+    def "fails when no linkage is specified"() {
+        def library = new SwiftLib()
+        buildFile << """
+            apply plugin: 'swift-library'
+
+            library {
+                linkage = []
+            }
+        """
+        settingsFile << """
+            rootProject.name = 'foo'
+        """
+        library.writeToProject(testDirectory)
+
+        when:
+        def result = fails('assemble')
+
+        then:
+        result.assertHasCause('A linkage needs to be specified for the library.')
+    }
+
     private static void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {
         binaries.each {
             assertMainSymbolIsAbsent(it)

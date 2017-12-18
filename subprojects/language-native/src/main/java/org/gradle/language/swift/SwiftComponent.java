@@ -23,6 +23,7 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 
 /**
  * Configuration for a Swift component, such as a library or executable, defining the source files that make up the component plus other settings.
@@ -67,7 +68,7 @@ public interface SwiftComponent extends SoftwareComponent {
     /**
      * Returns the binary of the component to use as the default for development.
      */
-    SwiftBinary getDevelopmentBinary();
+    Provider<? extends SwiftBinary> getDevelopmentBinary();
 
     /**
      * Returns the implementation dependencies of this component.

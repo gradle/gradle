@@ -63,7 +63,7 @@ class SwiftApplicationPluginTest extends Specification {
         binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftExecutable }.size() == 1
 
         and:
-        project.application.developmentBinary == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftExecutable }
+        project.application.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftExecutable }
     }
 
     def "adds compile, link and install tasks"() {

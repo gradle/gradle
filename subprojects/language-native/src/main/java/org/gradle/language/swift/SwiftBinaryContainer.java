@@ -29,23 +29,29 @@ import java.util.Set;
  *
  * <p>Each element in this collection passes through several states. The element is created and becomes 'known'. The element is passed to any actions registered using {@link #whenElementKnown(Action)}. The element is then configured using any actions registered using {@link #configureEach(Action)} and becomes 'finalized'. The element is passed to any actions registered using {@link #whenElementFinalized(Action)}. Elements are created and configured only when required.
  *
- * @since 4.5
  * @param <T> type of the elements in this container.
+ * @since 4.5
  */
 @Incubating
 public interface SwiftBinaryContainer<T extends SoftwareComponent> {
     /**
-     * Returns a {@link Provider} that contains the single binary matching the specified type and specification. Querying the return value will fail when there is not exactly one such binary.
+     * Returns a {@link SwiftBinaryProvider} that contains the single binary matching the specified type and specification. The binary will be in the finalized state.
+     * The provider can be used to apply configuration to the element before it is finalized.
+     *
+     * <p>Querying the return value will fail when there is not exactly one matching binary.
      *
      * @param type type to match
-     * @param spec specification to satisfy
+     * @param spec specification to satisfy. The spec is applied to each binary prior to configuration.
      * @param <S> type of the binary to return
      * @return a binary from the collection in a finalized state
      */
     <S> SwiftBinaryProvider<S> get(Class<S> type, Spec<? super S> spec);
 
     /**
-     * Returns a {@link Provider} that contains the single binary with the given name. Querying the return value will fail when there is not exactly one such binary.
+     * Returns a {@link Provider} that contains the single binary with the given name. The binary will be in the finalized state.
+     * The provider can be used to apply configuration to the element before it is finalized.
+     *
+     * <p>Querying the return value will fail when there is not exactly one matching binary.
      *
      * @param name The name of the binary
      * @return a binary from the collection in a finalized state
@@ -53,36 +59,39 @@ public interface SwiftBinaryContainer<T extends SoftwareComponent> {
     SwiftBinaryProvider<T> getByName(String name);
 
     /**
-     * Returns a {@link Provider} that contains the single binary matching the given specification. Querying the return value will fail when there is not exactly one such binary.
+     * Returns a {@link Provider} that contains the single binary matching the given specification. The binary will be in the finalized state.
+     * The provider can be used to apply configuration to the element before it is finalized.
      *
-     * @param spec specification to satisfy
+     * <p>Querying the return value will fail when there is not exactly one matching binary.
+     *
+     * @param spec specification to satisfy. The spec is applied to each binary prior to configuration.
      * @return a binary from the collection in a finalized state
      */
     SwiftBinaryProvider<T> get(Spec<? super T> spec);
 
     /**
-     * Registers an action to execute when an element becomes known. The action is executed for those elements that are required.
+     * Registers an action to execute when an element becomes known. The action is executed for those elements that are required. Fails if any element has already been finalized.
      *
      * @param action The action to execute for each element becomes known.
      */
     void whenElementKnown(Action<? super T> action);
 
     /**
-     * Registers an action to execute when an element is finalized. The action is executed for those elements that are required.
+     * Registers an action to execute when an element is finalized. The action is executed for those elements that are required. Fails if any element has already been finalized.
      *
      * @param action The action to execute for each element when finalized.
      */
     void whenElementFinalized(Action<? super T> action);
 
     /**
-     * Registers an action to execute to configure each elements in the collection. The action is executed for those elements that are required.
+     * Registers an action to execute to configure each elements in the collection. The action is executed for those elements that are required. Fails if any element has already been finalized.
      *
      * @param action The action to execute on each element for configuration.
      */
     void configureEach(Action<? super T> action);
 
     /**
-     * Returns the set of binaries from the collection in a finalized state.
+     * Returns the set of binaries from this collection. Elements are in a finalized state.
      */
     Set<T> get();
 }

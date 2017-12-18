@@ -259,7 +259,11 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
     private static Iterable<File> parentDirs(Iterable<File> files) {
         List<File> parents = new ArrayList<File>();
         for (File file : files) {
-            parents.add(file.getParentFile());
+            if (file.isDirectory()) {
+                parents.add(file);
+            } else {
+                parents.add(file.getParentFile());
+            }
         }
         return parents;
     }

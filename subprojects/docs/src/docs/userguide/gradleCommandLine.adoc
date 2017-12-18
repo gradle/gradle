@@ -120,12 +120,10 @@ The <<gradle_daemon>> contains more information about the daemon. For example it
 
 `--daemon`::
 Uses the Gradle daemon to run the build. Starts the daemon if not running or existing daemon busy. <<gradle_daemon>> contains more detailed information when new daemon processes are started.
-`--no-daemon`::
-Does not use the Gradle daemon to run the build.
 `--foreground`::
 Starts the Gradle daemon in the foreground. Useful for debugging or troubleshooting because you can easily monitor the build execution.
 `--no-daemon`::
-Do not use the Gradle daemon to run the build. Useful occasionally if you have configured Gradle to always run with the daemon by default.
+Does not use the Gradle daemon to run the build. Useful occasionally if you have configured Gradle to always run with the daemon by default.
 `--status`::
 List running and recently stopped Gradle daemons. Only displays daemons of the same Gradle version.
 `--stop`::

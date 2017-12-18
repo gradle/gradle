@@ -38,7 +38,6 @@
     <xsl:template name="output.html.stylesheets">
         <link rel="preconnect" href="//assets.gradle.com" crossorigin="crossorigin"/>
         <link href="base.css" rel="stylesheet" type="text/css"/>
-        <link href="docs.css" rel="stylesheet" type="text/css"/>
         <link href="dsl.css" rel="stylesheet" type="text/css"/>
     </xsl:template>
 
