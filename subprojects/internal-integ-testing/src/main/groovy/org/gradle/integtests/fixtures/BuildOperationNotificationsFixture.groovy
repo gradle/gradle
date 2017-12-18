@@ -107,7 +107,7 @@ class BuildOperationNotificationsFixture {
                 void invokeMethods(Object object, Class<?> clazz) {
                     for (def method : clazz.methods) {
                         try {
-                            if (method.parameterTypes.empty) {
+                            if (method.parameterTypes.size() == 0) {
                                 method.invoke(object)
                             }
                         } catch (any) {
