@@ -26,12 +26,12 @@ Think of every feature section as a mini blog post.
 
 ### Deprecation warning improvements
 
-In this release, deprecation warnings are no longer displayed in build by default. Instead, all deprecation warnings in a build would be collected and a single warning would be rendered at the end of build:
+In this release, deprecation warnings are no longer displayed in the build by default. Instead, all deprecation warnings in the build will be collected and a single "summary" will be rendered at the end of the build:
 
     There're X deprecation warnings, which may break the build in Gradle 5.0. Please run with --warnings=all to see them.
 
 As said by this warning, you can run the build with command line option `--warnings=all` or property `org.gradle.warnings=all` to have all warnings displayed as before.
-Of course, you could use command line option `--warnings=no` or property `org.gradle.warnings=no` to suppress all warnings, including the one displayed at the end of build.
+Of course, you can use command line option `--warnings=no-deprecation` or property `org.gradle.warnings=no-deprecation` to suppress all warnings, including the one displayed at the end of the build.
 
 ### Provider API documentation
 

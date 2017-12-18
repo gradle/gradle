@@ -16,7 +16,7 @@
 
 package org.gradle.internal.featurelifecycle
 
-import org.gradle.api.logging.configuration.WarningsType
+import org.gradle.api.logging.configuration.WarningType
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -34,19 +34,19 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
     }
 
     def setup() {
-        handler.init(locationReporter, WarningsType.ALL)
+        handler.init(locationReporter, [WarningType.All] as Set)
     }
 
     def "no warnings should be displayed in #mode"() {
         when:
-        handler.init(locationReporter, type)
+        handler.init(locationReporter, [type] as Set)
         handler.featureUsed(createFeatureUsage('feature1'))
 
         then:
         outputEventListener.events.empty
 
         where:
-        type << [WarningsType.NO, WarningsType.AUTO]
+        type << [WarningType.NoDeprecation, WarningType.Summary]
     }
 
     @Unroll
@@ -223,7 +223,7 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         System.setProperty(deprecationTracePropertyName, 'true')
 
         when:
-        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', FeatureUsageTest), fakeStackTrace))
+        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', DeprecatedFeatureUsageTest), fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -248,7 +248,7 @@ class LoggingDeprecatedFeatureHandlerTest extends AbstractLoggingFeatureHandlerT
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
 
         when:
-        handler.featureUsed(new DeprecatedFeatureUsage('fake', FeatureUsageTest))
+        handler.featureUsed(new DeprecatedFeatureUsage('fake', DeprecatedFeatureUsageTest))
         def events = outputEventListener.events
 
         then:

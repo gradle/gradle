@@ -53,9 +53,9 @@ Specifies which type of deprecation warnings displayed in console.
 +
 Set to `all` to render all deprecation warnings. This may be useful for users who're concern about these warnings.
 +
-Set to `auto` (the default) to suppress all deprecation warnings in build but the "deprecation warning summary": `There're X deprecation warnings in your build.`
+Set to `summary` (the default) to suppress all deprecation warnings in build but the "deprecation warning summary": `There're X deprecation warnings in your build.`
 +
-Set to `no` to suppress all deprecation warnings as if they don't exist at all.
+Set to `no-deprecation` to suppress all deprecation warnings as if they don't exist at all.
 `--continue`::
 Continues task execution after a task failure.
 `--configure-on-demand (incubating)`::

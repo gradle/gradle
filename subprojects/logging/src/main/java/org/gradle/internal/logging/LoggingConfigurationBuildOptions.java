@@ -16,20 +16,25 @@
 
 package org.gradle.internal.logging;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.api.logging.configuration.WarningsType;
+import org.gradle.api.logging.configuration.WarningType;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
+import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -173,22 +178,29 @@ public class LoggingConfigurationBuildOptions {
         }
     }
 
-    public static class WarningsOption extends StringBuildOption<LoggingConfiguration> {
+    public static class WarningsOption extends ListBuildOption<LoggingConfiguration> {
         public static final String LONG_OPTION = "warnings";
         public static final String GRADLE_PROPERTY = "org.gradle.warnings";
 
         public WarningsOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which type of warnings to generate. Values are 'all', 'auto' (default) or 'no'"));
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which type of warnings to generate. Values are 'all', 'summary' (default) or 'no-deprecation'"));
         }
 
         @Override
-        public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
-            try {
-                WarningsType warningsType = WarningsType.valueOf(value.toUpperCase(Locale.ENGLISH));
-                settings.setWarningsType(warningsType);
-            } catch (IllegalArgumentException e) {
-                origin.handleInvalidValue(value);
-            }
+        public void applyTo(List<String> values, LoggingConfiguration settings, final Origin origin) {
+            Iterable<WarningType> warningTypes = Iterables.transform(values, new Function<String, WarningType>() {
+                @Nullable
+                @Override
+                public WarningType apply(@Nullable String input) {
+                    try {
+                        return WarningType.fromBuildOption(input);
+                    } catch (IllegalArgumentException e) {
+                        origin.handleInvalidValue(input);
+                        return null;
+                    }
+                }
+            });
+            settings.setWarningTypes(Sets.newHashSet(warningTypes));
         }
     }
 

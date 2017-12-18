@@ -16,7 +16,7 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.gradle.api.logging.configuration.WarningsType;
+import org.gradle.api.logging.configuration.WarningType;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -38,15 +38,15 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
 
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
-    private WarningsType warningsType;
+    private Set<WarningType> warningTypes = new HashSet<WarningType>();
 
     public LoggingDeprecatedFeatureHandler() {
         this.locationReporter = DoNothingReporter.INSTANCE;
     }
 
-    public void init(UsageLocationReporter reporter, WarningsType warningsType) {
+    public void init(UsageLocationReporter reporter, Set<WarningType> warningTypes) {
         this.locationReporter = reporter;
-        this.warningsType = warningsType;
+        this.warningTypes = warningTypes;
     }
 
     @Override
@@ -63,7 +63,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
             messageBuilder.append(usage.getMessage());
             appendTraceIfNecessary(usage, messageBuilder);
 
-            if (warningsType == WarningsType.ALL) {
+            if (warningTypes.contains(WarningType.All)) {
                 LOGGER.warn(messageBuilder.toString());
             }
         }
@@ -74,7 +74,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
     }
 
     public void reportSuppressedDeprecations() {
-        if (warningsType == WarningsType.AUTO && !messages.isEmpty()) {
+        if (warningTypes.contains(WarningType.Summary) && !messages.isEmpty()) {
             LOGGER.warn("\nThere're {} deprecation warnings, which may break the build in Gradle {}. Please run with --warnings=all to see them.",
                 messages.size(),
                 GradleVersion.current().getNextMajor().getVersion());

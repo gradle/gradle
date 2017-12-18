@@ -24,19 +24,38 @@ import org.gradle.api.Incubating;
  * @since 4.5
  */
 @Incubating
-public enum WarningsType {
+public enum WarningType {
     /**
      * Show all warnings (e.g. deprecation warnings)
      */
-    ALL,
+    All("all"),
 
     /**
-     * Default value. By default, all deprecation warnings will be suppressed and a single message will be displayed at the end of a build indicating how many deprecation warnings suppressed.
+     * Default value. By default, all deprecation warnings will be suppressed and a single summary message will be displayed at the end of a build indicating how many deprecation warnings suppressed.
      */
-    AUTO,
+    Summary("summary"),
 
     /**
-     * No warnings at all.
+     * No deprecation warnings at all.
      */
-    NO
+    NoDeprecation("no-deprecation");
+
+    private String buildOption;
+
+    WarningType(String buildOption) {
+        this.buildOption = buildOption;
+    }
+
+    public String getBuildOption() {
+        return this.buildOption;
+    }
+
+    public static WarningType fromBuildOption(String value) {
+        for (WarningType warningType : values()) {
+            if (warningType.buildOption.equalsIgnoreCase(value)) {
+                return warningType;
+            }
+        }
+        throw new IllegalArgumentException("No enum constant WarningType." + value);
+    }
 }

@@ -18,7 +18,7 @@ package org.gradle.util;
 
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.logging.configuration.WarningsType;
+import org.gradle.api.logging.configuration.WarningType;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.FeatureHandler;
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
@@ -27,6 +27,8 @@ import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler;
 import org.gradle.internal.featurelifecycle.UsageLocationReporter;
 
 import javax.annotation.Nullable;
+
+import java.util.Set;
 
 import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.getDeprecationMessage;
 
@@ -46,8 +48,8 @@ public class SingleMessageLogger {
         incubatingFeatureHandler.reset();
         deprecatedFeatureHandler.reset();
     }
-    public synchronized static void initDeprecatedFeatureHandler(UsageLocationReporter reporter, WarningsType warningsType) {
-        deprecatedFeatureHandler.init(reporter, warningsType);
+    public synchronized static void initDeprecatedFeatureHandler(UsageLocationReporter reporter, Set<WarningType> warningTypes) {
+        deprecatedFeatureHandler.init(reporter, warningTypes);
     }
 
     public static void reportSuppressedDeprecations() {

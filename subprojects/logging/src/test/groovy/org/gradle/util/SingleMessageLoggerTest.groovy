@@ -16,7 +16,7 @@
 
 package org.gradle.util
 
-import org.gradle.api.logging.configuration.WarningsType
+import org.gradle.api.logging.configuration.WarningType
 import org.gradle.internal.Factory
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.internal.logging.CollectingTestOutputEventListener
@@ -32,7 +32,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def setup() {
-        SingleMessageLogger.initDeprecatedFeatureHandler(Mock(UsageLocationReporter), WarningsType.ALL)
+        SingleMessageLogger.initDeprecatedFeatureHandler(Mock(UsageLocationReporter), [WarningType.All] as Set)
     }
 
     def cleanup() {

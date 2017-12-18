@@ -17,7 +17,7 @@
 package org.gradle
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.logging.configuration.WarningsType
+import org.gradle.api.logging.configuration.WarningType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -110,13 +110,13 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         assertFullStacktraceResult(fullStacktraceEnabled, warningsCountInConsole)
 
         where:
-        scenario                                 | warnings          | warningsCountInConsole | warningsCountInSummary | fullStacktraceEnabled
-        'without stacktrace and --warnings=all'  | WarningsType.ALL  | 4                      | 0                      | false
-        'with stacktrace and --warnings=all'     | WarningsType.ALL  | 4                      | 0                      | true
-        'without stacktrace and --warnings=no'   | WarningsType.NO   | 0                      | 0                      | false
-        'with stacktrace and --warnings=no'      | WarningsType.NO   | 0                      | 0                      | true
-        'without stacktrace and --warnings=auto' | WarningsType.AUTO | 0                      | 4                      | false
-        'with stacktrace and --warnings=auto'    | WarningsType.AUTO | 0                      | 4                      | true
+        scenario                                 | warnings                       | warningsCountInConsole | warningsCountInSummary | fullStacktraceEnabled
+        'without stacktrace and --warnings=all'  | WarningType.All           | 4 | 0 | false
+        'with stacktrace and --warnings=all'     | WarningType.All           | 4 | 0 | true
+        'without stacktrace and --warnings=no'   | WarningType.NoDeprecation | 0 | 0 | false
+        'with stacktrace and --warnings=no'      | WarningType.NoDeprecation | 0 | 0 | true
+        'without stacktrace and --warnings=auto' | WarningType.Summary       | 0 | 4 | false
+        'with stacktrace and --warnings=auto'    | WarningType.Summary       | 0 | 4 | true
     }
 
     def incrementWarningCountIfJava7(int warningCount) {
