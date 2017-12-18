@@ -17,19 +17,23 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.initialization.Settings;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
 import org.gradle.vcs.VersionRef;
 import org.gradle.vcs.git.internal.GitVersionControlSystem;
+import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 import org.gradle.vcs.internal.spec.DirectoryRepositorySpec;
 
 import javax.annotation.Nullable;
@@ -40,8 +44,10 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultVersionControlSystemFactory implements VersionControlSystemFactory, Stoppable {
     private final PersistentCache vcsWorkingDirCache;
+    private final BuildLayoutFactory buildLayoutFactory;
 
-    DefaultVersionControlSystemFactory(VcsWorkingDirectoryRoot workingDirectoryRoot, CacheRepository cacheRepository, CleanupActionFactory cleanupActionFactory) {
+    DefaultVersionControlSystemFactory(VcsWorkingDirectoryRoot workingDirectoryRoot, CacheRepository cacheRepository, CleanupActionFactory cleanupActionFactory, BuildLayoutFactory buildLayoutFactory) {
+        this.buildLayoutFactory = buildLayoutFactory;
         this.vcsWorkingDirCache = cacheRepository
             .cache(workingDirectoryRoot.getDir())
             .withLockOptions(mode(FileLockManager.LockMode.None))
@@ -59,7 +65,9 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         } else {
             vcs = new GitVersionControlSystem();
         }
-        return new LockingVersionControlSystem(vcs, vcsWorkingDirCache);
+        return new LockingVersionControlSystem(
+            new RequireSettingsVersionControlSystem(vcs, buildLayoutFactory),
+            vcsWorkingDirCache);
     }
 
     @Override
@@ -67,6 +75,33 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         vcsWorkingDirCache.close();
     }
 
+    private static final class RequireSettingsVersionControlSystem implements VersionControlSystem {
+        private final VersionControlSystem delegate;
+        private final BuildLayoutFactory buildLayoutFactory;
+
+        private RequireSettingsVersionControlSystem(VersionControlSystem delegate, BuildLayoutFactory buildLayoutFactory) {
+            this.delegate = delegate;
+            this.buildLayoutFactory = buildLayoutFactory;
+        }
+
+        @Override
+        public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
+            return delegate.getAvailableVersions(spec);
+        }
+
+        @Override
+        public File populate(File versionDir, VersionRef ref, VersionControlSpec spec) {
+            File workingDir = delegate.populate(versionDir, ref, spec);
+            PluginRequests pluginRequests = ((AbstractVersionControlSpec)spec).getPluginRequests();
+            if (!pluginRequests.isEmpty() && buildLayoutFactory.findExistingSettingsFileIn(workingDir) == null) {
+                // Injecting plugins and no settings file exists.
+                // TODO: For now, just touch an empty file so this appears to be a well-formed build.
+                // Eventually, we may want to relax this requirement for included builds
+                GFileUtils.touch(new File(workingDir, Settings.DEFAULT_SETTINGS_FILE));
+            }
+            return workingDir;
+        }
+    }
     private static final class LockingVersionControlSystem implements VersionControlSystem {
         private final VersionControlSystem delegate;
         private final CacheAccess cacheAccess;
