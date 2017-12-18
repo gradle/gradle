@@ -25,10 +25,13 @@ import java.util.Map;
 /**
  * The transformation of the user's build cache config, to the effective configuration.
  *
- * This operation should occur some time after the configuration phase. In practice, it will fire as part of bootstrapping the execution of the first task to execute.
+ * This operation should occur some time after the configuration phase.
+ * In practice, it will fire as part of bootstrapping the execution of the first task to execute.
  *
- * This operation should always be executed, regardless of whether caching is enabled/disabled. That is, determining enabled-ness is part of “finalizing”. However, if the build fails during
- * configuration or task graph assembly, it will not be emitted. It must fire before any build cache is used.
+ * This operation should always be executed, regardless of whether caching is enabled/disabled.
+ * That is, determining enabled-ness is part of “finalizing”.
+ * However, if the build fails during configuration or task graph assembly, it will not be emitted.
+ * It must fire before any build cache is used.
  *
  * See BuildCacheControllerFactory.
  *
@@ -85,7 +88,9 @@ public final class FinalizeBuildCacheConfigurationBuildOperationType implements 
             boolean isPush();
 
             /**
-             * The advertised config parameters of the cache. No null values or keys. Ordered by key lexicographically.
+             * The advertised config parameters of the cache.
+             * No null values or keys.
+             * Ordered by key lexicographically.
              *
              * @see org.gradle.caching.BuildCacheServiceFactory.Describer#config(String, String)
              */
