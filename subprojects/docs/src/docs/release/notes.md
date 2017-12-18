@@ -133,7 +133,7 @@ Getting a redirect from the build cache backend is mostly a configuration error 
 
 In earlier versions of Gradle, each included build within a composite used its own build cache configuration.
 Now, included builds inherit the configuration from the root build. 
-Included builds may still define build cache configuration in their settings.gradle file, it is just no longer used.
+Included builds may still define build cache configuration in their `settings.gradle` file, it is just no longer used.
 
 This change will not cause build breakage and does not require any change in build logic to adapt to.
 
