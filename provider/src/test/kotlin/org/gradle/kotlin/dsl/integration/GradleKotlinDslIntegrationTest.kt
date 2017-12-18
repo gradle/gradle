@@ -551,6 +551,23 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         canPublishBuildScan()
     }
 
+    @Test
+    fun `can use shorthand notation for bound callable references with inline functions in build scripts`() {
+
+        withBuildScript("""
+            fun foo(it: Any) = true
+
+            // The inline modifier is important. This does not fail when this is no inline function.
+            inline fun bar(f: (Any) -> Boolean) = print("*" + f(Unit) + "*")
+
+            bar(::foo)
+        """)
+
+        assertThat(
+            build().output,
+            containsString("*true*"))
+    }
+
     private
     fun assumeJavaLessThan9() {
         assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
