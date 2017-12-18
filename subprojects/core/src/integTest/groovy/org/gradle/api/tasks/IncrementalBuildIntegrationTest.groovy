@@ -695,13 +695,17 @@ task b(type: DirTransformerTask) {
     }
 
     def "can use up-to-date predicate to force task to execute"() {
-        buildFile << '''
+        def inputFileName = 'src.txt'
+
+        buildFile << """
 task inputsAndOutputs {
-    inputs.files 'src.txt'
-    outputs.file 'src.a.txt'
+    def inputFile = '${inputFileName}'
+    def outputFile = 'src.a.txt'
+    inputs.files inputFile
+    outputs.file outputFile
     outputs.upToDateWhen { project.hasProperty('uptodate') }
     doFirst {
-        file('src.a.txt').text = "[${file('src.txt').text}]"
+        file(outputFile).text = "[\${file(inputFile).text}]"
     }
 }
 task noOutputs {
@@ -713,8 +717,8 @@ task nothing {
     outputs.upToDateWhen { project.hasProperty('uptodate') }
     doFirst { }
 }
-'''
-        TestFile srcFile = file('src.txt')
+"""
+        TestFile srcFile = file(inputFileName)
         srcFile.text = 'content'
 
         when:
