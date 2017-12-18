@@ -20,13 +20,13 @@ task generateGradleApiPackageList(type: org.gradle.api.internal.runtimeshaded.Pa
     classpath = files(
         rootProject.configurations.externalModules,
         [':core', ':dependencyManagement', ':pluginUse', ":toolingApi"].collect() {
-            project(it).configurations.runtime
+            project(it).configurations.runtimeClasspath
         }, project(':').configurations.gradlePlugins)
     outputFile = file("$runtimeShadedPath/api-relocated.txt")
 }
 
 task generateTestKitPackageList(type: org.gradle.api.internal.runtimeshaded.PackageListGenerator) {
-    classpath = project(':testKit').configurations.compile
+    classpath = project(':testKit').configurations.compileClasspath
     outputFile = file("$runtimeShadedPath/test-kit-relocated.txt")
 }
 
