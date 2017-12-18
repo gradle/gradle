@@ -48,21 +48,27 @@ import java.util.Queue;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
- * Writes files describing the build operation stream for a build. Can be enabled for any build with `-Dorg.gradle.internal.operations.trace=«path-base»`.
+ * Writes files describing the build operation stream for a build.
+ * Can be enabled for any build with `-Dorg.gradle.internal.operations.trace=«path-base»`.
  *
- * Imposes no overhead when not enabled. Also used as the basis for asserting on the event stream in integration tests, via BuildOperationFixture.
+ * Imposes no overhead when not enabled.
+ * Also used as the basis for asserting on the event stream in integration tests, via BuildOperationFixture.
  *
  * Three files are created:
  *
- * - «path-base»-log.txt: a chronological log of events, each line is a JSON object - «path-base»-tree.json: a JSON tree of the event structure - «path-base»-tree.txt: A simplified tree representation
- * showing basic information
+ * - «path-base»-log.txt: a chronological log of events, each line is a JSON object
+ * - «path-base»-tree.json: a JSON tree of the event structure
+ * - «path-base»-tree.txt: A simplified tree representation showing basic information
  *
- * Generally, the simplified tree view is best for browsing. The JSON tree view can be used for more detailed analysis — open in a JSON tree viewer, like Chrome.
+ * Generally, the simplified tree view is best for browsing.
+ * The JSON tree view can be used for more detailed analysis — open in a JSON tree viewer, like Chrome.
  *
- * The «path-base» param is optional. If invoked as `-Dorg.gradle.internal.operations.trace`, a base value of "operations" will be used.
+ * The «path-base» param is optional.
+ * If invoked as `-Dorg.gradle.internal.operations.trace`, a base value of "operations" will be used.
  *
- * The “trace” produced here is different to the trace produced by Gradle Profiler. There, the focus is analyzing the performance profile. Here, the focus is debugging/developing the information
- * structure of build operations.
+ * The “trace” produced here is different to the trace produced by Gradle Profiler.
+ * There, the focus is analyzing the performance profile.
+ * Here, the focus is debugging/developing the information structure of build operations.
  *
  * @since 4.0
  */
