@@ -31,4 +31,8 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     List<File> getAnnotationProcessorPath();
 
     void setAnnotationProcessorPath(List<File> path);
+
+    File getIncrementalAnnotationProcessorWorkingDir();
+
+    void setIncrementalAnnotationProcessorWorkingDir(File incrementalAnnotationProcessorWorkingDir);
 }

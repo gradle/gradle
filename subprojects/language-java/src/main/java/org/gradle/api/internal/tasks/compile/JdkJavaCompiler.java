@@ -44,6 +44,8 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     public WorkResult execute(JavaCompileSpec spec) {
         LOGGER.info("Compiling with JDK Java compiler API.");
 
+        ensureIncapWorkingDir(spec);
+
         JavaCompiler.CompilationTask task = createCompileTask(spec);
         boolean success = task.call();
         if (!success) {
@@ -63,6 +65,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         if (JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options)) {
             fileManager = (StandardJavaFileManager) SourcepathIgnoringProxy.proxy(standardFileManager, StandardJavaFileManager.class);
         }
+
         return compiler.getTask(null, fileManager, null, options, null, compilationUnits);
     }
 
@@ -75,5 +78,13 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             }
         }
         return false;
+    }
+
+    // Incap will throw an exception if the working dir doesn't exist.
+    private void ensureIncapWorkingDir(JavaCompileSpec spec) {
+        java.io.File dir = spec.getIncrementalAnnotationProcessorWorkingDir();
+        if (dir != null && !dir.exists()) {
+            dir.mkdirs();
+        }
     }
 }

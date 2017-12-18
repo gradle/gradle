@@ -86,6 +86,8 @@ public class CompileOptions extends AbstractOptions {
 
     private final Property<File> annotationProcessorGeneratedSourcesDirectory;
 
+    private boolean incrementalAnnotationProcessing;
+
     @Inject
     public CompileOptions(ObjectFactory objectFactory) {
         this.annotationProcessorGeneratedSourcesDirectory = objectFactory.property(File.class);
@@ -504,5 +506,22 @@ public class CompileOptions extends AbstractOptions {
     @Incubating
     public void setAnnotationProcessorGeneratedSourcesDirectory(Provider<File> file) {
         this.annotationProcessorGeneratedSourcesDirectory.set(file);
+    }
+
+    /**
+     * Returns {@code true} if incremental annotation processing is enabled.
+     * @since 4.4
+     */
+    @Incubating
+    public boolean isIncrementalAnnotationProcessing() {
+        return incrementalAnnotationProcessing;
+    }
+
+    /**
+     * Sets flag for enabling incremental annotation processing.
+     * @since 4.4
+     */
+    public void setIncrementalAnnotationProcessing(boolean enabled) {
+        incrementalAnnotationProcessing = enabled;
     }
 }
