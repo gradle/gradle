@@ -25,7 +25,7 @@ import spock.lang.Unroll
 class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
-    def "Nested #type.simpleName input adds a task dependency"() {
+    def "nested #type.simpleName input adds a task dependency"() {
         buildFile << """
             class TaskWithNestedProperty extends DefaultTask  {
                 @Nested
@@ -33,31 +33,27 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             }
             
             class NestedBeanWithInput {
-                @Input${fileType}
+                @Input${kind}
                 ${type.name} input
             }
             
-            class TaskGeneratingFile extends DefaultTask {
-                @Output${fileType}
-                ${type.name} outputFile = newOutput${fileType}()
+            class GeneratorTask extends DefaultTask {
+                @Output${kind}
+                ${type.name} output = newOutput${kind}()
                 
                 @TaskAction
                 void doStuff() {
-                    if (outputFile instanceof DirectoryProperty) {
-                        outputFile.file('output.txt').get().getAsFile().text = "Hello"
-                    } else {
-                        outputFile.getAsFile().get().text = "Hello"
-                    }
+                    output${generatorAction}
                 }
             }
             
-            task generator(type: TaskGeneratingFile) {
-                outputFile.set(project.layout.buildDirectory.${fileType == 'Directory' ? 'dir' : 'file'}('output'))
+            task generator(type: GeneratorTask) {
+                output.set(project.layout.buildDirectory.${kind == 'Directory' ? 'dir' : 'file'}('output'))
             }
             
             task consumer(type: TaskWithNestedProperty) {
-                bean = new NestedBeanWithInput(input: newInput${fileType}())
-                bean.input.set(generator.outputFile)
+                bean = new NestedBeanWithInput(input: newInput${kind}())
+                bean.input.set(generator.output)
             }
         """
 
@@ -68,12 +64,12 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':generator', ':consumer')
 
         where:
-        fileType    | type
-        'File'      | RegularFileProperty
-        'Directory' | DirectoryProperty
+        kind        | type                 | generatorAction
+        'File'      | RegularFileProperty  | '.getAsFile().get().text = "Hello"'
+        'Directory' | DirectoryProperty    | '''.file('output.txt').get().getAsFile().text = "Hello"'''
     }
 
-    def "Nested FileCollection input adds a task dependency"() {
+    def "nested FileCollection input adds a task dependency"() {
         buildFile << """
             class TaskWithNestedProperty extends DefaultTask  {
                 @Nested
@@ -85,7 +81,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 FileCollection input
             }
             
-            class TaskGeneratingFile extends DefaultTask {
+            class GeneratorTask extends DefaultTask {
                 @OutputFile
                 RegularFileProperty outputFile = newOutputFile()
                 
@@ -95,7 +91,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             
-            task generator(type: TaskGeneratingFile) {
+            task generator(type: GeneratorTask) {
                 outputFile.set(project.layout.buildDirectory.file('output'))
             }
             
@@ -112,7 +108,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeImplemented
-    def "Nested input using output file property of different task adds a task dependency"() {
+    def "nested input using output file property of different task adds a task dependency"() {
         buildFile << """
             class TaskWithNestedProperty extends DefaultTask  {
                 @Nested
@@ -124,7 +120,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 RegularFileProperty file
             }
             
-            class TaskGeneratingFile extends DefaultTask {
+            class GeneratorTask extends DefaultTask {
                 @OutputFile
                 RegularFileProperty outputFile = newOutputFile()
                 
@@ -134,7 +130,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             
-            task generator(type: TaskGeneratingFile) {
+            task generator(type: GeneratorTask) {
                 outputFile.set(project.layout.buildDirectory.file('output'))
             }
             
@@ -147,13 +143,13 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         run 'consumer'
 
         then:
-        // Should have been executed
+        // FIXME: Should have been executed
         notExecuted(':generator')
-        // Should have been executed
+        // FIXME: Should have been executed
         skipped(':consumer')
     }
 
-    def "Changing nested inputs during execution time is detected"() {
+    def "changing nested inputs during execution time is detected"() {
         buildFile << """
             class TaskWithNestedProperty extends DefaultTask {
                 @Nested
