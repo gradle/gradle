@@ -83,23 +83,22 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         succeeds "all", "-i"
 
         and:
-        listCacheFiles().size() == 3 // root, i1, i2
+        listCacheFiles().size() == 4 // root, i1, i1BuildSrc, i2
         i1CacheDir.listFiles().size() == 0
+        i1BuildSrcCacheDir.listFiles().size() == 0
         i2CacheDir.listFiles().size() == 0
 
         listCacheFiles(buildSrcCacheDir).size() == 1
-        listCacheFiles(i1BuildSrcCacheDir).size() == 1
         listCacheFiles(i3CacheDir)
 
         and:
         result.assertOutputContains "Using local directory build cache for build ':buildSrc' (location = ${buildSrcCacheDir}, targetSize = 5 GB)."
-        result.assertOutputContains "Using local directory build cache for build ':i1:buildSrc' (location = ${i1BuildSrcCacheDir}, targetSize = 5 GB)."
         result.assertOutputContains "Using local directory build cache for build ':i2:i3' (location = ${i3CacheDir}, targetSize = 5 GB)."
         result.assertOutputContains "Using local directory build cache for the root build (location = ${cacheDir}, targetSize = 5 GB)."
 
         and:
         def finalizeOps = operations.all(FinalizeBuildCacheConfigurationBuildOperationType)
-        finalizeOps.size() == 3
+        finalizeOps.size() == 2
         def pathToCacheDirMap = finalizeOps.collectEntries {
             [
                 it.details.buildPath,
@@ -109,8 +108,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
 
         pathToCacheDirMap == [
             ":": cacheDir,
-            ":buildSrc": buildSrcCacheDir,
-            ":i1:buildSrc": i1BuildSrcCacheDir
+            ":buildSrc": buildSrcCacheDir
         ]
     }
 

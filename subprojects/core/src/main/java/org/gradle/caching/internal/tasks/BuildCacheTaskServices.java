@@ -54,6 +54,8 @@ import static org.gradle.caching.internal.controller.BuildCacheControllerFactory
 
 public class BuildCacheTaskServices {
 
+    private static final Path ROOT_BUILD_SRC_PATH = Path.path(":" + BuildSourceBuilder.BUILD_SRC);
+
     TaskOutputPacker createTaskResultPacker(FileSystem fileSystem, StreamHasher fileHasher, StringInterner stringInterner) {
         return new GZipTaskOutputPacker(new TarTaskOutputPacker(fileSystem, fileHasher, stringInterner));
     }
@@ -85,14 +87,7 @@ public class BuildCacheTaskServices {
         GradleInternal gradle,
         RootBuildCacheControllerRef rootControllerRef
     ) {
-        // TODO use root build cache config for buildSrc of nested builds
-        // Currently, the settings and buildSrc of nested builds are evaluated as
-        // soon as they are included with includeBuild in the root settings.gradle.
-        // This is before we can finalize the build cache configuration.
-        // We should change includeBuild to defer doing its work until we have
-        // evaluated all of settings.gradle, and finalized the build cache configuration.
-
-        if (isRoot(gradle) || isAnyBuildSrc(gradle) || isGradleBuildTaskRoot(rootControllerRef)) {
+        if (isRoot(gradle) || isRootBuildSrc(gradle) || isGradleBuildTaskRoot(rootControllerRef)) {
             return doCreateBuildCacheController(serviceRegistry, buildCacheConfiguration, buildOperationExecutor, instantiatorFactory, gradle);
         } else {
             // must be an included build
@@ -109,9 +104,8 @@ public class BuildCacheTaskServices {
         return !rootControllerRef.isSet();
     }
 
-    private boolean isAnyBuildSrc(GradleInternal gradle) {
-        // Currently, this is the only way to determine this.
-        return gradle.getIdentityPath().getName().equals(BuildSourceBuilder.BUILD_SRC);
+    private boolean isRootBuildSrc(GradleInternal gradle) {
+        return gradle.getIdentityPath().equals(ROOT_BUILD_SRC_PATH);
     }
 
     private boolean isRoot(GradleInternal gradle) {
