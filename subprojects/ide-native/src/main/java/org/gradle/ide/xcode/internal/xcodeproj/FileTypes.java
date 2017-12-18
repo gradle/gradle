@@ -33,6 +33,11 @@ public enum FileTypes {
      */
     MACH_O_DYNAMIC_LIBRARY("dylib", "compiled.mach-o.dylib"),
 
+    /**
+     * Apple UTI for static libraries.
+     */
+    ARCHIVE_LIBRARY("a", "archive.ar"),
+
     C_SOURCE_CODE("c", "sourcecode.c.c"),
     CC_SOURCE_CODE("cc", "sourcecode.cpp.cpp"),
     CPP_SOURCE_CODE("cpp", "sourcecode.cpp.cpp"),

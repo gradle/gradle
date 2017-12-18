@@ -224,6 +224,10 @@ class ProjectFile {
             assertIs(ProductType.DYNAMIC_LIBRARY)
         }
 
+        void assertIsStaticLibrary() {
+            assertIs(ProductType.STATIC_LIBRARY)
+        }
+
         void assertIsUnitTest() {
             assert isUnitTest()
         }

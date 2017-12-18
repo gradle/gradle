@@ -85,6 +85,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(Project project) {
+                library.getLinkage().lockNow();
                 if (library.getLinkage().get().isEmpty()) {
                     throw new IllegalArgumentException("A linkage needs to be specified for the library.");
                 }
@@ -92,8 +93,9 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                 boolean sharedLibs = library.getLinkage().get().contains(Linkage.SHARED);
                 boolean staticLibs = library.getLinkage().get().contains(Linkage.STATIC);
 
+                SwiftSharedLibrary debugSharedLibrary = null;
                 if (sharedLibs) {
-                    SwiftSharedLibrary debugSharedLibrary = library.createSharedLibrary("debug", true, false, true);
+                    debugSharedLibrary = library.createSharedLibrary("debug", true, false, true);
                     SwiftSharedLibrary releaseSharedLibrary = library.createSharedLibrary("release", true, true, false);
 
                     // Add publications
@@ -221,14 +223,16 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                     }
                 }
 
-                library.getBinaries().realizeNow();
-
                 if (sharedLibs) {
-                    tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(library.getDevelopmentBinary().getRuntimeFile());
+                    library.getDevelopmentBinary().set(debugSharedLibrary);
+                    tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugSharedLibrary.getRuntimeFile());
                 } else {
                     // Should use the development binary as well
+                    library.getDevelopmentBinary().set(debugStaticLibrary);
                     tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugStaticLibrary.getLinkFile());
                 }
+
+                library.getBinaries().realizeNow();
             }
         });
     }

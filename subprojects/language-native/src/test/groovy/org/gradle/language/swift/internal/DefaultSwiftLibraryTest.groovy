@@ -69,18 +69,11 @@ class DefaultSwiftLibraryTest extends Specification {
         library.binaries.realizeNow()
 
         when:
-        library.developmentBinary
+        library.developmentBinary.get()
 
         then:
         def ex = thrown(IllegalStateException)
         ex.message == "No value has been specified for this provider."
-    }
-
-    def "returns shared, debuggable and not optimized development binary when available"() {
-        expect:
-        def binary = library.createSharedLibrary("debug", true, false, true)
-        library.binaries.realizeNow()
-        library.developmentBinary == binary
     }
 
     interface TestConfiguration extends Configuration, FileCollectionInternal {
