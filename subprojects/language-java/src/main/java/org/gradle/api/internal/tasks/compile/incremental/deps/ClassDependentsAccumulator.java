@@ -34,7 +34,6 @@ public class ClassDependentsAccumulator {
     private final Map<String, String> filePathToClassName = new HashMap<String, String>();
     private final Map<String, Set<String>> dependents = new HashMap<String, Set<String>>();
     private final Multimap<String, Integer> classesToConstants = HashMultimap.create();
-    private final Multimap<Integer, String> literalsToClasses = HashMultimap.create();
     private final Set<String> seenClasses = Sets.newHashSet();
     private final Multimap<String, String> parentToChildren = HashMultimap.create();
 
@@ -47,10 +46,10 @@ public class ClassDependentsAccumulator {
     }
 
     public void addClass(ClassAnalysis classAnalysis) {
-        addClass(classAnalysis.getClassName(), classAnalysis.isDependencyToAll(), classAnalysis.getClassDependencies(), classAnalysis.getConstants(), classAnalysis.getLiterals(), classAnalysis.getSuperTypes());
+        addClass(classAnalysis.getClassName(), classAnalysis.isDependencyToAll(), classAnalysis.getClassDependencies(), classAnalysis.getConstants(), classAnalysis.getSuperTypes());
     }
 
-    public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies, Set<Integer> constants, Set<Integer> literals, Set<String> superTypes) {
+    public void addClass(String className, boolean dependencyToAll, Iterable<String> classDependencies, Set<Integer> constants, Set<String> superTypes) {
         if (seenClasses.contains(className)) {
             // same classes may be found in different classpath trees/jars
             // and we keep only the first one
@@ -59,9 +58,6 @@ public class ClassDependentsAccumulator {
         seenClasses.add(className);
         for (Integer constant : constants) {
             classesToConstants.put(className, constant);
-        }
-        for (Integer literal : literals) {
-            literalsToClasses.put(literal, className);
         }
         if (dependencyToAll) {
             dependenciesToAll.add(className);
@@ -105,11 +101,7 @@ public class ClassDependentsAccumulator {
         return classesToConstants;
     }
 
-    public Multimap<Integer, String> getLiteralsToClasses() {
-        return literalsToClasses;
-    }
-
     public ClassSetAnalysisData getAnalysis() {
-        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), getLiteralsToClasses(), parentToChildren);
+        return new ClassSetAnalysisData(filePathToClassName, getDependentsMap(), getClassesToConstants(), parentToChildren);
     }
 }

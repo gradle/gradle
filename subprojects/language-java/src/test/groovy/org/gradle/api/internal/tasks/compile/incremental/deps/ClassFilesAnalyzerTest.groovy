@@ -53,9 +53,8 @@ class ClassFilesAnalyzerTest extends Specification {
         }
         def classNames = ["A"] as Set
         def constants = [1] as Set
-        def literals = [2] as Set
         def superTypes = ['B', 'C'] as Set
-        def analysis = new ClassAnalysis("org.foo.Foo", classNames, true, constants, literals, superTypes)
+        def analysis = new ClassAnalysis("org.foo.Foo", classNames, true, constants, superTypes)
 
         when:
         analyzer.visitFile(details)
