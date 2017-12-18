@@ -59,7 +59,7 @@ public class BuildLogicFunctionalTest {
             .build();
 
         assertTrue(result.getOutput().contains("Hello world!"));
-        assertEquals(result.task(":helloWorld").getOutcome(), SUCCESS);
+        assertEquals(SUCCESS, result.task(":helloWorld").getOutcome());
     }
 
     private void writeFile(File destination, String content) throws IOException {
