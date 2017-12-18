@@ -68,7 +68,7 @@ Previously, each build within a composite build used its own build cache configu
 Now, included builds, and their `buildSrc` builds, automatically inherit the build cache configuration of the root build.
 This makes managing build cache configuration for composite builds simpler and effectively allows better build cache utilization.
 
-Included builds may still define build cache configuration in their settings.gradle file, it is just no longer respected.
+Included builds may still define build cache configuration in their `settings.gradle` file, it is just no longer respected.
 
 The `buildSrc` build of the root project continues to use its own build cache configuration, due to technical constraints.
 However, the `buildSrc` build of any included build will inherit the build cache configuration from the root build.

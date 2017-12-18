@@ -89,7 +89,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         i2CacheDir.listFiles().size() == 0
 
         listCacheFiles(buildSrcCacheDir).size() == 1
-        listCacheFiles(i3CacheDir)
+        listCacheFiles(i3CacheDir).size() == 1
 
         and:
         result.assertOutputContains "Using local directory build cache for build ':buildSrc' (location = ${buildSrcCacheDir}, targetSize = 5 GB)."
