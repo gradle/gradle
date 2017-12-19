@@ -21,7 +21,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
-import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 
 /**
@@ -93,7 +92,7 @@ public interface CppBinary extends SoftwareComponent {
      *
      * @since 4.5
      */
-    NativePlatform getTargetPlatform();
+    CppPlatform getTargetPlatform();
 
     /**
      * Returns the tool chain for this binary.

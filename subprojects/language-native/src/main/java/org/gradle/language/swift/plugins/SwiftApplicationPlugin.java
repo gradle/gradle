@@ -32,6 +32,7 @@ import org.gradle.language.nativeplatform.internal.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.util.GUtil;
@@ -91,7 +92,7 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                 TaskContainer tasks = project.getTasks();
                 ObjectFactory objectFactory = project.getObjects();
 
-                ToolChainSelector.Result result = toolChainSelector.select();
+                ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
 
                 SwiftExecutable debugExecutable = application.createExecutable("debug", true, false, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                 SwiftExecutable releaseExecutable = application.createExecutable("release", true, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());

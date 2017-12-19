@@ -34,6 +34,11 @@ class SwiftSharedLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         return ":compileDebugSwift"
     }
 
+    @Override
+    protected String getMainComponentDsl() {
+        return "library"
+    }
+
     def "can create shared library binary when explicitly request a shared linkage"() {
         def library = new SwiftLib()
         buildFile << """

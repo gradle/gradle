@@ -16,6 +16,10 @@
 
 package org.gradle.language.nativeplatform.internal;
 
+import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.cpp.internal.DefaultCppPlatform;
+import org.gradle.language.swift.SwiftPlatform;
+import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -34,20 +38,26 @@ public class DefaultToolChainSelector implements ToolChainSelector {
     }
 
     @Override
-    public Result select() {
+    public <T extends NativePlatform> Result<T> select(Class<T> platformType) {
         DefaultNativePlatform targetPlatform = new DefaultNativePlatform("current");
         NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(targetPlatform);
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
 
-        return new DefaultResult(toolChain, targetPlatform, toolProvider);
+        T t = null;
+        if (CppPlatform.class.isAssignableFrom(platformType)) {
+            t = platformType.cast(new DefaultCppPlatform("current"));
+        } else if (SwiftPlatform.class.isAssignableFrom(platformType)) {
+            t = platformType.cast(new DefaultSwiftPlatform("current"));
+        }
+        return new DefaultResult<T>(toolChain, t, toolProvider);
     }
 
-    class DefaultResult implements Result {
+    class DefaultResult<T extends NativePlatform> implements Result<T> {
         private final NativeToolChainInternal toolChain;
-        private final NativePlatform targetPlatform;
+        private final T targetPlatform;
         private final PlatformToolProvider platformToolProvider;
 
-        public DefaultResult(NativeToolChainInternal toolChain, NativePlatform targetPlatform, PlatformToolProvider platformToolProvider) {
+        public DefaultResult(NativeToolChainInternal toolChain, T targetPlatform, PlatformToolProvider platformToolProvider) {
             this.toolChain = toolChain;
             this.targetPlatform = targetPlatform;
             this.platformToolProvider = platformToolProvider;
@@ -59,7 +69,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         }
 
         @Override
-        public NativePlatform getTargetPlatform() {
+        public T getTargetPlatform() {
             return targetPlatform;
         }
 

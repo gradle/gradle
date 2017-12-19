@@ -38,6 +38,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppLibrary;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
@@ -90,7 +91,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         final DefaultCppLibrary library = (DefaultCppLibrary) project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getLayout(), project.getObjects(), fileOperations, project.getConfigurations());
         project.getComponents().add(library);
 
-        ToolChainSelector.Result result = toolChainSelector.select();
+        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
         CppSharedLibrary debugSharedLibrary = library.createSharedLibrary("debug", true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
         CppSharedLibrary releaseSharedLibrary = library.createSharedLibrary("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());

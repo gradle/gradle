@@ -34,6 +34,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.language.cpp.internal.MainExecutableVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
@@ -76,7 +77,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         final DefaultCppApplication application = (DefaultCppApplication) project.getExtensions().create(CppApplication.class, "application", DefaultCppApplication.class,  "main", project.getLayout(), objectFactory, fileOperations, configurations);
         project.getComponents().add(application);
 
-        ToolChainSelector.Result result = toolChainSelector.select();
+        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
         CppExecutable debugExecutable = application.createExecutable("debug", true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
         CppExecutable releaseExecutable = application.createExecutable("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());

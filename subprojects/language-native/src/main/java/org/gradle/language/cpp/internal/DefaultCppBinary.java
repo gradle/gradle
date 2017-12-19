@@ -33,8 +33,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppBinary;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -53,12 +53,12 @@ public class DefaultCppBinary implements CppBinary {
     private final FileCollection linkLibraries;
     private final FileCollection runtimeLibraries;
     private final DirectoryProperty objectsDir;
-    private final NativePlatform targetPlatform;
+    private final CppPlatform targetPlatform;
     private final NativeToolChainInternal toolChain;
     private final PlatformToolProvider platformToolProvider;
     private final Configuration includePathConfiguration;
 
-    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         this.name = name;
         this.baseName = baseName;
         this.debuggable = debuggable;
@@ -169,7 +169,7 @@ public class DefaultCppBinary implements CppBinary {
     }
 
     @Override
-    public NativePlatform getTargetPlatform() {
+    public CppPlatform getTargetPlatform() {
         return targetPlatform;
     }
 

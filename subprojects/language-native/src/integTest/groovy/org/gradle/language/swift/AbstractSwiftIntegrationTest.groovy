@@ -16,13 +16,15 @@
 
 package org.gradle.language.swift
 
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Matchers
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
-abstract class AbstractSwiftIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+abstract class AbstractSwiftIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
     def "skip assemble tasks when no source"() {
         given:
         makeSingleProject()
@@ -48,9 +50,30 @@ abstract class AbstractSwiftIntegrationTest extends AbstractInstalledToolChainIn
         failure.assertThatCause(Matchers.containsText("Swift compiler failed while compiling swift file(s)"))
     }
 
+    def "binaries have the right platform type"() {
+        given:
+        makeSingleProject()
+        buildFile << """
+            task verifyBinariesPlatformType {
+                doLast {
+                    ${mainComponentDsl}.binaries.get().each {
+                        assert it.targetPlatform instanceof SwiftPlatform
+                        assert it.targetPlatform.operatingSystem.name == "${OperatingSystem.current().name}"
+                        assert it.targetPlatform.architecture.name == "${DefaultNativePlatform.currentArchitecture.name}"
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "verifyBinariesPlatformType"
+    }
+
     protected abstract List<String> getTasksToAssembleDevelopmentBinary()
 
     protected abstract void makeSingleProject()
 
     protected abstract String getDevelopmentBinaryCompileTask()
+
+    protected abstract String getMainComponentDsl()
 }

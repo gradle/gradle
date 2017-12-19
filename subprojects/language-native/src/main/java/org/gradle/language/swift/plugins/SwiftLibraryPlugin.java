@@ -32,6 +32,7 @@ import org.gradle.language.nativeplatform.internal.ToolChainSelector;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftLibrary;
@@ -96,7 +97,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                 boolean sharedLibs = library.getLinkage().get().contains(Linkage.SHARED);
                 boolean staticLibs = library.getLinkage().get().contains(Linkage.STATIC);
 
-                ToolChainSelector.Result result = toolChainSelector.select();
+                ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
 
                 SwiftSharedLibrary debugSharedLibrary = null;
                 if (sharedLibs) {

@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.internal;
+package org.gradle.language.cpp.internal;
 
-import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.language.cpp.CppPlatform;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
-public interface ToolChainSelector {
-    <T extends NativePlatform> Result<T> select(Class<T> platformType);
-
-    interface Result<T extends NativePlatform> {
-        NativeToolChainInternal getToolChain();
-
-        T getTargetPlatform();
-
-        PlatformToolProvider getPlatformToolProvider();
+public class DefaultCppPlatform extends DefaultNativePlatform implements CppPlatform {
+    public DefaultCppPlatform(String name) {
+        super(name);
     }
 }

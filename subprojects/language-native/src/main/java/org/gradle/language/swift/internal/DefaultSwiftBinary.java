@@ -41,9 +41,9 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.internal.NativeDependencyCache;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.internal.modulemap.ModuleMap;
-import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -68,12 +68,12 @@ public class DefaultSwiftBinary implements SwiftBinary {
     private final DirectoryProperty objectsDir;
     private final RegularFileProperty moduleFile;
     private final Property<SwiftCompile> compileTaskProperty;
-    private final NativePlatform targetPlatform;
+    private final SwiftPlatform targetPlatform;
     private final NativeToolChainInternal toolChain;
     private final PlatformToolProvider platformToolProvider;
     private final Configuration importPathConfiguration;
 
-    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         this.name = name;
         this.module = module;
         this.debuggable = debuggable;
@@ -184,7 +184,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
     }
 
     @Override
-    public NativePlatform getTargetPlatform() {
+    public SwiftPlatform getTargetPlatform() {
         return targetPlatform;
     }
 
