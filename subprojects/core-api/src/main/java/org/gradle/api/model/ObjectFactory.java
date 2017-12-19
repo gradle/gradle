@@ -109,7 +109,7 @@ public interface ObjectFactory {
      * @param elementType The type of element.
      * @param <T> The type of element.
      * @return The property. Never returns null;
-     * @since 4.3
+     * @since 4.5
      */
     <T> SetProperty<T> setProperty(Class<T> elementType);
 }
