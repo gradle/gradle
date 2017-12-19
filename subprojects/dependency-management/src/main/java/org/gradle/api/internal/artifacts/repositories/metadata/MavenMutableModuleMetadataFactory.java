@@ -41,6 +41,8 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
 
     @Override
     public MutableMavenModuleResolveMetadata missing(ModuleComponentIdentifier from) {
-        return MavenResolver.processMetaData(DefaultMutableMavenModuleResolveMetadata.missing(asVersionIdentifier(from), from));
+        MutableMavenModuleResolveMetadata metadata = create(from);
+        metadata.setMissing(true);
+        return MavenResolver.processMetaData(metadata);
     }
 }
