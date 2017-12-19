@@ -29,12 +29,12 @@ import org.gradle.api.internal.changedetection.state.FileHashSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemMirror
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
-import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.time.Timer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -60,7 +60,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def taskArtifactState = Mock(TaskArtifactState)
     def timer = Stub(Timer)
 
-    def originMetadata = Mock(TaskOutputOriginMetadata)
+    def originMetadata = Mock(OriginTaskExecutionMetadata)
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
@@ -104,7 +104,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
             assert dir.descendants as List == [outputDirFileSnapshot]
         }
         1 * fileSystemMirror.putFile(outputFileSnapshot)
-        1 * taskArtifactState.snapshotAfterLoadedFromCache(_) >> { ImmutableSortedMap<String, FileCollectionSnapshot> propertySnapshots ->
+        1 * taskArtifactState.snapshotAfterLoadedFromCache(_, _) >> { ImmutableSortedMap<String, FileCollectionSnapshot> propertySnapshots, OriginTaskExecutionMetadata metadata ->
             assert propertySnapshots.keySet() as List == ["outputDir", "outputFile"]
             assert propertySnapshots["outputFile"].files == [outputFile]
             assert propertySnapshots["outputFile"].elements == [outputFile]
