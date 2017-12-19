@@ -99,7 +99,7 @@ In this example, we configure the `greet` task `destination` property as a closu
 
 Capturing user input from the build script through an extension and mapping it to input/output properties of a custom task is considered a best practice. The end user only interacts with the exposed DSL defined by the extension. The imperative logic is hidden in the plugin implementation.
 
-The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase. For more information please see <<sec:build_phases>>. Gradle's API offers types for representing a property that should be lazily evaluated e.g. during execution time. Refer to <<lazyConfiguration> for more information.
+The extension declaration in the build script as well as the mapping between extension properties and custom task properties occurs during Gradle's configuration phase of the build lifecycle. To avoid evaluation order issues, the actual value of a mapped property has to be resolved during the execution phase. For more information please see <<sec:build_phases>>. Gradle's API offers types for representing a property that should be lazily evaluated e.g. during execution time. Refer to <<lazy_configuration>> for more information.
 
 The following demonstrates the usage of the type for mapping an extension property to a task property:
 
