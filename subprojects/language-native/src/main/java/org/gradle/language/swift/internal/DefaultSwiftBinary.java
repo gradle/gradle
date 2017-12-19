@@ -43,6 +43,9 @@ import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.internal.modulemap.ModuleMap;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -65,9 +68,12 @@ public class DefaultSwiftBinary implements SwiftBinary {
     private final DirectoryProperty objectsDir;
     private final RegularFileProperty moduleFile;
     private final Property<SwiftCompile> compileTaskProperty;
+    private final NativePlatform targetPlatform;
+    private final NativeToolChainInternal toolChain;
+    private final PlatformToolProvider platformToolProvider;
     private final Configuration importPathConfiguration;
 
-    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
+    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         this.name = name;
         this.module = module;
         this.debuggable = debuggable;
@@ -77,6 +83,9 @@ public class DefaultSwiftBinary implements SwiftBinary {
         this.objectsDir = projectLayout.directoryProperty();
         this.moduleFile = projectLayout.fileProperty();
         this.compileTaskProperty = objectFactory.property(SwiftCompile.class);
+        this.targetPlatform = targetPlatform;
+        this.toolChain = toolChain;
+        this.platformToolProvider = platformToolProvider;
 
         Names names = Names.of(name);
 
@@ -172,6 +181,20 @@ public class DefaultSwiftBinary implements SwiftBinary {
     @Override
     public Property<SwiftCompile> getCompileTask() {
         return compileTaskProperty;
+    }
+
+    @Override
+    public NativePlatform getTargetPlatform() {
+        return targetPlatform;
+    }
+
+    @Override
+    public NativeToolChainInternal getToolChain() {
+        return toolChain;
+    }
+
+    public PlatformToolProvider getPlatformToolProvider() {
+        return platformToolProvider;
     }
 
     @Inject

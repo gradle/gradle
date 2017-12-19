@@ -34,6 +34,9 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -50,15 +53,21 @@ public class DefaultCppBinary implements CppBinary {
     private final FileCollection linkLibraries;
     private final FileCollection runtimeLibraries;
     private final DirectoryProperty objectsDir;
+    private final NativePlatform targetPlatform;
+    private final NativeToolChainInternal toolChain;
+    private final PlatformToolProvider platformToolProvider;
     private final Configuration includePathConfiguration;
 
-    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation) {
+    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         this.name = name;
         this.baseName = baseName;
         this.debuggable = debuggable;
         this.optimized = optimized;
         this.sourceFiles = sourceFiles;
         this.objectsDir = projectLayout.directoryProperty();
+        this.targetPlatform = targetPlatform;
+        this.toolChain = toolChain;
+        this.platformToolProvider = platformToolProvider;
 
         Names names = Names.of(name);
 
@@ -157,6 +166,20 @@ public class DefaultCppBinary implements CppBinary {
     @Override
     public FileCollection getObjects() {
         return objectsDir.getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o"));
+    }
+
+    @Override
+    public NativePlatform getTargetPlatform() {
+        return targetPlatform;
+    }
+
+    @Override
+    public NativeToolChainInternal getToolChain() {
+        return toolChain;
+    }
+
+    public PlatformToolProvider getPlatformToolProvider() {
+        return platformToolProvider;
     }
 
     private class IncludePath implements MinimalFileSet {

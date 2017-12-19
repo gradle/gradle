@@ -38,7 +38,6 @@ import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.language.nativeplatform.internal.ToolChainSelector;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.ExtractSymbols;
@@ -53,7 +52,6 @@ import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformT
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -66,13 +64,6 @@ import java.util.concurrent.Callable;
 @Incubating
 @NonNullApi
 public class CppBasePlugin implements Plugin<ProjectInternal> {
-    private final ToolChainSelector toolChainSelector;
-
-    @Inject
-    public CppBasePlugin(ToolChainSelector toolChainSelector) {
-        this.toolChainSelector = toolChainSelector;
-    }
-
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
@@ -92,15 +83,14 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 final Names names = Names.of(binary.getName());
 
                 String language = "cpp";
-                final ToolChainSelector.Result result = toolChainSelector.select();
-                final NativePlatform currentPlatform = result.getTargetPlatform();
+                final NativePlatform currentPlatform = binary.getTargetPlatform();
                 // TODO - make this lazy
-                final NativeToolChainInternal toolChain = result.getToolChain();
+                final NativeToolChainInternal toolChain = ((DefaultCppBinary) binary).getToolChain();
 
                 Callable<List<File>> systemIncludes = new Callable<List<File>>() {
                     @Override
                     public List<File> call() throws Exception {
-                        PlatformToolProvider platformToolProvider = result.getPlatformToolProvider();
+                        PlatformToolProvider platformToolProvider = ((DefaultCppBinary) binary).getPlatformToolProvider();
                         if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
                             return ((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(ToolType.CPP_COMPILER);
                         }
@@ -122,7 +112,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
                     link.source(binary.getObjects());
                     link.lib(binary.getLinkLibraries());
-                    final PlatformToolProvider toolProvider = result.getPlatformToolProvider();
+                    final PlatformToolProvider toolProvider = ((DefaultCppBinary) binary).getPlatformToolProvider();
                     link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() throws Exception {
@@ -168,7 +158,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 } else if (binary instanceof CppSharedLibrary) {
                     DefaultCppSharedLibrary library = (DefaultCppSharedLibrary) binary;
 
-                    final PlatformToolProvider toolProvider = result.getPlatformToolProvider();
+                    final PlatformToolProvider toolProvider = ((DefaultCppBinary) binary).getPlatformToolProvider();
 
                     compile.setPositionIndependentCode(true);
 

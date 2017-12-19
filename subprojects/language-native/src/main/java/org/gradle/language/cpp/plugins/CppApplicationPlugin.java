@@ -33,9 +33,11 @@ import org.gradle.api.publish.maven.internal.publication.MavenPublicationInterna
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
+import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.language.cpp.internal.MainExecutableVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
+import org.gradle.language.nativeplatform.internal.ToolChainSelector;
 
 import javax.inject.Inject;
 
@@ -54,10 +56,12 @@ import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 @Incubating
 public class CppApplicationPlugin implements Plugin<ProjectInternal> {
     private final FileOperations fileOperations;
+    private final ToolChainSelector toolChainSelector;
 
     @Inject
-    public CppApplicationPlugin(FileOperations fileOperations) {
+    public CppApplicationPlugin(FileOperations fileOperations, ToolChainSelector toolChainSelector) {
         this.fileOperations = fileOperations;
+        this.toolChainSelector = toolChainSelector;
     }
 
     @Override
@@ -69,10 +73,16 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         ObjectFactory objectFactory = project.getObjects();
 
         // Add the application extension
-        final CppApplication application = project.getExtensions().create(CppApplication.class, "application", DefaultCppApplication.class,  "main", project.getLayout(), objectFactory, fileOperations, configurations);
+        final DefaultCppApplication application = (DefaultCppApplication) project.getExtensions().create(CppApplication.class, "application", DefaultCppApplication.class,  "main", project.getLayout(), objectFactory, fileOperations, configurations);
         project.getComponents().add(application);
-        project.getComponents().add(application.getDebugExecutable());
-        project.getComponents().add(application.getReleaseExecutable());
+
+        ToolChainSelector.Result result = toolChainSelector.select();
+
+        CppExecutable debugExecutable = application.createExecutable("debug", true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+        CppExecutable releaseExecutable = application.createExecutable("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+
+        project.getComponents().add(debugExecutable);
+        project.getComponents().add(releaseExecutable);
 
         // Configure the component
         application.getBaseName().set(project.getName());

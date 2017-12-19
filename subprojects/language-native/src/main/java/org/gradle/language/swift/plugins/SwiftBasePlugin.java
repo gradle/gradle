@@ -32,7 +32,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.language.nativeplatform.internal.ToolChainSelector;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftSharedLibrary;
@@ -55,7 +54,6 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
-import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
 /**
@@ -65,13 +63,6 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class SwiftBasePlugin implements Plugin<ProjectInternal> {
-    private final ToolChainSelector toolChainSelector;
-
-    @Inject
-    public SwiftBasePlugin(ToolChainSelector toolChainSelector) {
-        this.toolChainSelector = toolChainSelector;
-    }
-
     @Override
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
@@ -111,12 +102,11 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 })));
                 ((DefaultSwiftBinary)binary).getModuleFile().set(compile.getModuleFile());
 
-                ToolChainSelector.Result result = toolChainSelector.select();
-                NativePlatform currentPlatform = result.getTargetPlatform();
+                NativePlatform currentPlatform = binary.getTargetPlatform();
                 compile.setTargetPlatform(currentPlatform);
 
                 // TODO - make this lazy
-                NativeToolChainInternal toolChain = result.getToolChain();
+                NativeToolChainInternal toolChain = ((DefaultSwiftBinary) binary).getToolChain();
                 compile.setToolChain(toolChain);
 
                 ((DefaultSwiftBinary)binary).getCompileTask().set(compile);
@@ -130,7 +120,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
                     link.source(binary.getObjects());
                     link.lib(binary.getLinkLibraries());
-                    final PlatformToolProvider toolProvider = result.getPlatformToolProvider();
+                    final PlatformToolProvider toolProvider = executable.getPlatformToolProvider();
                     Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
@@ -188,7 +178,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.source(binary.getObjects());
                     link.lib(binary.getLinkLibraries());
                     // TODO - need to set soname
-                    final PlatformToolProvider toolProvider = result.getPlatformToolProvider();
+                    final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
@@ -230,7 +220,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     final CreateStaticLibrary link = tasks.create(names.getTaskName("create"), CreateStaticLibrary.class);
                     link.source(binary.getObjects());
                     // TODO - need to set soname
-                    final PlatformToolProvider toolProvider = result.getPlatformToolProvider();
+                    final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {

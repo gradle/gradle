@@ -21,6 +21,8 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.tasks.SwiftCompile;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 
 /**
  * A binary built from Swift source.
@@ -88,4 +90,18 @@ public interface SwiftBinary extends SoftwareComponent {
      * @since 4.5
      */
     Provider<SwiftCompile> getCompileTask();
+
+    /**
+     * Returns the target platform for this binary.
+     *
+     * @since 4.5
+     */
+    NativePlatform getTargetPlatform();
+
+    /**
+     * Returns the tool chain for this binary.
+     *
+     * @since 4.5
+     */
+    NativeToolChain getToolChain();
 }
