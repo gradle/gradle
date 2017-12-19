@@ -102,7 +102,9 @@ public class TaskExecutionServices {
                                     TaskOutputFilesRepository taskOutputFilesRepository,
                                     BuildScanPluginApplied buildScanPlugin,
                                     PathToFileResolver resolver,
-                                    PropertyWalker propertyWalker) {
+                                    PropertyWalker propertyWalker,
+                                    BuildInvocationScopeId buildInvocationScopeId
+    ) {
 
         boolean taskOutputCacheEnabled = startParameter.isBuildCacheEnabled();
         boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
@@ -112,7 +114,8 @@ public class TaskExecutionServices {
             taskOutputsGenerationListener,
             listenerManager.getBroadcaster(TaskActionListener.class),
             buildOperationExecutor,
-            asyncWorkTracker
+            asyncWorkTracker,
+            buildInvocationScopeId
         );
         executer = new OutputDirectoryCreatingTaskExecuter(executer);
         if (taskOutputCacheEnabled) {
@@ -129,7 +132,7 @@ public class TaskExecutionServices {
             executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor);
         }
         executer = new ValidatingTaskExecuter(executer);
-        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputsGenerationListener, executer);
+        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputsGenerationListener, executer, buildInvocationScopeId);
         executer = new FinalizeInputFilePropertiesTaskExecuter(executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, propertyWalker, executer);
@@ -161,8 +164,7 @@ public class TaskExecutionServices {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionSnapshotterRegistry snapshotterRegistry,
-        FileCollectionFactory fileCollectionFactory,
-        BuildInvocationScopeId buildInvocationScopeId) {
+        FileCollectionFactory fileCollectionFactory) {
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         for (FileCollectionSnapshotter snapshotter : fileCollectionSnapshotterRegistry.getAllSnapshotters()) {
             snapshotter.registerSerializers(serializerRegistry);
@@ -175,8 +177,7 @@ public class TaskExecutionServices {
             classLoaderHierarchyHasher,
             valueSnapshotter,
             snapshotterRegistry,
-            fileCollectionFactory,
-            buildInvocationScopeId
+            fileCollectionFactory
         );
     }
 

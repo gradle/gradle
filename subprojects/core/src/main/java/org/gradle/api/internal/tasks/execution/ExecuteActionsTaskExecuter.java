@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -38,6 +39,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.work.AsyncWorkTracker;
 
 import java.util.ArrayList;
@@ -52,12 +54,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final TaskActionListener listener;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
+    private final BuildInvocationScopeId buildInvocationScopeId;
 
-    public ExecuteActionsTaskExecuter(TaskOutputsGenerationListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker) {
+    public ExecuteActionsTaskExecuter(TaskOutputsGenerationListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, BuildInvocationScopeId buildInvocationScopeId) {
         this.outputsGenerationListener = outputsGenerationListener;
         this.listener = taskActionListener;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
+        this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
@@ -75,7 +79,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     state.getDidWork() ? TaskExecutionOutcome.EXECUTED : TaskExecutionOutcome.UP_TO_DATE
                 );
             }
-            context.getTaskArtifactState().snapshotAfterTaskExecution(failure);
+            context.getTaskArtifactState().snapshotAfterTaskExecution(failure, new OriginTaskExecutionMetadata(
+                buildInvocationScopeId.getId(),
+                context.markExecutionTime()
+            ));
         } finally {
             state.setExecuting(false);
             listener.afterActions(task);

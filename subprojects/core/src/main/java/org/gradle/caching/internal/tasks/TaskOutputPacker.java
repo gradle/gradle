@@ -19,8 +19,8 @@ package org.gradle.caching.internal.tasks;
 import com.google.common.collect.ImmutableListMultimap;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
-import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 
@@ -56,17 +56,17 @@ public interface TaskOutputPacker {
     UnpackResult unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin) throws IOException;
 
     class UnpackResult {
-        private final TaskOutputOriginMetadata originMetadata;
+        private final OriginTaskExecutionMetadata originMetadata;
         private final long entries;
         private final ImmutableListMultimap<String, FileSnapshot> snapshots;
 
-        public UnpackResult(TaskOutputOriginMetadata originMetadata, long entries, ImmutableListMultimap<String, FileSnapshot> snapshots) {
+        public UnpackResult(OriginTaskExecutionMetadata originMetadata, long entries, ImmutableListMultimap<String, FileSnapshot> snapshots) {
             this.originMetadata = originMetadata;
             this.entries = entries;
             this.snapshots = snapshots;
         }
 
-        public TaskOutputOriginMetadata getOriginMetadata() {
+        public OriginTaskExecutionMetadata getOriginMetadata() {
             return originMetadata;
         }
 

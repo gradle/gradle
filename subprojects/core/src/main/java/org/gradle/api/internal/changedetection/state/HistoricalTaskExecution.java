@@ -20,20 +20,21 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.id.UniqueId;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 
 /**
  * State of a task when it was executed.
  */
 @NonNullApi
 public class HistoricalTaskExecution extends AbstractTaskExecution {
+
     private final boolean successful;
+    private final OriginTaskExecutionMetadata originExecutionMetadata;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
     private final FileCollectionSnapshot discoveredInputFilesSnapshot;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
 
     public HistoricalTaskExecution(
-        UniqueId buildInvocationId,
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionsImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
@@ -41,18 +42,25 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
         ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot,
         FileCollectionSnapshot discoveredInputFilesSnapshot,
         ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
-        boolean successful
+        boolean successful,
+        OriginTaskExecutionMetadata originExecutionMetadata
     ) {
-        super(buildInvocationId, taskImplementation, taskActionsImplementations, inputProperties, outputPropertyNames);
+        super(taskImplementation, taskActionsImplementations, inputProperties, outputPropertyNames);
         this.inputFilesSnapshot = inputFilesSnapshot;
         this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
         this.outputFilesSnapshot = outputFilesSnapshot;
         this.successful = successful;
+        this.originExecutionMetadata = originExecutionMetadata;
     }
 
     @Override
     public boolean isSuccessful() {
         return successful;
+    }
+
+    @Override
+    public OriginTaskExecutionMetadata getOriginExecutionMetadata() {
+        return originExecutionMetadata;
     }
 
     @Override

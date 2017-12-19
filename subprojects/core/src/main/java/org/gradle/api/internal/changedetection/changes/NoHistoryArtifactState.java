@@ -22,11 +22,11 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -110,7 +110,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public UniqueId getOriginBuildInvocationId() {
+    public OriginTaskExecutionMetadata getOriginExecutionMetadata() {
         return null;
     }
 
@@ -123,11 +123,11 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public void snapshotAfterTaskExecution(Throwable failure) {
+    public void snapshotAfterTaskExecution(Throwable failure, OriginTaskExecutionMetadata originExecutionMetadata) {
     }
 
     @Override
-    public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot) {
+    public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originExecutionMetadata) {
     }
 
     @Override

@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputCachingState
 import org.gradle.api.internal.changedetection.TaskArtifactState
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
@@ -31,7 +32,6 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException
-import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata
 import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
 
@@ -58,6 +58,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def "skip task when cached results exist"() {
         def originId = UniqueId.generate()
         def originalExecutionTime = 1234L
+        def metadata = new OriginTaskExecutionMetadata(originId, originalExecutionTime)
 
         when:
         executer.execute(task, taskState, taskContext)
@@ -77,11 +78,11 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, taskOutputGenerationListener, _, _) >> loadCommand
 
         then:
-        1 * buildCacheController.load(loadCommand) >> new TaskOutputOriginMetadata(originId, originalExecutionTime)
+        1 * buildCacheController.load(loadCommand) >> metadata
 
         then:
         1 * taskState.setOutcome(TaskExecutionOutcome.FROM_CACHE)
-        1 * taskContext.setOriginBuildInvocationId(originId)
+        1 * taskContext.setOriginExecutionMetadata(metadata)
         0 * _
     }
 

@@ -21,12 +21,15 @@ import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
+import org.gradle.internal.id.UniqueId
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -44,7 +47,10 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final taskExecutionHistory = Mock(TaskExecutionHistory)
     final cleanupRegistry = Mock(BuildOutputCleanupRegistry)
     final taskOutputsGenerationListener = Mock(TaskOutputsGenerationListener)
-    final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, taskOutputsGenerationListener, target)
+    final buildInvocationId = UniqueId.generate()
+    final taskExecutionTime = 1L
+    final originExecutionMetadata = new OriginTaskExecutionMetadata(buildInvocationId, taskExecutionTime)
+    final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, cleanupRegistry, taskOutputsGenerationListener, target, new BuildInvocationScopeId(buildInvocationId))
 
     def 'skips task when sourceFiles are empty and previous output is empty'() {
         when:
@@ -101,8 +107,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * previousFile.delete() >> true
 
         then:
+        1 * taskContext.markExecutionTime() >> taskExecutionTime
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -138,7 +145,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
+        1 * taskContext.markExecutionTime() >> 1
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -182,7 +190,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
+        1 * taskContext.markExecutionTime() >> taskExecutionTime
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)

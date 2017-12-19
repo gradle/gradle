@@ -35,6 +35,7 @@ import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
 import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
@@ -45,7 +46,6 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
-import org.gradle.caching.internal.tasks.origin.TaskOutputOriginMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.time.Timer;
 
@@ -82,7 +82,7 @@ public class TaskOutputCacheCommandFactory {
         this.stringInterner = stringInterner;
     }
 
-    public BuildCacheLoadCommand<TaskOutputOriginMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState, Timer clock) {
+    public BuildCacheLoadCommand<OriginTaskExecutionMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState, Timer clock) {
         return new LoadCommand(cacheKey, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState, clock);
     }
 
@@ -90,7 +90,7 @@ public class TaskOutputCacheCommandFactory {
         return new StoreCommand(cacheKey, outputProperties, outputSnapshots, task, clock);
     }
 
-    private class LoadCommand implements BuildCacheLoadCommand<TaskOutputOriginMetadata> {
+    private class LoadCommand implements BuildCacheLoadCommand<OriginTaskExecutionMetadata> {
 
         private final TaskOutputCachingBuildCacheKey cacheKey;
         private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
@@ -116,12 +116,12 @@ public class TaskOutputCacheCommandFactory {
         }
 
         @Override
-        public BuildCacheLoadCommand.Result<TaskOutputOriginMetadata> load(InputStream input) {
+        public BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata> load(InputStream input) {
             taskOutputsGenerationListener.beforeTaskOutputsGenerated();
             final TaskOutputPacker.UnpackResult unpackResult;
             try {
                 unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
-                updateSnapshots(unpackResult.getSnapshots());
+                updateSnapshots(unpackResult.getSnapshots(), unpackResult.getOriginMetadata());
             } catch (Exception e) {
                 LOGGER.warn("Cleaning outputs for {} after failed load from cache.", task);
                 try {
@@ -137,25 +137,20 @@ public class TaskOutputCacheCommandFactory {
             }
             LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
 
-            return new BuildCacheLoadCommand.Result<TaskOutputOriginMetadata>() {
+            return new BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata>() {
                 @Override
                 public long getArtifactEntryCount() {
                     return unpackResult.getEntries();
                 }
 
                 @Override
-                public long getOriginalExecutionTime() {
-                    return unpackResult.getOriginMetadata().getOriginalExecutionTime();
-                }
-
-                @Override
-                public TaskOutputOriginMetadata getMetadata() {
+                public OriginTaskExecutionMetadata getMetadata() {
                     return unpackResult.getOriginMetadata();
                 }
             };
         }
 
-        private void updateSnapshots(ImmutableListMultimap<String, FileSnapshot> propertiesFileSnapshots) {
+        private void updateSnapshots(ImmutableListMultimap<String, FileSnapshot> propertiesFileSnapshots, OriginTaskExecutionMetadata originMetadata) {
             ImmutableSortedMap.Builder<String, FileCollectionSnapshot> propertySnapshotsBuilder = ImmutableSortedMap.naturalOrder();
             for (ResolvedTaskOutputFilePropertySpec property : outputProperties) {
                 String propertyName = property.getPropertyName();
@@ -192,7 +187,7 @@ public class TaskOutputCacheCommandFactory {
                         throw new AssertionError();
                 }
             }
-            taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build());
+            taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build(), originMetadata);
         }
 
         private void cleanLocalState() {

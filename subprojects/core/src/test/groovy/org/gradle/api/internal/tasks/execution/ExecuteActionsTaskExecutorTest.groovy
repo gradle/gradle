@@ -20,6 +20,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -29,9 +30,11 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
+import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.logging.StandardOutputCapture
 import spock.lang.Specification
@@ -51,7 +54,11 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def internalListener = Mock(TaskOutputsGenerationListener)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
-    def executer = new ExecuteActionsTaskExecuter(internalListener, publicListener, buildOperationExecutor, asyncWorkTracker)
+    final buildInvocationId = UniqueId.generate()
+    final taskExecutionTime = 1L
+    final originExecutionMetadata = new OriginTaskExecutionMetadata(buildInvocationId, taskExecutionTime)
+
+    def executer = new ExecuteActionsTaskExecuter(internalListener, publicListener, buildOperationExecutor, asyncWorkTracker, new BuildInvocationScopeId(buildInvocationId))
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
@@ -85,7 +92,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         1 * publicListener.beforeActions(task)
 
         then:
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
+        1 * executionContext.markExecutionTime() >> taskExecutionTime
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
 
         then:
         1 * publicListener.afterActions(task)
@@ -139,7 +147,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
+        1 * executionContext.markExecutionTime() >> taskExecutionTime
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
         then:
         1 * publicListener.afterActions(task)
         noMoreInteractions()
@@ -183,7 +192,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
+        1 * executionContext.markExecutionTime() >> taskExecutionTime
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
         then:
         1 * publicListener.afterActions(task)
         noMoreInteractions()
@@ -217,7 +227,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException })
+        1 * executionContext.markExecutionTime() >> taskExecutionTime
+        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException }, originExecutionMetadata)
         then:
         1 * publicListener.afterActions(task)
 
@@ -261,7 +272,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
+        1 * executionContext.markExecutionTime() >> taskExecutionTime
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
         then:
         1 * publicListener.afterActions(task)
         state.didWork
@@ -313,7 +325,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTaskExecution(null)
+        1 * executionContext.markExecutionTime() >> taskExecutionTime
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
         then:
         1 * publicListener.afterActions(task)
 
@@ -352,7 +365,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException })
+        1 * executionContext.markExecutionTime() >> taskExecutionTime
+        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException }, originExecutionMetadata)
         then:
         1 * publicListener.afterActions(task)
 
@@ -399,7 +413,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException })
+        1 * executionContext.markExecutionTime() >> taskExecutionTime
+        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException }, originExecutionMetadata)
         then:
         1 * publicListener.afterActions(task)
 
@@ -445,7 +460,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException})
+        1 * executionContext.markExecutionTime() >> taskExecutionTime
+        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException }, originExecutionMetadata)
         then:
         1 * publicListener.afterActions(task)
 

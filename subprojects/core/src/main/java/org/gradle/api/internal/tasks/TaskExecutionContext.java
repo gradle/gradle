@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.id.UniqueId;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -34,10 +33,26 @@ public interface TaskExecutionContext {
 
     void setBuildCacheKey(TaskOutputCachingBuildCacheKey cacheKey);
 
+    /**
+     * The information about the origin where the tasks outputs were first created, if reusing outputs.
+     */
     @Nullable
-    UniqueId getOriginBuildInvocationId();
+    OriginTaskExecutionMetadata getOriginExecutionMetadata();
 
-    void setOriginBuildInvocationId(@Nullable UniqueId originBuildInvocationId);
+    void setOriginExecutionMetadata(OriginTaskExecutionMetadata originExecutionMetadata);
+
+    /**
+     * Sets the execution time of the task to be the elapsed time since start to now.
+     *
+     * This is _only_ used for origin time tracking. It is not used to report the time taken in _this_ build.
+     * If the outputs from this execution are reused, this time will be considered to be the origin execution time.
+     * Note, it does not include some post-action execution operations such as output snapshoting or build cache pushing.
+     *
+     * This can only be called once per task.
+     *
+     * Returns the execution time.
+     */
+    long markExecutionTime();
 
     @Nullable
     List<String> getUpToDateMessages();

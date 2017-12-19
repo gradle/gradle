@@ -23,14 +23,13 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
@@ -111,12 +110,6 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             return delegate.getOutputContentSnapshots();
         }
 
-        @Nullable
-        @Override
-        public UniqueId getOriginBuildInvocationId() {
-            return null;
-        }
-
         @Override
         public void ensureSnapshotBeforeTask() {
             delegate.ensureSnapshotBeforeTask();
@@ -128,13 +121,13 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         @Override
-        public void snapshotAfterTaskExecution(Throwable failure) {
-            delegate.snapshotAfterTaskExecution(failure);
+        public void snapshotAfterTaskExecution(Throwable failure, OriginTaskExecutionMetadata originExecutionMetadata) {
+            delegate.snapshotAfterTaskExecution(failure, originExecutionMetadata);
         }
 
         @Override
-        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot) {
-            delegate.snapshotAfterLoadedFromCache(newOutputSnapshot);
+        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originExecutionMetadata) {
+            delegate.snapshotAfterLoadedFromCache(newOutputSnapshot, originExecutionMetadata);
         }
     }
 }
