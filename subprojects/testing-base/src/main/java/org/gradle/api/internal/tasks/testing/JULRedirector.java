@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.api.internal.tasks.testing.processors.DefaultStandardOutputRedirector;
+import org.gradle.process.JavaForkOptions;
 import org.gradle.util.SingleMessageLogger;
 
 import java.io.IOException;
@@ -37,14 +38,9 @@ public class JULRedirector extends DefaultStandardOutputRedirector {
     @Override
     public StandardOutputCapture start() {
         super.start();
-        boolean shouldReadLoggingConfigFile = System.getProperty(READ_LOGGING_CONFIG_FILE_PROPERTY, "true").equals("true");
-        if (!shouldReadLoggingConfigFile) {
-            SingleMessageLogger.nagUserOfDiscontinuedProperty(READ_LOGGING_CONFIG_FILE_PROPERTY,
-                "Change your test to work with your java.util.logging configuration file settings.");
-        }
         if (!reset) {
             LogManager.getLogManager().reset();
-            if (shouldReadLoggingConfigFile) {
+            if (shouldReadLoggingConfigFile()) {
                 try {
                     LogManager.getLogManager().readConfiguration();
                 } catch (IOException error) {
@@ -56,5 +52,16 @@ public class JULRedirector extends DefaultStandardOutputRedirector {
             reset = true;
         }
         return this;
+    }
+
+    private boolean shouldReadLoggingConfigFile() {
+        return System.getProperty(READ_LOGGING_CONFIG_FILE_PROPERTY, "true").equals("true");
+    }
+
+    public static void checkDeprecatedProperty(JavaForkOptions options) {
+        if ("false".equals(options.getSystemProperties().get(READ_LOGGING_CONFIG_FILE_PROPERTY))) {
+            SingleMessageLogger.nagUserOfDiscontinuedProperty(READ_LOGGING_CONFIG_FILE_PROPERTY,
+                "Change your test to work with your java.util.logging configuration file settings.");
+        }
     }
 }

@@ -25,6 +25,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.logging.configuration.WarningType;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
@@ -144,6 +145,16 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         loggingConfiguration.setConsoleOutput(consoleOutput);
     }
 
+    @Override
+    public Set<WarningType> getWarningTypes() {
+        return loggingConfiguration.getWarningTypes();
+    }
+
+    @Override
+    public void setWarningTypes(Set<WarningType> warningTypes) {
+        loggingConfiguration.setWarningTypes(warningTypes);
+    }
+
     /**
      * Sets the project's cache location. Set to null to use the default location.
      */
@@ -224,6 +235,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.setLogLevel(getLogLevel());
         p.setConsoleOutput(getConsoleOutput());
         p.setShowStacktrace(getShowStacktrace());
+        p.setWarningTypes(getWarningTypes());
         p.profile = profile;
         p.continueOnFailure = continueOnFailure;
         p.offline = offline;
