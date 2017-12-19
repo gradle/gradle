@@ -33,7 +33,7 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
     @Override
     AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, configurations, dependencies, artifacts, excludes)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, dependencies, configurations, artifacts, excludes)
         return metadata.asImmutable()
     }
 

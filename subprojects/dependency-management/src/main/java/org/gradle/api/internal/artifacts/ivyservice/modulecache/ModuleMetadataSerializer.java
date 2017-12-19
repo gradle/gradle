@@ -467,7 +467,7 @@ public class ModuleMetadataSerializer {
             List<IvyDependencyDescriptor> dependencies = readIvyDependencies();
             List<Artifact> artifacts = readArtifacts();
             List<Exclude> excludes = readModuleExcludes();
-            DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, id, configurations, dependencies, artifacts, excludes);
+            DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(mvi, id, dependencies, configurations, artifacts, excludes);
             readSharedInfo(metadata);
             String branch = readNullableString();
             metadata.setBranch(branch);
