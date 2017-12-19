@@ -85,6 +85,10 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         /**
          * If task was UP_TO_DATE or FROM_CACHE, this will convey the ID of the build that produced the outputs being reused.
          * Value will be null for any other outcome.
+         *
+         * This value may also be null for an UP_TO_DATE outcome where the task executed, but then decided it was UP_TO_DATE.
+         * That is, it was not UP_TO_DATE due to Gradle's core input/output incremental build mechanism.
+         * This is not necessarily ideal behaviour, but it is the current.
          */
         @Nullable
         String getOriginBuildInvocationId();
@@ -92,6 +96,10 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         /**
          * If task was UP_TO_DATE or FROM_CACHE, this will convey the execution time of the task in the build that produced the outputs being reused.
          * Value will be null for any other outcome.
+         *
+         * This value may also be null for an UP_TO_DATE outcome where the task executed, but then decided it was UP_TO_DATE.
+         * That is, it was not UP_TO_DATE due to Gradle's core input/output incremental build mechanism.
+         * This is not necessarily ideal behaviour, but it is the current.
          *
          * @since 4.5
          */
