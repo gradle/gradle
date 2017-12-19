@@ -29,6 +29,6 @@ useTestFixtures(project: ":platformBase")
 useTestFixtures(project: ":messaging")
 useTestFixtures(project: ":platformNative", sourceSet: 'testFixtures')
 
-useClassycle()
+useClassycle(exclude: ['org/gradle/language/nativeplatform/internal/**'])
 strictCompile()
 
