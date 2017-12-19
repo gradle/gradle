@@ -16,10 +16,33 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
+import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.junit.Assume
 
-class CppUnitTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
+class CppUnitTestPluginIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
+    def setup() {
+        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
+        Assume.assumeTrue(worksWithCppPlugin(toolChain))
+    }
+
+    static boolean worksWithCppPlugin(AvailableToolChains.ToolChainCandidate toolChain) {
+        toolChain.id != "mingw" && toolChain.id != "gcccygwin"
+    }
+
+    @Override
+    protected void makeSingleProject() {
+        buildFile << """
+            apply plugin: 'cpp-unit-test'
+        """
+    }
+
+    @Override
+    protected String getAllBinariesOfMainComponentBuildScript() {
+        return "[unitTest.testExecutable]"
+    }
+
     def "can run test executable"() {
         def app = new CppHelloWorldApp()
         buildFile << """

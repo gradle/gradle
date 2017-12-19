@@ -18,18 +18,18 @@ package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires([TestPrecondition.SWIFT_SUPPORT])
-abstract class AbstractSwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
     def setup() {
         buildFile << """
-apply plugin: 'xctest'
-"""
+            apply plugin: 'xctest'
+        """
     }
 
     TestExecutionResult getTestExecutionResult() {
@@ -40,6 +40,7 @@ apply plugin: 'xctest'
     def "runs tests when #task lifecycle task executes"() {
         given:
         def fixture = getPassingTestFixture()
+        makeSingleProject()
         settingsFile << "rootProject.name = '${fixture.projectName}'"
         fixture.writeToProject(testDirectory)
 
@@ -60,6 +61,7 @@ apply plugin: 'xctest'
     def "skips test tasks as up-to-date when nothing changes between invocation"() {
         given:
         def fixture = getPassingTestFixture()
+        makeSingleProject()
         settingsFile << "rootProject.name = '${fixture.projectName}'"
         fixture.writeToProject(testDirectory)
 
@@ -71,6 +73,11 @@ apply plugin: 'xctest'
         then:
         result.assertTasksExecuted(tasksToCompileComponentUnderTest, ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         result.assertTasksSkipped(tasksToCompileComponentUnderTest, ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+    }
+
+    @Override
+    protected String getAllBinariesOfMainComponentBuildScript() {
+        return "xctest.binaries.get()"
     }
 
     protected abstract String[] getTaskToAssembleComponentUnderTest()

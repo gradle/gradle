@@ -23,9 +23,12 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
@@ -49,8 +52,8 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
         this.developmentBinary = objectFactory.property(SwiftXCTestBinary.class);
     }
 
-    public SwiftXCTestBinary createExecutable() {
-        SwiftXCTestBinary result = objectFactory.newInstance(DefaultSwiftXCTestBinary.class, getName() + "Executable", projectLayout, objectFactory, getModule(), true, false, true, getSwiftSource(), configurations, getImplementationDependencies());
+    public SwiftXCTestBinary createExecutable(SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftXCTestBinary result = objectFactory.newInstance(DefaultSwiftXCTestBinary.class, getName() + "Executable", projectLayout, objectFactory, getModule(), true, false, true, getSwiftSource(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
     }
