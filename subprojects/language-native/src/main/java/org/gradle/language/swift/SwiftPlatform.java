@@ -16,7 +16,14 @@
 
 package org.gradle.language.swift;
 
+import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
+/**
+ * A target platform for building Swift binaries.
+ *
+ * @since 4.5
+ */
+@Incubating
 public interface SwiftPlatform extends NativePlatform {
 }

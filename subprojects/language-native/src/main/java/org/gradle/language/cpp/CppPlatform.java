@@ -16,7 +16,14 @@
 
 package org.gradle.language.cpp;
 
+import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
+/**
+ * A target platform for building C++ binaries.
+ *
+ * @since 4.5
+ */
+@Incubating
 public interface CppPlatform extends NativePlatform {
 }

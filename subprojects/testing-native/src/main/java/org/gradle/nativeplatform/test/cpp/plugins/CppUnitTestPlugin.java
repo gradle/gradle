@@ -84,7 +84,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
             public void execute(Plugin<ProjectInternal> plugin) {
                 final TaskContainer tasks = project.getTasks();
                 CppComponent mainComponent = project.getComponents().withType(CppComponent.class).findByName("main");
-                ((DefaultCppTestSuite)testComponent).getTestedComponent().set(mainComponent);
+                testComponent.getTestedComponent().set(mainComponent);
 
                 // TODO: This should be modeled as a kind of dependency vs wiring tasks together directly.
                 AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkUnitTest");
