@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.cleanup.EmptyDirectoryCheck
+
 plugins {
-    id 'classycle'
+    id("classycle")
 }
 
 dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':publish')
-    compile project(':maven')
-    compile project(':ivy')
-    testRuntime project(':toolingApi')
-    testRuntime project(':launcher')
-    testRuntime project(':testKit')
-    integTestRuntime project(':toolingApiBuilders')
+    compile(library("groovy"))
+    compile(project(":core"))
+    compile(project(":plugins"))
+    compile(project(":publish"))
+    compile(project(":maven"))
+    compile(project(":ivy"))
+    testRuntime(project(":toolingApi"))
+    testRuntime(project(":launcher"))
+    testRuntime(project(":testKit"))
+    integTestRuntime(project(":toolingApiBuilders"))
 }
 
 useTestFixtures()
-useTestFixtures(project: ":logging")
+useTestFixtures(project = ":logging")
 strictCompile()
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+tasks.getByName<EmptyDirectoryCheck>("verifyTestFilesCleanup").isErrorWhenNotEmpty = false
