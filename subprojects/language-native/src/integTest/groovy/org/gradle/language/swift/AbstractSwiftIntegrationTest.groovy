@@ -69,6 +69,23 @@ abstract class AbstractSwiftIntegrationTest extends AbstractNativeLanguageCompon
         succeeds "verifyBinariesPlatformType"
     }
 
+    def "binaries have the right tool chain type"() {
+        given:
+        makeSingleProject()
+        buildFile << """
+            task verifyBinariesToolChainType {
+                doLast {
+                    ${mainComponentDsl}.binaries.get().each {
+                        assert it.toolChain instanceof ${toolChain.implementationClass}
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "verifyBinariesToolChainType"
+    }
+
     protected abstract List<String> getTasksToAssembleDevelopmentBinary()
 
     protected abstract void makeSingleProject()
