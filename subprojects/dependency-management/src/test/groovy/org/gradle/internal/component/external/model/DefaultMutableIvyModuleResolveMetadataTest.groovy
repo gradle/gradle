@@ -32,7 +32,7 @@ import org.gradle.internal.hash.HashValue
 class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, configurations, dependencies, [], [])
+        return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, dependencies, configurations, [], [])
     }
 
     @Override
@@ -50,7 +50,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def vid = Mock(ModuleVersionIdentifier)
 
         expect:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(vid, id, configurations, [], [a1, a2], [])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(vid, id, [], configurations, [a1, a2], [])
         metadata.componentId == id
         metadata.id == vid
         metadata.branch == null
@@ -101,7 +101,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def a2 = artifact("two", "runtime", "compile")
         def a3 = artifact("three", "compile")
 
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(null, id, configurations, [], [a1, a2, a3], [])
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(null, id, [], configurations, [a1, a2, a3], [])
 
         expect:
         def immutable = metadata.asImmutable()
