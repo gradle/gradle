@@ -27,6 +27,7 @@ useTestFixtures(project: ":versionControl")
 useTestFixtures(project: ":platformNative")
 useTestFixtures(project: ":platformBase")
 useTestFixtures(project: ":messaging")
+useTestFixtures(project: ":platformNative", sourceSet: 'testFixtures')
 
 useClassycle()
 strictCompile()

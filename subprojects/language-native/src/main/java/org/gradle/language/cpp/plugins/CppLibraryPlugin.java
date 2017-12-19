@@ -43,7 +43,7 @@ import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
-import org.gradle.language.nativeplatform.internal.ToolChainSelector;
+import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 
 import javax.inject.Inject;
 import java.io.File;

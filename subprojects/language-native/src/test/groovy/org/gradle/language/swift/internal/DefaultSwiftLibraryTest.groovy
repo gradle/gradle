@@ -21,6 +21,9 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.language.swift.SwiftPlatform
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -41,24 +44,38 @@ class DefaultSwiftLibraryTest extends Specification {
     }
 
     def "can create static binary"() {
+        def targetPlatform = Stub(SwiftPlatform)
+        def toolChain = Stub(NativeToolChainInternal)
+        def platformToolProvider = Stub(PlatformToolProvider)
+
         expect:
-        def binary = library.createStaticLibrary("debug", true, false, true)
+        def binary = library.createStaticLibrary("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
         binary.name == "mainDebug"
         binary.debuggable
         !binary.optimized
         binary.testable
+        binary.targetPlatform == targetPlatform
+        binary.toolChain == toolChain
+        binary.platformToolProvider == platformToolProvider
 
         library.binaries.realizeNow()
         library.binaries.get() == [binary] as Set
     }
 
     def "can create shared binary"() {
+        def targetPlatform = Stub(SwiftPlatform)
+        def toolChain = Stub(NativeToolChainInternal)
+        def platformToolProvider = Stub(PlatformToolProvider)
+
         expect:
-        def binary = library.createSharedLibrary("debug", true, false, true)
+        def binary = library.createSharedLibrary("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
         binary.name == "mainDebug"
         binary.debuggable
         !binary.optimized
         binary.testable
+        binary.targetPlatform == targetPlatform
+        binary.toolChain == toolChain
+        binary.platformToolProvider == platformToolProvider
 
         library.binaries.realizeNow()
         library.binaries.get() == [binary] as Set

@@ -38,7 +38,7 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.language.cpp.internal.MainExecutableVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
-import org.gradle.language.nativeplatform.internal.ToolChainSelector;
+import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 
 import javax.inject.Inject;
 

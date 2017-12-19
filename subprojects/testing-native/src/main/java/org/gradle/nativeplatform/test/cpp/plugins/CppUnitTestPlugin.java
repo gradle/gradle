@@ -31,7 +31,7 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.plugins.CppApplicationPlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
-import org.gradle.language.nativeplatform.internal.ToolChainSelector;
+import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;

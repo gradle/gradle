@@ -17,13 +17,17 @@
 package org.gradle.language.cpp.plugins
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.language.cpp.CppPlatform
 import org.gradle.language.cpp.internal.DefaultCppBinary
 import org.gradle.language.cpp.internal.DefaultCppExecutable
 import org.gradle.language.cpp.internal.DefaultCppSharedLibrary
 import org.gradle.language.cpp.tasks.CppCompile
+import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
+import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
@@ -38,6 +42,7 @@ class CppBasePluginTest extends Specification {
     def "adds compile task for binary"() {
         def binary = Stub(DefaultCppBinary)
         binary.name >> name
+        binary.targetPlatform >> Stub(CppPlatformInternal)
 
         when:
         project.pluginManager.apply(CppBasePlugin)
@@ -64,6 +69,8 @@ class CppBasePluginTest extends Specification {
         executable.name >> name
         executable.baseName >> baseName
         executable.getExecutableFile() >> executableFile
+        executable.targetPlatform >> Stub(CppPlatformInternal)
+        executable.platformToolProvider >> new TestPlatformToolProvider()
 
         when:
         project.pluginManager.apply(CppBasePlugin)
@@ -92,6 +99,8 @@ class CppBasePluginTest extends Specification {
         def library = Stub(DefaultCppSharedLibrary)
         library.name >> name
         library.baseName >> baseName
+        library.targetPlatform >> Stub(CppPlatformInternal)
+        library.platformToolProvider >> new TestPlatformToolProvider()
 
         when:
         project.pluginManager.apply(CppBasePlugin)
@@ -108,5 +117,13 @@ class CppBasePluginTest extends Specification {
         "mainDebug" | "linkDebug"     | "main/debug/"
         "test"      | "linkTest"      | "test/"
         "testDebug" | "linkTestDebug" | "test/debug/"
+    }
+
+    interface CppPlatformInternal extends CppPlatform, NativePlatformInternal {}
+
+    class TestPlatformToolProvider extends AbstractPlatformToolProvider {
+        TestPlatformToolProvider() {
+            super(null, new DefaultOperatingSystem("current", OperatingSystem.current()))
+        }
     }
 }

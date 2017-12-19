@@ -28,7 +28,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.nativeplatform.internal.ToolChainSelector;
+import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftExecutable;

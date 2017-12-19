@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.internal;
+package org.gradle.language.nativeplatform.internal.toolchains;
 
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;

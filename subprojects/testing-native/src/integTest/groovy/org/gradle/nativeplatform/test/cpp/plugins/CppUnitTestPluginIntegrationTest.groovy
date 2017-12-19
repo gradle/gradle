@@ -16,64 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.junit.Assume
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-class CppUnitTestPluginIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
-    def setup() {
-        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
-        Assume.assumeTrue(worksWithCppPlugin(toolChain))
-    }
-
-    static boolean worksWithCppPlugin(AvailableToolChains.ToolChainCandidate toolChain) {
-        toolChain.id != "mingw" && toolChain.id != "gcccygwin"
-    }
-
-    @Override
-    protected void makeSingleProject() {
-        buildFile << """
-            apply plugin: 'cpp-unit-test'
-        """
-    }
-
-    @Override
-    protected String getAllBinariesOfMainComponentBuildScript() {
-        return "[unitTest.testExecutable]"
-    }
-
-    def "can run test executable"() {
-        def app = new CppHelloWorldApp()
-        buildFile << """
-            apply plugin: 'cpp-library'
-            apply plugin: 'cpp-unit-test'
-        """
-
-        app.library.writeSources(file("src/main"))
-        app.simpleTestExecutable.writeSources(file("src/unitTest"))
-
-        when:
-        succeeds("check")
-
-        then:
-        result.assertTasksExecuted(":compileDebugCpp",
-            ":compileUnitTestCpp", ":linkUnitTest", ":installUnitTest", ":runUnitTest", ":check")
-    }
-
-    def "does nothing if cpp-library or cpp-application are not applied"() {
-        def app = new CppHelloWorldApp()
-        buildFile << """
-            apply plugin: 'cpp-unit-test'
-        """
-
-        app.library.writeSources(file("src/main"))
-        app.simpleTestExecutable.writeSources(file("src/unitTest"))
-
-        when:
-        succeeds("check")
-
-        then:
-        result.assertTasksExecuted( ":check")
-    }
+class CppUnitTestPluginIntegrationTest extends WellBehavedPluginTest {
 }

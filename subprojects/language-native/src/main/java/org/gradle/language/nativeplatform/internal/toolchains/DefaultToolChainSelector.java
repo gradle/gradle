@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.internal;
+package org.gradle.language.nativeplatform.internal.toolchains;
 
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppPlatform;

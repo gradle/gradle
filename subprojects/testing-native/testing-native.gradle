@@ -28,6 +28,7 @@ useTestFixtures(project: ':platformNative')
 useTestFixtures(project: ':diagnostics')
 useTestFixtures(project: ':platformBase')
 useTestFixtures(project: ':testingBase')
+useTestFixtures(project: ':languageNative')
 
 useClassycle()
 strictCompile()
