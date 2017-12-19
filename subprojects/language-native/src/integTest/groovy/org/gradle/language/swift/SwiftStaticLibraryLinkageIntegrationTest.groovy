@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLib
 class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTest {
     @Override
     protected List<String> getTasksToAssembleDevelopmentBinary() {
-        return [":compileDebugStaticSwift", ":createDebugStatic"]
+        return [":compileDebugSwift", ":createDebug"]
     }
 
     @Override
@@ -34,7 +34,7 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
 
     @Override
     protected String getDevelopmentBinaryCompileTask() {
-        return ":compileDebugStaticSwift"
+        return ":compileDebugSwift"
     }
 
     def "can create static only library"() {
@@ -55,7 +55,7 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         succeeds('assemble')
 
         then:
-        result.assertTasksExecuted(':compileDebugStaticSwift', ':createDebugStatic', ':assemble')
-        staticLibrary('build/lib/main/debug/static/Foo').assertExists()
+        result.assertTasksExecuted(':compileDebugSwift', ':createDebug', ':assemble')
+        staticLibrary('build/lib/main/debug/Foo').assertExists()
     }
 }
