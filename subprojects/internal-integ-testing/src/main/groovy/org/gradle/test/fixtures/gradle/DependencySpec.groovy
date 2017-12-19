@@ -17,8 +17,10 @@
 package org.gradle.test.fixtures.gradle
 
 import groovy.transform.CompileStatic
+import groovy.transform.EqualsAndHashCode
 
 @CompileStatic
+@EqualsAndHashCode
 class DependencySpec {
     String group
     String module

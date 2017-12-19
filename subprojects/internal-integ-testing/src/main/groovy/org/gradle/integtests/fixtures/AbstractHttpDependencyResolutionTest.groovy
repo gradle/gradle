@@ -15,6 +15,8 @@
  */
 
 package org.gradle.integtests.fixtures
+
+import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -28,18 +30,18 @@ abstract class AbstractHttpDependencyResolutionTest extends AbstractDependencyRe
         return new IvyHttpRepository(server, "/repo", ivyRepo)
     }
 
-    IvyHttpRepository ivyHttpRepo(String name) {
-        assert !name.startsWith("/")
-        return new IvyHttpRepository(server, "/${name}", ivyRepo(name))
+    IvyHttpRepository ivyHttpRepo(String name, HttpRepository.MetadataType metadataType = HttpRepository.MetadataType.DEFAULT) {
+        assert ! name.startsWith("/")
+        return new IvyHttpRepository(server, "/${name}", metadataType, ivyRepo(name))
     }
 
     MavenHttpRepository getMavenHttpRepo() {
         return new MavenHttpRepository(server, "/repo", mavenRepo)
     }
 
-    MavenHttpRepository mavenHttpRepo(String name) {
+    MavenHttpRepository mavenHttpRepo(String name, HttpRepository.MetadataType metadataType = HttpRepository.MetadataType.DEFAULT) {
         assert !name.startsWith("/")
-        return new MavenHttpRepository(server, "/${name}", mavenRepo(name))
+        return new MavenHttpRepository(server, "/${name}", metadataType, mavenRepo(name))
     }
 
     MavenHttpRepository mavenHttpRepo(String contextPath, MavenFileRepository backingRepo) {

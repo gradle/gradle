@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.gradle.DependencyConstraintSpec
 import org.gradle.test.fixtures.gradle.DependencySpec
+import org.gradle.test.fixtures.gradle.FileSpec
 import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
 import org.gradle.test.fixtures.gradle.VariantMetadata
 
@@ -159,8 +160,14 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     @Override
     MavenModule variant(String variant, Map<String, String> attributes) {
-        this.variants.add(new VariantMetadata(variant, attributes))
+        createVariant(variant, attributes)
         return this
+    }
+
+    private VariantMetadata createVariant(String variant, Map<String, String> attributes) {
+        def variantMetadata = new VariantMetadata(variant, attributes)
+        variants.add(variantMetadata)
+        return variantMetadata;
     }
 
     /**
@@ -182,6 +189,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     List getArtifacts() {
         return artifacts
+    }
+
+    List<VariantMetadata> getVariants() {
+        return variants
     }
 
     void assertNotPublished() {
@@ -412,21 +423,24 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     private void publishModuleMetadata() {
+        def defaultArtifacts = getArtifact([:]).collect {
+            new FileSpec(it.file.name, it.file.name)
+        }
         GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(groupId, artifactId, version,
             variants.collect { v ->
                 new VariantMetadata(
                     v.name,
                     v.attributes,
-                    dependencies.findAll { !it.optional }.collect { d ->
+                    v.dependencies + dependencies.findAll { !it.optional }.collect { d ->
                         new DependencySpec(d.groupId, d.artifactId, d.version, d.rejects, d.exclusions)
                     },
-                    dependencies.findAll { it.optional }.collect { d ->
+                    v.dependencyConstraints + dependencies.findAll { it.optional }.collect { d ->
                         new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.rejects)
                     },
-                    [getArtifact([:])]
+                    v.artifacts?:defaultArtifacts
                 )
             },
-            ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release']
+            attributes + ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release']
         )
 
         adapter.publishTo(moduleDir)
@@ -462,7 +476,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                         version(parentPom.version)
                     }
                 }
-                if (dependencies) {
+                if (dependencies || !variants.dependencies.flatten().empty) {
                     dependencies {
                         dependencies.each { dep ->
                             dependency {
@@ -495,6 +509,28 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                                 }
                             }
                         }
+                        def compileDependencies = variants.find{ it.name == 'api' }?.dependencies
+                        def runtimeDependencies = variants.find{ it.name == 'runtime' }?.dependencies
+                        if (compileDependencies) {
+                            compileDependencies.each { dep ->
+                                dependency {
+                                    groupId(dep.group)
+                                    artifactId(dep.module)
+                                    if (dep.prefers) { version(dep.prefers) }
+                                    scope('compile')
+                                }
+                            }
+                        }
+                        if (runtimeDependencies) {
+                            (runtimeDependencies - compileDependencies).each { dep ->
+                                dependency {
+                                    groupId(dep.group)
+                                    artifactId(dep.module)
+                                    if (dep.prefers) { version(dep.prefers) }
+                                    scope('runtime')
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -513,7 +549,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                 version(allVersions.max())
                 versioning {
                     versions {
-                        allVersions.each {currVersion ->
+                        allVersions.each { currVersion ->
                             version(currVersion)
                         }
                     }
@@ -546,6 +582,15 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
             publishArtifact([:])
         }
 
+        variants.each {
+            it.artifacts.each {
+                def variantArtifact = moduleDir.file(it.name)
+                publish (variantArtifact) { Writer writer ->
+                    writer << "${it.name} : Variant artifact $it.name"
+                }
+            }
+        }
+
         return this
     }
 
@@ -570,4 +615,14 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         super.withModuleMetadata()
     }
 
+    @Override
+    void withVariant(String name, @DelegatesTo(value = VariantMetadata, strategy = Closure.DELEGATE_FIRST) Closure<?> action) {
+        def variant = variants.find { it.name == name }
+        if (variant == null) {
+            variant = createVariant(name, [:])
+        }
+        action.resolveStrategy = Closure.DELEGATE_FIRST
+        action.delegate = variant
+        action()
+    }
 }

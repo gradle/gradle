@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.test.fixtures
 
-interface HttpRepository extends Repository {
-    enum MetadataType {
-        DEFAULT,
-        ONLY_ORIGINAL,
-        ONLY_GRADLE
+package org.gradle.test.fixtures.gradle
+
+import groovy.transform.CompileStatic
+
+@CompileStatic
+class FileSpec {
+    String name
+    String url
+
+    FileSpec(String name) {
+        this.name = name
+        this.url = name
     }
 
-    @Override
-    HttpModule module(String group, String module)
-
-    @Override
-    HttpModule module(String group, String module, String version)
-
-    MetadataType getProvidesMetadata()
+    FileSpec(String name, String url) {
+        this.name = name
+        this.url = url
+    }
 }

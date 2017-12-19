@@ -17,26 +17,36 @@
 package org.gradle.test.fixtures.gradle
 
 import groovy.transform.CompileStatic
-import org.gradle.test.fixtures.ModuleArtifact
 
 @CompileStatic
 class VariantMetadata {
     String name
     Map<String, String> attributes
-    List<DependencySpec> dependencies
-    List<DependencyConstraintSpec> dependencyConstraints
-    List<ModuleArtifact> artifacts
+    List<DependencySpec> dependencies = []
+    List<DependencyConstraintSpec> dependencyConstraints = []
+    List<FileSpec> artifacts = []
 
     VariantMetadata(String name, Map<String, String> attributes = [:]) {
         this.name = name
         this.attributes = attributes
     }
 
-    VariantMetadata(String name, Map<String, String> attributes, List<DependencySpec> dependencies, List<DependencyConstraintSpec> dependencyConstraints, List<ModuleArtifact> artifacts) {
+    VariantMetadata(String name, Map<String, String> attributes, List<DependencySpec> dependencies, List<DependencyConstraintSpec> dependencyConstraints, List<FileSpec> artifacts) {
         this.name = name
         this.attributes = attributes
         this.dependencies = dependencies
         this.dependencyConstraints = dependencyConstraints
         this.artifacts = artifacts
+    }
+
+    void attribute(String name, String value) {
+        if (attributes == null) {
+            attributes = [:]
+        }
+        attributes[name] = value
+    }
+
+    void dependsOn(String group, String module, String version) {
+        dependencies += new DependencySpec(group, module, version, null, null)
     }
 }

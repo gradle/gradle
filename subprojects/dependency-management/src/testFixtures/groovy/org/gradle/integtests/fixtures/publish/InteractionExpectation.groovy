@@ -22,5 +22,6 @@ enum InteractionExpectation {
     MAYBE,
     NONE,
     GET_MISSING,
-    HEAD_MISSING
+    HEAD_MISSING,
+    GET_MISSING_FOUND_ELSEWHERE //do not expect fallback GETs if another repository contains the module
 }
