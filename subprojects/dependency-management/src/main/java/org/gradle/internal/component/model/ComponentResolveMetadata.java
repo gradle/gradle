@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.external.model.ComponentMetadataRules;
+import org.gradle.internal.component.external.model.VariantMetadataRules;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -94,5 +94,5 @@ public interface ComponentResolveMetadata {
 
     List<String> getStatusScheme();
 
-    Map<String, ComponentMetadataRules> getComponentMetadataRules();
+    Map<String, VariantMetadataRules> getComponentMetadataRules();
 }

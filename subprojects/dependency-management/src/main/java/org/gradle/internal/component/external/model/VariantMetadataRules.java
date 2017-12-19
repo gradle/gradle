@@ -31,7 +31,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import java.util.List;
 
-public class ComponentMetadataRules {
+public class VariantMetadataRules {
     private DependencyMetadataRules dependencyMetadataRules;
     private VariantAttributesRules variantAttributesRules;
 
@@ -70,15 +70,15 @@ public class ComponentMetadataRules {
         variantAttributesRules.addAttributesAction(action);
     }
 
-    public static ComponentMetadataRules getOrDefault(ComponentMetadataRules rules) {
+    public static VariantMetadataRules getOrDefault(VariantMetadataRules rules) {
         return rules != null ? rules : ImmutableRules.INSTANCE;
     }
 
-    public static ComponentMetadataRules noOp() {
+    public static VariantMetadataRules noOp() {
         return ImmutableRules.INSTANCE;
     }
 
-    private static class ImmutableRules extends ComponentMetadataRules {
+    private static class ImmutableRules extends VariantMetadataRules {
         private final static ImmutableRules INSTANCE = new ImmutableRules();
 
         @Override
