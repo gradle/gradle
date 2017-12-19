@@ -37,4 +37,11 @@ class DefaultObjectFactoryTest extends Specification {
         property.get() == []
     }
 
+    def "can create a Set property"() {
+        expect:
+        def property = factory.setProperty(String)
+        property.present
+        property.get() == [] as Set
+    }
+
 }

@@ -3,9 +3,9 @@ class Greeting extends DefaultTask {
     @Input
     final Property<String> message = project.objects.property(String)
 
-    // Read-only property
+    // Read-only property calculated from the message
     @Internal
-    final Provider<String> fullMessage = project.provider { message.get() + " from Gradle" }
+    final Provider<String> fullMessage = message.map { it + " from Gradle" }
 
     @TaskAction
     void printMessage() {

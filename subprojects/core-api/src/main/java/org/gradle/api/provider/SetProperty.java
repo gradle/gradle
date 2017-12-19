@@ -18,16 +18,16 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 
-import java.util.List;
+import java.util.Set;
 
 /**
- * Represents a property whose type is a {@link List} of elements of type {@link T}.
+ * Represents a property whose type is a {@link Set} of elements of type {@link T}. Retains iteration order.
  *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created through the factory method {@link org.gradle.api.model.ObjectFactory#listProperty(Class)}.
  *
  * @param <T> the type of elements.
- * @since 4.3
+ * @since 4.5
  */
 @Incubating
-public interface ListProperty<T> extends Property<List<T>>, HasMultipleValues<T> {
+public interface SetProperty<T> extends Property<Set<T>>, HasMultipleValues<T> {
 }

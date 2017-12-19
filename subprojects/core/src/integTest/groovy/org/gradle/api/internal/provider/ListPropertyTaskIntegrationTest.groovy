@@ -98,28 +98,28 @@ class ListPropertyTaskIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         def failure = fails("verify")
-        failure.assertHasCause("Cannot add a null value to a list property.")
+        failure.assertHasCause("Cannot add a null element to a property of type List.")
     }
 
-    def "reasonable message when trying to add a provider providing null to a list property"() {
+    def "has no value when providing null to a list property"() {
         buildFile << """
             verify {
                 prop.add(project.provider { null })
+                expected = null
             }
         """
         expect:
-        def failure = fails("verify")
-        failure.assertHasCause("No value has been specified for this provider.")
+        succeeds("verify")
     }
 
-    def "reasonable message when trying to add a provider providing null list to a list property"() {
+    def "has no value when providing null list to a list property"() {
         buildFile << """
             verify {
                 prop.addAll(project.provider { null })
+                expected = null
             }
         """
         expect:
-        def failure = fails("verify")
-        failure.assertHasCause("No value has been specified for this provider.")
+        succeeds("verify")
     }
 }
