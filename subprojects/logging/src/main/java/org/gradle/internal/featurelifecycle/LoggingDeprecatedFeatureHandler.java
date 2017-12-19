@@ -16,7 +16,9 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.api.logging.configuration.WarningType;
 import org.gradle.internal.SystemProperties;
+import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     private static boolean traceLoggingEnabled;
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
+    private Set<WarningType> warningTypes = new HashSet<WarningType>();
 
     public LoggingDeprecatedFeatureHandler() {
         this(new UsageLocationReporter() {
@@ -46,8 +49,13 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         this.locationReporter = locationReporter;
     }
 
-    public void setLocationReporter(UsageLocationReporter locationReporter) {
-        this.locationReporter = locationReporter;
+    public void init(UsageLocationReporter reporter, Set<WarningType> warningTypes) {
+        this.locationReporter = reporter;
+        this.warningTypes = warningTypes;
+    }
+
+    public void reset() {
+        messages.clear();
     }
 
     public void deprecatedFeatureUsed(DeprecatedFeatureUsage usage) {
@@ -60,7 +68,17 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             }
             message.append(usage.getMessage());
             logTraceIfNecessary(usage.getStack(), message);
-            LOGGER.warn(message.toString());
+            if (warningTypes.contains(WarningType.All)) {
+                LOGGER.warn(message.toString());
+            }
+        }
+    }
+
+    public void reportSuppressedDeprecations() {
+        if (warningTypes.contains(WarningType.Summary) && !messages.isEmpty()) {
+            LOGGER.warn("\nThere're {} deprecation warnings, which may break the build in Gradle {}. Please run with --warnings=all to see them.",
+                messages.size(),
+                GradleVersion.current().getNextMajor().getVersion());
         }
     }
 

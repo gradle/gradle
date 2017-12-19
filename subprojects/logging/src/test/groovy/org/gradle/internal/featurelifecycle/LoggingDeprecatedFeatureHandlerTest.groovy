@@ -17,12 +17,13 @@
 package org.gradle.internal.featurelifecycle
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.WarningType
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.testing.internal.util.Specification
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
@@ -35,6 +36,10 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     SetSystemProperties systemProperties = new SetSystemProperties()
     final locationReporter = Mock(UsageLocationReporter)
     final handler = new LoggingDeprecatedFeatureHandler(locationReporter)
+
+    def setup() {
+        handler.init(locationReporter, [WarningType.All] as Set)
+    }
 
     def 'logs each deprecation warning only once'() {
         when:
@@ -62,6 +67,18 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         def event = outputEventListener.events[0]
         event.message == 'feature'
         event.logLevel == LogLevel.WARN
+    }
+
+    def "no warnings should be displayed in #mode"() {
+        when:
+        handler.init(locationReporter, [type] as Set)
+        handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature1'))
+
+        then:
+        outputEventListener.events.empty
+
+        where:
+        type << [WarningType.None, WarningType.Summary]
     }
 
     @Unroll
