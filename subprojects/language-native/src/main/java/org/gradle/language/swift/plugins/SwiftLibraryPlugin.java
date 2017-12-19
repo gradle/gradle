@@ -95,8 +95,9 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
                 SwiftSharedLibrary debugSharedLibrary = null;
                 if (sharedLibs) {
-                    debugSharedLibrary = library.createSharedLibrary("debug", true, false, true);
-                    SwiftSharedLibrary releaseSharedLibrary = library.createSharedLibrary("release", true, true, false);
+                    String linkageNameSuffix = staticLibs ? "Shared" : "";
+                    debugSharedLibrary = library.createSharedLibrary("debug" + linkageNameSuffix, true, false, true);
+                    SwiftSharedLibrary releaseSharedLibrary = library.createSharedLibrary("release" + linkageNameSuffix, true, true, false);
 
                     // Add publications
                     SwiftCompile compileDebug = debugSharedLibrary.getCompileTask().get();
@@ -164,8 +165,9 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
                 SwiftStaticLibrary debugStaticLibrary = null;
                 if (staticLibs){
-                    debugStaticLibrary = library.createStaticLibrary("debugStatic", true, false, true);
-                    SwiftStaticLibrary releaseStaticLibrary = library.createStaticLibrary("releaseStatic", true, true, false);
+                    String linkageNameSuffix = sharedLibs ? "Static" : "";
+                    debugStaticLibrary = library.createStaticLibrary("debug" + linkageNameSuffix, true, false, true);
+                    SwiftStaticLibrary releaseStaticLibrary = library.createStaticLibrary("release" + linkageNameSuffix, true, true, false);
 
                     if (!sharedLibs) {
                         // Add publications

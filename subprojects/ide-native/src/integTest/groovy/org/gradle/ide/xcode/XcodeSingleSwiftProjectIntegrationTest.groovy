@@ -114,7 +114,7 @@ apply plugin: 'swift-library'
         assertTargetIsIndexer(project.targets[1], 'App')
 
         project.products.children.size() == 1
-        project.products.children[0].path == staticLib("build/lib/main/debug/static/App").absolutePath
+        project.products.children[0].path == staticLib("build/lib/main/debug/App").absolutePath
 
         rootXcodeProject.schemeFiles.size() == 1
         rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 0
@@ -124,8 +124,8 @@ apply plugin: 'swift-library'
     def "can build Swift static library from xcode"() {
         useXcodebuildTool()
         def lib = new SwiftLib()
-        def debugBinary = staticLib("build/lib/main/debug/static/App")
-        def releaseBinary = staticLib("build/lib/main/release/static/App")
+        def debugBinary = staticLib("build/lib/main/debug/App")
+        def releaseBinary = staticLib("build/lib/main/release/App")
 
         given:
         buildFile << """
@@ -144,8 +144,8 @@ apply plugin: 'swift-library'
             .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugStaticSwift', ':createDebugStatic', ':_xcode___App_Debug')
-        resultDebug.assertTasksNotSkipped(':compileDebugStaticSwift', ':createDebugStatic', ':_xcode___App_Debug')
+        resultDebug.assertTasksExecuted(':compileDebugSwift', ':createDebug', ':_xcode___App_Debug')
+        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':createDebug', ':_xcode___App_Debug')
         debugBinary.assertExists()
 
         when:
@@ -157,8 +157,8 @@ apply plugin: 'swift-library'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseStaticSwift', ':createReleaseStatic', ':_xcode___App_Release')
-        resultRelease.assertTasksNotSkipped(':compileReleaseStaticSwift', ':createReleaseStatic', ':_xcode___App_Release')
+        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':createRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':createRelease', ':_xcode___App_Release')
         releaseBinary.assertExists()
     }
 

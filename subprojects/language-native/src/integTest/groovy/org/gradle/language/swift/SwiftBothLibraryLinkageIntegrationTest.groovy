@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLib
 class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTest {
     @Override
     protected List<String> getTasksToAssembleDevelopmentBinary() {
-        return [":compileDebugSwift", ":linkDebug"]
+        return [":compileDebugSharedSwift", ":linkDebugShared"]
     }
 
     @Override
@@ -34,18 +34,12 @@ class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTes
 
     @Override
     protected String getDevelopmentBinaryCompileTask() {
-        return ":compileDebugSwift"
+        return ":compileDebugSharedSwift"
     }
 
     def "creates shared library binary by default when both linkage specified"() {
         def library = new SwiftLib()
-        buildFile << """
-            apply plugin: 'swift-library'
-
-            library {
-                linkage = [Linkage.SHARED, Linkage.STATIC]
-            }
-        """
+        makeSingleProject()
         settingsFile << """
             rootProject.name = 'foo'
         """
@@ -55,19 +49,13 @@ class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTes
         succeeds('assemble')
 
         then:
-        result.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':assemble')
-        sharedLibrary('build/lib/main/debug/Foo').assertExists()
+        result.assertTasksExecuted(':compileDebugSharedSwift', ':linkDebugShared', ':assemble')
+        sharedLibrary('build/lib/main/debug/shared/Foo').assertExists()
     }
 
-    def "can create static library binary when assembling static linkage"() {
+    def "can assemble static library followed by shared library"() {
         def library = new SwiftLib()
-        buildFile << """
-            apply plugin: 'swift-library'
-
-            library {
-                linkage = [Linkage.SHARED, Linkage.STATIC]
-            }
-        """
+        makeSingleProject()
         settingsFile << """
             rootProject.name = 'foo'
         """
@@ -79,5 +67,12 @@ class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTes
         then:
         result.assertTasksExecuted(':compileDebugStaticSwift', ':createDebugStatic', ':assembleDebugStatic')
         staticLibrary('build/lib/main/debug/static/Foo').assertExists()
+
+        when:
+        succeeds('assembleDebugShared')
+
+        then:
+        result.assertTasksExecuted(':compileDebugSharedSwift', ':linkDebugShared', ':assembleDebugShared')
+        sharedLibrary('build/lib/main/debug/shared/Foo').assertExists()
     }
 }

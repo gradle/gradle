@@ -29,12 +29,12 @@ class SwiftXCTestWithBothLibraryLinkageIntegrationTest extends AbstractSwiftXCTe
 
     @Override
     protected String[] getTaskToAssembleComponentUnderTest() {
-        return [":linkDebug"]
+        return [":linkDebugShared"]
     }
 
     @Override
     protected String[] getTasksToCompileComponentUnderTest() {
-        return [":compileDebugSwift"]
+        return [":compileDebugSharedSwift"]
     }
 
     @Override

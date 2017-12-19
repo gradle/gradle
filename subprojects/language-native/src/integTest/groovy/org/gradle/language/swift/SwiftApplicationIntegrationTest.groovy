@@ -442,10 +442,10 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":greeter:compileDebugStaticSwift", ":greeter:createDebugStatic", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:createDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         executable("app/build/exe/main/debug/App").assertExists()
-        staticLibrary("greeter/build/lib/main/debug/static/Greeter").assertExists()
+        staticLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
         def installation = installation("app/build/install/main/debug")
         installation.exec().out == app.expectedOutput
         installation.assertIncludesLibraries()
@@ -474,10 +474,10 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksExecuted(":greeter:compileDebugSharedSwift", ":greeter:linkDebugShared", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         executable("app/build/exe/main/debug/App").assertExists()
-        sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
+        sharedLibrary("greeter/build/lib/main/debug/shared/Greeter").assertExists()
         def installation = installation("app/build/install/main/debug")
         installation.exec().out == app.expectedOutput
         installation.assertIncludesLibraries("Greeter")
@@ -565,12 +565,12 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(":hello:compileDebugStaticSwift", ":hello:createDebugStatic",
-            ":log:compileDebugStaticSwift", ":log:createDebugStatic",
+        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:createDebug",
+            ":log:compileDebugSwift", ":log:createDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
-        staticLibrary("hello/build/lib/main/debug/static/Hello").assertExists()
-        staticLibrary("log/build/lib/main/debug/static/Log").assertExists()
+        staticLibrary("hello/build/lib/main/debug/Hello").assertExists()
+        staticLibrary("log/build/lib/main/debug/Log").assertExists()
         executable("app/build/exe/main/debug/App").assertExists()
         def installationDebug = installation("app/build/install/main/debug")
         installationDebug.exec().out == app.expectedOutput
@@ -578,12 +578,12 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
 
         succeeds ":app:assembleRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseStaticSwift", ":hello:createReleaseStatic",
-            ":log:compileReleaseStaticSwift", ":log:createReleaseStatic",
+        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:createRelease",
+            ":log:compileReleaseSwift", ":log:createRelease",
             ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
 
-        staticLibrary("hello/build/lib/main/release/static/Hello").assertExists()
-        staticLibrary("log/build/lib/main/release/static/Log").assertExists()
+        staticLibrary("hello/build/lib/main/release/Hello").assertExists()
+        staticLibrary("log/build/lib/main/release/Log").assertExists()
         executable("app/build/exe/main/release/App").assertExists()
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
@@ -619,11 +619,11 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(":hello:compileDebugStaticSwift", ":hello:createDebugStatic",
+        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:createDebug",
             ":log:compileDebugSwift", ":log:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
-        staticLibrary("hello/build/lib/main/debug/static/Hello").assertExists()
+        staticLibrary("hello/build/lib/main/debug/Hello").assertExists()
         sharedLibrary("log/build/lib/main/debug/Log").assertExists()
         executable("app/build/exe/main/debug/App").assertExists()
         def installationDebug = installation("app/build/install/main/debug")
@@ -632,11 +632,11 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
 
         succeeds ":app:assembleRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseStaticSwift", ":hello:createReleaseStatic",
+        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:createRelease",
             ":log:compileReleaseSwift", ":log:linkRelease", ":log:stripSymbolsRelease",
             ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
 
-        staticLibrary("hello/build/lib/main/release/static/Hello").assertExists()
+        staticLibrary("hello/build/lib/main/release/Hello").assertExists()
         sharedLibrary("log/build/lib/main/release/Log").assertExists()
         executable("app/build/exe/main/release/App").assertExists()
         installation("app/build/install/main/release").exec().out == app.expectedOutput
@@ -674,11 +674,11 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
         succeeds ":app:assemble"
 
         result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug",
-            ":log:compileDebugStaticSwift", ":log:createDebugStatic",
+            ":log:compileDebugSwift", ":log:createDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
-        staticLibrary("log/build/lib/main/debug/static/Log").assertExists()
+        staticLibrary("log/build/lib/main/debug/Log").assertExists()
         executable("app/build/exe/main/debug/App").assertExists()
         def installationDebug = installation("app/build/install/main/debug")
         installationDebug.exec().out == app.expectedOutput
@@ -687,11 +687,11 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
         succeeds ":app:assembleRelease"
 
         result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:stripSymbolsRelease",
-            ":log:compileReleaseStaticSwift", ":log:createReleaseStatic",
+            ":log:compileReleaseSwift", ":log:createRelease",
             ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
 
         sharedLibrary("hello/build/lib/main/release/Hello").assertExists()
-        staticLibrary("log/build/lib/main/release/static/Log").assertExists()
+        staticLibrary("log/build/lib/main/release/Log").assertExists()
         executable("app/build/exe/main/release/App").assertExists()
         installation("app/build/install/main/release").exec().out == app.expectedOutput
     }
@@ -772,17 +772,17 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
         expect:
         succeeds ":app:linkRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseStaticSwift", ":hello:createReleaseStatic", ":app:compileReleaseSwift", ":app:linkRelease")
+        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:createRelease", ":app:compileReleaseSwift", ":app:linkRelease")
 
-        staticLibrary("hello/build/lib/main/release/static/Greeter").assertExists()
+        staticLibrary("hello/build/lib/main/release/Greeter").assertExists()
         executable("app/build/exe/main/release/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
         executable("app/build/exe/main/release/App").exec().out == app.withFeatureEnabled().expectedOutput
 
         succeeds ":app:linkDebug"
 
-        result.assertTasksExecuted(":hello:compileDebugStaticSwift", ":hello:createDebugStatic", ":app:compileDebugSwift", ":app:linkDebug")
+        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:createDebug", ":app:compileDebugSwift", ":app:linkDebug")
 
-        staticLibrary("hello/build/lib/main/debug/static/Greeter").assertExists()
+        staticLibrary("hello/build/lib/main/debug/Greeter").assertExists()
         executable("app/build/exe/main/debug/App").assertHasDebugSymbolsFor(app.application.sourceFileNames)
         executable("app/build/exe/main/debug/App").exec().out == app.withFeatureDisabled().expectedOutput
     }

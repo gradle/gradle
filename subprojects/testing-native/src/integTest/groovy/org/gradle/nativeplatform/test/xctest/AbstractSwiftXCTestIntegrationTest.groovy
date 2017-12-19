@@ -70,7 +70,7 @@ apply plugin: 'xctest'
 
         then:
         result.assertTasksExecuted(tasksToCompileComponentUnderTest, ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-        result.assertTasksSkipped(*tasksToCompileComponentUnderTest, ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksSkipped(tasksToCompileComponentUnderTest, ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
     protected abstract String[] getTaskToAssembleComponentUnderTest()

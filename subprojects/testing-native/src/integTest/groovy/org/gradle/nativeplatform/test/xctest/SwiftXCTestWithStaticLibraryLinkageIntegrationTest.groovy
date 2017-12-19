@@ -29,12 +29,12 @@ class SwiftXCTestWithStaticLibraryLinkageIntegrationTest extends AbstractSwiftXC
 
     @Override
     protected String[] getTaskToAssembleComponentUnderTest() {
-        return [":createDebugStatic"]
+        return [":createDebug"]
     }
 
     @Override
     protected String[] getTasksToCompileComponentUnderTest() {
-        return [":compileDebugStaticSwift"]
+        return [":compileDebugSwift"]
     }
 
     @Override
