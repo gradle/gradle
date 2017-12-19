@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.component.external.model.ComponentMetadataRules.getOrDefault;
+import static org.gradle.internal.component.external.model.VariantMetadataRules.getOrDefault;
 
 abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
     private final ImmutableAttributesFactory attributesFactory;
@@ -55,7 +55,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Nullable
     private final ModuleSource moduleSource;
     private final ImmutableMap<String, Configuration> configurationDefinitions;
-    private final Map<String, ComponentMetadataRules> componentMetadataRules;
+    private final Map<String, VariantMetadataRules> componentMetadataRules;
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue contentHash;
     private final ImmutableAttributes attributes;
@@ -157,7 +157,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     /**
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
-    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ComponentMetadataRules componentMetadataRules);
+    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, VariantMetadataRules componentMetadataRules);
 
     private ImmutableList<? extends ConfigurationMetadata> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
         if (variants.isEmpty()) {
@@ -257,7 +257,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
 
     @Override
-    public Map<String, ComponentMetadataRules> getComponentMetadataRules() {
+    public Map<String, VariantMetadataRules> getComponentMetadataRules() {
         return componentMetadataRules;
     }
 

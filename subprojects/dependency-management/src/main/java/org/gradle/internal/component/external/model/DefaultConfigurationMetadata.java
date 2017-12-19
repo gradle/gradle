@@ -44,7 +44,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final boolean transitive;
     private final boolean visible;
     private final ImmutableList<String> hierarchy;
-    private final ComponentMetadataRules componentMetadataRules;
+    private final VariantMetadataRules componentMetadataRules;
     private final ImmutableList<ExcludeMetadata> excludes;
 
     // Should be final, and set in constructor
@@ -53,7 +53,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata {
 
     protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                            ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                           ComponentMetadataRules componentMetadataRules,
+                                           VariantMetadataRules componentMetadataRules,
                                            ImmutableList<ExcludeMetadata> excludes) {
         this.componentId = componentId;
         this.name = name;

@@ -45,12 +45,12 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     private final ComponentVariant variant;
     private final ImmutableList<GradleDependencyMetadata> dependencies;
     private final ImmutableAttributesFactory attributesFactory;
-    private final ComponentMetadataRules componentMetadataRules;
+    private final VariantMetadataRules componentMetadataRules;
     private final ImmutableAttributes componentLevelAttributes;
 
     private List<GradleDependencyMetadata> calculatedDependencies;
 
-    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableAttributes attributes, ImmutableAttributesFactory attributesFactory, ComponentMetadataRules componentMetadataRules) {
+    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableAttributes attributes, ImmutableAttributesFactory attributesFactory, VariantMetadataRules componentMetadataRules) {
         this.componentId = componentId;
         this.variant = variant;
         this.attributesFactory = attributesFactory;
