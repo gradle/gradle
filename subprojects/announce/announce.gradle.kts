@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 dependencies {
-    compile libraries.commons_codec
-    compile libraries.slf4j_api
-    compile libraries.commons_io
-    compile project(':core')
-    testRuntime project(':plugins')
+    compile(library("commons_codec"))
+    compile(library("slf4j_api"))
+    compile(library("commons_io"))
+    compile(project(":core"))
+    testRuntime(project(":plugins"))
 }
 
 useTestFixtures()

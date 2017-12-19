@@ -130,7 +130,6 @@ val groovyBuildScriptProjects = listOf(
     "ide-play",
     "osgi",
     "maven",
-    "announce",
     "code-quality",
     "antlr",
     "tooling-api",
