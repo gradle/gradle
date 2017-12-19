@@ -146,6 +146,7 @@ We would like to thank the following community members for making contributions 
 - [Theodore Ni](https://github.com/tjni) — Ignored TestNG tests should not throw an exception (gradle/gradle#3570)
 - [James Wald](https://github.com/jameswald) — Introduce command line option for Wrapper task to set distribution SHA256 sum (gradle/gradle#1777)
 - [zosrothko](https://github.com/zosrothko) — Restore Eclipse contribution instructions (gradle/gradle#3715)
+- [Kevin Macksamie](https://github.com/k-mack) — Fix link to Lazy Configuration in docs (gradle/gradle#3848)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
