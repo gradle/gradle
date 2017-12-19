@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.compile;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
@@ -40,8 +41,6 @@ import org.gradle.util.DeprecationLogger;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.AbstractList;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +51,7 @@ public class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
     private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
-            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "incremental");
+            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "incremental", "allCompilerArgs", "compilerArgumentProviders");
 
     private boolean failOnError = true;
 
@@ -78,7 +77,8 @@ public class CompileOptions extends AbstractOptions {
 
     private String extensionDirs;
 
-    private List<CompilerArgument> compilerArgs = Lists.newArrayList();
+    private List<String> compilerArgs = Lists.newArrayList();
+    private List<CompilerArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
 
     private boolean incremental;
 
@@ -332,47 +332,48 @@ public class CompileOptions extends AbstractOptions {
      * Note that if {@code --release} is added then {@code -target} and {@code -source}
      * are ignored.
      */
-    @Internal
+    @Input
     public List<String> getCompilerArgs() {
-        return new AbstractList<String>() {
-            @Override
-            public String get(int index) {
-                return compilerArgs.get(index).getAsArgument();
-            }
-
-            @Override
-            public String set(int index, String element) {
-                CompilerArgument result = compilerArgs.set(index, new PlainCompilerArgument(element));
-                return result == null ? null : result.getAsArgument();
-            }
-
-            @Override
-            public void add(int index, String element) {
-                compilerArgs.add(index, new PlainCompilerArgument(element));
-            }
-
-            @Override
-            public String remove(int index) {
-                CompilerArgument removed = compilerArgs.remove(index);
-                return removed == null ? null : removed.getAsArgument();
-            }
-
-            @Override
-            public int size() {
-                return compilerArgs.size();
-            }
-        };
+        return compilerArgs;
     }
 
     /**
-     * Richly modeled compiler arguments.
+     * Returns all compiler arguments, added to the {@link #getCompilerArgs()} property or via {@link #addCompilerArgumentProvider(CompilerArgumentProvider)}.
+     *
+     * @since 4.5
+     */
+    @Incubating
+    @Internal
+    public List<String> getAllCompilerArgs() {
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        builder.addAll(getCompilerArgs());
+        for (CompilerArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
+            builder.addAll(compilerArgumentProvider.getAsArguments());
+        }
+        return builder.build();
+    }
+
+    /**
+     * Compiler argument providers.
+     *
+     * In order to change the list use {@link #addCompilerArgumentProvider(CompilerArgumentProvider)}.
      *
      * @since 4.5
      */
     @Nested
     @Incubating
-    public List<CompilerArgument> getRichCompilerArgs() {
-        return compilerArgs;
+    protected List<CompilerArgumentProvider> getCompilerArgumentProviders() {
+        return ImmutableList.copyOf(compilerArgumentProviders);
+    }
+
+    /**
+     * Add a compiler argument provider.
+     *
+     * @since 4.5
+     */
+    @Incubating
+    public void addCompilerArgumentProvider(CompilerArgumentProvider argumentProvider) {
+        compilerArgumentProviders.add(argumentProvider);
     }
 
     /**
@@ -380,11 +381,7 @@ public class CompileOptions extends AbstractOptions {
      * Defaults to the empty list.
      */
     public void setCompilerArgs(List<String> compilerArgs) {
-        List<CompilerArgument> newCompilerArgs = new ArrayList<CompilerArgument>();
-        for (String compilerArg : compilerArgs) {
-            newCompilerArgs.add(new PlainCompilerArgument(compilerArg));
-        }
-        this.compilerArgs = newCompilerArgs;
+        this.compilerArgs = compilerArgs;
     }
 
     /**
@@ -550,28 +547,4 @@ public class CompileOptions extends AbstractOptions {
         this.annotationProcessorGeneratedSourcesDirectory.set(file);
     }
 
-    /**
-     * Argument to the Java compiler.
-     *
-     * @since 4.5
-     */
-    @Incubating
-    public interface CompilerArgument {
-        String getAsArgument();
-    }
-
-    private static class PlainCompilerArgument implements CompilerArgument {
-
-        private final String arg;
-
-        private PlainCompilerArgument(String arg) {
-            this.arg = arg;
-        }
-
-        @Input
-        @Override
-        public String getAsArgument() {
-            return arg;
-        }
-    }
 }

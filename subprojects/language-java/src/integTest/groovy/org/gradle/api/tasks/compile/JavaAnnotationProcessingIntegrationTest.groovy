@@ -20,7 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 
 class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
-    def "can specify generated source directory"() {
+
+    def setup() {
         def annotationProcessorProjectDir = testDirectory.file("annotation-processor").createDir()
 
         settingsFile << """
@@ -42,7 +43,6 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 // Use forking to work around javac's jar cache
                 options.fork = true
                 options.annotationProcessorPath = configurations.annotationProcessor
-                options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
             }
         """
 
@@ -68,9 +68,43 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         '''
+    }
+
+    def "can specify generated source directory"() {
+        buildFile << """
+            compileJava.options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
+        """
 
         expect:
         succeeds "compileJava"
         file("build/generated-sources/TestAppHelper.java").text == 'class TestAppHelper {    String getValue() { return "greetings"; }}'
+    }
+
+    def "can model annotation processor arguments"() {
+        buildFile << """                                                       
+            import org.gradle.api.tasks.compile.CompilerArgumentProvider
+
+            class HelperAnnotationProcessor implements CompilerArgumentProvider {
+                @Input
+                String message
+                
+                HelperAnnotationProcessor(String message) {
+                    this.message = message
+                }
+                
+                @Override
+                List<String> getAsArguments() {
+                    ["-Amessage=\${message}".toString()]
+                }
+            }
+            
+            compileJava.options.addCompilerArgumentProvider(new HelperAnnotationProcessor("fromOptions"))
+        """
+
+        when:
+        run "compileJava"
+
+        then:
+        file("build/classes/java/main/TestAppHelper.java").text == 'class TestAppHelper {    String getValue() { return "fromOptions"; }}'
     }
 }

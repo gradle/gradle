@@ -74,9 +74,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
                 int count = 0;
                 for (Object nestedBean : nestedBeans) {
                     String nestedPropertyName = node.parentPropertyName + "$" + ++count;
-                    Set<PropertyMetadata> typeMetadata = propertyMetadataStore.getTypeMetadata(nestedBean.getClass());
-                    PropertyNode newPropertyNode = new PropertyNode(nestedPropertyName, nestedBean);
-                    visitProperties(newPropertyNode, typeMetadata, queue, visitor, specFactory, classLoaderHierarchyHasher);
+                    queue.add(new PropertyNode(nestedPropertyName, nestedBean));
                 }
             } else {
                 visitProperties(node, nestedTypeMetadata, queue, visitor, specFactory, classLoaderHierarchyHasher);
