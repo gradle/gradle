@@ -44,7 +44,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                 }
                 components {
                     withModule('org.test:module') {
-                        withAttributes {
+                        attributes {
                             attribute quality, ${fixApplied ? '"qa"' : '"canary"'}
                         }
                     }
@@ -93,10 +93,10 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                 components {
                     withModule('org.test:module') {                       
                         if ($componentLevel) {
-                            withAttributes { attribute usage, 'unknown' }
+                            attributes { attribute usage, 'unknown' }
                         } else {
-                            withVariant('api') { withAttributes { attribute usage, 'unknownApiVariant' } }
-                            withVariant('runtime') { withAttributes { attribute usage, 'unknownRuntimeVariant' } }
+                            withVariant('api') { attributes { attribute usage, 'unknownApiVariant' } }
+                            withVariant('runtime') { attributes { attribute usage, 'unknownRuntimeVariant' } }
                         }
                     }
                 }
@@ -154,7 +154,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                 }
                 components {
                     withModule('org.test:module') { module ->                   
-                        withAttributes {
+                        attributes {
                             attribute quality, module.id.version=='1.1' ? 'qa' : 'low'
                         }
                     }
@@ -208,7 +208,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                 components {
                     withModule('org.test:module') {
                         if ($fixApplied) {
-                           withAttributes {
+                           attributes {
                               attribute quality, 'qa'
                            }
                         }

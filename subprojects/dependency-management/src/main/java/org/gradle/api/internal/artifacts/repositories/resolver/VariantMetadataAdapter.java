@@ -55,7 +55,13 @@ public class VariantMetadataAdapter implements VariantMetadata {
     }
 
     @Override
-    public void withAttributes(Action<? super AttributeContainer> action) {
+    public VariantMetadata attributes(Action<? super AttributeContainer> action) {
         metadata.addAttributesRule(name, action);
+        return this;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return metadata.getAttributes();
     }
 }
