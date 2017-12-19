@@ -34,9 +34,9 @@ import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
@@ -155,7 +155,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public OriginTaskExecutionMetadata getOriginExecutionMetadata() {
-            return history.getPreviousExecution().getOriginExecutionMetadata();
+            HistoricalTaskExecution previousExecution = history.getPreviousExecution();
+            return previousExecution == null ? null : previousExecution.getOriginExecutionMetadata();
         }
 
         @Override
