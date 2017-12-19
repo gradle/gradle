@@ -102,10 +102,98 @@ fun String.toKebabCase() =
     replace(upperCaseLetters) { "-${it.value.toLowerCase()}" }
 
 rootProject.name = "gradle"
+
+// List of subprojects that have a Groovy DSL build script.
+// The intent is for this list to diminish until it disappears.
+val groovyBuildScriptProjects = listOf(
+    "distributions",
+    "base-services",
+    "base-services-groovy",
+    "logging",
+    "process-services",
+    "jvm-services",
+    "core",
+    "dependency-management",
+    "wrapper",
+    "cli",
+    "launcher",
+    "messaging",
+    "resources",
+    "resources-http",
+    "resources-gcs",
+    "resources-s3",
+    "resources-sftp",
+    "plugins",
+    "scala",
+    "ide",
+    "ide-native",
+    "ide-play",
+    "osgi",
+    "maven",
+    "announce",
+    "code-quality",
+    "antlr",
+    "tooling-api",
+    "tooling-api-builders",
+    "docs",
+    "integ-test",
+    "signing",
+    "ear",
+    "native",
+    "internal-testing",
+    "internal-integ-testing",
+    "internal-performance-testing",
+    "internal-android-performance-testing",
+    "performance",
+    "build-scan-performance",
+    "javascript",
+    "build-comparison",
+    "reporting",
+    "diagnostics",
+    "publish",
+    "ivy",
+    "jacoco",
+    "build-init",
+    "build-option",
+    "platform-base",
+    "platform-native",
+    "platform-jvm",
+    "language-jvm",
+    "language-java",
+    "language-groovy",
+    "language-native",
+    "language-scala",
+    "plugin-use",
+    "plugin-development",
+    "model-core",
+    "model-groovy",
+    "build-cache-http",
+    "testing-base",
+    "testing-native",
+    "testing-jvm",
+    "platform-play",
+    "test-kit",
+    "installation-beacon",
+    "soak",
+    "smoke-test",
+    "composite-builds",
+    "workers",
+    "runtime-api-info",
+    "persistent-cache",
+    "build-cache",
+    "core-api",
+    "version-control")
+
+fun buildFileNameFor(projectDirName: String) =
+    "$projectDirName${buildFileExtensionFor(projectDirName)}"
+
+fun buildFileExtensionFor(projectDirName: String) =
+    if (projectDirName in groovyBuildScriptProjects) ".gradle" else ".gradle.kts"
+
 for (project in rootProject.children) {
     val projectDirName = project.name.toKebabCase()
     project.projectDir = file("subprojects/$projectDirName")
-    project.buildFileName = "$projectDirName.gradle"
+    project.buildFileName = buildFileNameFor(projectDirName)
     assert(project.projectDir.isDirectory)
     assert(project.buildFile.isFile)
 }
