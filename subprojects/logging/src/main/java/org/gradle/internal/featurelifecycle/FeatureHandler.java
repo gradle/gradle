@@ -21,6 +21,9 @@ package org.gradle.internal.featurelifecycle;
  *
  * <p>Implementations need not be thread-safe.
  */
-public interface DeprecatedFeatureHandler {
-    void deprecatedFeatureUsed(DeprecatedFeatureUsage usage);
+public interface FeatureHandler {
+
+    void reset();
+
+    void featureUsed(DeprecatedFeatureUsage usage);
 }

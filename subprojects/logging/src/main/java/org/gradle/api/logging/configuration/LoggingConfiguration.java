@@ -16,7 +16,10 @@
 
 package org.gradle.api.logging.configuration;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
+
+import java.util.Set;
 
 /**
  * A {@code LoggingConfiguration} defines the logging settings for a Gradle build.
@@ -43,6 +46,21 @@ public interface LoggingConfiguration {
      * Specifies the style of logging output that should be written to the console.
      */
     void setConsoleOutput(ConsoleOutput consoleOutput);
+
+    /**
+     * Specifies if deprecation warnings should be written to the console.
+     * Defaults to {@link WarningType#Summary}
+     * @since 4.5
+     */
+    @Incubating
+    Set<WarningType> getWarningTypes();
+
+    /**
+     * Specifies if deprecation warnings should be written to the console.
+     * @since 4.5
+     */
+    @Incubating
+    void setWarningTypes(Set<WarningType> warningTypes);
 
     /**
      * Returns the detail that should be included in stacktraces. Defaults to {@link ShowStacktrace#INTERNAL_EXCEPTIONS}.

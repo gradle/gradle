@@ -18,8 +18,8 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
+import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
-import org.gradle.util.SingleMessageLogger;
 
 import java.io.PipedOutputStream;
 import java.util.HashSet;
@@ -63,7 +63,7 @@ public class ParallelForkingGradleHandle extends ForkingGradleHandle {
         @Override
         public String getNormalizedOutput() {
             String output = super.getNormalizedOutput();
-            String parallelWarningPrefix = String.format(SingleMessageLogger.INCUBATION_MESSAGE, ".*");
+            String parallelWarningPrefix = String.format(LoggingIncubatingFeatureHandler.INCUBATION_MESSAGE, ".*");
             return output.replaceFirst(format("(?m)%s.*$\n", parallelWarningPrefix), "");
         }
 

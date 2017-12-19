@@ -49,7 +49,7 @@ class NameValidatorTest extends Specification {
     def loggingDeprecatedFeatureHandler = Mock(LoggingDeprecatedFeatureHandler)
 
     def setup() {
-        SingleMessageLogger.handler = loggingDeprecatedFeatureHandler
+        SingleMessageLogger.deprecatedFeatureHandler = loggingDeprecatedFeatureHandler
     }
 
     def cleanup() {
@@ -62,7 +62,7 @@ class NameValidatorTest extends Specification {
         new TaskFactory(Mock(ClassGenerator), null, Mock(Instantiator)).create(name, DefaultTask)
 
         then:
-        1 * loggingDeprecatedFeatureHandler.deprecatedFeatureUsed(_  as DeprecatedFeatureUsage) >> { DeprecatedFeatureUsage usage ->
+        1 * loggingDeprecatedFeatureHandler.featureUsed(_  as DeprecatedFeatureUsage) >> { DeprecatedFeatureUsage usage ->
             assertForbidden(name, usage.message)
         }
 
@@ -76,7 +76,7 @@ class NameValidatorTest extends Specification {
         domainObjectContainer.create(name)
 
         then:
-        1 * loggingDeprecatedFeatureHandler.deprecatedFeatureUsed(_  as DeprecatedFeatureUsage) >> { DeprecatedFeatureUsage usage ->
+        1 * loggingDeprecatedFeatureHandler.featureUsed(_  as DeprecatedFeatureUsage) >> { DeprecatedFeatureUsage usage ->
             assertForbidden(name, usage.message)
         }
 
