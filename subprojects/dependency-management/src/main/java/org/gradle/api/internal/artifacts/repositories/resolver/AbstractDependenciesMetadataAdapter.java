@@ -81,16 +81,16 @@ public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMe
     }
 
     @Override
-    public void add(String dependencyNotation, Action<T> configureAction) {
+    public void add(String dependencyNotation, Action<? super T> configureAction) {
         doAdd(dependencyNotation, configureAction);
     }
 
     @Override
-    public void add(Map<String, String> dependencyNotation, Action<T> configureAction) {
+    public void add(Map<String, String> dependencyNotation, Action<? super T> configureAction) {
         doAdd(dependencyNotation, configureAction);
     }
 
-    private void doAdd(Object dependencyNotation, @Nullable Action<T> configureAction) {
+    private void doAdd(Object dependencyNotation, @Nullable Action<? super T> configureAction) {
         T dependencyMetadata = dependencyNotationParser.parseNotation(dependencyNotation);
         if (configureAction != null) {
             configureAction.execute(dependencyMetadata);
