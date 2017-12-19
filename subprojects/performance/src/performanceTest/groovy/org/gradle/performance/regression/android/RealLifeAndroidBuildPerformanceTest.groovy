@@ -30,7 +30,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.minimumVersion = "4.3.1"
-        runner.targetVersions = ["4.5-20171213235920+0000"]
+        runner.targetVersions = ["4.5-20171218235901+0000"]
 
         when:
         def result = runner.run()
