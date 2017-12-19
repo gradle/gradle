@@ -64,7 +64,7 @@ class CppLibraryPluginTest extends Specification {
         binaries.findAll { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }.size() == 1
 
         and:
-        project.library.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }
+        project.library.developmentBinary == binaries.find { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }
     }
 
     def "adds compile and link tasks"() {
