@@ -28,6 +28,10 @@ Think of every feature section as a mini blog post.
 
 In this release, the Gradle team added a new chapter in the user guide documenting the [Provider API](userguide/lazy_configuration.html).
 
+### Provider API improvements
+
+A convenience for dealing with sets has been added. TBD - link to API
+
 ### Faster C/C++ compilation and builds
 
 #### Build Cache Support

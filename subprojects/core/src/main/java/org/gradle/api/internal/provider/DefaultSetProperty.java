@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.provider;
+package org.gradle.api.internal.provider;
 
-import org.gradle.api.Incubating;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.provider.SetProperty;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Set;
 
-/**
- * Represents a property whose type is a {@link List} of elements of type {@link T}.
- *
- * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created through the factory method {@link org.gradle.api.model.ObjectFactory#listProperty(Class)}.
- *
- * @param <T> the type of elements.
- * @since 4.3
- */
-@Incubating
-public interface ListProperty<T> extends Property<List<T>>, HasMultipleValues<T> {
+public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>> implements SetProperty<T> {
+    public DefaultSetProperty(Class<T> elementType) {
+        super(Set.class);
+    }
+
+    @Override
+    protected Set<T> fromValue(Collection<T> values) {
+        return ImmutableSet.copyOf(values);
+    }
 }
