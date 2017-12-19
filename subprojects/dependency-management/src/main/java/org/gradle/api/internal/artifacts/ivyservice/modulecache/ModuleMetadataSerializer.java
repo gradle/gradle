@@ -38,7 +38,6 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ComponentVariant;
-import org.gradle.internal.component.external.model.ComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
@@ -48,7 +47,6 @@ import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
-import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
@@ -118,7 +116,7 @@ public class ModuleMetadataSerializer {
             writeVariants(metadata);
         }
 
-        private void writeVariants(ComponentVariantResolveMetadata metadata) throws IOException {
+        private void writeVariants(ModuleComponentResolveMetadata metadata) throws IOException {
             encoder.writeSmallInt(metadata.getVariants().size());
             for (ComponentVariant variant : metadata.getVariants()) {
                 encoder.writeString(variant.getName());
@@ -399,7 +397,7 @@ public class ModuleMetadataSerializer {
             return metadata;
         }
 
-        private void readVariants(MutableComponentVariantResolveMetadata metadata) throws IOException {
+        private void readVariants(MutableModuleComponentResolveMetadata metadata) throws IOException {
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
                 String name = decoder.readString();

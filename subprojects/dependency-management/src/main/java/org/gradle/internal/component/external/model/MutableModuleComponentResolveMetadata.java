@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.DependencyConstraintsMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.reflect.Instantiator;
@@ -71,6 +72,18 @@ public interface MutableModuleComponentResolveMetadata {
 
     ModuleSource getSource();
     void setSource(ModuleSource source);
+
+    /**
+     * Adds a variant to this module.
+     */
+    MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes);
+
+    /**
+     * Sets the attributes of this module. Attributes <i>may</i> be mapped to legacy properties (like status)
+     *
+     * @param attributes the component attributes
+     */
+    void setAttributes(ImmutableAttributes attributes);
 
     /**
      * Checks if the metadata defines the given variant. Depending on the origin of the metadata, a "variant" can be backed

@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 
 import javax.annotation.Nullable;
 
-public interface MutableMavenModuleResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
+public interface MutableMavenModuleResolveMetadata extends MutableModuleComponentResolveMetadata {
     @Override
     MavenModuleResolveMetadata asImmutable();
 
