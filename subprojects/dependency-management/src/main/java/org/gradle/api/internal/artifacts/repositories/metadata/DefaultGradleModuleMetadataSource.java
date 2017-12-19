@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
-import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -49,7 +48,7 @@ public class DefaultGradleModuleMetadataSource extends AbstractMetadataSource<Mu
         LocallyAvailableExternalResource gradleMetadataArtifact = artifactResolver.resolveArtifact(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, moduleMetadataArtifact), result);
         if (gradleMetadataArtifact != null) {
             MutableModuleComponentResolveMetadata metaDataFromResource = mutableModuleMetadataFactory.create(moduleComponentIdentifier);
-            metadataParser.parse(gradleMetadataArtifact, (MutableComponentVariantResolveMetadata) metaDataFromResource);
+            metadataParser.parse(gradleMetadataArtifact, metaDataFromResource);
             return metaDataFromResource;
         }
         return null;

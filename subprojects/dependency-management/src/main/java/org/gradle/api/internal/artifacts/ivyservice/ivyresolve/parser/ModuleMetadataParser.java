@@ -33,7 +33,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
-import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
@@ -58,7 +58,7 @@ public class ModuleMetadataParser {
         this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
     }
 
-    public void parse(final LocallyAvailableExternalResource resource, final MutableComponentVariantResolveMetadata metadata) {
+    public void parse(final LocallyAvailableExternalResource resource, final MutableModuleComponentResolveMetadata metadata) {
         resource.withContent(new Transformer<Void, InputStream>() {
             @Override
             public Void transform(InputStream inputStream) {
@@ -88,7 +88,7 @@ public class ModuleMetadataParser {
         });
     }
 
-    private void consumeTopLevelElements(JsonReader reader, MutableComponentVariantResolveMetadata metadata) throws IOException {
+    private void consumeTopLevelElements(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
         while (reader.peek() != END_OBJECT) {
             String name = reader.nextName();
             if ("variants".equals(name)) {
@@ -101,7 +101,7 @@ public class ModuleMetadataParser {
         }
     }
 
-    private void consumeComponent(JsonReader reader, MutableComponentVariantResolveMetadata metadata) throws IOException {
+    private void consumeComponent(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
         reader.beginObject();
         while (reader.peek() != END_OBJECT) {
             String name = reader.nextName();
@@ -114,7 +114,7 @@ public class ModuleMetadataParser {
         reader.endObject();
     }
 
-    private void consumeVariants(JsonReader reader, MutableComponentVariantResolveMetadata metadata) throws IOException {
+    private void consumeVariants(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
         reader.beginArray();
         while (reader.peek() != JsonToken.END_ARRAY) {
             consumeVariant(reader, metadata);
@@ -122,7 +122,7 @@ public class ModuleMetadataParser {
         reader.endArray();
     }
 
-    private void consumeVariant(JsonReader reader, MutableComponentVariantResolveMetadata metadata) throws IOException {
+    private void consumeVariant(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
         reader.beginObject();
         String variantName = null;
         ImmutableAttributes attributes = ImmutableAttributes.EMPTY;

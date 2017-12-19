@@ -26,7 +26,6 @@ import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
@@ -93,5 +92,5 @@ public class TestResolver extends ExternalResourceResolver<ModuleComponentResolv
         throw new UnsupportedOperationException();
     }
 
-    interface MutableTestResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {}
+    interface MutableTestResolveMetadata extends MutableModuleComponentResolveMetadata {}
 }

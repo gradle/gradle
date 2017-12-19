@@ -26,7 +26,7 @@ import org.gradle.internal.component.model.Exclude;
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
+public interface MutableIvyModuleResolveMetadata extends MutableModuleComponentResolveMetadata {
     /**
      * {@inheritDoc}
      */

@@ -22,7 +22,7 @@ import org.gradle.internal.component.model.ModuleSource;
 /**
  * Meta-data for a component resolved from a Maven repository.
  */
-public interface MavenModuleResolveMetadata extends ModuleComponentResolveMetadata, ComponentVariantResolveMetadata {
+public interface MavenModuleResolveMetadata extends ModuleComponentResolveMetadata {
     /**
      * {@inheritDoc}
      */
