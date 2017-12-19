@@ -26,7 +26,19 @@ import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 
 import static org.gradle.util.Matchers.containsText
 
-class CppApplicationIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implements CppTaskNames {
+
+    @Override
+    protected void makeSingleProject() {
+        buildFile << """
+            apply plugin: 'cpp-application'
+        """
+    }
+
+    @Override
+    protected String getAllBinariesOfMainComponentBuildScript() {
+        return "[application.debugExecutable, application.releaseExecutable]"
+    }
 
     def "skip compile, link and install tasks when no source"() {
         given:
