@@ -22,10 +22,12 @@ Use of the <<gradle_wrapper, Gradle Wrapper>> is highly encouraged. You should s
 
 Executing Gradle on the command-line conforms to the following structure. Options are allowed before and after task names.
 ----
-gradle taskName [--options]
+gradle [taskName...] [--option-name...]
 ----
 
-Options that accept values can be specified with or without `=` between the option and argument. The following are equivalent.
+If multiple tasks are specified, they should be separated with a space.
+
+Options that accept values can be specified with or without `=` between the option and argument. The following are equivalent, but the `=` variant makes it clear that `plain` is an argument to `--console` and not a task name.
 ----
 --console=plain
 --console plain
@@ -43,14 +45,17 @@ Many long-form options, have short option equivalents. The following are equival
 -h
 ----
 
+[NOTE]
+====
 Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed. See the <<sec:gradle_properties_and_system_properties, configuring build environment guide>> for details.
+====
 
-The following sections describe use of the Gradle command-line interface, grouped roughly by user goal.
+The following sections describe use of the Gradle command-line interface, grouped roughly by user goal. Some plugins also add their own command line options, for example <<test_filtering,`--tests` for Java test filtering>>.
 
 [[sec:command_line_executing_tasks]]
 === Executing Tasks
 
-You can run a task and all of its dependencies
+You can run a task and all of its dependencies.
 ----
 ❯ gradle myTask
 ----
@@ -77,6 +82,11 @@ When invoking Gradle from within a subproject, the project name should be omitte
 ❯ cd mySubproject
 ❯ gradle taskName
 ----
+
+[NOTE]
+====
+When executing the Gradle Wrapper from subprojects, one must reference `gradlew` relatively. For example: `../gradlew taskName`. The community http://www.gdub.rocks/[gdub project] aims to make this more convenient.
+====
 
 ==== Executing multiple tasks
 You can also specify multiple tasks. For example, the following will execute the `compile` and `test` tasks in the order that they are listed on the command-line and will also execute the dependencies for each task.
@@ -109,7 +119,7 @@ You can see that the `test` task is not executed, even though it is a dependency
 [[sec:rerun_tasks]]
 ==== Forcing Tasks To Execute
 
-You can force Gradle to execute all tasks ignoring up-to-date checks using the `--rerun-tasks` option:
+You can force Gradle to execute all tasks ignoring <<sec:up_to_date_checks,up-to-date checks>> using the `--rerun-tasks` option:
 
 ----
 ❯ gradle test --rerun-tasks
@@ -130,50 +140,6 @@ When executed with `--continue`, Gradle will execute _every_ task to be executed
 
 If a task fails, any subsequent tasks that were depending on it will not be executed. For example, tests will not run if there is a compilation failure in the code under test; because the test task will depend on the compilation task (either directly or indirectly).
 
-==== Running Tests
-
-Many Gradle plugins like the <<java_plugin, Java plugin>> hook tests to be executed when the `test` task is invoked.
-
-----
-❯ gradle test
-----
-
-If you're using the JUnit and TestNG test frameworks, you can run a subset of tests with the `--tests` option and supplying one or more filters.
-
-----
-❯ gradle test --tests "com.mypackage.foo.*"
-❯ gradle test --tests "*MyTest.myTestMethod"
-❯ gradle someTestTask --tests \*UiTest someOtherTestTask --tests \*WebTest\*ui
-----
-
-Learn more about Java test filtering in the <<test_filtering, Java plugin documentation>>.
-
-This is something you can combine with <<continuous_build, continuous build>> using `--continuous` (or `-t`, for short) to re-execute a subset of tests on every change.
-
-----
-❯ gradle test --continuous --tests "com.mypackage.foo.*"
-----
-
-[[sec:selecting_build]]
-==== Selecting which build to execute
-
-When you run the `gradle` command, it looks for a build file in the current directory. You can use the `-b` option to select another build file. Example:
-
-++++
-<sample id="selectProjectUsingBuildFile" dir="userguide/tutorial/selectProject" title="Selecting the project using a build file">
-    <sourcefile file="subdir/myproject.gradle"/>
-    <output args="-q -b subdir/myproject.gradle hello"/>
-</sample>
-++++
-
-Alternatively, you can use the `-p` option to specify the project directory to use. For multi-project builds you should use `-p` option instead of `-b` option.
-
-++++
-<sample id="selectProjectUsingProjectDir" dir="userguide/tutorial/selectProject" title="Selecting the project using project directory">
-    <output args="-q -p subdir hello"/>
-</sample>
-++++
-
 [[sec:command_line_completion]]
 === Command-Line Completion
 
@@ -187,101 +153,6 @@ Gradle provides bash and zsh tab completion support for tasks, options, and Grad
     </imageobject>
 </figure>
 ++++
-
-[[sec:command_line_logging]]
-=== Logging Options
-
-==== Setting Log Level
-You can customize the verbosity of Gradle logging with the following options, ordered from least verbose to most verbose. Learn more in the <<logging, logging documentation>>.
-
-`-Dorg.gradle.logging.level=(quiet warn lifecycle info debug)`::
-Set logging level via Gradle properties.
-
-`-q`, `--quiet`::
-Log errors only.
-
-`-w`, `--warn`::
-Set log level to warn.
-
-`-i`, `--info`::
-Set log level to info.
-
-`-d`, `--debug`::
-Log in debug mode (includes normal stacktrace).
-
-Lifecycle is the default log level.
-
-==== Customizing Log Format
-You can control the use of rich output (colors and font variants) by specifying the "console" mode in the following ways:
-
-`-Dorg.gradle.console=(auto plain rich verbose)`::
-Specify console mode via Gradle properties. Different modes described immediately below.
-
-`--console=(auto plain rich verbose)`::
-Specifies which type of console output to generate.
-+
-Set to `plain` to generate plain text only. This option disables all color and other rich output in the console output.
-+
-Set to `auto` (the default) to enable color and other rich output in the console output when the build process is attached to a console, or to generate plain text only when not attached to a console.
-+
-Set to `rich` to enable color and other rich output in the console output, regardless of whether the build process is not attached to a console. When not attached to a console, the build output will use ANSI control characters to generate the rich output.
-+
-Set to `verbose` to enable color and other rich output like the `rich`, but output task names and outcomes at the lifecycle log level, as is done by default in Gradle 3.5 and earlier.
-
-==== Rich Console
-
-Gradle's rich console displays extra information while builds are running.
-
-image::img/console-animation.gif[alt="Gradle Rich Console",data-alt="foo.gif",class="js-gif-playback-control gif-control gif-control__paused"]
-
-Features:
-
- * Logs above grouped by task that generated them
- * Progress bar and timer visually describe overall status
- * Parallel work-in-progress lines below describe what is happening now
-
-=== Execution Options
-The following options affect how builds are executed, by changing what is built or how dependencies are resolved.
-
-`-a`, `--no-rebuild` (deprecated)::
-Do not rebuild project dependencies.
-
-`--include-build`::
-Run the build as a composite, including the specified build. See <<composite_builds, Composite Builds>>.
-
-`--offline`::
-Specifies that the build should operate without accessing network resources. Learn more about <<cache_command_line_options,options to override dependency caching>>.
-
-`--refresh-dependencies`::
-Refresh the state of dependencies. Learn more about how to use this in the dependency management docs.<<cache_command_line_options, dependency management docs>>.
-
-`--dry-run`::
-Run Gradle with all task actions disabled. Use this to show which task would have executed.
-
-[[sec:command_line_bootstrapping_projects]]
-=== Bootstrapping New Projects
-
-==== Creating new Gradle builds
-Use the built-in `gradle init` task to create a new Gradle builds, with new or existing projects.
-
-----
-❯ gradle init
-----
-
-Most of the time you'll want to specify a project type. Available types include `basic` (default), `java-library`, `java-application`, and more. See <<build_init_plugin, init plugin documentation>> for details.
-
-----
-❯ gradle init --type java-library
-----
-
-==== Standardize and provision Gradle
-The built-in `gradle wrapper` task generates a script, `gradlew`, that invokes a declared version of Gradle, downloading it beforehand if necessary.
-
-----
-❯ gradle wrapper --gradle-version=4.4
-----
-
-You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. Full details on how to use these options are documented in the <<gradle_wrapper,Gradle wrapper section>>.
 
 [[sec:command_line_debugging]]
 === Debugging Options
@@ -302,7 +173,7 @@ Print out the stacktrace also for user exceptions (e.g. compile error).  See als
 Create a https://gradle.com/build-scans[build scan] with fine-grained information about all aspects of your Gradle build.
 
 `-Dorg.gradle.debug=true`::
-Debug Gradle client (non-Daemon) process.
+Debug Gradle client (non-Daemon) process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
 
 `-Dorg.gradle.daemon.debug=true`::
 Debug <<gradle_daemon, Gradle Daemon>> process.
@@ -351,11 +222,104 @@ Run `gradle --stop` to stop all Gradle Daemons of the same version.
 `-Dorg.gradle.daemon.idletimeout=(number of milliseconds)`::
 Gradle Daemon will stop itself after this number of milliseconds of idle time. _Default is 10800000_ (3 hours).
 
+
+[[sec:command_line_logging]]
+=== Logging Options
+
+==== Setting Log Level
+You can customize the verbosity of Gradle logging with the following options, ordered from least verbose to most verbose. Learn more in the <<logging, logging documentation>>.
+
+`-Dorg.gradle.logging.level=(quiet warn lifecycle info debug)`::
+Set logging level via Gradle properties.
+
+`-q`, `--quiet`::
+Log errors only.
+
+`-w`, `--warn`::
+Set log level to warn.
+
+`-i`, `--info`::
+Set log level to info.
+
+`-d`, `--debug`::
+Log in debug mode (includes normal stacktrace).
+
+Lifecycle is the default log level.
+
+==== Customizing Log Format
+You can control the use of rich output (colors and font variants) by specifying the "console" mode in the following ways:
+
+`-Dorg.gradle.console=(auto,plain,rich,verbose)`::
+Specify console mode via Gradle properties. Different modes described immediately below.
+
+`--console=(auto,plain,rich,verbose)`::
+Specifies which type of console output to generate.
++
+Set to `plain` to generate plain text only. This option disables all color and other rich output in the console output. This is the default when Gradle is _not_ attached to a terminal.
++
+Set to `auto` (the default) to enable color and other rich output in the console output when the build process is attached to a console, or to generate plain text only when not attached to a console. _This is the default when Gradle is attached to a terminal._
++
+Set to `rich` to enable color and other rich output in the console output, regardless of whether the build process is not attached to a console. When not attached to a console, the build output will use ANSI control characters to generate the rich output.
++
+Set to `verbose` to enable color and other rich output like the `rich`, but output task names and outcomes at the lifecycle log level, as is done by default in Gradle 3.5 and earlier.
+
+==== Rich Console
+
+Gradle's rich console displays extra information while builds are running.
+
+image::img/rich-cli.png[alt="Gradle Rich Console"]
+
+Features:
+
+ * Logs above grouped by task that generated them
+ * Progress bar and timer visually describe overall status
+ * Parallel work-in-progress lines below describe what is happening now
+
+=== Execution Options
+The following options affect how builds are executed, by changing what is built or how dependencies are resolved.
+
+`--include-build`::
+Run the build as a composite, including the specified build. See <<composite_builds, Composite Builds>>.
+
+`--offline`::
+Specifies that the build should operate without accessing network resources. Learn more about <<cache_command_line_options,options to override dependency caching>>.
+
+`--refresh-dependencies`::
+Refresh the state of dependencies. Learn more about how to use this in the dependency management docs.<<cache_command_line_options, dependency management docs>>.
+
+`--dry-run`::
+Run Gradle with all task actions disabled. Use this to show which task would have executed.
+
+[[sec:command_line_bootstrapping_projects]]
+=== Bootstrapping New Projects
+
+==== Creating new Gradle builds
+Use the built-in `gradle init` task to create a new Gradle builds, with new or existing projects.
+
+----
+❯ gradle init
+----
+
+Most of the time you'll want to specify a project type. Available types include `basic` (default), `java-library`, `java-application`, and more. See <<build_init_plugin, init plugin documentation>> for details.
+
+----
+❯ gradle init --type java-library
+----
+
+==== Standardize and provision Gradle
+The built-in `gradle wrapper` task generates a script, `gradlew`, that invokes a declared version of Gradle, downloading it beforehand if necessary.
+
+----
+❯ gradle wrapper --gradle-version=4.4
+----
+
+You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. Full details on how to use these options are documented in the <<gradle_wrapper,Gradle wrapper section>>.
+
 === Environment Options
 You can customize many aspects about where build scripts, settings, caches, and so on through the options below. Learn more about customizing your <<build_environment, build environment>>.
 
 `-b`, `--build-file`::
-Specifies the build file. For example: `gradle --build-file=foo.gradle`
+Specifies the build file. For example: `gradle --build-file=foo.gradle`. The default is `build.gradle` or `build.gradle.kts` or `myProjectName.gradle`.
 
 `-c`, `--settings-file`::
 Specifies the settings file. For example: `gradle --settings-file=somewhere/else/settings.gradle`
@@ -364,7 +328,7 @@ Specifies the settings file. For example: `gradle --settings-file=somewhere/else
 Specifies the Gradle user home directory. The default is the `.gradle` directory in the user's home directory.
 
 `-p`, `--project-dir`::
-Specifies the start directory for Gradle. Defaults to current directory. See <<sec:selecting_build>>.
+Specifies the start directory for Gradle. Defaults to current directory.
 
 `--project-cache-dir`::
 Specifies the project-specific cache directory. Default value is `.gradle` in the root project directory.
@@ -386,33 +350,6 @@ Set JVM arguments.
 
 `-Dorg.gradle.java.home`::
 Set JDK home dir.
-
-[[sec:cli_system_properties]]
-==== System Properties
-The following system properties are available for the `gradle` command.
-
-NOTE: Command-line options take precedence over system properties.
-
-`gradle.user.home`::
-Specifies the Gradle user home directory.
-
-The <<sec:gradle_configuration_properties>> contains specific information about Gradle configuration available via system properties.
-
-[[sec:cli_environment_variables]]
-==== Environment Variables
-The following environment variables are available for the `gradle` command.
-
-NOTE: Command-line options and system properties take precedence over environment variables.
-
-`GRADLE_OPTS`::
-Specifies command-line arguments to use to start the JVM. This can be useful for setting the system properties to use for running Gradle. For example `GRADLE_OPTS="-Dorg.gradle.caching=true"`.
-
-`GRADLE_USER_HOME`::
-Specifies the Gradle user home directory (which defaults to “`USER_HOME/.gradle`” if not set).
-
-`JAVA_HOME`::
-Specifies the JDK installation directory to use.
-
 
 [[sec:command_line_project_reporting]]
 === Project Reporting
