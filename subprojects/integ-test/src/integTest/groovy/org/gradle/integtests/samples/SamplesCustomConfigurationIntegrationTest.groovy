@@ -19,7 +19,10 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.util.Requires
 import org.junit.Rule
+
+import static org.gradle.util.TestPrecondition.JDK8_OR_LATER
 
 class SamplesCustomConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -82,6 +85,7 @@ class SamplesCustomConfigurationIntegrationTest extends AbstractIntegrationSpec 
         succeeds('assemble')
     }
 
+    @Requires(JDK8_OR_LATER)
     @UsesSample("userguide/dependencies/declaringCustomConfigurations")
     def "can declare and resolve custom configuration"() {
         setup:
