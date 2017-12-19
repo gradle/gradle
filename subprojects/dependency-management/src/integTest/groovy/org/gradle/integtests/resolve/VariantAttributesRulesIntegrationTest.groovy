@@ -66,7 +66,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                 components {
                     withModule('org.test:moduleB') {
                         withVariant("$variantToTest") { 
-                            withAttributes {
+                            attributes {
                                 attribute(formatAttribute, "custom")
                             }
                         }
@@ -113,7 +113,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                 components {
                     withModule('org.test:moduleB') {
                         withVariant("$variantToTest") { 
-                            withAttributes {
+                            attributes {
                                 attribute(formatAttribute, "custom")
                             }
                         }
@@ -165,7 +165,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                 components {
                     withModule('org.test:moduleB') {
                         withVariant('$selectedVariant') { 
-                            withAttributes {
+                            attributes {
                                 attribute(testAttribute, "select")
                             }
                         }
@@ -253,7 +253,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                 components {
                     withModule('org.test:module') {
                         withVariant('customVariant2') {
-                           withAttributes {
+                           attributes {
                               attribute quality, 'qa'
                            }
                         }

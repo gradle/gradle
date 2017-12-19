@@ -86,10 +86,16 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     }
 
     @Override
-    public void withAttributes(Action<? super AttributeContainer> action) {
+    public ComponentMetadataDetails attributes(Action<? super AttributeContainer> action) {
         AttributeContainer attributes = metadata.getAttributesFactory().mutable((AttributeContainerInternal) metadata.getAttributes());
         action.execute(attributes);
         metadata.setAttributes(attributes);
+        return this;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return metadata.getAttributes();
     }
 
     @Override
