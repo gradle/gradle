@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.internal;
+package org.gradle.language.nativeplatform.internal;
 
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-public interface SwiftToolChainSelector {
+public interface ToolChainSelector {
     Result select();
 
     interface Result {
-        NativeToolChain getToolChain();
+        NativeToolChainInternal getToolChain();
 
         NativePlatform getTargetPlatform();
 

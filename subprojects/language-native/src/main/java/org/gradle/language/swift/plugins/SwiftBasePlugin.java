@@ -32,6 +32,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.nativeplatform.internal.ToolChainSelector;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftSharedLibrary;
@@ -40,9 +41,7 @@ import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.internal.DefaultSwiftExecutable;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
-import org.gradle.language.swift.internal.SwiftToolChainSelector;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
@@ -52,6 +51,7 @@ import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
@@ -65,10 +65,10 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class SwiftBasePlugin implements Plugin<ProjectInternal> {
-    private final SwiftToolChainSelector toolChainSelector;
+    private final ToolChainSelector toolChainSelector;
 
     @Inject
-    public SwiftBasePlugin(SwiftToolChainSelector toolChainSelector) {
+    public SwiftBasePlugin(ToolChainSelector toolChainSelector) {
         this.toolChainSelector = toolChainSelector;
     }
 
@@ -81,7 +81,6 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
 
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
-        final ModelRegistry modelRegistry = project.getModelRegistry();
         final ProviderFactory providers = project.getProviders();
 
         project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE).getCompatibilityRules().add(SwiftCppUsageCompatibilityRule.class);
@@ -112,12 +111,12 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 })));
                 ((DefaultSwiftBinary)binary).getModuleFile().set(compile.getModuleFile());
 
-                SwiftToolChainSelector.Result result = toolChainSelector.select();
+                ToolChainSelector.Result result = toolChainSelector.select();
                 NativePlatform currentPlatform = result.getTargetPlatform();
                 compile.setTargetPlatform(currentPlatform);
 
                 // TODO - make this lazy
-                NativeToolChain toolChain = result.getToolChain();
+                NativeToolChainInternal toolChain = result.getToolChain();
                 compile.setToolChain(toolChain);
 
                 ((DefaultSwiftBinary)binary).getCompileTask().set(compile);
@@ -144,7 +143,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setDebuggable(binary.isDebuggable());
 
                     executable.getDebuggerExecutableFile().set(link.getBinaryFile());
-                    if (executable.isDebuggable() && executable.isOptimized()) {
+                    if (executable.isDebuggable() && executable.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
@@ -201,7 +200,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
-                    if (library.isDebuggable() && library.isOptimized()) {
+                    if (library.isDebuggable() && library.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {

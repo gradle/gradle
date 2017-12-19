@@ -38,9 +38,8 @@ import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.language.nativeplatform.internal.ToolChainSelector;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.ExtractSymbols;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -49,12 +48,12 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -67,6 +66,13 @@ import java.util.concurrent.Callable;
 @Incubating
 @NonNullApi
 public class CppBasePlugin implements Plugin<ProjectInternal> {
+    private final ToolChainSelector toolChainSelector;
+
+    @Inject
+    public CppBasePlugin(ToolChainSelector toolChainSelector) {
+        this.toolChainSelector = toolChainSelector;
+    }
+
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
@@ -74,7 +80,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
 
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
-        final ModelRegistry modelRegistry = project.getModelRegistry();
         final ProviderFactory providers = project.getProviders();
 
         // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
@@ -87,14 +92,15 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 final Names names = Names.of(binary.getName());
 
                 String language = "cpp";
-                final DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
+                final ToolChainSelector.Result result = toolChainSelector.select();
+                final NativePlatform currentPlatform = result.getTargetPlatform();
                 // TODO - make this lazy
-                final NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
+                final NativeToolChainInternal toolChain = result.getToolChain();
 
                 Callable<List<File>> systemIncludes = new Callable<List<File>>() {
                     @Override
                     public List<File> call() throws Exception {
-                        PlatformToolProvider platformToolProvider = toolChain.select(currentPlatform);
+                        PlatformToolProvider platformToolProvider = result.getPlatformToolProvider();
                         if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
                             return ((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(ToolType.CPP_COMPILER);
                         }
@@ -116,7 +122,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
                     link.source(binary.getObjects());
                     link.lib(binary.getLinkLibraries());
-                    final PlatformToolProvider toolProvider = toolChain.select(currentPlatform);
+                    final PlatformToolProvider toolProvider = result.getPlatformToolProvider();
                     link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() throws Exception {
@@ -162,7 +168,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 } else if (binary instanceof CppSharedLibrary) {
                     DefaultCppSharedLibrary library = (DefaultCppSharedLibrary) binary;
 
-                    final PlatformToolProvider toolProvider = toolChain.select(currentPlatform);
+                    final PlatformToolProvider toolProvider = result.getPlatformToolProvider();
 
                     compile.setPositionIndependentCode(true);
 
@@ -219,7 +225,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 }
             }
 
-            private void configureCompile(CppCompile compile, CppBinary binary, DefaultNativePlatform currentPlatform, NativeToolChain toolChain, Callable<List<File>> systemIncludes) {
+            private void configureCompile(CppCompile compile, CppBinary binary, NativePlatform currentPlatform, NativeToolChain toolChain, Callable<List<File>> systemIncludes) {
                 compile.includes(binary.getCompileIncludePath());
                 compile.includes(systemIncludes);
                 compile.source(binary.getCppSource());
@@ -233,7 +239,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 compile.setToolChain(toolChain);
             }
 
-            private StripSymbols extractAndStripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChainInternal toolChain, NativePlatformInternal currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation, Task lifecycleTask) {
+            private StripSymbols extractAndStripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation, Task lifecycleTask) {
                 ExtractSymbols extractSymbols = tasks.create(names.getTaskName("extractSymbols"), ExtractSymbols.class);
                 extractSymbols.getBinaryFile().set(link.getBinaryFile());
                 extractSymbols.getSymbolFile().set(symbolLocation);

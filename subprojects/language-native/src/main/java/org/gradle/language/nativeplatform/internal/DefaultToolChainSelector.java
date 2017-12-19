@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.internal;
+package org.gradle.language.nativeplatform.internal;
 
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultSwiftToolChainSelector implements SwiftToolChainSelector {
+public class DefaultToolChainSelector implements ToolChainSelector {
     private final ModelRegistry modelRegistry;
 
     @Inject
-    public DefaultSwiftToolChainSelector(ModelRegistry modelRegistry) {
+    public DefaultToolChainSelector(ModelRegistry modelRegistry) {
         this.modelRegistry = modelRegistry;
     }
 
@@ -44,18 +43,18 @@ public class DefaultSwiftToolChainSelector implements SwiftToolChainSelector {
     }
 
     class DefaultResult implements Result {
-        private final NativeToolChain toolChain;
+        private final NativeToolChainInternal toolChain;
         private final NativePlatform targetPlatform;
         private final PlatformToolProvider platformToolProvider;
 
-        public DefaultResult(NativeToolChain toolChain, NativePlatform targetPlatform, PlatformToolProvider platformToolProvider) {
+        public DefaultResult(NativeToolChainInternal toolChain, NativePlatform targetPlatform, PlatformToolProvider platformToolProvider) {
             this.toolChain = toolChain;
             this.targetPlatform = targetPlatform;
             this.platformToolProvider = platformToolProvider;
         }
 
         @Override
-        public NativeToolChain getToolChain() {
+        public NativeToolChainInternal getToolChain() {
             return toolChain;
         }
 
