@@ -35,8 +35,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
-import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.execution.MultipleBuildFailures;
@@ -663,11 +661,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private boolean canRunWithCurrentlyExecutedTasks(TaskInfo taskInfo) {
         Set<String> candidateTaskDestroyables = getDestroyablePaths(taskInfo);
 
-        if (!candidateTaskDestroyables.isEmpty() && !taskInfo.getTask().getOutputs().getFileProperties().isEmpty()) {
+        if (!candidateTaskDestroyables.isEmpty() && taskInfo.hasOutputs()) {
             throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
         }
 
-        if (!candidateTaskDestroyables.isEmpty() && !taskInfo.getTask().getInputs().getFileProperties().isEmpty()) {
+        if (!candidateTaskDestroyables.isEmpty() && taskInfo.hasFileInputs()) {
             throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
         }
 
@@ -782,17 +780,15 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private Set<String> getOutputPaths(TaskInfo task) {
         try {
-            return canonicalizedPaths(canonicalizedFileCache, Iterables.concat(
-                task.getTask().getOutputs().getFiles(),
-                ((TaskLocalStateInternal) task.getTask().getLocalState()).getFiles()
-            ));
+            return canonicalizedPaths(canonicalizedFileCache, Iterables.concat(task.getOutputs(), task.getLocalState()));
         } catch (ResourceDeadlockException e) {
             throw new IllegalStateException("A deadlock was detected while resolving the task outputs for " + task.getTask().getIdentityPath() + ".  This can be caused, for instance, by a task output causing dependency resolution.", e);
         }
+
     }
 
     private Set<String> getDestroyablePaths(TaskInfo task) {
-        return canonicalizedPaths(canonicalizedFileCache, ((TaskDestroyablesInternal) task.getTask().getDestroyables()).getFiles());
+        return canonicalizedPaths(canonicalizedFileCache, task.getDestroyables());
     }
 
     private String getOverLappedPath(String firstPath, String secondPath) {

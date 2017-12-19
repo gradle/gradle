@@ -78,7 +78,7 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     }
 
     @Override
-    public void withVariant(String name, Action<VariantMetadata> action) {
+    public void withVariant(String name, Action<? super VariantMetadata> action) {
         assertVariantExists(name);
         action.execute(instantiator.newInstance(VariantMetadataAdapter.class, name, metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
     }

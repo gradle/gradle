@@ -31,6 +31,8 @@ abstract class AbstractModule implements Module {
 
     private boolean hasModuleMetadata
 
+    Map<String, String> attributes = [:]
+
     /**
      * @param cl A closure that is passed a writer to use to generate the content.
      */

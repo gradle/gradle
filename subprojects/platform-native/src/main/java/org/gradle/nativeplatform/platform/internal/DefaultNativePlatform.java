@@ -84,8 +84,4 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     public void operatingSystem(String name) {
         operatingSystem = new DefaultOperatingSystem(name);
     }
-
-    public String getCompatibilityString() {
-        return getArchitecture().getName() + ":" + getOperatingSystem().getName();
-    }
 }

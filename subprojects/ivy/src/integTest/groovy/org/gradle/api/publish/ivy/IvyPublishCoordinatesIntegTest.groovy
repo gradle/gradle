@@ -58,12 +58,11 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.moduleDir.file('custom-2.2.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
 
         and:
-        resolveArtifacts(javaLibrary) == ['custom-2.2.jar']
+        resolveArtifacts(javaLibrary) { expectFiles 'custom-2.2.jar' }
     }
 
     def "can produce multiple separate publications for single project"() {
         // cannot yet publish Gradle metadata when there's no associated component
-        resolveModuleMetadata = false
         publishModuleMetadata = false
 
         given:
@@ -129,8 +128,24 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         apiModule.moduleDir.file('custom-api-2.jar').assertIsCopyOf(file('build/libs/root-api-1.0.jar'))
 
         and:
-        resolveArtifacts(module) == ['custom-2.2.jar']
-        resolveArtifacts(apiModule) == ['custom-api-2.jar']
+        resolveArtifacts(module) {
+            withModuleMetadata {
+                // customizing publications is not supported with Gradle metadata
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles 'custom-2.2.jar'
+            }
+        }
+        resolveArtifacts(apiModule) {
+            withModuleMetadata {
+                // customizing publications is not supported with Gradle metadata
+                noComponentPublished()
+            }
+            withoutModuleMetadata {
+                expectFiles 'custom-api-2.jar'
+            }
+        }
     }
 
 }

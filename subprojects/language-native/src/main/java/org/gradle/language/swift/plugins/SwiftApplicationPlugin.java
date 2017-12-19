@@ -16,8 +16,10 @@
 
 package org.gradle.language.swift.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
@@ -27,6 +29,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.swift.SwiftApplication;
+import org.gradle.language.swift.SwiftBinary;
+import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.util.GUtil;
@@ -63,42 +67,59 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
-        ConfigurationContainer configurations = project.getConfigurations();
-        TaskContainer tasks = project.getTasks();
-        ObjectFactory objectFactory = project.getObjects();
+        final ConfigurationContainer configurations = project.getConfigurations();
 
         // Add the component extension
-        SwiftApplication application = project.getExtensions().create(SwiftApplication.class, "application", DefaultSwiftApplication.class, "main", project.getLayout(), project.getObjects(), fileOperations, configurations);
+        final DefaultSwiftApplication application = (DefaultSwiftApplication) project.getExtensions().create(SwiftApplication.class, "application", DefaultSwiftApplication.class, "main", project.getLayout(), project.getObjects(), fileOperations, configurations);
         project.getComponents().add(application);
-        project.getComponents().add(application.getDebugExecutable());
-        project.getComponents().add(application.getReleaseExecutable());
+        application.getBinaries().whenElementKnown(new Action<SwiftBinary>() {
+            @Override
+            public void execute(SwiftBinary binary) {
+                project.getComponents().add(binary);
+            }
+        });
 
         // Setup component
         application.getModule().set(GUtil.toCamelCase(project.getName()));
 
-        // Wire in this install task
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(application.getDevelopmentBinary().getInstallDirectory());
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                TaskContainer tasks = project.getTasks();
+                ObjectFactory objectFactory = project.getObjects();
 
-        // Configure compile task
-        final SwiftCompile compileDebug = (SwiftCompile) tasks.getByName("compileDebugSwift");
-        final SwiftCompile compileRelease = (SwiftCompile) tasks.getByName("compileReleaseSwift");
+                SwiftExecutable debugExecutable = application.createExecutable("debug", true, false, true);
+                SwiftExecutable releaseExecutable = application.createExecutable("release", true, true, false);
 
-        Configuration implementation = application.getImplementationDependencies();
+                // Add outgoing APIs
+                SwiftCompile compileDebug = debugExecutable.getCompileTask().get();
+                SwiftCompile compileRelease = releaseExecutable.getCompileTask().get();
 
-        Configuration debugApiElements = configurations.maybeCreate("debugSwiftApiElements");
-        debugApiElements.extendsFrom(implementation);
-        debugApiElements.setCanBeResolved(false);
-        debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-        debugApiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, application.getDebugExecutable().isDebuggable());
-        debugApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, application.getDebugExecutable().isOptimized());
-        debugApiElements.getOutgoing().artifact(compileDebug.getModuleFile());
+                Configuration implementation = application.getImplementationDependencies();
 
-        Configuration releaseApiElements = configurations.maybeCreate("releaseSwiftApiElements");
-        releaseApiElements.extendsFrom(implementation);
-        releaseApiElements.setCanBeResolved(false);
-        releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-        releaseApiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, application.getReleaseExecutable().isDebuggable());
-        releaseApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, application.getReleaseExecutable().isOptimized());
-        releaseApiElements.getOutgoing().artifact(compileRelease.getModuleFile());
+                Configuration debugApiElements = configurations.maybeCreate("debugSwiftApiElements");
+                debugApiElements.extendsFrom(implementation);
+                debugApiElements.setCanBeResolved(false);
+                debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+                debugApiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debugExecutable.isDebuggable());
+                debugApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, debugExecutable.isOptimized());
+                debugApiElements.getOutgoing().artifact(compileDebug.getModuleFile());
+
+                Configuration releaseApiElements = configurations.maybeCreate("releaseSwiftApiElements");
+                releaseApiElements.extendsFrom(implementation);
+                releaseApiElements.setCanBeResolved(false);
+                releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
+                releaseApiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, releaseExecutable.isDebuggable());
+                releaseApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, releaseExecutable.isOptimized());
+                releaseApiElements.getOutgoing().artifact(compileRelease.getModuleFile());
+
+                // Assemble builds the debug installation
+                application.getDevelopmentBinary().set(debugExecutable);
+                tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugExecutable.getInstallDirectory());
+
+                // Configure the binaries
+                application.getBinaries().realizeNow();
+            }
+        });
     }
 }

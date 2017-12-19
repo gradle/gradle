@@ -28,13 +28,15 @@ class MavenHttpRepository implements MavenRepository, HttpRepository {
 
     private final MavenFileRepository backingRepository
     private final String contextPath
+    private final HttpRepository.MetadataType metadataType
 
-    MavenHttpRepository(HttpServer server, String contextPath = "/repo", MavenFileRepository backingRepository) {
+    MavenHttpRepository(HttpServer server, String contextPath = "/repo", HttpRepository.MetadataType metadataType = HttpRepository.MetadataType.DEFAULT, MavenFileRepository backingRepository) {
         if (!contextPath.startsWith("/")) {
             throw new IllegalArgumentException("Context path must start with '/'")
         }
         this.contextPath = contextPath
         this.server = server
+        this.metadataType = metadataType
         this.backingRepository = backingRepository
     }
 
@@ -58,5 +60,10 @@ class MavenHttpRepository implements MavenRepository, HttpRepository {
     MavenHttpModule module(String groupId, String artifactId, String version) {
         def backingModule = backingRepository.module(groupId, artifactId, version)
         return new MavenHttpModule(server, contextPath, backingModule)
+    }
+
+    @Override
+    HttpRepository.MetadataType getProvidesMetadata() {
+        return metadataType
     }
 }

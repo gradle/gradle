@@ -18,12 +18,18 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
-import org.gradle.api.file.*;
+import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -35,6 +41,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.gradle.util.ConfigureUtil.configure;
 
 public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
+
+    protected final Factory<PatternSet> patternSetFactory;
+
+    public AbstractFileTree() {
+        this(PatternSets.getNonCachingPatternSetFactory());
+    }
+
+    public AbstractFileTree(Factory<PatternSet> patternSetFactory) {
+        this.patternSetFactory = patternSetFactory;
+    }
+
     public Set<File> getFiles() {
         final Set<File> files = new LinkedHashSet<File>();
         visit(new EmptyFileVisitor() {
@@ -58,12 +75,12 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     public FileTree matching(Closure filterConfigClosure) {
-        return matching(configure(filterConfigClosure, new PatternSet()));
+        return matching(configure(filterConfigClosure, patternSetFactory.create()));
     }
 
     @Override
     public FileTree matching(Action<? super PatternFilterable> filterConfigAction) {
-        PatternSet patternSet = new PatternSet();
+        PatternSet patternSet = patternSetFactory.create();
         filterConfigAction.execute(patternSet);
         return matching(patternSet);
     }

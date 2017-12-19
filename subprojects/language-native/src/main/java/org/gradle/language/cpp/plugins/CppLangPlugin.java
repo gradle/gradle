@@ -29,7 +29,6 @@ import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.internal.DefaultCppSourceSet;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.cpp.tasks.CppPreCompiledHeaderCompile;
-import org.gradle.language.nativeplatform.internal.DependPlugin;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
@@ -53,7 +52,6 @@ public class CppLangPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         PluginManager pluginManager = project.getPluginManager();
         pluginManager.apply(ComponentModelBasePlugin.class);
-        pluginManager.apply(DependPlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")

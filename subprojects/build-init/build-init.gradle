@@ -18,8 +18,10 @@ dependencies {
     compile project(':core')
     compile project(':plugins')
     compile project(':wrapper')
-    integTestRuntime project(':maven')
-    integTestRuntime project(':scala')
+
+    testFixturesImplementation project(":internalTesting")
+
+    integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 
 useTestFixtures()

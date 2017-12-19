@@ -99,7 +99,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     private TaskOutputCachingBuildCacheKey doResolve(TaskInternal task, TaskExecutionContext context) {
         TaskArtifactState taskState = context.getTaskArtifactState();
         TaskOutputCachingBuildCacheKey cacheKey = taskState.calculateCacheKey();
-        if (task.getOutputs().getHasOutput()) { // A task with no outputs an no cache key.
+        if (context.getTaskProperties().hasDeclaredOutputs()) { // A task with no outputs and no cache key.
             if (cacheKey.isValid()) {
                 LOGGER.info("Build cache key for {} is {}", task, cacheKey.getHashCode());
             }

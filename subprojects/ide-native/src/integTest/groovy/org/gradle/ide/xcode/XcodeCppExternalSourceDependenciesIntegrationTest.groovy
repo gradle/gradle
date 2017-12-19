@@ -18,16 +18,14 @@ package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.internal.hash.HashUtil
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GFileUtils
 import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.internal.SourceDependencies
 import org.junit.Rule
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
-class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeIntegrationSpec {
+class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeIntegrationSpec implements SourceDependencies {
     @Rule
     GitRepository repo = new GitRepository('greeter', temporaryFolder.getTestDirectory())
     BuildTestFile depProject
@@ -43,7 +41,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
             """
             fixture.greeter.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         settingsFile << """
@@ -73,7 +71,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
         succeeds 'xcode'
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")
 
         def appProject = xcodeProject("${rootProjectName}.xcodeproj").projectFile
@@ -92,7 +90,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
             """
             fixture.greeter.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         settingsFile << """
@@ -122,7 +120,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
         succeeds 'xcode'
 
         then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcode")
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")
 
         def appProject = xcodeProject("${rootProjectName}.xcodeproj").projectFile
@@ -140,7 +138,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
             """
             fixture.greeter.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         singleProjectBuild("app") {
@@ -178,7 +176,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
         succeeds 'xcode'
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable",
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", "app/app.xcodeproj")
 
@@ -198,7 +196,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
             """
             fixture.greeter.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         singleProjectBuild("app") {
@@ -236,20 +234,11 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
         succeeds 'xcode'
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable",
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", "app/app.xcodeproj")
 
         def appProject = xcodeProject("app/app.xcodeproj").projectFile
         appProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file('app/src/main/headers'), checkoutDir(repo.name, commit.id.name, repo.id).file('src/main/public'))
-    }
-
-    TestFile checkoutDir(String repoName, String versionId, String repoId, TestFile baseDir=testDirectory) {
-        baseDir.file(checkoutRelativeDir(repoName, versionId, repoId))
-    }
-
-    String checkoutRelativeDir(String repoName, String versionId, String repoId) {
-        def hashedRepo = HashUtil.createCompactMD5(repoId)
-        return ".gradle/vcsWorkingDirs/${hashedRepo}/${versionId}/${repoName}"
     }
 }

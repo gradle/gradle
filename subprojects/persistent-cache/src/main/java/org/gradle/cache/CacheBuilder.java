@@ -86,7 +86,7 @@ public interface CacheBuilder {
      * Currently, a clean-up action is run after {@value org.gradle.cache.internal.DefaultPersistentDirectoryCache#CLEANUP_INTERVAL} days.
      *
      */
-    CacheBuilder withCleanup(Action<? super PersistentCache> cleanup);
+    CacheBuilder withCleanup(CleanupAction cleanup);
 
     /**
      * Opens the cache. It is the caller's responsibility to close the cache when finished with it.

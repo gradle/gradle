@@ -19,10 +19,12 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.SetSerializer;
+import org.gradle.internal.serialize.IntSetSerializer;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -30,24 +32,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIALIZER;
-
 public class ClassSetAnalysisData {
     final Map<String, String> filePathToClassName;
     final Map<String, DependentsSet> dependents;
-    final Map<String, Set<Integer>> classesToConstants;
-    final Map<Integer, Set<String>> literalsToClasses;
+    final Map<String, IntSet> classesToConstants;
     final Map<String, Set<String>> classesToChildren;
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Multimap<String, Integer> classesToConstants, Multimap<Integer, String> literalsToClasses, Multimap<String, String> classesToChildren) {
-        this(filePathToClassName, dependents, asMap(classesToConstants), asMap(literalsToClasses), asMap(classesToChildren));
+    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Multimap<String, String> classesToChildren) {
+        this(filePathToClassName, dependents, classesToConstants, asMap(classesToChildren));
     }
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, Set<Integer>> classesToConstants, Map<Integer, Set<String>> literalsToClasses, Map<String, Set<String>> classesToChildren) {
+    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren) {
         this.filePathToClassName = filePathToClassName;
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
-        this.literalsToClasses = literalsToClasses;
         this.classesToChildren = classesToChildren;
     }
 
@@ -67,10 +65,10 @@ public class ClassSetAnalysisData {
         return dependents.get(className);
     }
 
-    public Set<Integer> getConstants(String className) {
-        Set<Integer> integers = classesToConstants.get(className);
+    public IntSet getConstants(String className) {
+        IntSet integers = classesToConstants.get(className);
         if (integers == null) {
-            return Collections.emptySet();
+            return IntSets.EMPTY_SET;
         }
         return integers;
     }
@@ -81,7 +79,6 @@ public class ClassSetAnalysisData {
     }
 
     public static class Serializer extends AbstractSerializer<ClassSetAnalysisData> {
-        private static final SetSerializer<Integer> INTEGER_SET_SERIALIZER = new SetSerializer<Integer>(INTEGER_SERIALIZER, false);
 
         @Override
         public ClassSetAnalysisData read(Decoder decoder) throws Exception {
@@ -105,23 +102,11 @@ public class ClassSetAnalysisData {
             }
 
             count = decoder.readSmallInt();
-            ImmutableMap.Builder<String, Set<Integer>> classesToConstantsBuilder = ImmutableMap.builder();
+            ImmutableMap.Builder<String, IntSet> classesToConstantsBuilder = ImmutableMap.builder();
             for (int i = 0; i < count; i++) {
                 String className = readClassName(decoder, classNameMap);
-                Set<Integer> constants = INTEGER_SET_SERIALIZER.read(decoder);
+                IntSet constants = IntSetSerializer.INSTANCE.read(decoder);
                 classesToConstantsBuilder.put(className, constants);
-            }
-
-            count = decoder.readSmallInt();
-            ImmutableMap.Builder<Integer, Set<String>> literalsToClassesBuilder = ImmutableMap.builder();
-            for (int i = 0; i < count; i++) {
-                int literal = decoder.readInt();
-                int nameCount = decoder.readSmallInt();
-                ImmutableSet.Builder<String> namesBuilder = ImmutableSet.builder();
-                for (int j = 0; j < nameCount; j++) {
-                    namesBuilder.add(readClassName(decoder, classNameMap));
-                }
-                literalsToClassesBuilder.put(literal, namesBuilder.build());
             }
 
             count = decoder.readSmallInt();
@@ -136,7 +121,7 @@ public class ClassSetAnalysisData {
                 classNameToChildren.put(parent, namesBuilder.build());
             }
 
-            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), literalsToClassesBuilder.build(), classNameToChildren.build());
+            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build());
         }
 
         @Override
@@ -158,18 +143,9 @@ public class ClassSetAnalysisData {
             }
 
             encoder.writeSmallInt(value.classesToConstants.size());
-            for (Map.Entry<String, Set<Integer>> entry : value.classesToConstants.entrySet()) {
+            for (Map.Entry<String, IntSet> entry : value.classesToConstants.entrySet()) {
                 writeClassName(entry.getKey(), classNameMap, encoder);
-                INTEGER_SET_SERIALIZER.write(encoder, entry.getValue());
-            }
-
-            encoder.writeSmallInt(value.literalsToClasses.size());
-            for (Map.Entry<Integer, Set<String>> entry : value.literalsToClasses.entrySet()) {
-                encoder.writeInt(entry.getKey());
-                encoder.writeSmallInt(entry.getValue().size());
-                for (String className : entry.getValue()) {
-                    writeClassName(className, classNameMap, encoder);
-                }
+                IntSetSerializer.INSTANCE.write(encoder, entry.getValue());
             }
 
             encoder.writeSmallInt(value.classesToChildren.size());

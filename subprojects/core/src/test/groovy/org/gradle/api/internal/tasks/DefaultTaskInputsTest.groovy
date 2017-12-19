@@ -17,8 +17,14 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
+import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
+import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
+import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -42,16 +48,25 @@ class DefaultTaskInputsTest extends Specification {
             }
         }
     }
+    def project = Stub(ProjectInternal) {
+        getFileFileResolver() >> resolver
+    }
     def task = Mock(TaskInternal) {
         getName() >> "task"
         toString() >> "task 'task'"
+        getProject() >> project
+        getInputs() >> { inputs }
+        getOutputs() >> Stub(TaskOutputsInternal)
+        getDestroyables() >> Stub(TaskDestroyablesInternal)
+        getLocalState() >> Stub(TaskLocalStateInternal)
     }
-    private final DefaultTaskInputs inputs = new DefaultTaskInputs(resolver, task, taskStatusNagger)
+    def walker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))
+    private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, new DefaultPropertySpecFactory(task, resolver))
 
     def "default values"() {
         expect:
         inputs.files.empty
-        inputs.properties.isEmpty()
+        inputProperties().isEmpty()
         !inputs.hasInputs
         !inputs.hasSourceFiles
         inputs.sourceFiles.empty
@@ -61,55 +76,55 @@ class DefaultTaskInputsTest extends Specification {
         when: inputs.file("a")
         then:
         inputs.files.files.toList() == [new File('a')]
-        inputs.fileProperties*.propertyName == ['$1']
-        inputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        inputFileProperties().propertyName == ['$1']
+        inputFileProperties().propertyFiles*.files.flatten() == [new File("a")]
     }
 
     def "can register input file with property name"() {
         when: inputs.file("a").withPropertyName("prop")
         then:
         inputs.files.files.toList() == [new File('a')]
-        inputs.fileProperties*.propertyName == ['prop']
-        inputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        inputFileProperties().propertyName == ['prop']
+        inputFileProperties().propertyFiles*.files.flatten() == [new File("a")]
     }
 
     def "can register input files"() {
         when: inputs.files("a", "b")
         then:
         inputs.files.files.toList() == [new File("a"), new File("b")]
-        inputs.fileProperties*.propertyName == ['$1']
-        inputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        inputFileProperties().propertyName == ['$1']
+        inputFileProperties().propertyFiles*.files.flatten() == [new File("a"), new File("b")]
     }
 
-    def "can register input files with property naem"() {
+    def "can register input files with property name"() {
         when: inputs.files("a", "b").withPropertyName("prop")
         then:
         inputs.files.files.sort() == [new File("a"), new File("b")]
-        inputs.fileProperties*.propertyName == ['prop']
-        inputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        inputFileProperties().propertyName == ['prop']
+        inputFileProperties().propertyFiles*.files.flatten() == [new File("a"), new File("b")]
     }
 
     def "can register input dir"() {
         when: inputs.dir("a")
         then:
         inputs.files.files.toList() == [treeFile]
-        inputs.fileProperties*.propertyName == ['$1']
-        inputs.fileProperties*.propertyFiles*.files.flatten() == [treeFile]
+        inputFileProperties().propertyName == ['$1']
+        inputFileProperties().propertyFiles*.files.flatten() == [treeFile]
     }
 
     def "can register input dir with property name"() {
         when: inputs.dir("a").withPropertyName("prop")
         then:
         inputs.files.files.toList() == [treeFile]
-        inputs.fileProperties*.propertyName == ['prop']
-        inputs.fileProperties*.propertyFiles*.files.flatten() == [treeFile]
+        inputFileProperties().propertyName == ['prop']
+        inputFileProperties().propertyFiles*.files.flatten() == [treeFile]
     }
 
     def "cannot register input file with same property name"() {
         inputs.file("a").withPropertyName("alma")
         inputs.file("b").withPropertyName("alma")
         when:
-        inputs.fileProperties
+        inputFileProperties()
         then:
         def ex = thrown IllegalArgumentException
         ex.message == "Multiple input file properties with name 'alma'"
@@ -120,7 +135,7 @@ class DefaultTaskInputsTest extends Specification {
         inputs.property('a', 'value')
 
         then:
-        inputs.properties == [a: 'value']
+        inputProperties() == [a: 'value']
     }
 
     def canRegisterInputPropertyUsingAClosure() {
@@ -128,7 +143,7 @@ class DefaultTaskInputsTest extends Specification {
         inputs.property('a', { 'value' })
 
         then:
-        inputs.properties == [a: 'value']
+        inputProperties() == [a: 'value']
     }
 
     def canRegisterInputPropertyUsingACallable() {
@@ -136,7 +151,7 @@ class DefaultTaskInputsTest extends Specification {
         inputs.property('a', { 'value' } as Callable)
 
         then:
-        inputs.properties == [a: 'value']
+        inputProperties() == [a: 'value']
     }
 
     def canRegisterInputPropertyUsingAFileCollection() {
@@ -146,7 +161,7 @@ class DefaultTaskInputsTest extends Specification {
         inputs.property('a', [getFiles: { files }] as FileCollection)
 
         then:
-        inputs.properties == [a: files]
+        inputProperties() == [a: files]
     }
 
     def inputPropertyCanBeNestedCallableAndClosure() {
@@ -158,7 +173,7 @@ class DefaultTaskInputsTest extends Specification {
         inputs.property('a', { callable })
 
         then:
-        inputs.properties == [a: files]
+        inputProperties() == [a: files]
     }
 
     def "GString input property values are evaluated to avoid serialization issues"() {
@@ -166,8 +181,8 @@ class DefaultTaskInputsTest extends Specification {
         inputs.property('a', { "hey ${new NotSerializable()}" })
 
         then:
-        inputs.properties == [a: "hey Joe"]
-        String.is inputs.properties.a.class
+        inputProperties() == [a: "hey Joe"]
+        String.is inputProperties().a.class
     }
 
     class NotSerializable {
@@ -185,8 +200,8 @@ class DefaultTaskInputsTest extends Specification {
         inputs.hasSourceFiles
         inputs.files.files.toList() == [new File("a"), new File("b"), new File("s1"), new File("s2")]
         inputs.sourceFiles.files.toList() == [new File("s1"), new File("s2")]
-        inputs.fileProperties*.propertyName == ['$1', 'prop']
-        inputs.fileProperties*.propertyFiles*.toList() == [[new File("s1"), new File("s2")], [new File("a"), new File("b")]]
+        inputFileProperties().propertyName == ['$1', 'prop']
+        inputFileProperties().propertyFiles*.toList() == [[new File("s1"), new File("s2")], [new File("a"), new File("b")]]
     }
 
     def canRegisterSourceFile() {
@@ -265,5 +280,17 @@ class DefaultTaskInputsTest extends Specification {
         then:
         inputs.hasInputs
         inputs.hasSourceFiles
+    }
+
+    def inputProperties() {
+        def visitor = new GetInputPropertiesVisitor("test")
+        TaskPropertyUtils.visitProperties(walker, task, visitor)
+        return visitor.propertyValuesFactory.create()
+    }
+
+    def inputFileProperties() {
+        GetInputFilesVisitor visitor = new GetInputFilesVisitor("test")
+        TaskPropertyUtils.visitProperties(walker, task, visitor)
+        return visitor.getFileProperties()
     }
 }

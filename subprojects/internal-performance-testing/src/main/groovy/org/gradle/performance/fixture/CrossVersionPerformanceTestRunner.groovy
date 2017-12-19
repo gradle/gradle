@@ -105,13 +105,13 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             channel: ResultsStoreHelper.determineChannel()
         )
 
-        runVersion(current, perVersionWorkingDirectory('current'), results.current)
+        def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion).collect { results.baseline(it) }
+        def maxWorkingDirLength = (['current'] + baselineVersions*.version).collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
-        def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion)
+        runVersion(current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
 
-        baselineVersions.each { it ->
-            def baselineVersion = results.baseline(it)
-            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version), baselineVersion.results)
+        baselineVersions.each { baselineVersion ->
+            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
         }
 
         results.endTime = clock.getCurrentTime()
@@ -123,14 +123,18 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return results
     }
 
-    protected File perVersionWorkingDirectory(String version) {
-        def perVersion = new File(workingDir, version.replace('+', ''))
+    protected File perVersionWorkingDirectory(String version, int maxWorkingDirLength) {
+        def perVersion = new File(workingDir, sanitizeVersionWorkingDir(version).padRight(maxWorkingDirLength, '_'))
         if (!perVersion.exists()) {
             perVersion.mkdirs()
         } else {
             GFileUtils.cleanDirectory(perVersion)
         }
         perVersion
+    }
+
+    private static String sanitizeVersionWorkingDir(String version) {
+        version.replace('+', '')
     }
 
     static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumVersion) {

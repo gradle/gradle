@@ -46,6 +46,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.VersionStrategy;
@@ -253,5 +254,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     ExperimentalFeatures createExperimentalFeatures() {
         return new ExperimentalFeatures();
+    }
+
+    CleanupActionFactory createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
+        return new CleanupActionFactory(buildOperationExecutor);
     }
 }

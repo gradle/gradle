@@ -19,9 +19,13 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
+import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithDep
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraryTest
+import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
+import org.gradle.nativeplatform.fixtures.app.SwiftSum
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -58,8 +62,8 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
-            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary", ":greeter:xcode",
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme", ":greeter:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile
@@ -71,7 +75,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         when:
         def resultDebugApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
 
         then:
@@ -81,7 +85,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         when:
         def resultReleaseApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
@@ -123,9 +127,9 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable", ":app:xcode",
-            ":log:xcodeProject", ":log:xcodeProjectWorkspaceSettings", ":log:xcodeSchemeLogSharedLibrary", ":log:xcode",
-            ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeSchemeHelloSharedLibrary", ":hello:xcode",
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+            ":log:xcodeProject", ":log:xcodeProjectWorkspaceSettings", ":log:xcodeScheme", ":log:xcode",
+            ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeScheme", ":hello:xcode",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'log/log.xcodeproj', 'hello/hello.xcodeproj')
@@ -138,7 +142,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         when:
         def resultDebugApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
 
         then:
@@ -149,13 +153,93 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         when:
         def resultReleaseHello = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('Hello SharedLibrary')
+            .withScheme('Hello')
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
         then:
         resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease',
-            ':log:stripSymbolsRelease', ':log:compileReleaseSwift', ':log:linkRelease', ':hello:_xcode___Hello_Release')
+            ':log:stripSymbolsRelease', ':log:compileReleaseSwift', ':log:linkRelease',
+            ':hello:_xcode___Hello_Release')
+    }
+
+    def "can create xcode project for Swift application with dependency on c++ library"() {
+        def cppGreeter = new CppGreeterFunction()
+        def swiftGreeter = new SwiftGreeterUsingCppFunction(cppGreeter)
+        def sumLibrary = new SwiftSum()
+        def app = new SwiftAppWithDep(swiftGreeter, sumLibrary)
+        app.main.greeterModule = "Hello"
+
+        given:
+        settingsFile.text =  """
+            include 'app', 'cppGreeter', 'hello'
+            rootProject.name = "${rootProjectName}"
+        """
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                dependencies {
+                    api project(':cppGreeter')
+                }
+            }
+            project(':cppGreeter') {
+                apply plugin: 'cpp-library'
+            }
+        """
+        swiftGreeter.writeToProject(file("hello"))
+        cppGreeter.asLib().writeToProject(file("cppGreeter"))
+        sumLibrary.writeToProject(file("app"))
+        app.writeToProject(file("app"))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+            ":cppGreeter:xcodeProject", ":cppGreeter:xcodeProjectWorkspaceSettings", ":cppGreeter:xcodeScheme", ":cppGreeter:xcode",
+            ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeScheme", ":hello:xcode",
+            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'cppGreeter/cppGreeter.xcodeproj', 'hello/hello.xcodeproj')
+
+        def appSwiftIncludeDirs = toFiles(xcodeProject("app/app.xcodeproj").projectFile.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS)
+        appSwiftIncludeDirs.size() == 3
+        appSwiftIncludeDirs[0..1] == [ file("hello/build/modules/main/debug"), file("cppGreeter/src/main/public") ]
+        appSwiftIncludeDirs[2].file("module.modulemap").assertExists()
+
+        def helloSwiftIncludeDirs = toFiles(xcodeProject("hello/hello.xcodeproj").projectFile.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS)
+        helloSwiftIncludeDirs.size() == 2
+        helloSwiftIncludeDirs[0] == file("cppGreeter/src/main/public")
+        helloSwiftIncludeDirs[1].file("module.modulemap").assertExists()
+
+        when:
+        def resultDebugApp = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('App')
+            .succeeds()
+
+        then:
+        resultDebugApp.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ':hello:compileDebugSwift', ':hello:linkDebug',
+            ':app:compileDebugSwift', ':app:linkDebug', ':app:_xcode___App_Debug')
+
+        when:
+        def resultReleaseHello = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('Hello')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
+            .succeeds()
+
+        then:
+        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease',
+            ":cppGreeter:compileReleaseCpp", ":cppGreeter:linkRelease", ":cppGreeter:stripSymbolsRelease",
+            ':hello:_xcode___Hello_Release')
     }
 
     def "can clean xcode project with transitive dependencies"() {
@@ -191,7 +275,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         when:
         xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
 
         then:
@@ -202,7 +286,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         when:
         xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds(XcodebuildExecuter.XcodeAction.CLEAN)
 
         then:
@@ -213,7 +297,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         when:
         xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('Hello SharedLibrary')
+            .withScheme('Hello')
             .succeeds(XcodebuildExecuter.XcodeAction.CLEAN)
 
         then:
@@ -255,7 +339,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         succeeds("xcode")
 
         then:
-        executedAndNotSkipped(":greeter:compileDebugSwift", ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeSchemeGreeterSharedLibrary",
+        executedAndNotSkipped(":greeter:compileDebugSwift", ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile
@@ -267,7 +351,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         when:
         def resultDebugApp = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('App Executable')
+            .withScheme('App')
             .succeeds()
 
         then:
@@ -276,7 +360,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         when:
         def resultReleaseGreeter = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('Greeter SharedLibrary')
+            .withScheme('Greeter')
             .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
             .succeeds()
 
@@ -306,7 +390,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         when:
         def resultTestRunner = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
-            .withScheme('Greeter SharedLibrary')
+            .withScheme('Greeter')
             .succeeds(XcodebuildExecuter.XcodeAction.TEST)
 
         then:

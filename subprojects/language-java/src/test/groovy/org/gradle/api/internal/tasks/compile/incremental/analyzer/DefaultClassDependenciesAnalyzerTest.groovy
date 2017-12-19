@@ -70,7 +70,6 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
         analysis.classDependencies == [UsedByNonPrivateConstantsClass.name] as Set
         !analysis.dependencyToAll
         analysis.constants == ['X|1'.hashCode()] as Set
-        analysis.literals == [] as Set
 
         when:
         analysis = analyze(HasPublicConstants)
@@ -79,7 +78,6 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
         analysis.classDependencies.isEmpty()
         !analysis.dependencyToAll
         analysis.constants == ['X|1'.hashCode()] as Set
-        analysis.literals == [] as Set
 
         when:
         analysis = analyze(HasPrivateConstants)
@@ -88,7 +86,6 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
         analysis.classDependencies == [HasNonPrivateConstants.name] as Set
         !analysis.dependencyToAll
         analysis.constants == [] as Set
-        analysis.literals == [] as Set
     }
 
     def "knows if a class uses annotations with source retention"() {

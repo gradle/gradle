@@ -62,5 +62,5 @@ public interface ComponentMetadataDetails extends ComponentMetadata {
      *
      * @since 4.4
      */
-    void withVariant(String name, Action<VariantMetadata> action);
+    void withVariant(String name, Action<? super VariantMetadata> action);
 }

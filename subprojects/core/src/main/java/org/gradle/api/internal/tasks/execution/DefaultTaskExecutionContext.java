@@ -29,6 +29,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private TaskOutputCachingBuildCacheKey buildCacheKey;
     private UniqueId originBuildInvocationId;
     private List<String> upToDateMessages;
+    private TaskProperties taskProperties;
 
     @Override
     public TaskArtifactState getTaskArtifactState() {
@@ -69,6 +70,16 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setUpToDateMessages(List<String> upToDateMessages) {
         this.upToDateMessages = upToDateMessages;
+    }
+
+    @Override
+    public void setTaskProperties(TaskProperties taskProperties) {
+        this.taskProperties = taskProperties;
+    }
+
+    @Override
+    public TaskProperties getTaskProperties() {
+        return taskProperties;
     }
 
 }

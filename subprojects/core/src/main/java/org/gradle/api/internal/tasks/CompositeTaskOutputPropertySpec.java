@@ -20,6 +20,7 @@ import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileResolver;
@@ -117,5 +118,10 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     @Override
     public void validate(TaskValidationContext context) {
         paths.validate(getPropertyName(), isOptional(), validationAction, context);
+    }
+
+    @Override
+    public FileCollection getPropertyFiles() {
+        return new TaskPropertyFileCollection(taskName, "output", this, resolver, paths);
     }
 }

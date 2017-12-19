@@ -607,7 +607,7 @@ Searched in the following locations:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:[1.2,2.0)", "org.test:projectA:1.2.1")
+                edge("org.test:projectA:[1.2,2.0)", "org.test:projectA:1.2.1:default")
             }
         }
     }

@@ -38,7 +38,7 @@ class IvyPublishMultiProjectIntegTest extends AbstractIvyPublishIntegTest {
         project3.assertApiDependencies()
 
         and:
-        resolveArtifacts(project1) == ['project1-1.0.jar', 'project2-2.0.jar', 'project3-3.0.jar']
+        resolveArtifacts(project1) { expectFiles 'project1-1.0.jar', 'project2-2.0.jar', 'project3-3.0.jar' }
     }
 
     def "project dependencies reference publication identity of dependent project"() {
@@ -70,7 +70,7 @@ project(":project3") {
         project3.assertApiDependencies()
 
         and:
-        resolveArtifacts(project1) == ['changed-module-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar']
+        resolveArtifacts(project1) { expectFiles 'changed-module-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar' }
     }
 
     def "reports failure when project dependency references a project with multiple publications"() {

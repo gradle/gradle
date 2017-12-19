@@ -56,8 +56,8 @@ public class DependencyMetadataRules {
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser;
-    private final List<Action<DirectDependenciesMetadata>> dependencyActions = new ArrayList<Action<DirectDependenciesMetadata>>();
-    private final List<Action<DependencyConstraintsMetadata>> dependencyConstraintActions = new ArrayList<Action<DependencyConstraintsMetadata>>();
+    private final List<Action<? super DirectDependenciesMetadata>> dependencyActions = new ArrayList<Action<? super DirectDependenciesMetadata>>();
+    private final List<Action<? super DependencyConstraintsMetadata>> dependencyConstraintActions = new ArrayList<Action<? super DependencyConstraintsMetadata>>();
 
     public DependencyMetadataRules(Instantiator instantiator,
                                    NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
@@ -67,11 +67,11 @@ public class DependencyMetadataRules {
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;
     }
 
-    public void addDependencyAction(Action<DirectDependenciesMetadata> action) {
+    public void addDependencyAction(Action<? super DirectDependenciesMetadata> action) {
         dependencyActions.add(action);
     }
 
-    public void addDependencyConstraintAction(Action<DependencyConstraintsMetadata> action) {
+    public void addDependencyConstraintAction(Action<? super DependencyConstraintsMetadata> action) {
         dependencyConstraintActions.add(action);
     }
 
@@ -84,7 +84,7 @@ public class DependencyMetadataRules {
 
     private <T extends ModuleDependencyMetadata> List<T> executeDependencyRules(List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<T>(CollectionUtils.filter(dependencies, DEPENDENCY_FILTER));
-        for (Action<DirectDependenciesMetadata> dependenciesMetadataAction : dependencyActions) {
+        for (Action<? super DirectDependenciesMetadata> dependenciesMetadataAction : dependencyActions) {
             dependenciesMetadataAction.execute(instantiator.newInstance(
                 DirectDependenciesMetadataAdapter.class, calculatedDependencies, instantiator, dependencyNotationParser));
         }
@@ -93,7 +93,7 @@ public class DependencyMetadataRules {
 
     private <T extends ModuleDependencyMetadata> List<T> executeDependencyConstraintRules(List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<T>(CollectionUtils.filter(dependencies, DEPENDENCY_CONSTRAINT_FILTER));
-        for (Action<DependencyConstraintsMetadata> dependencyConstraintsMetadataAction : dependencyConstraintActions) {
+        for (Action<? super DependencyConstraintsMetadata> dependencyConstraintsMetadataAction : dependencyConstraintActions) {
             dependencyConstraintsMetadataAction.execute(instantiator.newInstance(
                 DependencyConstraintsMetadataAdapter.class, calculatedDependencies, instantiator, dependencyConstraintNotationParser));
         }

@@ -63,6 +63,8 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceLookupException
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.time.Clock
@@ -139,9 +141,11 @@ class BuildScopeServicesTest extends Specification {
         def plugin1 = Mock(PluginServiceRegistry)
 
         given:
-        def sessionServices = Mock(BuildSessionScopeServices) {
-            getAll(PluginServiceRegistry) >> [plugin1, plugin2]
-            hasService(_) >> true
+        def sessionServices = new DefaultServiceRegistry() {
+            @Override
+            def <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
+                [plugin1, plugin2]
+            }
         }
 
         when:

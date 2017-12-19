@@ -44,12 +44,12 @@ public class VariantMetadataAdapter implements VariantMetadata {
     }
 
     @Override
-    public void withDependencies(Action<DirectDependenciesMetadata> action) {
+    public void withDependencies(Action<? super DirectDependenciesMetadata> action) {
         metadata.addDependencyMetadataRule(name, action, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser);
     }
 
     @Override
-    public void withDependencyConstraints(Action<DependencyConstraintsMetadata> action) {
+    public void withDependencyConstraints(Action<? super DependencyConstraintsMetadata> action) {
         metadata.addDependencyConstraintMetadataRule(name, action, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser);
     }
 }

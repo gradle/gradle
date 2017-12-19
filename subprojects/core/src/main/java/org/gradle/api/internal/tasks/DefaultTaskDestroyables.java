@@ -18,25 +18,18 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.util.DeprecationLogger;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 @NonNullApi
 public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
-    private final FileResolver resolver;
-    private final TaskInternal task;
     private final TaskMutator taskMutator;
-    private final List<Object> paths = Lists.newArrayList();
+    private final List<Object> registeredPaths = Lists.newArrayList();
 
-    public DefaultTaskDestroyables(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
-        this.resolver = resolver;
-        this.task = task;
+    public DefaultTaskDestroyables(TaskMutator taskMutator) {
         this.taskMutator = taskMutator;
     }
 
@@ -46,7 +39,7 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
         taskMutator.mutate("TaskDestroys.files(Object...)", new Runnable() {
             @Override
             public void run() {
-                Collections.addAll(DefaultTaskDestroyables.this.paths, paths);
+                Collections.addAll(DefaultTaskDestroyables.this.registeredPaths, paths);
             }
         });
     }
@@ -57,7 +50,7 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
         taskMutator.mutate("TaskDestroys.file(Object...)", new Runnable() {
             @Override
             public void run() {
-                paths.add(path);
+                registeredPaths.add(path);
             }
         });
     }
@@ -67,13 +60,14 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
         taskMutator.mutate("TaskDestroys.register(Object...)", new Runnable() {
             @Override
             public void run() {
-                Collections.addAll(DefaultTaskDestroyables.this.paths, paths);
+                Collections.addAll(DefaultTaskDestroyables.this.registeredPaths, paths);
             }
         });
     }
 
     @Override
-    public FileCollection getFiles() {
-        return new DefaultConfigurableFileCollection(task + " destroy files", resolver, null, paths);
+    public Collection<Object> getRegisteredPaths() {
+        return registeredPaths;
     }
+
 }

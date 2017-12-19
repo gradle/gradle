@@ -15,7 +15,10 @@
  */
 package org.gradle.api.tasks
 
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.internal.file.copy.CopyAction
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
+import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.internal.Actions
 import org.gradle.internal.Transformers
 import org.gradle.test.fixtures.file.WorkspaceTest
@@ -25,6 +28,10 @@ import spock.lang.Unroll
 @SuppressWarnings("GroovyPointlessBoolean")
 class AbstractCopyTaskTest extends WorkspaceTest {
 
+    def taskPropertiesWithOutput = Mock(TaskProperties) {
+        getOutputFileProperties() >> ImmutableSortedSet.of(Mock(TaskOutputFilePropertySpec))
+        hasDeclaredOutputs() >> true
+    }
     TestCopyTask task
 
     def setup() {
@@ -49,18 +56,10 @@ class AbstractCopyTaskTest extends WorkspaceTest {
 
     @Unroll
     def "task output caching is disabled when #description is used"() {
-        expect:
-        task.outputs.cachingState.enabled == false
-
-        when:
-        task.outputs.cacheIf { true }
-        then:
-        task.outputs.cachingState.enabled == true
-
         when:
         method(task)
         then:
-        task.outputs.cachingState.enabled == false
+        task.outputs.getCachingState(taskPropertiesWithOutput).enabled == false
 
         where:
         description                 | method

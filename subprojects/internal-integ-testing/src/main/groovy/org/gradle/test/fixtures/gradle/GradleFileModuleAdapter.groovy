@@ -63,8 +63,8 @@ class GradleFileModuleAdapter {
                     }
                     files(v.artifacts.collect { a ->
                         { ->
-                            name a.file.name
-                            url a.file.name
+                            name a.name
+                            url a.name
                         }
                     })
                     dependencies(v.dependencies.collect { d ->

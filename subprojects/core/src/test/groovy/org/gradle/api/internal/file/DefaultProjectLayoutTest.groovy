@@ -18,6 +18,7 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.file.Directory
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.provider.Provider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,13 +33,10 @@ class DefaultProjectLayoutTest extends Specification {
 
     def setup() {
         projectDir = tmpDir.createDir("project")
-        layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir))
+        layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir), Stub(TaskResolver))
     }
 
     def "can query the project directory"() {
-        def projectDir = tmpDir.createDir("project")
-        def layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir))
-
         expect:
         layout.projectDirectory.getAsFile() == projectDir
     }

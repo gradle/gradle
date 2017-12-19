@@ -20,8 +20,12 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.Module
+import org.gradle.test.fixtures.gradle.FileSpec
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.test.fixtures.server.http.HttpArtifact
+import org.gradle.test.fixtures.server.http.IvyHttpModule
+import org.gradle.test.fixtures.server.http.MavenHttpModule
 
 class ModuleVersionSpec {
     private final String groupId
@@ -31,8 +35,9 @@ class ModuleVersionSpec {
 
     private final List<Object> dependsOn = []
     private final List<Object> constraints = []
-    private final Map<String, Map<String, String>> variants = [:]
+    private final List<VariantSpec> variants = []
     private final List<Closure<?>> withModule = []
+    private final Map<String, String> componentLevelAttributes = [:]
     private List<InteractionExpectation> expectGetMetadata = [InteractionExpectation.NONE]
     private List<ArtifactExpectation> expectGetArtifact = []
 
@@ -65,6 +70,10 @@ class ModuleVersionSpec {
         expectGetMetadata << InteractionExpectation.GET_MISSING
     }
 
+    void expectGetMetadataMissingThatIsFoundElsewhere() {
+        expectGetMetadata << InteractionExpectation.GET_MISSING_FOUND_ELSEWHERE
+    }
+
     void expectHeadMetadata() {
         expectGetMetadata << InteractionExpectation.HEAD
     }
@@ -93,8 +102,24 @@ class ModuleVersionSpec {
         expectGetMetadata << InteractionExpectation.MAYBE
     }
 
+    void expectGetVariantArtifacts(String variant) {
+        expectGetArtifact << new ArtifactExpectation(InteractionExpectation.GET, new VariantArtifacts(variant))
+    }
+
+    void attribute(String key, String value) {
+        componentLevelAttributes[key] = value
+    }
+
     void variant(String variant, Map<String, String> attributes) {
-        variants << [(variant): attributes]
+        variants << new VariantSpec(name:variant, attributes:attributes)
+    }
+
+    void variant(String name, @DelegatesTo(value= VariantSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def variant = new VariantSpec(name: name)
+        spec.delegate = variant
+        spec.resolveStrategy = Closure.DELEGATE_FIRST
+        spec()
+        variants << variant
     }
 
     void dependsOn(coord) {
@@ -113,6 +138,7 @@ class ModuleVersionSpec {
         withModule << { ->
             if (moduleClass.isAssignableFrom(delegate.class)) {
                 spec.delegate = delegate
+                spec.resolveStrategy = Closure.DELEGATE_FIRST
                 spec()
             }
         }
@@ -126,7 +152,14 @@ class ModuleVersionSpec {
 
     void build(HttpRepository repository) {
         def module = repository.module(groupId, artifactId, version)
-        def gradleMetadataEnabled = GradleMetadataResolveRunner.isGradleMetadataEnabled()
+        def gradleMetadataEnabled
+        if (repository.providesMetadata == HttpRepository.MetadataType.ONLY_ORIGINAL) {
+            gradleMetadataEnabled = false
+        } else if (repository.providesMetadata == HttpRepository.MetadataType.ONLY_GRADLE) {
+            gradleMetadataEnabled = true
+        } else {
+            gradleMetadataEnabled = GradleMetadataResolveRunner.isGradleMetadataEnabled()
+        }
         def newResolveBehaviorEnabled = GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
         if (gradleMetadataEnabled) {
             module.withModuleMetadata()
@@ -169,11 +202,20 @@ class ModuleVersionSpec {
                         module.ivy.expectGetMissing()
                     }
                     break
+                case InteractionExpectation.GET_MISSING_FOUND_ELSEWHERE:
+                    if (newResolveBehaviorEnabled || gradleMetadataEnabled) {
+                        module.moduleMetadata.expectGetMissing()
+                    } else if (module instanceof MavenModule) {
+                        module.pom.expectGetMissing()
+                    } else if (module instanceof IvyModule) {
+                        module.ivy.expectGetMissing()
+                    }
+                    break
                 default:
                     if (newResolveBehaviorEnabled && !gradleMetadataEnabled) {
                         module.moduleMetadata.allowGetOrHead()
                     }
-                    if (newResolveBehaviorEnabled && gradleMetadataEnabled) {
+                    if (gradleMetadataEnabled) {
                         module.moduleMetadata.expectGet()
                     } else if (module instanceof MavenModule) {
                         module.pom.expectGet()
@@ -185,37 +227,57 @@ class ModuleVersionSpec {
 
         if (expectGetArtifact) {
             expectGetArtifact.each { ArtifactExpectation expectation ->
-                def artifact
+                def artifacts = []
                 if (expectation.spec) {
-                    if (module instanceof MavenModule) {
-                        artifact = module.getArtifact(expectation.spec)
+                    if (expectation.spec instanceof VariantArtifacts) {
+                        artifacts.addAll(expectation.spec.toArtifacts(module))
+                    } else if (module instanceof MavenModule) {
+                        artifacts << module.getArtifact(expectation.spec)
                     } else if (module instanceof IvyModule) {
-                        artifact = module.artifact(expectation.spec)
+                        artifacts << module.artifact(expectation.spec)
                     }
                 } else {
-                    artifact = module.artifact
+                    artifacts << module.artifact
                 }
-                switch (expectation.type) {
-                    case InteractionExpectation.GET:
-                        artifact.expectGet()
-                        break
-                    case InteractionExpectation.HEAD:
-                        artifact.expectHead()
-                        break
-                    case InteractionExpectation.HEAD_MISSING:
-                        artifact.expectHeadMissing()
-                        break
-                    case InteractionExpectation.MAYBE:
-                        artifact.allowGetOrHead()
-                        break
-                    case InteractionExpectation.NONE:
-                        break
+                artifacts.each { artifact ->
+                    switch (expectation.type) {
+                        case InteractionExpectation.GET:
+                            artifact.expectGet()
+                            break
+                        case InteractionExpectation.HEAD:
+                            artifact.expectHead()
+                            break
+                        case InteractionExpectation.HEAD_MISSING:
+                            artifact.expectHeadMissing()
+                            break
+                        case InteractionExpectation.MAYBE:
+                            artifact.allowGetOrHead()
+                            break
+                        case InteractionExpectation.NONE:
+                            break
+                    }
                 }
             }
         }
+        if (componentLevelAttributes) {
+            componentLevelAttributes.each { key, value ->
+                module.attributes[key] = value
+            }
+        }
         if (variants) {
-            variants.each {
-                module.variant(it.key, it.value)
+            variants.each { variant ->
+                module.withVariant(variant.name) {
+                    attributes = attributes? attributes + variant.attributes : variant.attributes
+                    artifacts = variant.artifacts.collect {
+                        // publish variant files as "classified". This can be arbitrary in practice, this
+                        // just makes it easier for publishing specs
+                        new FileSpec("${module.module}-${module.version}-$it.name.${it.ext}", it.url)
+                    }
+                    variant.dependsOn.each {
+                        def args = it.split(':') as List
+                        dependsOn(*args)
+                    }
+                }
             }
         }
 
@@ -254,6 +316,26 @@ class ModuleVersionSpec {
         if (mustPublish) {
             // do not publish modules created during a `repositoryInteractions { ... }` block
             module.publish()
+        }
+    }
+
+    class VariantArtifacts {
+        final String variant
+
+        VariantArtifacts(String name) {
+            this.variant = name
+        }
+
+        List<HttpArtifact> toArtifacts(IvyHttpModule ivyModule) {
+            variants.find { it.name == variant }.artifacts.collect {
+                ivyModule.getArtifact(classifier: it.name, ext: it.ext)
+            }
+        }
+
+        List<HttpArtifact> toArtifacts(MavenHttpModule mavenModule) {
+            variants.find { it.name == variant }.artifacts.collect {
+                mavenModule.getArtifact(classifier: it.name, type: it.ext)
+            }
         }
     }
 

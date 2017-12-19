@@ -25,6 +25,7 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -37,14 +38,29 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private final PathToFileResolver resolver;
     private final DefaultTaskDependency buildDependency;
 
-    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, TaskResolver taskResolver, Object... files) {
+    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, TaskResolver taskResolver) {
+        this("file collection", fileResolver, taskResolver, null);
+    }
+
+    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, TaskResolver taskResolver, Collection<?> files) {
         this("file collection", fileResolver, taskResolver, files);
     }
 
-    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, TaskResolver taskResolver, Object... files) {
+    public DefaultConfigurableFileCollection(PathToFileResolver fileResolver, TaskResolver taskResolver, Object[] files) {
+        this("file collection", fileResolver, taskResolver, Arrays.asList(files));
+    }
+
+    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, TaskResolver taskResolver) {
+        this(displayName, fileResolver, taskResolver, null);
+    }
+
+    public DefaultConfigurableFileCollection(String displayName, PathToFileResolver fileResolver, TaskResolver taskResolver, Collection<?> files) {
         this.displayName = displayName;
         this.resolver = fileResolver;
-        this.files = new LinkedHashSet<Object>(Arrays.asList(files));
+        this.files = new LinkedHashSet<Object>();
+        if (files != null) {
+            this.files.addAll(files);
+        }
         buildDependency = new DefaultTaskDependency(taskResolver);
     }
 
@@ -77,7 +93,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     public Set<Object> getBuiltBy() {
-        return buildDependency.getValues();
+        return buildDependency.getMutableValues();
     }
 
     public ConfigurableFileCollection setBuiltBy(Iterable<?> tasks) {

@@ -20,6 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
+import org.gradle.api.attributes.AttributeCompatibilityRule;
+import org.gradle.api.attributes.CompatibilityCheckDetails;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -32,14 +35,17 @@ import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftSharedLibrary;
+import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.internal.DefaultSwiftExecutable;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
+import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.ExtractSymbols;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
@@ -70,6 +76,8 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
         final ModelRegistry modelRegistry = project.getModelRegistry();
         final ProviderFactory providers = project.getProviders();
+
+        project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE).getCompatibilityRules().add(SwiftCppUsageCompatibilityRule.class);
 
         project.getComponents().withType(SwiftBinary.class, new Action<SwiftBinary>() {
             @Override
@@ -104,6 +112,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
 
+                ((DefaultSwiftBinary)binary).getCompileTask().set(compile);
                 ((DefaultSwiftBinary)binary).getObjectsDir().set(compile.getObjectFileDir());
 
                 Task lifecycleTask = tasks.maybeCreate(names.getTaskName("assemble"));
@@ -126,6 +135,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
+                    executable.getDebuggerExecutableFile().set(link.getBinaryFile());
                     if (executable.isDebuggable() && executable.isOptimized()) {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
@@ -148,7 +158,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     // Add an install task
                     // TODO - maybe not for all executables
                     // TODO - add stripped symbols to the installation
-                    final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
+                    InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
                     install.setPlatform(link.getTargetPlatform());
                     install.setToolChain(link.getToolChain());
                     install.getInstallDirectory().set(buildDirectory.dir("install/" + names.getDirName()));
@@ -156,6 +166,8 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     install.lib(binary.getRuntimeLibraries());
                     executable.getInstallDirectory().set(install.getInstallDirectory());
                     executable.getRunScriptFile().set(install.getRunScriptFile());
+                    executable.getLinkTask().set(link);
+                    executable.getInstallTask().set(install);
 
                     lifecycleTask.dependsOn(install.getInstallDirectory());
                 } else if (binary instanceof SwiftSharedLibrary) {
@@ -199,7 +211,32 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     } else {
                         library.getRuntimeFile().set(link.getBinaryFile());
                     }
+                    library.getLinkTask().set(link);
                     lifecycleTask.dependsOn(library.getRuntimeFile());
+                } else if (binary instanceof SwiftStaticLibrary) {
+                    DefaultSwiftStaticLibrary library = (DefaultSwiftStaticLibrary) binary;
+
+                    // Specific compiler arguments
+                    compile.getCompilerArgs().add("-parse-as-library");
+
+                    // Add a link task
+                    final CreateStaticLibrary link = tasks.create(names.getTaskName("create"), CreateStaticLibrary.class);
+                    link.source(binary.getObjects());
+                    // TODO - need to set soname
+                    final PlatformToolProvider toolProvider = toolChain.select(currentPlatform);
+                    Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return toolProvider.getStaticLibraryName("lib/" + names.getDirName() + binary.getModule().get());
+                        }
+                    }));
+                    link.setOutputFile(runtimeFile);
+                    link.setTargetPlatform(currentPlatform);
+                    link.setToolChain(toolChain);
+
+                    library.getLinkFile().set(link.getBinaryFile());
+                    library.getCreateTask().set(link);
+                    lifecycleTask.dependsOn(library.getLinkFile());
                 }
             }
         });
@@ -221,5 +258,15 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         lifecycleTask.dependsOn(stripSymbols);
 
         return stripSymbols;
+    }
+
+    static class SwiftCppUsageCompatibilityRule implements AttributeCompatibilityRule<Usage> {
+        @Override
+        public void execute(CompatibilityCheckDetails<Usage> details) {
+            if (Usage.SWIFT_API.equals(details.getConsumerValue().getName())
+                    && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
+                details.compatible();
+            }
+        }
     }
 }

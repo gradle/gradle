@@ -17,19 +17,12 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
-import org.gradle.api.internal.artifacts.vcs.VcsWorkingDirectoryRoot;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.initialization.layout.ProjectCacheDir;
-
-import java.io.File;
 
 /**
  * The set of dependency management services that are created per build tree.
  */
 class DependencyManagementBuildTreeScopeServices {
-    VcsWorkingDirectoryRoot createVcsWorkingDirectoryRoot(ProjectCacheDir projectCacheDir) {
-        return new VcsWorkingDirectoryRoot(new File(projectCacheDir.getDir(), "vcsWorkingDirs"));
-    }
 
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
         return new ResolutionResultsStoreFactory(temporaryFileProvider);

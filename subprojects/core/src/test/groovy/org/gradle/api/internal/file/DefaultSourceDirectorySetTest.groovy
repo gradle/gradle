@@ -422,7 +422,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
     }
 
     FileCollection dir(String dirPath, Task builtBy) {
-        def collection = new DefaultConfigurableFileCollection(dirPath, resolver, null, dirPath)
+        def collection = new DefaultConfigurableFileCollection(dirPath, resolver, null, [dirPath])
         collection.builtBy(builtBy)
         return collection
     }

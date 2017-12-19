@@ -19,6 +19,7 @@ package org.gradle.composite.internal;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -49,7 +51,6 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
 
     // TODO: Locking around this
     private final Map<File, IncludedBuildInternal> includedBuilds = Maps.newLinkedHashMap();
-
 
     public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, DefaultProjectPathRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, CompositeBuildContext compositeBuildContext) {
         this.includedBuildFactory = includedBuildFactory;
@@ -81,6 +82,11 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
                 return includedBuild.getName().equals(buildIdentifier.getName());
             }
         });
+    }
+
+    @Override
+    public Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getModuleToProjectMapping(IncludedBuild includedBuild) {
+        return ((IncludedBuildInternal)includedBuild).getAvailableModules();
     }
 
     @Override

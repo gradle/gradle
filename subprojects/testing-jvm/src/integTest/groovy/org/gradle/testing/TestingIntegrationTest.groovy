@@ -82,11 +82,24 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
     def "configures test task when test.single property is set"() {
         given:
         buildFile << """
+            import org.gradle.api.internal.tasks.properties.PropertyVisitor
+            import org.gradle.api.internal.tasks.properties.PropertyWalker
+            import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
+            import org.gradle.api.internal.tasks.TaskPropertyUtils
+
             apply plugin: 'java'
+
             task validate() {
                 doFirst {
                     assert test.includes  == ['**/pattern*.class'] as Set
-                    assert test.inputs.sourceFiles.empty
+                    boolean hasSourceFiles = false
+                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
+                        @Override
+                        void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
+                            hasSourceFiles |= inputFileProperty.isSkipWhenEmpty() && !inputFileProperty.propertyFiles.empty
+                        }
+                    })
+                    assert !hasSourceFiles
                 }
             }
             test.include 'ignoreme'

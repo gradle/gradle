@@ -18,6 +18,7 @@ package org.gradle.cache.internal;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheValidator;
+import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
@@ -41,11 +42,11 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
     private final Properties properties = new Properties();
     private final Action<? super PersistentCache> initAction;
-    private final Action<? super PersistentCache> cleanupAction;
+    private final CleanupAction cleanupAction;
     private final CacheValidator validator;
     private boolean didRebuild;
 
-    public DefaultPersistentDirectoryCache(File dir, String displayName, CacheValidator validator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initAction, Action<? super PersistentCache> cleanupAction, FileLockManager lockManager, ExecutorFactory executorFactory) {
+    public DefaultPersistentDirectoryCache(File dir, String displayName, CacheValidator validator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initAction, CleanupAction cleanupAction, FileLockManager lockManager, ExecutorFactory executorFactory) {
         super(dir, displayName, lockTarget, lockOptions, lockManager, executorFactory);
         this.validator = validator;
         this.initAction = initAction;
@@ -131,7 +132,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         public void cleanup() {
             if (cleanupAction!=null) {
                 Timer timer = Time.startTimer();
-                cleanupAction.execute(DefaultPersistentDirectoryCache.this);
+                cleanupAction.clean(DefaultPersistentDirectoryCache.this);
                 LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryCache.this, timer.getElapsed());
             }
             gcFile.setLastModified(System.currentTimeMillis());

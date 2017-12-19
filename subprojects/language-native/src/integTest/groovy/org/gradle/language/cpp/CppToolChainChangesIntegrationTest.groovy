@@ -79,29 +79,6 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         toolChainAfter = toolChains[1]
     }
 
-    @Unroll
-    def "detects changes to system headers when toolchain changes from #toolChainBefore to #toolChainAfter"() {
-        buildFile.text = buildScriptForToolChains(toolChainBefore, toolChainAfter)
-
-        when:
-        run ':app:compileDebugCpp'
-
-        then:
-        executedAndNotSkipped ':app:compileDebugCpp'
-
-        when:
-        run ':app:compileDebugCpp', '-PuseAlternativeToolChain=true', "--info"
-
-        then:
-        executedAndNotSkipped ':app:dependDebugCpp'
-        output =~ /Value of input property 'includePaths' has changed for task ':app:dependDebugCpp'/
-
-        where:
-        toolChains << toolChainPairs
-        toolChainBefore = toolChains[0]
-        toolChainAfter = toolChains[1]
-    }
-
     private static GString buildScriptForToolChains(InstalledToolChain before, InstalledToolChain after) {
         """ 
             allprojects {

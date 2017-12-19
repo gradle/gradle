@@ -23,8 +23,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
 
 import javax.inject.Inject;
@@ -39,6 +41,7 @@ public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements Swif
     private final RegularFileProperty executableFile;
     private final DirectoryProperty installDirectory;
     private final RegularFileProperty runScriptFile;
+    private final Property<AbstractLinkTask> linkTaskProperty;
 
     @Inject
     public DefaultSwiftXCTestBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
@@ -46,6 +49,7 @@ public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements Swif
         this.executableFile = projectLayout.fileProperty();
         this.installDirectory = projectLayout.directoryProperty();
         this.runScriptFile = projectLayout.fileProperty();
+        this.linkTaskProperty = objectFactory.property(AbstractLinkTask.class);
     }
 
     @Override
@@ -61,5 +65,10 @@ public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements Swif
     @Override
     public RegularFileProperty getRunScriptFile() {
         return runScriptFile;
+    }
+
+    @Override
+    public Property<AbstractLinkTask> getLinkTask() {
+        return linkTaskProperty;
     }
 }

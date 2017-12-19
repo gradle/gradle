@@ -27,6 +27,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.nativeplatform.internal.modulemap.ModuleMap;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -35,6 +36,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import static org.gradle.nativeplatform.internal.modulemap.GenerateModuleMapFile.generateFile;
 
 /**
  * This is intended to be temporary, until more metadata can be published and the dependency resolution engine can deal with it. As such, it's not particularly performant or robust.
@@ -67,6 +70,21 @@ public class NativeDependencyCache implements Stoppable {
                     throw new UncheckedIOException("Could not unzip headers from " + headersZip, e);
                 }
                 return dir;
+            }
+        });
+    }
+
+    public File getModuleMapFile(final ModuleMap moduleMap) {
+        final String hash = HashUtil.compactStringFor(moduleMap.getHashCode());
+        return cache.useCache(new Factory<File>() {
+            @Override
+            public File create() {
+                File dir = new File(cache.getBaseDir(), "maps/" + hash + "/" + moduleMap.getModuleName());
+                File moduleMapFile = new File(dir, "module.modulemap");
+                if (!moduleMapFile.isFile()) {
+                    generateFile(moduleMapFile, moduleMap.getModuleName(), moduleMap.getPublicHeaderPaths());
+                }
+                return moduleMapFile;
             }
         });
     }

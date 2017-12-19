@@ -282,7 +282,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected DefaultProjectLayout createProjectLayout(FileResolver fileResolver) {
-        return new DefaultProjectLayout(project.getProjectDir(), fileResolver);
+        return new DefaultProjectLayout(project.getProjectDir(), fileResolver, project.getTasks());
     }
 
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {

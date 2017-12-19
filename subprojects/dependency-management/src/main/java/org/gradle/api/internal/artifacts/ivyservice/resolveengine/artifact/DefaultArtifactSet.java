@@ -42,7 +42,6 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,7 +80,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
 
     private static ResolvedVariant toResolvedVariant(VariantMetadata variant, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry) {
         List<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
-        Set<ResolvableArtifact> resolvedArtifacts = new LinkedHashSet<ResolvableArtifact>(artifacts.size());
+        ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts = ImmutableSet.builder();
 
         // Apply any artifact type mappings to the attributes of the variant
         ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variant);
@@ -100,7 +99,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
             }
             resolvedArtifacts.add(resolvedArtifact);
         }
-        return ArtifactBackedResolvedVariant.create(variant.asDescribable(), attributes, resolvedArtifacts);
+        return ArtifactBackedResolvedVariant.create(variant.asDescribable(), attributes, resolvedArtifacts.build());
     }
 
     @Override
