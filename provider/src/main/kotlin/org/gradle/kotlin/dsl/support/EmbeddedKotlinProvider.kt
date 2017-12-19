@@ -62,11 +62,15 @@ val embeddedModules: List<EmbeddedModule> by lazy {
     val stdlibJre8 = embeddedKotlin("stdlib-jre8", listOf(stdlibJre7))
     val reflect = embeddedKotlin("reflect", listOf(stdlib))
     val compilerEmbeddable = embeddedKotlin("compiler-embeddable")
+    val scriptRuntime = embeddedKotlin("script-runtime")
+    val samWithReceiverCompilerPlugin = embeddedKotlin("sam-with-receiver-compiler-plugin")
     listOf(
         annotations,
         stdlib, stdlibJre7, stdlibJre8,
         reflect,
-        compilerEmbeddable)
+        compilerEmbeddable,
+        scriptRuntime,
+        samWithReceiverCompilerPlugin)
 }
 
 

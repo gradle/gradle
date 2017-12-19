@@ -26,13 +26,15 @@ class EmbeddedKotlinProviderTest : AbstractIntegrationTest() {
                     classpath("org.jetbrains.kotlin:kotlin-stdlib:$embeddedKotlinVersion")
                     classpath("org.jetbrains.kotlin:kotlin-reflect:$embeddedKotlinVersion")
                     classpath("org.jetbrains.kotlin:kotlin-compiler-embeddable:$embeddedKotlinVersion")
+                    classpath("org.jetbrains.kotlin:kotlin-script-runtime:$embeddedKotlinVersion")
+                    classpath("org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin:$embeddedKotlinVersion")
                 }
             }
         """)
 
         val result = build("buildEnvironment")
 
-        listOf("stdlib", "reflect", "compiler-embeddable").forEach { module ->
+        listOf("stdlib", "reflect", "compiler-embeddable", "script-runtime", "sam-with-receiver-compiler-plugin").forEach { module ->
             assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:$embeddedKotlinVersion"))
         }
     }
