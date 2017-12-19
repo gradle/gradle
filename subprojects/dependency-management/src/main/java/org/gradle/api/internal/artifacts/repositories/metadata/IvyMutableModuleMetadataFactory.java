@@ -40,6 +40,8 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
 
     @Override
     public MutableIvyModuleResolveMetadata missing(ModuleComponentIdentifier from) {
-        return DefaultMutableIvyModuleResolveMetadata.missing(asVersionIdentifier(from), from);
+        MutableIvyModuleResolveMetadata metadata = create(from);
+        metadata.setMissing(true);
+        return metadata;
     }
 }

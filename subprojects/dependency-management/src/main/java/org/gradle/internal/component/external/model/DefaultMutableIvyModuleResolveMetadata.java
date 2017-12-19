@@ -45,16 +45,7 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     private ImmutableList<Exclude> excludes;
     private ImmutableMap<NamespaceId, String> extraAttributes;
     private String branch;
-
-    /**
-     * Creates default metadata for an Ivy module version with no ivy.xml descriptor.
-     */
-    public static DefaultMutableIvyModuleResolveMetadata missing(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
-        DefaultMutableIvyModuleResolveMetadata metadata = new DefaultMutableIvyModuleResolveMetadata(id, componentIdentifier);
-        metadata.setMissing(true);
-        return metadata;
-    }
-
+    
     public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
         this(id, componentIdentifier, ImmutableList.<IvyDependencyDescriptor>of());
     }
