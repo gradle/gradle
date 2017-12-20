@@ -93,12 +93,12 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 }
                 
                 @Override
-                List<String> getAsArguments() {
+                List<String> asArguments() {
                     ["-Amessage=\${message}".toString()]
                 }
             }
             
-            compileJava.options.addCompilerArgumentProvider(new HelperAnnotationProcessor("fromOptions"))
+            compileJava.options.compilerArgumentProviders << new HelperAnnotationProcessor("fromOptions")
         """
 
         when:

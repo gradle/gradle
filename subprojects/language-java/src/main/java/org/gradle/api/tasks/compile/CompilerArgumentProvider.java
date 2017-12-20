@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Internal;
 
 /**
  * Argument to the Java compiler.
@@ -26,6 +25,5 @@ import org.gradle.api.tasks.Internal;
  */
 @Incubating
 public interface CompilerArgumentProvider {
-    @Internal
-    Iterable<String> getAsArguments();
+    Iterable<String> asArguments();
 }

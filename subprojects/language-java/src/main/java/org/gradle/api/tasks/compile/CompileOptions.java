@@ -338,7 +338,7 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns all compiler arguments, added to the {@link #getCompilerArgs()} property or via {@link #addCompilerArgumentProvider(CompilerArgumentProvider)}.
+     * Returns all compiler arguments, added to the {@link #getCompilerArgs()} or the {@link #getCompilerArgumentProviders()} property.
      *
      * @since 4.5
      */
@@ -348,7 +348,7 @@ public class CompileOptions extends AbstractOptions {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         builder.addAll(getCompilerArgs());
         for (CompilerArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
-            builder.addAll(compilerArgumentProvider.getAsArguments());
+            builder.addAll(compilerArgumentProvider.asArguments());
         }
         return builder.build();
     }
@@ -356,24 +356,12 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Compiler argument providers.
      *
-     * In order to change the list use {@link #addCompilerArgumentProvider(CompilerArgumentProvider)}.
-     *
      * @since 4.5
      */
     @Nested
     @Incubating
-    protected List<CompilerArgumentProvider> getCompilerArgumentProviders() {
-        return ImmutableList.copyOf(compilerArgumentProviders);
-    }
-
-    /**
-     * Add a compiler argument provider.
-     *
-     * @since 4.5
-     */
-    @Incubating
-    public void addCompilerArgumentProvider(CompilerArgumentProvider argumentProvider) {
-        compilerArgumentProviders.add(argumentProvider);
+    public List<CompilerArgumentProvider> getCompilerArgumentProviders() {
+        return compilerArgumentProviders;
     }
 
     /**
