@@ -26,9 +26,11 @@ import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.test.cpp.CppTestSuite
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class CppUnitTestPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
