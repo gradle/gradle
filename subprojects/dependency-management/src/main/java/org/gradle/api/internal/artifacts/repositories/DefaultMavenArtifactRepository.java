@@ -197,7 +197,9 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         MavenMutableModuleMetadataFactory metadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory);
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
         if (metadataSources.gradleMetadata) {
-            sources.add(new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory));
+            // Don't list versions for gradleMetadata if maven-metadata.xml will be checked.
+            boolean listVersionsForGradleMetadata = !metadataSources.mavenPom;
+            sources.add(new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory, listVersionsForGradleMetadata));
         }
         if (metadataSources.mavenPom) {
             sources.add(new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices(), mavenMetadataLoader));

@@ -28,6 +28,7 @@ import org.gradle.internal.component.external.model.MutableComponentVariantResol
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -42,11 +43,13 @@ import java.util.List;
 public class DefaultGradleModuleMetadataSource extends AbstractMetadataSource<MutableModuleComponentResolveMetadata> {
     private final ModuleMetadataParser metadataParser;
     private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory;
+    private final boolean listVersions;
 
     @Inject
-    public DefaultGradleModuleMetadataSource(ModuleMetadataParser metadataParser, MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory) {
+    public DefaultGradleModuleMetadataSource(ModuleMetadataParser metadataParser, MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory, boolean listVersions) {
         this.metadataParser = metadataParser;
         this.mutableModuleMetadataFactory = mutableModuleMetadataFactory;
+        this.listVersions = listVersions;
     }
 
     @Override
@@ -63,6 +66,10 @@ public class DefaultGradleModuleMetadataSource extends AbstractMetadataSource<Mu
 
     @Override
     public void listModuleVersions(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
-        // TODO:DAZ Use a Gradle metadata file for version listing
+        if (listVersions) {
+            // List modules based on metadata files, but only if we won't check for maven-metadata (which is preferred)
+            IvyArtifactName metaDataArtifact = new DefaultIvyArtifactName(module.getName(), "module", "module");
+            versionLister.listVersions(module, metaDataArtifact, ivyPatterns, result);
+        }
     }
 }
