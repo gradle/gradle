@@ -1,4 +1,5 @@
 plugins {
+    id 'strict-compile'
     id 'classycle'
 }
 
@@ -29,8 +30,6 @@ testFixtures {
     from(':diagnostics')
     from(':platformBase')
 }
-
-strictCompile()
 
 integTest {
     exclude 'org/gradle/play/prepare/**'

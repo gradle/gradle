@@ -1,4 +1,5 @@
 plugins {
+    id 'strict-compile'
     id 'classycle'
 }
 
@@ -17,5 +18,3 @@ testFixtures {
     from(':ivy')
     from(':maven')
 }
-
-strictCompile()

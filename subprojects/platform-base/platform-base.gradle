@@ -1,3 +1,7 @@
+plugins {
+    id 'strict-compile'
+}
+
 sourceCompatibility = 1.6
 
 dependencies {
@@ -14,8 +18,6 @@ testFixtures {
     from(':core', 'testFixtures')
     from(':diagnostics', 'testFixtures')
 }
-
-strictCompile()
 
 // classycle {
 //     excludePatterns = ['org.gradle.language.base.internal/**']

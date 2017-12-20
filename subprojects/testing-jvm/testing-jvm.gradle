@@ -13,6 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
+    // id 'strict-compile'
+    // id 'classycle'
+}
+
 // Test execution
 sourceCompatibility = 1.6
 
@@ -42,7 +48,3 @@ testFixtures {
     from(':messaging')
     from(':baseServices')
 }
-
-// TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
-// classycle
-//strictCompile()

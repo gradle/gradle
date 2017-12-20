@@ -15,6 +15,7 @@
  */
 plugins {
     id 'java-library'
+    id 'strict-compile'
     id 'classycle'
 }
 
@@ -41,4 +42,3 @@ testFixtures {
     from(':core')
     from(':baseServices')
 }
-strictCompile()

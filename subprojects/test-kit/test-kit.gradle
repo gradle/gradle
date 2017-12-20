@@ -1,3 +1,7 @@
+plugins {
+    id 'strict-compile'
+}
+
 dependencies {
     compile project(':core')
     compile project(':toolingApi')
@@ -10,8 +14,6 @@ dependencies {
 testFixtures {
     from(':core')
 }
-
-strictCompile()
 
 task crossVersionTests(type: org.gradle.testing.IntegrationTest) {
     description "Runs the TestKit version compatibility tests"

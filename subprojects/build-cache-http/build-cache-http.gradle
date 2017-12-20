@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 plugins {
+    id 'strict-compile'
     id 'classycle'
 }
 
@@ -27,5 +28,3 @@ dependencies {
 
     integTestCompile libraries.jetty
 }
-
-strictCompile()

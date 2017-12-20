@@ -1,4 +1,5 @@
 plugins {
+    id 'strict-compile'
     id 'classycle'
 }
 
@@ -21,8 +22,6 @@ testFixtures {
     from(':platformBase')
     from(':launcher')
 }
-
-strictCompile()
 
 classycle {
     // These public packages have classes that are tangled with the corresponding internal package.

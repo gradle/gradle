@@ -16,6 +16,7 @@
 import org.gradle.cleanup.EmptyDirectoryCheck
 
 plugins {
+    id("strict-compile")
     id("classycle")
 }
 
@@ -36,7 +37,5 @@ testFixtures {
     from(":core")
     from(":logging")
 }
-
-strictCompile()
 
 tasks.getByName<EmptyDirectoryCheck>("verifyTestFilesCleanup").isErrorWhenNotEmpty = false

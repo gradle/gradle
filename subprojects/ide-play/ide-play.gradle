@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 plugins {
+    id 'strict-compile'
     id 'classycle'
 }
 
@@ -31,8 +32,6 @@ testFixtures {
     from(':platformPlay')
     from(':ide')
 }
-
-strictCompile()
 
 tasks.withType(org.gradle.testing.IntegrationTest) { task ->
     task.dependsOn(':platformPlay:integTestPrepare')

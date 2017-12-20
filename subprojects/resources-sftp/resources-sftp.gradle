@@ -15,6 +15,7 @@
  */
 plugins {
     id 'java-library'
+    id 'strict-compile'
     id 'classycle'
 }
 
@@ -35,8 +36,6 @@ testFixtures {
     from(':maven')
     from(':core')
 }
-
-strictCompile()
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 
