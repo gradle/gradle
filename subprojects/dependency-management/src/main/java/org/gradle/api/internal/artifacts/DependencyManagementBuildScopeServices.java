@@ -58,12 +58,12 @@ import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.vcs.VcsDependencyResolver;
-import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -103,6 +103,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.vcs.internal.VcsMappingFactory;
 import org.gradle.vcs.internal.VcsMappingsStore;
+import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 
 import java.util.Collections;
@@ -183,14 +184,23 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ArtifactCacheMetaData artifactCacheMetaData, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
+    MavenMutableModuleMetadataFactory createMutableMavenMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        return new MavenMutableModuleMetadataFactory(moduleIdentifierFactory);
+    }
+
+    ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider,
+                                                    CacheLockingManager cacheLockingManager,
+                                                    ArtifactCacheMetaData artifactCacheMetaData,
+                                                    ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                                    ImmutableAttributesFactory attributesFactory,
+                                                    MavenMutableModuleMetadataFactory mavenMetadataFactory) {
         return new DefaultModuleMetaDataCache(
             timeProvider,
             cacheLockingManager,
             artifactCacheMetaData,
             moduleIdentifierFactory,
             attributesFactory,
-            NamedObjectInstantiator.INSTANCE);
+            NamedObjectInstantiator.INSTANCE, mavenMetadataFactory);
     }
 
     ArtifactAtRepositoryCachedArtifactIndex createArtifactAtRepositoryCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {

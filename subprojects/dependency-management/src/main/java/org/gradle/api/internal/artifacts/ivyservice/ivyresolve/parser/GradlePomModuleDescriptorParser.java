@@ -27,10 +27,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.Maven
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.GradleDependencyMetadata;
 import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -59,12 +59,16 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     private final VersionSelectorScheme gradleVersionSelectorScheme;
     private final VersionSelectorScheme mavenVersionSelectorScheme;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final MavenMutableModuleMetadataFactory metadataFactory;
 
-    public GradlePomModuleDescriptorParser(VersionSelectorScheme gradleVersionSelectorScheme, ImmutableModuleIdentifierFactory moduleIdentifierFactory,  FileResourceRepository fileResourceRepository) {
+    public GradlePomModuleDescriptorParser(VersionSelectorScheme gradleVersionSelectorScheme,
+                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                           FileResourceRepository fileResourceRepository, MavenMutableModuleMetadataFactory metadataFactory) {
         super(fileResourceRepository);
         this.gradleVersionSelectorScheme = gradleVersionSelectorScheme;
         mavenVersionSelectorScheme = new MavenVersionSelectorScheme(gradleVersionSelectorScheme);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.metadataFactory = metadataFactory;
     }
 
     @Override
@@ -88,8 +92,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
         List<MavenDependencyDescriptor> dependencies = mdBuilder.getDependencies();
         ModuleComponentIdentifier cid = mdBuilder.getComponentIdentifier();
-        ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(cid.getGroup(), cid.getModule(), cid.getVersion());
-        MutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(id, cid, dependencies);
+        MutableMavenModuleResolveMetadata metadata = metadataFactory.create(cid, dependencies);
         metadata.setStatus(mdBuilder.getStatus());
         if (pomReader.getRelocation() != null) {
             metadata.setPackaging("pom");

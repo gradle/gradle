@@ -40,7 +40,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
     def attributes = TestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
     def variantDefinedInGradleMetadata
 
-    def adapterOnMavenMetadata = new ComponentMetadataDetailsAdapter(new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
+    def adapterOnMavenMetadata = new ComponentMetadataDetailsAdapter(new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, []), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
     def adapterOnIvyMetadata = new ComponentMetadataDetailsAdapter(ivyComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
     def adapterOnGradleMetadata = new ComponentMetadataDetailsAdapter(gradleComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
 
@@ -48,7 +48,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         new DefaultMutableIvyModuleResolveMetadata(versionIdentifier, componentIdentifier, [], [new Configuration("configurationDefinedInIvyMetadata", true, true, [])], [], [])
     }
     private gradleComponentMetadata() {
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, [])
         variantDefinedInGradleMetadata = metadata.addVariant("variantDefinedInGradleMetadata", attributes) //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
         metadata
     }

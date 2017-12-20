@@ -20,7 +20,11 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
+
+import java.util.Collections;
+import java.util.List;
 
 public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableMavenModuleResolveMetadata> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -32,10 +36,10 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
     @Override
     public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableMavenModuleResolveMetadata(mvi, from);
+        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, Collections.<MavenDependencyDescriptor>emptyList());
     }
 
-    protected ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
+    private ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
         return moduleIdentifierFactory.moduleWithVersion(from.getGroup(), from.getModule(), from.getVersion());
     }
 
@@ -44,5 +48,10 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
         MutableMavenModuleResolveMetadata metadata = create(from);
         metadata.setMissing(true);
         return MavenResolver.processMetaData(metadata);
+    }
+
+    public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from, List<MavenDependencyDescriptor> dependencies) {
+        ModuleVersionIdentifier mvi = asVersionIdentifier(from);
+        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, dependencies);
     }
 }

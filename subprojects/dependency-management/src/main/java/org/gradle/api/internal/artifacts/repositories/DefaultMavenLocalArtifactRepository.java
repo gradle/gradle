@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArtifactProvider;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -55,8 +56,9 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                AuthenticationContainer authenticationContainer,
                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                FileResourceRepository fileResourceRepository,
-                                               ExperimentalFeatures experimentalFeatures) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, experimentalFeatures);
+                                               ExperimentalFeatures experimentalFeatures,
+                                               MavenMutableModuleMetadataFactory metadataFactory) {
+        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, experimentalFeatures, metadataFactory);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 

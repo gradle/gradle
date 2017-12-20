@@ -429,7 +429,10 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     private DefaultMutableMavenModuleResolveMetadata mavenMetadata() {
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"))
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(
+            DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"),
+            []
+        )
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata

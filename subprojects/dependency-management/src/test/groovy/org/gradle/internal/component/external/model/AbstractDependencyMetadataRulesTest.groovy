@@ -20,8 +20,10 @@ import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependenciesMetadata
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
@@ -46,6 +48,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     @Shared componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
     @Shared attributes = TestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
     @Shared schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
+    @Shared mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory())
     @Shared defaultVariant
 
     abstract boolean addAllDependenciesAsConstraints()
@@ -74,7 +77,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, dependencies)
     }
     private gradleComponentMetadata(String[] deps) {
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier)
+        def metadata = mavenMetadataFactory.create(componentIdentifier)
         //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
         defaultVariant = metadata.addVariant("default", attributes)
         deps.each { name ->
