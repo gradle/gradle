@@ -76,7 +76,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
             prop("outputDir", DIRECTORY, outputDir),
             prop("outputFile", FILE, outputFile),
         ] as SortedSet
-        def load = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState, timer)
+        def load = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState)
 
         def outputDirSnapshot = new DirectoryFileSnapshot(outputDir.path, RelativePath.EMPTY_ROOT, true)
         def outputDirFileContent = new FileHashSnapshot(HashCode.fromInt(123))
@@ -128,7 +128,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         def input = Mock(InputStream)
         def outputFile = temporaryFolder.file("output.txt")
         def outputProperties = props("output", FILE, outputFile)
-        def command = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState, timer)
+        def command = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState)
 
         when:
         command.load(input)
@@ -163,7 +163,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def "error during cleanup of failed unpacking is reported"() {
         def input = Mock(InputStream)
         def outputProperties = Mock(SortedSet)
-        def command = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState, timer)
+        def command = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState)
 
         when:
         command.load(input)

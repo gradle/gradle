@@ -33,7 +33,6 @@ import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException
 import org.gradle.internal.id.UniqueId
-import org.gradle.internal.time.Time
 import spock.lang.Specification
 
 class SkipCachedTaskExecuterTest extends Specification {
@@ -70,14 +69,13 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
-        1 * taskContext.getExecutionTimer() >> Time.startTimer()
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, taskOutputGenerationListener, _, _) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, taskOutputGenerationListener, _) >> loadCommand
 
         then:
         1 * buildCacheController.load(loadCommand) >> metadata
@@ -98,14 +96,13 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
-        1 * taskContext.getExecutionTimer() >> Time.startTimer()
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, taskOutputGenerationListener, _, _) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, taskOutputGenerationListener, _) >> loadCommand
 
         then:
         1 * buildCacheController.load(loadCommand) >> null
@@ -169,7 +166,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
-        1 * taskContext.getExecutionTimer() >> Time.startTimer()
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
@@ -230,7 +226,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
-        1 * taskContext.getExecutionTimer() >> Time.startTimer()
         1 * cacheKey.isValid() >> true
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
@@ -268,7 +263,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
-        1 * taskContext.getExecutionTimer() >> Time.startTimer()
         1 * cacheKey.isValid() >> true
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
@@ -295,7 +289,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         interaction { cachingEnabled() }
 
         then:
-        1 * taskContext.getExecutionTimer() >> Time.startTimer()
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
         1 * cacheKey.isValid() >> true

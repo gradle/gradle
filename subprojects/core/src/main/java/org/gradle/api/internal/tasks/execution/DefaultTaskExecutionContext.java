@@ -70,11 +70,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         this.originExecutionMetadata = originExecutionMetadata;
     }
 
-    @Override
-    public Timer getExecutionTimer() {
-        return executionTimer;
-    }
-
     public long markExecutionTime() {
         if (this.executionTime != null) {
             throw new IllegalStateException("execution time already set");

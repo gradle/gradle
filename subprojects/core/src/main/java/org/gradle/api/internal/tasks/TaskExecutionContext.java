@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.time.Timer;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -41,14 +40,6 @@ public interface TaskExecutionContext {
     OriginTaskExecutionMetadata getOriginExecutionMetadata();
 
     void setOriginExecutionMetadata(OriginTaskExecutionMetadata originExecutionMetadata);
-
-    /**
-     * The timer that started at the very start of executing this task.
-     *
-     * This is not precisely aligned with the start time of the corresponding build operation,
-     * but should be extremely close.
-     */
-    Timer getExecutionTimer();
 
     /**
      * Sets the execution time of the task to be the elapsed time since start to now.

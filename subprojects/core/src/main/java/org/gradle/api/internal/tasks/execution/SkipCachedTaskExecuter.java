@@ -77,7 +77,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 if (taskState.isAllowedToUseCachedResults()) {
                     try {
                         OriginTaskExecutionMetadata originMetadata = buildCache.load(
-                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskState, context.getExecutionTimer())
+                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskState)
                         );
                         if (originMetadata != null) {
                             state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
