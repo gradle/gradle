@@ -47,7 +47,6 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.time.Timer;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,8 +81,8 @@ public class TaskOutputCacheCommandFactory {
         this.stringInterner = stringInterner;
     }
 
-    public BuildCacheLoadCommand<OriginTaskExecutionMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState, Timer clock) {
-        return new LoadCommand(cacheKey, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState, clock);
+    public BuildCacheLoadCommand<OriginTaskExecutionMetadata> createLoad(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState) {
+        return new LoadCommand(cacheKey, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState);
     }
 
     public BuildCacheStoreCommand createStore(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, TaskInternal task, long taskExecutionTime) {
@@ -98,16 +97,14 @@ public class TaskOutputCacheCommandFactory {
         private final TaskProperties taskProperties;
         private final TaskOutputsGenerationListener taskOutputsGenerationListener;
         private final TaskArtifactState taskArtifactState;
-        private final Timer clock;
 
-        private LoadCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState, Timer clock) {
+        private LoadCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, TaskProperties taskProperties, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskArtifactState taskArtifactState) {
             this.cacheKey = cacheKey;
             this.outputProperties = outputProperties;
             this.task = task;
             this.taskProperties = taskProperties;
             this.taskOutputsGenerationListener = taskOutputsGenerationListener;
             this.taskArtifactState = taskArtifactState;
-            this.clock = clock;
         }
 
         @Override
@@ -135,7 +132,7 @@ public class TaskOutputCacheCommandFactory {
             } finally {
                 cleanLocalState();
             }
-            LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getElapsed());
+            LOGGER.info("Unpacked output for {} from cache.", task);
 
             return new BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata>() {
                 @Override
