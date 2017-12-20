@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.NamedObjectInstantiator
@@ -49,6 +50,7 @@ class ModuleMetadataSerializerTest extends Specification {
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     private final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory)
+    private final IvyMutableModuleMetadataFactory ivyMetadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory)
     private final ModuleMetadataSerializer serializer = moduleMetadataSerializer()
     private GradlePomModuleDescriptorParser pomModuleDescriptorParser = pomParser()
     private MetaDataParser<MutableIvyModuleResolveMetadata> ivyDescriptorParser = ivyParser()
@@ -135,7 +137,8 @@ class ModuleMetadataSerializerTest extends Specification {
         new ModuleMetadataSerializer(
             TestUtil.attributesFactory(),
             NamedObjectInstantiator.INSTANCE,
-            mavenMetadataFactory
+            mavenMetadataFactory,
+            ivyMetadataFactory
         )
     }
 
@@ -152,7 +155,8 @@ class ModuleMetadataSerializerTest extends Specification {
         new IvyXmlModuleDescriptorParser(
             new IvyModuleDescriptorConverter(moduleIdentifierFactory),
             moduleIdentifierFactory,
-            Stub(FileResourceRepository)
+            Stub(FileResourceRepository),
+            ivyMetadataFactory
         )
     }
 

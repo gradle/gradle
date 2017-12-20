@@ -23,9 +23,10 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata
@@ -35,6 +36,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.rules.RuleAction
 import org.gradle.internal.rules.RuleActionAdapter
 import org.gradle.internal.rules.RuleActionValidationException
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import javax.xml.namespace.QName
@@ -51,6 +53,8 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     RuleActionAdapter<ComponentMetadataDetails> adapter = Mock(RuleActionAdapter)
     def mockedHandler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, adapter, moduleIdentifierFactory)
     def ruleAction = Stub(RuleAction)
+    def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.instantiatorFactory())
+    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory())
 
     def "does nothing when no rules registered"() {
         def metadata = ivyMetadata().asImmutable()
@@ -418,21 +422,14 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     }
 
     private DefaultMutableIvyModuleResolveMetadata ivyMetadata() {
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(
-            DefaultModuleVersionIdentifier.newId("group", "module", "version"),
-            DefaultModuleComponentIdentifier.newId("group", "module", "version"),
-            []
-        )
+        def metadata = ivyMetadataFactory.create(DefaultModuleComponentIdentifier.newId("group", "module", "version"))
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata
     }
 
     private DefaultMutableMavenModuleResolveMetadata mavenMetadata() {
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(
-            DefaultModuleVersionIdentifier.newId("group", "module", "version"), DefaultModuleComponentIdentifier.newId("group", "module", "version"),
-            []
-        )
+        def metadata = mavenMetadataFactory.create(DefaultModuleComponentIdentifier.newId("group", "module", "version"))
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata

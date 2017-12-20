@@ -60,6 +60,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
@@ -143,7 +144,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           InstantiatorFactory instantiatorFactory,
                                                           FileResourceRepository fileResourceRepository,
                                                           ExperimentalFeatures experimentalFeatures,
-                                                          MavenMutableModuleMetadataFactory metadataFactory) {
+                                                          MavenMutableModuleMetadataFactory metadataFactory,
+                                                          IvyMutableModuleMetadataFactory ivyMetadataFactory) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
                 fileResolver,
@@ -159,7 +161,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 instantiatorFactory,
                 fileResourceRepository,
                 experimentalFeatures,
-                metadataFactory);
+                metadataFactory,
+                ivyMetadataFactory);
         }
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory) {

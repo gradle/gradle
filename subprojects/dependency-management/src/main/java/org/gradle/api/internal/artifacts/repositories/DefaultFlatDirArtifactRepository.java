@@ -51,17 +51,20 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final IvyMutableModuleMetadataFactory metadataFactory;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
                                             LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                             FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                            IvyMutableModuleMetadataFactory metadataFactory) {
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.metadataFactory = metadataFactory;
     }
 
     @Override
@@ -116,7 +119,6 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     }
 
     private ImmutableMetadataSources createMetadataSources() {
-        IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory);
         MetadataSource artifactMetadataSource = new DefaultArtifactMetadataSource(metadataFactory);
         return new DefaultImmutableMetadataSources(Collections.<MetadataSource<?>>singletonList(artifactMetadataSource));
     }

@@ -16,10 +16,11 @@
 
 package org.gradle.internal.component.external.model
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -30,14 +31,16 @@ import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.hash.HashValue
 
 class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
+    private final IvyMutableModuleMetadataFactory ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory())
+
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, dependencies, configurations, [], [])
+        ivyMetadataFactory.create(id, dependencies, configurations, [], []) as AbstractMutableModuleComponentResolveMetadata
     }
 
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id) {
-        return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
+        ivyMetadataFactory.create(id) as AbstractMutableModuleComponentResolveMetadata
     }
 
     def "initialises values from descriptor state and defaults"() {
@@ -47,12 +50,9 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def a1 = artifact("runtime.jar", "runtime")
         def a2 = artifact("api.jar", "default")
 
-        def vid = Mock(ModuleVersionIdentifier)
-
         expect:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(vid, id, [], configurations, [a1, a2], [])
+        def metadata = ivyMetadataFactory.create(id, [], configurations, [a1, a2], [])
         metadata.componentId == id
-        metadata.id == vid
         metadata.branch == null
 
         and:
@@ -66,7 +66,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable != metadata
         immutable.componentId == id
         immutable.source == null
-        immutable.id == vid
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.branch == null
         immutable.excludes.empty
@@ -86,7 +85,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         copy != metadata
         copy.componentId == id
         copy.source == null
-        copy.id == vid
         copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         copy.branch == null
         copy.artifactDefinitions.size() == 2
@@ -101,7 +99,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def a2 = artifact("two", "runtime", "compile")
         def a3 = artifact("three", "compile")
 
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(null, id, [], configurations, [a1, a2, a3], [])
+        def metadata = ivyMetadataFactory.create(id, [], configurations, [a1, a2, a3], [])
 
         expect:
         def immutable = metadata.asImmutable()
@@ -117,7 +115,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def excludes = [new DefaultExclude(new DefaultModuleIdentifier("group", "name"))]
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], [], [], excludes)
+        def metadata = ivyMetadataFactory.create(id, [], [], [], excludes)
         metadata.componentId = newId
         metadata.source = source
         metadata.status = "3"
@@ -172,7 +170,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], [], [], [])
+        def metadata = ivyMetadataFactory.create(id, [], [], [], [])
         def immutable = metadata.asImmutable()
         def copy = immutable.asMutable()
         copy.componentId = newId
@@ -204,7 +202,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], [], [], [])
+        def metadata = ivyMetadataFactory.create(id, [], [], [], [])
         def immutable = metadata.asImmutable()
 
         metadata.componentId = newId

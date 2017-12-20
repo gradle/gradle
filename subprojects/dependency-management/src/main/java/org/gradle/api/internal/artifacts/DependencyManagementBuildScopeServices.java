@@ -58,6 +58,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
@@ -188,19 +189,26 @@ class DependencyManagementBuildScopeServices {
         return new MavenMutableModuleMetadataFactory(moduleIdentifierFactory);
     }
 
+    IvyMutableModuleMetadataFactory createMutableIvyMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        return new IvyMutableModuleMetadataFactory(moduleIdentifierFactory);
+    }
+
     ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider,
                                                     CacheLockingManager cacheLockingManager,
                                                     ArtifactCacheMetaData artifactCacheMetaData,
                                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                     ImmutableAttributesFactory attributesFactory,
-                                                    MavenMutableModuleMetadataFactory mavenMetadataFactory) {
+                                                    MavenMutableModuleMetadataFactory mavenMetadataFactory,
+                                                    IvyMutableModuleMetadataFactory ivyMetadataFactory) {
         return new DefaultModuleMetaDataCache(
             timeProvider,
             cacheLockingManager,
             artifactCacheMetaData,
             moduleIdentifierFactory,
             attributesFactory,
-            NamedObjectInstantiator.INSTANCE, mavenMetadataFactory);
+            NamedObjectInstantiator.INSTANCE,
+            mavenMetadataFactory,
+            ivyMetadataFactory);
     }
 
     ArtifactAtRepositoryCachedArtifactIndex createArtifactAtRepositoryCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
