@@ -6,6 +6,7 @@ import org.gradle.api.plugins.ExtraPropertiesExtension
 
 val kotlinRepo = "https://repo.gradle.org/gradle/repo"
 
+
 fun loadExtraPropertiesOf(project: Project) = project.run {
     require(this == rootProject) {
         "Properties should be loaded by the root project only!"
