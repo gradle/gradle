@@ -36,7 +36,6 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.rules.RuleAction
 import org.gradle.internal.rules.RuleActionAdapter
 import org.gradle.internal.rules.RuleActionValidationException
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import javax.xml.namespace.QName
@@ -53,7 +52,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     RuleActionAdapter<ComponentMetadataDetails> adapter = Mock(RuleActionAdapter)
     def mockedHandler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, adapter, moduleIdentifierFactory)
     def ruleAction = Stub(RuleAction)
-    def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.instantiatorFactory())
+    def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory())
     def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory())
 
     def "does nothing when no rules registered"() {
