@@ -113,7 +113,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         """
     }
 
-    def getRepository() {
+    def getRepositoryDeclaration() {
         useIvy() ? ivyRepository : mavenRepository
     }
 
@@ -126,7 +126,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         }
         resolve.prepare()
         buildFile << """
-            $repository
+            $repositoryDeclaration
 
             configurations {
                 $testConfiguration
