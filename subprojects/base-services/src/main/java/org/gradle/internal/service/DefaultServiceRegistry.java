@@ -607,11 +607,11 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             T result = instance;
             if (result == null) {
                 synchronized (this) {
-                    if (instance == null) {
-                        instance = create();
+                    result = instance;
+                    if (result == null) {
+                        result = instance = create();
                         assert instance != null : String.format("create() of %s returned null", toString());
                     }
-                    result = instance;
                 }
             }
             return result;
