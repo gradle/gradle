@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
+import org.gradle.util.GradleVersion
 
 import java.util.concurrent.TimeUnit
 
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit
 @TargetGradleVersion(">=4.0")
 class BuildCacheCleanupOperationsCrossVersionSpec extends ToolingApiSpecification {
     def cacheDir = file("task-output-cache")
+    private boolean sizeBasedCleanup
 
     def setup() {
         buildFile << """
@@ -50,10 +52,19 @@ class BuildCacheCleanupOperationsCrossVersionSpec extends ToolingApiSpecificatio
                 description = "Generates a 1MB file"
             }
         """
+
+        def cacheLimit
+        sizeBasedCleanup = targetVersion < GradleVersion.version("4.5")
+        if (!sizeBasedCleanup) {
+            cacheLimit = "removeUnusedEntriesAfterDays = 1"
+        } else {
+            cacheLimit = "targetSizeInMB = 2"
+        }
+
         settingsFile << """
             buildCache {
                 local(DirectoryBuildCache) {
-                    targetSizeInMB = 2
+                    ${cacheLimit}
                     directory = "${TextUtil.escapeString(cacheDir.absolutePath)}"
                 }
             }
@@ -72,11 +83,14 @@ class BuildCacheCleanupOperationsCrossVersionSpec extends ToolingApiSpecificatio
             }
         }
         then:
-        cacheDir.directorySize() >= 4*1024*1024
+        assert cacheDir.directorySize() >= 4 * 1024 * 1024
 
         when:
         def gcFile = cacheDir.file("gc.properties")
-        gcFile.lastModified = gcFile.lastModified() - TimeUnit.DAYS.toMillis(60)
+        def oldTimestamp = gcFile.lastModified() - TimeUnit.DAYS.toMillis(60)
+        cacheDir.eachFile { file ->
+            file.lastModified = oldTimestamp
+        }
         and:
         def listener = ProgressEvents.create()
         withConnection {

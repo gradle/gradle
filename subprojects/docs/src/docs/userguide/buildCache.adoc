@@ -306,8 +306,7 @@ The remote build cache can be configured by specifying the type of build cache t
 The built-in local build cache, api:org.gradle.caching.local.DirectoryBuildCache[], uses a directory to store build cache artifacts.
 By default, this directory resides in the Gradle user home directory, but its location is configurable.
 
-Gradle will periodically clean-up the local cache directory to reduce it to a configurable target size.
-This means that the local build cache directory may temporarily grow over the target size until the next clean-up is scheduled.
+Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
 
 For more details on the configuration options refer to the DSL documentation of api:org.gradle.caching.local.DirectoryBuildCache[].
 Here is an example of the configuration.

@@ -18,6 +18,7 @@ package org.gradle.caching.local;
 
 import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.AbstractBuildCache;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 
@@ -30,7 +31,7 @@ import javax.annotation.Nullable;
 @Incubating
 public class DirectoryBuildCache extends AbstractBuildCache {
     private Object directory;
-    private long targetSizeInMB = 5 * 1024; // 5 GB
+    private int removeUnusedEntriesAfterDays = 7;
 
     /**
      * Returns the directory to use to store the build cache.
@@ -50,29 +51,38 @@ public class DirectoryBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * The target size of the build cache in megabytes.
-     * Defaults to 5 GB.
-     * <p>
-     * Must be greater than or equal to 1, although larger cache sizes will be more useful.
-     *
-     * @since 4.0
+     * @deprecated Use {@link #getRemoveUnusedEntriesAfterDays()} instead.
      */
+    @Deprecated
     public long getTargetSizeInMB() {
-        return targetSizeInMB;
+        DeprecationLogger.nagUserOfReplacedMethod("DirectoryBuildCache.getTargetSizeInMB()", "getRemoveUnusedEntriesAfterDays()");
+        return 0;
     }
 
     /**
-     * The target size of the build cache in megabytes.
-     * Defaults to 5 GB.
-     * <p>
-     * Must be greater than or equal to 1, although larger cache sizes will be more useful.
-     *
-     * @since 4.0
+     * @deprecated Use {@link #setRemoveUnusedEntriesAfterDays(int)} instead.
      */
+    @Deprecated
     public void setTargetSizeInMB(long targetSizeInMB) {
-        if (targetSizeInMB < 1) {
-            throw new IllegalArgumentException("Directory build cache needs to have at least 1 MB of space but more space is useful.");
+        DeprecationLogger.nagUserOfReplacedMethod("DirectoryBuildCache.setTargetSizeInMB()", "setRemoveUnusedEntriesAfterDays()");
+    }
+
+    /**
+     * Returns the number of days after unused entries are garbage collected. Defaults to 7 days.
+     */
+    public int getRemoveUnusedEntriesAfterDays() {
+        return removeUnusedEntriesAfterDays;
+    }
+
+    /**
+     * Sets the number of days after unused entries are garbage collected. Defaults to 7 days.
+     *
+     * Must be greater than 1.
+     */
+    public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
+        if (removeUnusedEntriesAfterDays < 1) {
+            throw new IllegalArgumentException("Directory build cache needs to retain entries for at least a day.");
         }
-        this.targetSizeInMB = targetSizeInMB;
+        this.removeUnusedEntriesAfterDays = removeUnusedEntriesAfterDays;
     }
 }

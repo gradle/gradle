@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.PersistentCache;
@@ -45,7 +46,7 @@ abstract class AbstractCacheCleanup implements CleanupAction {
 
     protected abstract List<File> findFilesToDelete(final PersistentCache persistentCache, File[] filesEligibleForCleanup);
 
-    File[] findEligibleFiles(final PersistentCache persistentCache) {
+    static File[] findEligibleFiles(final PersistentCache persistentCache) {
         // TODO: This doesn't descend subdirectories.
         return persistentCache.getBaseDir().listFiles(new FileFilter() {
             @Override
@@ -55,17 +56,18 @@ abstract class AbstractCacheCleanup implements CleanupAction {
         });
     }
 
-    protected boolean isReserved(final PersistentCache persistentCache, File file) {
+    static boolean isReserved(final PersistentCache persistentCache, File file) {
         return persistentCache.getReservedCacheFiles().contains(file);
     }
 
-    void cleanupFiles(final PersistentCache persistentCache, final List<File> filesForDeletion) {
+    @VisibleForTesting
+    static void cleanupFiles(final PersistentCache persistentCache, final List<File> filesForDeletion) {
         // Need to remove some files
         long removedSize = deleteFiles(filesForDeletion);
         LOGGER.info("{} removing {} cache entries ({} reclaimed).", persistentCache, filesForDeletion.size(), FileUtils.byteCountToDisplaySize(removedSize));
     }
 
-    private long deleteFiles(List<File> files) {
+    private static long deleteFiles(List<File> files) {
         long removedSize = 0;
         for (File file : files) {
             try {

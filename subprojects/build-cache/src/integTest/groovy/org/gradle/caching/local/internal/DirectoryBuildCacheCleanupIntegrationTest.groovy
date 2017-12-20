@@ -18,24 +18,31 @@ package org.gradle.caching.local.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
 class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
-    private final static int MAX_CACHE_SIZE = 5 // MB
+    private final static int MAX_CACHE_AGE = 7
+    private TestFile gcFile
+
+    // days
     def setup() {
         settingsFile << """
             buildCache {
                 local {
-                    targetSizeInMB = ${MAX_CACHE_SIZE}
+                    removeUnusedEntriesAfterDays = ${MAX_CACHE_AGE}
                 }
             }
         """
-        def bytes = new byte[1024*1024]
+        def bytes = new byte[1024 * 1024]
         new Random().nextBytes(bytes)
         file("output.txt").bytes = bytes
+
+        gcFile = cacheDir.file("gc.properties")
 
         buildFile << """
             @CacheableTask
@@ -56,156 +63,50 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
                 description = "Generates a 1MB file"
             }
             
-            task assertBuildCacheOverTarget {
-                doLast {
-                    def cacheSize = file("${cacheDir.toURI()}").listFiles().collect { it.length() }.sum()
-                    long cacheSizeInMB = cacheSize / 1024 / 1024
-                    assert cacheSizeInMB >= ${MAX_CACHE_SIZE}
+            task assertCacheNotCleanedUpYet {
+                dependsOn cacheable
+                doFirst {
+                    assert file("${gcFile.toURI()}").lastModified() == Long.parseLong(project.property("lastCleanupCheck"))
                 }
             }
         """
     }
 
-    def "cleans up when over target"() {
-        when:
-        runMultiple(MAX_CACHE_SIZE*2)
-        then:
-        def originalList = listCacheFiles()
-        // build cache hasn't been cleaned yet
-        originalList.size() == MAX_CACHE_SIZE*2
-        calculateCacheSize(originalList) >= MAX_CACHE_SIZE
+    def "cleans up entries"() {
+        // Make sure cache directory is initialized
+        run()
 
         when:
-        markCacheDirForCleanup()
-        and:
-        withBuildCache().succeeds("cacheable")
+        def trashFile = createOldTrashFile()
+        markCacheForCleanup()
+        run()
         then:
-        def newList = listCacheFiles()
-        newList.size() == MAX_CACHE_SIZE-1
-        // Cache should be under the target size
-        calculateCacheSize(newList) <= MAX_CACHE_SIZE
-    }
-
-    def "cleans up the oldest entries first"() {
-        when:
-        runMultiple(MAX_CACHE_SIZE*2)
-        then:
-        def originalList = listCacheFiles()
-        // build cache hasn't been cleaned yet
-        originalList.size() == MAX_CACHE_SIZE*2
-        calculateCacheSize(originalList) >= MAX_CACHE_SIZE
-
-        when:
-        markCacheDirForCleanup()
-        def timeNow = System.currentTimeMillis()
-        originalList.eachWithIndex { cacheEntry, index ->
-            // Set the lastModified time for each cache entry back monotonically increasing days
-            // so the first cache entry was accessed now-0 days
-            // the next now-1 days, etc.
-            cacheEntry.lastModified = timeNow - TimeUnit.DAYS.toMillis(index)
-        }
-        and:
-        withBuildCache().succeeds("cacheable")
-        then:
-        def newList = listCacheFiles()
-        newList.size() == MAX_CACHE_SIZE-1
-
-        // All of the old cache entries should have been deleted first
-        def ageOfCacheEntries = newList.collect { cacheEntry ->
-            (cacheEntry.lastModified() - timeNow)
-        }
-        def oldestCacheEntry = TimeUnit.DAYS.toMillis(newList.size())
-        ageOfCacheEntries.every { it < oldestCacheEntry }
-
-        // Cache should be under the target size
-        calculateCacheSize(newList) <= MAX_CACHE_SIZE
-    }
-
-    def "cleans up based on LRU"() {
-        when:
-        runMultiple(MAX_CACHE_SIZE*2)
-        then:
-        def originalList = listCacheFiles()
-        // build cache hasn't been cleaned yet
-        originalList.size() == MAX_CACHE_SIZE*2
-        calculateCacheSize(originalList) >= MAX_CACHE_SIZE
-
-        when:
-        def oldTime = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(100)
-        originalList.each { cacheEntry ->
-            cacheEntry.lastModified = oldTime
-        }
-        and:
-        withBuildCache().succeeds("cacheable", "-Prun=2")
-        withBuildCache().succeeds("cacheable", "-Prun=4")
-        withBuildCache().succeeds("cacheable", "-Prun=6")
-        then:
-        def recentlyUsed = originalList.findAll {
-            it.lastModified() > oldTime
-        }
-        recentlyUsed.size() == 3
-
-        when:
-        markCacheDirForCleanup()
-        and:
-        withBuildCache().succeeds("cacheable")
-
-        then:
-        def newList = listCacheFiles()
-        newList.size() == MAX_CACHE_SIZE-1
-        newList.containsAll(recentlyUsed)
-    }
-
-    def "does not cleanup on every build"() {
-        when:
-        runMultiple(MAX_CACHE_SIZE*2)
-        then:
-        def originalList = listCacheFiles()
-        // build cache hasn't been cleaned yet
-        originalList.size() == MAX_CACHE_SIZE*2
-        calculateCacheSize(originalList) >= MAX_CACHE_SIZE
-
-        when:
-        markCacheDirForCleanup()
-        and:
-        withBuildCache().succeeds("cacheable")
-        then:
-        def newList = listCacheFiles()
-        newList.size() == MAX_CACHE_SIZE-1
-        // Cache should be under the target size
-        calculateCacheSize(newList) <= MAX_CACHE_SIZE
-        def lastCleanedTime = gcFile().lastModified()
-
-        // build cache shouldn't clean up again
-        when:
-        runMultiple(MAX_CACHE_SIZE)
-        then:
-        lastCleanedTime == gcFile().lastModified()
+        trashFile.assertDoesNotExist()
     }
 
     @Unroll
-    def "produces reasonable message when cache is too small (#size)"() {
+    def "produces reasonable message when cache retention is too short (#days days)"() {
         settingsFile << """
             buildCache {
                 local {
-                    targetSizeInMB = ${size}
+                    removeUnusedEntriesAfterDays = ${days}
                 }
             }
         """
         expect:
         fails("help")
-        result.error.contains("Directory build cache needs to have at least 1 MB of space but more space is useful.")
+        result.error.contains("Directory build cache needs to retain entries for at least a day.")
 
         where:
-        size << [-1, 0]
+        days << [-1, 0]
     }
 
-    def "build cache cleanup is triggered after 7 days"() {
+    def "build cache cleanup is triggered after max number of days expires"() {
         def messageRegex = /Build cache \(.+\) cleaned up in .+ secs\./
         def checkInterval = 7 // days
 
         when:
-        withBuildCache().succeeds("cacheable")
+        run()
         then:
         listCacheFiles().size() == 1
         def originalCheckTime = gcFile().lastModified()
@@ -215,7 +116,6 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         // Set the time back 1 day
         gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(1))
         def lastCleanupCheck = gcFile().lastModified()
-        and:
         withBuildCache().succeeds("cacheable", "-i")
         then:
         result.output.readLines().every {
@@ -227,7 +127,6 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         when:
         gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(checkInterval-1))
         lastCleanupCheck = gcFile().lastModified()
-        and:
         withBuildCache().succeeds("cacheable", "-i")
         then:
         result.output.readLines().every {
@@ -238,7 +137,6 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         // checkInterval days is enough to trigger
         when:
         gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(checkInterval))
-        and:
         withBuildCache().succeeds("cacheable", "-i")
         then:
         result.output.readLines().any {
@@ -249,7 +147,6 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         // More than checkInterval days is enough to trigger
         when:
         gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(checkInterval*10))
-        and:
         withBuildCache().succeeds("cacheable", "-i")
         then:
         result.output.readLines().any {
@@ -258,28 +155,29 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         gcFile().lastModified() > lastCleanupCheck
     }
 
+    @Ignore("FIXME lptr")
     def "buildSrc does not try to clean build cache"() {
         // Copy cache configuration
         file("buildSrc/settings.gradle").text = settingsFile.text
-        when:
-        runMultiple(MAX_CACHE_SIZE*2)
-        and:
-        then:
-        // build cache hasn't been cleaned yet
-        calculateCacheSize(listCacheFiles()) >= MAX_CACHE_SIZE
-        def lastCleanupCheck = gcFile().makeOlder().lastModified()
+
+        // Make sure cache directory is initialized
+        run()
+        // Witness file to signal when cache is cleaned upcvxb
+        def trashFile = createOldTrashFile()
 
         when:
-        markCacheDirForCleanup()
-        and:
-        // During the build, the build cache should be over the target still
-        withBuildCache().succeeds("cacheable", "assertBuildCacheOverTarget")
+        run()
         then:
-        // build cache has been cleaned up now
-        calculateCacheSize(listCacheFiles()) <= MAX_CACHE_SIZE
-        gcFile().lastModified() >= lastCleanupCheck
+        trashFile.assertExists()
+
+        when:
+        markCacheForCleanup()
+        run()
+        then:
+        trashFile.assertDoesNotExist()
     }
 
+    @Ignore("FIXME lptr")
     def "composite builds do not try to clean build cache"() {
         file("included/build.gradle") << """
             apply plugin: 'java'
@@ -299,32 +197,22 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
             dependencies {
                 test "com.example:included:1.0"
             }
-            assertBuildCacheOverTarget {
+            assertCacheNotCleanedUpYet {
                 dependsOn cacheable, configurations.test
                 doFirst {
                     println configurations.test.files
                 }
             }
         """
-        when:
-        runMultiple(MAX_CACHE_SIZE*2)
-        and:
-        then:
-        // build cache hasn't been cleaned yet
-        calculateCacheSize(listCacheFiles()) >= MAX_CACHE_SIZE
-        def lastCleanupCheck = gcFile().makeOlder().lastModified()
 
-        when:
-        markCacheDirForCleanup()
-        and:
-        // During the build, the build cache should be over the target still (the composite didn't clean it up)
-        withBuildCache().succeeds("assertBuildCacheOverTarget")
-        then:
-        // build cache has been cleaned up now
-        calculateCacheSize(listCacheFiles()) <= MAX_CACHE_SIZE
-        gcFile().lastModified() >= lastCleanupCheck
+        run()
+        def lastCleanupCheck = markCacheForCleanup()
+
+        expect:
+        withBuildCache().run("assertCacheNotCleanedUpYet", "-PlastCleanupCheck=$lastCleanupCheck")
     }
 
+    @Ignore("FIXME lptr")
     def "composite build with buildSrc do not try to clean build cache mid build"() {
         file("included/build.gradle") << """
             apply plugin: 'java'
@@ -346,32 +234,28 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
                 test "com.example:included:1.0"
             }
             
-            assertBuildCacheOverTarget {
-                dependsOn cacheable, configurations.test
+            assertCacheNotCleanedUpYet {
+                dependsOn configurations.test
                 doFirst {
                     println configurations.test.files
                 }
             }
         """
         when:
-        runMultiple(MAX_CACHE_SIZE*2)
-        and:
+        run()
         then:
-        // build cache hasn't been cleaned yet
-        calculateCacheSize(listCacheFiles()) >= MAX_CACHE_SIZE
         def lastCleanupCheck = gcFile().makeOlder().lastModified()
 
         when:
-        markCacheDirForCleanup()
-        and:
-        // During the build, the build cache should be over the target still (the composite didn't clean it up)
-        withBuildCache().succeeds("assertBuildCacheOverTarget", "-i")
+        markCacheForCleanup()
+        // Composite didn't clean up cache during build
+        withBuildCache().succeeds("assertCacheNotCleanedUpYet", "-PlastCleanupCheck=$lastCleanupCheck")
         then:
         // build cache has been cleaned up now
-        calculateCacheSize(listCacheFiles()) <= MAX_CACHE_SIZE
         gcFile().lastModified() >= lastCleanupCheck
     }
 
+    @Ignore("FIXME lptr")
     def "GradleBuild tasks do not try to clean build cache"() {
         // Copy cache configuration
         file("included/build.gradle") << """
@@ -388,37 +272,32 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
             assertBuildCacheOverTarget.dependsOn cacheable, gradleBuild
         """
         when:
-        runMultiple(MAX_CACHE_SIZE*2)
-        and:
+        run()
         then:
         // build cache hasn't been cleaned yet
-        calculateCacheSize(listCacheFiles()) >= MAX_CACHE_SIZE
-        def lastCleanupCheck = gcFile().makeOlder().lastModified()
+        def lastCleanupCheck = markCacheForCleanup()
 
         when:
-        markCacheDirForCleanup()
-        and:
         // During the build, the build cache should be over the target still
-        withBuildCache().succeeds("assertBuildCacheOverTarget", "-i")
+        withBuildCache().succeeds("assertCacheNotCleanedUpYet", "-PlastCleanupCheck=$lastCleanupCheck")
         then:
         // build cache has been cleaned up now
-        calculateCacheSize(listCacheFiles()) <= MAX_CACHE_SIZE
         gcFile().lastModified() >= lastCleanupCheck
     }
 
-    void markCacheDirForCleanup() {
-        gcFile().assertIsFile()
+    long markCacheForCleanup() {
+        gcFile().touch()
         gcFile().lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(60)
+        return gcFile().lastModified()
     }
 
-    private static long calculateCacheSize(List<TestFile> originalList) {
-        def cacheSize = originalList.collect { it.length() }.sum()
-        cacheSize / 1024 / 1024
+    TestFile createOldTrashFile() {
+        def trashFile = cacheDir.file("0" * 32).createFile()
+        trashFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_CACHE_AGE) * 2
+        return trashFile
     }
 
-    void runMultiple(int times) {
-        times.times {
-            withBuildCache().succeeds("cacheable", "-Prun=${it}")
-        }
+    private ExecutionResult run() {
+        withBuildCache().succeeds("cacheable")
     }
 }

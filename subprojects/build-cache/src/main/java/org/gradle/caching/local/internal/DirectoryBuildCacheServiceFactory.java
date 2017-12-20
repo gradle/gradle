@@ -16,14 +16,13 @@
 
 package org.gradle.caching.local.internal;
 
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleanupActionFactory;
-import org.gradle.cache.internal.FixedSizeOldestCacheCleanup;
+import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
@@ -70,16 +69,15 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         }
         checkDirectory(target);
 
-        long targetSizeInMB = configuration.getTargetSizeInMB();
-        String humanReadableCacheSize = FileUtils.byteCountToDisplaySize(targetSizeInMB *1024*1024);
+        int removeUnusedEntriesAfterDays = configuration.getRemoveUnusedEntriesAfterDays();
         describer.type(DIRECTORY_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath()).
-            config("targetSize", humanReadableCacheSize);
+            config("removeUnusedEntriesAfterDays", String.valueOf(removeUnusedEntriesAfterDays));
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = cacheRepository
             .cache(target)
-            .withCleanup(cleanupActionFactory.create(new FixedSizeOldestCacheCleanup(targetSizeInMB)))
+            .withCleanup(cleanupActionFactory.create(new FixedAgeOldestCacheCleanup(removeUnusedEntriesAfterDays)))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)

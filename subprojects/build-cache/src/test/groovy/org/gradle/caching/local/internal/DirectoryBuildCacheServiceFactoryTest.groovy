@@ -55,7 +55,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         then:
         service instanceof DirectoryBuildCacheService
         1 * config.getDirectory() >> null
-        1 * config.getTargetSizeInMB() >> 1000
+        1 * config.getRemoveUnusedEntriesAfterDays() >> 10
         1 * cacheScopeMapping.getBaseDirectory(null, "build-cache-1", VersionStrategy.SharedCache) >> cacheDir
         1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
@@ -71,7 +71,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         then:
         service instanceof DirectoryBuildCacheService
         1 * config.getDirectory() >> cacheDir
-        1 * config.getTargetSizeInMB() >> 1000
+        1 * config.getRemoveUnusedEntriesAfterDays() >> 10
         1 * resolver.resolve(cacheDir) >> cacheDir
         1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
