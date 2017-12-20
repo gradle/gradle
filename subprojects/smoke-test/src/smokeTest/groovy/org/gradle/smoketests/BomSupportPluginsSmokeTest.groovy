@@ -111,6 +111,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             module("org.springframework:spring-test:4.3.12.RELEASE")
         }
 
+        resolve.expectDefaultConfiguration('compile')
         resolve.expectGraph {
             root(':', ':springbootproject:') {
                 if (directBomDependency) {
