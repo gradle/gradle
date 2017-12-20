@@ -40,7 +40,10 @@ See the api:org.gradle.api.artifacts.dsl.DependencyHandler[] class in the API do
 
 Gradle provides different notations for module dependencies. There is a string notation and a map notation. A module dependency has an API which allows further configuration. Have a look at api:org.gradle.api.artifacts.ExternalModuleDependency[] to learn all about the API. This API provides properties and configuration methods. Via the string notation you can define a subset of the properties. With the map notation you can define all properties. To have access to the complete API, either with the map or with the string notation, you can assign a single dependency to a configuration together with a closure.
 
+[NOTE]
+====
 If you declare a module dependency, Gradle looks for a module descriptor file (`pom.xml` or `ivy.xml`) in the repositories. If such a module descriptor file exists, it is parsed and the artifacts of this module (e.g. `hibernate-3.0.5.jar`) as well as its dependencies (e.g. cglib) are downloaded. If no such module descriptor file exists, Gradle looks for a file called `hibernate-3.0.5.jar` to retrieve. In Maven, a module can have one and only one artifact. In Gradle and Ivy, a module can have multiple artifacts. Each artifact can have a different set of dependencies.
+====
 
 [[sub:project_dependencies]]
 === Project dependencies
