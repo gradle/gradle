@@ -114,7 +114,7 @@ Gradle is flexible enough to treat any version as changing version. All you need
 [[sec:declaring_file_dependency]]
 ==== Declaring a file dependency
 
-For historical reasons, projects sometimes do not rely on a binary repository product e.g. link:https://www.jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/nexus-repository-sonatype/[Sonatype Nexus] for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_, the reason being that they represent a files without any metadata (like information about transitive dependencies, the origin or its author) attached to them.
+For historical reasons, projects sometimes do not rely on a binary repository product e.g. JFrog Artifactory or Sonatype Nexus for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_, the reason being that they represent a files without any metadata (like information about transitive dependencies, the origin or its author) attached to them.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
