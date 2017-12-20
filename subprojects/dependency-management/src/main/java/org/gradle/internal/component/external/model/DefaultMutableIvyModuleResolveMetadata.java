@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.Exclude;
@@ -39,13 +40,14 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     private ImmutableMap<NamespaceId, String> extraAttributes;
     private String branch;
 
-    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id,
+    public DefaultMutableIvyModuleResolveMetadata(ImmutableAttributesFactory attributesFactory,
+                                                  ModuleVersionIdentifier id,
                                                   ModuleComponentIdentifier componentIdentifier,
                                                   List<IvyDependencyDescriptor> dependencies,
                                                   Collection<Configuration> configurationDefinitions,
                                                   Collection<? extends Artifact> artifactDefinitions,
                                                   Collection<? extends Exclude> excludes) {
-        super(id, componentIdentifier);
+        super(attributesFactory, id, componentIdentifier);
         this.configurationDefinitions = toMap(configurationDefinitions);
         this.artifactDefinitions = ImmutableList.copyOf(artifactDefinitions);
         this.dependencies = ImmutableList.copyOf(dependencies);

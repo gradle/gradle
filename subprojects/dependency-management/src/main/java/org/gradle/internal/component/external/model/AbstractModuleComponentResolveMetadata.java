@@ -24,10 +24,10 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
@@ -39,7 +39,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.internal.component.external.model.ComponentMetadataRules.getOrDefault;
+
 abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
+    private final ImmutableAttributesFactory attributesFactory;
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleComponentIdentifier componentIdentifier;
     private final boolean changing;
@@ -49,7 +52,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Nullable
     private final ModuleSource moduleSource;
     private final ImmutableMap<String, Configuration> configurationDefinitions;
-    private final Map<String, DependencyMetadataRules> dependencyMetadataRules;
+    private final Map<String, ComponentMetadataRules> componentMetadataRules;
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue contentHash;
 
@@ -66,9 +69,9 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
         configurationDefinitions = metadata.getConfigurationDefinitions();
-        dependencyMetadataRules = metadata.dependencyMetadataRules;
+        componentMetadataRules = metadata.componentMetadataRules;
         contentHash = metadata.getContentHash();
-
+        attributesFactory = metadata.getAttributesFactory();
         variants = metadata.getVariants();
     }
 
@@ -84,9 +87,9 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.statusScheme;
         moduleSource = source;
         configurationDefinitions = metadata.configurationDefinitions;
-        dependencyMetadataRules = metadata.dependencyMetadataRules;
+        componentMetadataRules = metadata.componentMetadataRules;
         contentHash = metadata.contentHash;
-
+        attributesFactory = metadata.getAttributesFactory();
         variants = metadata.variants;
     }
 
@@ -114,7 +117,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         ImmutableList<String> hierarchy = constructHierarchy(descriptorConfiguration);
         boolean transitive = descriptorConfiguration.isTransitive();
         boolean visible = descriptorConfiguration.isVisible();
-        populated = createConfiguration(componentIdentifier, name, transitive, visible, hierarchy, dependencyMetadataRules.get(name));
+        populated = createConfiguration(componentIdentifier, name, transitive, visible, hierarchy, getOrDefault(componentMetadataRules.get(name)));
         configurations.put(name, populated);
         return populated;
     }
@@ -139,7 +142,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     /**
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
-    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, DependencyMetadataRules dependencyMetadataRules);
+    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ComponentMetadataRules componentMetadataRules);
 
     private ImmutableList<? extends ConfigurationMetadata> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
         if (variants.isEmpty()) {
@@ -147,7 +150,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
         List<VariantBackedConfigurationMetadata> configurations = new ArrayList<VariantBackedConfigurationMetadata>(variants.size());
         for (ComponentVariant variant : variants) {
-            configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, dependencyMetadataRules.get(variant.getName())));
+            configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, getOrDefault(componentMetadataRules.get(variant.getName()))));
         }
         return ImmutableList.copyOf(configurations);
     }
@@ -156,6 +159,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
         return EmptySchema.INSTANCE;
+    }
+
+    @Override
+    public ImmutableAttributesFactory getAttributesFactory() {
+        return attributesFactory;
     }
 
     @Override
@@ -230,6 +238,12 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Override
     public synchronized ConfigurationMetadata getConfiguration(final String name) {
         return populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
+    }
+
+
+    @Override
+    public Map<String, ComponentMetadataRules> getComponentMetadataRules() {
+        return componentMetadataRules;
     }
 
     @Override

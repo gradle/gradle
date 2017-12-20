@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.external.model.ComponentMetadataRules;
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -43,6 +44,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class ClientModuleResolver implements ComponentMetaDataResolver {
@@ -168,11 +170,16 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         public List<String> getStatusScheme() {
             return delegate.getStatusScheme();
         }
+
+        @Override
+        public Map<String, ComponentMetadataRules> getComponentMetadataRules() {
+            return delegate.getComponentMetadataRules();
+        }
     }
 
     private static class ClientModuleConfigurationMetadata extends DefaultConfigurationMetadata {
         ClientModuleConfigurationMetadata(ModuleComponentIdentifier componentId, String name, ModuleComponentArtifactMetadata artifact, List<ModuleDependencyMetadata> dependencies) {
-            super(componentId, name, true, true, ImmutableList.<String>of(), ImmutableList.of(artifact), null, ImmutableList.<ExcludeMetadata>of());
+            super(componentId, name, true, true, ImmutableList.<String>of(), ImmutableList.of(artifact), ComponentMetadataRules.noOp(), ImmutableList.<ExcludeMetadata>of());
             setDependencies(dependencies);
         }
     }

@@ -26,7 +26,6 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantMetadata;
@@ -43,13 +42,14 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final ComponentVariant variant;
     private final ImmutableList<GradleDependencyMetadata> dependencies;
-    private final DependencyMetadataRules dependencyMetadataRules;
+    private final ComponentMetadataRules componentMetadataRules;
 
     private List<GradleDependencyMetadata> calculatedDependencies;
 
-    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, DependencyMetadataRules dependencyMetadataRules) {
+    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ComponentMetadataRules componentMetadataRules) {
         this.componentId = componentId;
         this.variant = variant;
+        this.componentMetadataRules = componentMetadataRules;
         List<GradleDependencyMetadata> dependencies = new ArrayList<GradleDependencyMetadata>(variant.getDependencies().size());
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint());
@@ -60,7 +60,6 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
             dependencies.add(new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(dependencyConstraint.getGroup(), dependencyConstraint.getModule(), dependencyConstraint.getVersionConstraint()), true));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);
-        this.dependencyMetadataRules = dependencyMetadataRules;
     }
 
     @Override
@@ -85,7 +84,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
 
     @Override
     public ImmutableAttributes getAttributes() {
-        return variant.getAttributes().asImmutable();
+        return componentMetadataRules.applyVariantAttributeRules(variant.getAttributes());
     }
 
     @Override
@@ -131,11 +130,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     @Override
     public List<? extends DependencyMetadata> getDependencies() {
         if (calculatedDependencies == null) {
-            if (dependencyMetadataRules == null) {
-                calculatedDependencies = dependencies;
-            } else {
-                calculatedDependencies = dependencyMetadataRules.execute(dependencies);
-            }
+            calculatedDependencies = componentMetadataRules.applyDependencyMetadataRules(dependencies);
         }
         return calculatedDependencies;
     }

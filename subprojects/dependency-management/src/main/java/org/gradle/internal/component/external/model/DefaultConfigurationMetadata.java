@@ -25,12 +25,10 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantMetadata;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -46,7 +44,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata {
     private final boolean transitive;
     private final boolean visible;
     private final ImmutableList<String> hierarchy;
-    private final DependencyMetadataRules dependencyMetadataRules;
+    private final ComponentMetadataRules componentMetadataRules;
     private final ImmutableList<ExcludeMetadata> excludes;
 
     // Should be final, and set in constructor
@@ -55,14 +53,15 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata {
 
     protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                            ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                           @Nullable DependencyMetadataRules dependencyMetadataRules, ImmutableList<ExcludeMetadata> excludes) {
+                                           ComponentMetadataRules componentMetadataRules,
+                                           ImmutableList<ExcludeMetadata> excludes) {
         this.componentId = componentId;
         this.name = name;
         this.transitive = transitive;
         this.visible = visible;
         this.artifacts = artifacts;
         this.hierarchy = hierarchy;
-        this.dependencyMetadataRules = dependencyMetadataRules;
+        this.componentMetadataRules = componentMetadataRules;
         this.excludes = excludes;
     }
 
@@ -98,7 +97,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata {
 
     @Override
     public ImmutableAttributes getAttributes() {
-        return ImmutableAttributes.EMPTY;
+        return componentMetadataRules.applyVariantAttributeRules(ImmutableAttributes.EMPTY);
     }
 
     @Override
@@ -114,11 +113,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata {
     @Override
     public List<? extends DependencyMetadata> getDependencies() {
         if (calculatedDependencies == null) {
-            if (dependencyMetadataRules == null) {
-                calculatedDependencies = configDependencies;
-            } else {
-                calculatedDependencies = dependencyMetadataRules.execute(configDependencies);
-            }
+            calculatedDependencies = componentMetadataRules.applyDependencyMetadataRules(configDependencies);
         }
         return calculatedDependencies;
     }

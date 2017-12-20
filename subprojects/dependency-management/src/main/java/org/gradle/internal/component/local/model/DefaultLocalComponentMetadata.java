@@ -33,6 +33,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.ComponentMetadataRules;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -45,6 +46,7 @@ import org.gradle.internal.component.model.VariantMetadata;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -207,6 +209,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public List<String> getStatusScheme() {
         return DEFAULT_STATUS_SCHEME;
+    }
+
+    @Override
+    public Map<String, ComponentMetadataRules> getComponentMetadataRules() {
+        return Collections.emptyMap();
     }
 
     @Override

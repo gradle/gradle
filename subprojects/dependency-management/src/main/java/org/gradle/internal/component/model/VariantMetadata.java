@@ -25,6 +25,8 @@ import java.util.List;
  * Metadata for a basic variant of a component, that defines only artifacts and no dependencies.
  */
 public interface VariantMetadata {
+    String getName();
+
     DisplayName asDescribable();
 
     AttributeContainerInternal getAttributes();

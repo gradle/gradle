@@ -49,13 +49,13 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     @Shared componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
     @Shared attributes = TestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
     @Shared schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
-    @Shared mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory())
-    @Shared ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory())
+    @Shared mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
+    @Shared ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
     @Shared defaultVariant
 
     abstract boolean addAllDependenciesAsConstraints()
 
-    abstract void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName, Action<DependenciesMetadata> action)
+    abstract void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName, Action<? super DependenciesMetadata> action)
 
     boolean supportedInMetadata(String metadata) {
         !addAllDependenciesAsConstraints() || metadata != "ivy" //ivy does not support dependency constraints or optional dependencies
@@ -76,7 +76,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def dependencies = deps.collect { name ->
             new MavenDependencyDescriptor(MavenScope.Compile, addAllDependenciesAsConstraints(), newSelector("org.test", name, "1.0"), null, [])
         }
-        new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, dependencies)
+        mavenMetadataFactory.create(componentIdentifier, dependencies)
     }
     private gradleComponentMetadata(String[] deps) {
         def metadata = mavenMetadataFactory.create(componentIdentifier)

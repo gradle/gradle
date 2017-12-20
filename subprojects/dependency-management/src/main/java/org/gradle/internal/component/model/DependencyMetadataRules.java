@@ -17,6 +17,7 @@
 package org.gradle.internal.component.model;
 
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DirectDependenciesMetadata;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
@@ -56,8 +57,8 @@ public class DependencyMetadataRules {
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser;
-    private final List<Action<? super DirectDependenciesMetadata>> dependencyActions = new ArrayList<Action<? super DirectDependenciesMetadata>>();
-    private final List<Action<? super DependencyConstraintsMetadata>> dependencyConstraintActions = new ArrayList<Action<? super DependencyConstraintsMetadata>>();
+    private final List<Action<? super DirectDependenciesMetadata>> dependencyActions = Lists.newArrayList();
+    private final List<Action<? super DependencyConstraintsMetadata>> dependencyConstraintActions = Lists.newArrayList();
 
     public DependencyMetadataRules(Instantiator instantiator,
                                    NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,

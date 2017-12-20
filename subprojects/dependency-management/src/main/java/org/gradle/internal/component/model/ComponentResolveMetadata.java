@@ -21,10 +21,12 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.external.model.ComponentMetadataRules;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -90,4 +92,6 @@ public interface ComponentResolveMetadata {
     String getStatus();
 
     List<String> getStatusScheme();
+
+    Map<String, ComponentMetadataRules> getComponentMetadataRules();
 }

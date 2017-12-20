@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.descriptor.Configuration;
 
 import javax.annotation.Nullable;
@@ -35,8 +36,8 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     private String snapshotTimestamp;
     private ImmutableList<MavenDependencyDescriptor> dependencies;
 
-    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<MavenDependencyDescriptor> dependencies) {
-        super(id, componentIdentifier);
+    public DefaultMutableMavenModuleResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<MavenDependencyDescriptor> dependencies) {
+        super(attributesFactory, id, componentIdentifier);
         this.dependencies = ImmutableList.copyOf(dependencies);
     }
 

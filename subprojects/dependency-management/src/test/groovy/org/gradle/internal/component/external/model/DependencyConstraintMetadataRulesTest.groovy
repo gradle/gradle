@@ -18,24 +18,29 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependenciesMetadata
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.descriptor.MavenScope
+import org.gradle.util.TestUtil
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRulesTest {
+    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
+
     @Override
     boolean addAllDependenciesAsConstraints() {
         return true
     }
 
     @Override
-    void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName, Action<DependenciesMetadata> action) {
+    void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName, Action<? super DependenciesMetadata> action) {
         metadataImplementation.addDependencyConstraintMetadataRule(variantName, action, instantiator, notationParser, constraintNotationParser)
     }
 
     def "maven optional dependencies are accessible as dependency constraints"() {
         given:
-        def mavenMetadata = new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, [
+        def mavenMetadata = mavenMetadataFactory.create(componentIdentifier, [
             new MavenDependencyDescriptor(MavenScope.Compile, false, newSelector("org", "notOptional", "1.0"), null, []),
             new MavenDependencyDescriptor(MavenScope.Compile, true, newSelector("org", "optional", "1.0"), null, [])
         ])
