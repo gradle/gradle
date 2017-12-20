@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 @RequiredFeatures(
@@ -133,8 +132,6 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         componentLevel << [true, false]
     }
 
-    // This is eventually what we want, but version listing is not wired properly for this
-    @Ignore
     def "can use a component metadata rule to infer quality attribute"() {
         given:
         repository {
@@ -145,7 +142,16 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         buildFile << """
             def quality = Attribute.of("quality", String)
             configurations {
-                conf.attributes.attribute(quality, 'qa')
+                conf {
+                   attributes.attribute(quality, 'qa')
+                   // TODO: this shouldn't be necessary, because ideally we should consider attributes
+                   // during version listing too
+                   resolutionStrategy.componentSelection.all { ComponentSelection selection, ComponentMetadata md ->
+                      if (md.attributes.getAttribute(quality) != 'qa') {
+                         selection.reject('Not approved by QA')
+                      }
+                   }
+                }
             }
             
             dependencies {
@@ -180,7 +186,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         run ':checkDeps'
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org.test:module:1.1')
+                edge('org.test:module:[1.0,2.0)', 'org.test:module:1.1')
             }
         }
 
