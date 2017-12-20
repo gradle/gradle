@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.internal;
+package org.gradle.language.internal;
 
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
@@ -24,8 +24,8 @@ import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.language.swift.SwiftBinaryContainer;
-import org.gradle.language.swift.SwiftBinaryProvider;
+import org.gradle.language.swift.NativeBinaryContainer;
+import org.gradle.language.NativeBinaryProvider;
 import org.gradle.util.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -37,7 +37,7 @@ import java.util.Set;
 
 // TODO - error messages
 // TODO - display names for this container and the Provider implementations
-public class DefaultSwiftBinaryContainer<T extends SoftwareComponent> implements SwiftBinaryContainer<T> {
+public class DefaultNativeBinaryContainer<T extends SoftwareComponent> implements NativeBinaryContainer<T> {
     private enum State {
         Collecting, Realizing, Finalized
     }
@@ -52,13 +52,13 @@ public class DefaultSwiftBinaryContainer<T extends SoftwareComponent> implements
     private ImmutableActionSet<T> finalizeActions = ImmutableActionSet.empty();
 
     @Inject
-    public DefaultSwiftBinaryContainer(Class<T> elementType, ProviderFactory providerFactory) {
+    public DefaultNativeBinaryContainer(Class<T> elementType, ProviderFactory providerFactory) {
         this.elementType = elementType;
         this.providerFactory = providerFactory;
     }
 
     @Override
-    public <S> SwiftBinaryProvider<S> get(final Class<S> type, final Spec<? super S> spec) {
+    public <S> NativeBinaryProvider<S> get(final Class<S> type, final Spec<? super S> spec) {
         SingleElementProvider<S> provider = new SingleElementProvider<S>(type, spec);
         if (state == State.Collecting) {
             pending.add(provider);
@@ -69,7 +69,7 @@ public class DefaultSwiftBinaryContainer<T extends SoftwareComponent> implements
     }
 
     @Override
-    public SwiftBinaryProvider<T> getByName(final String name) {
+    public NativeBinaryProvider<T> getByName(final String name) {
         return get(elementType, new Spec<T>() {
             @Override
             public boolean isSatisfiedBy(T element) {
@@ -79,7 +79,7 @@ public class DefaultSwiftBinaryContainer<T extends SoftwareComponent> implements
     }
 
     @Override
-    public SwiftBinaryProvider<T> get(Spec<? super T> spec) {
+    public NativeBinaryProvider<T> get(Spec<? super T> spec) {
         return get(elementType, spec);
     }
 
@@ -153,7 +153,7 @@ public class DefaultSwiftBinaryContainer<T extends SoftwareComponent> implements
         return ImmutableSet.copyOf(elements);
     }
 
-    private class SingleElementProvider<S> extends AbstractProvider<S> implements SwiftBinaryProvider<S> {
+    private class SingleElementProvider<S> extends AbstractProvider<S> implements NativeBinaryProvider<S> {
         private final Class<S> type;
         private Spec<? super S> spec;
         private S match;

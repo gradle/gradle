@@ -63,7 +63,7 @@ public interface SwiftComponent extends SoftwareComponent {
      *
      * @since 4.5
      */
-    SwiftBinaryContainer<? extends SwiftBinary> getBinaries();
+    NativeBinaryContainer<? extends SwiftBinary> getBinaries();
 
     /**
      * Returns the binary of the component to use as the default for development.
