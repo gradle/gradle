@@ -160,7 +160,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         sizeDiff > -100 && sizeDiff < 100
 
         unpackOp.result.archiveEntryCount == 4
-        unpackOp.result.originalExecutionTime > 0
     }
 
     def "records load failure"() {
@@ -321,7 +320,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         }
 
         unpackOp.result.archiveEntryCount == 4
-        unpackOp.result.originalExecutionTime > 0
         unpackOp.details.archiveSize == remoteHitLoadOp.result.archiveSize
 
         operations.orderedSerialSiblings(remoteHitLoadOp, unpackOp)

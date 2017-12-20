@@ -29,6 +29,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -43,12 +44,14 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
     private final TaskOutputsGenerationListener taskOutputsGenerationListener;
     private final TaskExecuter executer;
+    private final BuildInvocationScopeId buildInvocationScopeId;
 
-    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, BuildOutputCleanupRegistry buildOutputCleanupRegistry, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter executer) {
+    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, BuildOutputCleanupRegistry buildOutputCleanupRegistry, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter executer, BuildInvocationScopeId buildInvocationScopeId) {
         this.taskInputsListener = taskInputsListener;
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
         this.taskOutputsGenerationListener = taskOutputsGenerationListener;
         this.executer = executer;
+        this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
@@ -88,7 +91,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 } else {
                     state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 }
-                taskArtifactState.snapshotAfterTaskExecution(null);
+                taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationScopeId.getId(), context);
             }
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
             return;

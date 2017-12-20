@@ -22,21 +22,22 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
-import org.gradle.internal.id.UniqueId;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 
 import javax.annotation.Nullable;
 
 @NonNullApi
 public class CurrentTaskExecution extends AbstractTaskExecution {
+
     private final ImmutableSet<String> declaredOutputFilePaths;
     private ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
     private FileCollectionSnapshot discoveredInputFilesSnapshot;
     private final OverlappingOutputs detectedOverlappingOutputs;
     private Boolean successful;
+    private OriginTaskExecutionMetadata originExecutionMetadata;
 
     public CurrentTaskExecution(
-        UniqueId buildInvocationId,
         ImplementationSnapshot taskImplementation,
         ImmutableList<ImplementationSnapshot> taskActionImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
@@ -47,7 +48,7 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
         @Nullable OverlappingOutputs detectedOverlappingOutputs
     ) {
-        super(buildInvocationId, taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames);
+        super(taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames);
         this.declaredOutputFilePaths = declaredOutputFilePaths;
         this.outputFilesSnapshot = outputFilesSnapshot;
         this.inputFilesSnapshot = inputFilesSnapshot;
@@ -72,6 +73,7 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
     public void setSuccessful(boolean successful) {
         this.successful = successful;
     }
+
 
     @Override
     public ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot() {
@@ -103,7 +105,6 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
 
     public HistoricalTaskExecution archive() {
         return new HistoricalTaskExecution(
-            getBuildInvocationId(),
             getTaskImplementation(),
             getTaskActionImplementations(),
             getInputProperties(),
@@ -111,7 +112,17 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
             inputFilesSnapshot,
             discoveredInputFilesSnapshot,
             outputFilesSnapshot,
-            successful
+            successful,
+            originExecutionMetadata
         );
+    }
+
+    @Override
+    public OriginTaskExecutionMetadata getOriginExecutionMetadata() {
+        return originExecutionMetadata;
+    }
+
+    public void setOriginExecutionMetadata(OriginTaskExecutionMetadata originExecutionMetadata) {
+        this.originExecutionMetadata = originExecutionMetadata;
     }
 }

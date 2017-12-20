@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import groovy.json.JsonSlurper
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.UserInitScriptExecuterFixture
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
@@ -31,30 +32,43 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
-class TaskOutputOriginBuildInvocationIdFixture extends UserInitScriptExecuterFixture {
+class TaskOutputOriginFixture extends UserInitScriptExecuterFixture {
 
-    Map<String, UniqueId> originIds = [:]
+    Map<String, OriginTaskExecutionMetadata> origins = [:]
 
-    TaskOutputOriginBuildInvocationIdFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
+    TaskOutputOriginFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
         super(executer, testDir)
     }
 
     private TestFile getFile() {
-        testDir.testDirectory.file("originIds.json")
+        testDir.testDirectory.file("outputOrigin.json")
     }
 
     @Override
     String initScriptContent() {
         """
             if (gradle.parent == null) {
-                def ids = Collections.synchronizedMap([:])
-                gradle.ext.originIds = ids
+                def origins = Collections.synchronizedMap([:])
+                gradle.ext.origins = origins
                 
                 gradle.services.get($BuildOperationListenerManager.name).addListener(new $BuildOperationListener.name() {
                     void started($BuildOperationDescriptor.name buildOperation, $OperationStartEvent.name startEvent) {}
                     void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
                         if (finishEvent.result instanceof $ExecuteTaskBuildOperationType.Result.name) {
-                            gradle.ext.originIds[buildOperation.details.task.identityPath] = finishEvent.result.originBuildInvocationId        
+                            def buildInvocationId = finishEvent.result.originBuildInvocationId
+                            def executionTime = finishEvent.result.originExecutionTime
+                            def entry = null
+                            if (buildInvocationId) {
+                                assert executionTime != null
+                                entry = [
+                                    buildInvocationId: buildInvocationId,
+                                    executionTime: executionTime
+                                ]                                    
+                            } else {
+                                assert executionTime == null
+                            }
+                            gradle.ext.origins[buildOperation.details.task.identityPath] = entry
+                            
                             println "Finished task: " + buildOperation.details.task.identityPath
                         }
                     }
@@ -65,7 +79,7 @@ class TaskOutputOriginBuildInvocationIdFixture extends UserInitScriptExecuterFix
                 gradle.buildFinished {
                     println "Build finished"
                     println "--------------"
-                    gradle.rootProject.file("${TextUtil.normaliseFileSeparators(file.absolutePath)}").text = groovy.json.JsonOutput.toJson(ids)
+                    gradle.rootProject.file("${TextUtil.normaliseFileSeparators(file.absolutePath)}").text = groovy.json.JsonOutput.toJson(origins)
                 }
             }
         """
@@ -73,17 +87,24 @@ class TaskOutputOriginBuildInvocationIdFixture extends UserInitScriptExecuterFix
 
     @Override
     void afterBuild() {
-        def rawOriginIds = new JsonSlurper().parse(file) as Map<String, String>
-        originIds.clear()
-        rawOriginIds.each {
-            originIds[it.key] = it.value == null ? null : UniqueId.from(it.value)
+        def rawOrigins = (Map<String, Map<String, String>>) new JsonSlurper().parse(file)
+        origins.clear()
+        rawOrigins.each {
+            origins[it.key] = it.value == null ? null : new OriginTaskExecutionMetadata(
+                UniqueId.from(it.value.buildInvocationId as String),
+                it.value.executionTime as long
+            )
         }
     }
 
     UniqueId originId(String path) {
-        def tasks = originIds.keySet()
+        origin(path)?.buildInvocationId
+    }
+
+    OriginTaskExecutionMetadata origin(String path) {
+        def tasks = origins.keySet()
         assert path in tasks
-        originIds[path]
+        origins[path]
     }
 
 }

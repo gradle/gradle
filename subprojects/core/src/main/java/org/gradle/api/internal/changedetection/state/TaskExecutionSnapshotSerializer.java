@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -44,7 +45,10 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
     public HistoricalTaskExecution read(Decoder decoder) throws Exception {
         boolean successful = decoder.readBoolean();
 
-        UniqueId buildId = UniqueId.from(decoder.readString());
+        OriginTaskExecutionMetadata originExecutionMetadata = new OriginTaskExecutionMetadata(
+            UniqueId.from(decoder.readString()),
+            decoder.readLong()
+        );
 
         ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshots = readSnapshots(decoder);
         ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshots = readSnapshots(decoder);
@@ -71,7 +75,6 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = inputPropertiesSerializer.read(decoder);
 
         return new HistoricalTaskExecution(
-            buildId,
             taskImplementation,
             taskActionImplementations,
             inputProperties,
@@ -79,13 +82,15 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
             inputFilesSnapshots,
             discoveredFilesSnapshot,
             outputFilesSnapshots,
-            successful
+            successful,
+            originExecutionMetadata
         );
     }
 
     public void write(Encoder encoder, HistoricalTaskExecution execution) throws Exception {
         encoder.writeBoolean(execution.isSuccessful());
-        encoder.writeString(execution.getBuildInvocationId().asString());
+        encoder.writeString(execution.getOriginExecutionMetadata().getBuildInvocationId().asString());
+        encoder.writeLong(execution.getOriginExecutionMetadata().getExecutionTime());
         writeSnapshots(encoder, execution.getInputFilesSnapshot());
         writeSnapshots(encoder, execution.getOutputFilesSnapshot());
         fileCollectionSnapshotSerializer.write(encoder, execution.getDiscoveredInputFilesSnapshot());

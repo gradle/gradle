@@ -41,7 +41,6 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
@@ -69,7 +68,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private final ValueSnapshotter valueSnapshotter;
     private final FileCollectionSnapshotterRegistry snapshotterRegistry;
     private final FileCollectionFactory fileCollectionFactory;
-    private final BuildInvocationScopeId buildInvocationScopeId;
 
     public CacheBackedTaskHistoryRepository(
         TaskHistoryStore cacheAccess,
@@ -78,15 +76,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionSnapshotterRegistry snapshotterRegistry,
-        FileCollectionFactory fileCollectionFactory,
-        BuildInvocationScopeId buildInvocationScopeId
+        FileCollectionFactory fileCollectionFactory
     ) {
         this.stringInterner = stringInterner;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.valueSnapshotter = valueSnapshotter;
         this.snapshotterRegistry = snapshotterRegistry;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.buildInvocationScopeId = buildInvocationScopeId;
         TaskExecutionSnapshotSerializer serializer = new TaskExecutionSnapshotSerializer(stringInterner, fileCollectionSnapshotSerializer);
         this.taskHistoryCache = cacheAccess.createCache("taskHistory", String.class, serializer, 10000, false);
     }
@@ -167,7 +163,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(outputFiles, previousExecution);
 
         return new CurrentTaskExecution(
-            buildInvocationScopeId.getId(),
             taskImplementation,
             taskActionImplementations,
             inputProperties,
@@ -266,9 +261,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     /**
      * Decide whether an entry should be considered to be part of the output. Entries that are considered outputs are:
      * <ul>
-     *     <li>an entry that did not exist before the execution, but exists after the execution</li>
-     *     <li>an entry that did exist before the execution, and has been changed during the execution</li>
-     *     <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
+     * <li>an entry that did not exist before the execution, but exists after the execution</li>
+     * <li>an entry that did exist before the execution, and has been changed during the execution</li>
+     * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
      * </ul>
      */
     private static boolean isOutputEntry(String path, NormalizedFileSnapshot fileSnapshot, Map<String, NormalizedFileSnapshot> beforeSnapshots, Map<String, NormalizedFileSnapshot> afterPreviousSnapshots) {

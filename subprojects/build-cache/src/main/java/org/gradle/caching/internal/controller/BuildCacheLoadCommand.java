@@ -45,11 +45,6 @@ public interface BuildCacheLoadCommand<T> {
         long getArtifactEntryCount();
 
         /**
-         * The time it took to execute the original task in milliseconds.
-         */
-        long getOriginalExecutionTime();
-
-        /**
          * Any metadata about the loaded artifact.
          *
          * Value may not be null.

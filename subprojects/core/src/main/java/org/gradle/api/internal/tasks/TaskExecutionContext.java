@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.time.Timer;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -34,10 +34,41 @@ public interface TaskExecutionContext {
 
     void setBuildCacheKey(TaskOutputCachingBuildCacheKey cacheKey);
 
+    /**
+     * The information about the origin where the tasks outputs were first created, if reusing outputs.
+     */
     @Nullable
-    UniqueId getOriginBuildInvocationId();
+    OriginTaskExecutionMetadata getOriginExecutionMetadata();
 
-    void setOriginBuildInvocationId(@Nullable UniqueId originBuildInvocationId);
+    void setOriginExecutionMetadata(OriginTaskExecutionMetadata originExecutionMetadata);
+
+    /**
+     * The timer that started at the very start of executing this task.
+     *
+     * This is not precisely aligned with the start time of the corresponding build operation,
+     * but should be extremely close.
+     */
+    Timer getExecutionTimer();
+
+    /**
+     * Sets the execution time of the task to be the elapsed time since start to now.
+     *
+     * This is _only_ used for origin time tracking. It is not used to report the time taken in _this_ build.
+     * If the outputs from this execution are reused, this time will be considered to be the origin execution time.
+     *
+     * This time includes from the very start of the task (e.g. include input snapshotting), the task actions, and output snapshotting.
+     * It does not include time taken to write back to the build cache, or time to update the task history repository.
+     *
+     * This can only be called once per task.
+     */
+    long markExecutionTime();
+
+    /**
+     * The previously marked execution time.
+     *
+     * Throws if the execution time was not previously marked.
+     */
+    long getExecutionTime();
 
     @Nullable
     List<String> getUpToDateMessages();

@@ -21,11 +21,9 @@ import org.gradle.caching.internal.operations.BuildCacheArchiveUnpackBuildOperat
 public class UnpackOperationResult implements BuildCacheArchiveUnpackBuildOperationType.Result {
 
     private final long archiveEntryCount;
-    private final long originalExecutionTime;
 
-    public UnpackOperationResult(long archiveEntryCount, long originalExecutionTime) {
+    public UnpackOperationResult(long archiveEntryCount) {
         this.archiveEntryCount = archiveEntryCount;
-        this.originalExecutionTime = originalExecutionTime;
     }
 
     @Override
@@ -33,8 +31,4 @@ public class UnpackOperationResult implements BuildCacheArchiveUnpackBuildOperat
         return archiveEntryCount;
     }
 
-    @Override
-    public long getOriginalExecutionTime() {
-        return originalExecutionTime;
-    }
 }

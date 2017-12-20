@@ -70,11 +70,6 @@ class DefaultBuildCacheControllerTest extends Specification {
                 }
 
                 @Override
-                long getOriginalExecutionTime() {
-                    return 0
-                }
-
-                @Override
                 Object getMetadata() {
                     return null
                 }
