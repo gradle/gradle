@@ -185,12 +185,12 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    MavenMutableModuleMetadataFactory createMutableMavenMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        return new MavenMutableModuleMetadataFactory(moduleIdentifierFactory);
+    MavenMutableModuleMetadataFactory createMutableMavenMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
+        return new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory);
     }
 
-    IvyMutableModuleMetadataFactory createMutableIvyMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        return new IvyMutableModuleMetadataFactory(moduleIdentifierFactory);
+    IvyMutableModuleMetadataFactory createMutableIvyMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
+        return new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory);
     }
 
     ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider,

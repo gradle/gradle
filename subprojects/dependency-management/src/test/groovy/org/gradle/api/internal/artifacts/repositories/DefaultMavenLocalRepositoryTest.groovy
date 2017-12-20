@@ -42,7 +42,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final ModuleMetadataParser metadataParser = Stub()
     final AuthenticationContainer authenticationContainer = Stub()
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
-    final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory)
+    final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory())
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenLocalArtifactRepository(resolver,
         transportFactory,

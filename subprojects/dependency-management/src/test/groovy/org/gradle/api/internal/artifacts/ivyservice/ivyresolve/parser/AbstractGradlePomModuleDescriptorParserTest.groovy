@@ -34,6 +34,7 @@ import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -41,7 +42,7 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory)
+    final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory())
     final FileResourceRepository fileRepository = TestFiles.fileRepository()
     final GradlePomModuleDescriptorParser parser = new GradlePomModuleDescriptorParser(new DefaultVersionSelectorScheme(), moduleIdentifierFactory, fileRepository, mavenMetadataFactory)
     final parseContext = Mock(DescriptorParseContext)

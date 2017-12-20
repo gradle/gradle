@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
@@ -38,9 +39,11 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
     private static final ImmutableSet<String> SINGLE_DEFAULT_CONFIGURATION_NAME = ImmutableSet.of(Dependency.DEFAULT_CONFIGURATION);
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ImmutableAttributesFactory attributesFactory;
 
-    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -64,6 +67,7 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
                                                   Collection<? extends Exclude> excludes) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
         return new DefaultMutableIvyModuleResolveMetadata(
+            attributesFactory,
             mvi,
             from,
             dependencies,

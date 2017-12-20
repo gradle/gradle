@@ -54,7 +54,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ivyContextManager = Mock(IvyContextManager)
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final ModuleMetadataParser moduleMetadataParser = new ModuleMetadataParser(Mock(ImmutableAttributesFactory), moduleIdentifierFactory, Mock(NamedObjectInstantiator))
-    final IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory())
+    final IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser, new ExperimentalFeatures(), metadataFactory)
 

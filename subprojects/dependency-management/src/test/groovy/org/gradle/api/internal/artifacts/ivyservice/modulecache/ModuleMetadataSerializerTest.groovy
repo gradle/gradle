@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser
@@ -33,7 +32,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModul
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
@@ -49,8 +47,8 @@ import spock.lang.Unroll
 class ModuleMetadataSerializerTest extends Specification {
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    private final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory)
-    private final IvyMutableModuleMetadataFactory ivyMetadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory)
+    private final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory())
+    private final IvyMutableModuleMetadataFactory ivyMetadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory())
     private final ModuleMetadataSerializer serializer = moduleMetadataSerializer()
     private GradlePomModuleDescriptorParser pomModuleDescriptorParser = pomParser()
     private MetaDataParser<MutableIvyModuleResolveMetadata> ivyDescriptorParser = ivyParser()
@@ -120,11 +118,7 @@ class ModuleMetadataSerializerTest extends Specification {
     }
 
     MutableModuleComponentResolveMetadata parseGradle(File gradleFile) {
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(
-            DefaultModuleVersionIdentifier.newId('test', 'test-module', '1.0'),
-            DefaultModuleComponentIdentifier.newId('test', 'test-module', '1.0'),
-            []
-        )
+        def metadata = mavenMetadataFactory.create(DefaultModuleComponentIdentifier.newId('test', 'test-module', '1.0'))
         gradleMetadataParser.parse(resource(gradleFile), metadata)
         metadata
     }

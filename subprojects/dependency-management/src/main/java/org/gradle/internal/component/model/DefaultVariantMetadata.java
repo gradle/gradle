@@ -33,6 +33,11 @@ public class DefaultVariantMetadata implements VariantMetadata {
     }
 
     @Override
+    public String getName() {
+        return displayName.getDisplayName();
+    }
+
+    @Override
     public DisplayName asDescribable() {
         return displayName;
     }

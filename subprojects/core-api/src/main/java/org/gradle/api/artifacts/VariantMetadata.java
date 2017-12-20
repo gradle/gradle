@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.AttributeContainer;
 
 /**
  * Represents the metadata of one variant of a component, see {@link ComponentMetadataDetails#withVariant(String, Action)}.
@@ -42,4 +43,15 @@ public interface VariantMetadata {
      * @since 4.5
      */
     void withDependencyConstraints(Action<? super DependencyConstraintsMetadata> action);
+
+
+    /**
+     * Registers a rule that will execute on the variant attributes. This allows adding
+     * or modifying variant attributes, but not removing them.
+     *
+     * @param action the action that performs the attributes adjustments
+     *
+     * @since 4.5
+     */
+    void withAttributes(Action<? super AttributeContainer> action);
 }

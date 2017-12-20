@@ -28,11 +28,12 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.Exclude
+import org.gradle.util.TestUtil
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
-    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory())
+    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
 
     @Override
     AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {

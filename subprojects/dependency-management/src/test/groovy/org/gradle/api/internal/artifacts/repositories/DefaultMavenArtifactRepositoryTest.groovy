@@ -45,7 +45,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final ModuleMetadataParser metadataParser = Stub()
     final AuthenticationContainer authenticationContainer = Stub()
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Stub()
-    final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory)
+    final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory())
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
         resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(), artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, externalResourceFileStore, Mock(FileResourceRepository), new ExperimentalFeatures(), mavenMetadataFactory)

@@ -28,6 +28,7 @@ import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -43,7 +44,7 @@ class ValidatingIvyPublisherTest extends Specification {
 
     def delegate = Mock(IvyPublisher)
     DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory)
+    IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory())
 
     def publisher = new ValidatingIvyPublisher(delegate, moduleIdentifierFactory, TestFiles.fileRepository(), metadataFactory)
 

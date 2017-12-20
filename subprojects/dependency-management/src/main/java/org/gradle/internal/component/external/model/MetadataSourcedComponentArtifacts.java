@@ -35,6 +35,6 @@ import java.util.Map;
 public class MetadataSourcedComponentArtifacts implements ComponentArtifacts {
     @Override
     public ArtifactSet getArtifactsFor(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
-        return DefaultArtifactSet.multipleVariants(component.getComponentId(), component.getId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry);
+        return DefaultArtifactSet.multipleVariants(component.getComponentId(), component.getId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, component.getComponentMetadataRules());
     }
 }
