@@ -23,6 +23,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl
@@ -49,6 +50,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     @Shared attributes = TestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
     @Shared schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
     @Shared mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory())
+    @Shared ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory())
     @Shared defaultVariant
 
     abstract boolean addAllDependenciesAsConstraints()
@@ -68,7 +70,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
                 new IvyDependencyDescriptor(newSelector("org.test", name, "1.0"), ImmutableListMultimap.of("default", "default"))
             }
         }
-        new DefaultMutableIvyModuleResolveMetadata(versionIdentifier, componentIdentifier, dependencies)
+        ivyMetadataFactory.create(componentIdentifier, dependencies)
     }
     private mavenComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->

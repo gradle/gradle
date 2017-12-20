@@ -19,12 +19,13 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.TestUtil
@@ -39,13 +40,14 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
     def attributes = TestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
     def variantDefinedInGradleMetadata
+    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory())
 
     def adapterOnMavenMetadata = new ComponentMetadataDetailsAdapter(new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, []), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
     def adapterOnIvyMetadata = new ComponentMetadataDetailsAdapter(ivyComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
     def adapterOnGradleMetadata = new ComponentMetadataDetailsAdapter(gradleComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
 
     private ivyComponentMetadata() {
-        new DefaultMutableIvyModuleResolveMetadata(versionIdentifier, componentIdentifier, [], [new Configuration("configurationDefinedInIvyMetadata", true, true, [])], [], [])
+        ivyMetadataFactory.create(componentIdentifier, [], [new Configuration("configurationDefinedInIvyMetadata", true, true, [])], [], [])
     }
     private gradleComponentMetadata() {
         def metadata = new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier, [])

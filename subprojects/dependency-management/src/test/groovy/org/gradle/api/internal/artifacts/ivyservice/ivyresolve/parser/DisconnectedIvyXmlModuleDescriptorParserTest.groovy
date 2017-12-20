@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
@@ -26,8 +27,10 @@ import spock.lang.Specification
 class DisconnectedIvyXmlModuleDescriptorParserTest extends Specification {
     LocallyAvailableExternalResource localResource = Mock()
     ExternalResource externalResource = Mock()
-    IvyXmlModuleDescriptorParser parser = new DisconnectedIvyXmlModuleDescriptorParser(null, new DefaultImmutableModuleIdentifierFactory(), TestFiles.fileRepository())
+    IvyMutableModuleMetadataFactory ivyMetadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory)
+    IvyXmlModuleDescriptorParser parser = new DisconnectedIvyXmlModuleDescriptorParser(null, moduleIdentifierFactory, TestFiles.fileRepository(), ivyMetadataFactory)
     DescriptorParseContext parseContext = Mock()
+    private DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
 
     def "creates overridden internal Ivy parser"() throws Exception {
         when:
