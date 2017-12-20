@@ -113,6 +113,23 @@ class PropertyValidationAccessTest extends Specification {
         ])
     }
 
+    static class TaskWithIterableInIterable extends DefaultTask {
+        @Nested
+        List<Set<NestedBean>> beans
+    }
+
+    def "for Iterables of Iterables the right type is selected"() {
+        def propertyValidationAccess = new PropertyValidationAccess()
+        def problems = new HashMap<String, Boolean>()
+        when:
+        propertyValidationAccess.collectTaskValidationProblems(TaskWithIterableInIterable, problems)
+
+        then:
+        problems.keySet() == validationProblems(TaskWithIterableInIterable, [
+                "property 'beans\$1\$1.nonAnnotated' is not annotated with an input or output annotation",
+        ])
+    }
+
     static class AnnotatedIterable extends ArrayList<NestedBean> {
         @Input
         String someProperty = "annotated"
