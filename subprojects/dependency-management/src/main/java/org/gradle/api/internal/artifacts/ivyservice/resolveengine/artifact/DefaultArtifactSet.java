@@ -47,8 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.component.external.model.VariantMetadataRules.getOrDefault;
-
 /**
  * Contains zero or more variants of a particular component.
  */
@@ -61,23 +59,23 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
         this.schema = schema;
     }
 
-    public static ArtifactSet multipleVariants(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, Map<String, VariantMetadataRules> componentMetadataRulesMap) {
+    public static ArtifactSet multipleVariants(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantMetadata> variants, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, VariantMetadataRules variantMetadataRules) {
         if (variants.size() == 1) {
             VariantMetadata variantMetadata = variants.iterator().next();
-            ResolvedVariant resolvedVariant = toResolvedVariant(variantMetadata, ownerId, moduleSource, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, getOrDefault(componentMetadataRulesMap.get(variantMetadata.getName())));
+            ResolvedVariant resolvedVariant = toResolvedVariant(variantMetadata, ownerId, moduleSource, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, variantMetadataRules);
             return new SingleVariantAttributeSet(componentIdentifier, schema, resolvedVariant);
         }
         ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
         for (VariantMetadata variant : variants) {
-            ResolvedVariant resolvedVariant = toResolvedVariant(variant, ownerId, moduleSource, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, getOrDefault(componentMetadataRulesMap.get(variant.getName())));
+            ResolvedVariant resolvedVariant = toResolvedVariant(variant, ownerId, moduleSource, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, variantMetadataRules);
             result.add(resolvedVariant);
         }
         return new MultipleVariantAttributeSet(componentIdentifier, schema, result.build());
     }
 
-    public static ArtifactSet singleVariant(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, DisplayName displayName, Collection<? extends ComponentArtifactMetadata> artifacts, ModuleSource moduleSource, ModuleExclusion exclusions, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, Map<String, VariantMetadataRules> componentMetadataRules) {
+    public static ArtifactSet singleVariant(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, DisplayName displayName, Collection<? extends ComponentArtifactMetadata> artifacts, ModuleSource moduleSource, ModuleExclusion exclusions, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, VariantMetadataRules componentMetadataRules) {
         VariantMetadata variantMetadata = new DefaultVariantMetadata(displayName, ImmutableAttributes.EMPTY, ImmutableList.copyOf(artifacts));
-        ResolvedVariant resolvedVariant = toResolvedVariant(variantMetadata, ownerId, moduleSource, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, getOrDefault(componentMetadataRules.get(variantMetadata.getName())));
+        ResolvedVariant resolvedVariant = toResolvedVariant(variantMetadata, ownerId, moduleSource, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, componentMetadataRules);
         return new SingleVariantAttributeSet(componentIdentifier, schema, resolvedVariant);
     }
 
@@ -102,7 +100,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
             }
             resolvedArtifacts.add(resolvedArtifact);
         }
-        attributes = componentMetadataRules.applyVariantAttributeRules(attributes);
+        attributes = componentMetadataRules.applyVariantAttributeRules(variant, attributes);
         return ArtifactBackedResolvedVariant.create(variant.asDescribable(), attributes, resolvedArtifacts.build());
     }
 

@@ -17,22 +17,30 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.DirectDependenciesMetadata;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
+import org.gradle.api.artifacts.DirectDependenciesMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.VariantMetadata;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
+/**
+ * Adapts a mutable module component resolve metadata instance into a form that is suitable
+ * for mutation through the Gradle DSL: we don't want to expose all the resolve component
+ * metadata methods, only those which make sense, and that we can reason about safely.
+ */
 public class VariantMetadataAdapter implements VariantMetadata {
     private final String name;
     private final MutableModuleComponentResolveMetadata metadata;
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser;
+    private final VariantNameSpec variantNameSpec = new VariantNameSpec();
 
     public VariantMetadataAdapter(String name, MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
                                   NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
@@ -46,22 +54,32 @@ public class VariantMetadataAdapter implements VariantMetadata {
 
     @Override
     public void withDependencies(Action<? super DirectDependenciesMetadata> action) {
-        metadata.addDependencyMetadataRule(name, action, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser);
+        metadata.getVariantMetadataRules().addDependencyAction(instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, new VariantMetadataRules.VariantAction<DirectDependenciesMetadata>(variantNameSpec, action));
     }
 
     @Override
     public void withDependencyConstraints(Action<? super DependencyConstraintsMetadata> action) {
-        metadata.addDependencyConstraintMetadataRule(name, action, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser);
+        metadata.getVariantMetadataRules().addDependencyConstraintAction(instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, new VariantMetadataRules.VariantAction<DependencyConstraintsMetadata>(variantNameSpec, action));
     }
 
     @Override
     public VariantMetadata attributes(Action<? super AttributeContainer> action) {
-        metadata.addAttributesRule(name, action);
+        metadata.getVariantMetadataRules().addAttributesAction(metadata.getAttributesFactory(), new VariantMetadataRules.VariantAction<AttributeContainer>(variantNameSpec, action));
         return this;
     }
 
     @Override
     public AttributeContainer getAttributes() {
         return metadata.getAttributes();
+    }
+
+    /**
+     * Checks if the variant name matches this adapter name.
+     */
+    private class VariantNameSpec implements Spec<org.gradle.internal.component.model.VariantMetadata> {
+        @Override
+        public boolean isSatisfiedBy(org.gradle.internal.component.model.VariantMetadata element) {
+            return name.equals(element.getName());
+        }
     }
 }

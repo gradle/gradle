@@ -42,8 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.component.external.model.VariantMetadataRules.getOrDefault;
-
 abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
     private final ImmutableAttributesFactory attributesFactory;
     private final ModuleVersionIdentifier moduleVersionIdentifier;
@@ -55,7 +53,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Nullable
     private final ModuleSource moduleSource;
     private final ImmutableMap<String, Configuration> configurationDefinitions;
-    private final Map<String, VariantMetadataRules> componentMetadataRules;
+    private final VariantMetadataRules variantMetadataRules;
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue contentHash;
     private final ImmutableAttributes attributes;
@@ -73,7 +71,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
         configurationDefinitions = metadata.getConfigurationDefinitions();
-        componentMetadataRules = metadata.componentMetadataRules;
+        variantMetadataRules = metadata.getVariantMetadataRules();
         contentHash = metadata.getContentHash();
         attributesFactory = metadata.getAttributesFactory();
         attributes = extractAttributes(metadata);
@@ -101,7 +99,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.statusScheme;
         moduleSource = source;
         configurationDefinitions = metadata.configurationDefinitions;
-        componentMetadataRules = metadata.componentMetadataRules;
+        variantMetadataRules = metadata.variantMetadataRules;
         contentHash = metadata.contentHash;
         attributesFactory = metadata.getAttributesFactory();
         attributes = metadata.attributes;
@@ -132,7 +130,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         ImmutableList<String> hierarchy = constructHierarchy(descriptorConfiguration);
         boolean transitive = descriptorConfiguration.isTransitive();
         boolean visible = descriptorConfiguration.isVisible();
-        populated = createConfiguration(componentIdentifier, name, transitive, visible, hierarchy, getOrDefault(componentMetadataRules.get(name)));
+        populated = createConfiguration(componentIdentifier, name, transitive, visible, hierarchy, variantMetadataRules);
         configurations.put(name, populated);
         return populated;
     }
@@ -173,7 +171,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
         List<VariantBackedConfigurationMetadata> configurations = new ArrayList<VariantBackedConfigurationMetadata>(variants.size());
         for (ComponentVariant variant : variants) {
-            configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, attributes, attributesFactory, getOrDefault(componentMetadataRules.get(variant.getName()))));
+            configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, attributes, attributesFactory, variantMetadataRules));
         }
         return ImmutableList.copyOf(configurations);
     }
@@ -265,8 +263,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
 
     @Override
-    public Map<String, VariantMetadataRules> getComponentMetadataRules() {
-        return componentMetadataRules;
+    public VariantMetadataRules getVariantMetadataRules() {
+        return variantMetadataRules;
     }
 
     @Override

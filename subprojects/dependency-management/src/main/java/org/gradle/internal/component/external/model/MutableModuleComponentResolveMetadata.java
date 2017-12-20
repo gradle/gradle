@@ -15,20 +15,13 @@
  */
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencyConstraintMetadata;
-import org.gradle.api.artifacts.DependencyConstraintsMetadata;
-import org.gradle.api.artifacts.DirectDependenciesMetadata;
-import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -96,9 +89,10 @@ public interface MutableModuleComponentResolveMetadata {
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
-    void addDependencyMetadataRule(String variantName, Action<? super DirectDependenciesMetadata> action, Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser);
-    void addDependencyConstraintMetadataRule(String variantName, Action<? super DependencyConstraintsMetadata> action, Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser);
-    void addAttributesRule(String variantName, Action<? super AttributeContainer> action);
-
     ImmutableAttributesFactory getAttributesFactory();
+
+    /**
+     * Returns the metadata rules container for this module
+     */
+    VariantMetadataRules getVariantMetadataRules();
 }

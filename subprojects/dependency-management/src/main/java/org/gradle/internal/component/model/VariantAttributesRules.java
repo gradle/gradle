@@ -21,6 +21,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.external.model.VariantMetadataRules;
 
 import java.util.List;
 
@@ -28,28 +29,30 @@ import java.util.List;
  * A set of rules provided by the build script author
  * (as {@link Action &lt;? super AttributeContainer&gt;}
  * that are applied on the attributes defined in variant/configuration metadata. The rules are applied
- * in the {@link #execute(AttributeContainerInternal)} method when the attributes of a variant are needed during dependency resolution.
+ * in the {@link #execute(VariantMetadata, AttributeContainerInternal)} method when the attributes of a variant are needed during dependency resolution.
  */
 public class VariantAttributesRules {
     private final ImmutableAttributesFactory attributesFactory;
-    private final List<Action<? super AttributeContainer>> actions = Lists.newLinkedList();
+    private final List<VariantMetadataRules.VariantAction<? super AttributeContainer>> actions = Lists.newLinkedList();
 
     public VariantAttributesRules(ImmutableAttributesFactory attributesFactory) {
         this.attributesFactory = attributesFactory;
     }
 
-    public void addAttributesAction(Action<? super AttributeContainer> action) {
+    public void addAttributesAction(VariantMetadataRules.VariantAction<? super AttributeContainer> action) {
         actions.add(action);
     }
 
-    public ImmutableAttributes execute(AttributeContainerInternal attributes) {
+    public ImmutableAttributes execute(VariantMetadata variant, AttributeContainerInternal attributes) {
         if (attributes == null) {
             attributes = attributesFactory.mutable();
         } else {
             attributes = attributesFactory.mutable(attributes);
         }
-        for (Action<? super AttributeContainer> action : actions) {
-            action.execute(attributes);
+        for (VariantMetadataRules.VariantAction<? super AttributeContainer> action : actions) {
+            if (action.isSatisfiedBy(variant)) {
+                action.execute(attributes);
+            }
         }
         return attributes.asImmutable();
     }

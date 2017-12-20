@@ -27,7 +27,6 @@ import org.gradle.internal.component.external.model.VariantMetadataRules;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -94,5 +93,5 @@ public interface ComponentResolveMetadata {
 
     List<String> getStatusScheme();
 
-    Map<String, VariantMetadataRules> getComponentMetadataRules();
+    VariantMetadataRules getVariantMetadataRules();
 }

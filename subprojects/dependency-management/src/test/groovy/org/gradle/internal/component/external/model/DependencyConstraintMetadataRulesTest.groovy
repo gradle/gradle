@@ -35,7 +35,9 @@ class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRu
 
     @Override
     void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName, Action<? super DependenciesMetadata> action) {
-        metadataImplementation.addDependencyConstraintMetadataRule(variantName, action, instantiator, notationParser, constraintNotationParser)
+        metadataImplementation.variantMetadataRules.addDependencyConstraintAction(
+            instantiator, notationParser, constraintNotationParser,
+            variantAction(variantName, action))
     }
 
     def "maven optional dependencies are accessible as dependency constraints"() {
@@ -46,14 +48,14 @@ class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRu
         ])
 
         when:
-        mavenMetadata.addDependencyMetadataRule("default", {
+        mavenMetadata.variantMetadataRules.addDependencyAction(instantiator, notationParser, constraintNotationParser, variantAction("default", {
             assert it.size() == 1
             assert it[0].name == "notOptional"
-        }, instantiator, notationParser, constraintNotationParser)
-        mavenMetadata.addDependencyConstraintMetadataRule("default", {
+        }))
+        mavenMetadata.variantMetadataRules.addDependencyConstraintAction(instantiator, notationParser, constraintNotationParser, variantAction("default", {
             assert it.size() == 1
             assert it[0].name == "optional"
-        }, instantiator, notationParser, constraintNotationParser)
+        }))
 
         then:
         def dependencies = selectTargetConfigurationMetadata(mavenMetadata).dependencies

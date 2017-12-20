@@ -46,7 +46,6 @@ import org.gradle.internal.component.model.VariantMetadata;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -212,8 +211,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public Map<String, VariantMetadataRules> getComponentMetadataRules() {
-        return Collections.emptyMap();
+    public VariantMetadataRules getVariantMetadataRules() {
+        return VariantMetadataRules.noOp();
     }
 
     @Override

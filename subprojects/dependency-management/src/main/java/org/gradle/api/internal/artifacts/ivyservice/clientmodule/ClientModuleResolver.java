@@ -44,7 +44,6 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class ClientModuleResolver implements ComponentMetaDataResolver {
@@ -172,8 +171,8 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public Map<String, VariantMetadataRules> getComponentMetadataRules() {
-            return delegate.getComponentMetadataRules();
+        public VariantMetadataRules getVariantMetadataRules() {
+            return delegate.getVariantMetadataRules();
         }
     }
 
