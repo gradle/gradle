@@ -26,7 +26,6 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
@@ -76,7 +75,6 @@ public interface TaskArtifactState {
     /**
      * Returns the history for this task.
      */
-    @Nullable
     TaskExecutionHistory getExecutionHistory();
 
     /**

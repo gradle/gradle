@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 
+import javax.annotation.Nonnull;
+
 /**
  * State of a task when it was executed.
  */
@@ -58,6 +60,7 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
         return successful;
     }
 
+    @Nonnull
     @Override
     public OriginTaskExecutionMetadata getOriginExecutionMetadata() {
         return originExecutionMetadata;

@@ -67,7 +67,7 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
         succeeds "clean", "write"
 
         then:
-        executed ":write"
+        skipped ":write"
         def secondBuildId = buildInvocationId
         firstBuildId != secondBuildId
         originBuildInvocationId(":write") == firstBuildId
@@ -89,21 +89,28 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
         succeeds "clean", "write"
 
         then:
-        executed ":write"
+        skipped ":write"
         originBuildInvocationId(":write") == thirdBuildId
 
         when:
         succeeds  "write"
 
         then:
-        executed ":write"
+        skipped ":write"
         originBuildInvocationId(":write") == thirdBuildId
 
         when:
         succeeds  "write"
 
         then:
-        executed ":write"
+        skipped ":write"
+        originBuildInvocationId(":write") == thirdBuildId
+
+        when:
+        succeeds  "clean", "write"
+
+        then:
+        skipped ":write"
         originBuildInvocationId(":write") == thirdBuildId
     }
 
