@@ -196,7 +196,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         def output = Mock(OutputStream)
         def outputProperties = props("output")
         def outputSnapshots = Mock(Map)
-        def command = commandFactory.createStore(key, outputProperties, outputSnapshots, task, timer)
+        def command = commandFactory.createStore(key, outputProperties, outputSnapshots, task, 1)
 
         when:
         def result = command.store(output)

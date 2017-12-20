@@ -62,4 +62,12 @@ public class OriginTaskExecutionMetadata {
         result = 31 * result + (int) (executionTime ^ (executionTime >>> 32));
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "OriginTaskExecutionMetadata{"
+            + "buildInvocationId=" + buildInvocationId
+            + ", executionTime=" + executionTime
+            + '}';
+    }
 }

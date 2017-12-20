@@ -30,8 +30,6 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException;
-import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,8 +58,6 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
     @Override
     public void execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        final Timer clock = Time.startTimer();
-
         LOGGER.debug("Determining if {} is cached already", task);
 
         TaskProperties taskProperties = context.getTaskProperties();
@@ -81,7 +77,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 if (taskState.isAllowedToUseCachedResults()) {
                     try {
                         OriginTaskExecutionMetadata originMetadata = buildCache.load(
-                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskState, clock)
+                            buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskState, context.getExecutionTimer())
                         );
                         if (originMetadata != null) {
                             state.setOutcome(TaskExecutionOutcome.FROM_CACHE);
@@ -112,7 +108,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                     try {
                         TaskArtifactState taskState = context.getTaskArtifactState();
                         Map<String, Map<String, FileContentSnapshot>> outputSnapshots = taskState.getOutputContentSnapshots();
-                        buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputSnapshots, task, clock));
+                        buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputSnapshots, task, context.getExecutionTime()));
                     } catch (Exception e) {
                         LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), task, e);
                     }

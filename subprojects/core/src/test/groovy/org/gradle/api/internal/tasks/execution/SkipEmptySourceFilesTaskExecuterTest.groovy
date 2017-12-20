@@ -21,8 +21,8 @@ import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
@@ -107,9 +107,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * previousFile.delete() >> true
 
         then:
-        1 * taskContext.markExecutionTime() >> taskExecutionTime
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationId, taskContext)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -145,8 +144,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.NO_SOURCE)
-        1 * taskContext.markExecutionTime() >> 1
-        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata.buildInvocationId, taskContext)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)
@@ -190,8 +188,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
-        1 * taskContext.markExecutionTime() >> taskExecutionTime
-        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationId, taskContext)
 
         then:
         1 * taskInputsListener.onExecute(task, sourceFiles)

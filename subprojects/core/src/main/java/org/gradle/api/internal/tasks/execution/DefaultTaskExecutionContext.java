@@ -34,14 +34,10 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private OriginTaskExecutionMetadata originExecutionMetadata;
     private Long executionTime;
 
-    private final Timer timer;
+    private final Timer executionTimer;
 
     public DefaultTaskExecutionContext() {
-        this(Time.startTimer());
-    }
-
-    public DefaultTaskExecutionContext(Timer timer) {
-        this.timer = timer;
+        this.executionTimer = Time.startTimer();
     }
 
     @Override
@@ -74,12 +70,26 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         this.originExecutionMetadata = originExecutionMetadata;
     }
 
+    @Override
+    public Timer getExecutionTimer() {
+        return executionTimer;
+    }
+
     public long markExecutionTime() {
         if (this.executionTime != null) {
             throw new IllegalStateException("execution time already set");
         }
 
-        return this.executionTime = timer.getElapsedMillis();
+        return this.executionTime = executionTimer.getElapsedMillis();
+    }
+
+    @Override
+    public long getExecutionTime() {
+        if (this.executionTime == null) {
+            throw new IllegalStateException("execution time not yet set");
+        }
+
+        return executionTime;
     }
 
     @Override

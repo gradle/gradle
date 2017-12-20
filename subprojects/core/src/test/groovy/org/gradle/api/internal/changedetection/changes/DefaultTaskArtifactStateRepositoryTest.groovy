@@ -92,6 +92,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     DefaultFileSystemMirror fileSystemMirror
     TaskOutputFilesRepository taskOutputFilesRepository = Stub(TaskOutputFilesRepository)
     final originMetadata = new OriginTaskExecutionMetadata(buildScopeId.id, 1)
+    def taskExecutionContext = Mock(TaskExecutionContext)
 
     def setup() {
         gradle = project.getGradle()
@@ -389,7 +390,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         state.isUpToDate([])
         fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile.createFile()
-        state.snapshotAfterTaskExecution(null, originMetadata)
+        state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
 
         then:
         !state.upToDate
@@ -408,7 +409,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         when:
         fileSystemMirror.beforeTaskOutputsGenerated()
         outputDirFile2.createFile()
-        state.snapshotAfterTaskExecution(null, originMetadata)
+        state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
 
         then:
         // Task should be out-of-date
@@ -522,7 +523,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         execute(task)
         fileSystemMirror.beforeTaskOutputsGenerated()
         otherFile.write("new content")
-        state.snapshotAfterTaskExecution(null, originMetadata)
+        state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
         otherFile.delete()
 
         then:
@@ -538,7 +539,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         outputDirFile.delete()
         TaskArtifactState state = getStateFor(task)
         state.isUpToDate([])
-        state.snapshotAfterTaskExecution(null, originMetadata)
+        state.snapshotAfterTaskExecution(null, buildScopeId.id, Mock(TaskExecutionContext))
 
         when:
         outputDirFile.write("ignore me")
@@ -609,6 +610,9 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     }
 
     def "has origin build ID after executed"() {
+        given:
+        taskExecutionContext.markExecutionTime() >> originMetadata.executionTime
+
         when:
         execute(task)
 
@@ -683,8 +687,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             // reset state
             fileSystemMirror.beforeTaskOutputsGenerated()
             super.execute(task)
-            originMetadata
-            state.snapshotAfterTaskExecution(null, originMetadata)
+            state.snapshotAfterTaskExecution(null, originMetadata.buildInvocationId, taskExecutionContext)
         }
         // reset state
         fileSystemMirror.beforeTaskOutputsGenerated()

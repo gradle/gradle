@@ -37,10 +37,12 @@ import org.gradle.api.internal.changedetection.state.HistoricalTaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
@@ -170,22 +172,24 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public void snapshotAfterTaskExecution(Throwable failure, OriginTaskExecutionMetadata originExecutionMetadata) {
-            history.getCurrentExecution().setOriginExecutionMetadata(originExecutionMetadata);
+        public void snapshotAfterTaskExecution(Throwable failure, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
             history.updateCurrentExecution(taskInputs);
-            snapshotAfterOutputsWereGenerated(history, failure);
+            snapshotAfterOutputsWereGenerated(history, failure, new OriginTaskExecutionMetadata(
+                buildInvocationId,
+                taskExecutionContext.markExecutionTime()
+            ));
         }
 
         @Override
-        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originExecutionMetadata) {
-            history.getCurrentExecution().setOriginExecutionMetadata(originExecutionMetadata);
+        public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originMetadata) {
             history.updateCurrentExecutionWithOutputs(taskInputs, newOutputSnapshot);
-            snapshotAfterOutputsWereGenerated(history, null);
+            snapshotAfterOutputsWereGenerated(history, null, originMetadata);
         }
 
-        private void snapshotAfterOutputsWereGenerated(TaskHistoryRepository.History history, @Nullable Throwable failure) {
+        private void snapshotAfterOutputsWereGenerated(TaskHistoryRepository.History history, @Nullable Throwable failure, OriginTaskExecutionMetadata originMetadata) {
             // Only persist task history if there was no failure, or some output files have been changed
             if (failure == null || getStates().hasAnyOutputFileChanges()) {
+                history.getCurrentExecution().setOriginExecutionMetadata(originMetadata);
                 history.persist();
                 ImmutableSet<String> outputFilePaths = history.getCurrentExecution().getDeclaredOutputFilePaths();
                 taskOutputFilesRepository.recordOutputs(outputFilePaths);

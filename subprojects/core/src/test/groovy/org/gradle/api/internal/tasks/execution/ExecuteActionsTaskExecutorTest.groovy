@@ -92,8 +92,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         1 * publicListener.beforeActions(task)
 
         then:
-        1 * executionContext.markExecutionTime() >> taskExecutionTime
-        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationId, executionContext)
 
         then:
         1 * publicListener.afterActions(task)
@@ -147,8 +146,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * executionContext.markExecutionTime() >> taskExecutionTime
-        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationId, executionContext)
         then:
         1 * publicListener.afterActions(task)
         noMoreInteractions()
@@ -192,8 +190,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * executionContext.markExecutionTime() >> taskExecutionTime
-        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationId, executionContext)
         then:
         1 * publicListener.afterActions(task)
         noMoreInteractions()
@@ -227,8 +224,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * executionContext.markExecutionTime() >> taskExecutionTime
-        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException }, originExecutionMetadata)
+        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException }, buildInvocationId, executionContext)
         then:
         1 * publicListener.afterActions(task)
 
@@ -272,8 +268,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * executionContext.markExecutionTime() >> taskExecutionTime
-        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationId, executionContext)
         then:
         1 * publicListener.afterActions(task)
         state.didWork
@@ -325,8 +320,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * executionContext.markExecutionTime() >> taskExecutionTime
-        1 * taskArtifactState.snapshotAfterTaskExecution(null, originExecutionMetadata)
+        1 * taskArtifactState.snapshotAfterTaskExecution(null, buildInvocationId, executionContext)
         then:
         1 * publicListener.afterActions(task)
 
@@ -365,8 +359,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * executionContext.markExecutionTime() >> taskExecutionTime
-        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException }, originExecutionMetadata)
+        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException }, buildInvocationId, executionContext)
         then:
         1 * publicListener.afterActions(task)
 
@@ -413,8 +406,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * executionContext.markExecutionTime() >> taskExecutionTime
-        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException }, originExecutionMetadata)
+        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException }, buildInvocationId, executionContext)
         then:
         1 * publicListener.afterActions(task)
 
@@ -460,8 +452,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * standardOutputCapture.stop()
         then:
-        1 * executionContext.markExecutionTime() >> taskExecutionTime
-        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException }, originExecutionMetadata)
+        1 * taskArtifactState.snapshotAfterTaskExecution({ it instanceof TaskExecutionException }, buildInvocationId, executionContext)
         then:
         1 * publicListener.afterActions(task)
 

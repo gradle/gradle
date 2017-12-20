@@ -68,7 +68,6 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.Time;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
@@ -390,7 +389,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 return getExecuter();
             }
         });
-        executer.execute(this, state, new DefaultTaskExecutionContext(Time.startTimer()));
+        executer.execute(this, state, new DefaultTaskExecutionContext());
         state.rethrowFailure();
     }
 

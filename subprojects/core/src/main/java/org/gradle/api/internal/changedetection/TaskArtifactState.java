@@ -20,9 +20,11 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.id.UniqueId;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -64,12 +66,12 @@ public interface TaskArtifactState {
     /**
      * Called on completion of task execution.
      */
-    void snapshotAfterTaskExecution(Throwable failure, OriginTaskExecutionMetadata originExecutionMetadata);
+    void snapshotAfterTaskExecution(Throwable failure, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext);
 
     /**
      * Called on task being loaded from cache.
      */
-    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originExecutionMetadata);
+    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originMetadata);
 
     /**
      * Returns the history for this task.

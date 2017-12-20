@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -79,10 +78,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     state.getDidWork() ? TaskExecutionOutcome.EXECUTED : TaskExecutionOutcome.UP_TO_DATE
                 );
             }
-            context.getTaskArtifactState().snapshotAfterTaskExecution(failure, new OriginTaskExecutionMetadata(
-                buildInvocationScopeId.getId(),
-                context.markExecutionTime()
-            ));
+            context.getTaskArtifactState().snapshotAfterTaskExecution(failure, buildInvocationScopeId.getId(), context);
         } finally {
             state.setExecuting(false);
             listener.afterActions(task);
