@@ -46,7 +46,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
-import java.util.Set;
 
 import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
 
@@ -68,8 +67,8 @@ public class DefaultPropertyWalker implements PropertyWalker {
         while (!queue.isEmpty()) {
             PropertyNode node = queue.remove();
             Object nested = node.getBean();
-            Set<PropertyMetadata> nestedTypeMetadata = propertyMetadataStore.getTypeMetadata(nested.getClass());
-            if (node.parentPropertyName != null && (nested instanceof Iterable<?>) && shouldBeTraversed(nestedTypeMetadata)) {
+            TypeMetadata nestedTypeMetadata = propertyMetadataStore.getTypeMetadata(nested.getClass());
+            if (node.parentPropertyName != null && (nested instanceof Iterable<?>) && !nestedTypeMetadata.isAnnotated()) {
                 Iterable<?> nestedBeans = (Iterable<?>) nested;
                 int count = 0;
                 for (Object nestedBean : nestedBeans) {
@@ -82,18 +81,9 @@ public class DefaultPropertyWalker implements PropertyWalker {
         }
     }
 
-    private boolean shouldBeTraversed(Set<PropertyMetadata> nestedTypeMetadata) {
-        for (PropertyMetadata propertyMetadata : nestedTypeMetadata) {
-            if (propertyMetadata.getPropertyType() != null) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static void visitProperties(PropertyNode node, Set<PropertyMetadata> typeMetadata, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory specFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    private static void visitProperties(PropertyNode node, TypeMetadata typeMetadata, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory specFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         visitImplementation(node, visitor, specFactory, classLoaderHierarchyHasher);
-        for (PropertyMetadata propertyMetadata : typeMetadata) {
+        for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
             if (propertyValueVisitor == null) {
                 continue;

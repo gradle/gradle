@@ -41,7 +41,6 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 
 /**
  * Class for easy access to task property validation from the validator task.
@@ -69,8 +68,8 @@ public class PropertyValidationAccess {
             TypeNode node = queue.remove();
             TypeToken<?> beanType = node.getBeanType();
             Class<?> beanClass = beanType.getRawType();
-            Set<PropertyMetadata> typeMetadata = metadataStore.getTypeMetadata(beanClass);
-            if (Iterable.class.isAssignableFrom(beanClass) && shouldBeTraversed(typeMetadata)) {
+            TypeMetadata typeMetadata = metadataStore.getTypeMetadata(beanClass);
+            if (Iterable.class.isAssignableFrom(beanClass) && !typeMetadata.isAnnotated()) {
                 @SuppressWarnings("unchecked")
                 TypeToken<Iterable> typeToken = (TypeToken<Iterable>) beanType;
                 ParameterizedType type = (ParameterizedType) typeToken.getSupertype(Iterable.class).getType();
@@ -82,17 +81,8 @@ public class PropertyValidationAccess {
         }
     }
 
-    private static boolean shouldBeTraversed(Set<PropertyMetadata> typeMetadata) {
-        for (PropertyMetadata metadata : typeMetadata) {
-            if (metadata.getPropertyType() != null) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static void validateTaskClass(Class<?> beanClass, boolean cacheable, Map<String, Boolean> problems, Queue<TypeNode> queue, TypeNode node, Set<PropertyMetadata> typeMetadata) {
-        for (PropertyMetadata metadata : typeMetadata) {
+    private static void validateTaskClass(Class<?> beanClass, boolean cacheable, Map<String, Boolean> problems, Queue<TypeNode> queue, TypeNode node, TypeMetadata typeMetadata) {
+        for (PropertyMetadata metadata : typeMetadata.getPropertiesMetadata()) {
             String qualifiedPropertyName = node.getQualifiedPropertyName(metadata.getFieldName());
             for (String validationMessage : metadata.getValidationMessages()) {
                 problems.put(propertyValidationMessage(beanClass, qualifiedPropertyName, validationMessage), Boolean.FALSE);

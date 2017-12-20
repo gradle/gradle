@@ -106,11 +106,11 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
     private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
     private final Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides;
     private final Set<Class<? extends Annotation>> relevantAnnotationTypes;
-    private final LoadingCache<Class<?>, Set<PropertyMetadata>> cache = CacheBuilder.newBuilder()
+    private final LoadingCache<Class<?>, TypeMetadata> cache = CacheBuilder.newBuilder()
         .weakKeys()
-        .build(new CacheLoader<Class<?>, Set<PropertyMetadata>>() {
+        .build(new CacheLoader<Class<?>, TypeMetadata>() {
             @Override
-            public Set<PropertyMetadata> load(@Nonnull Class<?> type) throws Exception {
+            public TypeMetadata load(@Nonnull Class<?> type) throws Exception {
                 return createTypeMetadata(type);
             }
         });
@@ -148,11 +148,11 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
     }
 
     @Override
-    public <T> Set<PropertyMetadata> getTypeMetadata(Class<T> type) {
+    public <T> TypeMetadata getTypeMetadata(Class<T> type) {
         return cache.getUnchecked(type);
     }
 
-    private <T> Set<PropertyMetadata> createTypeMetadata(Class<T> type) {
+    private <T> TypeMetadata createTypeMetadata(Class<T> type) {
         final Set<Class<? extends Annotation>> propertyTypeAnnotations = annotationHandlers.keySet();
         final Map<String, DefaultPropertyMetadata> propertyContexts = Maps.newLinkedHashMap();
         Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {
@@ -192,7 +192,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
                 }
             }
         });
-        return ImmutableSet.<PropertyMetadata>builder().addAll(propertyContexts.values()).build();
+        return new DefaultTypeMetadata(ImmutableSet.<PropertyMetadata>builder().addAll(propertyContexts.values()).build());
     }
 
     private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, DefaultPropertyMetadata propertyContext) {
@@ -324,6 +324,30 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         public int compareTo(@Nonnull Getter o) {
             // Sort "is"-getters before "get"-getters when both are available
             return method.getName().compareTo(o.method.getName());
+        }
+    }
+
+    private class DefaultTypeMetadata implements TypeMetadata {
+
+        private final Set<PropertyMetadata> propertiesMetadata;
+
+        public DefaultTypeMetadata(ImmutableSet<PropertyMetadata> propertiesMetadata) {
+            this.propertiesMetadata = propertiesMetadata;
+        }
+
+        @Override
+        public Set<PropertyMetadata> getPropertiesMetadata() {
+            return propertiesMetadata;
+        }
+
+        @Override
+        public boolean isAnnotated() {
+            for (PropertyMetadata metadata : propertiesMetadata) {
+                if (metadata.getPropertyType() != null) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
