@@ -158,4 +158,8 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         useIvy() ? ivyHttpRepo("repo", metadataType) : mavenHttpRepo("repo", metadataType)
     }
 
+    HttpRepository getRepository() {
+        getHttpRepository(HttpRepository.MetadataType.DEFAULT)
+    }
+
 }

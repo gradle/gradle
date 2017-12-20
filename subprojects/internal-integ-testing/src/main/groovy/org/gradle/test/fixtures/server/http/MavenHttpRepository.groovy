@@ -19,7 +19,6 @@ package org.gradle.test.fixtures.server.http
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenRepository
-
 /**
  * A fixture for dealing with remote HTTP Maven repositories.
  */
@@ -46,6 +45,11 @@ class MavenHttpRepository implements MavenRepository, HttpRepository {
 
     HttpResource getModuleMetaData(String groupId, String artifactId) {
         return module(groupId, artifactId).rootMetaData
+    }
+
+    @Override
+    HttpDirectoryResource directoryList(String organisation, String module) {
+        return directory(organisation, module)
     }
 
     HttpDirectoryResource directory(String groupId, String artifactId) {
