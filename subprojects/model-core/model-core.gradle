@@ -33,6 +33,7 @@ dependencies {
     implementation libraries.commons_lang
     implementation libraries.jcip
     implementation libraries.asm
+    implementation libraries.asm_tree
 
     integTestImplementation project(':core')
     integTestRuntimeOnly project(':plugins')

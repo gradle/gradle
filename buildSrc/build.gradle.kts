@@ -53,7 +53,8 @@ repositories {
 }
 
 dependencies {
-    compile("org.ow2.asm:asm-all:5.0.3")
+    compile("org.ow2.asm:asm:6.0")
+    compile("org.ow2.asm:asm-commons:6.0")
     compile(gradleApi())
     compile("com.google.guava:guava-jdk5:14.0.1@jar")
     compile("commons-lang:commons-lang:2.6@jar")

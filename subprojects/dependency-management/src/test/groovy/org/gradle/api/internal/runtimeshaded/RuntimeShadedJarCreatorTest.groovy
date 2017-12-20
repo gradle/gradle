@@ -428,7 +428,7 @@ org.gradle.api.internal.tasks.CompileServices"""
     private static void writeClass(TestFile outputDir, String className) {
         TestFile classFile = outputDir.createFile("${className}.class")
         ClassNode classNode = new ClassNode()
-        classNode.version = className=='module-info'?Opcodes.V1_9:Opcodes.V1_6
+        classNode.version = className=='module-info'?Opcodes.V9:Opcodes.V1_6
         classNode.access = Opcodes.ACC_PUBLIC
         classNode.name = className
         classNode.superName = 'java/lang/Object'
