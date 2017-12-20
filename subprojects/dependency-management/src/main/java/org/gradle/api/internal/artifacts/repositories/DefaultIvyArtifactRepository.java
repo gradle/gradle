@@ -99,7 +99,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private Object[] componentMetadataSupplierParams;
     private final FileResourceRepository fileResourceRepository;
     private final ModuleMetadataParser moduleMetadataParser;
-    private final ExperimentalFeatures experimentalFeatures;
     private final IvyMetadataSources metadataSources = new IvyMetadataSources();
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
@@ -128,7 +127,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiatorFactory.decorate();
         this.ivyContextManager = ivyContextManager;
-        this.experimentalFeatures = experimentalFeatures;
         this.metadataSources.setDefaults(experimentalFeatures);
     }
 

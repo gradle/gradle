@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 
 public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableIvyModuleResolveMetadata> {
@@ -31,7 +33,7 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
     @Override
     public MutableIvyModuleResolveMetadata create(ModuleComponentIdentifier from) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableIvyModuleResolveMetadata(mvi, from);
+        return new DefaultMutableIvyModuleResolveMetadata(mvi, from, ImmutableList.<IvyDependencyDescriptor>of());
     }
 
     protected ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
