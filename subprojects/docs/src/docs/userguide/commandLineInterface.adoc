@@ -319,7 +319,7 @@ You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url
 You can customize many aspects about where build scripts, settings, caches, and so on through the options below. Learn more about customizing your <<build_environment, build environment>>.
 
 `-b`, `--build-file`::
-Specifies the build file. For example: `gradle --build-file=foo.gradle`. The default is `build.gradle` or `build.gradle.kts` or `myProjectName.gradle`.
+Specifies the build file. For example: `gradle --build-file=foo.gradle`. The default is `build.gradle`, then `build.gradle.kts`, then `myProjectName.gradle`.
 
 `-c`, `--settings-file`::
 Specifies the settings file. For example: `gradle --settings-file=somewhere/else/settings.gradle`
@@ -455,3 +455,47 @@ You can get a hierarchical view of elements for <<software_model,software model>
 ----
 
 Learn more about <<model-report,the model report>> in the software model documentation.
+
+=== Common tasks
+
+The following are task conventions applied by built-in and most major Gradle plugins.
+
+==== Computing all outputs
+
+It is common in Gradle builds for the `build` task to designate assembling all outputs and running all checks.
+
+----
+❯ gradle build
+----
+
+==== Running applications
+
+It is common for applications to be run with the `run` task, which assembles the application and executes some script or binary.
+
+----
+❯ gradle run
+----
+
+==== Running tests
+
+It is common for tests to be run using the `test` task, which assembles the project and executes tests.
+
+----
+❯ gradle test
+----
+
+==== Running all checks
+
+It is common for _all_ verification tasks, including tests and linting, to be executed using the `check` task.
+
+----
+❯ gradle check
+----
+
+==== Cleaning outputs
+
+You can delete the contents of the build directory using the `clean` task, though doing so will cause pre-computed outputs to be lost, causing significant additional build time for the subsequent task execution.
+
+----
+❯ gradle clean
+----
