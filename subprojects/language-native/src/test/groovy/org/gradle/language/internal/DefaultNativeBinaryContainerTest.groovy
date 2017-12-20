@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.internal
+package org.gradle.language.internal
 
 import org.gradle.api.Action
 import org.gradle.api.internal.provider.DefaultProviderFactory
@@ -23,8 +23,8 @@ import org.gradle.language.swift.SwiftBinary
 import org.gradle.language.swift.SwiftSharedLibrary
 import spock.lang.Specification
 
-class DefaultSwiftBinaryContainerTest extends Specification {
-    def container = new DefaultSwiftBinaryContainer(SwiftBinary, new DefaultProviderFactory())
+class DefaultNativeBinaryContainerTest extends Specification {
+    def container = new DefaultNativeBinaryContainer(SwiftBinary, new DefaultProviderFactory())
 
     def "can query elements when realized"() {
         def binary1 = Stub(SwiftBinary)

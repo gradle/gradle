@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift;
+package org.gradle.language;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -27,7 +27,7 @@ import org.gradle.api.provider.Provider;
  * @param <T> The type of binary.
  */
 @Incubating
-public interface SwiftBinaryProvider<T> extends Provider<T> {
+public interface NativeBinaryProvider<T> extends Provider<T> {
     /**
      * Registers an action to execute to configure the binary. The action is executed when the element is required.
      */
