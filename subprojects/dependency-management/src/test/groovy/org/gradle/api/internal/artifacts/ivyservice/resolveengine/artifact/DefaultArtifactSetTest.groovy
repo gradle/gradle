@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.DisplayName
+import org.gradle.internal.component.external.model.VariantMetadataRules
 import org.gradle.internal.component.model.VariantMetadata
 import spock.lang.Specification
 
@@ -31,6 +32,8 @@ class DefaultArtifactSetTest extends Specification {
     def exclusions = Stub(ModuleExclusions)
     def schema = Stub(AttributesSchemaInternal)
     def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
+    private final VariantMetadataRules variantMetadataRules = new VariantMetadataRules()
+
 
     def setup() {
         artifactTypeRegistry.mapAttributesFor(_) >> ImmutableAttributes.EMPTY
@@ -41,9 +44,9 @@ class DefaultArtifactSetTest extends Specification {
         def variant2 = Stub(VariantMetadata)
 
         given:
-        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, [:])
-        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, [:])
-        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, Mock(DisplayName), [] as Set, null, null, schema, null, null, artifactTypeRegistry, [:])
+        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, variantMetadataRules)
+        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, variantMetadataRules)
+        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, Mock(DisplayName), [] as Set, null, null, schema, null, null, artifactTypeRegistry, variantMetadataRules)
 
         expect:
         artifacts1.select({false}, Stub(VariantSelector)) == ResolvedArtifactSet.EMPTY
@@ -58,9 +61,9 @@ class DefaultArtifactSetTest extends Specification {
         def selector = Stub(VariantSelector)
 
         given:
-        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, [:])
-        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, [:])
-        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, Mock(DisplayName), [] as Set, null, null, schema, null, null, artifactTypeRegistry, [:])
+        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, variantMetadataRules)
+        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, variantMetadataRules)
+        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, Mock(DisplayName), [] as Set, null, null, schema, null, null, artifactTypeRegistry, variantMetadataRules)
 
         selector.select(_) >> resolvedVariant1
 

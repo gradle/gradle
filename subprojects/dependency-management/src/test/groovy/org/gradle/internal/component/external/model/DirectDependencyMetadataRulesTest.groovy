@@ -26,7 +26,7 @@ class DirectDependencyMetadataRulesTest extends AbstractDependencyMetadataRulesT
     }
 
     @Override
-    void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName, Action<DependenciesMetadata> action) {
-        metadataImplementation.addDependencyMetadataRule(variantName, action, instantiator, notationParser, constraintNotationParser)
+    void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName, Action<? super DependenciesMetadata> action) {
+        metadataImplementation.variantMetadataRules.addDependencyAction(instantiator, notationParser, constraintNotationParser, variantAction(variantName, action))
     }
 }

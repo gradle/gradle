@@ -24,8 +24,10 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.VariantAttributesRules;
+import org.gradle.internal.component.model.VariantMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -35,64 +37,86 @@ public class VariantMetadataRules {
     private DependencyMetadataRules dependencyMetadataRules;
     private VariantAttributesRules variantAttributesRules;
 
-    public ImmutableAttributes applyVariantAttributeRules(AttributeContainerInternal source) {
+    public ImmutableAttributes applyVariantAttributeRules(VariantMetadata variant, AttributeContainerInternal source) {
         if (variantAttributesRules != null) {
-            return variantAttributesRules.execute(source);
+            return variantAttributesRules.execute(variant, source);
         }
         return source.asImmutable();
     }
 
-    public <T extends ModuleDependencyMetadata> List<T> applyDependencyMetadataRules(List<T> configDependencies) {
+    public <T extends ModuleDependencyMetadata> List<T> applyDependencyMetadataRules(VariantMetadata variant, List<T> configDependencies) {
         if (dependencyMetadataRules != null) {
-            return dependencyMetadataRules.execute(configDependencies);
+            return dependencyMetadataRules.execute(variant, configDependencies);
         }
         return configDependencies;
     }
 
-    public void addDependencyAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, Action<? super DirectDependenciesMetadata> action) {
+    public void addDependencyAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, VariantAction<? super DirectDependenciesMetadata> action) {
         if (dependencyMetadataRules == null) {
             dependencyMetadataRules = new DependencyMetadataRules(instantiator, dependencyNotationParser, dependencyConstraintNotationParser);
         }
         dependencyMetadataRules.addDependencyAction(action);
     }
 
-    public void addDependencyConstraintAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, Action<? super DependencyConstraintsMetadata> action) {
+    public void addDependencyConstraintAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, VariantAction<? super DependencyConstraintsMetadata> action) {
         if (dependencyMetadataRules == null) {
             dependencyMetadataRules = new DependencyMetadataRules(instantiator, dependencyNotationParser, dependencyConstraintNotationParser);
         }
         dependencyMetadataRules.addDependencyConstraintAction(action);
     }
 
-    public void addAttributesAction(ImmutableAttributesFactory attributesFactory, Action<? super AttributeContainer> action) {
+    public void addAttributesAction(ImmutableAttributesFactory attributesFactory, VariantAction<? super AttributeContainer> action) {
         if (variantAttributesRules == null) {
             variantAttributesRules = new VariantAttributesRules(attributesFactory);
         }
         variantAttributesRules.addAttributesAction(action);
     }
 
-    public static VariantMetadataRules getOrDefault(VariantMetadataRules rules) {
-        return rules != null ? rules : ImmutableRules.INSTANCE;
-    }
-
     public static VariantMetadataRules noOp() {
         return ImmutableRules.INSTANCE;
+    }
+
+    /**
+     * A variant action is an action which is only executed if it matches a predicate. Typically, on the name
+     * of the variant or its attributes.
+     * @param <T> the type of the action subject
+     */
+    public static class VariantAction<T> implements Action<T>, Spec<VariantMetadata> {
+        private final Spec<? super VariantMetadata> spec;
+        private final Action<? super T> delegate;
+
+        public VariantAction(Spec<? super VariantMetadata> spec, Action<? super T> delegate) {
+            this.spec = spec;
+            this.delegate = delegate;
+        }
+
+
+        @Override
+        public void execute(T subject) {
+            delegate.execute(subject);
+        }
+
+        @Override
+        public boolean isSatisfiedBy(VariantMetadata variant) {
+            return spec.isSatisfiedBy(variant);
+        }
     }
 
     private static class ImmutableRules extends VariantMetadataRules {
         private final static ImmutableRules INSTANCE = new ImmutableRules();
 
         @Override
-        public void addDependencyAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, Action<? super DirectDependenciesMetadata> action) {
+        public void addDependencyAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, VariantAction<? super DirectDependenciesMetadata> action) {
             throw new UnsupportedOperationException("You are probably trying to add a dependency rule to something that wasn't supposed to be mutable");
         }
 
         @Override
-        public void addDependencyConstraintAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, Action<? super DependencyConstraintsMetadata> action) {
+        public void addDependencyConstraintAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, VariantAction<? super DependencyConstraintsMetadata> action) {
             throw new UnsupportedOperationException("You are probably trying to add a dependency constraint rule to something that wasn't supposed to be mutable");
         }
 
         @Override
-        public void addAttributesAction(ImmutableAttributesFactory attributesFactory, Action<? super AttributeContainer> action) {
+        public void addAttributesAction(ImmutableAttributesFactory attributesFactory, VariantAction<? super AttributeContainer> action) {
             throw new UnsupportedOperationException("You are probably trying to add a variant attribute to something that wasn't supposed to be mutable");
         }
     }

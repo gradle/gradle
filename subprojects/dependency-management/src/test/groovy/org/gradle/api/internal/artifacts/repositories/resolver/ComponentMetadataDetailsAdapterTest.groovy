@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.Action
-import org.gradle.api.GradleException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -101,32 +100,5 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         then:
         noExceptionThrown()
         variantCount * rule.execute(_)
-    }
-
-    def "fails when selecting a variant that does not exist"() {
-        when:
-        adapterOnGradleMetadata.withVariant("doesNotExist", {})
-
-        then:
-        def e = thrown(GradleException)
-        e.message == "Variant doesNotExist is not declared for org.test:producer:1.0"
-    }
-
-    def "fails when selecting a maven scope that does not exist"() {
-        when:
-        adapterOnMavenMetadata.withVariant("doesNotExist", {})
-
-        then:
-        def e = thrown(GradleException)
-        e.message == "Variant doesNotExist is not declared for org.test:producer:1.0"
-    }
-
-    def "fails when selecting an ivy configuration that does not exist"() {
-        when:
-        adapterOnIvyMetadata.withVariant("doesNotExist", {})
-
-        then:
-        def e = thrown(GradleException)
-        e.message == "Variant doesNotExist is not declared for org.test:producer:1.0"
     }
 }

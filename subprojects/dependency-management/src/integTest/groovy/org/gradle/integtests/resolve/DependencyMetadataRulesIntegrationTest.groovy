@@ -576,28 +576,6 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         }
     }
 
-    def "fails when attempting to select a variant that does not exist"() {
-        when:
-        buildFile << """
-            dependencies {
-                components {
-                    withModule('org.test:moduleA') {
-                        withVariant("testBlue") { }
-                    }
-                }
-            }
-        """
-        repositoryInteractions {
-            'org.test:moduleA:1.0' {
-                expectGetMetadata()
-            }
-        }
-
-        then:
-        fails 'checkDep'
-        failure.assertHasCause("Variant testBlue is not declared for org.test:moduleA:1.0")
-    }
-
     def "resolving one configuration does not influence the result of resolving another configuration."() {
         given:
         repository {

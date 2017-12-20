@@ -53,6 +53,10 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     @Shared ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
     @Shared defaultVariant
 
+    protected static <T> VariantMetadataRules.VariantAction<T> variantAction(String variantName, Action<? super T> action) {
+        new VariantMetadataRules.VariantAction<T>({ it.name == variantName }, action)
+    }
+
     abstract boolean addAllDependenciesAsConstraints()
 
     abstract void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName, Action<? super DependenciesMetadata> action)

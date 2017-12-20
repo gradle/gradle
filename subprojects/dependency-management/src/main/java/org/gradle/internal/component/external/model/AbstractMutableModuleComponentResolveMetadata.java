@@ -19,12 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencyConstraintMetadata;
-import org.gradle.api.artifacts.DependencyConstraintsMetadata;
-import org.gradle.api.artifacts.DirectDependenciesMetadata;
-import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -44,13 +38,10 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantMetadata;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
@@ -68,7 +59,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private HashValue contentHash = EMPTY_CONTENT;
     private AttributeContainer componentLevelAttributes;
 
-    final Map<String, VariantMetadataRules> componentMetadataRules = Maps.newHashMap();
+    private final VariantMetadataRules variantMetadataRules = new VariantMetadataRules();
 
     private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
@@ -195,47 +186,8 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     }
 
     @Override
-    public void addDependencyMetadataRule(final String variantName, final Action<? super DirectDependenciesMetadata> action,
-                                          final Instantiator instantiator,
-                                          final NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
-                                          final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
-        withRulesContainer(variantName, new Action<VariantMetadataRules>() {
-            @Override
-            public void execute(VariantMetadataRules componentMetadataRules) {
-                componentMetadataRules.addDependencyAction(instantiator, dependencyNotationParser, dependencyConstraintNotationParser, action);
-            }
-        });
-    }
-
-    @Override
-    public void addDependencyConstraintMetadataRule(String variantName, final Action<? super DependencyConstraintsMetadata> action, final Instantiator instantiator,
-                                                    final NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
-                                                    final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
-        withRulesContainer(variantName, new Action<VariantMetadataRules>() {
-            @Override
-            public void execute(VariantMetadataRules componentMetadataRules) {
-                componentMetadataRules.addDependencyConstraintAction(instantiator, dependencyNotationParser, dependencyConstraintNotationParser, action);
-            }
-        });
-    }
-
-    @Override
-    public void addAttributesRule(String variantName, final Action<? super AttributeContainer> action) {
-        withRulesContainer(variantName, new Action<VariantMetadataRules>() {
-            @Override
-            public void execute(VariantMetadataRules variantMetadataRules) {
-                variantMetadataRules.addAttributesAction(attributesFactory, action);
-            }
-        });
-    }
-
-    private void withRulesContainer(String variantName, Action<? super VariantMetadataRules> action) {
-        VariantMetadataRules rules = componentMetadataRules.get(variantName);
-        if (rules == null) {
-            rules = new VariantMetadataRules();
-            componentMetadataRules.put(variantName, rules);
-        }
-        action.execute(rules);
+    public VariantMetadataRules getVariantMetadataRules() {
+        return variantMetadataRules;
     }
 
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {

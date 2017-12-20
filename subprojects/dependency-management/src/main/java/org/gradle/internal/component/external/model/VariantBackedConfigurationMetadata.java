@@ -90,7 +90,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
 
     @Override
     public ImmutableAttributes getAttributes() {
-        return componentMetadataRules.applyVariantAttributeRules(mergeComponentAndVariantAttributes(variant.getAttributes()));
+        return componentMetadataRules.applyVariantAttributeRules(variant, mergeComponentAndVariantAttributes(variant.getAttributes()));
     }
 
     private AttributeContainerInternal mergeComponentAndVariantAttributes(AttributeContainerInternal variantAttributes) {
@@ -140,7 +140,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     @Override
     public List<? extends DependencyMetadata> getDependencies() {
         if (calculatedDependencies == null) {
-            calculatedDependencies = componentMetadataRules.applyDependencyMetadataRules(dependencies);
+            calculatedDependencies = componentMetadataRules.applyDependencyMetadataRules(variant, dependencies);
         }
         return calculatedDependencies;
     }

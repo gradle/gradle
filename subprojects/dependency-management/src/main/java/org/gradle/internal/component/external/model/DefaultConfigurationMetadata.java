@@ -37,7 +37,7 @@ import java.util.Set;
  * Effectively immutable implementation of ConfigurationMetadata.
  * Used to represent Ivy and Maven modules in the dependency graph.
  */
-public class DefaultConfigurationMetadata implements ConfigurationMetadata {
+public class DefaultConfigurationMetadata implements ConfigurationMetadata, VariantMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
@@ -109,7 +109,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata {
 
     @Override
     public ImmutableAttributes getAttributes() {
-        return componentMetadataRules.applyVariantAttributeRules(attributes);
+        return componentMetadataRules.applyVariantAttributeRules(this, attributes);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata {
     @Override
     public List<? extends DependencyMetadata> getDependencies() {
         if (calculatedDependencies == null) {
-            calculatedDependencies = componentMetadataRules.applyDependencyMetadataRules(configDependencies);
+            calculatedDependencies = componentMetadataRules.applyDependencyMetadataRules(this, configDependencies);
         }
         return calculatedDependencies;
     }
