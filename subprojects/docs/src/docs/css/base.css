@@ -130,7 +130,7 @@ h4, h5, h6 {
 }
 
 p {
-    font-size: 1.0625rem;
+    font-size: 1.125rem;
     line-height: 1.6;
     margin-bottom: 1.25rem;
     text-rendering: optimizeLegibility;
@@ -723,6 +723,10 @@ h3.releaseinfo {
     background: transparent url('data:image/svg+xml;utf8,<svg width="10" height="6" viewBox="0 0 19 11" xmlns="http://www.w3.org/2000/svg"><path transform="rotate(-180 9.374 5.494)" d="M17.9991 10.422825L9.3741 0.565575 0.7491 10.422825" stroke="#02303A" opacity="0.7" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center right;
 }
 
+.docs-navigation .nav-dropdown.active {
+    background: transparent url('data:image/svg+xml;utf8,<svg width="10" height="6" viewBox="0 0 19 11" xmlns="http://www.w3.org/2000/svg"><path transform="rotate(-180 9.374 5.494)" d="M17.9991 10.422825L9.3741 0.565575 0.7491 10.422825" stroke="#1BA8C4" opacity="0.7" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center right;
+}
+
 .docs-navigation > ul ul,
 .docs-navigation > ul ul ul {
     display: none;
@@ -763,49 +767,22 @@ h3.releaseinfo {
     .docs-navigation {
         display: block;
         flex: 0 1 auto;
-        width: 220px;
+        width: 240px;
     }
 
     .chapter, .book {
         flex: 0 1 720px;
-        margin: 0 20px;
+        margin: 0 1rem;
         min-height: 600px;
+    }
+
+    .secondary-navigation {
+        display: none;
     }
 }
 
 /* Fixed intra-chapter navigation for desktops */
 @media screen and (min-width: 1200px) {
-    .chapter .toc {
-        position: fixed;
-        left: calc(50% + 380px);
-        top: 50px;
-        width: 220px;
-        padding-top: 15px;
-        font-size: 1rem;
-        background-color: #F7F7F8;
-    }
-
-    /* Replace TOC header only on desktop */
-    .chapter .toc:before {
-        content: "Contents";
-        display: block;
-        font-weight: 500;
-        margin: 0.4rem 0 0.625rem 0;
-    }
-    .chapter .toc p:first-of-type {
-        display: none;
-    }
-
-    .chapter .toc a {
-        color: #02303A;
-        opacity: 0.7;
-    }
-
-    .chapter .toc a.active {
-        color: #1BA8C4;
-        opacity: 1.0;
-    }
-
     /*
       Pushes the section headings to just below the top nav bar when a user
       navigates directly to section anchors. It doesn't work if you try
@@ -821,7 +798,12 @@ h3.releaseinfo {
     }
 
     .docs-navigation {
-        flex-basis: 220px;
+        flex-basis: 240px;
+    }
+
+    .chapter, .book {
+        flex-basis: 960px;
+        max-width: 960px;
     }
 
     /* Sneaky way to make room for TOC */

@@ -225,6 +225,7 @@
                         while (parentListEl !== null) {
                             var dropDownEl = parentListEl.querySelector(".nav-dropdown");
                             if (dropDownEl !== null) {
+                                dropDownEl.classList.add("active");
                                 dropDownEl.classList.add("expanded");
                             }
                             parentListEl = parentListEl.parentNode.closest("li");
