@@ -19,6 +19,7 @@ import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.Task
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.DefaultInstantiatorFactory
+import org.gradle.api.internal.ExperimentalFeatures
 import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
@@ -76,6 +77,14 @@ class TestUtil {
 
     static ImmutableAttributesFactory attributesFactory() {
         return new DefaultImmutableAttributesFactory(valueSnapshotter())
+    }
+
+    static NamedObjectInstantiator objectInstantiator() {
+        return NamedObjectInstantiator.INSTANCE
+    }
+
+    static ExperimentalFeatures experimentalFeatures() {
+        return new ExperimentalFeatures()
     }
 
     static TestUtil create(File rootDir) {

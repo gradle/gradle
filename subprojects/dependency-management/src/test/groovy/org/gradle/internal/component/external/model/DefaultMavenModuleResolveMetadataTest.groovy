@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.MavenScope
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.util.TestUtil
 import spock.lang.Unroll
@@ -36,11 +35,11 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 
 class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
 
-    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
+    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.experimentalFeatures())
 
     @Override
-    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        return new DefaultMavenModuleResolveMetadata(mavenMetadataFactory.create(id, dependencies))
+    ModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List dependencies) {
+        mavenMetadataFactory.create(id, dependencies).asImmutable()
     }
 
     def "builds and caches dependencies for a scope"() {
@@ -139,14 +138,14 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
         def stringUsageAttribute = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class)
         def experimentalFeatures = Mock(ExperimentalFeatures)
         experimentalFeatures.enabled >> experimental
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], TestUtil.attributesFactory(), TestUtil.objectInstantiator(), experimentalFeatures)
         metadata.packaging = packaging
 
         when:
         def immutableMetadata = metadata.asImmutable()
         def compileConf = immutableMetadata.getConfiguration("compile")
         def runtimeConf = immutableMetadata.getConfiguration("runtime")
-        def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal(TestUtil.attributesFactory(), experimentalFeatures)
+        def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal()
 
         then:
         compileConf.attributes.empty

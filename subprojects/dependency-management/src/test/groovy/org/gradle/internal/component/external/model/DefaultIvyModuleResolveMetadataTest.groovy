@@ -26,7 +26,6 @@ import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.Exclude
 import org.gradle.util.TestUtil
 
@@ -36,9 +35,8 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
     def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
 
     @Override
-    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        def metadata = ivyMetadataFactory.create(id, dependencies, configurations, artifacts, excludes)
-        return metadata.asImmutable()
+    ModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List dependencies) {
+        ivyMetadataFactory.create(id, dependencies, configurations, artifacts, excludes).asImmutable()
     }
 
     List<Artifact> artifacts = []
