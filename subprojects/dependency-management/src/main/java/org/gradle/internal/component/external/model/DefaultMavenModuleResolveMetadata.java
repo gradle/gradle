@@ -19,9 +19,13 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -38,6 +42,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     public static final String POM_PACKAGING = "pom";
     public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = PreferJavaRuntimeVariant.schema();
+    private static final Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
     private final ExperimentalFeatures experimentalFeatures;
@@ -46,6 +51,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private final String packaging;
     private final boolean relocated;
     private final String snapshotTimestamp;
+
+    private ImmutableList<? extends ConfigurationMetadata> derivedVariants;
 
     DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator, ExperimentalFeatures experimentalFeatures) {
         super(metadata);
@@ -77,6 +84,24 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.<ExcludeMetadata>of());
         configuration.setDependencies(filterDependencies(configuration));
         return configuration;
+    }
+
+    @Override
+    protected ImmutableList<? extends ConfigurationMetadata> maybeDeriveVariants() {
+        return isJavaLibrary() ? getDerivedVariants() : ImmutableList.<ConfigurationMetadata>of();
+    }
+
+    private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
+        if (derivedVariants == null) {
+            derivedVariants = ImmutableList.of(
+                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("compile"), Usage.JAVA_API, attributesFactory),
+                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("runtime"), Usage.JAVA_RUNTIME, attributesFactory));
+        }
+        return derivedVariants;
+    }
+
+    private ConfigurationMetadata withUsageAttribute(DefaultConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory) {
+        return conf.withAttributes(attributesFactory.concat(ImmutableAttributes.EMPTY, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator)));
     }
 
     private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {
@@ -140,6 +165,10 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     public boolean isKnownJarPackaging() {
         return JAR_PACKAGINGS.contains(packaging);
+    }
+
+    private boolean isJavaLibrary() {
+        return experimentalFeatures.isEnabled() && (isKnownJarPackaging() || isPomPackaging());
     }
 
     @Nullable

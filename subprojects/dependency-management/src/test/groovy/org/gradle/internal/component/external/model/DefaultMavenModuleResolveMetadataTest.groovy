@@ -17,7 +17,11 @@
 
 package org.gradle.internal.component.external.model
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.ExperimentalFeatures
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
@@ -26,6 +30,7 @@ import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.util.TestUtil
+import spock.lang.Unroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
@@ -126,6 +131,45 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
         "jar"          | false | true
         "war"          | false | false
         "maven-plugin" | false | true
+    }
+
+    @Unroll
+    def "recognises java library for packaging=#packaging and experimental=#experimental"() {
+        given:
+        def stringUsageAttribute = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class)
+        def experimentalFeatures = Mock(ExperimentalFeatures)
+        experimentalFeatures.enabled >> experimental
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
+        metadata.packaging = packaging
+
+        when:
+        def immutableMetadata = metadata.asImmutable()
+        def compileConf = immutableMetadata.getConfiguration("compile")
+        def runtimeConf = immutableMetadata.getConfiguration("runtime")
+        def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal(TestUtil.attributesFactory(), experimentalFeatures)
+
+        then:
+        compileConf.attributes.empty
+        runtimeConf.attributes.empty
+        isJavaLibrary ? variantsForGraphTraversal.size() == 2 : variantsForGraphTraversal.empty
+
+        if (isJavaLibrary) {
+            assert variantsForGraphTraversal[0].name == "compile"
+            assert variantsForGraphTraversal[0].attributes.getAttribute(stringUsageAttribute) == "java-api"
+            assert variantsForGraphTraversal[1].name == "runtime"
+            assert variantsForGraphTraversal[1].attributes.getAttribute(stringUsageAttribute) == "java-runtime"
+        }
+
+        where:
+        packaging      | experimental | isJavaLibrary
+        "pom"          | false        | false
+        "jar"          | false        | false
+        "maven-plugin" | false        | false
+        "war"          | false        | false
+        "pom"          | true         | true
+        "jar"          | true         | true
+        "maven-plugin" | true         | true
+        "war"          | true         | false
     }
 
     def dependency(String org, String module, String version, String scope) {
