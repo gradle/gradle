@@ -40,7 +40,9 @@ dependencies {
     runtime project(':logging')
 }
 
-useTestFixtures(sourceSet: 'main')
+testFixtures {
+    from(':core', 'main')
+}
 
 task prepareVersionsInfo(type: PrepareVersionsInfo) {
     destFile = new File(generatedResourcesDir, "all-released-versions.properties")

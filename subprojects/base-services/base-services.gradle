@@ -24,6 +24,10 @@ dependencies {
     jmh libraries.bouncycastle_provider
 }
 
+testFixtures {
+    from(':core')
+}
+
 jmh {
     include = ["HashingAlgorithmsBenchmark"]
 }
@@ -35,5 +39,3 @@ task buildReceiptResource(type: Copy) {
     destinationDir = file("${generatedTestResourcesDir}/${buildReceiptPackage}")
 }
 sourceSets.main.output.dir generatedTestResourcesDir, builtBy: buildReceiptResource
-
-useTestFixtures()

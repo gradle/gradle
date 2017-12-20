@@ -21,4 +21,6 @@ dependencies {
     testRuntime(project(":plugins"))
 }
 
-useTestFixtures()
+testFixtures {
+    from(":core")
+}

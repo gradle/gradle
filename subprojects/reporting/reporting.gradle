@@ -24,10 +24,12 @@ dependencies {
     reports "jquery:jquery.min:1.11.0@js"
 }
 
+testFixtures {
+    from(':core')
+}
+
 task reportResources(type: Copy) {
     from configurations.reports
     into "$generatedResourcesDir/org/gradle/reporting"
 }
 sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
-
-useTestFixtures()

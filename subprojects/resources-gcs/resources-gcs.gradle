@@ -12,7 +12,10 @@ dependencies {
     testCompile libraries.groovy
 }
 
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":ivy")
-useTestFixtures(project: ":maven")
+testFixtures {
+    from(':dependencyManagement')
+    from(':ivy')
+    from(':maven')
+}
+
 strictCompile()

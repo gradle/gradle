@@ -26,6 +26,10 @@ dependencies {
     testCompile libraries.ant
 }
 
+testFixtures {
+    from(':core')
+}
+
 ext {
     wrapperBuildReceipt = "build-receipt.properties"
 }
@@ -56,5 +60,3 @@ task executableJar(type: Jar) {
 integTestTasks.all {
     requiresBinZip = true
 }
-
-useTestFixtures()

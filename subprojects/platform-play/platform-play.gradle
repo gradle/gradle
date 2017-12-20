@@ -19,14 +19,16 @@ dependencies {
     testFixturesCompile libraries.commons_httpclient
 }
 
-useTestFixtures()
-useTestFixtures(project: ":languageScala", sourceSet: 'integTest')
-useTestFixtures(project: ":languageJava", sourceSet: 'integTest')
-useTestFixtures(project: ':languageJvm', sourceSet: 'testFixtures')
-useTestFixtures(project: ":launcher", sourceSet: 'testFixtures')
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":diagnostics")
-useTestFixtures(project: ':platformBase')
+testFixtures {
+    from(':core')
+    from(':languageScala', 'integTest')
+    from(':languageJava', 'integTest')
+    from(':languageJvm', 'testFixtures')
+    from(':launcher', 'testFixtures')
+    from(':dependencyManagement')
+    from(':diagnostics')
+    from(':platformBase')
+}
 
 strictCompile()
 

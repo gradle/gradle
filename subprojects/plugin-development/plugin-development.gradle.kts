@@ -32,8 +32,11 @@ dependencies {
     integTestRuntime(project(":toolingApiBuilders"))
 }
 
-useTestFixtures()
-useTestFixtures(project = ":logging")
+testFixtures {
+    from(":core")
+    from(":logging")
+}
+
 strictCompile()
 
 tasks.getByName<EmptyDirectoryCheck>("verifyTestFilesCleanup").isErrorWhenNotEmpty = false

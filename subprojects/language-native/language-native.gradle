@@ -25,12 +25,14 @@ dependencies {
     integTestRuntime project(":ideNative")
 }
 
-useTestFixtures()
-useTestFixtures(project: ":versionControl")
-useTestFixtures(project: ":platformNative")
-useTestFixtures(project: ":platformBase")
-useTestFixtures(project: ":messaging")
-useTestFixtures(project: ":platformNative", sourceSet: 'testFixtures')
+testFixtures {
+    from(':core')
+    from(':versionControl')
+    from(':platformNative')
+    from(':platformBase')
+    from(':messaging')
+    from(':platformNative', 'testFixtures')
+}
 
 classycle {
     excludePatterns = ['org/gradle/language/nativeplatform/internal/**']

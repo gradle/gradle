@@ -31,5 +31,6 @@ dependencies {
     testRuntime libraries.jaxen
 }
 
-useTestFixtures()
-
+testFixtures {
+    from(':core')
+}

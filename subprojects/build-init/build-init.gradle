@@ -28,4 +28,6 @@ dependencies {
     integTestRuntime allTestRuntimeDependencies
 }
 
-useTestFixtures()
+testFixtures {
+    from(':core')
+}

@@ -18,8 +18,10 @@ dependencies {
     implementation libraries.guava
 }
 
-useTestFixtures()
-useTestFixtures(project: ":logging")
+testFixtures {
+    from(':core')
+    from(':logging')
+}
 
 jmh {
     fork = 1

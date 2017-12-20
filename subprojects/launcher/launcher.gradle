@@ -34,10 +34,12 @@ dependencies {
     testFixturesCompile project(':internalIntegTesting')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':languageJava')
-useTestFixtures(project: ':messaging')
-useTestFixtures(project: ":logging")
+testFixtures {
+    from(':core')
+    from(':languageJava')
+    from(':messaging')
+    from(':logging')
+}
 
 integTestTasks.all {
     maxParallelForks = Math.min(3, rootProject.maxParallelForks)

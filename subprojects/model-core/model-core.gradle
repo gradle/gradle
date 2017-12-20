@@ -43,8 +43,10 @@ dependencies {
     testFixturesImplementation project(':core')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':diagnostics', sourceSet: 'testFixtures')
+testFixtures {
+    from(':core')
+    from(':diagnostics', 'testFixtures')
+}
 
 strictCompileIgnoreDeprecations()
 

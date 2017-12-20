@@ -29,5 +29,8 @@ dependencies {
     testFixturesCompile libraries.jgit
 }
 
-useTestFixtures()
+testFixtures {
+    from(':core')
+}
+
 strictCompile()

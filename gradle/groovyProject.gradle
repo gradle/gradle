@@ -93,24 +93,7 @@ jarTasks.all { jar ->
     )
 }
 
-// Configures the project to use the test fixtures from another project, which by default is core.
-// Note this is not used to create test fixtures in this project, see gradle/testFixtures.gradle for that
-ext.useTestFixtures = { params = [:] ->
-    def projectPath = params.project ?: ":core"
-    def sourceSet = params.sourceSet ?: "test"
-    def compileConfiguration = sourceSet == "main" ? "compile" : "${sourceSet}Compile"
-    def runtimeConfiguration = sourceSet == "main" ? "runtime" : "${sourceSet}Runtime"
-
-    dependencies {
-        add(compileConfiguration, project(path: projectPath, configuration: "testFixturesUsageCompile"))
-        add(compileConfiguration, project(':internalTesting'))
-        add(runtimeConfiguration, project(path: projectPath, configuration: "testFixturesUsageRuntime"))
-    }
-}
-
-if (file("src/testFixtures").exists()) {
-    apply from: "$rootDir/gradle/testFixtures.gradle"
-}
+apply plugin: 'test-fixtures'
 
 if (file("src/integTest").exists()) {
     apply from: "$rootDir/gradle/integTest.gradle"

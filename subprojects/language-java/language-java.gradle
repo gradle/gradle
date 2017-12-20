@@ -15,17 +15,20 @@ dependencies {
     integTestRuntime project(':plugins')
 }
 
+testFixtures {
+    from(':core')
+    from(':languageJvm', 'testFixtures')
+    from(':platformBase')
+    from(':launcher')
+}
+
+strictCompile()
+
 classycle {
     // These public packages have classes that are tangled with the corresponding internal package.
     excludePatterns = ['org/gradle/api/tasks/compile/**',
                        'org/gradle/external/javadoc/**']
 }
-
-strictCompile()
-useTestFixtures()
-useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')
-useTestFixtures(project: ":platformBase")
-useTestFixtures(project: ":launcher")
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 

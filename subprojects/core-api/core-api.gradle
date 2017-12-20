@@ -37,7 +37,10 @@ dependencies {
     testFixturesImplementation project(":internalTesting")
 }
 
-useTestFixtures(project: ":logging")
+testFixtures {
+    from(':logging')
+}
+
 //strictCompile()
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

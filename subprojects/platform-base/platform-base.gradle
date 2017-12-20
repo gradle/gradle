@@ -9,11 +9,14 @@ dependencies {
     testFixturesCompile project(path: ':modelCore', configuration: 'testFixturesUsageRuntime')
 }
 
+testFixtures {
+    from(':core')
+    from(':core', 'testFixtures')
+    from(':diagnostics', 'testFixtures')
+}
+
+strictCompile()
+
 // classycle {
 //     excludePatterns = ['org.gradle.language.base.internal/**']
 // }
-strictCompile()
-useTestFixtures()
-useTestFixtures(sourceSet: 'testFixtures')
-useTestFixtures(project: ':diagnostics', sourceSet: 'testFixtures')
-

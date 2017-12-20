@@ -14,8 +14,10 @@ dependencies {
     testFixturesCompile project(":internalIntegTesting")
 }
 
-strictCompile()
-useTestFixtures()
-useTestFixtures(sourceSet: 'testFixtures')
-useTestFixtures(project: ':launcher', sourceSet: 'testFixtures')
+testFixtures {
+    from(':core')
+    from(':core', 'testFixtures')
+    from(':launcher', 'testFixtures')
+}
 
+strictCompile()

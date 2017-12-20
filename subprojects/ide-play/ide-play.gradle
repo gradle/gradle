@@ -26,9 +26,12 @@ dependencies {
     integTestRuntime project(':compositeBuilds')
 }
 
-useTestFixtures()
-useTestFixtures(project: ":platformPlay")
-useTestFixtures(project: ":ide")
+testFixtures {
+    from(':core')
+    from(':platformPlay')
+    from(':ide')
+}
+
 strictCompile()
 
 tasks.withType(org.gradle.testing.IntegrationTest) { task ->

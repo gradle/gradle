@@ -14,8 +14,10 @@ dependencies {
     integTestRuntime project(':languageJava')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':platformBase')
+testFixtures {
+    from(':core')
+    from(':diagnostics')
+    from(':platformBase')
+}
 
 strictCompile()

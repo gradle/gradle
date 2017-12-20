@@ -25,4 +25,6 @@ dependencies {
     api project(":baseServices")
 }
 
-useTestFixtures()
+testFixtures {
+    from(':core')
+}

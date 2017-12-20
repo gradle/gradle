@@ -47,7 +47,9 @@ task reportResources(type: Copy) {
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
 
-useTestFixtures(sourceSet: 'main')
-useTestFixtures(project: ':toolingApi', sourceSet: 'main')
+testFixtures {
+    from(':core', 'main')
+    from(':toolingApi', 'main')
+}
 
 apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"

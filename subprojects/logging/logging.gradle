@@ -29,7 +29,9 @@ dependencies {
     testImplementation project(":internalTesting")
 }
 
-useTestFixtures()
+testFixtures {
+    from(':core')
+}
 
 classycle {
     excludePatterns = ['org/gradle/internal/featurelifecycle/**']

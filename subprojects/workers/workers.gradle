@@ -11,5 +11,7 @@ dependencies {
     integTestCompile project(':internalIntegTesting')
 }
 
-useTestFixtures(project: ":logging")
-useTestFixtures()
+testFixtures {
+    from(':core')
+    from(':logging')
+}

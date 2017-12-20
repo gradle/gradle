@@ -35,11 +35,13 @@ test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
 }
 
-useTestFixtures()
-useTestFixtures(project: ':testingBase')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':messaging')
-useTestFixtures(project: ':baseServices')
+testFixtures {
+    from(':core')
+    from(':testingBase')
+    from(':diagnostics')
+    from(':messaging')
+    from(':baseServices')
+}
 
 // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
 // classycle

@@ -16,8 +16,11 @@ dependencies {
 
     crossVersionTestRuntime allTestRuntimeDependencies
 }
-useTestFixtures(sourceSet: 'integTest', project: ':diagnostics')
-useTestFixtures(sourceSet: 'integTest', project: ':platformNative')
+
+testFixtures {
+    from(':diagnostics', 'integTest')
+    from(':platformNative', 'integTest')
+}
 
 integTestTasks.all { task ->
     project.tasks.findByName("configure${task.name.capitalize()}").configure {

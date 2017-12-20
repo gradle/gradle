@@ -16,4 +16,6 @@ dependencies {
     implementation libraries.slf4j_api
 }
 
-useTestFixtures()
+testFixtures {
+    from(':core')
+}

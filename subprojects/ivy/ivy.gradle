@@ -30,8 +30,11 @@ dependencies {
     testFixturesCompile project(":internalIntegTesting")
 }
 
-useTestFixtures()
-useTestFixtures(project: ":modelCore")
-useTestFixtures(project: ":platformBase")
+testFixtures {
+    from(':core')
+    from(':modelCore')
+    from(':platformBase')
+}
+
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 

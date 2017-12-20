@@ -20,4 +20,6 @@ dependencies {
     integTestImplementation project(':internalIntegTesting')
 }
 
-useTestFixtures()
+testFixtures {
+    from(':core')
+}

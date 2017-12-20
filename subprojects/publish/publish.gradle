@@ -25,4 +25,6 @@ dependencies {
     integTestRuntime project(":maven")
 }
 
-useTestFixtures()
+testFixtures {
+    from(':core')
+}

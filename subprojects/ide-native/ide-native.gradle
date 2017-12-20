@@ -29,6 +29,8 @@ dependencies {
     testFixturesCompile project(':internalTesting')
 }
 
-useTestFixtures()
-useTestFixtures(project: ":platformNative")
-useTestFixtures(project: ":versionControl")
+testFixtures {
+    from(':core')
+    from(':platformNative')
+    from(':versionControl')
+}

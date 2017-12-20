@@ -26,11 +26,13 @@ dependencies {
     integTestRuntime project(':ideNative')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':platformNative')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':platformBase')
-useTestFixtures(project: ':testingBase')
-useTestFixtures(project: ':languageNative')
+testFixtures {
+    from(':core')
+    from(':platformNative')
+    from(':diagnostics')
+    from(':platformBase')
+    from(':testingBase')
+    from(':languageNative')
+}
 
 strictCompile()

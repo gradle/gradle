@@ -31,13 +31,15 @@ dependencies {
     testFixturesCompile project(':internalIntegTesting')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':messaging')
-useTestFixtures(sourceSet: 'testFixtures')
-useTestFixtures(project: ':platformBase')
-useTestFixtures(project: ':modelCore')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':baseServices')
+testFixtures {
+    from(':core')
+    from(':core', 'testFixtures')
+    from(':messaging')
+    from(':platformBase')
+    from(':modelCore')
+    from(':diagnostics')
+    from(':baseServices')
+}
 
 strictCompile()
 

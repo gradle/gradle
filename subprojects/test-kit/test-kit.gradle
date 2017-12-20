@@ -7,14 +7,16 @@ dependencies {
     integTestRuntime project(':pluginDevelopment')
 }
 
+testFixtures {
+    from(':core')
+}
+
+strictCompile()
+
 task crossVersionTests(type: org.gradle.testing.IntegrationTest) {
     description "Runs the TestKit version compatibility tests"
     systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
     systemProperties['org.gradle.integtest.executer'] = 'forking'
 }
 
-strictCompile()
-useTestFixtures()
-
 verifyTestFilesCleanup.errorWhenNotEmpty = false
-

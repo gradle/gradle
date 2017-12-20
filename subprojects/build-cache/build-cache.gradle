@@ -37,6 +37,8 @@ dependencies {
     jmh "org.kamranzafar:jtar:2.3"
 }
 
-useTestFixtures()
-useTestFixtures(project: ":baseServices")
+testFixtures {
+    from(':core')
+    from(':baseServices')
+}
 strictCompile()

@@ -30,9 +30,10 @@ fun Project.library(name: String): Any =
     libraries[name]!!
 
 
+// TODO:kotlin-dsl Remove work around for https://github.com/gradle/kotlin-dsl/issues/639 once fixed
 @Suppress("unchecked_cast")
-fun Project.useTestFixtures(project: String? = null, sourceSet: String? = null) =
-    (extra["useTestFixtures"] as groovy.lang.Closure<Unit>)(mapOf("project" to project, "sourceSet" to sourceSet))
+fun Project.libraries(name: String): List<Any> =
+    libraries[name]!! as List<Any>
 
 
 @Suppress("unchecked_cast")

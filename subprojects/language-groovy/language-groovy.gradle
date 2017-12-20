@@ -14,11 +14,13 @@ dependencies {
     integTestRuntime project(':plugins')
 }
 
+testFixtures {
+    from(':core')
+    from(':languageJvm', 'integTest')
+    from(':languageJvm', 'testFixtures')
+}
+
 classycle {
     excludePatterns = ['org/gradle/api/internal/tasks/compile/**',
                        'org/gradle/api/tasks/javadoc/**']
 }
-
-useTestFixtures()
-useTestFixtures(project: ':languageJvm', sourceSet: 'integTest')
-useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')

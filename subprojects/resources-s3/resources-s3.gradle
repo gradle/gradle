@@ -14,9 +14,12 @@ dependencies {
     implementation libraries.commons_lang
 }
 
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":ivy")
-useTestFixtures(project: ":maven")
+testFixtures {
+    from(':dependencyManagement')
+    from(':ivy')
+    from(':maven')
+}
+
 strictCompile()
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

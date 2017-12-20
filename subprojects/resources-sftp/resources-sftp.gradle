@@ -29,10 +29,13 @@ dependencies {
     implementation libraries.commons_io
 }
 
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":ivy")
-useTestFixtures(project: ":maven")
-useTestFixtures()
+testFixtures {
+    from(':dependencyManagement')
+    from(':ivy')
+    from(':maven')
+    from(':core')
+}
+
 strictCompile()
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
