@@ -55,7 +55,7 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     end();
                     div().classAttr("charts");
                         h3().text("Average total time").end();
-                        String totalTimeChartId = "totalTimeChart" + urlEncode(testHistory.getId());
+                        String totalTimeChartId = "totalTimeChart" + testHistory.getId().replaceAll("[^a-zA-Z]", "_");
                         div().id(totalTimeChartId).classAttr("chart");
                             p().text("Loading...").end();
                         end();
