@@ -484,6 +484,12 @@ It is common for tests to be run using the `test` task, which assembles the proj
 ❯ gradle test
 ----
 
+If you'd like to skip running tests, when running another task, you can use the `--exclude-task` option.
+
+----
+❯ gradle build --exclude-task=test
+----
+
 ==== Running all checks
 
 It is common for _all_ verification tasks, including tests and linting, to be executed using the `check` task.
