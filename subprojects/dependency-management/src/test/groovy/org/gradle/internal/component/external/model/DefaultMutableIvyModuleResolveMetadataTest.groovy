@@ -37,7 +37,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id) {
-        return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
+        return new DefaultMutableIvyModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
     }
 
     def "initialises values from descriptor state and defaults"() {

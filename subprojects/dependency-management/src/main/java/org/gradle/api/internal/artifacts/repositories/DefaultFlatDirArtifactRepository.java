@@ -19,12 +19,9 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
-import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
@@ -37,7 +34,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
@@ -54,30 +50,18 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
-    private final IvyContextManager ivyContextManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final FileResourceRepository fileResourceRepository;
-    private final ModuleMetadataParser moduleMetadataParser;
-    private final ExperimentalFeatures experimentalFeatures;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
                                             LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                             FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                            IvyContextManager ivyContextManager,
-                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                            FileResourceRepository fileResourceRepository,
-                                            ModuleMetadataParser moduleMetadataParser,
-                                            ExperimentalFeatures experimentalFeatures) {
+                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
-        this.ivyContextManager = ivyContextManager;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.fileResourceRepository = fileResourceRepository;
-        this.moduleMetadataParser = moduleMetadataParser;
-        this.experimentalFeatures = experimentalFeatures;
     }
 
     @Override

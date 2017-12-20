@@ -45,16 +45,13 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     private ImmutableList<Exclude> excludes;
     private ImmutableMap<NamespaceId, String> extraAttributes;
     private String branch;
-    
-    public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
-        this(id, componentIdentifier, ImmutableList.<IvyDependencyDescriptor>of());
-    }
 
     public DefaultMutableIvyModuleResolveMetadata(ModuleVersionIdentifier id,
                                                   ModuleComponentIdentifier componentIdentifier,
                                                   Collection<IvyDependencyDescriptor> dependencies) {
         this(id, componentIdentifier,
-            ImmutableList.copyOf(dependencies), DEFAULT_CONFIGURATION_LIST,
+            ImmutableList.copyOf(dependencies),
+            DEFAULT_CONFIGURATION_LIST,
             ImmutableList.of(new Artifact(new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar"), SINGLE_DEFAULT_CONFIGURATION_NAME)),
             ImmutableList.<Exclude>of());
     }
@@ -78,7 +75,7 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
         super(metadata);
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.artifactDefinitions = metadata.getArtifactDefinitions();
-        this.dependencies = ImmutableList.copyOf(metadata.getDependencies());
+        this.dependencies = metadata.getDependencies();
         this.excludes = metadata.getExcludes();
         this.branch = metadata.getBranch();
         this.extraAttributes = metadata.getExtraAttributes();
