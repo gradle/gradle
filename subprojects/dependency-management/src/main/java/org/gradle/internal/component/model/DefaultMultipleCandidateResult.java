@@ -16,44 +16,49 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.Multimap;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 
 import javax.annotation.Nullable;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
-public class DefaultCandidateResult<T> implements MultipleCandidatesResult<Object> {
-    private final Multimap<Object, T> candidatesByValue;
-    private final Object consumerValue;
-    private final List<T> best;
-    private boolean done;
+public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResult<T> {
+    private final Set<T> candidateValues;
+    private final T consumerValue;
+    private Set<T> matches;
 
-    public DefaultCandidateResult(Multimap<Object, T> candidatesByValue, @Nullable Object consumerValue, List<T> best) {
-        this.candidatesByValue = candidatesByValue;
+    public DefaultMultipleCandidateResult(@Nullable T consumerValue, Set<T> candidateValues) {
+        assert candidateValues.size() > 1;
+        this.candidateValues = candidateValues;
         this.consumerValue = consumerValue;
-        this.best = best;
     }
 
     @Override
     public boolean hasResult() {
-        return done;
+        return matches != null;
+    }
+
+    public Set<T> getMatches() {
+        assert matches != null;
+        return matches;
     }
 
     @Nullable
     @Override
-    public Object getConsumerValue() {
+    public T getConsumerValue() {
         return consumerValue;
     }
 
     @Override
-    public Set<Object> getCandidateValues() {
-        return candidatesByValue.keySet();
+    public Set<T> getCandidateValues() {
+        return candidateValues;
     }
 
     @Override
-    public void closestMatch(Object candidate) {
-        done = true;
-        best.addAll(candidatesByValue.get(candidate));
+    public void closestMatch(T candidate) {
+        if (matches == null) {
+            matches = new HashSet<T>(4);
+        }
+        matches.add(candidate);
     }
 }
