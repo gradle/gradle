@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.ivy.IvyModule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -30,7 +29,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         'default':          '',
         'runtime':          'configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))',
         'api':              'configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))',
-        //'api+experimental': 'configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))',
+        'api+experimental': 'configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))',
     ]
 
     private static boolean leaksRuntime(testVariant, repoType, prevRepoType = null) {
@@ -316,7 +315,6 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
     }
 
-    @Ignore
     @Unroll
     def "with experimental resolve behavior, explicit #conf configuration selection still works for maven dependencies"() {
         given:
@@ -408,6 +406,6 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         'ivy'          | true      | false
         'maven-gradle' | false     | false
         'ivy-gradle'   | false     | false
-        //'maven'        | false     | true
+        'maven'        | false     | true
     }
 }
