@@ -35,10 +35,6 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     private String snapshotTimestamp;
     private ImmutableList<MavenDependencyDescriptor> dependencies;
 
-    public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
-        this(id, componentIdentifier, ImmutableList.<MavenDependencyDescriptor>of());
-    }
-
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<MavenDependencyDescriptor> dependencies) {
         super(id, componentIdentifier);
         this.dependencies = ImmutableList.copyOf(dependencies);

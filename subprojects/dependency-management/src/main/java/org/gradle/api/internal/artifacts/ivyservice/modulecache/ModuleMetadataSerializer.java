@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
@@ -40,13 +41,13 @@ import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
+import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
@@ -74,14 +75,16 @@ public class ModuleMetadataSerializer {
     private static final ModuleComponentSelectorSerializer COMPONENT_SELECTOR_SERIALIZER = new ModuleComponentSelectorSerializer();
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
+    private final MavenMutableModuleMetadataFactory mavenMetadataFactory;
 
-    public ModuleMetadataSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
+    public ModuleMetadataSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator, MavenMutableModuleMetadataFactory mavenMetadataFactory) {
         this.attributesFactory = attributesFactory;
         this.instantiator = instantiator;
+        this.mavenMetadataFactory = mavenMetadataFactory;
     }
 
     public MutableModuleComponentResolveMetadata read(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws IOException {
-        return new Reader(decoder, moduleIdentifierFactory, attributesFactory, instantiator).read();
+        return new Reader(decoder, moduleIdentifierFactory, attributesFactory, instantiator, mavenMetadataFactory).read();
     }
 
     public void write(Encoder encoder, ModuleComponentResolveMetadata metadata) throws IOException {
@@ -356,15 +359,21 @@ public class ModuleMetadataSerializer {
         private final ImmutableAttributesFactory attributesFactory;
         private final NamedObjectInstantiator instantiator;
         private final ExcludeRuleConverter excludeRuleConverter;
+        private final MavenMutableModuleMetadataFactory mavenMetadataFactory;
         private ModuleComponentIdentifier id;
         private ModuleVersionIdentifier mvi;
 
-        private Reader(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
+        private Reader(Decoder decoder,
+                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                       ImmutableAttributesFactory attributesFactory,
+                       NamedObjectInstantiator instantiator,
+                       MavenMutableModuleMetadataFactory mavenMutableModuleMetadataFactory) {
             this.decoder = decoder;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
             this.attributesFactory = attributesFactory;
             this.instantiator = instantiator;
             this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
+            this.mavenMetadataFactory = mavenMutableModuleMetadataFactory;
         }
 
         public MutableModuleComponentResolveMetadata read() throws IOException {
@@ -388,7 +397,7 @@ public class ModuleMetadataSerializer {
         private MutableModuleComponentResolveMetadata readMaven() throws IOException {
             readInfoSection();
             List<MavenDependencyDescriptor> dependencies = readMavenDependencies();
-            DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(mvi, id, dependencies);
+            MutableMavenModuleResolveMetadata metadata = mavenMetadataFactory.create(id, dependencies);
             readSharedInfo(metadata);
             metadata.setSnapshotTimestamp(readNullableString());
             metadata.setPackaging(readNullableString());

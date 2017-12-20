@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -47,6 +48,7 @@ import spock.lang.Unroll
 class ModuleMetadataSerializerTest extends Specification {
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
+    private final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory)
     private final ModuleMetadataSerializer serializer = moduleMetadataSerializer()
     private GradlePomModuleDescriptorParser pomModuleDescriptorParser = pomParser()
     private MetaDataParser<MutableIvyModuleResolveMetadata> ivyDescriptorParser = ivyParser()
@@ -118,7 +120,8 @@ class ModuleMetadataSerializerTest extends Specification {
     MutableModuleComponentResolveMetadata parseGradle(File gradleFile) {
         def metadata = new DefaultMutableMavenModuleResolveMetadata(
             DefaultModuleVersionIdentifier.newId('test', 'test-module', '1.0'),
-            DefaultModuleComponentIdentifier.newId('test', 'test-module', '1.0')
+            DefaultModuleComponentIdentifier.newId('test', 'test-module', '1.0'),
+            []
         )
         gradleMetadataParser.parse(resource(gradleFile), metadata)
         metadata
@@ -131,7 +134,8 @@ class ModuleMetadataSerializerTest extends Specification {
     private ModuleMetadataSerializer moduleMetadataSerializer() {
         new ModuleMetadataSerializer(
             TestUtil.attributesFactory(),
-            NamedObjectInstantiator.INSTANCE
+            NamedObjectInstantiator.INSTANCE,
+            mavenMetadataFactory
         )
     }
 
@@ -139,7 +143,8 @@ class ModuleMetadataSerializerTest extends Specification {
         new GradlePomModuleDescriptorParser(
             new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme()),
             moduleIdentifierFactory,
-            Stub(FileResourceRepository)
+            Stub(FileResourceRepository),
+            mavenMetadataFactory
         )
     }
 

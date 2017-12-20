@@ -76,6 +76,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileStore<String> resourcesFileStore;
     private final FileResourceRepository fileResourceRepository;
     private final ExperimentalFeatures experimentalFeatures;
+    private final MavenMutableModuleMetadataFactory metadataFactory;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
@@ -88,10 +89,10 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
-                                          ExperimentalFeatures experimentalFeatures) {
+                                          ExperimentalFeatures experimentalFeatures, MavenMutableModuleMetadataFactory metadataFactory) {
         this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory,
             artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory,
-            resourcesFileStore, fileResourceRepository, experimentalFeatures);
+            resourcesFileStore, fileResourceRepository, experimentalFeatures, metadataFactory);
     }
 
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
@@ -105,7 +106,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
-                                          ExperimentalFeatures experimentalFeatures) {
+                                          ExperimentalFeatures experimentalFeatures,
+                                          MavenMutableModuleMetadataFactory metadataFactory) {
         super(instantiatorFactory.decorate(), authenticationContainer);
         this.describer = describer;
         this.fileResolver = fileResolver;
@@ -118,6 +120,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.resourcesFileStore = resourcesFileStore;
         this.fileResourceRepository = fileResourceRepository;
         this.experimentalFeatures = experimentalFeatures;
+        this.metadataFactory = metadataFactory;
         this.metadataSources.setDefaults(experimentalFeatures);
     }
 
@@ -198,7 +201,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     ImmutableMetadataSources createMetadataSources() {
-        MavenMutableModuleMetadataFactory metadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory);
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
         if (metadataSources.gradleMetadata) {
             sources.add(new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory));
