@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
@@ -68,11 +69,11 @@ public class DefaultPropertyWalker implements PropertyWalker {
             PropertyNode node = queue.remove();
             Object nested = node.getBean();
             TypeMetadata nestedTypeMetadata = propertyMetadataStore.getTypeMetadata(nested.getClass());
-            if (node.parentPropertyName != null && (nested instanceof Iterable<?>) && !nestedTypeMetadata.isAnnotated()) {
+            if (!node.isRoot() && (nested instanceof Iterable<?>) && !nestedTypeMetadata.isAnnotated()) {
                 Iterable<?> nestedBeans = (Iterable<?>) nested;
                 int count = 0;
                 for (Object nestedBean : nestedBeans) {
-                    String nestedPropertyName = node.parentPropertyName + "$" + ++count;
+                    String nestedPropertyName = node.getQualifiedPropertyName("$" + ++count);
                     queue.add(new PropertyNode(nestedPropertyName, nestedBean));
                 }
             } else {
@@ -120,7 +121,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
         public PropertyNode(@Nullable String parentPropertyName, Object bean) {
             this.parentPropertyName = parentPropertyName;
-            this.bean = bean;
+            this.bean = Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + parentPropertyName + "'");
         }
 
         public Object getBean() {
@@ -129,6 +130,10 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
         public String getQualifiedPropertyName(String propertyName) {
             return parentPropertyName == null ? propertyName : parentPropertyName + "." + propertyName;
+        }
+
+        public boolean isRoot() {
+            return parentPropertyName == null;
         }
     }
 

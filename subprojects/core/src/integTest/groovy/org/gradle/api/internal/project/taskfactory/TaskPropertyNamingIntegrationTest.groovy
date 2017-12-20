@@ -180,10 +180,10 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds 'test', 'printMetadata'
         output =~ /Input property 'beans\.class'/
-        output =~ $/Input property 'beans\$1.\$\$$implementation\$\$'/$
-        output =~ $/Input property 'beans\$1.input'/$
-        output =~ $/Input property 'beans\$2.\$\$$implementation\$\$'/$
-        output =~ $/Input property 'beans\$2.secondInput'/$
+        output =~ $/Input property 'beans\.\$1.\$\$$implementation\$\$'/$
+        output =~ $/Input property 'beans\.\$1.input'/$
+        output =~ $/Input property 'beans\.\$2.\$\$$implementation\$\$'/$
+        output =~ $/Input property 'beans\.\$2.secondInput'/$
     }
 
     def "nested destroyables are discovered"() {

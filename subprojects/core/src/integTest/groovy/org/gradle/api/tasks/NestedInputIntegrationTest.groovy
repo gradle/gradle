@@ -424,4 +424,129 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "changes to nested bean implementation are detected"() {
+        buildFile << """
+            class TaskWithNestedInput extends DefaultTask {
+                @Nested
+                Object nested
+                
+                @OutputFile
+                File outputFile
+                
+                @TaskAction
+                void doStuff() {
+                    outputFile.text = nested.input
+                }
+                
+            }
+            
+            class NestedBean {
+                @Input
+                input
+            }
+            
+            class OtherNestedBean {
+                @Input
+                input
+            }
+            
+            boolean useOther = project.findProperty('useOther')
+            
+            task myTask(type: TaskWithNestedInput) {
+                outputFile = file('build/output.txt')
+                nested = useOther ? new OtherNestedBean(input: 'string') : new NestedBean(input: 'string')
+            }
+        """
+
+        def task = ':myTask'
+
+        when:
+        run task
+
+        then:
+        executedAndNotSkipped(task)
+
+        when:
+        run task
+
+        then:
+        skipped task
+
+        when:
+        run task, '-PuseOther=true'
+
+        then:
+        executedAndNotSkipped task
+    }
+
+    def "elements of nested iterable cannot be null"() {
+        buildFile << """
+            class TaskWithNestedIterable extends DefaultTask {
+                @Nested
+                Iterable<Object> beans
+            }
+            
+            class NestedBean {
+                @Input
+                String input
+            }
+            
+            task myTask(type: TaskWithNestedIterable) {
+                beans = [new NestedBean(input: 'input'), null]
+            }
+        """
+
+        expect:
+        fails 'myTask'
+        failure.assertHasCause('Null is not allowed as nested property \'beans.$2\'')
+    }
+
+    def "nested iterable beans can be iterables again"() {
+        buildFile << """
+            class TaskWithNestedIterable extends DefaultTask {
+                @Nested
+                Iterable<Object> beans
+                
+                @OutputFile
+                File outputFile
+                
+                @TaskAction
+                void doStuff() {
+                    outputFile.text = beans.flatten()*.input.join('\\n')
+                }
+            }
+            
+            class NestedBean {
+                @Input
+                String input
+            }
+            
+            def inputString = project.findProperty('input') ?: 'input'
+            
+            task myTask(type: TaskWithNestedIterable) {
+                outputFile = file('build/output.txt')
+                beans = [[new NestedBean(input: inputString)], [new NestedBean(input: 'secondInput')]]
+            }
+        """
+        def task = ':myTask'
+
+        when:
+        run task
+
+        then:
+        executedAndNotSkipped task
+
+        when:
+        run task
+
+        then:
+        skipped task
+
+        when:
+        run task, '-Pinput=changed'
+
+        then:
+        executedAndNotSkipped task
+    }
+
 }
