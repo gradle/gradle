@@ -83,7 +83,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private final String displayName;
     private final ServiceProvider thisAsServiceProvider;
 
-    private volatile State state = State.INIT;
+    private State state = State.INIT;
     private final Object stateLock = new Object();
     private final AtomicInteger inProgress = new AtomicInteger(0);
 
@@ -604,15 +604,17 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         public final T getInstance() {
-            if (instance == null) {
+            T result = instance;
+            if (result == null) {
                 synchronized (this) {
                     if (instance == null) {
                         instance = create();
                         assert instance != null : String.format("create() of %s returned null", toString());
                     }
+                    result = instance;
                 }
             }
-            return instance;
+            return result;
         }
 
         /**
@@ -648,7 +650,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         final Type serviceType;
         final Class serviceClass;
 
-        volatile BindState state = BindState.UNBOUND;
+        BindState state = BindState.UNBOUND;
         Class factoryElementType;
 
         SingletonService(DefaultServiceRegistry owner, Type serviceType) {

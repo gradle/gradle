@@ -23,7 +23,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.specs.AndSpec
-import org.gradle.internal.id.UniqueId
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
@@ -115,61 +114,6 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
 
         and:
         !state.getInputChanges(taskProperties).incremental
-    }
-
-    def "origin build ID is null task has no output"() {
-        given:
-        1 * taskProperties.hasDeclaredOutputs() >> false
-        1 * upToDateSpec.empty >> true
-
-        when:
-        def state = repository.getStateFor(task, taskProperties)
-
-        then:
-        state.originBuildInvocationId == null
-    }
-
-    def "origin build ID is null if forcing rerun"() {
-        given:
-        1 * taskProperties.hasDeclaredOutputs() >> true
-        1 * delegate.getStateFor(_, taskProperties) >> taskArtifactState
-        taskArtifactState.getOriginBuildInvocationId() >> UniqueId.generate()
-        startParameter.rerunTasks = true
-
-        when:
-        def state = repository.getStateFor(task, taskProperties)
-
-        then:
-        state.originBuildInvocationId == null
-    }
-
-    def "origin build ID is null up to date spec declares out of date"() {
-        given:
-        1 * taskProperties.hasDeclaredOutputs() >> true
-        1 * delegate.getStateFor(_, taskProperties) >> taskArtifactState
-        taskArtifactState.getOriginBuildInvocationId() >> UniqueId.generate()
-        1 * upToDateSpec.isSatisfiedBy(_) >> false
-
-        when:
-        def state = repository.getStateFor(task, taskProperties)
-
-        then:
-        state.originBuildInvocationId == null
-    }
-
-    def "propagates origin build ID if reusing state"() {
-        given:
-        def id = UniqueId.generate()
-        1 * taskProperties.hasDeclaredOutputs() >> true
-        1 * delegate.getStateFor(_, taskProperties) >> taskArtifactState
-        1 * upToDateSpec.isSatisfiedBy(_) >> true
-        taskArtifactState.getOriginBuildInvocationId() >> id
-
-        when:
-        def state = repository.getStateFor(task, taskProperties)
-
-        then:
-        state.originBuildInvocationId == id
     }
 
 }

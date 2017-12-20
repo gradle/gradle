@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.test.fixtures.HttpRepository
 import org.junit.runner.RunWith
 
 @RunWith(GradleMetadataResolveRunner)
@@ -69,15 +70,23 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
     }
 
     String metadataURI(String group, String module, String version) {
+        getMetadataUri(group, module, version, GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled)
+    }
+
+    String legacyMetadataURI(String group, String module, String version) {
+        getMetadataUri(group, module, version, false)
+    }
+
+    private String getMetadataUri(String group, String module, String version, boolean experimentalResolve) {
         if (GradleMetadataResolveRunner.useIvy()) {
             def ivyModule = ivyHttpRepo.module(group, module, version)
-            if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+            if (experimentalResolve) {
                 return ivyModule.moduleMetadata.uri
             }
             return ivyModule.ivy.uri
         } else {
             def mavenModule = mavenHttpRepo.module(group, module, version)
-            if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+            if (experimentalResolve) {
                 return mavenModule.moduleMetadata.uri
             }
             return mavenModule.pom.uri
@@ -130,15 +139,23 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         spec()
     }
 
-    void repositoryInteractions(@DelegatesTo(RemoteRepositorySpec) Closure<Void> spec) {
+    void repositoryInteractions(HttpRepository.MetadataType metadataType = HttpRepository.MetadataType.DEFAULT,
+                                @DelegatesTo(RemoteRepositorySpec) Closure<Void> spec) {
         RemoteRepositorySpec.DEFINES_INTERACTIONS.set(true)
         try {
             spec.delegate = repoSpec
             spec()
-            repoSpec.build(useIvy() ? ivyHttpRepo : mavenHttpRepo)
+            repoSpec.build(getHttpRepository(metadataType))
         } finally {
             RemoteRepositorySpec.DEFINES_INTERACTIONS.set(false)
         }
+    }
+
+    private HttpRepository getHttpRepository(HttpRepository.MetadataType metadataType) {
+        if (metadataType == HttpRepository.MetadataType.DEFAULT) {
+            return useIvy() ? ivyHttpRepo : mavenHttpRepo
+        }
+        useIvy() ? ivyHttpRepo("repo", metadataType) : mavenHttpRepo("repo", metadataType)
     }
 
 }

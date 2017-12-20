@@ -387,6 +387,16 @@ It is also possible to configure the build cache from an <<sec:using_an_init_scr
 </sample>
 ++++
 
+[[sec:build_cache_composite]]
+==== Build cache and composite builds
+
+Gradle's <<composite_builds, composite build feature>> allows including other complete Gradle builds into another.
+Such included builds will inherit the build cache configuration from the top level build,
+regardless of whether the included builds define build cache configuration themselves or not.
+
+The build cache configuration present for any included build is effectively ignored, in favour of the top level build's configuration.
+This also applies to any `buildSrc` projects of any included builds.
+
 [[sec:build_cache_setup_http_backend]]
 === How to set up an HTTP build cache backend
 

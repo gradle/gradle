@@ -287,7 +287,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
             version = "2.0"
         """
         // Copy cache configuration
-        file("included/settings.gradle").text = settingsFile.text
+        file("included/settings.gradle").text = ""
 
         settingsFile << """
             includeBuild file("included/")
@@ -412,7 +412,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
     }
 
     void runMultiple(int times) {
-        (1..times).each {
+        times.times {
             withBuildCache().succeeds("cacheable", "-Prun=${it}")
         }
     }

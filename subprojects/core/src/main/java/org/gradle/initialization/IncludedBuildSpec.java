@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.tasks.origin;
+package org.gradle.initialization;
 
-import org.gradle.internal.id.UniqueId;
+import org.gradle.api.Action;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 
-public class TaskOutputOriginMetadata {
+import java.io.File;
 
-    private final UniqueId buildInvocationId;
+public class IncludedBuildSpec {
 
-    private final long originalExecutionTime;
+    public final File rootDir;
+    public final Action<? super ConfigurableIncludedBuild> configurer;
 
-    public TaskOutputOriginMetadata(UniqueId buildInvocationId, long originalExecutionTime) {
-        this.buildInvocationId = buildInvocationId;
-        this.originalExecutionTime = originalExecutionTime;
+    public IncludedBuildSpec(File rootDir, Action<? super ConfigurableIncludedBuild> configurer) {
+        this.rootDir = rootDir;
+        this.configurer = configurer;
     }
 
-    public UniqueId getBuildInvocationId() {
-        return buildInvocationId;
-    }
-
-    public long getOriginalExecutionTime() {
-        return originalExecutionTime;
-    }
 }

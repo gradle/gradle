@@ -42,8 +42,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating settings 'buildA'.")
-        failure.assertHasCause("Included build '${buildDir.absolutePath}' does not exist.")
+        failure.assertHasDescription("Included build '${buildDir.absolutePath}' does not exist.")
     }
 
     def "reports failure when included build directory is not a directory"() {
@@ -55,8 +54,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating settings 'buildA'.")
-        failure.assertHasCause("Included build '${buildDir.absolutePath}' is not a directory.")
+        failure.assertHasDescription("Included build '${buildDir.absolutePath}' is not a directory.")
     }
 
     def "reports failure when included build directory is not the root directory of build"() {
@@ -67,8 +65,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating settings 'buildA'.")
-        failure.assertHasCause("Included build 'b1' must have a settings file.")
+        failure.assertHasDescription("Included build 'b1' must have a settings file.")
     }
 
     def "reports failure when included build is itself a composite"() {

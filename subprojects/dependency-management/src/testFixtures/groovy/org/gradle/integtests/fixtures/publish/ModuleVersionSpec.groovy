@@ -150,16 +150,19 @@ class ModuleVersionSpec {
         }
     }
 
+    private static boolean hasGradleMetadata(HttpRepository repository) {
+        if (repository.providesMetadata == HttpRepository.MetadataType.ONLY_ORIGINAL) {
+            return false
+        }
+        if (repository.providesMetadata == HttpRepository.MetadataType.ONLY_GRADLE) {
+            return true
+        }
+        return GradleMetadataResolveRunner.isGradleMetadataEnabled()
+    }
+
     void build(HttpRepository repository) {
         def module = repository.module(groupId, artifactId, version)
-        def gradleMetadataEnabled
-        if (repository.providesMetadata == HttpRepository.MetadataType.ONLY_ORIGINAL) {
-            gradleMetadataEnabled = false
-        } else if (repository.providesMetadata == HttpRepository.MetadataType.ONLY_GRADLE) {
-            gradleMetadataEnabled = true
-        } else {
-            gradleMetadataEnabled = GradleMetadataResolveRunner.isGradleMetadataEnabled()
-        }
+        def gradleMetadataEnabled = hasGradleMetadata(repository)
         def newResolveBehaviorEnabled = GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
         if (gradleMetadataEnabled) {
             module.withModuleMetadata()
@@ -192,8 +195,12 @@ class ModuleVersionSpec {
                     break
                 case InteractionExpectation.GET_MISSING:
                     // Assume all metadata files are missing
-                    if (newResolveBehaviorEnabled) {
+                    if (newResolveBehaviorEnabled && repository.providesMetadata != HttpRepository.MetadataType.ONLY_ORIGINAL) {
                         module.moduleMetadata.expectGetMissing()
+                    }
+
+                    if (repository.providesMetadata == HttpRepository.MetadataType.ONLY_GRADLE) {
+                        break
                     }
 
                     if (module instanceof MavenModule) {

@@ -63,7 +63,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.tasks.BuildCacheTaskServices;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
@@ -79,7 +78,6 @@ import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -91,10 +89,6 @@ import java.util.List;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class TaskExecutionServices {
-
-    void configure(ServiceRegistration registration) {
-        registration.addProvider(new BuildCacheTaskServices());
-    }
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
                                     TaskOutputCacheCommandFactory taskOutputCacheCommandFactory,
@@ -108,7 +102,9 @@ public class TaskExecutionServices {
                                     TaskOutputFilesRepository taskOutputFilesRepository,
                                     BuildScanPluginApplied buildScanPlugin,
                                     PathToFileResolver resolver,
-                                    PropertyWalker propertyWalker) {
+                                    PropertyWalker propertyWalker,
+                                    BuildInvocationScopeId buildInvocationScopeId
+    ) {
 
         boolean taskOutputCacheEnabled = startParameter.isBuildCacheEnabled();
         boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
@@ -118,7 +114,8 @@ public class TaskExecutionServices {
             taskOutputsGenerationListener,
             listenerManager.getBroadcaster(TaskActionListener.class),
             buildOperationExecutor,
-            asyncWorkTracker
+            asyncWorkTracker,
+            buildInvocationScopeId
         );
         executer = new OutputDirectoryCreatingTaskExecuter(executer);
         if (taskOutputCacheEnabled) {
@@ -135,7 +132,7 @@ public class TaskExecutionServices {
             executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor);
         }
         executer = new ValidatingTaskExecuter(executer);
-        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputsGenerationListener, executer);
+        executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputsGenerationListener, executer, buildInvocationScopeId);
         executer = new FinalizeInputFilePropertiesTaskExecuter(executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, propertyWalker, executer);
@@ -167,8 +164,7 @@ public class TaskExecutionServices {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionSnapshotterRegistry snapshotterRegistry,
-        FileCollectionFactory fileCollectionFactory,
-        BuildInvocationScopeId buildInvocationScopeId) {
+        FileCollectionFactory fileCollectionFactory) {
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
         for (FileCollectionSnapshotter snapshotter : fileCollectionSnapshotterRegistry.getAllSnapshotters()) {
             snapshotter.registerSerializers(serializerRegistry);
@@ -181,8 +177,7 @@ public class TaskExecutionServices {
             classLoaderHierarchyHasher,
             valueSnapshotter,
             snapshotterRegistry,
-            fileCollectionFactory,
-            buildInvocationScopeId
+            fileCollectionFactory
         );
     }
 

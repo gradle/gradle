@@ -16,13 +16,16 @@
 
 package org.gradle.internal.composite;
 
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
+import org.gradle.initialization.IncludedBuildSpec;
 
 import java.io.File;
+import java.util.List;
 
 public class CompositeBuildSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
@@ -38,6 +41,15 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         SettingsInternal settings = delegate.findAndLoadSettings(gradle);
+
+        // Add included builds defined in settings
+        List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();
+        if (!includedBuilds.isEmpty()) {
+            for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
+                ConfigurableIncludedBuild includedBuild = includedBuildRegistry.addExplicitBuild(includedBuildSpec.rootDir, nestedBuildFactory);
+                includedBuildSpec.configurer.execute(includedBuild);
+            }
+        }
 
         // Add all included builds from the command-line
         for (File file : gradle.getStartParameter().getIncludedBuilds()) {

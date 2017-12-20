@@ -29,7 +29,7 @@ import spock.lang.Unroll
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["4.5-20171210235906+0000"]
+        runner.targetVersions = ["4.5-20171218235901+0000"]
     }
 
     @Unroll
@@ -40,9 +40,6 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.gradleOpts = ["-Xms1500m", "-Xmx2500m"]
         runner.warmUpRuns = 5
         runner.runs = 10
-        if (testProject == 'nativeMonolithic' && parallelWorkers == 0) {
-            runner.targetVersions = ["4.5-20171218235901+0000"]
-        }
 
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
