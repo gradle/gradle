@@ -63,7 +63,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.tasks.BuildCacheTaskServices;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
@@ -79,7 +78,6 @@ import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -91,10 +89,6 @@ import java.util.List;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class TaskExecutionServices {
-
-    void configure(ServiceRegistration registration) {
-        registration.addProvider(new BuildCacheTaskServices());
-    }
 
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
                                     TaskOutputCacheCommandFactory taskOutputCacheCommandFactory,

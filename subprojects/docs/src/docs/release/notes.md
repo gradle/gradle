@@ -62,6 +62,18 @@ The new option defaults to `groovy` and is supported by all build setup types ex
 
 See the user guide section on the [`init` plugin](userguide/build_init_plugin.html) for more information.
 
+### Included builds of composite build now share build cache configuration
+
+Previously, each build within a composite build used its own build cache configuration.
+Now, included builds, and their `buildSrc` builds, automatically inherit the build cache configuration of the root build.
+This makes managing build cache configuration for composite builds simpler and effectively allows better build cache utilization.
+
+Included builds may still define build cache configuration in their `settings.gradle` file, it is just no longer respected.
+
+The `buildSrc` build of the root project continues to use its own build cache configuration, due to technical constraints.
+However, the `buildSrc` build of any included build will inherit the build cache configuration from the root build.
+For more on configuring the build cache for the root `buildSrc` build, please see [the Userguide section on this topic](userguide/build_cache.html#buildCacheBuildSrc).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -116,6 +128,14 @@ You can declare individual task properties and observe their values instead of c
 
 When connecting to an HTTP build cache backend via [HttpBuildCache](dsl/org.gradle.caching.http.HttpBuildCache.html), Gradle does not follow redirects any more, and treats them as errors instead.
 Getting a redirect from the build cache backend is mostly a configuration error (e.g. using an http url instead of https), and has negative effects on performance.
+
+### Build cache configuration of included builds no longer respected
+
+In earlier versions of Gradle, each included build within a composite used its own build cache configuration.
+Now, included builds inherit the configuration from the root build. 
+Included builds may still define build cache configuration in their `settings.gradle` file, it is just no longer used.
+
+This change will not cause build breakage and does not require any change in build logic to adapt to.
 
 ### Incubating `Depend` task removed
 

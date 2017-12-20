@@ -92,7 +92,7 @@ public class BuildOperationTrace implements Stoppable {
         }
 
         this.basePath = basePath;
-        if (this.basePath == null) {
+        if (this.basePath == null || basePath.equals(Boolean.FALSE.toString())) {
             this.logOutputStream = null;
             return;
         }

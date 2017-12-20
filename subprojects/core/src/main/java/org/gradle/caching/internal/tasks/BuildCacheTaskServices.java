@@ -29,7 +29,9 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.BuildCacheControllerFactory;
 import org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode;
 import org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode;
+import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
+import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
@@ -51,6 +53,8 @@ import static org.gradle.caching.internal.controller.BuildCacheControllerFactory
 import static org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode.ONLINE;
 
 public class BuildCacheTaskServices {
+
+    private static final Path ROOT_BUILD_SRC_PATH = Path.path(":" + BuildSourceBuilder.BUILD_SRC);
 
     TaskOutputPacker createTaskResultPacker(FileSystem fileSystem, StreamHasher fileHasher, StringInterner stringInterner) {
         return new GZipTaskOutputPacker(new TarTaskOutputPacker(fileSystem, fileHasher, stringInterner));
@@ -75,17 +79,40 @@ public class BuildCacheTaskServices {
         return new TaskOutputCacheCommandFactory(taskOutputPacker, taskOutputOriginFactory, fileSystemMirror, stringInterner);
     }
 
-    // TODO: Should live in BuildCacheServices
-    // It needs the Gradle object in order to get the build path.
-    // The build path should be build scoped instead of gradle scoped.
-    // When that is done, this can move to BuildCacheServices
     BuildCacheController createBuildCacheController(
         ServiceRegistry serviceRegistry,
         BuildCacheConfigurationInternal buildCacheConfiguration,
         BuildOperationExecutor buildOperationExecutor,
         InstantiatorFactory instantiatorFactory,
-        GradleInternal gradle
+        GradleInternal gradle,
+        RootBuildCacheControllerRef rootControllerRef
     ) {
+        if (isRoot(gradle) || isRootBuildSrc(gradle) || isGradleBuildTaskRoot(rootControllerRef)) {
+            return doCreateBuildCacheController(serviceRegistry, buildCacheConfiguration, buildOperationExecutor, instantiatorFactory, gradle);
+        } else {
+            // must be an included build
+            return rootControllerRef.getForNonRootBuild();
+        }
+    }
+
+    private boolean isGradleBuildTaskRoot(RootBuildCacheControllerRef rootControllerRef) {
+        // GradleBuild tasks operate with their own build session and tree scope.
+        // Therefore, they have their own RootBuildCacheControllerRef.
+        // This prevents them from reusing the build cache configuration defined by the root.
+        // There is no way to detect that a Gradle instance represents a GradleBuild invocation.
+        // If there were, that would be a better heuristic than this.
+        return !rootControllerRef.isSet();
+    }
+
+    private boolean isRootBuildSrc(GradleInternal gradle) {
+        return gradle.getIdentityPath().equals(ROOT_BUILD_SRC_PATH);
+    }
+
+    private boolean isRoot(GradleInternal gradle) {
+        return gradle.getParent() == null;
+    }
+
+    private BuildCacheController doCreateBuildCacheController(ServiceRegistry serviceRegistry, BuildCacheConfigurationInternal buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor, InstantiatorFactory instantiatorFactory, GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
         Path buildIdentityPath = gradle.getIdentityPath();
         File gradleUserHomeDir = gradle.getGradleUserHomeDir();

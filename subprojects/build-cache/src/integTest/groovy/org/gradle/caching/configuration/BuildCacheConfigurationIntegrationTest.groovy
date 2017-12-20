@@ -21,7 +21,6 @@ import spock.lang.Unroll
 
 class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     String cacheDir = temporaryFolder.file("cache-dir").createDir().absoluteFile.toURI().toString()
-    String buildSrcCacheDir = temporaryFolder.file("buildSrc-cache-dir").createDir().absoluteFile.toURI().toString()
 
     def setup() {
         buildFile << """
@@ -79,33 +78,6 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         executer.usingInitScript(initScript)
-        succeeds("assertLocalCacheConfigured")
-    }
-
-    def "buildSrc and project builds configured separately"() {
-        def configuration = { path ->
-            """
-            buildCache {
-                local(DirectoryBuildCache) {
-                    directory = "$path"
-                }
-            }
-            """
-        }
-        settingsFile << configuration(cacheDir)
-        file("buildSrc/settings.gradle") << configuration(buildSrcCacheDir)
-        file("buildSrc/build.gradle") << """
-            apply plugin: 'groovy'
-
-            task assertLocalCacheConfigured {
-                doLast {
-                    assert gradle.services.get(BuildCacheConfiguration).local.directory == "$buildSrcCacheDir"
-                }
-            }
-            
-            build.dependsOn assertLocalCacheConfigured
-        """
-        expect:
         succeeds("assertLocalCacheConfigured")
     }
 
@@ -191,29 +163,6 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         result.assertOutputContains("Using local directory build cache")
     }
 
-    def "emits cache descriptions for buildSrc and main build"() {
-        settingsFile << """
-            buildCache {
-                local(DirectoryBuildCache) {
-                    directory = file("local-cache")
-                }
-            }
-        """
-        file("buildSrc/settings.gradle") << """
-            buildCache {
-                local(DirectoryBuildCache) {
-                    directory = file("local-cache")
-                }
-            }
-        """
-        when:
-        executer.withBuildCacheEnabled()
-        succeeds("tasks", "--info")
-        then:
-        result.assertOutputContains "Using local directory build cache for build ':buildSrc' (location = ${file("buildSrc/local-cache")}, targetSize = 5 GB)."
-        result.assertOutputContains "Using local directory build cache for the root build (location = ${file("local-cache")}, targetSize = 5 GB)."
-    }
-
     def "command-line --no-build-cache wins over system property"() {
         file("gradle.properties") << """
             org.gradle.caching=true
@@ -275,7 +224,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertOutputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}, targetSize = 5 GB).")
         and:
-        !file("local-cache").listFiles().any { it.name ==~ /\p{XDigit}{32}/}
+        !file("local-cache").listFiles().any { it.name ==~ /\p{XDigit}{32}/ }
     }
 
     private static String customTaskCode() {
