@@ -50,9 +50,7 @@ public class VariantAttributesRules {
             attributes = attributesFactory.mutable(attributes);
         }
         for (VariantMetadataRules.VariantAction<? super AttributeContainer> action : actions) {
-            if (action.isSatisfiedBy(variant)) {
-                action.execute(attributes);
-            }
+            action.maybeExecute(variant, attributes);
         }
         return attributes.asImmutable();
     }
