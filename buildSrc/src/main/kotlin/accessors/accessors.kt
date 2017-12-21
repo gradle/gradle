@@ -16,10 +16,15 @@
 package accessors
 
 import org.gradle.api.Project
+import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.reporting.ReportingExtension
 
 import org.gradle.kotlin.dsl.*
+
+
+val Project.base
+    get() = the<BasePluginConvention>()
 
 
 val Project.java
