@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.java;
 
-import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.Classpath;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
@@ -24,9 +25,6 @@ import org.gradle.language.java.JavaSourceSet;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements JavaSourceSet {
     private final Classpath compileClasspath;
@@ -51,14 +49,12 @@ public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements J
     }
 
     public TaskDependency getBuildDependencies() {
-        return new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task task) {
-                Set<Task> dependencies = new HashSet<Task>();
-                dependencies.addAll(compileClasspath.getBuildDependencies().getDependencies(task));
-                dependencies.addAll(getSource().getBuildDependencies().getDependencies(task));
-                return dependencies;
+        return new AbstractTaskDependency() {
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                context.add(compileClasspath);
+                context.add(getSource());
             }
         };
     }
-
 }
