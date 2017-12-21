@@ -71,11 +71,12 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
             while ((line = reader.readLine()) != null) {
                 if (line.contains("Swift version")) {
                     String[] tokens = line.split(" ");
-                    int i = 0;
+                    // Assuming format: 'Swift version 4.0.2 (...)'
+                    int i = 2;
                     if ("Apple".equals(tokens[i])) {
+                        // Actual format: 'Apple Swift version 4.0.2 (...)'
                         i++;
                     }
-                    i += 2;
                     VersionNumber version = VersionNumber.parse(tokens[i]);
                     return new DefaultSwiftcMetadata(line, version);
                 }
@@ -88,9 +89,11 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
     }
 
     private class BrokenMetadata extends AbstractBrokenMetadata implements SwiftcMetadata {
+
         public BrokenMetadata(String message) {
             super(message);
         }
+
     }
 
     private class DefaultSwiftcMetadata implements SwiftcMetadata {
