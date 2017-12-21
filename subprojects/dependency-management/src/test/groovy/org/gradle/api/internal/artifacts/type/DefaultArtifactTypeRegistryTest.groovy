@@ -20,7 +20,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.IvyArtifactName
-import org.gradle.internal.component.model.VariantMetadata
+import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -48,7 +48,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
     def "does not apply any mapping when no artifact types registered"() {
         def attrs = ImmutableAttributes.EMPTY
-        def variant = Stub(VariantMetadata)
+        def variant = Stub(VariantResolveMetadata)
 
         given:
         variant.attributes >> attrs
@@ -59,7 +59,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
     def "does not apply any mapping when variant has no artifacts"() {
         def attrs = ImmutableAttributes.EMPTY
-        def variant = Stub(VariantMetadata)
+        def variant = Stub(VariantResolveMetadata)
 
         given:
         variant.attributes >> attrs
@@ -72,7 +72,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
     def "adds artifactType attribute but does not apply any mapping when no matching artifact type"() {
         def attrs = ImmutableAttributes.EMPTY
         def attrsPlusFormat = concat(attrs, ["artifactType": "jar"])
-        def variant = Stub(VariantMetadata)
+        def variant = Stub(VariantResolveMetadata)
         def artifact = Stub(ComponentArtifactMetadata)
         def artifactName = Stub(IvyArtifactName)
 
@@ -92,7 +92,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
     def "applies mapping when no attributes defined for matching type"() {
         def attrs = ImmutableAttributes.EMPTY
         def attrsPlusFormat = concat(attrs, ["artifactType": "jar"])
-        def variant = Stub(VariantMetadata)
+        def variant = Stub(VariantResolveMetadata)
         def artifact = Stub(ComponentArtifactMetadata)
         def artifactName = Stub(IvyArtifactName)
 
@@ -112,7 +112,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
     def "applies mapping to matching artifact type"() {
         def attrs = ImmutableAttributes.EMPTY
         def attrsPlusFormat = concat(attrs, ["artifactType": "jar", "custom": "123"])
-        def variant = Stub(VariantMetadata)
+        def variant = Stub(VariantResolveMetadata)
         def artifact = Stub(ComponentArtifactMetadata)
         def artifactName = Stub(IvyArtifactName)
 
@@ -131,7 +131,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
     def "does not apply mapping when multiple artifacts with different types"() {
         def attrs = ImmutableAttributes.EMPTY
-        def variant = Stub(VariantMetadata)
+        def variant = Stub(VariantResolveMetadata)
         def artifact1 = Stub(ComponentArtifactMetadata)
         def artifactName1 = Stub(IvyArtifactName)
         def artifact2 = Stub(ComponentArtifactMetadata)
@@ -156,7 +156,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
     def "does not apply mapping when variant already defines some attributes"() {
         def attrs = attributesFactory.of(Attribute.of("attr", String), "value")
-        def variant = Stub(VariantMetadata)
+        def variant = Stub(VariantResolveMetadata)
         def artifact = Stub(ComponentArtifactMetadata)
         def artifactName = Stub(IvyArtifactName)
 

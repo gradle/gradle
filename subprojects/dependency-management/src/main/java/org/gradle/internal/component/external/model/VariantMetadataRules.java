@@ -25,9 +25,9 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.VariantAttributesRules;
-import org.gradle.internal.component.model.VariantMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -37,14 +37,14 @@ public class VariantMetadataRules {
     private DependencyMetadataRules dependencyMetadataRules;
     private VariantAttributesRules variantAttributesRules;
 
-    public ImmutableAttributes applyVariantAttributeRules(VariantMetadata variant, AttributeContainerInternal source) {
+    public ImmutableAttributes applyVariantAttributeRules(VariantResolveMetadata variant, AttributeContainerInternal source) {
         if (variantAttributesRules != null) {
             return variantAttributesRules.execute(variant, source);
         }
         return source.asImmutable();
     }
 
-    public <T extends ModuleDependencyMetadata> List<T> applyDependencyMetadataRules(VariantMetadata variant, List<T> configDependencies) {
+    public <T extends ModuleDependencyMetadata> List<T> applyDependencyMetadataRules(VariantResolveMetadata variant, List<T> configDependencies) {
         if (dependencyMetadataRules != null) {
             return dependencyMetadataRules.execute(variant, configDependencies);
         }
@@ -82,10 +82,10 @@ public class VariantMetadataRules {
      * @param <T> the type of the action subject
      */
     public static class VariantAction<T> {
-        private final Spec<? super VariantMetadata> spec;
+        private final Spec<? super VariantResolveMetadata> spec;
         private final Action<? super T> delegate;
 
-        public VariantAction(Spec<? super VariantMetadata> spec, Action<? super T> delegate) {
+        public VariantAction(Spec<? super VariantResolveMetadata> spec, Action<? super T> delegate) {
             this.spec = spec;
             this.delegate = delegate;
         }
@@ -95,7 +95,7 @@ public class VariantMetadataRules {
          * @param variant the variant metadata, used to check if the rule applies
          * @param subject the subject of the rule
          */
-        public void maybeExecute(VariantMetadata variant, T subject) {
+        public void maybeExecute(VariantResolveMetadata variant, T subject) {
             if (spec.isSatisfiedBy(variant)) {
                 delegate.execute(subject);
             }

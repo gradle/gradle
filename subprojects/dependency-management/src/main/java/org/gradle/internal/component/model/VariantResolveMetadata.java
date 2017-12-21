@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Metadata for a basic variant of a component, that defines only artifacts and no dependencies.
  */
-public interface VariantMetadata {
+public interface VariantResolveMetadata {
     String getName();
 
     DisplayName asDescribable();

@@ -24,7 +24,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.model.VariantMetadataRules
-import org.gradle.internal.component.model.VariantMetadata
+import org.gradle.internal.component.model.VariantResolveMetadata
 import spock.lang.Specification
 
 class DefaultArtifactSetTest extends Specification {
@@ -40,8 +40,8 @@ class DefaultArtifactSetTest extends Specification {
     }
 
     def "returns empty set when component id does not match spec"() {
-        def variant1 = Stub(VariantMetadata)
-        def variant2 = Stub(VariantMetadata)
+        def variant1 = Stub(VariantResolveMetadata)
+        def variant2 = Stub(VariantResolveMetadata)
 
         given:
         def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, variantMetadataRules)
@@ -55,8 +55,8 @@ class DefaultArtifactSetTest extends Specification {
     }
 
     def "selects artifacts when component id matches spec"() {
-        def variant1 = Stub(VariantMetadata)
-        def variant2 = Stub(VariantMetadata)
+        def variant1 = Stub(VariantResolveMetadata)
+        def variant2 = Stub(VariantResolveMetadata)
         def resolvedVariant1 = Stub(ResolvedArtifactSet)
         def selector = Stub(VariantSelector)
 

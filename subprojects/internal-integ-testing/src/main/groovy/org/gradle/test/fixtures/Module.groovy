@@ -15,7 +15,7 @@
  */
 package org.gradle.test.fixtures
 
-import org.gradle.test.fixtures.gradle.VariantMetadata
+import org.gradle.test.fixtures.gradle.VariantMetadataSpec
 
 /**
  * Represents a module in a repository.
@@ -35,7 +35,7 @@ interface Module {
     ModuleArtifact getModuleMetadata()
     GradleModuleMetadata getParsedModuleMetadata()
 
-    void withVariant(String name, @DelegatesTo(value=VariantMetadata.class, strategy = Closure.DELEGATE_FIRST) groovy.lang.Closure<?> action)
+    void withVariant(String name, @DelegatesTo(value=VariantMetadataSpec.class, strategy = Closure.DELEGATE_FIRST) groovy.lang.Closure<?> action)
 
     Map<String, String> getAttributes()
 }

@@ -28,7 +28,7 @@ import org.gradle.test.fixtures.gradle.DependencyConstraintSpec
 import org.gradle.test.fixtures.gradle.DependencySpec
 import org.gradle.test.fixtures.gradle.FileSpec
 import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
-import org.gradle.test.fixtures.gradle.VariantMetadata
+import org.gradle.test.fixtures.gradle.VariantMetadataSpec
 
 import java.text.SimpleDateFormat
 
@@ -44,7 +44,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     String packaging
     int publishCount = 1
     private boolean hasPom = true
-    private final List<VariantMetadata> variants = [new VariantMetadata("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API]), new VariantMetadata("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME])]
+    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API]), new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME])]
     private final List dependencies = []
     private final List artifacts = []
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
@@ -164,8 +164,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return this
     }
 
-    private VariantMetadata createVariant(String variant, Map<String, String> attributes) {
-        def variantMetadata = new VariantMetadata(variant, attributes)
+    private VariantMetadataSpec createVariant(String variant, Map<String, String> attributes) {
+        def variantMetadata = new VariantMetadataSpec(variant, attributes)
         variants.add(variantMetadata)
         return variantMetadata;
     }
@@ -191,7 +191,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return artifacts
     }
 
-    List<VariantMetadata> getVariants() {
+    List<VariantMetadataSpec> getVariants() {
         return variants
     }
 
@@ -428,7 +428,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         }
         GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(groupId, artifactId, version,
             variants.collect { v ->
-                new VariantMetadata(
+                new VariantMetadataSpec(
                     v.name,
                     v.attributes,
                     v.dependencies + dependencies.findAll { !it.optional }.collect { d ->
@@ -616,7 +616,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     @Override
-    void withVariant(String name, @DelegatesTo(value = VariantMetadata, strategy = Closure.DELEGATE_FIRST) Closure<?> action) {
+    void withVariant(String name, @DelegatesTo(value = VariantMetadataSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> action) {
         def variant = variants.find { it.name == name }
         if (variant == null) {
             variant = createVariant(name, [:])

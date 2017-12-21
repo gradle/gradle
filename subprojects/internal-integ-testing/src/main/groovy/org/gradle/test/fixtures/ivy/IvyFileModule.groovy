@@ -28,7 +28,7 @@ import org.gradle.test.fixtures.gradle.DependencyConstraintSpec
 import org.gradle.test.fixtures.gradle.DependencySpec
 import org.gradle.test.fixtures.gradle.FileSpec
 import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
-import org.gradle.test.fixtures.gradle.VariantMetadata
+import org.gradle.test.fixtures.gradle.VariantMetadataSpec
 
 class IvyFileModule extends AbstractModule implements IvyModule {
     final String ivyPattern
@@ -45,7 +45,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final Map extendsFrom = [:]
     final Map extraAttributes = [:]
     final Map extraInfo = [:]
-    private final List<VariantMetadata> variants = [new VariantMetadata("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API]), new VariantMetadata("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME])]
+    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API]), new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME])]
     String branch = null
     String status = "integration"
     MetadataPublish metadataPublish = MetadataPublish.ALL
@@ -119,15 +119,15 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
-    private VariantMetadata createVariant(String variant, Map<String, String> attributes) {
-        def variantMetadata = new VariantMetadata(variant, attributes)
+    private VariantMetadataSpec createVariant(String variant, Map<String, String> attributes) {
+        def variantMetadata = new VariantMetadataSpec(variant, attributes)
         variants.add(variantMetadata)
         configuration(variant) //add variant also as configuration for plain ivy publishing
         return variantMetadata;
     }
 
     @Override
-    void withVariant(String name, @DelegatesTo(value = VariantMetadata, strategy = Closure.DELEGATE_FIRST) Closure<?> action) {
+    void withVariant(String name, @DelegatesTo(value = VariantMetadataSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> action) {
         def variant = variants.find { it.name == name }
         if (variant == null) {
             variant = createVariant(name, [:])
@@ -393,7 +393,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         }
         GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(organisation, module, revision,
             variants.collect { v ->
-                new VariantMetadata(
+                new VariantMetadataSpec(
                     v.name,
                     v.attributes,
                     v.dependencies + dependencies.collect { d ->

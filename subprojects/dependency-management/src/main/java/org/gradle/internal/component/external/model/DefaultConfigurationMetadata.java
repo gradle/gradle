@@ -22,12 +22,12 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantMetadata;
 
 import java.util.Collection;
 import java.util.List;
@@ -37,7 +37,7 @@ import java.util.Set;
  * Effectively immutable implementation of ConfigurationMetadata.
  * Used to represent Ivy and Maven modules in the dependency graph.
  */
-public class DefaultConfigurationMetadata implements ConfigurationMetadata, VariantMetadata {
+public class DefaultConfigurationMetadata implements ConfigurationMetadata, VariantResolveMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
@@ -141,7 +141,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
     }
 
     @Override
-    public Set<? extends VariantMetadata> getVariants() {
+    public Set<? extends VariantResolveMetadata> getVariants() {
         return ImmutableSet.of(new DefaultVariantMetadata(asDescribable(), getAttributes(), getArtifacts()));
     }
 

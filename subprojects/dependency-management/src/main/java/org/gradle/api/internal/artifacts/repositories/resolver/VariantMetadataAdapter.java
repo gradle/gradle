@@ -26,6 +26,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -36,13 +37,13 @@ import org.gradle.internal.typeconversion.NotationParser;
  * is responsible for targetting variants subject to a rule.
  */
 public class VariantMetadataAdapter implements VariantMetadata {
-    private final Spec<? super org.gradle.internal.component.model.VariantMetadata> spec;
+    private final Spec<? super VariantResolveMetadata> spec;
     private final MutableModuleComponentResolveMetadata metadata;
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser;
 
-    public VariantMetadataAdapter(Spec<? super org.gradle.internal.component.model.VariantMetadata> spec,
+    public VariantMetadataAdapter(Spec<? super VariantResolveMetadata> spec,
                                   MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
                                   NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
                                   NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser) {
