@@ -16,8 +16,15 @@
 
 package org.gradle.language.swift;
 
+import org.gradle.api.Incubating;
 import org.gradle.util.VersionNumber;
 
+/**
+ * Swift language version.
+ *
+ * @since 4.5
+ */
+@Incubating
 public enum SwiftVersion {
     SWIFT2, SWIFT3, UNKNOWN, SWIFT4;
 

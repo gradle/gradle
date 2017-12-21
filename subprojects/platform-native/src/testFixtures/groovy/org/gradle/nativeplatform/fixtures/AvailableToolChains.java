@@ -207,7 +207,7 @@ public class AvailableToolChains {
         if (compilerExe.isFile()) {
             SwiftcMetadata version = versionDeterminer.getCompilerMetaData(compilerExe, Collections.<String>emptyList());
             if (version.isAvailable()) {
-                return new InstalledSwiftc("swiftc" + " " + version.getVersion(), SwiftVersion.of(version.getVersion())).inPath(compilerExe.getParentFile(), new File("/usr/bin"));
+                return new InstalledSwiftc("swiftc", SwiftVersion.of(version.getVersion())).inPath(compilerExe.getParentFile(), new File("/usr/bin"));
             }
         }
 
@@ -216,7 +216,7 @@ public class AvailableToolChains {
         for (File candidate : swiftcCandidates) {
             SwiftcMetadata version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
             if (version.isAvailable()) {
-                InstalledSwiftc swiftc = new InstalledSwiftc("swiftc" + " " + version.getVersion(), SwiftVersion.of(version.getVersion()));
+                InstalledSwiftc swiftc = new InstalledSwiftc("swiftc", SwiftVersion.of(version.getVersion()));
                 if (!candidate.equals(firstInPath)) {
                     // Not the first swiftc in the path, needs the path variable updated
                     swiftc.inPath(candidate.getParentFile());

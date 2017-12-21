@@ -48,7 +48,11 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         if (CppPlatform.class.isAssignableFrom(platformType)) {
             t = platformType.cast(new DefaultCppPlatform("current"));
         } else if (SwiftPlatform.class.isAssignableFrom(platformType)) {
-            t = platformType.cast(new DefaultSwiftPlatform("current", SwiftVersion.of(toolProvider.getCompilerMetadata().getVersion())));
+            SwiftVersion swiftVersion = SwiftVersion.UNKNOWN;
+            if (toolProvider.isAvailable()) {
+                swiftVersion = SwiftVersion.of(toolProvider.getCompilerMetadata().getVersion());
+            }
+            t = platformType.cast(new DefaultSwiftPlatform("current", swiftVersion));
         }
         return new DefaultResult<T>(toolChain, t, toolProvider);
     }
