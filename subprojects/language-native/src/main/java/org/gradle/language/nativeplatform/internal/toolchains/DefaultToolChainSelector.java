@@ -19,6 +19,7 @@ package org.gradle.language.nativeplatform.internal.toolchains;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppPlatform;
 import org.gradle.language.swift.SwiftPlatform;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -47,7 +48,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         if (CppPlatform.class.isAssignableFrom(platformType)) {
             t = platformType.cast(new DefaultCppPlatform("current"));
         } else if (SwiftPlatform.class.isAssignableFrom(platformType)) {
-            t = platformType.cast(new DefaultSwiftPlatform("current"));
+            t = platformType.cast(new DefaultSwiftPlatform("current", SwiftVersion.of(toolProvider.getCompilerMetadata().getVersion())));
         }
         return new DefaultResult<T>(toolChain, t, toolProvider);
     }

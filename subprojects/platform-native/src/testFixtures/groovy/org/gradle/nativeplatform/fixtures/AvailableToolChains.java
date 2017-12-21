@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -34,6 +35,8 @@ import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
+import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
+import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadataProvider;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.GccCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlugin;
@@ -198,14 +201,28 @@ public class AvailableToolChains {
     }
 
     static ToolChainCandidate findSwiftc() {
+        SwiftcMetadataProvider versionDeterminer = new SwiftcMetadataProvider(TestFiles.execActionFactory());
+
         File compilerExe = new File("/opt/swift/latest/usr/bin/swiftc");
         if (compilerExe.isFile()) {
-            return new InstalledSwiftc("swiftc").inPath(compilerExe.getParentFile(), new File("/usr/bin"));
+            SwiftcMetadata version = versionDeterminer.getCompilerMetaData(compilerExe, Collections.<String>emptyList());
+            if (version.isAvailable()) {
+                return new InstalledSwiftc("swiftc" + " " + version.getVersion(), SwiftVersion.of(version.getVersion())).inPath(compilerExe.getParentFile(), new File("/usr/bin"));
+            }
         }
 
         List<File> swiftcCandidates = OperatingSystem.current().findAllInPath("swiftc");
-        if (!swiftcCandidates.isEmpty()) {
-            return new InstalledSwiftc("swiftc");
+        File firstInPath = swiftcCandidates.iterator().next();
+        for (File candidate : swiftcCandidates) {
+            SwiftcMetadata version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
+            if (version.isAvailable()) {
+                InstalledSwiftc swiftc = new InstalledSwiftc("swiftc" + " " + version.getVersion(), SwiftVersion.of(version.getVersion()));
+                if (!candidate.equals(firstInPath)) {
+                    // Not the first swiftc in the path, needs the path variable updated
+                    swiftc.inPath(candidate.getParentFile());
+                }
+                return swiftc;
+            }
         }
 
         return new UnavailableToolChain("swiftc");
@@ -456,8 +473,11 @@ public class AvailableToolChains {
     }
 
     public static class InstalledSwiftc extends InstalledToolChain {
-        public InstalledSwiftc(String displayName) {
+        private final SwiftVersion swiftVersion;
+
+        public InstalledSwiftc(String displayName, SwiftVersion swiftVersion) {
             super(displayName);
+            this.swiftVersion = swiftVersion;
         }
 
         /**
@@ -500,6 +520,10 @@ public class AvailableToolChains {
         @Override
         public boolean meets(ToolChainRequirement requirement) {
             return requirement == ToolChainRequirement.SWIFT || requirement == ToolChainRequirement.AVAILABLE;
+        }
+
+        public SwiftVersion getSwiftVersion() {
+            return swiftVersion;
         }
     }
 

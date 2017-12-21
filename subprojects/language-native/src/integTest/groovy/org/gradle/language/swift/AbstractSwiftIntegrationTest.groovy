@@ -48,6 +48,23 @@ abstract class AbstractSwiftIntegrationTest extends AbstractNativeLanguageCompon
         failure.assertThatCause(Matchers.containsText("Swift compiler failed while compiling swift file(s)"))
     }
 
+    def "binaries have the right Swift version"() {
+        given:
+        makeSingleProject()
+        buildFile << """
+            task verifyBinariesSwiftVersion {
+                doLast {
+                    ${allBinariesOfMainComponentBuildScript}.each {
+                        assert it.targetPlatform.swiftVersion == SwiftVersion.${toolChain.swiftVersion.name()}
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "verifyBinariesSwiftVersion"
+    }
+
     protected abstract List<String> getTasksToAssembleDevelopmentBinary()
 
     protected abstract String getDevelopmentBinaryCompileTask()

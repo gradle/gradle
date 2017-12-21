@@ -46,4 +46,13 @@ class UnavailableNativePlatformToolProviderTest extends Specification {
         GradleException e = thrown()
         e.message == "broken"
     }
+
+    def "throws failure when attempting to get compiler metadata"() {
+        when:
+        toolChain.getCompilerMetadata()
+
+        then:
+        thrown(UnsupportedOperationException)
+
+    }
 }

@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.metadata;
+package org.gradle.language.swift;
 
-import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.util.VersionNumber;
 
-public interface CompilerMetadata extends ToolSearchResult {
-    String getVendor();
+public enum SwiftVersion {
+    SWIFT2, SWIFT3, UNKNOWN, SWIFT4;
 
-    VersionNumber getVersion();
+    public static SwiftVersion of(VersionNumber swiftCompilerVersion) {
+        if (swiftCompilerVersion.getMajor() == 2) {
+            return SWIFT2;
+        } else if (swiftCompilerVersion.getMajor() == 3) {
+            return SWIFT3;
+        } else if (swiftCompilerVersion.getMajor() == 4) {
+            return SWIFT4;
+        } else {
+            return UNKNOWN;
+        }
+    }
 }

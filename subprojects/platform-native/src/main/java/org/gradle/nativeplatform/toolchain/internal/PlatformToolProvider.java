@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
 
 public interface PlatformToolProvider extends ToolProvider {
@@ -41,4 +42,6 @@ public interface PlatformToolProvider extends ToolProvider {
     String getExecutableSymbolFileName(String executablePath);
 
     String getLibrarySymbolFileName(String libraryPath);
+
+    CompilerMetadata getCompilerMetadata();
 }

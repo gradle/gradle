@@ -40,6 +40,12 @@ Target: x86_64-unknown-linux-gnu
         output(SWIFTC_OUTPUT_LINUX).vendor == 'Swift version 3.1.1 (swift-3.1.1-RELEASE)'
     }
 
+    def "can parse version from output of swiftc"() {
+        expect:
+        output(SWIFTC_OUTPUT_MAC_OS).version.with { [major, minor, micro] } == [4, 0, 2]
+        output(SWIFTC_OUTPUT_LINUX).version.with { [major, minor, micro] } == [3, 1, 1]
+    }
+
     def "handles output that cannot be parsed"() {
         def visitor = Mock(TreeVisitor)
 
