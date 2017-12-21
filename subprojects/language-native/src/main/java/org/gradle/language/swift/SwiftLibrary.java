@@ -18,7 +18,7 @@ package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.nativeplatform.Linkage;
 
 /**
@@ -40,5 +40,5 @@ public interface SwiftLibrary extends SwiftComponent {
      *
      * @since 4.5
      */
-    ListProperty<Linkage> getLinkage();
+    SetProperty<Linkage> getLinkage();
 }
