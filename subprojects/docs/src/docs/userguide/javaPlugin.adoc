@@ -818,6 +818,11 @@ Some examples of using the command line option:
 * `gradle test --tests "\*ParameterizedTest.*[2]"`
 * `gradle someTestTask --tests \*UiTest someOtherTestTask --tests \*WebTest\*ui`
 
+This is something you can combine with <<continuous_build, continuous build>> using `--continuous` (or `-t`, for short) to re-execute a subset of tests immediately after every change.
+
+----
+gradle test --continuous --tests "com.mypackage.foo.*"
+----
 
 [[sec:single_test_execution_via_system_properties]]
 ==== Single test execution via System Properties
