@@ -36,6 +36,7 @@
 
     <!-- customize the stylesheets to add to the <head> element -->
     <xsl:template name="output.html.stylesheets">
+        <link href="https://fonts.googleapis.com/css?family=Lato:400,400i" rel="stylesheet"/>
         <link rel="preconnect" href="//assets.gradle.com" crossorigin="crossorigin"/>
         <link href="base.css" rel="stylesheet" type="text/css"/>
         <link href="dsl.css" rel="stylesheet" type="text/css"/>
