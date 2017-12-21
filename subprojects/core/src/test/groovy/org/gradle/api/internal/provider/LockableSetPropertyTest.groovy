@@ -16,29 +16,29 @@
 
 package org.gradle.api.internal.provider
 
-import com.google.common.collect.ImmutableList
-import org.gradle.api.provider.ListProperty
+import com.google.common.collect.ImmutableSet
+import org.gradle.api.provider.SetProperty
 
-class LockableListPropertyTest extends LockableCollectionPropertySpec<List<String>> {
+class LockableSetPropertyTest extends LockableCollectionPropertySpec<Set<String>> {
     @Override
-    CollectionPropertyInternal<String, List<String>> target() {
+    CollectionPropertyInternal<String, Set<String>> target() {
         return Mock(TestProperty)
     }
 
     @Override
-    LockableCollectionProperty<String, List<String>> property(CollectionPropertyInternal<String, List<String>> target) {
-        return new LockableListProperty<String>(target)
+    LockableCollectionProperty<String, Set<String>> property(CollectionPropertyInternal<String, Set<String>> target) {
+        return new LockableSetProperty<String>(target)
     }
 
     @Override
-    List<String> toMutable(Collection<String> values) {
-        return new ArrayList<String>(values)
+    Set<String> toMutable(Collection<String> values) {
+        return new LinkedHashSet<String>(values)
     }
 
     @Override
-    List<String> toImmutable(Collection<String> values) {
-        return ImmutableList.copyOf(values)
+    Set<String> toImmutable(Collection<String> values) {
+        return ImmutableSet.copyOf(values)
     }
 
-    interface TestProperty extends CollectionPropertyInternal<String, List<String>>, ListProperty<String> {}
+    interface TestProperty extends CollectionPropertyInternal<String, Set<String>>, SetProperty<String> {}
 }

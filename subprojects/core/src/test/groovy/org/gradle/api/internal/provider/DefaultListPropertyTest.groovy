@@ -31,16 +31,6 @@ class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
     }
 
     @Override
-    List<String> someValue() {
-        return ["value"]
-    }
-
-    @Override
-    List<String> someOtherValue() {
-        return ["value2"]
-    }
-
-    @Override
     protected Class<? extends ImmutableCollection<?>> getImmutableCollectionType() {
         return ImmutableList.class
     }
@@ -54,8 +44,6 @@ class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
     protected List<String> toMutable(Collection<String> values) {
         return new ArrayList<String>(values)
     }
-
-    def property = property()
 
     def "defaults to empty list"() {
         expect:

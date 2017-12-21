@@ -17,11 +17,11 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import spock.lang.Specification
 
-abstract class PropertySpec<T> extends Specification {
-    abstract PropertyInternal<T> property()
+abstract class PropertySpec<T> extends ProviderSpec<T> {
+    abstract Property<T> property()
 
     abstract T someValue()
 

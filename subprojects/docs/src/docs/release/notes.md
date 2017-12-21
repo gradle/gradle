@@ -158,6 +158,12 @@ existed in a different case and would adjust the given file accordingly. This le
 
 The `Project.file()` method will now ignore case and only normalize redundant segments like `/../`. It will not touch the file system.
 
+### ListProperty no longer extends Property
+
+TBD - `ListProperty` now extends `HasMultipleValues` and `Provider` instead of `Property`. The `Property` interface represents a property whose incoming and outgoing types are the same. However, a `List` can be assembled from any `Iterable` rather than just any `List` and this new arrangement reflects this, allowing a `ListProperty<T>` to be set using any `Iterable<T>`. This also applies to the DSL, where the Groovy DSL will allow any `Iterable` to be used to set the value.
+
+The new `SetProperty` type also follows this pattern.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
