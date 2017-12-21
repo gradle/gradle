@@ -62,7 +62,7 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
         try {
             String versionStr = reader.readLine();
             while (versionStr != null) {
-                Matcher matcher = Pattern.compile("(?:java|openjdk) version \"(.+?)\"").matcher(versionStr);
+                Matcher matcher = Pattern.compile("(?:java|openjdk) version \"(.+?)\"( \\d{4}-\\d{2}-\\d{2})*").matcher(versionStr);
                 if (matcher.matches()) {
                     return JavaVersion.toVersion(matcher.group(1));
                 }

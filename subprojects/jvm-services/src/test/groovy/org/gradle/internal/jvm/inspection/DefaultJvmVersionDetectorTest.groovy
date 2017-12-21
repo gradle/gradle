@@ -60,6 +60,14 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.91-b14, mixed mode)
         Java(TM) SE Runtime Environment (build 1.8.0_91-b14)
         Java HotSpot(TM) 64-Bit Server VM (build 25.91-b14, mixed mode)
         """                     | "1.8"
+        """java version "10-ea"
+Java(TM) SE Runtime Environment 18.3 (build 10-ea+35)
+Java HotSpot(TM) 64-Bit Server VM 18.3 (build 10-ea+35, mixed mode)
+"""                             | "10"
+        """java version "10-ea" 2018-03-20
+Java(TM) SE Runtime Environment 18.3 (build 10-ea+36)
+Java HotSpot(TM) 64-Bit Server VM 18.3 (build 10-ea+36, mixed mode)
+"""                             | "10"
     }
 
     def "fails to parse version number"() {
