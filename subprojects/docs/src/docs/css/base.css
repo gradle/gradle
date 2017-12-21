@@ -453,10 +453,10 @@ h3.releaseinfo {
 }
 
 .site-header .site-header-version {
+    align-self: center;
     color: #1DA2BD;
-    font-size: 21px;
+    font-size: 20px;
     font-weight: 500;
-    line-height: 36px;
     padding-left: 1px;
 }
 
@@ -465,6 +465,7 @@ h3.releaseinfo {
     font-family: 'Lato', Arial, sans-serif;
 }
 .site-header__navigation-header a {
+    align-self: center;
     border-bottom: 0 none;
 }
 
@@ -476,7 +477,6 @@ h3.releaseinfo {
 .site-header__navigation-header {
     display: flex;
     flex: 0 0 auto;
-    margin-top: 5px;
     margin-left: 12px;
 }
 
@@ -671,6 +671,7 @@ h3.releaseinfo {
 /* Docs Navigation */
 .docs-navigation {
     display: none;
+    overflow: hidden;
     padding-left: 5px;
 }
 
@@ -680,6 +681,13 @@ h3.releaseinfo {
     font-size: 1rem;
     line-height: 1.0;
     opacity: 0.7;
+}
+
+.docs-navigation a code {
+    color: #02303A;
+    overflow-wrap: break-word;
+    padding: 0;
+    word-break: break-all;
 }
 
 .docs-navigation a.active {
@@ -704,7 +712,7 @@ h3.releaseinfo {
 }
 
 .docs-navigation .nav-dropdown {
-    background: transparent url('data:image/svg+xml;utf8,<svg width="10" height="6" viewBox="0 0 19 11" xmlns="http://www.w3.org/2000/svg"><path transform="rotate(-180 9.374 5.494)" d="M17.9991 10.422825L9.3741 0.565575 0.7491 10.422825" stroke="#02303A" opacity="0.7" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center right;
+    background: transparent url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iNiIgdmlld0JveD0iMCAwIDE5IDExIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIHRyYW5zZm9ybT0icm90YXRlKC0xODAgOS4zNzQgNS40OTQpIiBkPSJNMTcuOTk5MSAxMC40MjI4MjVMOS4zNzQxIDAuNTY1NTc1IDAuNzQ5MSAxMC40MjI4MjUiIHN0cm9rZT0iIzAyMzAzQSIgb3BhY2l0eT0iMC43IiBzdHJva2Utd2lkdGg9IjEuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+') no-repeat center right;
 }
 
 .docs-navigation > ul ul,
@@ -842,6 +850,7 @@ h3.releaseinfo {
     font-size: 1em;
 }
 
+.chapter .toc dl dt,
 .chapter .toc a {
     line-height: 1.0;
 }
@@ -1093,6 +1102,28 @@ h3.releaseinfo {
     }
 }
 
+.segmentedlist {
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+}
+
+.segmentedlist table, .table table {
+    border: solid #d0d0d0 1px;
+    border-collapse: collapse;
+    margin-left: -10px;
+    margin-right: -10px;
+}
+
+.segmentedlist th {
+    padding: 0.3em 0.8em;
+    color: #505050;
+}
+
+.segmentedlist td {
+    padding: 0.3em 0.8em;
+}
+
+.segmentedlist dt,
 .variablelist dt {
     font-weight: bold;
 }
@@ -1181,6 +1212,51 @@ h3.releaseinfo {
 
 .literal, .filename {
     white-space: nowrap;
+}
+
+.caution {
+    font-size: 15px;
+    color: #AF5252;
+    background-color: pink;
+    font-style: italic;
+    border-radius: 3px;
+    display: inline-block;
+    padding: 0px 5px;
+    margin-bottom: 8px;
+}
+
+.caution :last-child {
+    margin-bottom: 0;
+}
+
+table .caution {
+    float: left;
+    font-size: 13px;
+    margin-right: 6px;
+    margin-top: 2px;
+    margin-bottom: 0px;
+    text-transform: lowercase;
+}
+
+.signature {
+    background-color: #f5f5f5;
+    border: solid #e7e7e7 1px;
+    color: #666666;
+    width: auto;
+    margin-right: -0.8em;
+    margin-left: -0.8em;
+    padding: 0.3em 0.8em;
+    font-weight: normal;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    font-family: "Ubuntu Mono", courier, monospace;
+    text-shadow: none;
+}
+
+.signature .literal {
+    color: #04598D;
+    padding-left: 0.1em;
 }
 
 /*
