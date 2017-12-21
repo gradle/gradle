@@ -433,6 +433,44 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         }
     }
 
+    def "can update all variants at once"() {
+        when:
+        buildFile << """
+            dependencies {
+                components {
+                    withModule('org.test:moduleA') {
+                        allVariants {
+                            withDependencies {
+                                add('org.test:moduleB:1.0')
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                variant("default", ['some':'other'])
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0' {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def variantToTest = variantToTest
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org.test:moduleA:1.0:$variantToTest") {
+                    module('org.test:moduleB:1.0')
+                }
+            }
+        }
+    }
+
     @Unroll
     def "#thing of transitive dependencies can be changed"() {
         given:
