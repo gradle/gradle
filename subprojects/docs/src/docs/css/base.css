@@ -889,7 +889,6 @@ h3.releaseinfo {
 
 /* Userguide Meta */
 .chapter-meta {
-    display: none;
     float: right;
     text-align: right;
 }
