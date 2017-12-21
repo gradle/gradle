@@ -27,10 +27,9 @@ gradle [taskName...] [--option-name...]
 
 If multiple tasks are specified, they should be separated with a space.
 
-Options that accept values can be specified with or without `=` between the option and argument. The following are equivalent, but the `=` variant makes it clear that `plain` is an argument to `--console` and not a task name.
+Options that accept values can be specified with or without `=` between the option and argument; however, use of `=` is recommended.
 ----
 --console=plain
---console plain
 ----
 
 Options that enable behavior have long-form options with inverses specified with `--no-`. The following are opposites.
@@ -474,20 +473,6 @@ It is common for applications to be run with the `run` task, which assembles the
 
 ----
 ❯ gradle run
-----
-
-==== Running tests
-
-It is common for tests to be run using the `test` task, which assembles the project and executes tests.
-
-----
-❯ gradle test
-----
-
-If you'd like to skip running tests, when running another task, you can use the `--exclude-task` option.
-
-----
-❯ gradle build --exclude-task=test
 ----
 
 ==== Running all checks
