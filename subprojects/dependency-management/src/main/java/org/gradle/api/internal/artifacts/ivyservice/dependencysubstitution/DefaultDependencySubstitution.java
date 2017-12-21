@@ -44,6 +44,11 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     }
 
     @Override
+    public void useTarget(Object notation, String reason) {
+        useTarget(notation, VersionSelectionReasons.SELECTED_BY_RULE.withReason(reason));
+    }
+
+    @Override
     public void useTarget(Object notation, ComponentSelectionReason selectionReason) {
         this.target = ComponentSelectorParsers.parser().parseNotation(notation);
         this.selectionReason = selectionReason;
