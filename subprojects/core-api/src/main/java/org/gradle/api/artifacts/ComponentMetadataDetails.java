@@ -65,4 +65,13 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      */
     void withVariant(String name, Action<? super VariantMetadata> action);
 
+    /**
+     * Add a rule for adjusting all variants of a component.
+     *
+     * @param action the action to be executed on each variant.
+     *
+     * @since 4.5
+     */
+    void allVariants(Action<? super VariantMetadata> action);
+
 }

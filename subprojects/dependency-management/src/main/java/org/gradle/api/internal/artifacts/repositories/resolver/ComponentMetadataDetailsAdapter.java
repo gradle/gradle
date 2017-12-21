@@ -23,6 +23,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VariantMetadata;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -80,7 +82,12 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
 
     @Override
     public void withVariant(String name, Action<? super VariantMetadata> action) {
-        action.execute(instantiator.newInstance(VariantMetadataAdapter.class, name, metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
+        action.execute(instantiator.newInstance(VariantMetadataAdapter.class, new VariantNameSpec(name), metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
+    }
+
+    @Override
+    public void allVariants(Action<? super VariantMetadata> action) {
+        action.execute(instantiator.newInstance(VariantMetadataAdapter.class, Specs.satisfyAll(), metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
     }
 
     @Override
@@ -99,6 +106,20 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     @Override
     public String toString() {
         return metadata.getId().toString();
+    }
+
+
+    private static class VariantNameSpec implements Spec<org.gradle.internal.component.model.VariantMetadata> {
+        private final String name;
+
+        private VariantNameSpec(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public boolean isSatisfiedBy(org.gradle.internal.component.model.VariantMetadata element) {
+            return name.equals(element.getName());
+        }
     }
 
 }
