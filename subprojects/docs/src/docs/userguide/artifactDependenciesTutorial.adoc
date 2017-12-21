@@ -97,7 +97,7 @@ The shortcut form for declaring external dependencies looks like “`__group__:_
         </sample>
 ++++
 
-To find out more about defining and working with dependencies, have a look at <<sec:how_to_declare_your_dependencies>>.
+To find out more about defining and working with dependencies, have a look at <<sec:declaring_dependencies>>.
 
 [[sec:repositories_tutorial]]
 === Repositories

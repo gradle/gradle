@@ -21,7 +21,7 @@ Ant can be divided into two layers. The first layer is the Ant language. It prov
 
 The second layer of Ant is its wealth of Ant tasks and types, like `javac`, `copy` or `jar`. For this layer Gradle provides integration simply by relying on Groovy, and the fantastic `AntBuilder`.
 
-Finally, since build scripts are Groovy scripts, you can always execute an Ant build as an external process. Your build script may contain statements like: `"ant clean compile".execute()`.footnote:[In Groovy you can execute Strings. To learn more about executing external processes with Groovy have a look in 'Groovy in Action' 9.3.2 or at the Groovy wiki] 
+Finally, since build scripts are Groovy scripts, you can always execute an Ant build as an external process. Your build script may contain statements like: `"ant clean compile".execute()`.footnote:[In Groovy you can execute Strings. To learn more about executing external processes with Groovy have a look in 'Groovy in Action' 9.3.2 or at the Groovy wiki]
 
 You can use Gradle's Ant integration as a path for migrating your build from Ant to Gradle. For example, you could start by importing your existing Ant build. Then you could move your dependency declarations from the Ant script to your build file. Finally, you could move your tasks across to your build file, or replace them with some of Gradle's plugins. This process can be done in parts over time, and you can have a working Gradle build during the entire process.
 
@@ -67,7 +67,7 @@ You can access Ant types in the same way that you access tasks, using the name o
         </sample>
 ++++
 
-More information about `AntBuilder` can be found in 'Groovy in Action' 8.4 or at the http://groovy-lang.org/scripting-ant.html[Groovy Wiki] 
+More information about `AntBuilder` can be found in 'Groovy in Action' 8.4 or at the http://groovy-lang.org/scripting-ant.html[Groovy Wiki]
 
 
 [[sec:using_custom_ant_tasks]]
@@ -81,7 +81,7 @@ To make custom tasks available in your build, you can use the `taskdef` (usually
             </sample>
 ++++
 
-You can use Gradle's dependency management to assemble the classpath to use for the custom tasks. To do this, you need to define a custom configuration for the classpath, then add some dependencies to the configuration. This is described in more detail in <<sec:how_to_declare_your_dependencies>>.
+You can use Gradle's dependency management to assemble the classpath to use for the custom tasks. To do this, you need to define a custom configuration for the classpath, then add some dependencies to the configuration. This is described in more detail in <<sec:declaring_dependencies>>.
 
 ++++
 <sample id="useExternalAntTaskWithConfig" dir="userguide/ant/useExternalAntTaskWithConfig" title="Declaring the classpath for a custom Ant task">
