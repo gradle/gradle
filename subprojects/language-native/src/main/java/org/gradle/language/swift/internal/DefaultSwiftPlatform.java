@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile project(':core')
-    compile project(':platformNative')
-    compile project(':languageNative')
-    compile project(':testingBase')
+package org.gradle.language.swift.internal;
 
-    integTestRuntime project(':ideNative')
+import org.gradle.language.swift.SwiftPlatform;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+
+public class DefaultSwiftPlatform extends DefaultNativePlatform implements SwiftPlatform {
+    public DefaultSwiftPlatform(String name) {
+        super(name);
+    }
 }
-
-useTestFixtures()
-useTestFixtures(project: ':platformNative')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':platformBase')
-useTestFixtures(project: ':testingBase')
-useTestFixtures(project: ':languageNative')
-
-useClassycle()
-strictCompile()

@@ -30,9 +30,11 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
@@ -70,10 +72,12 @@ import java.util.concurrent.Callable;
 @Incubating
 public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     private final MacOSSdkPlatformPathLocator sdkPlatformPathLocator;
+    private final ToolChainSelector toolChainSelector;
 
     @Inject
-    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator) {
+    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ToolChainSelector toolChainSelector) {
         this.sdkPlatformPathLocator = sdkPlatformPathLocator;
+        this.toolChainSelector = toolChainSelector;
     }
 
     @Override
@@ -103,8 +107,10 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(Project project) {
+                ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
+
                 // Create test suite executable
-                SwiftXCTestBinary binary = testSuite.createExecutable();
+                SwiftXCTestBinary binary = testSuite.createExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                 testSuite.getDevelopmentBinary().set(binary);
 
                 // Configure tasks

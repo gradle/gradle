@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -27,29 +28,46 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppLibrary;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
 public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary {
+    private final ProjectLayout projectLayout;
+    private final ObjectFactory objectFactory;
+    private final ConfigurationContainer configurations;
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
-    private final DefaultCppSharedLibrary debug;
-    private final DefaultCppSharedLibrary release;
     private final Configuration api;
+    private DefaultCppSharedLibrary debug;
+    private DefaultCppSharedLibrary release;
 
     @Inject
     public DefaultCppLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
+        this.projectLayout = projectLayout;
+        this.objectFactory = objectFactory;
+        this.configurations = configurations;
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
-        debug = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Debug", projectLayout, objectFactory, getBaseName(), true, false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
-        release = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Release", projectLayout, objectFactory, getBaseName(), true, true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
 
         api = configurations.maybeCreate(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);
         api.setCanBeResolved(false);
         getImplementationDependencies().extendsFrom(api);
+    }
+
+    public DefaultCppSharedLibrary createSharedLibrary(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getBaseName(), debuggable, optimized, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+        if (debuggable && !optimized) {
+            debug = result;
+        } else if (debuggable && optimized){
+            release = result;
+        }
+        return result;
     }
 
     @Override

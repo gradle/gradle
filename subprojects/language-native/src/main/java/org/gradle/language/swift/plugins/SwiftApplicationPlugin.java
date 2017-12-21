@@ -28,9 +28,11 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.util.GUtil;
@@ -52,6 +54,7 @@ import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 @Incubating
 public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
     private final FileOperations fileOperations;
+    private final ToolChainSelector toolChainSelector;
 
     /**
      * Injects a {@link FileOperations} instance.
@@ -59,8 +62,9 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
      * @since 4.2
      */
     @Inject
-    public SwiftApplicationPlugin(FileOperations fileOperations) {
+    public SwiftApplicationPlugin(FileOperations fileOperations, ToolChainSelector toolChainSelector) {
         this.fileOperations = fileOperations;
+        this.toolChainSelector = toolChainSelector;
     }
 
     @Override
@@ -88,8 +92,10 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                 TaskContainer tasks = project.getTasks();
                 ObjectFactory objectFactory = project.getObjects();
 
-                SwiftExecutable debugExecutable = application.createExecutable("debug", true, false, true);
-                SwiftExecutable releaseExecutable = application.createExecutable("release", true, true, false);
+                ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
+
+                SwiftExecutable debugExecutable = application.createExecutable("debug", true, false, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                SwiftExecutable releaseExecutable = application.createExecutable("release", true, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                 // Add outgoing APIs
                 SwiftCompile compileDebug = debugExecutable.getCompileTask().get();

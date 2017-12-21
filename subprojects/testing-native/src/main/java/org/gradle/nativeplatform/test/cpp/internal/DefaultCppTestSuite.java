@@ -23,21 +23,34 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
 public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestSuite {
+    private final ProjectLayout projectLayout;
+    private final ObjectFactory objectFactory;
+    private final ConfigurationContainer configurations;
     private final Property<CppComponent> testedComponent;
-    private final CppExecutable testBinary;
+    private CppExecutable testBinary;
 
     @Inject
     public DefaultCppTestSuite(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, final FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
+        this.projectLayout = projectLayout;
+        this.objectFactory = objectFactory;
+        this.configurations = configurations;
         this.testedComponent = objectFactory.property(CppComponent.class);
-        this.testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, name + "Executable", projectLayout, objectFactory, getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), getTestedComponent());
         getBaseName().set(name);
+    }
+
+    public CppExecutable createExecutable(CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, getName() + "Executable", projectLayout, objectFactory, getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider);
+        return testBinary;
     }
 
     public Property<CppComponent> getTestedComponent() {

@@ -22,6 +22,7 @@ abstract class AbstractSwiftXCTestWithComponentIntegrationTest extends AbstractS
     def "can test public and internal features"() {
         given:
         def fixture = getPassingTestFixtureUsingPublicAndInternalFeatures()
+        makeSingleProject()
         settingsFile << "rootProject.name = '${fixture.projectName}'"
         fixture.writeToProject(testDirectory)
 

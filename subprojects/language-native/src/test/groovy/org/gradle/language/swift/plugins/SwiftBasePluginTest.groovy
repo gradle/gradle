@@ -17,13 +17,17 @@
 package org.gradle.language.swift.plugins
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.language.swift.SwiftPlatform
 import org.gradle.language.swift.internal.DefaultSwiftBinary
 import org.gradle.language.swift.internal.DefaultSwiftExecutable
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary
 import org.gradle.language.swift.tasks.SwiftCompile
+import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
+import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
@@ -39,6 +43,7 @@ class SwiftBasePluginTest extends Specification {
         def binary = Stub(DefaultSwiftBinary)
         binary.name >> name
         binary.module >> project.objects.property(String)
+        binary.targetPlatform >> Stub(SwiftPlatformInternal)
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)
@@ -65,6 +70,8 @@ class SwiftBasePluginTest extends Specification {
         executable.name >> name
         executable.module >> module
         executable.executableFile >> executableFile
+        executable.targetPlatform >> Stub(SwiftPlatformInternal)
+        executable.platformToolProvider >> new TestPlatformToolProvider()
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)
@@ -93,6 +100,8 @@ class SwiftBasePluginTest extends Specification {
         def library = Stub(DefaultSwiftSharedLibrary)
         library.name >> name
         library.module >> module
+        library.targetPlatform >> Stub(SwiftPlatformInternal)
+        library.platformToolProvider >> new TestPlatformToolProvider()
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)
@@ -109,5 +118,13 @@ class SwiftBasePluginTest extends Specification {
         "mainDebug" | "linkDebug"     | "main/debug/"
         "test"      | "linkTest"      | "test/"
         "testDebug" | "linkTestDebug" | "test/debug/"
+    }
+
+    interface SwiftPlatformInternal extends SwiftPlatform, NativePlatformInternal {}
+
+    class TestPlatformToolProvider extends AbstractPlatformToolProvider {
+        TestPlatformToolProvider() {
+            super(null, new DefaultOperatingSystem("current", OperatingSystem.current()))
+        }
     }
 }

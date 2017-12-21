@@ -21,6 +21,9 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.language.cpp.CppPlatform
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -44,17 +47,6 @@ class DefaultCppLibraryTest extends Specification {
     def "has api configuration"() {
         expect:
         library.apiDependencies == api
-    }
-
-    def "has debug and release shared libraries"() {
-        expect:
-        library.debugSharedLibrary.name == "mainDebug"
-        library.debugSharedLibrary.debuggable
-        !library.debugSharedLibrary.optimized
-        library.releaseSharedLibrary.name == "mainRelease"
-        library.releaseSharedLibrary.debuggable
-        library.releaseSharedLibrary.optimized
-        library.developmentBinary == library.debugSharedLibrary
     }
 
     def "uses convention for public headers when nothing specified"() {
@@ -81,18 +73,16 @@ class DefaultCppLibraryTest extends Specification {
         def d4 = tmpDir.file("src/main/d4")
 
         expect:
-        library.debugSharedLibrary.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
-        library.releaseSharedLibrary.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
+        def binary = library.createSharedLibrary('debug', true, false, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        binary.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
 
         library.publicHeaders.from(d1)
         library.privateHeaders.from(d2)
-        library.debugSharedLibrary.compileIncludePath.files as List == [d1, d2]
-        library.releaseSharedLibrary.compileIncludePath.files as List == [d1, d2]
+        binary.compileIncludePath.files as List == [d1, d2]
 
         library.publicHeaders.setFrom(d3)
         library.privateHeaders.from(d4)
-        library.debugSharedLibrary.compileIncludePath.files as List == [d3, d2, d4]
-        library.releaseSharedLibrary.compileIncludePath.files as List == [d3, d2, d4]
+        binary.compileIncludePath.files as List == [d3, d2, d4]
     }
 
     def "can query the header files of the library"() {

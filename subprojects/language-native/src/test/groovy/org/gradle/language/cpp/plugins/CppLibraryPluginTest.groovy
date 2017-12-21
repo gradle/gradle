@@ -20,6 +20,7 @@ import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.CppLibrary
+import org.gradle.language.cpp.CppSharedLibrary
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -56,6 +57,14 @@ class CppLibraryPluginTest extends Specification {
         project.components.main == project.library
         project.components.mainDebug == project.library.debugSharedLibrary
         project.components.mainRelease == project.library.releaseSharedLibrary
+
+        and:
+        def binaries = [project.library.debugSharedLibrary, project.library.releaseSharedLibrary]
+        binaries.findAll { it.debuggable && it.optimized && it instanceof CppSharedLibrary }.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }.size() == 1
+
+        and:
+        project.library.developmentBinary == binaries.find { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }
     }
 
     def "adds compile and link tasks"() {

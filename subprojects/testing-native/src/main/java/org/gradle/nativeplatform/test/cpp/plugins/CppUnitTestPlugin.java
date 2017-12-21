@@ -26,9 +26,12 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.plugins.CppBasePlugin;
+import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.plugins.CppApplicationPlugin;
+import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
+import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
@@ -49,12 +52,14 @@ import javax.inject.Inject;
 @Incubating
 public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
     private final ObjectFactory objectFactory;
+    private final ToolChainSelector toolChainSelector;
     private final FileOperations fileOperations;
 
     @Inject
-    public CppUnitTestPlugin(FileOperations fileOperations, ObjectFactory objectFactory) {
+    public CppUnitTestPlugin(FileOperations fileOperations, ObjectFactory objectFactory, ToolChainSelector toolChainSelector) {
         this.fileOperations = fileOperations;
         this.objectFactory = objectFactory;
+        this.toolChainSelector = toolChainSelector;
     }
 
     @Override
@@ -64,10 +69,14 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
 
         final ConfigurationContainer configurations = project.getConfigurations();
 
-        final CppTestSuite testComponent = objectFactory.newInstance(DefaultCppTestSuite.class, "unitTest", project.getLayout(), objectFactory, fileOperations, configurations);
+        final DefaultCppTestSuite testComponent = objectFactory.newInstance(DefaultCppTestSuite.class, "unitTest", project.getLayout(), objectFactory, fileOperations, configurations);
         // Register components created for the test Component and test binaries
         project.getComponents().add(testComponent);
-        project.getComponents().add(testComponent.getTestExecutable());
+
+        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
+        CppExecutable binary = testComponent.createExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+
+        project.getComponents().add(binary);
         project.getExtensions().add(CppTestSuite.class, "unitTest", testComponent);
 
         Action<Plugin<ProjectInternal>> projectConfiguration = new Action<Plugin<ProjectInternal>>() {
@@ -75,7 +84,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
             public void execute(Plugin<ProjectInternal> plugin) {
                 final TaskContainer tasks = project.getTasks();
                 CppComponent mainComponent = project.getComponents().withType(CppComponent.class).findByName("main");
-                ((DefaultCppTestSuite)testComponent).getTestedComponent().set(mainComponent);
+                testComponent.getTestedComponent().set(mainComponent);
 
                 // TODO: This should be modeled as a kind of dependency vs wiring tasks together directly.
                 AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkUnitTest");

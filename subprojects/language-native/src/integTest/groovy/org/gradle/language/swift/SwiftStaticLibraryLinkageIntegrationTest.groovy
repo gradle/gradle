@@ -37,6 +37,11 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         return ":compileDebugSwift"
     }
 
+    @Override
+    protected String getMainComponentDsl() {
+        return "library"
+    }
+
     def "can create static only library"() {
         def library = new SwiftLib()
         buildFile << """

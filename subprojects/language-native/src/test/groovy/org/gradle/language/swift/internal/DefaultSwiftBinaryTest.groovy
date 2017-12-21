@@ -23,6 +23,9 @@ import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.provider.Provider
+import org.gradle.language.swift.SwiftPlatform
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -40,7 +43,7 @@ class DefaultSwiftBinaryTest extends Specification {
         _ * configurations.maybeCreate("nativeLinkDebug") >> link
         _ * configurations.maybeCreate("nativeRuntimeDebug") >> runtime
 
-        binary = new DefaultSwiftBinary("mainDebug", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(Provider), true, false,false, Stub(FileCollection),  configurations, implementation)
+        binary = new DefaultSwiftBinary("mainDebug", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(Provider), true, false,false, Stub(FileCollection),  configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
     }
 
     def "compileModules is a transformed view of compile"() {

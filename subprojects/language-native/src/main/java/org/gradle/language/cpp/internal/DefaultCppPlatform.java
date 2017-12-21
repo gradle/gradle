@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.cpp.plugins
+package org.gradle.language.cpp.internal;
 
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.language.cpp.CppPlatform;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
-class CppUnitTestPluginTest extends WellBehavedPluginTest {
+public class DefaultCppPlatform extends DefaultNativePlatform implements CppPlatform {
+    public DefaultCppPlatform(String name) {
+        super(name);
+    }
 }

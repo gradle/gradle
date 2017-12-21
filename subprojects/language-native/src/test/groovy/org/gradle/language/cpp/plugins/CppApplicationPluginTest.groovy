@@ -19,6 +19,7 @@ package org.gradle.language.cpp.plugins
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.CppApplication
+import org.gradle.language.cpp.CppExecutable
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
@@ -54,6 +55,14 @@ class CppApplicationPluginTest extends Specification {
         project.components.main == project.application
         project.components.mainDebug == project.application.debugExecutable
         project.components.mainRelease == project.application.releaseExecutable
+
+        and:
+        def binaries = [project.application.debugExecutable, project.application.releaseExecutable]
+        binaries.findAll { it.debuggable && it.optimized && it instanceof CppExecutable }.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof CppExecutable }.size() == 1
+
+        and:
+        project.application.developmentBinary == binaries.find { it.debuggable && !it.optimized && it instanceof CppExecutable }
     }
 
     def "adds compile, link and install tasks"() {

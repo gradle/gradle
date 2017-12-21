@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.cpp.plugins
+package org.gradle.language.nativeplatform.internal.toolchains;
 
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-class CppUnitTestPluginIntegrationTest extends WellBehavedPluginTest {
+public interface ToolChainSelector {
+    <T extends NativePlatform> Result<T> select(Class<T> platformType);
+
+    interface Result<T extends NativePlatform> {
+        NativeToolChainInternal getToolChain();
+
+        T getTargetPlatform();
+
+        PlatformToolProvider getPlatformToolProvider();
+    }
 }

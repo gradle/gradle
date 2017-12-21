@@ -16,24 +16,42 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppPlatform;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
 public class DefaultCppApplication extends DefaultCppComponent implements CppApplication {
-    private final DefaultCppExecutable debug;
-    private final DefaultCppExecutable release;
+    private final ProjectLayout projectLayout;
+    private final ObjectFactory objectFactory;
+    private final ConfigurationContainer configurations;
+    private DefaultCppExecutable debug;
+    private DefaultCppExecutable release;
 
     @Inject
     public DefaultCppApplication(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
-        debug = objectFactory.newInstance(DefaultCppExecutable.class, name + "Debug", projectLayout, objectFactory, getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies());
-        release = objectFactory.newInstance(DefaultCppExecutable.class, name + "Release", projectLayout, objectFactory, getBaseName(), true, true, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies());
+        this.projectLayout = projectLayout;
+        this.objectFactory = objectFactory;
+        this.configurations = configurations;
+    }
+
+    public DefaultCppExecutable createExecutable(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        DefaultCppExecutable result = objectFactory.newInstance(DefaultCppExecutable.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getBaseName(), debuggable, optimized, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+        if (debuggable && !optimized) {
+            debug = result;
+        } else if (debuggable && optimized){
+            release = result;
+        }
+        return result;
     }
 
     @Override

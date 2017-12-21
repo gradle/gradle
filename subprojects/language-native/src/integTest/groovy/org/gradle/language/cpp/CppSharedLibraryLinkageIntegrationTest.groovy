@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-dependencies {
-    compile project(':core')
-    compile project(':platformNative')
-    compile project(':languageNative')
-    compile project(':testingBase')
+package org.gradle.language.cpp
 
-    integTestRuntime project(':ideNative')
+class CppSharedLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
+
+    @Override
+    protected void makeSingleProject() {
+        buildFile << """
+            apply plugin: 'cpp-library'
+        """
+    }
+
+    @Override
+    protected String getAllBinariesOfMainComponentBuildScript() {
+        return "[library.debugSharedLibrary, library.releaseSharedLibrary]"
+    }
 }
-
-useTestFixtures()
-useTestFixtures(project: ':platformNative')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':platformBase')
-useTestFixtures(project: ':testingBase')
-useTestFixtures(project: ':languageNative')
-
-useClassycle()
-strictCompile()

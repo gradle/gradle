@@ -41,9 +41,7 @@ import org.gradle.language.swift.internal.DefaultSwiftExecutable;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.ExtractSymbols;
@@ -51,8 +49,8 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.StripSymbols;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
@@ -74,7 +72,6 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
 
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
-        final ModelRegistry modelRegistry = project.getModelRegistry();
         final ProviderFactory providers = project.getProviders();
 
         project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE).getCompatibilityRules().add(SwiftCppUsageCompatibilityRule.class);
@@ -105,11 +102,11 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 })));
                 ((DefaultSwiftBinary)binary).getModuleFile().set(compile.getModuleFile());
 
-                DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
+                NativePlatform currentPlatform = binary.getTargetPlatform();
                 compile.setTargetPlatform(currentPlatform);
 
                 // TODO - make this lazy
-                NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
+                NativeToolChainInternal toolChain = ((DefaultSwiftBinary) binary).getToolChain();
                 compile.setToolChain(toolChain);
 
                 ((DefaultSwiftBinary)binary).getCompileTask().set(compile);
@@ -123,7 +120,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
                     link.source(binary.getObjects());
                     link.lib(binary.getLinkLibraries());
-                    final PlatformToolProvider toolProvider = toolChain.select(currentPlatform);
+                    final PlatformToolProvider toolProvider = executable.getPlatformToolProvider();
                     Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
@@ -136,7 +133,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setDebuggable(binary.isDebuggable());
 
                     executable.getDebuggerExecutableFile().set(link.getBinaryFile());
-                    if (executable.isDebuggable() && executable.isOptimized()) {
+                    if (executable.isDebuggable() && executable.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
@@ -181,7 +178,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.source(binary.getObjects());
                     link.lib(binary.getLinkLibraries());
                     // TODO - need to set soname
-                    final PlatformToolProvider toolProvider = toolChain.select(currentPlatform);
+                    final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
@@ -193,7 +190,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     link.setToolChain(toolChain);
                     link.setDebuggable(binary.isDebuggable());
 
-                    if (library.isDebuggable() && library.isOptimized()) {
+                    if (library.isDebuggable() && library.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
@@ -223,7 +220,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     final CreateStaticLibrary link = tasks.create(names.getTaskName("create"), CreateStaticLibrary.class);
                     link.source(binary.getObjects());
                     // TODO - need to set soname
-                    final PlatformToolProvider toolProvider = toolChain.select(currentPlatform);
+                    final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
@@ -242,7 +239,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private StripSymbols extractAndStripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChainInternal toolChain, NativePlatformInternal currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation, Task lifecycleTask) {
+    private StripSymbols extractAndStripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation, Task lifecycleTask) {
         ExtractSymbols extractSymbols = tasks.create(names.getTaskName("extractSymbols"), ExtractSymbols.class);
         extractSymbols.getBinaryFile().set(link.getBinaryFile());
         extractSymbols.getSymbolFile().set(symbolLocation);

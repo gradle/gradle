@@ -43,6 +43,11 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
         return ':compileDebugSwift'
     }
 
+    @Override
+    protected String getMainComponentDsl() {
+        return "application"
+    }
+
     def "relinks when an upstream dependency changes in ABI compatible way"() {
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()

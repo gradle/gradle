@@ -16,13 +16,13 @@
 
 package org.gradle.language.swift
 
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.util.Matchers
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
-abstract class AbstractSwiftIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+abstract class AbstractSwiftIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
     def "skip assemble tasks when no source"() {
         given:
         makeSingleProject()
@@ -50,7 +50,12 @@ abstract class AbstractSwiftIntegrationTest extends AbstractInstalledToolChainIn
 
     protected abstract List<String> getTasksToAssembleDevelopmentBinary()
 
-    protected abstract void makeSingleProject()
-
     protected abstract String getDevelopmentBinaryCompileTask()
+
+    protected abstract String getMainComponentDsl()
+
+    @Override
+    protected String getAllBinariesOfMainComponentBuildScript() {
+        return "${mainComponentDsl}.binaries.get()"
+    }
 }

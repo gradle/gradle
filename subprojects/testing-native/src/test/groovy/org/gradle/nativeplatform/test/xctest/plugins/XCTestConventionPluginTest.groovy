@@ -69,7 +69,7 @@ class XCTestConventionPluginTest extends Specification {
         project.xctest.testedComponent.orNull == project.library
     }
 
-    def "sets tested component to Swift application when applying swift application plugin"() {
+    def "sets tested component to main component when applying Swift application plugin"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
 

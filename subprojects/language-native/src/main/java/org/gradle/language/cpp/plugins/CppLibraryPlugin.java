@@ -38,9 +38,12 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppLibrary;
+import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
+import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -62,6 +65,7 @@ import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 @Incubating
 public class CppLibraryPlugin implements Plugin<ProjectInternal> {
     private final FileOperations fileOperations;
+    private final ToolChainSelector toolChainSelector;
 
     /**
      * Injects a {@link FileOperations} instance.
@@ -69,8 +73,9 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
      * @since 4.2
      */
     @Inject
-    public CppLibraryPlugin(FileOperations fileOperations) {
+    public CppLibraryPlugin(FileOperations fileOperations, ToolChainSelector toolChainSelector) {
         this.fileOperations = fileOperations;
+        this.toolChainSelector = toolChainSelector;
     }
 
     @Override
@@ -83,10 +88,16 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         ProviderFactory providers = project.getProviders();
 
         // Add the library extension
-        final CppLibrary library = project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getLayout(), project.getObjects(), fileOperations, project.getConfigurations());
+        final DefaultCppLibrary library = (DefaultCppLibrary) project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getLayout(), project.getObjects(), fileOperations, project.getConfigurations());
         project.getComponents().add(library);
-        project.getComponents().add(library.getDebugSharedLibrary());
-        project.getComponents().add(library.getReleaseSharedLibrary());
+
+        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
+
+        CppSharedLibrary debugSharedLibrary = library.createSharedLibrary("debug", true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+        CppSharedLibrary releaseSharedLibrary = library.createSharedLibrary("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+
+        project.getComponents().add(debugSharedLibrary);
+        project.getComponents().add(releaseSharedLibrary);
 
         // Configure the component
         library.getBaseName().set(project.getName());

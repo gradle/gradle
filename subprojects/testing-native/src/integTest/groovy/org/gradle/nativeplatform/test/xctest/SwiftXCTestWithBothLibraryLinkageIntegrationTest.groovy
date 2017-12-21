@@ -20,13 +20,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 
 class SwiftXCTestWithBothLibraryLinkageIntegrationTest extends AbstractSwiftXCTestWithComponentIntegrationTest {
-    def setup() {
-        buildFile << """
-            apply plugin: 'swift-library'
-            library.linkage = [Linkage.SHARED, Linkage.STATIC]
-        """
-    }
-
     @Override
     protected String[] getTaskToAssembleComponentUnderTest() {
         return [":linkDebugShared"]
@@ -45,5 +38,13 @@ class SwiftXCTestWithBothLibraryLinkageIntegrationTest extends AbstractSwiftXCTe
     @Override
     protected XCTestSourceElement getPassingTestFixtureUsingPublicAndInternalFeatures() {
         return new SwiftLibWithXCTest()
+    }
+
+    @Override
+    protected void makeSingleProject() {
+        buildFile << """
+            apply plugin: 'swift-library'
+            library.linkage = [Linkage.SHARED, Linkage.STATIC]
+        """
     }
 }
