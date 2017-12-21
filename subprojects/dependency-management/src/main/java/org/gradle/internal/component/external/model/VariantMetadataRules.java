@@ -81,7 +81,7 @@ public class VariantMetadataRules {
      * of the variant or its attributes.
      * @param <T> the type of the action subject
      */
-    public static class VariantAction<T> implements Action<T>, Spec<VariantMetadata> {
+    public static class VariantAction<T> {
         private final Spec<? super VariantMetadata> spec;
         private final Action<? super T> delegate;
 
@@ -90,15 +90,15 @@ public class VariantMetadataRules {
             this.delegate = delegate;
         }
 
-
-        @Override
-        public void execute(T subject) {
-            delegate.execute(subject);
-        }
-
-        @Override
-        public boolean isSatisfiedBy(VariantMetadata variant) {
-            return spec.isSatisfiedBy(variant);
+        /**
+         * Executes the underlying action if the supplied variant matches the predicate
+         * @param variant the variant metadata, used to check if the rule applies
+         * @param subject the subject of the rule
+         */
+        public void maybeExecute(VariantMetadata variant, T subject) {
+            if (spec.isSatisfiedBy(variant)) {
+                delegate.execute(subject);
+            }
         }
     }
 

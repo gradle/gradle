@@ -87,10 +87,8 @@ public class DependencyMetadataRules {
     private <T extends ModuleDependencyMetadata> List<T> executeDependencyRules(VariantMetadata variant, List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<T>(CollectionUtils.filter(dependencies, DEPENDENCY_FILTER));
         for (VariantMetadataRules.VariantAction<? super DirectDependenciesMetadata> dependenciesMetadataAction : dependencyActions) {
-            if (dependenciesMetadataAction.isSatisfiedBy(variant)) {
-                dependenciesMetadataAction.execute(instantiator.newInstance(
-                    DirectDependenciesMetadataAdapter.class, calculatedDependencies, instantiator, dependencyNotationParser));
-            }
+            dependenciesMetadataAction.maybeExecute(variant, instantiator.newInstance(
+                DirectDependenciesMetadataAdapter.class, calculatedDependencies, instantiator, dependencyNotationParser));
         }
         return calculatedDependencies;
     }
@@ -98,10 +96,8 @@ public class DependencyMetadataRules {
     private <T extends ModuleDependencyMetadata> List<T> executeDependencyConstraintRules(VariantMetadata variant, List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<T>(CollectionUtils.filter(dependencies, DEPENDENCY_CONSTRAINT_FILTER));
         for (VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata> dependencyConstraintsMetadataAction : dependencyConstraintActions) {
-            if (dependencyConstraintsMetadataAction.isSatisfiedBy(variant)) {
-                dependencyConstraintsMetadataAction.execute(instantiator.newInstance(
-                    DependencyConstraintsMetadataAdapter.class, calculatedDependencies, instantiator, dependencyConstraintNotationParser));
-            }
+            dependencyConstraintsMetadataAction.maybeExecute(variant, instantiator.newInstance(
+                DependencyConstraintsMetadataAdapter.class, calculatedDependencies, instantiator, dependencyConstraintNotationParser));
         }
         return calculatedDependencies;
     }
