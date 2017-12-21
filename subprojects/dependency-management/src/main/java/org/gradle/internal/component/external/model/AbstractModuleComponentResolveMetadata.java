@@ -255,12 +255,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
     }
 
-
-    @Override
-    public VariantMetadataRules getVariantMetadataRules() {
-        return variantMetadataRules;
-    }
-
     @Override
     public AttributeContainer getAttributes() {
         return attributes;
