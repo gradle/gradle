@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.type;
 import com.google.common.io.Files;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -61,7 +62,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     }
 
     @Override
-    public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant) {
+    public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant, AttributeContainer componentAttributes) {
         ImmutableAttributes attributes = variant.getAttributes().asImmutable();
 
         // Add attributes to be applied given the extension
@@ -97,7 +98,8 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
                 attributes = attributesFactory.concat(attributes.asImmutable(), ArtifactAttributes.ARTIFACT_FORMAT, format);
             }
         }
-        return attributes;
+
+        return attributesFactory.concat(attributes, ((AttributeContainerInternal)componentAttributes).asImmutable());
     }
 
     private ImmutableAttributes applyForExtension(ImmutableAttributes attributes, String extension) {

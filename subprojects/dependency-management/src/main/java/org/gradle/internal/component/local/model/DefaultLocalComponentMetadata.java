@@ -28,12 +28,12 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -211,11 +211,6 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public VariantMetadataRules getVariantMetadataRules() {
-        return VariantMetadataRules.noOp();
-    }
-
-    @Override
     public ComponentIdentifier getComponentId() {
         return componentIdentifier;
     }
@@ -251,6 +246,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
         return attributesSchema;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return ImmutableAttributes.EMPTY;
     }
 
     private class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata {

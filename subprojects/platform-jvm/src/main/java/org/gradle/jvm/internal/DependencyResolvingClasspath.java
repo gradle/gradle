@@ -42,8 +42,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.specs.Specs;
@@ -72,6 +74,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     private final ResolveContext resolveContext;
     private final AttributesSchemaInternal attributesSchema;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ImmutableAttributesFactory attributesFactory;
 
     private final String descriptor;
     private ResolveResult resolveResult;
@@ -83,7 +86,8 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         List<ResolutionAwareRepository> remoteRepositories,
         ResolveContext resolveContext,
         AttributesSchemaInternal attributesSchema,
-        BuildOperationExecutor buildOperationExecutor) {
+        BuildOperationExecutor buildOperationExecutor,
+        ImmutableAttributesFactory attributesFactory) {
         this.binary = binarySpec;
         this.descriptor = descriptor;
         this.dependencyResolver = dependencyResolver;
@@ -91,6 +95,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         this.resolveContext = resolveContext;
         this.attributesSchema = attributesSchema;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -173,8 +178,8 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             }
 
             @Override
-            public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant) {
-                return variant.getAttributes().asImmutable();
+            public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant, AttributeContainer componentAttributes) {
+                return attributesFactory.concat(variant.getAttributes().asImmutable(), ((AttributeContainerInternal)componentAttributes).asImmutable());
             }
 
             @Override

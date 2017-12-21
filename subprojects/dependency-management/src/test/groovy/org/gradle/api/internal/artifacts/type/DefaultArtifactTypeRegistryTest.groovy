@@ -54,7 +54,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         variant.attributes >> attrs
 
         expect:
-        registry.mapAttributesFor(variant) == attrs
+        registry.mapAttributesFor(variant, ImmutableAttributes.EMPTY) == attrs
     }
 
     def "does not apply any mapping when variant has no artifacts"() {
@@ -66,7 +66,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         variant.artifacts >> []
 
         expect:
-        registry.mapAttributesFor(variant) == attrs
+        registry.mapAttributesFor(variant, ImmutableAttributes.EMPTY) == attrs
     }
 
     def "adds artifactType attribute but does not apply any mapping when no matching artifact type"() {
@@ -86,7 +86,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("aar")
 
         expect:
-        registry.mapAttributesFor(variant) == attrsPlusFormat
+        registry.mapAttributesFor(variant, ImmutableAttributes.EMPTY) == attrsPlusFormat
     }
 
     def "applies mapping when no attributes defined for matching type"() {
@@ -106,7 +106,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("jar")
 
         expect:
-        registry.mapAttributesFor(variant) == attrsPlusFormat
+        registry.mapAttributesFor(variant, ImmutableAttributes.EMPTY) == attrsPlusFormat
     }
 
     def "applies mapping to matching artifact type"() {
@@ -126,7 +126,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
 
         expect:
-        registry.mapAttributesFor(variant) == attrsPlusFormat
+        registry.mapAttributesFor(variant, ImmutableAttributes.EMPTY) == attrsPlusFormat
     }
 
     def "does not apply mapping when multiple artifacts with different types"() {
@@ -151,7 +151,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("zip").attributes.attribute(Attribute.of("custom", String), "234")
 
         expect:
-        registry.mapAttributesFor(variant) == attrs
+        registry.mapAttributesFor(variant, ImmutableAttributes.EMPTY) == attrs
     }
 
     def "does not apply mapping when variant already defines some attributes"() {
@@ -170,7 +170,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
 
         expect:
-        registry.mapAttributesFor(variant) == concat(attrs, ["artifactType": "jar"])
+        registry.mapAttributesFor(variant, ImmutableAttributes.EMPTY) == concat(attrs, ["artifactType": "jar"])
     }
 
     def concat(ImmutableAttributes source, Map<String, String> attrs) {
