@@ -26,7 +26,7 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 @Ignore("Fails on CI for unknown reason")
 @Requires(KOTLIN_SCRIPT)
-class PropertyStateKotlinScriptIntegrationTest extends KotlinScriptIntegrationTest {
+class PropertyKotlinScriptIntegrationTest extends KotlinScriptIntegrationTest {
 
     private final PropertyStateProjectUnderTest projectUnderTest = new PropertyStateProjectUnderTest(testDirectory)
 

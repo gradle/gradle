@@ -22,7 +22,7 @@ import spock.lang.Unroll
 import static PropertyStateProjectUnderTest.Language
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
-class PropertyStateIntegrationTest extends AbstractIntegrationSpec {
+class PropertyIntegrationTest extends AbstractIntegrationSpec {
 
     private final PropertyStateProjectUnderTest projectUnderTest = new PropertyStateProjectUnderTest(testDirectory)
 
