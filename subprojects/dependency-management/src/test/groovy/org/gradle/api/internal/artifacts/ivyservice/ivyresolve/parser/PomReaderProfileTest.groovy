@@ -176,9 +176,9 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         !pomReader.properties.containsKey('prop1')
         !pomReader.properties.containsKey('prop3')
         pomReader.properties['prop2'] == 'myproperty2'
-        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
-        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-four', 'artifact-four', 'jar', null))
-        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null))
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null))
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-four', 'artifact-four', 'jar', null, null))
+        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null))
     }
 
     def "cannot use POM property to set profile ID"() {
@@ -373,7 +373,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -424,7 +424,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -469,7 +469,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -525,8 +525,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey keyDep1 = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
-        MavenDependencyKey keyDep2 = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null)
+        MavenDependencyKey keyDep1 = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
+        MavenDependencyKey keyDep2 = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 2
@@ -563,7 +563,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
@@ -606,7 +606,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
@@ -657,7 +657,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 1
@@ -705,8 +705,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
-        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 1
@@ -761,7 +761,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 1
@@ -824,8 +824,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
-        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 2
@@ -891,8 +891,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         pomReader.setPomParent(parentPomReader)
-        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
-        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 1
@@ -964,7 +964,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         pomReader.setPomParent(parentPomReader)
-        MavenDependencyKey key = new MavenDependencyKey('group-four', 'artifact-four', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-four', 'artifact-four', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -1005,8 +1005,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey keyArtifactTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
-        MavenDependencyKey keyArtifactThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null)
+        MavenDependencyKey keyArtifactTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
+        MavenDependencyKey keyArtifactThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 2
@@ -1048,7 +1048,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -1110,9 +1110,9 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey keyArtifactTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
-        MavenDependencyKey keyArtifactThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null)
-        MavenDependencyKey keyArtifactFour = new MavenDependencyKey('group-four', 'artifact-four', 'jar', null)
+        MavenDependencyKey keyArtifactTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
+        MavenDependencyKey keyArtifactThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null)
+        MavenDependencyKey keyArtifactFour = new MavenDependencyKey('group-four', 'artifact-four', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 3
@@ -1163,7 +1163,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -1204,7 +1204,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -1246,7 +1246,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -1290,7 +1290,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 1
@@ -1336,7 +1336,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 1
@@ -1379,7 +1379,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
 
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -1429,7 +1429,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         pomReader.setPomParent(parentPomReader)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -1495,8 +1495,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         pomReader.setPomParent(parentPomReader)
-        MavenDependencyKey keyArtifactTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
-        MavenDependencyKey keyArtifactThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null)
+        MavenDependencyKey keyArtifactTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
+        MavenDependencyKey keyArtifactThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 2
@@ -1563,7 +1563,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         pomReader.setPomParent(parentPomReader)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -1668,7 +1668,7 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
         activePomProfiles.size() == 0
         !pomReader.properties.containsKey('prop1')
-        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null))
 
         cleanup:
         System.clearProperty(customPropertyName)
@@ -1834,8 +1834,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
         activePomProfiles.size() == 0
         !pomReader.properties.containsKey('prop1')
-        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
-        !pomReader.dependencies.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null))
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null))
+        !pomReader.dependencies.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null))
 
         cleanup:
         System.clearProperty(customPropertyName)
@@ -1891,8 +1891,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         activePomProfiles.size() == 1
         activePomProfiles[0].id == 'profile-1'
         pomReader.properties['prop1'] == 'myproperty1'
-        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
-        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
+        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null))
+        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null), 'version-three')
     }
 
     def "activates profile for negated property if system property is provided"() {
@@ -1946,8 +1946,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         activePomProfiles.size() == 1
         activePomProfiles[0].id == 'profile-1'
         pomReader.properties['prop1'] == 'myproperty1'
-        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
-        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
+        pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null))
+        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null), 'version-three')
 
         cleanup:
         System.clearProperty(customPropertyName)
@@ -2002,8 +2002,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
         activePomProfiles.size() == 0
         !pomReader.properties.containsKey('prop1')
-        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
-        !pomReader.dependencies.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null))
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null))
+        !pomReader.dependencies.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null))
     }
 
     def "does not activate profile if property value is not declared and system property is set with any value"() {
@@ -2056,8 +2056,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         List<PomProfile> activePomProfiles = pomReader.parseActivePomProfiles()
         activePomProfiles.size() == 0
         !pomReader.properties.containsKey('prop1')
-        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null))
-        !pomReader.dependencies.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null))
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null))
+        !pomReader.dependencies.containsKey(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null))
 
         cleanup:
         System.clearProperty(customPropertyName)
@@ -2194,10 +2194,10 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
         !pomReader.properties.containsKey('prop4')
         pomReader.properties['prop2'] == 'myproperty2'
         pomReader.properties['prop3'] == 'myproperty3'
-        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-one', 'jar', null))
-        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-four', 'jar', null))
-        assertResolvedPomDependencyManagement(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null), 'version-three')
-        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null), 'version-three')
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-one', 'jar', null, null))
+        !pomReader.dependencyMgt.containsKey(new MavenDependencyKey('group-two', 'artifact-four', 'jar', null, null))
+        assertResolvedPomDependencyManagement(new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null), 'version-three')
+        assertResolvedPomDependency(new MavenDependencyKey('group-three', 'artifact-three', 'jar', null, null), 'version-three')
     }
 
     def "parse POM with multiple active profiles activated by absence of system property"() {
@@ -2313,8 +2313,8 @@ class PomReaderProfileTest extends AbstractPomReaderTest {
 """
         pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
         pomReader.setPomParent(parentPomReader)
-        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
-        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null, null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null, null)
 
         then:
         pomReader.getDependencyMgt().size() == 1

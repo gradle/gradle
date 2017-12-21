@@ -40,7 +40,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         if (gradleMetadataEnabled || useIvy()) {
             'customVariant'
         } else {
-            'compile'
+            'runtime'
         }
     }
 
