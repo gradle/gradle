@@ -71,6 +71,17 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
     }
 
+    def "can specify custom selection reason"() {
+        when:
+        details.useTarget("org:bar:2.0", 'with custom reason')
+
+        then:
+        details.target instanceof ModuleComponentSelector
+        details.target.toString() == 'org:bar:2.0'
+        details.updated
+        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE.withReason('with custom reason')
+    }
+
     def "can specify target project"() {
         def project = Mock(ProjectInternal)
         def services = new DefaultServiceRegistry()
