@@ -101,7 +101,7 @@
         <header class="site-layout__header site-header" itemscope="itemscope" itemtype="https://schema.org/WPHeader">
             <nav class="site-header__navigation" itemscope="itemscope" itemtype="https://schema.org/SiteNavigationElement">
                 <div class="site-header__navigation-header">
-                    <a target="_top" class="logo" href="" title="Gradle Docs">
+                    <a target="_top" class="logo" href="https://docs.gradle.org" title="Gradle Docs">
                         <svg width="160px" height="36px" viewBox="0 0 191 43" version="1.1" xmlns="http://www.w3.org/2000/svg">
                             <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                 <g>
