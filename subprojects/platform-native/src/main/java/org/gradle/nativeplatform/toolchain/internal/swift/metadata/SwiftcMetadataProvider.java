@@ -73,7 +73,7 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
                     String[] tokens = line.split(" ");
                     // Assuming format: 'Swift version 4.0.2 (...)'
                     int i = 2;
-                    if ("Apple".equals(tokens[i])) {
+                    if ("Apple".equals(tokens[0])) {
                         // Actual format: 'Apple Swift version 4.0.2 (...)'
                         i++;
                     }
