@@ -19,19 +19,19 @@ package org.gradle.test.fixtures.gradle
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class VariantMetadata {
+class VariantMetadataSpec {
     String name
     Map<String, String> attributes
     List<DependencySpec> dependencies = []
     List<DependencyConstraintSpec> dependencyConstraints = []
     List<FileSpec> artifacts = []
 
-    VariantMetadata(String name, Map<String, String> attributes = [:]) {
+    VariantMetadataSpec(String name, Map<String, String> attributes = [:]) {
         this.name = name
         this.attributes = attributes
     }
 
-    VariantMetadata(String name, Map<String, String> attributes, List<DependencySpec> dependencies, List<DependencyConstraintSpec> dependencyConstraints, List<FileSpec> artifacts) {
+    VariantMetadataSpec(String name, Map<String, String> attributes, List<DependencySpec> dependencies, List<DependencyConstraintSpec> dependencyConstraints, List<FileSpec> artifacts) {
         this.name = name
         this.attributes = attributes
         this.dependencies = dependencies

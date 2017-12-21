@@ -24,7 +24,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -61,7 +61,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     }
 
     @Override
-    public ImmutableAttributes mapAttributesFor(VariantMetadata variant) {
+    public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant) {
         ImmutableAttributes attributes = variant.getAttributes().asImmutable();
 
         // Add attributes to be applied given the extension

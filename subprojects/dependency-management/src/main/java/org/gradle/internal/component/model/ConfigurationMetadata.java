@@ -62,7 +62,7 @@ public interface ConfigurationMetadata extends HasAttributes {
     /**
      * Returns the variants of this configuration. Should include at least one value. Exactly one variant must be selected and the artifacts of that variant used.
      */
-    Set<? extends VariantMetadata> getVariants();
+    Set<? extends VariantResolveMetadata> getVariants();
 
     /**
      * Returns the exclusions to apply to this configuration:

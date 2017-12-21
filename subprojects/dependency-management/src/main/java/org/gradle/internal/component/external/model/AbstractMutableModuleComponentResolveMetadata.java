@@ -35,7 +35,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 
@@ -425,7 +425,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         }
     }
 
-    protected static class ImmutableVariantImpl implements ComponentVariant, VariantMetadata {
+    protected static class ImmutableVariantImpl implements ComponentVariant, VariantResolveMetadata {
         private final ModuleComponentIdentifier componentId;
         private final String name;
         private final ImmutableAttributes attributes;

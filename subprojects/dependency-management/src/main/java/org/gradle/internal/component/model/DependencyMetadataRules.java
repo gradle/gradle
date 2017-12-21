@@ -39,7 +39,7 @@ import java.util.List;
  * A set of rules provided by the build script author
  * (as {@link Action<DirectDependenciesMetadata>} or {@link Action<DependencyConstraintsMetadata>})
  * that are applied on the dependencies defined in variant/configuration metadata. The rules are applied
- * in the {@link #execute(VariantMetadata, List)} method when the dependencies of a variant are needed during dependency resolution.
+ * in the {@link #execute(VariantResolveMetadata, List)} method when the dependencies of a variant are needed during dependency resolution.
  */
 public class DependencyMetadataRules {
     private static final Spec<ModuleDependencyMetadata> DEPENDENCY_FILTER = new Spec<ModuleDependencyMetadata>() {
@@ -77,14 +77,14 @@ public class DependencyMetadataRules {
         dependencyConstraintActions.add(action);
     }
 
-    public <T extends ModuleDependencyMetadata> List<T> execute(VariantMetadata variant, List<T> dependencies) {
+    public <T extends ModuleDependencyMetadata> List<T> execute(VariantResolveMetadata variant, List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<T>();
         calculatedDependencies.addAll(executeDependencyRules(variant, dependencies));
         calculatedDependencies.addAll(executeDependencyConstraintRules(variant, dependencies));
         return calculatedDependencies;
     }
 
-    private <T extends ModuleDependencyMetadata> List<T> executeDependencyRules(VariantMetadata variant, List<T> dependencies) {
+    private <T extends ModuleDependencyMetadata> List<T> executeDependencyRules(VariantResolveMetadata variant, List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<T>(CollectionUtils.filter(dependencies, DEPENDENCY_FILTER));
         for (VariantMetadataRules.VariantAction<? super DirectDependenciesMetadata> dependenciesMetadataAction : dependencyActions) {
             dependenciesMetadataAction.maybeExecute(variant, instantiator.newInstance(
@@ -93,7 +93,7 @@ public class DependencyMetadataRules {
         return calculatedDependencies;
     }
 
-    private <T extends ModuleDependencyMetadata> List<T> executeDependencyConstraintRules(VariantMetadata variant, List<T> dependencies) {
+    private <T extends ModuleDependencyMetadata> List<T> executeDependencyConstraintRules(VariantResolveMetadata variant, List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<T>(CollectionUtils.filter(dependencies, DEPENDENCY_CONSTRAINT_FILTER));
         for (VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata> dependencyConstraintsMetadataAction : dependencyConstraintActions) {
             dependencyConstraintsMetadataAction.maybeExecute(variant, instantiator.newInstance(

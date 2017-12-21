@@ -30,7 +30,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -98,7 +98,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     }
 
     @Override
-    public Set<? extends VariantMetadata> getVariants() {
+    public Set<? extends VariantResolveMetadata> getVariants() {
         return ImmutableSet.of(variant);
     }
 

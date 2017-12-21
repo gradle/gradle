@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -109,7 +110,7 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     }
 
 
-    private static class VariantNameSpec implements Spec<org.gradle.internal.component.model.VariantMetadata> {
+    private static class VariantNameSpec implements Spec<VariantResolveMetadata> {
         private final String name;
 
         private VariantNameSpec(String name) {
@@ -117,7 +118,7 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
         }
 
         @Override
-        public boolean isSatisfiedBy(org.gradle.internal.component.model.VariantMetadata element) {
+        public boolean isSatisfiedBy(VariantResolveMetadata element) {
             return name.equals(element.getName());
         }
     }

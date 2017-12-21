@@ -29,7 +29,7 @@ import java.util.List;
  * A set of rules provided by the build script author
  * (as {@link Action &lt;? super AttributeContainer&gt;}
  * that are applied on the attributes defined in variant/configuration metadata. The rules are applied
- * in the {@link #execute(VariantMetadata, AttributeContainerInternal)} method when the attributes of a variant are needed during dependency resolution.
+ * in the {@link #execute(VariantResolveMetadata, AttributeContainerInternal)} method when the attributes of a variant are needed during dependency resolution.
  */
 public class VariantAttributesRules {
     private final ImmutableAttributesFactory attributesFactory;
@@ -43,7 +43,7 @@ public class VariantAttributesRules {
         actions.add(action);
     }
 
-    public ImmutableAttributes execute(VariantMetadata variant, AttributeContainerInternal attributes) {
+    public ImmutableAttributes execute(VariantResolveMetadata variant, AttributeContainerInternal attributes) {
         if (attributes == null) {
             attributes = attributesFactory.mutable();
         } else {
