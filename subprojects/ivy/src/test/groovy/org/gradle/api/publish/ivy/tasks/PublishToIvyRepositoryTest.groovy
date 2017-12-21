@@ -18,6 +18,10 @@ package org.gradle.api.publish.ivy.tasks
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+import org.gradle.api.internal.tasks.TaskPropertyUtils
+import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
+import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
+import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication
@@ -63,7 +67,10 @@ class PublishToIvyRepositoryTest extends AbstractProjectBuilderSpec {
         publish.publication = publication
 
         then:
-        publish.inputs.files.files == publishableFiles.files
+        GetInputFilesVisitor visitor = new GetInputFilesVisitor(publish.toString())
+        def walker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))
+        TaskPropertyUtils.visitProperties(walker, publish, visitor)
+        visitor.files.files == publishableFiles.files
     }
 
     PublishToIvyRepository createPublish(String name) {

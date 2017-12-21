@@ -701,7 +701,7 @@ task inputsAndOutputs {
     outputs.file 'src.a.txt'
     outputs.upToDateWhen { project.hasProperty('uptodate') }
     doFirst {
-        outputs.files.singleFile.text = "[${inputs.files.singleFile.text}]"
+        file('src.a.txt').text = "[${file('src.txt').text}]"
     }
 }
 task noOutputs {

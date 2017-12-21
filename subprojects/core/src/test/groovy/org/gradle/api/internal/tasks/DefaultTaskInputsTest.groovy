@@ -65,7 +65,7 @@ class DefaultTaskInputsTest extends Specification {
 
     def "default values"() {
         expect:
-        inputs.files.empty
+        inputFiles().empty
         inputProperties().isEmpty()
         !inputs.hasInputs
         !inputs.hasSourceFiles
@@ -75,7 +75,7 @@ class DefaultTaskInputsTest extends Specification {
     def "can register input file"() {
         when: inputs.file("a")
         then:
-        inputs.files.files.toList() == [new File('a')]
+        inputFiles().toList() == [new File('a')]
         inputFileProperties().propertyName == ['$1']
         inputFileProperties().propertyFiles*.files.flatten() == [new File("a")]
     }
@@ -83,7 +83,7 @@ class DefaultTaskInputsTest extends Specification {
     def "can register input file with property name"() {
         when: inputs.file("a").withPropertyName("prop")
         then:
-        inputs.files.files.toList() == [new File('a')]
+        inputFiles().toList() == [new File('a')]
         inputFileProperties().propertyName == ['prop']
         inputFileProperties().propertyFiles*.files.flatten() == [new File("a")]
     }
@@ -91,7 +91,7 @@ class DefaultTaskInputsTest extends Specification {
     def "can register input files"() {
         when: inputs.files("a", "b")
         then:
-        inputs.files.files.toList() == [new File("a"), new File("b")]
+        inputFiles().toList() == [new File("a"), new File("b")]
         inputFileProperties().propertyName == ['$1']
         inputFileProperties().propertyFiles*.files.flatten() == [new File("a"), new File("b")]
     }
@@ -99,7 +99,7 @@ class DefaultTaskInputsTest extends Specification {
     def "can register input files with property name"() {
         when: inputs.files("a", "b").withPropertyName("prop")
         then:
-        inputs.files.files.sort() == [new File("a"), new File("b")]
+        inputFiles().sort() == [new File("a"), new File("b")]
         inputFileProperties().propertyName == ['prop']
         inputFileProperties().propertyFiles*.files.flatten() == [new File("a"), new File("b")]
     }
@@ -107,7 +107,7 @@ class DefaultTaskInputsTest extends Specification {
     def "can register input dir"() {
         when: inputs.dir("a")
         then:
-        inputs.files.files.toList() == [treeFile]
+        inputFiles().toList() == [treeFile]
         inputFileProperties().propertyName == ['$1']
         inputFileProperties().propertyFiles*.files.flatten() == [treeFile]
     }
@@ -115,7 +115,7 @@ class DefaultTaskInputsTest extends Specification {
     def "can register input dir with property name"() {
         when: inputs.dir("a").withPropertyName("prop")
         then:
-        inputs.files.files.toList() == [treeFile]
+        inputFiles().toList() == [treeFile]
         inputFileProperties().propertyName == ['prop']
         inputFileProperties().propertyFiles*.files.flatten() == [treeFile]
     }
@@ -198,7 +198,7 @@ class DefaultTaskInputsTest extends Specification {
         when: inputs.files(["s1", "s2"]).skipWhenEmpty()
         then:
         inputs.hasSourceFiles
-        inputs.files.files.toList() == [new File("a"), new File("b"), new File("s1"), new File("s2")]
+        inputFiles().toList().sort() == [new File("a"), new File("b"), new File("s1"), new File("s2")]
         inputs.sourceFiles.files.toList() == [new File("s1"), new File("s2")]
         inputFileProperties().propertyName == ['$1', 'prop']
         inputFileProperties().propertyFiles*.toList() == [[new File("s1"), new File("s2")], [new File("a"), new File("b")]]
@@ -234,7 +234,7 @@ class DefaultTaskInputsTest extends Specification {
 
         then:
         inputs.sourceFiles.files == ([new File('file')] as Set)
-        inputs.files.files == ([new File('file')] as Set)
+        inputFiles().toList() == [new File('file')]
     }
 
     def hasInputsWhenEmptyInputFilesRegistered() {
@@ -292,5 +292,9 @@ class DefaultTaskInputsTest extends Specification {
         GetInputFilesVisitor visitor = new GetInputFilesVisitor("test")
         TaskPropertyUtils.visitProperties(walker, task, visitor)
         return visitor.getFileProperties()
+    }
+
+    def inputFiles() {
+        inputFileProperties()*.propertyFiles*.files.flatten()
     }
 }
