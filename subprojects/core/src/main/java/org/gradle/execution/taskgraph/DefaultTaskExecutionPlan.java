@@ -170,7 +170,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // task in the queue
                 // Make sure it has been configured
                 ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
-                Set<? extends Task> dependsOnTasks = context.getDependencies(task);
+                Set<? extends Task> dependsOnTasks = context.getDependencies(task, task.getTaskDependencies());
                 for (Task dependsOnTask : dependsOnTasks) {
                     TaskInfo targetNode = nodeFactory.createNode(dependsOnTask);
                     node.addDependencySuccessor(targetNode);
@@ -178,18 +178,18 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         queue.add(0, targetNode);
                     }
                 }
-                for (Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
+                for (Task finalizerTask : context.getDependencies(task, task.getFinalizedBy())) {
                     TaskInfo targetNode = nodeFactory.createNode(finalizerTask);
                     addFinalizerNode(node, targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
                 }
-                for (Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
+                for (Task mustRunAfter : context.getDependencies(task, task.getMustRunAfter())) {
                     TaskInfo targetNode = nodeFactory.createNode(mustRunAfter);
                     node.addMustSuccessor(targetNode);
                 }
-                for (Task shouldRunAfter : task.getShouldRunAfter().getDependencies(task)) {
+                for (Task shouldRunAfter : context.getDependencies(task, task.getShouldRunAfter())) {
                     TaskInfo targetNode = nodeFactory.createNode(shouldRunAfter);
                     node.addShouldSuccessor(targetNode);
                 }

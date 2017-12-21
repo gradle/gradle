@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Buildable;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
@@ -48,7 +49,8 @@ import java.util.Set;
  *
  * </ul>
  */
-public class CachingTaskDependencyResolveContext implements TaskDependencyResolveContext, TaskDependency {
+@NonNullApi
+public class CachingTaskDependencyResolveContext implements TaskDependencyResolveContext {
     private final LinkedList<Object> queue = new LinkedList<Object>();
     private final CachingDirectedGraphWalker<Object, Task> walker = new CachingDirectedGraphWalker<Object, Task>(
             new TaskGraphImpl());
@@ -63,8 +65,8 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
         this.taskInfoFactory = taskInfoFactory;
     }
 
-    public Set<? extends Task> getDependencies(Task task) {
-        add(task.getTaskDependencies());
+    public Set<? extends Task> getDependencies(Task task, TaskDependency container) {
+        add(container);
         return resolve(task);
     }
 

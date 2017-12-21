@@ -28,13 +28,9 @@ class CachingTaskDependencyResolveContextTest extends Specification {
     private final Task target = Mock()
     private final TaskDependencyInternal dependency = Mock()
 
-    def setup() {
-        _ * task.getTaskDependencies() >> dependency
-    }
-
     def determinesTaskDependenciesByResolvingDependencyObjectForTask() {
         when:
-        def tasks = context.getDependencies(task)
+        def tasks = context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_)
@@ -43,7 +39,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
 
     def resolvesTaskObject() {
         when:
-        def tasks = context.getDependencies(task)
+        def tasks = context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(target) }
@@ -54,7 +50,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         TaskDependency otherDependency = Mock()
 
         when:
-        def tasks = context.getDependencies(task)
+        def tasks = context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherDependency) }
@@ -66,7 +62,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         TaskDependencyInternal otherDependency = Mock()
 
         when:
-        def tasks = context.getDependencies(task)
+        def tasks = context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherDependency) }
@@ -78,7 +74,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         TaskDependencyContainer otherDependency = Mock()
 
         when:
-        def tasks = context.getDependencies(task)
+        def tasks = context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherDependency) }
@@ -91,7 +87,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         TaskDependency otherDependency = Mock()
 
         when:
-        def tasks = context.getDependencies(task)
+        def tasks = context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(buildable) }
@@ -105,7 +101,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         TaskDependencyInternal otherDependency = Mock()
 
         when:
-        def tasks = context.getDependencies(task)
+        def tasks = context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(buildable) }
@@ -116,7 +112,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
 
     def throwsExceptionForUnresolvableObject() {
         when:
-        context.getDependencies(task)
+        context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_) >> { args -> args[0].add('unknown') }
@@ -130,7 +126,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         TaskDependency otherDependency2 = Mock()
 
         when:
-        def tasks = context.getDependencies(task)
+        def tasks = context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context ->
@@ -147,7 +143,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         TaskDependencyInternal otherDependency2 = Mock()
 
         when:
-        def tasks = context.getDependencies(task)
+        def tasks = context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context ->
@@ -165,7 +161,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         TaskDependency otherDependency2 = Mock()
 
         when:
-        def tasks = context.getDependencies(task)
+        def tasks = context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context
@@ -184,7 +180,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         TaskDependencyInternal otherDependency2 = Mock()
 
         when:
-        def tasks = context.getDependencies(task)
+        def tasks = context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context ->
@@ -201,7 +197,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        context.getDependencies(task)
+        context.getDependencies(task, dependency)
 
         then:
         1 * dependency.visitDependencies(_) >> { throw failure }
