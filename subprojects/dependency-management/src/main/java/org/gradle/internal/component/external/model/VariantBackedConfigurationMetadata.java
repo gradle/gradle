@@ -49,6 +49,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     private final ImmutableAttributes componentLevelAttributes;
 
     private List<GradleDependencyMetadata> calculatedDependencies;
+    private ImmutableAttributes computedVariantAttributes;
 
     VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableAttributes attributes, ImmutableAttributesFactory attributesFactory, VariantMetadataRules componentMetadataRules) {
         this.componentId = componentId;
@@ -90,7 +91,10 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
 
     @Override
     public ImmutableAttributes getAttributes() {
-        return componentMetadataRules.applyVariantAttributeRules(variant, mergeComponentAndVariantAttributes(variant.getAttributes()));
+        if (computedVariantAttributes == null) {
+            computedVariantAttributes = componentMetadataRules.applyVariantAttributeRules(variant, mergeComponentAndVariantAttributes(variant.getAttributes()));
+        }
+        return computedVariantAttributes;
     }
 
     private AttributeContainerInternal mergeComponentAndVariantAttributes(AttributeContainerInternal variantAttributes) {

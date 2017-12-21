@@ -152,6 +152,56 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
+    def "rule is applied only once"() {
+        given:
+        withDefaultVariantToTest()
+        buildFile << """
+            int cpt
+            dependencies {
+                components {
+                    withModule('org.test:moduleB') {
+                        withVariant("$variantToTest") { 
+                            attributes {
+                                if (++cpt == 2) {
+                                    throw new IllegalStateException("rule should only be applied once")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        repository {
+            'org.test:moduleB:1.0' {
+                variant 'customVariant', [format: 'custom']
+            }
+        }
+
+        when:
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def variantToTest = variantToTest
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org.test:moduleA:1.0:$variantToTest") {
+                    module("org.test:moduleB:1.0")
+                }
+            }
+        }
+    }
+
     @Unroll
     def "can disambiguate variants to select #selectedVariant"() {
         given:
