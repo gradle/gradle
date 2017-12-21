@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
@@ -348,12 +348,13 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     }
 
     def attributes(Map<String, String> values) {
-        def attrs = ImmutableAttributes.EMPTY
+        def attrs = TestUtil.attributesFactory().mutable()
+        attrs.attribute(ProjectInternal.STATUS_ATTRIBUTE, 'integration')
         if (values) {
             values.each { String key, String value ->
-                attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, String), value)
+                attrs.attribute(Attribute.of(key, String), value)
             }
         }
-        return attrs
+        return attrs.asImmutable()
     }
 }

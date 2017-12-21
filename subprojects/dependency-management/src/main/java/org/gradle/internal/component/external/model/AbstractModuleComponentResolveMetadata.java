@@ -62,7 +62,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final Map<String, DefaultConfigurationMetadata> configurations = Maps.newHashMap();
     private ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
-    protected AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
+    AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.isChanging();
@@ -79,18 +79,14 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     private ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
-        AttributeContainer attributes = metadata.getAttributes();
-        if (attributes == null) {
-            attributes = ImmutableAttributes.EMPTY;
-        }
-        return ((AttributeContainerInternal) attributes).asImmutable();
+        return ((AttributeContainerInternal) metadata.getAttributes()).asImmutable();
     }
 
 
     /**
      * Creates a copy of the given metadata
      */
-    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
+    AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.changing;
