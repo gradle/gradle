@@ -18,12 +18,25 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
 import org.gradle.api.provider.PropertyState
+import org.gradle.api.provider.Provider
 import spock.lang.Unroll
 
 class DefaultPropertyStateTest extends PropertySpec<String> {
     @Override
     DefaultPropertyState<String> property() {
         return new DefaultPropertyState<String>(String)
+    }
+
+    @Override
+    Provider<String> providerWithNoValue() {
+        return property()
+    }
+
+    @Override
+    Provider<String> providerWithValue(String value) {
+        def p = property()
+        p.set(value)
+        return p
     }
 
     @Override

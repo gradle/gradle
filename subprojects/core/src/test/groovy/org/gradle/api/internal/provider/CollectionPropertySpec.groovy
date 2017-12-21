@@ -21,7 +21,34 @@ import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
 import spock.lang.Unroll
 
-abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
+abstract class CollectionPropertySpec<C extends Collection<String>> extends ProviderSpec<C> {
+    @Override
+    Provider<C> providerWithNoValue() {
+        def p = property()
+        p.set((C)null)
+        return p
+    }
+
+    Provider<C> providerWithValue(C value) {
+        def p = property()
+        p.set(value)
+        return p
+    }
+
+    @Override
+    C someValue() {
+        return toMutable(["s1", "s2"])
+    }
+
+    @Override
+    C someOtherValue() {
+        return toMutable(["s1"])
+    }
+
+    abstract CollectionPropertyInternal<String, C> property()
+
+    abstract Class<C> type()
+
     def property = property()
 
     protected void assertValueIs(Collection<String> expected) {
@@ -56,6 +83,46 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         expect:
         property.set(toMutable(["abc"]))
         assertValueIs(["abc"])
+    }
+
+    def "can set value from various collection types"() {
+        def iterable = Stub(Iterable)
+        iterable.iterator() >> ["4", "5"].iterator()
+
+        expect:
+        property.set(["1", "2"])
+        property.get() == toImmutable(["1", "2"])
+
+        property.set(["2", "3"] as Set)
+        property.get() == toImmutable(["2", "3"])
+
+        property.set(iterable)
+        property.get() == toImmutable(["4", "5"])
+    }
+
+    def "can set untyped from various collection types"() {
+        def iterable = Stub(Iterable)
+        iterable.iterator() >> ["4", "5"].iterator()
+
+        expect:
+        property.setFromAnyValue(["1", "2"])
+        property.get() == toImmutable(["1", "2"])
+
+        property.setFromAnyValue(["2", "3"] as Set)
+        property.get() == toImmutable(["2", "3"])
+
+        property.setFromAnyValue(iterable)
+        property.get() == toImmutable(["4", "5"])
+    }
+
+    def "can set untyped from provider"() {
+        def provider = Stub(Provider)
+        provider.get() >>> [["1"], ["2"]]
+
+        expect:
+        property.setFromAnyValue(provider)
+        property.get() == toImmutable(["1"])
+        property.get() == toImmutable(["2"])
     }
 
     def "queries initial value for every call to get()"() {
@@ -194,7 +261,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
     def "property has no value when set to null and other values appended"() {
         given:
-        property.set(null)
+        property.set((C) null)
         property.add("123")
         property.add(Providers.of("456"))
         property.addAll(Providers.of(["789"]))
@@ -275,9 +342,9 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         property.add(Providers.of("def"))
         property.addAll(Providers.of(["hij"]))
 
-        expect:
-        property.set(null)
+        property.set((Iterable)null)
 
+        expect:
         !property.present
         property.getOrNull() == null
         property.getOrElse(someValue()) == someValue()

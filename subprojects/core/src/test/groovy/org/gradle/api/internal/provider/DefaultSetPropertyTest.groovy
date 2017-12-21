@@ -31,16 +31,6 @@ class DefaultSetPropertyTest extends CollectionPropertySpec<Set<String>> {
     }
 
     @Override
-    Set<String> someValue() {
-        return ["value"]
-    }
-
-    @Override
-    Set<String> someOtherValue() {
-        return ["value2"]
-    }
-
-    @Override
     protected Class<? extends ImmutableCollection<?>> getImmutableCollectionType() {
         return ImmutableSet.class
     }
@@ -54,8 +44,6 @@ class DefaultSetPropertyTest extends CollectionPropertySpec<Set<String>> {
     protected Set<String> toMutable(Collection<String> values) {
         return new LinkedHashSet<String>(values)
     }
-
-    def property = property()
 
     def "defaults to empty set"() {
         expect:

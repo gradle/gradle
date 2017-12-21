@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Transformer;
-import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.util.CollectionUtils;
 
@@ -28,7 +27,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProvider<C> implements PropertyInternal<C>, HasMultipleValues<T> {
+public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProvider<C> implements CollectionPropertyInternal<T, C> {
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
     private static final NoValueCollector NO_VALUE_COLLECTOR = new NoValueCollector();
     private final Class<? extends Collection> collectionType;
@@ -109,30 +108,30 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (object instanceof Provider) {
             set((Provider<C>) object);
         } else {
-            if (object != null && !(collectionType.isInstance(object))) {
+            if (object != null && !(object instanceof Iterable)) {
                 throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", collectionType.getName(), object.getClass().getName()));
             }
-            set((C) object);
+            set((Iterable<? extends T>) object);
         }
     }
 
     @Override
-    public void set(@Nullable final C value) {
+    public void set(@Nullable final Iterable<? extends T> value) {
         collectors.clear();
         if (value == null) {
             this.value = (Collector<T>) NO_VALUE_COLLECTOR;
         } else {
-            this.value = new ElementsFromCollection<T, C>(value);
+            this.value = new ElementsFromCollection<T>(value);
         }
     }
 
     @Override
-    public void set(final Provider<? extends C> provider) {
+    public void set(final Provider<? extends Iterable<? extends T>> provider) {
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
         collectors.clear();
-        value = new ElementsFromProvider<T, C>(provider);
+        value = new ElementsFromProvider<T>(provider);
     }
 
     /**
@@ -269,10 +268,10 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    private static class ElementsFromCollection<T, C extends Collection<? extends T>> implements Collector<T> {
-        private final C value;
+    private static class ElementsFromCollection<T> implements Collector<T> {
+        private final Iterable<? extends T> value;
 
-        ElementsFromCollection(C value) {
+        ElementsFromCollection(Iterable<? extends T> value) {
             this.value = value;
         }
 
@@ -283,20 +282,20 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public void collectInto(Collection<T> collection) {
-            collection.addAll(value);
+            CollectionUtils.addAll(collection, value);
         }
 
         @Override
         public boolean maybeCollectInto(Collection<T> collection) {
-            collection.addAll(value);
+            CollectionUtils.addAll(collection, value);
             return true;
         }
     }
 
-    private static class ElementsFromProvider<T, C extends Collection<T>> implements Collector<T> {
-        private final Provider<? extends C> provider;
+    private static class ElementsFromProvider<T> implements Collector<T> {
+        private final Provider<? extends Iterable<? extends T>> provider;
 
-        ElementsFromProvider(Provider<? extends C> provider) {
+        ElementsFromProvider(Provider<? extends Iterable<? extends T>> provider) {
             this.provider = provider;
         }
 
@@ -307,17 +306,17 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public void collectInto(Collection<T> collection) {
-            C value = provider.get();
-            collection.addAll(value);
+            Iterable<? extends T> value = provider.get();
+            CollectionUtils.addAll(collection, value);
         }
 
         @Override
         public boolean maybeCollectInto(Collection<T> collection) {
-            C value = provider.getOrNull();
+            Iterable<? extends T> value = provider.getOrNull();
             if (value == null) {
                 return false;
             }
-            collection.addAll(value);
+            CollectionUtils.addAll(collection, value);
             return true;
         }
     }

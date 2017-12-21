@@ -29,5 +29,5 @@ import java.util.Set;
  * @since 4.5
  */
 @Incubating
-public interface SetProperty<T> extends Property<Set<T>>, HasMultipleValues<T> {
+public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
 }

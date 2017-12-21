@@ -18,8 +18,10 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
- * Represents a property whose type is a collection of elements of type {@link T}.
+ * Represents a property whose value can be set using multiple elements of type {@link T}, such as a collection property.
  *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. You can use the factory methods on {@link org.gradle.api.model.ObjectFactory} to create instances of this interface.
  *
@@ -28,6 +30,22 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface HasMultipleValues<T> {
+    /**
+     * Sets the value of the property the given value.
+     *
+     * <p>This method can also be used to clear the value of the property, by passing {@code null} as the value.
+     *
+     * @param value The value, can be null.
+     */
+    void set(@Nullable Iterable<? extends T> value);
+
+    /**
+     * Sets the property to have the same value of the given provider. This property will track the value of the provider and query its value each time the value of the property is queried. When the provider has no value, this property will also have no value.
+     *
+     * @param provider Provider
+     */
+    void set(Provider<? extends Iterable<? extends T>> provider);
+
     /**
      * Adds an element to the property value.
      *

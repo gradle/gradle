@@ -18,7 +18,7 @@ package org.gradle.api.internal.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class ListPropertyTaskIntegrationTest extends AbstractIntegrationSpec {
+class ListPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             class MyTask extends DefaultTask {
@@ -38,15 +38,21 @@ class ListPropertyTaskIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "can set default value for list property"() {
+    def "can set value for list property from DSL"() {
         buildFile << """
             verify {
-                prop = [ 'a', 'b', 'c' ]
+                prop = ${value}
                 expected = [ 'a', 'b', 'c' ]
             }
         """
         expect:
         succeeds("verify")
+
+        where:
+        value                                      | _
+        "[ 'a', 'b', 'c' ]"                        | _
+        "new LinkedHashSet([ 'a', 'b', 'c' ])"     | _
+        "providers.provider { [ 'a', 'b', 'c' ] }" | _
     }
 
     def "can add to default values"() {

@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.PropertyState;
-
-public interface PropertyInternal<T> extends PropertyState<T>, ProviderInternal<T> {
+public interface PropertyInternal {
     /**
      * Sets the property's value from some arbitrary object. Used from the Groovy DSL.
      */
