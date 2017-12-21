@@ -130,10 +130,22 @@ h4, h5, h6 {
 }
 
 p {
-    font-size: 1.0625rem;
+    font-size: 1rem;
     line-height: 1.6;
     margin-bottom: 1.25rem;
     text-rendering: optimizeLegibility;
+}
+
+@media (min-width: 1200px) {
+    p {
+        font-size: 1.0625rem;
+    }
+}
+
+@media (min-width: 1400px) {
+    p {
+        font-size: 1.125rem;
+    }
 }
 
 dt {
@@ -248,7 +260,7 @@ blockquote p:last-child {
 }
 
 .content, .text-container {
-    width: 45rem;
+    width: 60rem;
 }
 
 .content-container {
@@ -291,7 +303,7 @@ code, pre {
 }
 
 *:not(pre) > code {
-    font-size: 0.9375rem;
+    font-size: 0.9375em;
     letter-spacing: 0;
     padding: 0.1em 0.5ex;
     text-rendering: optimizeSpeed;
@@ -481,8 +493,6 @@ h3.releaseinfo {
 .site-header__navigation {
     display: flex;
     flex-direction: column;
-    max-width: 1200px;
-    margin: 0 auto;
 }
 
 .site-header__navigation-header {
@@ -494,7 +504,7 @@ h3.releaseinfo {
 
 .site-header__navigation-collapsible {
     flex: 1 1 auto;
-    height: 404px;
+    height: 304px;
     overflow: visible;
     transition: height 0.3s ease;
 }
@@ -637,10 +647,6 @@ h3.releaseinfo {
         flex-direction: row;
     }
 
-    .site-header__navigation-header {
-        margin-left: 0;
-    }
-
     .site-header__navigation-button {
         display: none;
     }
@@ -747,7 +753,7 @@ h3.releaseinfo {
     margin-top: 1.5em;
 }
 
-@media screen and (min-width: 720px) {
+@media screen and (min-width: 45rem) {
     .main-content {
         display: flex;
         justify-content: center;
@@ -755,31 +761,30 @@ h3.releaseinfo {
 }
 
 /* User guide navigation appears for desktops */
-@media screen and (min-width: 1024px) {
+@media screen and (min-width: 64rem) {
     .main-content {
         padding-top: 75px;
     }
 
     .docs-navigation {
         display: block;
-        flex: 0 1 auto;
-        width: 220px;
+        flex: 0 0 auto;
+        width: 13.75rem;
     }
 
     .chapter, .book {
-        flex: 0 1 720px;
+        flex: 0 0 45rem;
         margin: 0 20px;
-        min-height: 600px;
     }
 }
 
 /* Fixed intra-chapter navigation for desktops */
-@media screen and (min-width: 1200px) {
+@media screen and (min-width: 75rem) {
     .chapter .toc {
         position: fixed;
         left: calc(50% + 380px);
         top: 50px;
-        width: 220px;
+        width: 13.75rem;
         padding-top: 15px;
         font-size: 1rem;
         background-color: #F7F7F8;
@@ -821,12 +826,34 @@ h3.releaseinfo {
     }
 
     .docs-navigation {
-        flex-basis: 220px;
+        flex-basis: 13.75rem;
     }
 
     /* Sneaky way to make room for TOC */
     .secondary-navigation {
-        flex: 0 1 220px;
+        flex: 0 0 13.75rem;
+    }
+}
+
+@media screen and (min-width: 84.375rem) {
+    .chapter .toc {
+        left: calc(50% + 26.25rem);
+    }
+
+    .chapter, .book {
+        flex-basis: 50rem;
+        max-width: 50rem;
+    }
+}
+
+@media screen and (min-width: 90rem) {
+    .chapter .toc {
+        left: calc(50% + 31.25rem);
+    }
+
+    .chapter, .book {
+        flex-basis: 60rem;
+        max-width: 60rem;
     }
 }
 
@@ -950,7 +977,7 @@ h3.releaseinfo {
 }
 
 .site-footer__subscribe-newsletter {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
 }
 
 .site-footer__subscribe-newsletter p {
@@ -1080,6 +1107,12 @@ h3.releaseinfo {
     .site-footer__copy {
         order: 2;
         text-align: right;
+    }
+}
+
+@media screen and (min-width: 1400px) {
+    .site-footer__navigation {
+        max-width: 90rem;
     }
 }
 
