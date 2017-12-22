@@ -15,7 +15,6 @@
  */
 
 import org.gradle.api.internal.PropertiesUtils
-import java.nio.charset.Charset
 import java.util.Properties
 
 plugins {
@@ -106,7 +105,7 @@ tasks.withType<GeneratePluginDescriptors> {
                 descriptorContents.load(it)
             }
             descriptorFile.outputStream().use {
-                PropertiesUtils.store(descriptorContents, it, null, Charset.forName("ISO-8859-1"), "\n")
+                PropertiesUtils.store(descriptorContents, it, null, Charsets.ISO_8859_1, "\n")
             }
         }
     }
