@@ -1,3 +1,11 @@
+
+import org.gradle.api.JavaVersion
+import org.gradle.api.internal.PropertiesUtils
+import org.gradle.kotlin.dsl.*
+import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors
+import java.nio.charset.Charset
+import java.util.*
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -84,3 +92,26 @@ if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "tr
 }
 
 apply { from("../gradle/ciReporting.gradle") }
+
+// Workaround caching problems with 'java-gradle-plugin'
+// vvvvv
+normalization {
+    runtimeClasspath {
+        ignore("plugin-under-test-metadata.properties")
+    }
+}
+
+tasks.withType<GeneratePluginDescriptors> {
+    doLast {
+        outputDirectory.listFiles().forEach { descriptorFile ->
+            val descriptorContents = Properties()
+            descriptorFile.inputStream().use {
+                descriptorContents.load(it)
+            }
+            descriptorFile.outputStream().use {
+                PropertiesUtils.store(descriptorContents, it, null, Charset.forName("ISO-8859-1"), "\n")
+            }
+        }
+    }
+}
+// ^^^^^
