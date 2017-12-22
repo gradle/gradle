@@ -1,11 +1,3 @@
-
-import org.gradle.api.JavaVersion
-import org.gradle.api.internal.PropertiesUtils
-import org.gradle.kotlin.dsl.*
-import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors
-import java.nio.charset.Charset
-import java.util.*
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -21,6 +13,11 @@ import java.util.*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import org.gradle.api.internal.PropertiesUtils
+import java.nio.charset.Charset
+import java.util.Properties
+
 plugins {
     groovy
     `java-gradle-plugin`
