@@ -483,7 +483,7 @@ h3.releaseinfo {
 
 .site-header__navigation-collapsible {
     flex: 1 1 auto;
-    height: 304px;
+    height: 190px;
     overflow: visible;
     transition: height 0.3s ease;
 }
@@ -491,9 +491,9 @@ h3.releaseinfo {
 .site-header__navigation-items {
     display: flex;
     flex-direction: column;
+    flex-wrap: wrap;
     align-items: flex-start;
-    float: left;
-    width: 100%;
+    max-height: 170px;
     margin: 0 20px 0 0;
     padding-top: 12px;
     padding-left: 0;
@@ -502,8 +502,8 @@ h3.releaseinfo {
 
 .site-header__navigation-item {
     flex: 0 1 auto;
-    width: 100%;
     font-size: 16px;
+    width: 250px;
 }
 
 .site-header__navigation-item .site-header__navigation-link {
@@ -593,9 +593,15 @@ h3.releaseinfo {
         overflow-y: hidden;
     }
 
-    .site-header__navigation-submenu {
+    .site-header__navigation-submenu-section .site-header__navigation-submenu {
+        display: block;
         top: 30px !important;
         left: 0 !important;
+    }
+
+    .site-header__navigation-item,
+    .site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link .site-header__navigation-submenu-item-link-text {
+        font-size: 18px;
     }
 
     .site-header-version {
