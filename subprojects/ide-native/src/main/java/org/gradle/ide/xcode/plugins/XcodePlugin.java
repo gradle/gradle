@@ -49,7 +49,11 @@ import org.gradle.ide.xcode.tasks.GenerateSchemeFileTask;
 import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask;
+import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.plugins.CppApplicationPlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
@@ -61,7 +65,6 @@ import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.plugins.SwiftApplicationPlugin;
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin;
 import org.gradle.plugins.ide.internal.IdePlugin;
@@ -228,7 +231,6 @@ public class XcodePlugin extends IdePlugin {
                 FileCollection sources = component.getSwiftSource();
                 xcode.getProject().getGroups().getSources().from(sources);
 
-                // TODO - Reuse the logic from `swift-application` or `swift-library` to determine the link task path
                 // TODO - should use the _install_ task for an executable
                 String targetName = component.getModule().get();
                 final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
@@ -288,15 +290,28 @@ public class XcodePlugin extends IdePlugin {
                 FileCollection headers = component.getHeaderFiles();
                 xcode.getProject().getGroups().getHeaders().from(headers);
 
-                // TODO - Reuse the logic from `cpp-application` or `cpp-library` to find the link task path
                 // TODO - should use the _install_ task for an executable
-                // TODO - should use the basename of the component to calculate the target names
-                AbstractLinkTask linkDebug = (AbstractLinkTask) project.getTasks().getByName("linkDebug");
-                AbstractLinkTask linkRelease = (AbstractLinkTask) project.getTasks().getByName("linkRelease");
-                String targetName = StringUtils.capitalize(project.getName());
-                XcodeTarget target = newTarget(targetName, targetName, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
-                target.setDebug(linkDebug.getBinaryFile(), productType);
-                target.setRelease(linkRelease.getBinaryFile(), productType);
+                String targetName = StringUtils.capitalize(component.getBaseName().get());
+                final XcodeTarget target = newTarget(targetName, targetName, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
+                component.getBinaries().whenElementFinalized(new Action<CppBinary>() {
+                    @Override
+                    public void execute(CppBinary cppBinary) {
+                        if (cppBinary instanceof CppExecutable && cppBinary.isDebuggable() && !cppBinary.isOptimized()) {
+                            target.setDebug(((CppExecutable) cppBinary).getLinkTask().get().getBinaryFile(), PBXTarget.ProductType.TOOL);
+                        } else if (cppBinary instanceof CppExecutable && cppBinary.isDebuggable() && cppBinary.isOptimized()) {
+                            target.setRelease(((CppExecutable) cppBinary).getLinkTask().get().getBinaryFile(), PBXTarget.ProductType.TOOL);
+                        } else if (cppBinary instanceof CppSharedLibrary && cppBinary.isDebuggable() && !cppBinary.isOptimized()) {
+                            target.setDebug(((CppSharedLibrary) cppBinary).getLinkTask().get().getBinaryFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
+                        } else if (cppBinary instanceof CppSharedLibrary && cppBinary.isDebuggable() && cppBinary.isOptimized()) {
+                            target.setRelease(((CppSharedLibrary) cppBinary).getLinkTask().get().getBinaryFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
+                        } else if (cppBinary instanceof CppStaticLibrary && cppBinary.isDebuggable() && !cppBinary.isOptimized()) {
+                            target.setDebug(((CppStaticLibrary) cppBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
+                        } else if (cppBinary instanceof CppStaticLibrary && cppBinary.isDebuggable() && cppBinary.isOptimized()) {
+                            target.setRelease(((CppStaticLibrary) cppBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
+                        }
+                    }
+                });
+
                 target.getHeaderSearchPaths().from(component.getDevelopmentBinary().get().getCompileIncludePath());
                 target.getTaskDependencies().add(filterArtifactsFromImplicitBuilds(((DefaultCppBinary) component.getDevelopmentBinary().get()).getIncludePathConfiguration()).getBuildDependencies());
                 xcode.getProject().addTarget(target);

@@ -242,6 +242,89 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':hello:_xcode___Hello_Release')
     }
 
+    def "can create xcode project for Swift application with dependency on a static c++ library"() {
+        def cppGreeter = new CppGreeterFunction()
+        def swiftGreeter = new SwiftGreeterUsingCppFunction(cppGreeter)
+        def sumLibrary = new SwiftSum()
+        def app = new SwiftAppWithDep(swiftGreeter, sumLibrary)
+        app.main.greeterModule = "Hello"
+
+        given:
+        settingsFile.text =  """
+            include 'app', 'cppGreeter', 'hello'
+            rootProject.name = "${rootProjectName}"
+        """
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                dependencies {
+                    api project(':cppGreeter')
+                }
+                library.binaries.configureEach {
+                    linkTask.get().linkerArgs.add("-lc++")
+                }
+            }
+            project(':cppGreeter') {
+                apply plugin: 'cpp-library'
+                library.linkage = [Linkage.STATIC]
+            }
+        """
+        swiftGreeter.writeToProject(file("hello"))
+        cppGreeter.asLib().writeToProject(file("cppGreeter"))
+        sumLibrary.writeToProject(file("app"))
+        app.writeToProject(file("app"))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+            ":cppGreeter:xcodeProject", ":cppGreeter:xcodeProjectWorkspaceSettings", ":cppGreeter:xcodeScheme", ":cppGreeter:xcode",
+            ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeScheme", ":hello:xcode",
+            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'cppGreeter/cppGreeter.xcodeproj', 'hello/hello.xcodeproj')
+
+        def appSwiftIncludeDirs = toFiles(xcodeProject("app/app.xcodeproj").projectFile.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS)
+        appSwiftIncludeDirs.size() == 3
+        appSwiftIncludeDirs[0..1] == [ file("hello/build/modules/main/debug"), file("cppGreeter/src/main/public") ]
+        appSwiftIncludeDirs[2].file("module.modulemap").assertExists()
+
+        def helloSwiftIncludeDirs = toFiles(xcodeProject("hello/hello.xcodeproj").projectFile.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS)
+        helloSwiftIncludeDirs.size() == 2
+        helloSwiftIncludeDirs[0] == file("cppGreeter/src/main/public")
+        helloSwiftIncludeDirs[1].file("module.modulemap").assertExists()
+
+        when:
+        def resultDebugApp = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('App')
+            .succeeds()
+
+        then:
+        resultDebugApp.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:createDebug",
+            ':hello:compileDebugSwift', ':hello:linkDebug',
+            ':app:compileDebugSwift', ':app:linkDebug', ':app:_xcode___App_Debug')
+
+        when:
+        def resultReleaseHello = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('Hello')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
+            .succeeds()
+
+        then:
+        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease',
+            ":cppGreeter:compileReleaseCpp", ":cppGreeter:createRelease",
+            ':hello:_xcode___Hello_Release')
+    }
+
     def "can clean xcode project with transitive dependencies"() {
         def app = new SwiftAppWithLibraries()
 
