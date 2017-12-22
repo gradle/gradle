@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Buildable;
+import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
@@ -28,6 +29,7 @@ import org.gradle.execution.taskgraph.TaskInfoFactory;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Set;
@@ -65,24 +67,10 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
         this.taskInfoFactory = taskInfoFactory;
     }
 
-    public Set<? extends Task> getDependencies(Task task, TaskDependency container) {
-        add(container);
-        return resolve(task);
-    }
-
-    public Task getTask() {
-        return task;
-    }
-
-    @Override
-    public FileCollection getInputFiles(TaskInternal task) {
-        return taskInfoFactory.createNode(task).getInputs();
-    }
-
-    public Set<Task> resolve(Task task) {
+    public Set<? extends Task> getDependencies(@Nullable Task task, TaskDependency container) {
         this.task = task;
         try {
-            return doResolve();
+            return doGetDependencies(container);
         } catch (Exception e) {
             throw new TaskDependencyResolveException(String.format("Could not determine the dependencies of %s.", task), e);
         } finally {
@@ -91,8 +79,21 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
         }
     }
 
-    private Set<Task> doResolve() {
-        walker.add(queue);
+    @Nullable
+    public Task getTask() {
+        return task;
+    }
+
+    @Override
+    public FileCollection getInputFiles(TaskInternal task) {
+        if (task != getTask()) {
+            throw new GradleException("Cannot query input files of other task than the one in question!");
+        }
+        return taskInfoFactory.createNode(task).getInputs();
+    }
+
+    private Set<Task> doGetDependencies(TaskDependency container) {
+        walker.add(container);
         return walker.findValues();
     }
 
