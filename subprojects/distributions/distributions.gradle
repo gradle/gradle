@@ -103,6 +103,7 @@ task srcZip(type: Zip) {
                 spec.include "$it/src/"
             }
             include 'gradle.properties'
+            include 'buildSrc/gradle.properties'
             include 'config/'
             include 'gradle/'
             include 'src/'
