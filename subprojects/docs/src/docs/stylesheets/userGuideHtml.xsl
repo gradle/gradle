@@ -66,18 +66,18 @@
 
                         <h3 id="using-gradle-builds">Using Gradle Builds</h3>
                         <ul>
-                            <li><a href="/userguide/build_cache.html">Build Cache</a></li>
-                            <li><a href="/userguide/build_environment.html">Build Environment</a></li>
-                            <li><a href="https://docs.gradle.com/build-scan-plugin">Build Scans</a></li>
                             <li><a href="/userguide/command_line_interface.html">Command-Line Interface</a></li>
+                            <li><a href="/userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
+                            <li><a href="https://docs.gradle.com/build-scan-plugin">Build Scans</a></li>
+                            <li><a href="/userguide/build_environment.html">Build Environment</a></li>
+                            <li><a href="/userguide/init_scripts.html">Init Scripts</a></li>
+                            <li><a href="/userguide/intro_multi_project_builds.html">Multi-Project Builds</a></li>
+                            <li><a href="/userguide/build_cache.html">Build Cache</a></li>
                             <li><a href="/userguide/composite_builds.html">Composite Builds</a></li>
                             <li><a href="/userguide/continuous_build.html">Continuous Build</a></li>
                             <li><a href="/userguide/gradle_daemon.html">Daemon</a></li>
-                            <li><a href="/userguide/embedding.html">Embedding Gradle</a></li>
-                            <li><a href="/userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
-                            <li><a href="/userguide/init_scripts.html">Init Scripts</a></li>
-                            <li><a href="/userguide/intro_multi_project_builds.html">Multi-Project Builds</a></li>
                             <li><a href="/userguide/troubleshooting.html">Troubleshooting</a></li>
+                            <li><a href="/userguide/embedding.html">Embedding Gradle</a></li>
                         </ul>
 
                         <h3 id="writing-gradle-builds">Writing Gradle Builds</h3>
