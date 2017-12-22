@@ -61,7 +61,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
         // Userguide
         contentsDir.file('docs/userguide/userguide.html').assertIsFile()
-        contentsDir.file('docs/userguide/userguide.html').assertContents(containsString("<h3 class=\"releaseinfo\">Version ${version}</h3>"))
+        contentsDir.file('docs/userguide/userguide.html').assertContents(containsString("Gradle User Manual</h1>"))
         contentsDir.file('docs/userguide/userguide_single.html').assertIsFile()
         contentsDir.file('docs/userguide/userguide_single.html').assertContents(containsString("<h3 class=\"releaseinfo\">Version ${version}</h3>"))
 //        contentsDir.file('docs/userguide/userguide.pdf').assertIsFile()
