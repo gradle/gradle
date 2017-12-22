@@ -25,8 +25,8 @@ import spock.lang.Unroll
 )
 class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @Unroll
-    def "succeeds if attribute is added to component via component metadata rules (fix = #fixApplied)"() {
+    @Unroll("#success if attribute is #added via component metadata rule")
+    def "succeeds if attribute is added to component via component metadata rules"() {
         given:
         repository {
             'org.test:module:1.0'()
@@ -78,6 +78,10 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
 
         where:
         fixApplied << [false, true]
+
+        // for description of the test
+        success << ['fails', 'succeeds']
+        added << ['not added', 'added']
     }
 
     @Unroll

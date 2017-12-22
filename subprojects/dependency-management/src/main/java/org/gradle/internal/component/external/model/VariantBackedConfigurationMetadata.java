@@ -44,19 +44,18 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final ComponentVariant variant;
     private final ImmutableList<GradleDependencyMetadata> dependencies;
-    private final ImmutableAttributesFactory attributesFactory;
-    private final VariantMetadataRules componentMetadataRules;
+    private final VariantMetadataRules variantMetadataRules;
     private final ImmutableAttributes componentLevelAttributes;
 
     private List<GradleDependencyMetadata> calculatedDependencies;
-    private ImmutableAttributes computedVariantAttributes;
+    private ImmutableAttributesFactory attributesFactory;
 
-    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableAttributes attributes, ImmutableAttributesFactory attributesFactory, VariantMetadataRules componentMetadataRules) {
+    VariantBackedConfigurationMetadata(ModuleComponentIdentifier componentId, ComponentVariant variant, ImmutableAttributes componentLevelAttributes, ImmutableAttributesFactory attributesFactory, VariantMetadataRules variantMetadataRules) {
         this.componentId = componentId;
-        this.variant = variant;
+        this.variant = new RuleAwareVariant(variant);
         this.attributesFactory = attributesFactory;
-        this.componentMetadataRules = componentMetadataRules;
-        this.componentLevelAttributes = attributes;
+        this.componentLevelAttributes = componentLevelAttributes;
+        this.variantMetadataRules = variantMetadataRules;
         List<GradleDependencyMetadata> dependencies = new ArrayList<GradleDependencyMetadata>(variant.getDependencies().size());
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint());
@@ -91,14 +90,7 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
 
     @Override
     public ImmutableAttributes getAttributes() {
-        if (computedVariantAttributes == null) {
-            computedVariantAttributes = componentMetadataRules.applyVariantAttributeRules(variant, mergeComponentAndVariantAttributes(variant.getAttributes()));
-        }
-        return computedVariantAttributes;
-    }
-
-    private AttributeContainerInternal mergeComponentAndVariantAttributes(AttributeContainerInternal variantAttributes) {
-        return attributesFactory.concat(componentLevelAttributes, variantAttributes.asImmutable());
+        return variant.getAttributes().asImmutable();
     }
 
     @Override
@@ -144,8 +136,72 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
     @Override
     public List<? extends DependencyMetadata> getDependencies() {
         if (calculatedDependencies == null) {
-            calculatedDependencies = componentMetadataRules.applyDependencyMetadataRules(variant, dependencies);
+            calculatedDependencies = variantMetadataRules.applyDependencyMetadataRules(variant, dependencies);
         }
         return calculatedDependencies;
+    }
+
+    private AttributeContainerInternal mergeComponentAndVariantAttributes(AttributeContainerInternal variantAttributes) {
+        return attributesFactory.concat(componentLevelAttributes, variantAttributes.asImmutable());
+    }
+
+    /**
+     * This class wraps the component variant so that attribute rules are executed once
+     * for all, and passed correctly to the various consumers. In particular, we need to make sure
+     * that the attributes are the same whenever we resolve the graph for dependencies and artifacts.
+     */
+    private class RuleAwareVariant implements ComponentVariant {
+        private final ComponentVariant delegate;
+
+        private ImmutableAttributes computedAttributes;
+
+        private RuleAwareVariant(ComponentVariant delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public String getName() {
+            return delegate.getName();
+        }
+
+        @Override
+        public DisplayName asDescribable() {
+            return delegate.asDescribable();
+        }
+
+        /**
+         * Returns the complete set of attributes of this variant, which consists of a view of the union
+         * of the component level attributes and the variant attributes as found in metadata, potentially
+         * modified by rules.
+         *
+         * @return the updated variant attributes
+         */
+        @Override
+        public ImmutableAttributes getAttributes() {
+            if (computedAttributes == null) {
+                computedAttributes = variantMetadataRules.applyVariantAttributeRules(delegate, mergeComponentAndVariantAttributes(delegate.getAttributes()));
+            }
+            return computedAttributes;
+        }
+
+        @Override
+        public List<? extends ComponentArtifactMetadata> getArtifacts() {
+            return delegate.getArtifacts();
+        }
+
+        @Override
+        public ImmutableList<? extends Dependency> getDependencies() {
+            return delegate.getDependencies();
+        }
+
+        @Override
+        public ImmutableList<? extends DependencyConstraint> getDependencyConstraints() {
+            return delegate.getDependencyConstraints();
+        }
+
+        @Override
+        public ImmutableList<? extends File> getFiles() {
+            return delegate.getFiles();
+        }
     }
 }

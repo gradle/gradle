@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
@@ -43,9 +42,9 @@ class DefaultArtifactSetTest extends Specification {
         def variant2 = Stub(VariantResolveMetadata)
 
         given:
-        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, Stub(AttributeContainer))
-        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, Stub(AttributeContainer))
-        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, Mock(DisplayName), [] as Set, null, null, schema, null, null, artifactTypeRegistry, Stub(AttributeContainer))
+        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry)
+        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry)
+        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, Mock(DisplayName), [] as Set, null, null, schema, null, null, artifactTypeRegistry)
 
         expect:
         artifacts1.select({false}, Stub(VariantSelector)) == ResolvedArtifactSet.EMPTY
@@ -60,9 +59,9 @@ class DefaultArtifactSetTest extends Specification {
         def selector = Stub(VariantSelector)
 
         given:
-        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, Stub(AttributeContainer))
-        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, Stub(AttributeContainer))
-        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, Mock(DisplayName), [] as Set, null, null, schema, null, null, artifactTypeRegistry, Stub(AttributeContainer))
+        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry)
+        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry)
+        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, Mock(DisplayName), [] as Set, null, null, schema, null, null, artifactTypeRegistry)
 
         selector.select(_) >> resolvedVariant1
 

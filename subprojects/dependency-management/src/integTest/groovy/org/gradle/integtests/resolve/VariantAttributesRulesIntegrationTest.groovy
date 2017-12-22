@@ -124,7 +124,12 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         repository {
             'org.test:moduleB:1.0' {
-                variant 'customVariant', [format: 'will be overriden']
+                variant('customVariant') {
+                    if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                        artifact 'variant1'
+                    }
+                    attribute 'format', 'will be overriden'
+                }
             }
         }
 
@@ -136,7 +141,11 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
             }
             'org.test:moduleB:1.0'() {
                 expectGetMetadata()
-                expectGetArtifact()
+                if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                    expectGetVariantArtifacts('customVariant')
+                } else {
+                    expectGetArtifact()
+                }
             }
         }
 
@@ -146,7 +155,11 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org.test:moduleA:1.0:$variantToTest") {
-                    module("org.test:moduleB:1.0")
+                    module("org.test:moduleB:1.0") {
+                        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                            artifact group: 'org', module: 'moduleB', version: '1.0', classifier: 'variant1'
+                        }
+                    }
                 }
             }
         }
