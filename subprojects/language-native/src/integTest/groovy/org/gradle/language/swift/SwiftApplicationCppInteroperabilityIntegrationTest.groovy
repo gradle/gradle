@@ -26,9 +26,47 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithDep
 import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftMainWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftSum
+import spock.lang.Unroll
 
 class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
-    def "can compile and link against a c++ library"() {
+    @Unroll
+    def "can compile and link against a #linkage.toLowerCase() c++ library"() {
+        settingsFile << "include 'app', 'cppGreeter'"
+        def cppGreeter = new CppGreeterFunction()
+        def app = new SwiftMainWithCppDep(cppGreeter)
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                dependencies {
+                    implementation project(':cppGreeter')
+                }
+                application.binaries.configureEach {
+                    linkTask.get().linkerArgs.add("-lc++")
+                }
+            }
+            project(':cppGreeter') {
+                apply plugin: 'cpp-library'
+                library.linkage = [Linkage.${linkage}]
+            }
+        """
+        app.writeToProject(file("app"))
+        cppGreeter.asLib().writeToProject(file("cppGreeter"))
+
+        expect:
+        succeeds ":app:assemble"
+        result.assertTasksExecuted(
+            ":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
+            ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+
+        where:
+        linkage << [SHARED, STATIC]
+    }
+
+    def "can compile and link against a c++ library with both static and shared linkages"() {
         settingsFile << "include 'app', 'cppGreeter'"
         def cppGreeter = new CppGreeterFunction()
         def app = new SwiftMainWithCppDep(cppGreeter)
@@ -43,6 +81,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
             }
             project(':cppGreeter') {
                 apply plugin: 'cpp-library'
+                library.linkage = [Linkage.STATIC, Linkage.SHARED]
             }
         """
         app.writeToProject(file("app"))
@@ -51,13 +90,14 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         expect:
         succeeds ":app:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:compileDebugSharedCpp", ":cppGreeter:linkDebugShared",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    def "can compile and link against a library with a dependency on a c++ library"() {
+    @Unroll
+    def "can compile and link against a library with a dependency on a #linkage.toLowerCase() c++ library"() {
         settingsFile << "include 'app', 'greeter', 'cppGreeter'"
         def cppGreeter = new CppGreeterFunction()
         def swiftGreeter = new SwiftGreeterUsingCppFunction(cppGreeter)
@@ -77,9 +117,13 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
                 dependencies {
                     api project(':cppGreeter')
                 }
+                library.binaries.configureEach {
+                    linkTask.get().linkerArgs.add("-lc++")
+                }
             }
             project(':cppGreeter') {
                 apply plugin: 'cpp-library'
+                library.linkage = [Linkage.${linkage}]
             }
         """
         swiftGreeter.writeToProject(file("greeter"))
@@ -91,13 +135,17 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         succeeds ":app:assemble"
         result.assertTasksExecuted(
             ":greeter:compileDebugSwift", ":greeter:linkDebug",
-            ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
+
+        where:
+        linkage << [SHARED, STATIC]
     }
 
-    def "can compile and link against a c++ library with a dependency on another c++ library"() {
+    @Unroll
+    def "can compile and link against a #linkage.toLowerCase() c++ library with a dependency on another c++ library"() {
         settingsFile << "include 'app', 'greeter', 'cppGreeter', ':logger'"
         def logger = new CppLogger()
         def cppGreeter = new CppGreeterFunctionUsesLogger()
@@ -110,15 +158,20 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
                 dependencies {
                     implementation project(':cppGreeter')
                 }
+                application.binaries.configureEach {
+                    linkTask.get().linkerArgs.add("-lc++")
+                }
             }
             project(':cppGreeter') {
                 apply plugin: 'cpp-library'
                 dependencies {
                     implementation project(':logger')
                 }
+                library.linkage = [Linkage.${linkage}]
             }
             project(':logger') {
                 apply plugin: 'cpp-library'
+                library.linkage = [Linkage.${linkage}]
             }
         """
         app.writeToProject(file("app"))
@@ -128,11 +181,14 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         expect:
         succeeds ":app:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
-            ":logger:compileDebugCpp", ":logger:linkDebug",
+            ":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
+            ":logger:compileDebugCpp", ":logger:${createOrLink(linkage)}Debug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
+
+        where:
+        linkage << [SHARED, STATIC]
     }
 
     def "can compile and link against a c++ library with an api dependency on another c++ library"() {
@@ -203,4 +259,5 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
 
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
+
 }

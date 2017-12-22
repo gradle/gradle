@@ -23,12 +23,15 @@ import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
+import org.gradle.nativeplatform.fixtures.StaticLibraryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 
 import static org.junit.Assume.assumeTrue
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
 class AbstractSwiftMixedLanguageIntegrationTest extends AbstractIntegrationSpec {
+    public static final String SHARED = "SHARED"
+    public static final String STATIC = "STATIC"
     def swiftToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFT) as AvailableToolChains.InstalledToolChain
     def cppToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.CLANG) as AvailableToolChains.InstalledToolChain
 
@@ -73,5 +76,21 @@ class AbstractSwiftMixedLanguageIntegrationTest extends AbstractIntegrationSpec 
 
     SharedLibraryFixture cppLibrary(Object path) {
         return cppToolChain.sharedLibrary(file(path))
+    }
+
+    StaticLibraryFixture staticCppLibrary(Object path) {
+        return cppToolChain.staticLibrary(file(path))
+    }
+
+    String createOrLink(String linkage) {
+        if (linkage == "STATIC") {
+            return "create"
+        }
+
+        if (linkage == "SHARED") {
+            return "link"
+        }
+
+        throw new IllegalArgumentException()
     }
 }
