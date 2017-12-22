@@ -250,6 +250,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
     @Override
     public AttributeContainer getAttributes() {
+        // a local component cannot have attributes (for now). However, variants of the component
+        // itself may.
         return ImmutableAttributes.EMPTY;
     }
 
