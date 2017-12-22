@@ -19,33 +19,24 @@ package org.gradle.language.cpp;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 
 /**
- * A shared library built from C++ source.
+ * A static library built from C++ source.
  *
- * @since 4.2
+ * @since 4.5
  */
 @Incubating
-public interface CppSharedLibrary extends CppBinary {
+public interface CppStaticLibrary extends CppBinary {
     /**
      * Returns the link-time file for this binary.
-     *
-     * @since 4.4
      */
     Provider<RegularFile> getLinkFile();
 
     /**
-     * Returns the run-time file for this binary.
-     *
-     * @since 4.4
-     */
-    Provider<RegularFile> getRuntimeFile();
-
-    /**
-     * Returns the link task for this binary.
+     * Returns the create static library task for this binary.
      *
      * @since 4.5
      */
-    Provider<? extends AbstractLinkTask> getLinkTask();
+    Provider<CreateStaticLibrary> getCreateTask();
 }

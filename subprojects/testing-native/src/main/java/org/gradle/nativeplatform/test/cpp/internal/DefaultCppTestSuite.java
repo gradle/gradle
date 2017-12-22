@@ -21,6 +21,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
@@ -36,7 +37,7 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
     private final ObjectFactory objectFactory;
     private final ConfigurationContainer configurations;
     private final Property<CppComponent> testedComponent;
-    private CppExecutable testBinary;
+    private final Property<CppBinary> developmentBinary;
 
     @Inject
     public DefaultCppTestSuite(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, final FileOperations fileOperations, ConfigurationContainer configurations) {
@@ -45,11 +46,14 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
         this.objectFactory = objectFactory;
         this.configurations = configurations;
         this.testedComponent = objectFactory.property(CppComponent.class);
+        this.developmentBinary = objectFactory.property(CppBinary.class);
         getBaseName().set(name);
     }
 
     public CppExecutable createExecutable(CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, getName() + "Executable", projectLayout, objectFactory, getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider);
+        CppExecutable testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, getName() + "Executable", projectLayout, objectFactory, getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider);
+        developmentBinary.set(testBinary);
+        getBinaries().add(testBinary);
         return testBinary;
     }
 
@@ -59,11 +63,11 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
 
     @Override
     public CppExecutable getTestExecutable() {
-        return testBinary;
+        return (CppExecutable) developmentBinary.get();
     }
 
     @Override
-    public CppExecutable getDevelopmentBinary() {
-        return testBinary;
+    public Property<CppBinary> getDevelopmentBinary() {
+        return developmentBinary;
     }
 }

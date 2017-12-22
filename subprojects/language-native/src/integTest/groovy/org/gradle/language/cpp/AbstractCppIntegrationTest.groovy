@@ -18,6 +18,7 @@ package org.gradle.language.cpp
 
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.util.Matchers
 import org.junit.Assume
 
 abstract class AbstractCppIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
@@ -28,5 +29,41 @@ abstract class AbstractCppIntegrationTest extends AbstractNativeLanguageComponen
 
     static boolean worksWithCppPlugin(AvailableToolChains.ToolChainCandidate toolChain) {
         toolChain.id != "mingw" && toolChain.id != "gcccygwin"
+    }
+
+    def "skip assemble tasks when no source"() {
+        given:
+        makeSingleProject()
+
+        expect:
+        succeeds "assemble"
+        result.assertTasksExecuted(tasksToAssembleDevelopmentBinary, ":assemble")
+        // TODO - should skip the task as NO-SOURCE
+        result.assertTasksSkipped(tasksToAssembleDevelopmentBinary, ":assemble")
+    }
+
+    def "build fails when compilation fails"() {
+        given:
+        makeSingleProject()
+
+        and:
+        file("src/main/cpp/broken.cpp") << "broken!"
+
+        expect:
+        fails "assemble"
+        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasCause("A build operation failed.")
+        failure.assertThatCause(Matchers.containsText("C++ compiler failed while compiling broken.cpp"))
+    }
+
+    protected abstract List<String> getTasksToAssembleDevelopmentBinary()
+
+    protected abstract String getDevelopmentBinaryCompileTask()
+
+    protected abstract String getMainComponentDsl()
+
+    @Override
+    protected String getAllBinariesOfMainComponentBuildScript() {
+        return "${mainComponentDsl}.binaries.get()"
     }
 }

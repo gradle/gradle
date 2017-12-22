@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.language.cpp.CppBinary
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -151,7 +152,7 @@ class DefaultCppComponentTest extends Specification {
         }
 
         @Override
-        CppBinary getDevelopmentBinary() {
+        Property<CppBinary> getDevelopmentBinary() {
             throw new UnsupportedOperationException()
         }
     }

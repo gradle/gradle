@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.nativeplatform.Linkage;
 
 /**
  * Configuration for a C++ library, defining the source files and header directories that make up the library plus other settings.
@@ -62,18 +64,9 @@ public interface CppLibrary extends CppComponent {
     Configuration getApiDependencies();
 
     /**
-     * {@inheritDoc}
+     * Returns the list of linkage of this library.
+     *
+     * @since 4.5
      */
-    @Override
-    CppSharedLibrary getDevelopmentBinary();
-
-    /**
-     * Returns the debug shared library for this library.
-     */
-    CppSharedLibrary getDebugSharedLibrary();
-
-    /**
-     * Returns the release shared library for this library.
-     */
-    CppSharedLibrary getReleaseSharedLibrary();
+    ListProperty<Linkage> getLinkage();
 }

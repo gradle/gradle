@@ -596,7 +596,10 @@ dependencies { implementation 'some.group:greeter:1.2' }
             publishing {
                 repositories { maven { url '${repoDir.toURI()}' } }
             }
-            compileReleaseCpp.macros(WITH_FEATURE: "true")
+            
+            library.binaries.get { it.optimized }.configure {
+                compileTask.get().macros(WITH_FEATURE: "true")
+            }
             
         """
         app.greeterLib.writeToProject(file(producer))
@@ -609,8 +612,10 @@ dependencies { implementation 'some.group:greeter:1.2' }
             apply plugin: 'cpp-application'
             repositories { maven { url '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:greeting:1.2' }
-            compileReleaseCpp.macros(WITH_FEATURE: "true")
-"""
+            application.binaries.get { it.optimized }.configure {
+                compileTask.get().macros(WITH_FEATURE: "true")
+            }
+        """
         app.main.writeToProject(consumer)
 
         when:

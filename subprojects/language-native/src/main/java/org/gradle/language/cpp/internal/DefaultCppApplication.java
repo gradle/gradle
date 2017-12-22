@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
@@ -33,8 +34,7 @@ public class DefaultCppApplication extends DefaultCppComponent implements CppApp
     private final ProjectLayout projectLayout;
     private final ObjectFactory objectFactory;
     private final ConfigurationContainer configurations;
-    private DefaultCppExecutable debug;
-    private DefaultCppExecutable release;
+    private final Property<CppExecutable> developmentBinary;
 
     @Inject
     public DefaultCppApplication(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
@@ -42,30 +42,17 @@ public class DefaultCppApplication extends DefaultCppComponent implements CppApp
         this.projectLayout = projectLayout;
         this.objectFactory = objectFactory;
         this.configurations = configurations;
+        this.developmentBinary = objectFactory.property(CppExecutable.class);
     }
 
     public DefaultCppExecutable createExecutable(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         DefaultCppExecutable result = objectFactory.newInstance(DefaultCppExecutable.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getBaseName(), debuggable, optimized, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
-        if (debuggable && !optimized) {
-            debug = result;
-        } else if (debuggable && optimized){
-            release = result;
-        }
+        getBinaries().add(result);
         return result;
     }
 
     @Override
-    public CppExecutable getDevelopmentBinary() {
-        return debug;
-    }
-
-    @Override
-    public CppExecutable getDebugExecutable() {
-        return debug;
-    }
-
-    @Override
-    public CppExecutable getReleaseExecutable() {
-        return release;
+    public Property<CppExecutable> getDevelopmentBinary() {
+        return developmentBinary;
     }
 }

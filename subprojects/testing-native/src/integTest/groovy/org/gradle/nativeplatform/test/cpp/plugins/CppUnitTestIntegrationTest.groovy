@@ -35,6 +35,7 @@ class CppUnitTestIntegrationTest extends AbstractNativeLanguageComponentIntegrat
     protected void makeSingleProject() {
         buildFile << """
             apply plugin: 'cpp-unit-test'
+            apply plugin: 'cpp-application'
         """
     }
 
