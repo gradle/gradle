@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult
@@ -267,6 +268,8 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         ModuleVersionIdentifier moduleVersion
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
+        String variantName
+        AttributeContainer variantAttributes
     }
 
     class DummyInternalDependencyResult implements DependencyResult {

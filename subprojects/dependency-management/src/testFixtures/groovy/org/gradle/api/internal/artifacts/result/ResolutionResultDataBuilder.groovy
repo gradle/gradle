@@ -18,11 +18,14 @@ package org.gradle.api.internal.artifacts.result
 
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ResolvedNamedVariantResult
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.util.TestUtil
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -39,11 +42,19 @@ class ResolutionResultDataBuilder {
     }
 
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1',
-                                                        ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(group, module, version))
+                                                        ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED, ResolvedNamedVariantResult variant = newVariant()) {
+        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(group, module, version), variant)
     }
 
     static DefaultResolvedDependencyResult newDependency(ComponentSelector componentSelector, String group='a', String module='a', String selectedVersion='1') {
         new DefaultResolvedDependencyResult(componentSelector, newModule(group, module, selectedVersion), newModule())
+    }
+
+    static ResolvedNamedVariantResult newVariant(String name = 'default', Map<String, String> attributes = [:]) {
+        def mutableAttributes = TestUtil.attributesFactory().mutable()
+        attributes.each {
+            mutableAttributes.attribute(Attribute.of(it.key, String), it.value)
+        }
+        return new DefaultResolvedNamedVariantResult(name, mutableAttributes)
     }
 }

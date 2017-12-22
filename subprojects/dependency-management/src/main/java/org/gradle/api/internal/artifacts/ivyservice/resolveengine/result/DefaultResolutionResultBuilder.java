@@ -22,10 +22,13 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.ResolvedNamedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedNamedVariantResult;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Factory;
 
 import java.util.Collection;
@@ -38,7 +41,7 @@ public class DefaultResolutionResultBuilder {
 
     public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-        builder.visitComponent(new DefaultComponentResult(0L, id, VersionSelectionReasons.ROOT, componentIdentifier));
+        builder.visitComponent(new DefaultComponentResult(0L, id, VersionSelectionReasons.ROOT, componentIdentifier, "<empty>", ImmutableAttributes.EMPTY));
         return builder.complete(0L);
     }
 
@@ -47,7 +50,11 @@ public class DefaultResolutionResultBuilder {
     }
 
     public void visitComponent(ComponentResult component) {
-        create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId());
+        create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId(), variantDetails(component));
+    }
+
+    private static DefaultResolvedNamedVariantResult variantDetails(ComponentResult component) {
+        return new DefaultResolvedNamedVariantResult(component.getVariantName(), component.getVariantAttributes());
     }
 
     public void visitOutgoingEdges(Long fromComponent, Collection<? extends DependencyResult> dependencies) {
@@ -65,9 +72,9 @@ public class DefaultResolutionResultBuilder {
         }
     }
 
-    private void create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
+    private void create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, ResolvedNamedVariantResult variant) {
         if (!modules.containsKey(id)) {
-            modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId));
+            modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, variant));
         }
     }
 

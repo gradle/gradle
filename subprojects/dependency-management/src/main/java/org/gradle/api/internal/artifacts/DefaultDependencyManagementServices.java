@@ -50,6 +50,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
@@ -262,30 +263,30 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ImmutableAttributesFactory attributesFactory,
                                                        BuildOperationExecutor buildOperationExecutor,
                                                        ArtifactTypeRegistry artifactTypeRegistry,
-                                                       VersionSelectorScheme versionSelectorScheme,
-                                                       ComponentSelectorConverter componentSelectorConverter) {
+                                                       ComponentSelectorConverter componentSelectorConverter,
+                                                       AttributeContainerSerializer attributeContainerSerializer) {
             return new ErrorHandlingConfigurationResolver(
-                new ShortCircuitEmptyConfigurationResolver(
-                    new DefaultConfigurationResolver(
-                        artifactDependencyResolver,
-                        repositories,
-                        metadataHandler,
-                        resolutionResultsStoreFactory,
-                        startParameter.isBuildProjectDependencies(),
-                        attributesSchema,
-                        new DefaultArtifactTransforms(
-                            new ConsumerProvidedVariantFinder(
-                                variantTransforms,
-                                attributesSchema,
-                                attributesFactory),
-                            attributesSchema),
-                        moduleIdentifierFactory,
-                        buildOperationExecutor,
-                        artifactTypeRegistry,
-                        versionSelectorScheme,
-                        componentSelectorConverter),
-                    componentIdentifierFactory,
-                    moduleIdentifierFactory));
+                    new ShortCircuitEmptyConfigurationResolver(
+                        new DefaultConfigurationResolver(
+                            artifactDependencyResolver,
+                            repositories,
+                            metadataHandler,
+                            resolutionResultsStoreFactory,
+                            startParameter.isBuildProjectDependencies(),
+                            attributesSchema,
+                            new DefaultArtifactTransforms(
+                                new ConsumerProvidedVariantFinder(
+                                    variantTransforms,
+                                    attributesSchema,
+                                    attributesFactory),
+                                attributesSchema),
+                            moduleIdentifierFactory,
+                            buildOperationExecutor,
+                            artifactTypeRegistry,
+                            componentSelectorConverter,
+                            attributeContainerSerializer),
+                        componentIdentifierFactory,
+                        moduleIdentifierFactory));
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {

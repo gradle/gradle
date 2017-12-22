@@ -156,8 +156,10 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
             root(':', ':test:') {
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0") {
-                        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                        if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
                             artifact group: 'org', module: 'moduleB', version: '1.0', classifier: 'variant1'
+                            // for now we only check the selected variant for Gradle, but we should set the appropriate expectations for Ivy and Maven too
+                            variant('customVariant', [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy()?'integration':'release'])
                         }
                     }
                 }

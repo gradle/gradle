@@ -23,6 +23,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
+import org.gradle.api.internal.artifacts.result.DefaultResolvedNamedVariantResult
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
@@ -102,9 +104,9 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     private dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(group, name, selected))
+        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(group, name, selected), new DefaultResolvedNamedVariantResult("default", ImmutableAttributes.EMPTY))
         new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(group, name, new DefaultMutableVersionConstraint(requested)),
                 selectedModule,
-                new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.REQUESTED, new DefaultModuleComponentIdentifier(group, name, selected)))
+                new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.REQUESTED, new DefaultModuleComponentIdentifier(group, name, selected), new DefaultResolvedNamedVariantResult("default", ImmutableAttributes.EMPTY)))
     }
 }

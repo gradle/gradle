@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -305,5 +306,9 @@ class NodeState implements DependencyGraphNode {
         previousTraversalExclusions = null;
         outgoingEdges.clear();
         resolveState.onMoreSelected(this);
+    }
+
+    public ImmutableAttributesFactory getAttributesFactory() {
+        return resolveState.getAttributesFactory();
     }
 }
