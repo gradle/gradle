@@ -162,7 +162,8 @@
                                     <li><a href="/userguide/tutorial_using_tasks.html">Build Script Basics</a></li>
                                     <li><a href="/userguide/more_about_tasks.html">Authoring Tasks</a></li>
                                     <li><a href="/userguide/logging.html">Logging</a></li>
-                                    <li><a href="/userguide/multi_project_builds.html">Multi-project Builds</a></li>
+                                    <li><a href="/userguide/test_kit.html">Testing with TestKit</a></li>
+                                    <li><a href="/userguide/multi_project_builds.html">Configuring Multi-Project Builds</a></li>
                                     <li><a href="/userguide/standard_plugins.html">Standard Gradle Plugins</a></li>
                                     <li><a href="/userguide/plugins.html">Using Gradle Plugins</a></li>
                                     <li><a href="/userguide/writing_build_scripts.html">Writing Build Scripts</a></li>
@@ -208,7 +209,6 @@
                             <li><a href="https://guides.gradle.org/using-the-worker-api/">Developing Parallel Tasks</a></li>
                             <li><a href="/userguide/lazy_configuration.html">Lazy Task Configuration</a></li>
                             <li><a href="/userguide/java_gradle_plugin.html">Plugin Development Plugin</a></li>
-                            <li><a href="/userguide/test_kit.html">Testing with TestKit</a></li>
                             <li><a href="/userguide/custom_plugins.html">Writing Custom Plugins</a></li>
                         </ul>
                     </nav>
