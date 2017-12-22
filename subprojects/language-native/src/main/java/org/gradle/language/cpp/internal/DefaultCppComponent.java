@@ -26,7 +26,10 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Cast;
+import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
+import org.gradle.language.internal.DefaultNativeBinaryContainer;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
 
@@ -43,6 +46,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final Property<String> baseName;
     private final Names names;
     private final Configuration implementation;
+    private final DefaultNativeBinaryContainer<CppBinary> binaries;
 
     @Inject
     public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
@@ -58,6 +62,8 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         implementation = configurations.maybeCreate(names.withSuffix("implementation"));
         implementation.setCanBeConsumed(false);
         implementation.setCanBeResolved(false);
+
+        binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultNativeBinaryContainer.class, CppBinary.class));
     }
 
     protected Names getNames() {
@@ -118,5 +124,10 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
 
     public FileCollection getAllHeaderDirs() {
         return privateHeadersWithConvention;
+    }
+
+    @Override
+    public DefaultNativeBinaryContainer<CppBinary> getBinaries() {
+        return binaries;
     }
 }

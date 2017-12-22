@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp.internal;
+package org.gradle.language.cpp.tasks.internal;
 
 import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec;
 
-public class DefaultCppCompileSpec extends AbstractNativeCompileSpec implements CppCompileSpec {
+public class DefaultCppPCHCompileSpec extends AbstractNativeCompileSpec implements CppPCHCompileSpec {
 }

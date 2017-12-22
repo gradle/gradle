@@ -30,10 +30,12 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -57,6 +59,7 @@ public class DefaultCppBinary implements CppBinary {
     private final NativeToolChainInternal toolChain;
     private final PlatformToolProvider platformToolProvider;
     private final Configuration includePathConfiguration;
+    private final Property<CppCompile> compileTaskProperty;
 
     public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         this.name = name;
@@ -68,6 +71,7 @@ public class DefaultCppBinary implements CppBinary {
         this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
+        this.compileTaskProperty = objects.property(CppCompile.class);
 
         Names names = Names.of(name);
 
@@ -176,6 +180,11 @@ public class DefaultCppBinary implements CppBinary {
     @Override
     public NativeToolChainInternal getToolChain() {
         return toolChain;
+    }
+
+    @Override
+    public Property<CppCompile> getCompileTask() {
+        return compileTaskProperty;
     }
 
     public PlatformToolProvider getPlatformToolProvider() {

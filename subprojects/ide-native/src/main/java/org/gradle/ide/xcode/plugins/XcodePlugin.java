@@ -297,8 +297,8 @@ public class XcodePlugin extends IdePlugin {
                 XcodeTarget target = newTarget(targetName, targetName, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
                 target.setDebug(linkDebug.getBinaryFile(), productType);
                 target.setRelease(linkRelease.getBinaryFile(), productType);
-                target.getHeaderSearchPaths().from(component.getDevelopmentBinary().getCompileIncludePath());
-                target.getTaskDependencies().add(filterArtifactsFromImplicitBuilds(((DefaultCppBinary) component.getDevelopmentBinary()).getIncludePathConfiguration()).getBuildDependencies());
+                target.getHeaderSearchPaths().from(component.getDevelopmentBinary().get().getCompileIncludePath());
+                target.getTaskDependencies().add(filterArtifactsFromImplicitBuilds(((DefaultCppBinary) component.getDevelopmentBinary().get()).getIncludePathConfiguration()).getBuildDependencies());
                 xcode.getProject().addTarget(target);
 
                 createSchemeTask(project.getTasks(), targetName, xcode.getProject());

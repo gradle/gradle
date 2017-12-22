@@ -38,10 +38,13 @@ class ExtractSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegra
                 id 'cpp-application'
             }
             
-            task extractSymbolsDebug(type: ExtractSymbols) {
-                toolChain = linkDebug.toolChain
-                targetPlatform = linkDebug.targetPlatform
-                binaryFile.set linkDebug.binaryFile
+            task extractSymbolsDebug(type: ExtractSymbols) { extract ->
+                project.application.binaries.get { !it.optimized }.configure {
+                    def linkDebug = linkTask.get()
+                    extract.toolChain = linkDebug.toolChain
+                    extract.targetPlatform = linkDebug.targetPlatform
+                    extract.binaryFile.set linkDebug.binaryFile
+                }
                 symbolFile.set file("build/symbols")
             }
         """

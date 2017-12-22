@@ -17,6 +17,7 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 
 /**
  * Configuration for a C++ application, defining the source files that make up the application plus other settings.
@@ -31,15 +32,5 @@ public interface CppApplication extends CppComponent {
      * {@inheritDoc}
      */
     @Override
-    CppExecutable getDevelopmentBinary();
-
-    /**
-     * Returns the debug executable for this application.
-     */
-    CppExecutable getDebugExecutable();
-
-    /**
-     * Returns the release executable for this application.
-     */
-    CppExecutable getReleaseExecutable();
+    Provider<? extends CppExecutable> getDevelopmentBinary();
 }

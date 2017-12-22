@@ -24,6 +24,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.language.swift.NativeBinaryContainer;
 
 /**
  * Configuration for a C++ component, such as a library or executable, defining the source files and private header directories that make up the component. Private headers are those that are visible only to the source files of the component.
@@ -88,5 +90,12 @@ public interface CppComponent extends SoftwareComponent {
     /**
      * Returns the binary of the component to use as the default for development.
      */
-    CppBinary getDevelopmentBinary();
+    Provider<? extends CppBinary> getDevelopmentBinary();
+
+    /**
+     * Returns the binaries for this library.
+     *
+     * @since 4.5
+     */
+    NativeBinaryContainer<? extends CppBinary> getBinaries();
 }

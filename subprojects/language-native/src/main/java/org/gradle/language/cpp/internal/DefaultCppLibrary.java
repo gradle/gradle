@@ -25,11 +25,14 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.provider.LockableListProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppPlatform;
-import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -41,9 +44,9 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final ConfigurationContainer configurations;
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
+    private final LockableListProperty<Linkage> linkage;
+    private final Property<CppBinary> developmentBinary;
     private final Configuration api;
-    private DefaultCppSharedLibrary debug;
-    private DefaultCppSharedLibrary release;
 
     @Inject
     public DefaultCppLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
@@ -51,8 +54,12 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         this.projectLayout = projectLayout;
         this.objectFactory = objectFactory;
         this.configurations = configurations;
+        this.developmentBinary = objectFactory.property(CppBinary.class);
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
+
+        linkage = new LockableListProperty<Linkage>(objectFactory.listProperty(Linkage.class));
+        linkage.add(Linkage.SHARED);
 
         api = configurations.maybeCreate(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);
@@ -62,11 +69,13 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
 
     public DefaultCppSharedLibrary createSharedLibrary(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getBaseName(), debuggable, optimized, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
-        if (debuggable && !optimized) {
-            debug = result;
-        } else if (debuggable && optimized){
-            release = result;
-        }
+        getBinaries().add(result);
+        return result;
+    }
+
+    public DefaultCppStaticLibrary createStaticLibrary(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getBaseName(), debuggable, optimized, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+        getBinaries().add(result);
         return result;
     }
 
@@ -104,17 +113,12 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     }
 
     @Override
-    public CppSharedLibrary getDevelopmentBinary() {
-        return debug;
+    public Property<CppBinary> getDevelopmentBinary() {
+        return developmentBinary;
     }
 
     @Override
-    public CppSharedLibrary getDebugSharedLibrary() {
-        return debug;
-    }
-
-    @Override
-    public CppSharedLibrary getReleaseSharedLibrary() {
-        return release;
+    public LockableListProperty<Linkage> getLinkage() {
+        return linkage;
     }
 }

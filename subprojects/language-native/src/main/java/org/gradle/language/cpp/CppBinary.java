@@ -21,6 +21,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 
 /**
@@ -100,4 +101,11 @@ public interface CppBinary extends SoftwareComponent {
      * @since 4.5
      */
     NativeToolChain getToolChain();
+
+    /**
+     * Returns the compile task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<CppCompile> getCompileTask();
 }

@@ -52,19 +52,20 @@ class CppLibraryPluginTest extends Specification {
     def "registers a component for the library"() {
         when:
         project.pluginManager.apply(CppLibraryPlugin)
+        project.evaluate()
 
         then:
         project.components.main == project.library
-        project.components.mainDebug == project.library.debugSharedLibrary
-        project.components.mainRelease == project.library.releaseSharedLibrary
+        project.library.binaries.get().name == ['mainDebug', 'mainRelease']
+        project.components.containsAll(project.library.binaries.get())
 
         and:
-        def binaries = [project.library.debugSharedLibrary, project.library.releaseSharedLibrary]
+        def binaries = project.library.binaries.get()
         binaries.findAll { it.debuggable && it.optimized && it instanceof CppSharedLibrary }.size() == 1
         binaries.findAll { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }.size() == 1
 
         and:
-        project.library.developmentBinary == binaries.find { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }
+        project.library.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof CppSharedLibrary }
     }
 
     def "adds compile and link tasks"() {
@@ -75,6 +76,7 @@ class CppLibraryPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(CppLibraryPlugin)
+        project.evaluate()
 
         then:
         def compileDebugCpp = project.tasks.compileDebugCpp
@@ -108,6 +110,7 @@ class CppLibraryPluginTest extends Specification {
         when:
         project.pluginManager.apply(CppLibraryPlugin)
         project.library.baseName = "test_lib"
+        project.evaluate()
 
         then:
         def link = project.tasks.linkDebug
@@ -117,6 +120,7 @@ class CppLibraryPluginTest extends Specification {
     def "output locations reflects changes to buildDir"() {
         given:
         project.pluginManager.apply(CppLibraryPlugin)
+        project.evaluate()
 
         when:
         project.buildDir = "output"
@@ -133,6 +137,7 @@ class CppLibraryPluginTest extends Specification {
         when:
         project.pluginManager.apply(CppLibraryPlugin)
         project.pluginManager.apply(MavenPublishPlugin)
+        project.evaluate()
 
         then:
         def zip = project.tasks.cppHeaders
@@ -146,6 +151,7 @@ class CppLibraryPluginTest extends Specification {
         project.version = 1.2
         project.group = 'my.group'
         project.library.baseName = 'mylib'
+        project.evaluate()
 
         then:
         def publishing = project.publishing

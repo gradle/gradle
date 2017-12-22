@@ -36,8 +36,18 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
     }
 
     @Override
-    protected String getAllBinariesOfMainComponentBuildScript() {
-        return "[application.debugExecutable, application.releaseExecutable]"
+    protected String getMainComponentDsl() {
+        return "application"
+    }
+
+    @Override
+    protected List<String> getTasksToAssembleDevelopmentBinary() {
+        return [":compileDebugCpp", ":linkDebug", ":installDebug"]
+    }
+
+    @Override
+    protected String getDevelopmentBinaryCompileTask() {
+        return ":compileDebugCpp"
     }
 
     def "skip compile, link and install tasks when no source"() {
@@ -103,7 +113,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         and:
         buildFile << """
             apply plugin: 'cpp-application'
-            compileReleaseCpp.macros(WITH_FEATURE: "true")
+            application.binaries.get { it.optimized }.configure {
+                compileTask.get().macros(WITH_FEATURE: "true")
+            }
          """
 
         expect:
@@ -134,7 +146,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             apply plugin: 'cpp-application'
 
             task buildDebug {
-                dependsOn application.debugExecutable.executableFile
+                application.binaries.get { !it.optimized }.configure { dependsOn executableFile }
             }
          """
 
@@ -156,7 +168,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             apply plugin: 'cpp-application'
 
             task compileDebug {
-                dependsOn application.debugExecutable.objects
+                application.binaries.get { !it.optimized }.configure { dependsOn objects }
             }
          """
 
@@ -179,7 +191,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             apply plugin: 'cpp-application'
 
             task install {
-                dependsOn application.debugExecutable.installDirectory
+                application.binaries.get { !it.optimized }.configure { dependsOn installDirectory }
             }
          """
 
@@ -328,9 +340,11 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         and:
         buildFile << """
             apply plugin: 'cpp-application'
-            compileDebugCpp.objectFileDir = layout.buildDirectory.dir("object-files")
-            linkDebug.binaryFile = layout.buildDirectory.file("exe/some-app.exe")
-            installDebug.installDirectory = layout.buildDirectory.dir("some-app")
+            application.binaries.get { !it.optimized }.configure {
+                compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
+                linkTask.get().binaryFile = layout.buildDirectory.file("exe/some-app.exe")
+                installTask.get().installDirectory = layout.buildDirectory.dir("some-app")
+            }
          """
 
         expect:
@@ -371,6 +385,66 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         sharedLibrary("app/build/install/main/debug/lib/hello").file.assertExists()
     }
 
+    def "can compile and link against a static library"() {
+        settingsFile << "include 'app', 'hello'"
+        def app = new CppAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-application'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'cpp-library'
+                
+                library.linkage = [Linkage.STATIC]
+            }
+        """
+        app.greeter.writeToProject(file("hello"))
+        app.main.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+
+        result.assertTasksExecuted(compileAndStaticLinkTasks([':hello'], debug), compileAndLinkTasks([':app'], debug), installTaskDebug(':app'), ":app:assemble")
+        executable("app/build/exe/main/debug/app").assertExists()
+        staticLibrary("hello/build/lib/main/debug/hello").assertExists()
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+    }
+
+    def "can compile and link against a library with both linkages defined"() {
+        settingsFile << "include 'app', 'hello'"
+        def app = new CppAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-application'
+                dependencies {
+                    implementation project(':hello')
+                }
+            }
+            project(':hello') {
+                apply plugin: 'cpp-library'
+                
+                library.linkage = [Linkage.STATIC, Linkage.SHARED]
+            }
+        """
+        app.greeter.writeToProject(file("hello"))
+        app.main.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+
+        result.assertTasksExecuted(compileAndLinkTasks([':hello'], debugShared), compileAndLinkTasks([':app'], debug), installTaskDebug(':app'), ":app:assemble")
+        executable("app/build/exe/main/debug/app").assertExists()
+        sharedLibrary("hello/build/lib/main/debug/shared/hello").assertExists()
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+    }
+
     def "can compile and link against a library with debug and release variants"() {
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibraryAndOptionalFeature()
@@ -382,13 +456,17 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                 dependencies {
                     implementation project(':hello')
                 }
-                compileReleaseCpp.macros(WITH_FEATURE: "true")
+                application.binaries.get { it.optimized }.configure {
+                    compileTask.get().macros(WITH_FEATURE: "true")
+                }
             }
             project(':hello') {
                 apply plugin: 'cpp-library'
-                compileReleaseCpp.macros(WITH_FEATURE: "true")
+                library.binaries.get { it.optimized }.configure {
+                    compileTask.get().macros(WITH_FEATURE: "true")
+                }
             }
-"""
+        """
         app.greeterLib.writeToProject(file("hello"))
         app.main.writeToProject(file("app"))
 
@@ -438,7 +516,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             project(':shuffle') {
                 apply plugin: 'cpp-library'
             }
-"""
+        """
         app.deck.writeToProject(file("deck"))
         app.card.writeToProject(file("card"))
         app.shuffle.writeToProject(file("shuffle"))
@@ -456,6 +534,51 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         sharedLibrary("app/build/install/main/debug/lib/deck").file.assertExists()
         sharedLibrary("app/build/install/main/debug/lib/card").file.assertExists()
         sharedLibrary("app/build/install/main/debug/lib/shuffle").file.assertExists()
+    }
+
+    def "can compile and link against a static library with api and implementation dependencies"() {
+        settingsFile << "include 'app', 'deck', 'card', 'shuffle'"
+        def app = new CppAppWithLibrariesWithApiDependencies()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-application'
+                dependencies {
+                    implementation project(':deck')
+                }
+            }
+            project(':deck') {
+                apply plugin: 'cpp-library'
+                library.linkage = [Linkage.STATIC]
+                dependencies {
+                    api project(':card')
+                    implementation project(':shuffle')
+                }
+            }
+            project(':card') {
+                apply plugin: 'cpp-library'
+                library.linkage = [Linkage.STATIC]
+            }
+            project(':shuffle') {
+                apply plugin: 'cpp-library'
+                library.linkage = [Linkage.STATIC]
+            }
+        """
+        app.deck.writeToProject(file("deck"))
+        app.card.writeToProject(file("card"))
+        app.shuffle.writeToProject(file("shuffle"))
+        app.main.writeToProject(file("app"))
+
+        expect:
+        succeeds ":app:assemble"
+
+        result.assertTasksExecuted(compileAndStaticLinkTasks([':card', ':deck', ':shuffle'], debug), compileAndLinkTasks([':app'], debug), installTaskDebug(':app'), ":app:assemble")
+        staticLibrary("deck/build/lib/main/debug/deck").assertExists()
+        staticLibrary("card/build/lib/main/debug/card").assertExists()
+        staticLibrary("shuffle/build/lib/main/debug/shuffle").assertExists()
+        executable("app/build/exe/main/debug/app").assertExists()
+        installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
     def "honors changes to library buildDir"() {
@@ -519,12 +642,15 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             }
             project(':lib2') {
                 apply plugin: 'cpp-library'
-                linkDebug.binaryFile = layout.buildDirectory.file("shared/lib1_debug.dll")
-                if (linkDebug.importLibrary.present) {
-                    linkDebug.importLibrary = layout.buildDirectory.file("import/lib1_import.lib")
+                library.binaries.get { !it.optimized }.configure {
+                    def link = linkTask.get()
+                    link.binaryFile = layout.buildDirectory.file("shared/lib1_debug.dll")
+                    if (link.importLibrary.present) {
+                        link.importLibrary = layout.buildDirectory.file("import/lib1_import.lib")
+                    }
                 }
             }
-"""
+        """
         app.greeterLib.writeToProject(file("lib1"))
         app.loggerLib.writeToProject(file("lib2"))
         app.main.writeToProject(file("app"))

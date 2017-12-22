@@ -38,10 +38,13 @@ class StripSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegrati
                 id 'cpp-application'
             }
             
-            task stripSymbolsDebug(type: StripSymbols) {
-                toolChain = linkDebug.toolChain
-                targetPlatform = linkDebug.targetPlatform
-                binaryFile.set linkDebug.binaryFile
+            task stripSymbolsDebug(type: StripSymbols) { strip ->
+                project.application.binaries.get { !it.optimized }.configure {
+                    def linkDebug = linkTask.get()
+                    strip.toolChain = linkDebug.toolChain
+                    strip.targetPlatform = linkDebug.targetPlatform
+                    strip.binaryFile.set linkDebug.binaryFile
+                }
                 outputFile.set file("build/stripped")
             }
         """
