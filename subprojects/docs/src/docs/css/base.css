@@ -467,6 +467,7 @@ h3.releaseinfo {
 .site-header__navigation-header a {
     align-self: center;
     border-bottom: 0 none;
+    height: 36px;
 }
 
 .site-header__navigation {
@@ -832,7 +833,7 @@ h3.releaseinfo {
     }
 }
 
-@media screen and (min-width: 90rem) {
+@media screen and (min-width: 93.75rem) {
     .chapter .toc {
         left: calc(50% + 31.25rem);
     }
@@ -1079,7 +1080,7 @@ h3.releaseinfo {
     padding-left: 10px;
 }
 
-@media all and (max-width: 29.99em) {
+@media all and (max-width: 29.99rem) {
     .site-footer__rights,
     .site-footer-secondary__links {
         display: none;
@@ -1096,7 +1097,7 @@ h3.releaseinfo {
     }
 }
 
-@media screen and (min-width: 1400px) {
+@media screen and (min-width: 87.5rem) {
     .site-footer__navigation {
         max-width: 90rem;
     }
