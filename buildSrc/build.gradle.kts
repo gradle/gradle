@@ -79,7 +79,7 @@ apply {
     from("../gradle/classycle.gradle")
 }
 
-if (!isCiServer || (isCiServer && System.getProperty("enableCodeQuality")?.toLowerCase() == "true")) {
+if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
     apply { from("../gradle/codeQuality.gradle") }
 }
 
