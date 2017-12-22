@@ -80,9 +80,8 @@
                             <li><a href="/userguide/embedding.html">Embedding Gradle</a></li>
                         </ul>
 
-                        <h3 id="writing-gradle-builds">Writing Gradle Builds</h3>
+                        <h3 id="writing-gradle-builds">Authoring Gradle Builds</h3>
                         <ul>
-                            <li><a href="/dsl/">DSL Reference</a></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#building-jvm-projects" aria-expanded="false" aria-controls="building-jvm-projects">JVM Projects</a>
                                 <ul id="building-jvm-projects">
                                     <li><a class="nav-dropdown" data-toggle="collapse" href="#java-tutorials" aria-expanded="false" aria-controls="java-tutorials">JVM Tutorials</a>
