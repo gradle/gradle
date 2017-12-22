@@ -89,6 +89,12 @@ if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "tr
 
 apply { from("../gradle/ciReporting.gradle") }
 
+fun readProperties(propertiesFile: File) = Properties().apply {
+    propertiesFile.inputStream().use { fis ->
+        load(fis)
+    }
+}
+
 // Workaround caching problems with 'java-gradle-plugin'
 // vvvvv
 normalization {
@@ -100,10 +106,7 @@ normalization {
 tasks.withType<GeneratePluginDescriptors> {
     doLast {
         outputDirectory.listFiles().forEach { descriptorFile ->
-            val descriptorContents = Properties()
-            descriptorFile.inputStream().use {
-                descriptorContents.load(it)
-            }
+            val descriptorContents = readProperties(descriptorFile)
             descriptorFile.outputStream().use {
                 PropertiesUtils.store(descriptorContents, it, null, Charsets.ISO_8859_1, "\n")
             }
@@ -111,3 +114,21 @@ tasks.withType<GeneratePluginDescriptors> {
     }
 }
 // ^^^^^
+
+tasks {
+    val checkSameDaemonArgs by creating {
+        doLast {
+            val buildSrcProperties = readProperties(File(project.rootDir, "gradle.properties"))
+            val rootProperties = readProperties(File(project.rootDir, "../gradle.properties"))
+            val jvmArgs = listOf(buildSrcProperties, rootProperties).map { it.getProperty("org.gradle.jvmargs") }.toSet()
+            if (jvmArgs.size > 1) {
+                throw GradleException("gradle.properties and buildSrc/gradle.properties have different org.gradle.jvmargs " +
+                    "which may cause two daemons to be spawned on CI and in IDEA. " +
+                    "Use the same org.gradle.jvmargs for both builds.")
+            }
+        }
+    }
+
+    val build by getting
+    build.dependsOn(checkSameDaemonArgs)
+}
