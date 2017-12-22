@@ -38,6 +38,8 @@
     <!-- customize the page titles -->
     <xsl:template match="book" mode="object.title.markup.textonly">
         <xsl:value-of select="bookinfo/titleabbrev"/>
+        <xsl:text> Version </xsl:text>
+        <xsl:value-of select="bookinfo/releaseinfo"/>
     </xsl:template>
 
     <xsl:template match="chapter" mode="object.title.markup.textonly">
