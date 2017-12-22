@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Buildable;
-import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
@@ -86,9 +85,6 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
 
     @Override
     public FileCollection getInputFiles(TaskInternal task) {
-        if (task != getTask()) {
-            throw new GradleException("Cannot query input files of other task than the one in question!");
-        }
         return taskInfoFactory.createNode(task).getInputs();
     }
 
