@@ -22,19 +22,16 @@ import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
@@ -70,35 +67,33 @@ import java.util.Set;
 public class ModuleMetadataSerializer {
     private static final byte TYPE_IVY = 1;
     private static final byte TYPE_MAVEN = 2;
-    private static final byte STRING_ATTRIBUTE = 1;
-    private static final byte BOOLEAN_ATTRIBUTE = 2;
 
     private static final ModuleComponentSelectorSerializer COMPONENT_SELECTOR_SERIALIZER = new ModuleComponentSelectorSerializer();
-    private final ImmutableAttributesFactory attributesFactory;
-    private final NamedObjectInstantiator instantiator;
     private final MavenMutableModuleMetadataFactory mavenMetadataFactory;
     private final IvyMutableModuleMetadataFactory ivyMetadataFactory;
+    private final AttributeContainerSerializer attributeContainerSerializer;
 
-    public ModuleMetadataSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory) {
-        this.attributesFactory = attributesFactory;
-        this.instantiator = instantiator;
+    public ModuleMetadataSerializer(AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory) {
         this.mavenMetadataFactory = mavenMetadataFactory;
         this.ivyMetadataFactory = ivyMetadataFactory;
+        this.attributeContainerSerializer = attributeContainerSerializer;
     }
 
     public MutableModuleComponentResolveMetadata read(Decoder decoder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws IOException {
-        return new Reader(decoder, moduleIdentifierFactory, attributesFactory, instantiator, mavenMetadataFactory, ivyMetadataFactory).read();
+        return new Reader(decoder, moduleIdentifierFactory, attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory).read();
     }
 
     public void write(Encoder encoder, ModuleComponentResolveMetadata metadata) throws IOException {
-        new Writer(encoder).write(metadata);
+        new Writer(encoder, attributeContainerSerializer).write(metadata);
     }
 
     private static class Writer {
         private final Encoder encoder;
+        private final AttributeContainerSerializer attributeContainerSerializer;
 
-        private Writer(Encoder encoder) {
+        private Writer(Encoder encoder, AttributeContainerSerializer attributeContainerSerializer) {
             this.encoder = encoder;
+            this.attributeContainerSerializer = attributeContainerSerializer;
         }
 
         public void write(ModuleComponentResolveMetadata metadata) throws IOException {
@@ -157,18 +152,7 @@ public class ModuleMetadataSerializer {
         }
 
         private void writeAttributes(AttributeContainer attributes) throws IOException {
-            encoder.writeSmallInt(attributes.keySet().size());
-            for (Attribute<?> attribute : attributes.keySet()) {
-                encoder.writeString(attribute.getName());
-                if (attribute.getType().equals(Boolean.class)) {
-                    encoder.writeByte(BOOLEAN_ATTRIBUTE);
-                    encoder.writeBoolean((Boolean)attributes.getAttribute(attribute));
-                } else {
-                    assert attribute.getType().equals(String.class);
-                    encoder.writeByte(STRING_ATTRIBUTE);
-                    encoder.writeString((String) attributes.getAttribute(attribute));
-                }
-            }
+            attributeContainerSerializer.write(encoder, attributes);
         }
 
         private void writeVariantFiles(List<? extends ComponentVariant.File> files) throws IOException {
@@ -360,9 +344,8 @@ public class ModuleMetadataSerializer {
     private static class Reader {
         private final Decoder decoder;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-        private final ImmutableAttributesFactory attributesFactory;
-        private final NamedObjectInstantiator instantiator;
         private final ExcludeRuleConverter excludeRuleConverter;
+        private final AttributeContainerSerializer attributeContainerSerializer;
         private final MavenMutableModuleMetadataFactory mavenMetadataFactory;
         private final IvyMutableModuleMetadataFactory ivyMetadataFactory;
         private ModuleComponentIdentifier id;
@@ -371,15 +354,13 @@ public class ModuleMetadataSerializer {
 
         private Reader(Decoder decoder,
                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                       ImmutableAttributesFactory attributesFactory,
-                       NamedObjectInstantiator instantiator,
+                       AttributeContainerSerializer attributeContainerSerializer,
                        MavenMutableModuleMetadataFactory mavenMutableModuleMetadataFactory,
                        IvyMutableModuleMetadataFactory ivyMetadataFactory) {
             this.decoder = decoder;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
-            this.attributesFactory = attributesFactory;
-            this.instantiator = instantiator;
             this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
+            this.attributeContainerSerializer = attributeContainerSerializer;
             this.mavenMetadataFactory = mavenMutableModuleMetadataFactory;
             this.ivyMetadataFactory = ivyMetadataFactory;
         }
@@ -428,19 +409,7 @@ public class ModuleMetadataSerializer {
         }
 
         private ImmutableAttributes readAttributes() throws IOException {
-            ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
-            int count = decoder.readSmallInt();
-            for (int i = 0; i < count; i++) {
-                String name = decoder.readString();
-                byte type = decoder.readByte();
-                if (type == BOOLEAN_ATTRIBUTE) {
-                    attributes = attributesFactory.concat(attributes, Attribute.of(name, Boolean.class), decoder.readBoolean());
-                } else {
-                    String value = decoder.readString();
-                    attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), new CoercingStringValueSnapshot(value, instantiator));
-                }
-            }
-            return attributes;
+            return attributeContainerSerializer.read(decoder);
         }
 
         private void readVariantDependencies(MutableComponentVariant variant) throws IOException {

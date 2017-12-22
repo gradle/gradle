@@ -24,6 +24,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
+import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newVariant
 
 class CachingDependencyResultFactoryTest extends Specification {
 
@@ -32,6 +33,25 @@ class CachingDependencyResultFactoryTest extends Specification {
     def "creates and caches resolved dependencies"() {
         def fromModule = newModule('from')
         def selectedModule = newModule('selected')
+
+        when:
+        def dep = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule)
+        def same = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule)
+
+        def differentRequested = factory.createResolvedDependency(selector('xxx'), fromModule, selectedModule)
+        def differentFrom = factory.createResolvedDependency(selector('requested'), newModule('xxx'), selectedModule)
+        def differentSelected = factory.createResolvedDependency(selector('requested'), fromModule, newModule('xxx'))
+
+        then:
+        dep.is(same)
+        !dep.is(differentFrom)
+        !dep.is(differentRequested)
+        !dep.is(differentSelected)
+    }
+
+    def "creates and caches resolved dependencies with attributes"() {
+        def fromModule = newModule('from')
+        def selectedModule = newModule('selected', 'a', '1', VersionSelectionReasons.SELECTED_BY_RULE, newVariant('custom', [attr1: 'foo', attr2: 'bar']))
 
         when:
         def dep = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule)

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.attributes.AttributeContainer;
 
 public interface ComponentResult {
     /**
@@ -38,4 +39,8 @@ public interface ComponentResult {
      * Returns a unique id for this component.
      */
     ComponentIdentifier getComponentId();
+
+    String getVariantName();
+
+    AttributeContainer getVariantAttributes();
 }

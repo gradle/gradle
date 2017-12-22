@@ -23,13 +23,15 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedNamedVariantResult
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Assert
+import org.junit.ComparisonFailure
 /**
  * A test fixture that injects a task into a build that resolves a dependency configuration and does some validation of the resulting graph, to
  * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
@@ -80,6 +82,7 @@ allprojects {
         buildFile.parentFile.file("build/${config}.txt")
     }
 
+    private
     /**
      * Verifies the result of executing the task injected by {@link #prepare()}. The closure delegates to a {@link GraphBuilder} instance.
      */
@@ -98,7 +101,7 @@ allprojects {
 
         def actualRoot = findLines(configDetails, 'root').first()
         def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]".toString()
-        assert actualRoot == expectedRoot
+        assert actualRoot.startsWith(expectedRoot)
 
         def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
 
@@ -119,7 +122,10 @@ allprojects {
         compare("configurations in graph", actualConfigurations, expectedConfigurations)
 
         def actualComponents = findLines(configDetails, 'component')
-        def expectedComponents = graph.nodes.collect { "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]" }
+        def expectedComponents = graph.nodes.collect {
+            def variantDetails = it.checkVariant ? "[variant:name:${it.variantName} attributes:${it.variantAttributes}]" : ''
+            "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]$variantDetails"
+        }
         compare("components in graph", actualComponents, expectedComponents)
 
         def actualEdges = findLines(configDetails, 'dependency')
@@ -186,9 +192,20 @@ allprojects {
     }
 
     void compare(String compType, Collection<String> actual, Collection<String> expected) {
-        def actualFormatted = Joiner.on("\n").join(new ArrayList<String>(actual).sort())
-        def expectedFormatted = Joiner.on("\n").join(new ArrayList<String>(expected).sort())
-        Assert.assertEquals("Result contains unexpected $compType", expectedFormatted, actualFormatted)
+        def actualSorted = new ArrayList<String>(actual).sort()
+        def expectedSorted = new ArrayList<String>(expected).sort()
+        boolean equals = actual.size() == expectedSorted.size()
+        if (equals) {
+            for (int i = 0; i < actual.size(); i++) {
+                equals &= actualSorted.get(i).startsWith(expectedSorted.get(i))
+            }
+        }
+        def actualFormatted = Joiner.on("\n").join(actualSorted)
+        def expectedFormatted = Joiner.on("\n").join(expectedSorted)
+        if (!equals) {
+            throw new ComparisonFailure("Result contains unexpected $compType", expectedFormatted, actualFormatted);
+        }
+
     }
 
     static class GraphBuilder {
@@ -228,13 +245,13 @@ allprojects {
 
         private void visitNodes(NodeBuilder node, Set<NodeBuilder> result) {
             Set<NodeBuilder> nodesToVisit = []
-            for (EdgeBuilder edge: node.deps) {
+            for (EdgeBuilder edge : node.deps) {
                 def targetNode = edge.selected
                 if (result.add(targetNode)) {
                     nodesToVisit << targetNode
                 }
             }
-            for(NodeBuilder child: nodesToVisit) {
+            for (NodeBuilder child : nodesToVisit) {
                 visitNodes(child, result)
             }
         }
@@ -247,7 +264,7 @@ allprojects {
         }
 
         private visitEdges(NodeBuilder node, Set<NodeBuilder> seenNodes, Set<EdgeBuilder> edges) {
-            for (EdgeBuilder edge: node.deps) {
+            for (EdgeBuilder edge : node.deps) {
                 edges.add(edge)
                 if (seenNodes.add(edge.selected)) {
                     visitEdges(edge.selected, seenNodes, edges)
@@ -387,6 +404,10 @@ allprojects {
         final List<String> files = []
         private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
         private final Set<String> reasons = new TreeSet<String>()
+        String variantName
+        String variantAttributes
+
+        boolean checkVariant
 
         NodeBuilder(String id, String moduleVersionId, Map attrs, GraphBuilder graph) {
             this.graph = graph
@@ -396,6 +417,8 @@ allprojects {
             this.configuration = attrs.configuration
             this.moduleVersionId = moduleVersionId
             this.id = id
+            this.variantName = attrs.variantName
+            this.variantAttributes = attrs.variantAttributes
         }
 
         Set<ExpectedArtifact> getArtifacts() {
@@ -538,6 +561,16 @@ allprojects {
             reasons << reason
             this
         }
+
+        NodeBuilder variant(String name, Map<String, String> attributes = [:]) {
+            checkVariant = true
+            variantName = name
+            variantAttributes = attributes.collect { "$it.key=$it.value" }.sort().join(',')
+            if (id.startsWith("project ")) {
+                configuration = variantName
+            }
+            this
+        }
     }
 }
 
@@ -638,7 +671,17 @@ class GenerateGraphTask extends DefaultTask {
     }
 
     def formatComponent(ResolvedComponentResult result) {
-        return "[id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}]"
+        return "[id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}][variant:${formatVariant(result.variant)}]"
+    }
+
+    def formatVariant(ResolvedNamedVariantResult variant) {
+        return "name:${variant.name} attributes:${formatAttributes(variant.attributes)}"
+    }
+
+    def formatAttributes(AttributeContainer attributes) {
+        attributes.keySet().collect {
+            "$it.name=${attributes.getAttribute(it)}"
+        }.sort().join(',')
     }
 
     def formatReason(ComponentSelectionReason reason) {

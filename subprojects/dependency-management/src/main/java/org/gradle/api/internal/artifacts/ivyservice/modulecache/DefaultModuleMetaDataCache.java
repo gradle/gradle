@@ -21,11 +21,10 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -52,13 +51,12 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
                                       CacheLockingManager cacheLockingManager,
                                       ArtifactCacheMetaData artifactCacheMetaData,
                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                      ImmutableAttributesFactory attributesFactory,
-                                      NamedObjectInstantiator instantiator,
+                                      AttributeContainerSerializer attributeContainerSerializer,
                                       MavenMutableModuleMetadataFactory mavenMetadataFactory,
                                       IvyMutableModuleMetadataFactory ivyMetadataFactory) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
-        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetaData.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributesFactory, instantiator, mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory);
+        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetaData.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory);
     }
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
@@ -33,9 +34,11 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
     private final ModuleVersionIdentifierSerializer idSerializer;
     private final ComponentSelectionReasonSerializer reasonSerializer;
     private final ComponentIdentifierSerializer componentIdSerializer;
+    private final AttributeContainerSerializer attributeContainerSerializer;
 
-    public ComponentResultSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public ComponentResultSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer) {
         idSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
+        this.attributeContainerSerializer = attributeContainerSerializer;
         reasonSerializer = new ComponentSelectionReasonSerializer();
         componentIdSerializer = new ComponentIdentifierSerializer();
     }
@@ -45,7 +48,9 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
         ModuleVersionIdentifier id = idSerializer.read(decoder);
         ComponentSelectionReason reason = reasonSerializer.read(decoder);
         ComponentIdentifier componentId = componentIdSerializer.read(decoder);
-        return new DefaultComponentResult(resultId, id, reason, componentId);
+        String variantName = decoder.readString();
+        AttributeContainer attributes = attributeContainerSerializer.read(decoder);
+        return new DefaultComponentResult(resultId, id, reason, componentId, variantName, attributes);
     }
 
     public void write(Encoder encoder, ComponentResult value) throws IOException {
@@ -53,5 +58,7 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
         idSerializer.write(encoder, value.getModuleVersion());
         reasonSerializer.write(encoder, value.getSelectionReason());
         componentIdSerializer.write(encoder, value.getComponentId());
+        encoder.writeString(value.getVariantName());
+        attributeContainerSerializer.write(encoder, value.getVariantAttributes());
     }
 }
