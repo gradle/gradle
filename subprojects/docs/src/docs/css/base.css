@@ -373,6 +373,11 @@ p .right {
     color: #000;
 }
 
+.lead {
+    font-size: 1.25rem;
+    font-weight: 300;
+}
+
 .highlight {
     background: #ff0;
 }
@@ -1107,6 +1112,27 @@ h3.releaseinfo {
     .site-footer__navigation {
         max-width: 90rem;
     }
+}
+
+/* User Manual Home */
+.technology-logos {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.technology-logo {
+    flex: 0 1 auto;
+}
+
+.legalnotice {
+    color: #666;
+}
+
+.legalnotice p:first-of-type:before {
+    content: "Copyright Notice: ";
+    font-weight: 500;
 }
 
 .segmentedlist {
