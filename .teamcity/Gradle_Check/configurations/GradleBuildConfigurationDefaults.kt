@@ -122,6 +122,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
             gradleParams = gradleParameterString
             useGradleWrapper = true
             workingDir = "buildSrc"
+            buildFile = "build.gradle.kts"
             gradleWrapperPath = ".."
         }
         gradle {
