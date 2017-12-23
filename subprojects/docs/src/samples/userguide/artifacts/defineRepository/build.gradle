@@ -15,16 +15,16 @@ repositories {
     maven {
         url "sftp://repo.mycompany.com:22/maven2"
         credentials {
-            username 'user'
-            password 'password'
+            username "user"
+            password "password"
         }
     }
 
     ivy {
         url "sftp://repo.mycompany.com:22/repo"
         credentials {
-            username 'user'
-            password 'password'
+            username "user"
+            password "password"
         }
     }
 }
@@ -96,26 +96,11 @@ repositories {
 }
 //END SNIPPET maven-jcenter
 
-//START SNIPPET maven-jcenter-http
-repositories {
-    jcenter {
-        url "http://jcenter.bintray.com/"
-    }
-}
-//END SNIPPET maven-jcenter-http
-
 //START SNIPPET maven-google
 repositories {
     google()
 }
 //END SNIPPET maven-google
-
-//START SNIPPET maven-central-jar-repo
-repositories {
-    mavenCentral name: 'single-jar-repo', artifactUrls: ["http://repo.mycompany.com/jars"]
-    mavenCentral name: 'multi-jar-repos', artifactUrls: ["http://repo.mycompany.com/jars1", "http://repo.mycompany.com/jars2"]
-}
-//END SNIPPET maven-central-jar-repo
 
 //START SNIPPET maven-local
 repositories {
@@ -146,11 +131,11 @@ repositories {
 //START SNIPPET authenticated-maven-repo
 repositories {
     maven {
-        credentials {
-            username 'user'
-            password 'password'
-        }
         url "http://repo.mycompany.com/maven2"
+        credentials {
+            username "user"
+            password "password"
+        }
     }
 }
 //END SNIPPET authenticated-maven-repo
@@ -235,10 +220,10 @@ repositories {
 //START SNIPPET authenticated-ivy-repo
 repositories {
     ivy {
-        url 'http://repo.mycompany.com'
+        url "http://repo.mycompany.com"
         credentials {
-            username 'user'
-            password 'password'
+            username "user"
+            password "password"
         }
     }
 }
@@ -268,29 +253,13 @@ task lookup {
     }
 }
 
-//START SNIPPET configure-resolver
-repositories {
-    flatDir {
-        name 'localRepository'
-    }
-}
-repositories {
-    localRepository {
-        dirs 'lib'
-    }
-}
-repositories.localRepository {
-    dirs 'lib'
-}
-//END SNIPPET configure-resolver
-
 //START SNIPPET digest-authentication
 repositories {
     maven {
         url 'https://repo.mycompany.com/maven2'
         credentials {
-            username 'user'
-            password 'password'
+            username "user"
+            password "password"
         }
         authentication {
             digest(DigestAuthentication)
@@ -304,8 +273,8 @@ repositories {
     maven {
         url 'https://repo.mycompany.com/maven2'
         credentials {
-            username 'user'
-            password 'password'
+            username "user"
+            password "password"
         }
         authentication {
             basic(BasicAuthentication)
