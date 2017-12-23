@@ -16,14 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.execution.DefaultTaskProperties;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.TreeSet;
@@ -43,7 +36,6 @@ public class TaskInfo implements Comparable<TaskInfo> {
     private final TreeSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
-    private TaskProperties taskProperties;
 
     public TaskInfo(TaskInternal task) {
         this.task = task;
@@ -214,41 +206,6 @@ public class TaskInfo implements Comparable<TaskInfo> {
 
     public void removeShouldRunAfterSuccessor(TaskInfo toNode) {
         shouldSuccessors.remove(toNode);
-    }
-
-    public FileCollection getDestroyables() {
-        return getTaskProperties().getDestroyableFiles();
-    }
-
-    private TaskProperties getTaskProperties() {
-        if (taskProperties == null) {
-            ProjectInternal project = (ProjectInternal) task.getProject();
-            ServiceRegistry serviceRegistry = project.getServices();
-            PathToFileResolver resolver = serviceRegistry.get(PathToFileResolver.class);
-            PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
-            taskProperties = DefaultTaskProperties.resolve(propertyWalker, resolver, task);
-        }
-        return taskProperties;
-    }
-
-    public FileCollection getLocalState() {
-        return getTaskProperties().getLocalStateFiles();
-    }
-
-    public FileCollection getOutputs() {
-        return getTaskProperties().getOutputFiles();
-    }
-
-    public FileCollection getInputs() {
-        return getTaskProperties().getInputFiles();
-    }
-
-    public boolean hasFileInputs() {
-        return !getTaskProperties().getInputFileProperties().isEmpty();
-    }
-
-    public boolean hasOutputs() {
-        return !getTaskProperties().getOutputFileProperties().isEmpty();
     }
 
     public int compareTo(@Nonnull TaskInfo otherInfo) {

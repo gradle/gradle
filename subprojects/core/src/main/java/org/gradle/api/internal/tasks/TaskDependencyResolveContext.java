@@ -17,8 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskInternal;
 
 public interface TaskDependencyResolveContext {
     /**
@@ -44,9 +42,4 @@ public interface TaskDependencyResolveContext {
      * Returns the task whose dependencies are being resolved.
      */
     Task getTask();
-
-    /**
-     * Returns the input files of the task.
-     */
-    FileCollection getInputFiles(TaskInternal task);
 }
