@@ -29,7 +29,6 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
@@ -40,6 +39,7 @@ import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
 import org.gradle.language.cpp.internal.DefaultCppStaticLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.plugins.NativeBasePlugin;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
@@ -69,7 +69,7 @@ import java.util.concurrent.Callable;
 public class CppBasePlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
-        project.getPluginManager().apply(LifecycleBasePlugin.class);
+        project.getPluginManager().apply(NativeBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
 
         final TaskContainerInternal tasks = project.getTasks();

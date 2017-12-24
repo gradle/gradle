@@ -85,8 +85,6 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
                 CppExecutable binary = testComponent.createExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
-                project.getComponents().add(binary);
-
                 final TaskContainer tasks = project.getTasks();
                 final CppComponent mainComponent = project.getComponents().withType(CppComponent.class).findByName("main");
                 testComponent.getTestedComponent().set(mainComponent);

@@ -30,7 +30,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
-import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
@@ -76,12 +75,6 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
         // Add the component extension
         final DefaultSwiftApplication application = (DefaultSwiftApplication) project.getExtensions().create(SwiftApplication.class, "application", DefaultSwiftApplication.class, "main", project.getLayout(), project.getObjects(), fileOperations, configurations);
         project.getComponents().add(application);
-        application.getBinaries().whenElementKnown(new Action<SwiftBinary>() {
-            @Override
-            public void execute(SwiftBinary binary) {
-                project.getComponents().add(binary);
-            }
-        });
 
         // Setup component
         application.getModule().set(GUtil.toCamelCase(project.getName()));

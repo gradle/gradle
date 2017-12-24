@@ -34,7 +34,6 @@ import org.gradle.api.publish.maven.internal.publication.MavenPublicationInterna
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
-import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
@@ -78,12 +77,6 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         // Add the application extension
         final DefaultCppApplication application = (DefaultCppApplication) project.getExtensions().create(CppApplication.class, "application", DefaultCppApplication.class,  "main", project.getLayout(), objectFactory, fileOperations, configurations);
         project.getComponents().add(application);
-        application.getBinaries().whenElementKnown(new Action<CppBinary>() {
-            @Override
-            public void execute(CppBinary binary) {
-                project.getComponents().add(binary);
-            }
-        });
 
         // Configure the component
         application.getBaseName().set(project.getName());
