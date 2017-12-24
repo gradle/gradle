@@ -146,7 +146,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             apply plugin: 'cpp-application'
 
             task buildDebug {
-                application.binaries.get { !it.optimized }.configure { dependsOn executableFile }
+                dependsOn application.binaries.get { !it.optimized }.map { it.executableFile }
             }
          """
 
@@ -168,7 +168,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             apply plugin: 'cpp-application'
 
             task compileDebug {
-                application.binaries.get { !it.optimized }.configure { dependsOn objects }
+                dependsOn application.binaries.get { !it.optimized }.map { it.objects }
             }
          """
 
@@ -191,7 +191,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             apply plugin: 'cpp-application'
 
             task install {
-                application.binaries.get { !it.optimized }.configure { dependsOn installDirectory }
+                dependsOn application.binaries.get { !it.optimized }.map { it.installDirectory }
             }
          """
 
@@ -381,8 +381,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         result.assertTasksExecuted(compileAndLinkTasks([':hello', ':app'], debug), installTaskDebug(':app'), ":app:assemble")
         executable("app/build/exe/main/debug/app").assertExists()
         sharedLibrary("hello/build/lib/main/debug/hello").assertExists()
-        installation("app/build/install/main/debug").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/main/debug/lib/hello").file.assertExists()
+        def installation = installation("app/build/install/main/debug")
+        installation.exec().out == app.expectedOutput
+        installation.assertIncludesLibraries("hello")
     }
 
     def "can compile and link against a static library"() {
@@ -412,7 +413,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         result.assertTasksExecuted(compileAndStaticLinkTasks([':hello'], debug), compileAndLinkTasks([':app'], debug), installTaskDebug(':app'), ":app:assemble")
         executable("app/build/exe/main/debug/app").assertExists()
         staticLibrary("hello/build/lib/main/debug/hello").assertExists()
-        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+        def installation = installation("app/build/install/main/debug")
+        installation.exec().out == app.expectedOutput
+        installation.assertIncludesLibraries()
     }
 
     def "can compile and link against a library with both linkages defined"() {
@@ -442,7 +445,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         result.assertTasksExecuted(compileAndLinkTasks([':hello'], debugShared), compileAndLinkTasks([':app'], debug), installTaskDebug(':app'), ":app:assemble")
         executable("app/build/exe/main/debug/app").assertExists()
         sharedLibrary("hello/build/lib/main/debug/shared/hello").assertExists()
-        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+        def installation = installation("app/build/install/main/debug")
+        installation.exec().out == app.expectedOutput
+        installation.assertIncludesLibraries("hello")
     }
 
     def "can compile and link against a library with debug and release variants"() {
@@ -530,10 +535,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         sharedLibrary("card/build/lib/main/debug/card").assertExists()
         sharedLibrary("shuffle/build/lib/main/debug/shuffle").assertExists()
         executable("app/build/exe/main/debug/app").assertExists()
-        installation("app/build/install/main/debug").exec().out == app.expectedOutput
-        sharedLibrary("app/build/install/main/debug/lib/deck").file.assertExists()
-        sharedLibrary("app/build/install/main/debug/lib/card").file.assertExists()
-        sharedLibrary("app/build/install/main/debug/lib/shuffle").file.assertExists()
+        def installation = installation("app/build/install/main/debug")
+        installation.assertIncludesLibraries("deck", "card", "shuffle")
+        installation.exec().out == app.expectedOutput
     }
 
     def "can compile and link against a static library with api and implementation dependencies"() {
@@ -578,7 +582,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         staticLibrary("card/build/lib/main/debug/card").assertExists()
         staticLibrary("shuffle/build/lib/main/debug/shuffle").assertExists()
         executable("app/build/exe/main/debug/app").assertExists()
-        installation("app/build/install/main/debug").exec().out == app.expectedOutput
+        def installation = installation("app/build/install/main/debug")
+        installation.assertIncludesLibraries()
+        installation.exec().out == app.expectedOutput
     }
 
     def "honors changes to library buildDir"() {

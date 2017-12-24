@@ -159,10 +159,10 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
             apply plugin: 'cpp-library'
             
             task assembleLinktimeDebug {
-                library.binaries.get { !it.optimized }.configure { dependsOn linkFile }
+                dependsOn library.binaries.get { !it.optimized }.map { it.linkFile }
             }
             task assembleRuntimeDebug {
-                library.binaries.get { !it.optimized }.configure { dependsOn runtimeFile }
+                dependsOn library.binaries.get { !it.optimized }.map { it.runtimeFile }
             }
          """
 
@@ -173,7 +173,6 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         succeeds "assembleRuntimeDebug"
         result.assertTasksExecuted(compileAndLinkTasks(debug), ":assembleRuntimeDebug")
-
     }
 
     def "can use objects as task dependency"() {
@@ -187,7 +186,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
             apply plugin: 'cpp-library'
             
             task compileDebug {
-                library.binaries.get { !it.optimized }.configure { dependsOn objects }
+                dependsOn library.binaries.get { !it.optimized }.map { it.objects }
             }
          """
 
