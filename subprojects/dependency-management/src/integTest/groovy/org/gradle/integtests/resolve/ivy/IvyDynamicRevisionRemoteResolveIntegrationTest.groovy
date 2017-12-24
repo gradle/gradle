@@ -479,6 +479,60 @@ dependencies {
         }
     }
 
+    @Issue("gradle/gradle#3109")
+    def "should honour dynamic version cache expiry for subsequent resolutions in the same build"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { 
+    fresh
+    stale
+}
+configurations.fresh.resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+
+dependencies {
+    fresh group: "org.test", name: "projectA", version: "1.+"
+    stale group: "org.test", name: "projectA", version: "1.+"
+}
+
+task resolveStaleThenFresh {
+    doFirst {
+        println 'stale:' + configurations.stale.collect { it.name } + ',fresh:' + configurations.fresh.collect { it.name }
+    }
+}
+"""
+
+        when:
+        def projectA11 = ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
+        def projectA12 = ivyHttpRepo.module("org.test", "projectA", "1.2").publish()
+
+        and:
+        expectGetDynamicRevision(projectA12)
+
+        then:
+        succeeds "resolveStaleThenFresh"
+
+        and:
+        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.2.jar]")
+
+        when:
+        def projectA13 = ivyHttpRepo.module("org.test", "projectA", "1.3").publish()
+        server.resetExpectations()
+
+        and:
+        // Should get the newer version when resolving 'fresh'
+//        expectGetDynamicRevision(projectA13)
+
+        then:
+        succeeds "resolveStaleThenFresh"
+
+        and:
+        // Demonstrating gradle#3109
+        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.2.jar]")
+        // Should be:
+//        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.3.jar]")
+    }
+
     def "reuses cached version lists unless no matches"() {
         given:
         useRepository ivyHttpRepo
