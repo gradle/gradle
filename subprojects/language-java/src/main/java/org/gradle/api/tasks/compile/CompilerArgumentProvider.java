@@ -19,7 +19,7 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.Incubating;
 
 /**
- * Argument to the Java compiler.
+ * Provides arguments to the compiler.
  *
  * @since 4.5
  */

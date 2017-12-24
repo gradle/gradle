@@ -111,6 +111,48 @@ See [`application` plugin](userguide/application_plugin.html) for more details.
 
 Now [CodeNarc](http://codenarc.sourceforge.net/)'s default version has been upgraded to 1.0, enjoy!
 
+### Richer task inputs
+
+The detection of task input and output annotations for `@Nested` properties now works on the runtime type of the nested bean.
+Earlier Gradle versions used the declared type for detecting annotations.
+Moreover, `Iterable`s can now be annotated with `@Nested` and each element of the iterable will be added as a separate nested input.
+
+This allows for richer modelling inputs and solves some problems on how to declare inputs which are only determined by subclasses.
+
+### Rich Java compiler arguments
+
+As a first use-case of richer task inputs, the `CompileJava` task now supports richer compiler arguments.
+It declares a property [`CompileJava.options.compilerArgumentProviders`](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders), which allows to add instances implementing [`CompilerArgumentProvider`](javadoc/org/gradle/api/tasks/compile/CompilerArgumentProvider.html) and then adds the necessary command line arguments.
+
+For example, to declare annotation processor arguments, it is now be possible to do the following:
+
+        class MyAnnotationProcessor implements CompilerArgumentProvider {
+            @InputFile
+            @PathSensitivite(NONE)
+            File inputFile
+            
+            @OutputFile
+            File outputFile
+            
+            MyAnnotationProcessor(File inputFile, File outputFile) {
+                this.inputFile = inputFile
+                this.outputFile = outputFile
+            }
+            
+            @Override
+            List<String> asArguments() {
+                [
+                    "-AinputFile=${inputFile.absolutePath}",
+                    "-AoutputFile=${outputFile.absolutePath}"
+                ]
+            }
+        }
+        
+        compileJava.options.compilerArgumentProviders << new MyAnnotationProcessor(inputFile, outputFile)
+
+This models an annotation processor which requires an input file and generates an output file.
+The arguments will be passed to the annotation processor via compiler argumetns as absolute paths, while Gradle would use the incremental task information for determining the build cache key of the `compileJava` task and for incremental build.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
