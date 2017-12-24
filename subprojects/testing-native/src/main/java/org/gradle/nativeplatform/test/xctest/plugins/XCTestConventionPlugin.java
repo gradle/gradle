@@ -215,12 +215,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // TODO - should use `src/xctext/swift` as the convention?
         // Add the component extension
         DefaultSwiftXCTestSuite testSuite = project.getObjects().newInstance(DefaultSwiftXCTestSuite.class, "test", project.getConfigurations());
-        testSuite.getBinaries().whenElementKnown(new Action<SwiftBinary>() {
-            @Override
-            public void execute(SwiftBinary binary) {
-                project.getComponents().add(binary);
-            }
-        });
 
         project.getExtensions().add(SwiftXCTestSuite.class, "xctest", testSuite);
         project.getComponents().add(testSuite);

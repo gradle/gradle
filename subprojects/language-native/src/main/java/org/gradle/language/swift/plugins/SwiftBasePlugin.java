@@ -30,8 +30,8 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.plugins.NativeBasePlugin;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftSharedLibrary;
@@ -65,7 +65,7 @@ import java.util.concurrent.Callable;
 public class SwiftBasePlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(LifecycleBasePlugin.class);
+        project.getPluginManager().apply(NativeBasePlugin.class);
         project.getPluginManager().apply(SwiftCompilerPlugin.class);
 
         // TODO - Merge with CppBasePlugin to remove code duplication

@@ -29,7 +29,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
-import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.SwiftPlatform;
@@ -75,12 +74,6 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
         final DefaultSwiftLibrary library = (DefaultSwiftLibrary) project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", project.getLayout(), objectFactory, fileOperations, configurations);
         project.getComponents().add(library);
-        library.getBinaries().whenElementKnown(new Action<SwiftBinary>() {
-            @Override
-            public void execute(SwiftBinary binary) {
-                project.getComponents().add(binary);
-            }
-        });
 
         // Setup component
         final Property<String> module = library.getModule();

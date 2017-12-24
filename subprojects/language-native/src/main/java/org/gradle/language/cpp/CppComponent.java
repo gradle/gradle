@@ -19,12 +19,12 @@ package org.gradle.language.cpp;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.swift.NativeBinaryContainer;
 
 /**
@@ -37,7 +37,7 @@ import org.gradle.language.swift.NativeBinaryContainer;
  * @since 4.2
  */
 @Incubating
-public interface CppComponent extends SoftwareComponent {
+public interface CppComponent extends ComponentWithBinaries {
     /**
      * Specifies the base name for this component. This name is used to calculate various output file names. The default value is calculated from the project name.
      */

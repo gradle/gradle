@@ -38,7 +38,6 @@ import org.gradle.api.publish.maven.internal.publication.MavenPublicationInterna
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.CppSharedLibrary;
@@ -94,12 +93,6 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         // Add the library extension
         final DefaultCppLibrary library = (DefaultCppLibrary) project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getLayout(), project.getObjects(), fileOperations, project.getConfigurations());
         project.getComponents().add(library);
-        library.getBinaries().whenElementKnown(new Action<CppBinary>() {
-            @Override
-            public void execute(CppBinary cppBinary) {
-                project.getComponents().add(cppBinary);
-            }
-        });
 
         // Configure the component
         library.getBaseName().set(project.getName());
