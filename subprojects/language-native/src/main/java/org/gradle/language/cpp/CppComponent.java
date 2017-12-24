@@ -25,7 +25,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.ComponentWithBinaries;
-import org.gradle.language.swift.NativeBinaryContainer;
+import org.gradle.language.NativeBinaryContainer;
 
 /**
  * Configuration for a C++ component, such as a library or executable, defining the source files and private header directories that make up the component. Private headers are those that are visible only to the source files of the component.
