@@ -131,7 +131,12 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
             }
             project(':cppGreeter') {
                 apply plugin: 'cpp-library'
-                library.linkage = [Linkage.${linkage}]
+                library {
+                    linkage = [Linkage.${linkage}]
+                    binaries.configureEach {
+                        compileTask.get().positionIndependentCode = true
+                    }
+                }
             }
         """
         swiftGreeter.writeToProject(file("greeter"))

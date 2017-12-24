@@ -49,6 +49,12 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
             project(':cppGreeter') {
                 apply plugin: 'cpp-library'
                 library.linkage = [Linkage.${linkage}]
+                library {
+                    linkage = [Linkage.${linkage}]
+                    binaries.configureEach {
+                        compileTask.get().positionIndependentCode = true
+                    }
+                }
             }
         """
         lib.writeToProject(file("hello"))
@@ -90,7 +96,12 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
             }
             project(':logger') {
                 apply plugin: 'cpp-library'
-                library.linkage = [Linkage.${linkage}]
+                library {
+                    linkage = [Linkage.${linkage}]
+                    binaries.configureEach {
+                        compileTask.get().positionIndependentCode = true
+                    }
+                }
             }
         """
         lib.writeToProject(file("hello"))
