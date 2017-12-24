@@ -98,20 +98,43 @@ abstract class CheckstyleInvoker {
                 GFileUtils.deleteQuietly(xmlDestination)
             }
 
-            if (ant.project.properties[FAILURE_PROPERTY_NAME]) {
-                def message = "Checkstyle rule violations were found."
-                def report = reports.html.enabled ? reports.html : reports.xml.enabled ? reports.xml : null
-                if (report) {
-                    def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
-                    message += " See the report at: $reportUrl"
-                }
-                if (ignoreFailures) {
-                    logger.warn(message)
-                } else {
-                    throw new GradleException(message)
+            def message
+            /*
+             * Ant checkstyle task does not return any metrics, only pass/fail based on thresholds.
+             * If an xml report was produced, report violations metrics.
+             */
+            if (reports.xml.enabled) {
+                try {
+                    def checkstyleReportXmlParser = new XmlParser().parse(reports.xml.destination)
+                    def errorFileCount = checkstyleReportXmlParser.file.error.groupBy { it.parent().@name }.keySet().size()
+                    if (errorFileCount > 0) {
+                        message = baseMessage(reports)
+                        message += "\nCheckstyle files with violations: $errorFileCount"
+                        message += "\nCheckstyle violations by severity: "
+                        message += checkstyleReportXmlParser.file.error.countBy { it.@severity }
+                    }
+                } finally {
                 }
             }
+
+            if (ant.project.properties[FAILURE_PROPERTY_NAME] && !ignoreFailures) {
+                // might not have xml reports
+                message = message ?: baseMessage(reports)
+                throw new GradleException(message)
+            } else if (message) {
+                logger.warn(message);
+            }
         }
+    }
+
+    private static String baseMessage(CheckstyleReports reports) {
+        def message = "Checkstyle rule violations were found."
+        def report = reports.html.enabled ? reports.html : reports.xml.enabled ? reports.xml : null
+        if (report) {
+            def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
+            message += " See the report at: $reportUrl"
+        }
+        return message
     }
 
     private static boolean isHtmlReportEnabledOnly(CheckstyleReports reports) {
