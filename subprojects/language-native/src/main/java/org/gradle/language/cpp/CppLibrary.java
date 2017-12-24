@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.nativeplatform.Linkage;
 
 /**
@@ -68,5 +68,5 @@ public interface CppLibrary extends CppComponent {
      *
      * @since 4.5
      */
-    ListProperty<Linkage> getLinkage();
+    SetProperty<Linkage> getLinkage();
 }
