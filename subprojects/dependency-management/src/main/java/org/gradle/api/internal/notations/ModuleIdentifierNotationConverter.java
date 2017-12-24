@@ -27,7 +27,7 @@ import org.gradle.util.GUtil;
 import java.util.List;
 
 public class ModuleIdentifierNotationConverter extends TypedNotationConverter<String, ModuleIdentifier> {
-    private final static List<Character> INVALID_SPEC_CHARS = Lists.newArrayList('*', '[', ']', '(', ')', ',', '+');
+    private final static List<Character> INVALID_SPEC_CHARS = Lists.newArrayList('*', '[', ']', '(', ')', ',');
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
