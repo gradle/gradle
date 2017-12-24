@@ -25,7 +25,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.provider.LockableListProperty;
+import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternSet;
@@ -44,7 +44,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final ConfigurationContainer configurations;
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
-    private final LockableListProperty<Linkage> linkage;
+    private final LockableSetProperty<Linkage> linkage;
     private final Property<CppBinary> developmentBinary;
     private final Configuration api;
 
@@ -58,7 +58,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
 
-        linkage = new LockableListProperty<Linkage>(objectFactory.listProperty(Linkage.class));
+        linkage = new LockableSetProperty<Linkage>(objectFactory.setProperty(Linkage.class));
         linkage.add(Linkage.SHARED);
 
         api = configurations.maybeCreate(getNames().withSuffix("api"));
@@ -118,7 +118,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     }
 
     @Override
-    public LockableListProperty<Linkage> getLinkage() {
+    public LockableSetProperty<Linkage> getLinkage() {
         return linkage;
     }
 }
