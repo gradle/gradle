@@ -18,7 +18,6 @@ package org.gradle.language;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.language.swift.NativeBinaryContainer;
 
 /**
  * Represents a component that is composed of one or more binaries.

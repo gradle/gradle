@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift;
+package org.gradle.language;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
-import org.gradle.language.NativeBinaryProvider;
 
 import java.util.Set;
 

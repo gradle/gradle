@@ -24,7 +24,7 @@ import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.language.swift.NativeBinaryContainer;
+import org.gradle.language.NativeBinaryContainer;
 import org.gradle.language.NativeBinaryProvider;
 import org.gradle.util.ConfigureUtil;
 
