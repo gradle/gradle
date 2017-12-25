@@ -15,24 +15,34 @@
  */
 package org.gradle.api.file
 
-import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.api.Project
-
-import spock.lang.Specification
-import spock.lang.Shared
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-// cannot use org.gradle.util.Resources here because the files it returns have already been canonicalized
-class FileCollectionSymlinkTest extends Specification {
-    @Shared Project project = new ProjectBuilder().build()
+@Requires(TestPrecondition.SYMLINKS)
+class FileCollectionSymlinkTest extends AbstractProjectBuilderSpec {
 
-    @Shared File baseDir = getTestFile("symlinks")
-    @Shared File file = new File(baseDir, "file")
-    @Shared File symlink = new File(baseDir, "symlink")
-    @Shared File symlinked = new File(baseDir, "symlinked")
+    TestFile baseDir
+    TestFile file
+    TestFile symlink
+    TestFile symlinked
 
-    @Unroll("#desc can handle symlinks")
-    def "file collection can handle symlinks"() {
+    def setup() {
+        baseDir = temporaryFolder.file('files')
+        file = baseDir.file('file')
+        file.text = 'regular file'
+        symlinked = baseDir.file('symlinked')
+        symlinked.text = 'target of symlink'
+        symlink = baseDir.file('symlink')
+        symlink.createLink(symlinked)
+    }
+
+    @Unroll
+    def "project.#method can handle symlinks"() {
+        def fileCollection = this."${method}"()
+
         expect:
         fileCollection.contains(file)
         fileCollection.contains(symlink)
@@ -42,12 +52,14 @@ class FileCollectionSymlinkTest extends Specification {
         (fileCollection - project.files(symlink)).files == [file, symlinked] as Set
 
         where:
-        desc                 | fileCollection
-        "project.files()"    | project.files(file, symlink, symlinked)
-        "project.fileTree()" | project.fileTree(baseDir)
+        method << ["files", "fileTree"]
     }
 
-    private static File getTestFile(String name) {
-        new File(FileCollectionSymlinkTest.getResource(name).toURI().path)
+    def files() {
+        project.files(file, symlink, symlinked)
+    }
+
+    def fileTree() {
+        project.fileTree(baseDir)
     }
 }
