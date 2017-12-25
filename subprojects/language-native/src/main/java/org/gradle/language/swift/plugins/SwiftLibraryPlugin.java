@@ -96,8 +96,8 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                 SwiftSharedLibrary debugSharedLibrary = null;
                 if (sharedLibs) {
                     String linkageNameSuffix = staticLibs ? "Shared" : "";
-                    debugSharedLibrary = library.createSharedLibrary("debug" + linkageNameSuffix, true, false, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                    SwiftSharedLibrary releaseSharedLibrary = library.createSharedLibrary("release" + linkageNameSuffix, true, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    debugSharedLibrary = library.addSharedLibrary("debug" + linkageNameSuffix, true, false, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    SwiftSharedLibrary releaseSharedLibrary = library.addSharedLibrary("release" + linkageNameSuffix, true, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                     // Add publications
                     SwiftCompile compileDebug = debugSharedLibrary.getCompileTask().get();
@@ -166,8 +166,8 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                 SwiftStaticLibrary debugStaticLibrary = null;
                 if (staticLibs){
                     String linkageNameSuffix = sharedLibs ? "Static" : "";
-                    debugStaticLibrary = library.createStaticLibrary("debug" + linkageNameSuffix, true, false, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                    SwiftStaticLibrary releaseStaticLibrary = library.createStaticLibrary("release" + linkageNameSuffix, true, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    debugStaticLibrary = library.addStaticLibrary("debug" + linkageNameSuffix, true, false, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    SwiftStaticLibrary releaseStaticLibrary = library.addStaticLibrary("release" + linkageNameSuffix, true, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                     if (!sharedLibs) {
                         // Add publications

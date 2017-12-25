@@ -17,30 +17,28 @@
 package org.gradle.language.swift.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.FileOperations
 import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultSwiftLibraryTest extends Specification {
-    def api = Stub(TestConfiguration)
-    def configurations = Stub(ConfigurationContainer)
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
     DefaultSwiftLibrary library
 
     def setup() {
-        _ * configurations.maybeCreate("api") >> api
-        _ * configurations.maybeCreate(_) >> Stub(TestConfiguration)
-        library = new DefaultSwiftLibrary("main", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(FileOperations), configurations)
+        library = new DefaultSwiftLibrary("main", project.objects, project, project.configurations)
     }
 
     def "has api configuration"() {
         expect:
-        library.apiDependencies == api
+        library.apiDependencies == project.configurations.api
     }
 
     def "can create static binary"() {
@@ -49,7 +47,7 @@ class DefaultSwiftLibraryTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.createStaticLibrary("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
+        def binary = library.addStaticLibrary("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
         binary.name == "mainDebug"
         binary.debuggable
         !binary.optimized
@@ -68,7 +66,7 @@ class DefaultSwiftLibraryTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.createSharedLibrary("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
+        def binary = library.addSharedLibrary("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
         binary.name == "mainDebug"
         binary.debuggable
         !binary.optimized

@@ -139,8 +139,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                 // TODO - extract some common code to setup the configurations
                 if (sharedLibs) {
                     String linkageNameSuffix = staticLibs ? "Shared" : "";
-                    CppSharedLibrary debugSharedLibrary = library.createSharedLibrary("debug" + linkageNameSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                    CppSharedLibrary releaseSharedLibrary = library.createSharedLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    CppSharedLibrary debugSharedLibrary = library.addSharedLibrary("debug" + linkageNameSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    CppSharedLibrary releaseSharedLibrary = library.addSharedLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                     tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugSharedLibrary.getRuntimeFile());
                     library.getDevelopmentBinary().set(debugSharedLibrary);
@@ -230,8 +230,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
                 if (staticLibs) {
                     String linkageNameSuffix = sharedLibs ? "Static" : "";
-                    CppStaticLibrary debugStaticLibrary = library.createStaticLibrary("debug" + linkageNameSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                    CppStaticLibrary releaseStaticLibrary = library.createStaticLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    CppStaticLibrary debugStaticLibrary = library.addStaticLibrary("debug" + linkageNameSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    CppStaticLibrary releaseStaticLibrary = library.addStaticLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                     if (!sharedLibs) {
                         tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugStaticLibrary.getLinkFile());

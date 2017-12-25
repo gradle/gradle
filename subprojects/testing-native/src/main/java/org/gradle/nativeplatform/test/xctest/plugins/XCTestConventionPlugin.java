@@ -113,7 +113,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
 
                 // Create test suite executable
-                SwiftXCTestBinary binary = testSuite.createExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                SwiftXCTestBinary binary = testSuite.addExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                 testSuite.getDevelopmentBinary().set(binary);
 
                 // Configure tasks

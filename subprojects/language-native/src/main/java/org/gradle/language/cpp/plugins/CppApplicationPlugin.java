@@ -87,8 +87,8 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
             public void execute(final Project project) {
                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
-                CppExecutable debugExecutable = application.createExecutable("debug", true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                CppExecutable releaseExecutable = application.createExecutable("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                CppExecutable debugExecutable = application.addExecutable("debug", true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                CppExecutable releaseExecutable = application.addExecutable("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                 // Install the debug variant by default
                 tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugExecutable.getInstallDirectory());

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest.internal
+package org.gradle.language.cpp.internal
 
-import org.gradle.language.swift.SwiftPlatform
+import org.gradle.language.cpp.CppPlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -24,16 +24,16 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-class DefaultSwiftXCTestSuiteTest extends Specification {
+class DefaultCppApplicationTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
 
-    def "can add a test executable"() {
-        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects, project.configurations)
+    def "can add an executable"() {
+        def application = new DefaultCppApplication("main", project.objects, project, project.configurations)
 
         expect:
-        def exe = testSuite.addExecutable(Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
-        exe.name == 'testExecutable'
+        def exe = application.addExecutable("debug", true, false, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        exe.name == 'mainDebug'
     }
 }

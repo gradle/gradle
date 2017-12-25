@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.test.xctest.internal;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -36,24 +35,20 @@ import javax.inject.Inject;
  * Abstract software component representing an XCTest suite.
  */
 public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
-    private final ProjectLayout projectLayout;
     private final ObjectFactory objectFactory;
-    private final ConfigurationContainer configurations;
     private final Property<SwiftXCTestBinary> developmentBinary;
-    private Property<SwiftComponent> testedComponent;
+    private final Property<SwiftComponent> testedComponent;
 
     @Inject
-    public DefaultSwiftXCTestSuite(String name, ProjectLayout projectLayout, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
+    public DefaultSwiftXCTestSuite(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
         this.testedComponent = objectFactory.property(SwiftComponent.class);
-        this.projectLayout = projectLayout;
         this.objectFactory = objectFactory;
-        this.configurations = configurations;
         this.developmentBinary = objectFactory.property(SwiftXCTestBinary.class);
     }
 
-    public SwiftXCTestBinary createExecutable(SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        SwiftXCTestBinary result = objectFactory.newInstance(DefaultSwiftXCTestBinary.class, getName() + "Executable", projectLayout, objectFactory, getModule(), true, false, true, getSwiftSource(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+    public SwiftXCTestBinary addExecutable(SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftXCTestBinary result = objectFactory.newInstance(DefaultSwiftXCTestBinary.class, getName() + "Executable", getModule(), true, false, true, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
     }

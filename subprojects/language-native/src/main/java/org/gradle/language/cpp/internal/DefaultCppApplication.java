@@ -18,7 +18,6 @@ package org.gradle.language.cpp.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -31,22 +30,18 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 
 public class DefaultCppApplication extends DefaultCppComponent implements CppApplication {
-    private final ProjectLayout projectLayout;
     private final ObjectFactory objectFactory;
-    private final ConfigurationContainer configurations;
     private final Property<CppExecutable> developmentBinary;
 
     @Inject
-    public DefaultCppApplication(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
+    public DefaultCppApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
-        this.projectLayout = projectLayout;
         this.objectFactory = objectFactory;
-        this.configurations = configurations;
         this.developmentBinary = objectFactory.property(CppExecutable.class);
     }
 
-    public DefaultCppExecutable createExecutable(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppExecutable result = objectFactory.newInstance(DefaultCppExecutable.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getBaseName(), debuggable, optimized, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+    public DefaultCppExecutable addExecutable(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        DefaultCppExecutable result = objectFactory.newInstance(DefaultCppExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), debuggable, optimized, getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
     }
