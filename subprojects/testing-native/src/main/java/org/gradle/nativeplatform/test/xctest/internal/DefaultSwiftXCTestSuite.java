@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
@@ -36,7 +35,7 @@ import javax.inject.Inject;
  */
 public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
     private final ObjectFactory objectFactory;
-    private final Property<SwiftXCTestBinary> developmentBinary;
+    private final Property<SwiftXCTestBinary> testExecutable;
     private final Property<SwiftComponent> testedComponent;
 
     @Inject
@@ -44,7 +43,7 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
         super(name, fileOperations, objectFactory, configurations);
         this.testedComponent = objectFactory.property(SwiftComponent.class);
         this.objectFactory = objectFactory;
-        this.developmentBinary = objectFactory.property(SwiftXCTestBinary.class);
+        this.testExecutable = objectFactory.property(SwiftXCTestBinary.class);
     }
 
     public SwiftXCTestBinary addExecutable(SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
@@ -58,12 +57,7 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
     }
 
     @Override
-    public Property<SwiftXCTestBinary> getDevelopmentBinary() {
-        return developmentBinary;
-    }
-
-    @Override
-    public Provider<SwiftXCTestBinary> getTestExecutable() {
-        return getDevelopmentBinary();
+    public Property<SwiftXCTestBinary> getTestExecutable() {
+        return testExecutable;
     }
 }

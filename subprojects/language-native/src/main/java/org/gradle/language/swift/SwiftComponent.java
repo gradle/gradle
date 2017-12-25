@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.NativeBinaryContainer;
 
@@ -65,11 +64,6 @@ public interface SwiftComponent extends ComponentWithBinaries {
      * @since 4.5
      */
     NativeBinaryContainer<? extends SwiftBinary> getBinaries();
-
-    /**
-     * Returns the binary of the component to use as the default for development.
-     */
-    Provider<? extends SwiftBinary> getDevelopmentBinary();
 
     /**
      * Returns the implementation dependencies of this component.

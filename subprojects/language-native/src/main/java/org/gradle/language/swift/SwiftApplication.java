@@ -27,7 +27,7 @@ import org.gradle.api.provider.Provider;
  * @since 4.2
  */
 @Incubating
-public interface SwiftApplication extends SwiftComponent {
+public interface SwiftApplication extends ProductionSwiftComponent {
     /**
      * {@inheritDoc}
      */

@@ -23,7 +23,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.NativeBinaryContainer;
 
@@ -86,11 +85,6 @@ public interface CppComponent extends ComponentWithBinaries {
      * Returns the implementation dependencies of this component.
      */
     Configuration getImplementationDependencies();
-
-    /**
-     * Returns the binary of the component to use as the default for development.
-     */
-    Provider<? extends CppBinary> getDevelopmentBinary();
 
     /**
      * Returns the binaries for this library.

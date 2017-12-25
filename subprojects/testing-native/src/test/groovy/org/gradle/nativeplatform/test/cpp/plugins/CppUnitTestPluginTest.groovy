@@ -98,7 +98,7 @@ class CppUnitTestPluginTest extends Specification {
         binaries.findAll { it.debuggable && !it.optimized && it instanceof CppExecutable }.size() == 1
 
         and:
-        project.unitTest.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof CppExecutable }
+        project.unitTest.testExecutable.get() == binaries.find { it.debuggable && !it.optimized && it instanceof CppExecutable }
     }
 
     def "does not add an executable or compile, link or install tasks when application or library plugin is not applied"() {
