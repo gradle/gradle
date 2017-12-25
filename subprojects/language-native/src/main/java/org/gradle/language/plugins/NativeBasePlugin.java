@@ -20,12 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 /**
- * A common base plugin for the native plugins
+ * A common base plugin for the native plugins.
  *
  * @since 4.5
  */
@@ -35,13 +36,15 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
-        project.getComponents().withType(ComponentWithBinaries.class, new Action<ComponentWithBinaries>() {
+        // Register each child of each component
+        final SoftwareComponentContainer components = project.getComponents();
+        components.withType(ComponentWithBinaries.class, new Action<ComponentWithBinaries>() {
             @Override
             public void execute(ComponentWithBinaries component) {
                 component.getBinaries().whenElementKnown(new Action<SoftwareComponent>() {
                     @Override
                     public void execute(SoftwareComponent binary) {
-                        project.getComponents().add(binary);
+                        components.add(binary);
                     }
                 });
             }

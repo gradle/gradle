@@ -45,6 +45,7 @@ import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
+import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.Linkage;
 
@@ -67,7 +68,7 @@ import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
  */
 @Incubating
 public class CppLibraryPlugin implements Plugin<ProjectInternal> {
-    private final FileOperations fileOperations;
+    private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
 
     /**
@@ -76,8 +77,8 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
      * @since 4.2
      */
     @Inject
-    public CppLibraryPlugin(FileOperations fileOperations, ToolChainSelector toolChainSelector) {
-        this.fileOperations = fileOperations;
+    public CppLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector) {
+        this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
     }
 
@@ -90,8 +91,9 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
         final ObjectFactory objectFactory = project.getObjects();
         final ProviderFactory providers = project.getProviders();
 
-        // Add the library extension
-        final DefaultCppLibrary library = (DefaultCppLibrary) project.getExtensions().create(CppLibrary.class, "library", DefaultCppLibrary.class, "main", project.getLayout(), project.getObjects(), fileOperations, project.getConfigurations());
+        // Add the library and extension
+        final DefaultCppLibrary library = componentFactory.newInstance(CppLibrary.class, DefaultCppLibrary.class, "main");
+        project.getExtensions().add(CppLibrary.class, "library", library);
         project.getComponents().add(library);
 
         // Configure the component

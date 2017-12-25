@@ -23,11 +23,11 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
@@ -55,12 +55,12 @@ import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
  */
 @Incubating
 public class SwiftLibraryPlugin implements Plugin<Project> {
-    private final FileOperations fileOperations;
+    private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
 
     @Inject
-    public SwiftLibraryPlugin(FileOperations fileOperations, ToolChainSelector toolChainSelector) {
-        this.fileOperations = fileOperations;
+    public SwiftLibraryPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector) {
+        this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
     }
 
@@ -72,7 +72,8 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         final ConfigurationContainer configurations = project.getConfigurations();
         final ObjectFactory objectFactory = project.getObjects();
 
-        final DefaultSwiftLibrary library = (DefaultSwiftLibrary) project.getExtensions().create(SwiftLibrary.class, "library", DefaultSwiftLibrary.class, "main", project.getLayout(), objectFactory, fileOperations, configurations);
+        final DefaultSwiftLibrary library = componentFactory.newInstance(SwiftLibrary.class, DefaultSwiftLibrary.class, "main");
+        project.getExtensions().add(SwiftLibrary.class, "library", library);
         project.getComponents().add(library);
 
         // Setup component

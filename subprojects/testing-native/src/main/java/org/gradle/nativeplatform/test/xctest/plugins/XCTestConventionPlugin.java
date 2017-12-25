@@ -29,6 +29,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
@@ -73,11 +74,13 @@ import java.util.concurrent.Callable;
 public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     private final MacOSSdkPlatformPathLocator sdkPlatformPathLocator;
     private final ToolChainSelector toolChainSelector;
+    private final NativeComponentFactory componentFactory;
 
     @Inject
-    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ToolChainSelector toolChainSelector) {
+    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ToolChainSelector toolChainSelector, NativeComponentFactory componentFactory) {
         this.sdkPlatformPathLocator = sdkPlatformPathLocator;
         this.toolChainSelector = toolChainSelector;
+        this.componentFactory = componentFactory;
     }
 
     @Override
@@ -209,12 +212,12 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         testTask.getWorkingDirectory().set(binary.getInstallDirectory());
     }
 
-    private static DefaultSwiftXCTestSuite createTestSuite(final Project project) {
+    private DefaultSwiftXCTestSuite createTestSuite(final Project project) {
         // TODO - Reuse logic from Swift*Plugin
         // TODO - component name and extension name aren't the same
         // TODO - should use `src/xctext/swift` as the convention?
-        // Add the component extension
-        DefaultSwiftXCTestSuite testSuite = project.getObjects().newInstance(DefaultSwiftXCTestSuite.class, "test", project.getConfigurations());
+        // Add the test suite and extension
+        DefaultSwiftXCTestSuite testSuite = componentFactory.newInstance(SwiftXCTestSuite.class, DefaultSwiftXCTestSuite.class, "test");
 
         project.getExtensions().add(SwiftXCTestSuite.class, "xctest", testSuite);
         project.getComponents().add(testSuite);
