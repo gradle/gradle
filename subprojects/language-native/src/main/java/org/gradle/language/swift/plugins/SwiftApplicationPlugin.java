@@ -28,6 +28,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
@@ -52,7 +53,7 @@ import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
  */
 @Incubating
 public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
-    private final FileOperations fileOperations;
+    private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
 
     /**
@@ -61,8 +62,8 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
      * @since 4.2
      */
     @Inject
-    public SwiftApplicationPlugin(FileOperations fileOperations, ToolChainSelector toolChainSelector) {
-        this.fileOperations = fileOperations;
+    public SwiftApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector) {
+        this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
     }
 
@@ -72,8 +73,9 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
 
         final ConfigurationContainer configurations = project.getConfigurations();
 
-        // Add the component extension
-        final DefaultSwiftApplication application = (DefaultSwiftApplication) project.getExtensions().create(SwiftApplication.class, "application", DefaultSwiftApplication.class, "main", project.getLayout(), project.getObjects(), fileOperations, configurations);
+        // Add the application and extension
+        final DefaultSwiftApplication application = componentFactory.newInstance(SwiftApplication.class, DefaultSwiftApplication.class, "main");
+        project.getExtensions().add(SwiftApplication.class, "application", application);
         project.getComponents().add(application);
 
         // Setup component

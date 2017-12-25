@@ -21,11 +21,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -36,6 +33,7 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.plugins.CppApplicationPlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
+import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -56,14 +54,12 @@ import javax.inject.Inject;
  */
 @Incubating
 public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
-    private final ObjectFactory objectFactory;
+    private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
-    private final FileOperations fileOperations;
 
     @Inject
-    public CppUnitTestPlugin(FileOperations fileOperations, ObjectFactory objectFactory, ToolChainSelector toolChainSelector) {
-        this.fileOperations = fileOperations;
-        this.objectFactory = objectFactory;
+    public CppUnitTestPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector) {
+        this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
     }
 
@@ -72,12 +68,10 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(CppBasePlugin.class);
         project.getPluginManager().apply(TestingBasePlugin.class);
 
-        final ConfigurationContainer configurations = project.getConfigurations();
-
-        final DefaultCppTestSuite testComponent = objectFactory.newInstance(DefaultCppTestSuite.class, "unitTest", project.getLayout(), objectFactory, fileOperations, configurations);
-        // Register components created for the test Component and test binaries
-        project.getComponents().add(testComponent);
+        // Add the unit test and extension
+        final DefaultCppTestSuite testComponent = componentFactory.newInstance(CppTestSuite.class, DefaultCppTestSuite.class, "unitTest");
         project.getExtensions().add(CppTestSuite.class, "unitTest", testComponent);
+        project.getComponents().add(testComponent);
 
         Action<Plugin<ProjectInternal>> projectConfiguration = new Action<Plugin<ProjectInternal>>() {
             @Override

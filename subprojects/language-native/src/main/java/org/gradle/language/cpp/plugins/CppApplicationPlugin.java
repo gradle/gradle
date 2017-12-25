@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.AppliedPlugin;
@@ -39,6 +38,7 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
 import org.gradle.language.cpp.internal.MainExecutableVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
+import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 
 import javax.inject.Inject;
@@ -57,12 +57,12 @@ import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
  */
 @Incubating
 public class CppApplicationPlugin implements Plugin<ProjectInternal> {
-    private final FileOperations fileOperations;
+    private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
 
     @Inject
-    public CppApplicationPlugin(FileOperations fileOperations, ToolChainSelector toolChainSelector) {
-        this.fileOperations = fileOperations;
+    public CppApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector) {
+        this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
     }
 
@@ -74,8 +74,9 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         final TaskContainer tasks = project.getTasks();
         final ObjectFactory objectFactory = project.getObjects();
 
-        // Add the application extension
-        final DefaultCppApplication application = (DefaultCppApplication) project.getExtensions().create(CppApplication.class, "application", DefaultCppApplication.class,  "main", project.getLayout(), objectFactory, fileOperations, configurations);
+        // Add the application and extension
+        final DefaultCppApplication application = componentFactory.newInstance(CppApplication.class, DefaultCppApplication.class, "main");
+        project.getExtensions().add(CppApplication.class, "application", application);
         project.getComponents().add(application);
 
         // Configure the component
@@ -88,9 +89,6 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
 
                 CppExecutable debugExecutable = application.createExecutable("debug", true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                 CppExecutable releaseExecutable = application.createExecutable("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-
-                project.getComponents().add(debugExecutable);
-                project.getComponents().add(releaseExecutable);
 
                 // Install the debug variant by default
                 tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugExecutable.getInstallDirectory());
