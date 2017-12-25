@@ -33,7 +33,7 @@ import org.gradle.nativeplatform.Linkage;
  * @since 4.2
  */
 @Incubating
-public interface CppLibrary extends CppComponent {
+public interface CppLibrary extends ProductionCppComponent {
     /**
      * Defines the public header file directories of this library.
      *

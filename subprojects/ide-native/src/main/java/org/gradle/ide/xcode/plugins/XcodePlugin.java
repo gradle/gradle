@@ -50,15 +50,15 @@ import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask;
 import org.gradle.language.cpp.CppBinary;
-import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
+import org.gradle.language.cpp.ProductionCppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.plugins.CppApplicationPlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
+import org.gradle.language.swift.ProductionSwiftComponent;
 import org.gradle.language.swift.SwiftBinary;
-import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
@@ -209,10 +209,10 @@ public class XcodePlugin extends IdePlugin {
 
                 String targetName = component.getModule().get();
                 XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
-                target.setDebug(component.getDevelopmentBinary().get().getInstallDirectory(), productType);
-                target.setRelease(component.getDevelopmentBinary().get().getInstallDirectory(), productType);
-                target.getCompileModules().from(component.getDevelopmentBinary().get().getCompileModules());
-                target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getDevelopmentBinary().get()).getImportPathConfiguration()).getBuildDependencies());
+                target.setDebug(component.getTestExecutable().get().getInstallDirectory(), productType);
+                target.setRelease(component.getTestExecutable().get().getInstallDirectory(), productType);
+                target.getCompileModules().from(component.getTestExecutable().get().getCompileModules());
+                target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getTestExecutable().get()).getImportPathConfiguration()).getBuildDependencies());
                 xcode.getProject().addTarget(target);
             }
         });
@@ -227,7 +227,7 @@ public class XcodePlugin extends IdePlugin {
             @Override
             public void execute(Project project) {
                 // TODO: Assumes there's a single 'main' Swift component
-                SwiftComponent component = project.getComponents().withType(SwiftComponent.class).getByName("main");
+                ProductionSwiftComponent component = project.getComponents().withType(ProductionSwiftComponent.class).getByName("main");
                 FileCollection sources = component.getSwiftSource();
                 xcode.getProject().getGroups().getSources().from(sources);
 
@@ -266,24 +266,24 @@ public class XcodePlugin extends IdePlugin {
         project.getPlugins().withType(CppApplicationPlugin.class, new Action<CppApplicationPlugin>() {
             @Override
             public void execute(CppApplicationPlugin plugin) {
-                configureXcodeForCpp(project, PBXTarget.ProductType.TOOL);
+                configureXcodeForCpp(project);
             }
         });
 
         project.getPlugins().withType(CppLibraryPlugin.class, new Action<CppLibraryPlugin>() {
             @Override
             public void execute(CppLibraryPlugin plugin) {
-                configureXcodeForCpp(project, PBXTarget.ProductType.DYNAMIC_LIBRARY);
+                configureXcodeForCpp(project);
             }
         });
     }
 
-    private void configureXcodeForCpp(Project project, final PBXTarget.ProductType productType) {
+    private void configureXcodeForCpp(Project project) {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(Project project) {
                 // TODO: Assumes there's a single 'main' C++ component
-                CppComponent component = project.getComponents().withType(CppComponent.class).getByName("main");
+                ProductionCppComponent component = project.getComponents().withType(ProductionCppComponent.class).getByName("main");
                 FileCollection sources = component.getCppSource();
                 xcode.getProject().getGroups().getSources().from(sources);
 

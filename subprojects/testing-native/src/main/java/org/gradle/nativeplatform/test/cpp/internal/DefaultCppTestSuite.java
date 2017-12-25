@@ -59,9 +59,4 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
     public Property<CppExecutable> getTestExecutable() {
         return developmentBinary;
     }
-
-    @Override
-    public Property<CppExecutable> getDevelopmentBinary() {
-        return developmentBinary;
-    }
 }

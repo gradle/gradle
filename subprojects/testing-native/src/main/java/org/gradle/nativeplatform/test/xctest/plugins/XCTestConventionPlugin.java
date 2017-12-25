@@ -32,9 +32,9 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
+import org.gradle.language.swift.ProductionSwiftComponent;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftBinary;
-import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
@@ -114,7 +114,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
                 // Create test suite executable
                 SwiftXCTestBinary binary = testSuite.addExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                testSuite.getDevelopmentBinary().set(binary);
+                testSuite.getTestExecutable().set(binary);
 
                 // Configure tasks
                 configureTestingTask(testSuite, testingTask);
@@ -229,14 +229,14 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureTestSuiteWithTestedComponentWhenAvailable(final Project project, DefaultSwiftXCTestSuite testSuite) {
-        final SwiftComponent testedComponent = project.getComponents().withType(SwiftComponent.class).findByName("main");
+        final ProductionSwiftComponent testedComponent = project.getComponents().withType(ProductionSwiftComponent.class).findByName("main");
         if (testedComponent != null) {
             // We know there is a main component but the binaries may not be known at this time.
             configureTestSuiteWithTestedComponent(project, testSuite, testedComponent);
         }
     }
 
-    private static void configureTestSuiteWithTestedComponent(final Project project, final DefaultSwiftXCTestSuite testSuite, final SwiftComponent testedComponent) {
+    private static void configureTestSuiteWithTestedComponent(final Project project, final DefaultSwiftXCTestSuite testSuite, final ProductionSwiftComponent testedComponent) {
         final TaskContainer tasks = project.getTasks();
 
         // Connect test suite with tested component
@@ -258,7 +258,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
                         // Test configuration extends main configuration
                         testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
-                        project.getDependencies().add(((DefaultSwiftXCTestBinary) testSuite.getDevelopmentBinary().get()).getImportPathConfiguration().getName(), project);
+                        project.getDependencies().add(((DefaultSwiftXCTestBinary) testSuite.getTestExecutable().get()).getImportPathConfiguration().getName(), project);
 
                         // Configure test suite link task from tested component compiled objects
                         final AbstractLinkTask linkTest = ((SwiftXCTestBinary) testExecutable).getLinkTask().get();

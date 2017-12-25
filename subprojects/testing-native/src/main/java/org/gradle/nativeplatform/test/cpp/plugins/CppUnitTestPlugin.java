@@ -28,9 +28,9 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
-import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.cpp.ProductionCppComponent;
 import org.gradle.language.cpp.plugins.CppApplicationPlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.cpp.plugins.CppLibraryPlugin;
@@ -81,7 +81,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                 CppExecutable binary = testComponent.addExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                 final TaskContainer tasks = project.getTasks();
-                final CppComponent mainComponent = project.getComponents().withType(CppComponent.class).findByName("main");
+                final ProductionCppComponent mainComponent = project.getComponents().withType(ProductionCppComponent.class).findByName("main");
                 testComponent.getTestedComponent().set(mainComponent);
 
                 // TODO: This should be modeled as a kind of dependency vs wiring tasks together directly.

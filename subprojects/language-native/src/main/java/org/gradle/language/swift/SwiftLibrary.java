@@ -29,7 +29,7 @@ import org.gradle.nativeplatform.Linkage;
  * @since 4.2
  */
 @Incubating
-public interface SwiftLibrary extends SwiftComponent {
+public interface SwiftLibrary extends ProductionSwiftComponent {
     /**
      * Returns the API dependencies of this library.
      */

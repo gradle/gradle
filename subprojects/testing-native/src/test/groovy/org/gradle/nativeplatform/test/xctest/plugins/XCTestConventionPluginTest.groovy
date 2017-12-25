@@ -99,7 +99,7 @@ class XCTestConventionPluginTest extends Specification {
         binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftXCTestBinary }.size() == 1
 
         and:
-        project.xctest.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftXCTestBinary }
+        project.xctest.testExecutable.get() == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftXCTestBinary }
     }
 
     @Requires(TestPrecondition.MAC_OS_X)

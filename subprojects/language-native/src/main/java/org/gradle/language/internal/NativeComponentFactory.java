@@ -22,5 +22,8 @@ import org.gradle.api.component.SoftwareComponent;
  * This is intended to become public at some point.
  */
 public interface NativeComponentFactory {
+    /**
+     * Creates a new top-level component.
+     */
     <P extends SoftwareComponent, I extends P> I newInstance(Class<P> publicType, Class<I> implementationType, String name);
 }
