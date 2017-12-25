@@ -76,8 +76,8 @@ abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeLanguage
     }
 
     @Override
-    protected String getAllBinariesOfMainComponentBuildScript() {
-        return "xctest.binaries.get()"
+    protected String getMainComponentDsl() {
+        return "xctest"
     }
 
     protected abstract String[] getTaskToAssembleComponentUnderTest()

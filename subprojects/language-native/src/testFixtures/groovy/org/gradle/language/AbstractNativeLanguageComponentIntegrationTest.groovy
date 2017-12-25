@@ -28,7 +28,7 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
         buildFile << """
             task verifyBinariesPlatformType {
                 doLast {
-                    ${allBinariesOfMainComponentBuildScript}.each {
+                    ${mainComponentDsl}.binaries.get().each {
                         assert it.targetPlatform.operatingSystem.name == "${OperatingSystem.current().name}"
                         assert it.targetPlatform.architecture.name == "${DefaultNativePlatform.currentArchitecture.name}"
                     }
@@ -46,7 +46,7 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
         buildFile << """
             task verifyBinariesToolChainType {
                 doLast {
-                    ${allBinariesOfMainComponentBuildScript}.each {
+                    ${mainComponentDsl}.binaries.get().each {
                         assert it.toolChain instanceof ${AbstractInstalledToolChainIntegrationSpec.toolChain.implementationClass}
                     }
                 }
@@ -59,5 +59,5 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
 
     protected abstract void makeSingleProject()
 
-    protected abstract String getAllBinariesOfMainComponentBuildScript()
+    protected abstract String getMainComponentDsl()
 }

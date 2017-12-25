@@ -40,8 +40,8 @@ class CppUnitTestIntegrationTest extends AbstractNativeLanguageComponentIntegrat
     }
 
     @Override
-    protected String getAllBinariesOfMainComponentBuildScript() {
-        return "[unitTest.testExecutable]"
+    protected String getMainComponentDsl() {
+        return "unitTest"
     }
 
     def "can run test executable"() {

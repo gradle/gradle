@@ -53,9 +53,4 @@ abstract class AbstractSwiftIntegrationTest extends AbstractNativeLanguageCompon
     protected abstract String getDevelopmentBinaryCompileTask()
 
     protected abstract String getMainComponentDsl()
-
-    @Override
-    protected String getAllBinariesOfMainComponentBuildScript() {
-        return "${mainComponentDsl}.binaries.get()"
-    }
 }
