@@ -89,8 +89,8 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
 
                 ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
 
-                SwiftExecutable debugExecutable = application.createExecutable("debug", true, false, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                SwiftExecutable releaseExecutable = application.createExecutable("release", true, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                SwiftExecutable debugExecutable = application.addExecutable("debug", true, false, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                SwiftExecutable releaseExecutable = application.addExecutable("release", true, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                 // Add outgoing APIs
                 SwiftCompile compileDebug = debugExecutable.getCompileTask().get();

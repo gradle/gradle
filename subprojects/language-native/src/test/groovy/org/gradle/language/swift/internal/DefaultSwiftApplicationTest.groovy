@@ -16,17 +16,19 @@
 
 package org.gradle.language.swift.internal
 
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.file.FileOperations
 import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultSwiftApplicationTest extends Specification {
-    def app = new DefaultSwiftApplication("main", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(FileOperations), Stub(ConfigurationContainer))
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
+    def app = new DefaultSwiftApplication("main", project.objects, project, project.configurations)
 
     def "can create executable binary"() {
         def targetPlatform = Stub(SwiftPlatform)
@@ -34,7 +36,7 @@ class DefaultSwiftApplicationTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = app.createExecutable("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
+        def binary = app.addExecutable("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
         binary.name == "mainDebug"
         binary.debuggable
         !binary.optimized

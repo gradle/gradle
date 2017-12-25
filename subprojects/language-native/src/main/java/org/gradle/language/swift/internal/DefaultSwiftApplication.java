@@ -18,7 +18,6 @@ package org.gradle.language.swift.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -31,22 +30,18 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 
 public class DefaultSwiftApplication extends DefaultSwiftComponent implements SwiftApplication {
-    private final ProjectLayout projectLayout;
     private final ObjectFactory objectFactory;
-    private final ConfigurationContainer configurations;
     private final Property<SwiftExecutable> developmentBinary;
 
     @Inject
-    public DefaultSwiftApplication(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
+    public DefaultSwiftApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
-        this.projectLayout = projectLayout;
         this.objectFactory = objectFactory;
-        this.configurations = configurations;
         this.developmentBinary = objectFactory.property(SwiftExecutable.class);
     }
 
-    public SwiftExecutable createExecutable(String nameSuffix, boolean debuggable, boolean optimized, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        SwiftExecutable result = objectFactory.newInstance(DefaultSwiftExecutable.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getModule(), debuggable, optimized, testable, getSwiftSource(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+    public SwiftExecutable addExecutable(String nameSuffix, boolean debuggable, boolean optimized, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftExecutable result = objectFactory.newInstance(DefaultSwiftExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), debuggable, optimized, testable, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
     }

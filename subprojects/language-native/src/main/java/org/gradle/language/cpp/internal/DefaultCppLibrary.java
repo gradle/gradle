@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
@@ -39,9 +38,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 
 public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary {
-    private final ProjectLayout projectLayout;
     private final ObjectFactory objectFactory;
-    private final ConfigurationContainer configurations;
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
     private final LockableSetProperty<Linkage> linkage;
@@ -49,11 +46,9 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final Configuration api;
 
     @Inject
-    public DefaultCppLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
+    public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
-        this.projectLayout = projectLayout;
         this.objectFactory = objectFactory;
-        this.configurations = configurations;
         this.developmentBinary = objectFactory.property(CppBinary.class);
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
@@ -67,14 +62,14 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         getImplementationDependencies().extendsFrom(api);
     }
 
-    public DefaultCppSharedLibrary createSharedLibrary(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getBaseName(), debuggable, optimized, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+    public DefaultCppSharedLibrary addSharedLibrary(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), debuggable, optimized, getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
     }
 
-    public DefaultCppStaticLibrary createStaticLibrary(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getBaseName(), debuggable, optimized, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+    public DefaultCppStaticLibrary addStaticLibrary(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), debuggable, optimized, getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
     }

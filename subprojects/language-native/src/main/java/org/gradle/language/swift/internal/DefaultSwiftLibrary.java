@@ -19,7 +19,6 @@ package org.gradle.language.swift.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
@@ -37,16 +36,14 @@ import javax.inject.Inject;
 
 public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftLibrary {
     private final Configuration api;
-    private final ProjectLayout projectLayout;
     private final ObjectFactory objectFactory;
     private final LockableSetProperty<Linkage> linkage;
     private final ConfigurationContainer configurations;
     private final Property<SwiftBinary> developmentBinary;
 
     @Inject
-    public DefaultSwiftLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
+    public DefaultSwiftLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
-        this.projectLayout = projectLayout;
         this.objectFactory = objectFactory;
         this.configurations = configurations;
         this.developmentBinary = objectFactory.property(SwiftBinary.class);
@@ -60,14 +57,14 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
         getImplementationDependencies().extendsFrom(api);
     }
 
-    public SwiftStaticLibrary createStaticLibrary(String nameSuffix, boolean debuggable, boolean optimized, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        SwiftStaticLibrary result = objectFactory.newInstance(DefaultSwiftStaticLibrary.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getModule(), debuggable, optimized, testable, getSwiftSource(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+    public SwiftStaticLibrary addStaticLibrary(String nameSuffix, boolean debuggable, boolean optimized, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftStaticLibrary result = objectFactory.newInstance(DefaultSwiftStaticLibrary.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), debuggable, optimized, testable, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
     }
 
-    public SwiftSharedLibrary createSharedLibrary(String nameSuffix, boolean debuggable, boolean optimized, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        SwiftSharedLibrary result = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, getName() + StringUtils.capitalize(nameSuffix), projectLayout, objectFactory, getModule(), debuggable, optimized, testable, getSwiftSource(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+    public SwiftSharedLibrary addSharedLibrary(String nameSuffix, boolean debuggable, boolean optimized, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftSharedLibrary result = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), debuggable, optimized, testable, getSwiftSource(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
     }
