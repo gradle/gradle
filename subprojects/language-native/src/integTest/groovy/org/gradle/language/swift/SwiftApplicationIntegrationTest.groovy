@@ -44,7 +44,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
     }
 
     @Override
-    protected String getMainComponentDsl() {
+    protected String getComponentUnderTestDsl() {
         return "application"
     }
 

@@ -38,7 +38,7 @@ class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTes
     }
 
     @Override
-    protected String getMainComponentDsl() {
+    protected String getComponentUnderTestDsl() {
         return "library"
     }
 

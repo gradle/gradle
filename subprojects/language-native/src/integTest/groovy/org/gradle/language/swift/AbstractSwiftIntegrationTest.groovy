@@ -54,7 +54,7 @@ abstract class AbstractSwiftIntegrationTest extends AbstractNativeLanguageCompon
         buildFile << """
             task verifyBinariesSwiftVersion {
                 doLast {
-                    ${allBinariesOfMainComponentBuildScript}.each {
+                    ${componentUnderTestDsl}.binaries.get().each {
                         assert it.targetPlatform.swiftVersion == SwiftVersion.${toolChain.swiftVersion.name()}
                     }
                 }
@@ -69,5 +69,5 @@ abstract class AbstractSwiftIntegrationTest extends AbstractNativeLanguageCompon
 
     protected abstract String getDevelopmentBinaryCompileTask()
 
-    protected abstract String getMainComponentDsl()
+    protected abstract String getComponentUnderTestDsl()
 }
