@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
@@ -77,7 +78,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(Plugin<ProjectInternal> plugin) {
                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
-                CppExecutable binary = testComponent.createExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                CppExecutable binary = testComponent.addExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                 final TaskContainer tasks = project.getTasks();
                 final CppComponent mainComponent = project.getComponents().withType(CppComponent.class).findByName("main");
@@ -104,7 +105,12 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
 
                         final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installUnitTest");
                         testTask.setExecutable(installTask.getRunScript());
-                        testTask.dependsOn(testComponent.getTestExecutable().getInstallDirectory());
+                        testTask.dependsOn(testComponent.getTestExecutable().map(new Transformer<Provider<Directory>, CppExecutable>() {
+                            @Override
+                            public Provider<Directory> transform(CppExecutable cppExecutable) {
+                                return cppExecutable.getInstallDirectory();
+                            }
+                        }));
                         // TODO: Honor changes to build directory
                         testTask.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/unitTest").get().getAsFile());
                     }
