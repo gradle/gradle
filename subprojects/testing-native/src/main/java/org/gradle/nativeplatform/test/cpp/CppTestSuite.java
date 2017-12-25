@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.test.cpp;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppExecutable;
 
@@ -32,5 +33,5 @@ public interface CppTestSuite extends CppComponent {
      *
      * @since 4.4
      */
-    CppExecutable getTestExecutable();
+    Provider<CppExecutable> getTestExecutable();
 }
