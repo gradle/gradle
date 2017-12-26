@@ -16,22 +16,20 @@
 
 package org.gradle.language;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Provider;
 
 /**
- * Represents a component whose output requires installation prior to execution.
+ * Represents a binary that is created and configured as required.
  *
  * @since 4.5
+ * @param <T> The type of binary.
  */
 @Incubating
-public interface ComponentWithInstallation extends SoftwareComponent {
+public interface BinaryProvider<T> extends Provider<T> {
     /**
-     * Returns the installation directory for this component.
-     *
-     * @since 4.5
+     * Registers an action to execute to configure the binary. The action is executed when the element is required.
      */
-    Provider<Directory> getInstallDirectory();
+    void configure(Action<? super T> action);
 }

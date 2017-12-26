@@ -18,7 +18,7 @@ package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.ComponentWithLinkFile;
+import org.gradle.language.nativeplatform.ComponentWithLinkFile;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 
 /**

@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp;
+package org.gradle.language.nativeplatform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.nativeplatform.ComponentWithLinkFile;
-import org.gradle.language.nativeplatform.ComponentWithRuntimeFile;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 
 /**
- * A shared library built from C++ source.
+ * Represents a native component whose output includes a runtime component.
  *
- * @since 4.2
+ * @since 4.5
  */
 @Incubating
-public interface CppSharedLibrary extends CppBinary, ComponentWithLinkFile, ComponentWithRuntimeFile {
+public interface ComponentWithRuntimeFile extends SoftwareComponent {
     /**
-     * Returns the link task for this binary.
-     *
-     * @since 4.5
+     * Returns the main output of this component.
      */
-    Provider<? extends AbstractLinkTask> getLinkTask();
+    Provider<RegularFile> getRuntimeFile();
 }

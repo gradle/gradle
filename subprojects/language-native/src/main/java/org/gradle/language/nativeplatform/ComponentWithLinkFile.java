@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.language;
+package org.gradle.language.nativeplatform;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 
 /**
- * Represents a binary that is created and configured as required.
+ * Represents a native component whose output includes a file to be used at link time.
  *
  * @since 4.5
- * @param <T> The type of binary.
  */
 @Incubating
-public interface NativeBinaryProvider<T> extends Provider<T> {
+public interface ComponentWithLinkFile extends SoftwareComponent {
     /**
-     * Registers an action to execute to configure the binary. The action is executed when the element is required.
+     * Returns the main output of this component.
      */
-    void configure(Action<? super T> action);
+    Provider<RegularFile> getLinkFile();
 }

@@ -25,11 +25,11 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.ComponentWithBinaries
-import org.gradle.language.ComponentWithInstallation
-import org.gradle.language.ComponentWithLinkFile
-import org.gradle.language.ComponentWithRuntimeFile
+import org.gradle.language.nativeplatform.ComponentWithInstallation
+import org.gradle.language.nativeplatform.ComponentWithLinkFile
+import org.gradle.language.nativeplatform.ComponentWithRuntimeFile
 import org.gradle.language.ProductionComponent
-import org.gradle.language.internal.DefaultNativeBinaryContainer
+import org.gradle.language.internal.DefaultBinaryContainer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
@@ -47,7 +47,7 @@ class NativeBasePluginTest extends Specification {
         def b2 = Stub(SoftwareComponent)
         b2.name >> "b2"
         def component = Stub(ComponentWithBinaries)
-        def binaries = new DefaultNativeBinaryContainer(SoftwareComponent, null)
+        def binaries = new DefaultBinaryContainer(SoftwareComponent, null)
         component.binaries >> binaries
 
         given:
