@@ -37,7 +37,6 @@ import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Zip;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.CppSharedLibrary;
@@ -142,7 +141,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                     CppSharedLibrary debugSharedLibrary = library.addSharedLibrary("debug" + linkageNameSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                     CppSharedLibrary releaseSharedLibrary = library.addSharedLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
-                    tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugSharedLibrary.getRuntimeFile());
+                    // Use the debug shared library as the development binary
                     library.getDevelopmentBinary().set(debugSharedLibrary);
 
                     // Define the outgoing artifacts
@@ -234,7 +233,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                     CppStaticLibrary releaseStaticLibrary = library.addStaticLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                     if (!sharedLibs) {
-                        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugStaticLibrary.getLinkFile());
+                        // Use the debug static library as the development binary
                         library.getDevelopmentBinary().set(debugStaticLibrary);
 
                         // Define the outgoing artifacts

@@ -27,7 +27,6 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
@@ -114,9 +113,8 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                 releaseApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, releaseExecutable.isOptimized());
                 releaseApiElements.getOutgoing().artifact(compileRelease.getModuleFile());
 
-                // Assemble builds the debug installation
+                // Use the debug variant as the development variant
                 application.getDevelopmentBinary().set(debugExecutable);
-                tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugExecutable.getInstallDirectory());
 
                 // Configure the binaries
                 application.getBinaries().realizeNow();

@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift;
+package org.gradle.language;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.ComponentWithLinkFile;
-import org.gradle.language.ComponentWithRuntimeFile;
-import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 
 /**
- * A shared library built from Swift source.
+ * Represents a component whose output requires installation prior to execution.
  *
- * @since 4.2
+ * @since 4.5
  */
 @Incubating
-public interface SwiftSharedLibrary extends SwiftBinary, ComponentWithLinkFile, ComponentWithRuntimeFile {
+public interface ComponentWithInstallation extends SoftwareComponent {
     /**
-     * Returns the link task for this binary.
+     * Returns the installation directory for this component.
      *
      * @since 4.5
      */
-    Provider<LinkSharedLibrary> getLinkTask();
+    Provider<Directory> getInstallDirectory();
 }

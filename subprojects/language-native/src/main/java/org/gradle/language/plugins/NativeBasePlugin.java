@@ -22,8 +22,15 @@ import org.gradle.api.Plugin;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.ComponentWithBinaries;
+import org.gradle.language.ComponentWithInstallation;
+import org.gradle.language.ComponentWithLinkFile;
+import org.gradle.language.ComponentWithRuntimeFile;
+import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+
+import java.util.concurrent.Callable;
 
 /**
  * A common base plugin for the native plugins.
@@ -49,5 +56,31 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
+
+        final TaskContainer tasks = project.getTasks();
+        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(new Callable<Object>() {
+            @Override
+            public Object call() {
+                // Assemble the development binary of the main component by default
+                ProductionComponent productionComponent = project.getComponents().withType(ProductionComponent.class).findByName("main");
+                if (productionComponent == null) {
+                    return null;
+                }
+
+                // Determine which output to produce at development time. Should introduce an abstraction for this
+                SoftwareComponent developmentBinary = productionComponent.getDevelopmentBinary().get();
+                if (developmentBinary instanceof ComponentWithInstallation) {
+                    return ((ComponentWithInstallation) developmentBinary).getInstallDirectory();
+                }
+                if (developmentBinary instanceof ComponentWithRuntimeFile) {
+                    return ((ComponentWithRuntimeFile) developmentBinary).getRuntimeFile();
+                }
+                if (developmentBinary instanceof ComponentWithLinkFile) {
+                    return ((ComponentWithLinkFile) developmentBinary).getLinkFile();
+                }
+                return null;
+            }
+        });
     }
+
 }

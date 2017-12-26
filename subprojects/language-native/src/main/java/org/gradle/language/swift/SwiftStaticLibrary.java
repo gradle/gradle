@@ -17,8 +17,8 @@
 package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithLinkFile;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 
 /**
@@ -27,12 +27,7 @@ import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
  * @since 4.5
  */
 @Incubating
-public interface SwiftStaticLibrary extends SwiftBinary {
-    /**
-     * Returns the link-time file for this binary.
-     */
-    Provider<RegularFile> getLinkFile();
-
+public interface SwiftStaticLibrary extends SwiftBinary, ComponentWithLinkFile {
     /**
      * Returns the create static library task for this binary.
      *

@@ -17,8 +17,9 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithLinkFile;
+import org.gradle.language.ComponentWithRuntimeFile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 
 /**
@@ -27,21 +28,7 @@ import org.gradle.nativeplatform.tasks.AbstractLinkTask;
  * @since 4.2
  */
 @Incubating
-public interface CppSharedLibrary extends CppBinary {
-    /**
-     * Returns the link-time file for this binary.
-     *
-     * @since 4.4
-     */
-    Provider<RegularFile> getLinkFile();
-
-    /**
-     * Returns the run-time file for this binary.
-     *
-     * @since 4.4
-     */
-    Provider<RegularFile> getRuntimeFile();
-
+public interface CppSharedLibrary extends CppBinary, ComponentWithLinkFile, ComponentWithRuntimeFile {
     /**
      * Returns the link task for this binary.
      *

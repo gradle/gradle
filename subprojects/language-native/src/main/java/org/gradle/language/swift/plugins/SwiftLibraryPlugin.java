@@ -26,7 +26,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftComponent;
@@ -124,8 +123,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                     debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
                     debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debugSharedLibrary.isDebuggable());
                     debugLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, debugSharedLibrary.isOptimized());
-                    // TODO - should distinguish between link-time and runtime files, we're assuming here that they are the same
-                    debugLinkElements.getOutgoing().artifact(debugSharedLibrary.getRuntimeFile());
+                    debugLinkElements.getOutgoing().artifact(debugSharedLibrary.getLinkFile());
 
                     Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
                     debugRuntimeElements.extendsFrom(implementation);
@@ -150,8 +148,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                     releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
                     releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, releaseSharedLibrary.isDebuggable());
                     releaseLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, releaseSharedLibrary.isOptimized());
-                    // TODO - should distinguish between link-time and runtime files, we're assuming here that they are the same
-                    releaseLinkElements.getOutgoing().artifact(releaseSharedLibrary.getRuntimeFile());
+                    releaseLinkElements.getOutgoing().artifact(releaseSharedLibrary.getLinkFile());
 
                     Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
                     releaseRuntimeElements.extendsFrom(implementation);
@@ -227,11 +224,8 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
                 if (sharedLibs) {
                     library.getDevelopmentBinary().set(debugSharedLibrary);
-                    tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugSharedLibrary.getRuntimeFile());
                 } else {
-                    // Should use the development binary as well
                     library.getDevelopmentBinary().set(debugStaticLibrary);
-                    tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugStaticLibrary.getLinkFile());
                 }
 
                 library.getBinaries().realizeNow();

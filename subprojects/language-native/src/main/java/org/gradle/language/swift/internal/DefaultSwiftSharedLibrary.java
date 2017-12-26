@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -41,6 +42,11 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
         super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.runtimeFile = projectLayout.fileProperty();
         this.linkTaskProperty = objectFactory.property(LinkSharedLibrary.class);
+    }
+
+    @Override
+    public Provider<RegularFile> getLinkFile() {
+        return runtimeFile;
     }
 
     @Override

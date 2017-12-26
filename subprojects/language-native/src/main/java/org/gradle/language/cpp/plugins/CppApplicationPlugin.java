@@ -30,8 +30,6 @@ import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
@@ -71,7 +69,6 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(CppBasePlugin.class);
 
         final ConfigurationContainer configurations = project.getConfigurations();
-        final TaskContainer tasks = project.getTasks();
         final ObjectFactory objectFactory = project.getObjects();
 
         // Add the application and extension
@@ -90,8 +87,7 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                 CppExecutable debugExecutable = application.addExecutable("debug", true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                 CppExecutable releaseExecutable = application.addExecutable("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
-                // Install the debug variant by default
-                tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(debugExecutable.getInstallDirectory());
+                // Use the debug variant as the development binary
                 application.getDevelopmentBinary().set(debugExecutable);
 
                 // TODO - add lifecycle tasks to assemble each variant
