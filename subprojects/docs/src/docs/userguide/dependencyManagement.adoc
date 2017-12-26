@@ -378,7 +378,7 @@ Gradle can resolve external dependencies from one or many repositories based on 
 [[sec:declaring_public_repository]]
 ==== Declaring a publicly-available repository
 
-Organizations building software may want to leverage public binary repositories to download and consume open source dependencies. Popular public repositories include Maven Central, Bintray JCenter and the Google Android repository. Gradle provides built-in shortcut methods for the most commonly-used repositories.
+Organizations building software may want to leverage public binary repositories to download and consume open source dependencies. Popular public repositories include Maven Central, Bintray JCenter and the Google Android repository. Gradle provides built-in shortcut methods for the most widely-used repositories.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -397,12 +397,12 @@ To declare JCenter as repository, add this code to your build script:
 </sample>
 ++++
 
-Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via api:org.gradle.api.artifacts.dsl.RepositoryHandler[]. Alternatively, you can <<sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
+Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Alternatively, you can <<sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
 
 [[sec:declaring_custom_repository]]
 ==== Declaring a custom repository by URL
 
-Most enterprise projects do not directly reference an open source repository to avoid potential build breakage upon unavailability. To ensure that needed dependencies are accessible at any time, organizations set up a binary repository within available from only the intranet. Specifying a custom URL is also helpful if you want to declare a less common, but publicly-available repository.
+Most enterprise projects do not directly reference an open source repository to avoid potential breakage should it become unavailable. To ensure that needed dependencies are accessible at any time, organizations usually set up a binary repository available from within the intranet. Specifying a custom URL is also helpful if you want to declare a less popular, but publicly-available repository.
 
 Add the following code to declare an in-house repository for your build reachable through a custom URL.
 
@@ -412,14 +412,14 @@ Add the following code to declare an in-house repository for your build reachabl
 </sample>
 ++++
 
-Repositories with custom URLs can be specified as Maven or Ivy repositories through the corresponding methods available on api:org.gradle.api.artifacts.dsl.RepositoryHandler[]. Gradle also supports other protocols than `http` or `https`. For a full coverage please check the <<sub:supported_transport_protocols,reference manual on supported transport protocols>>.
+Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage please check the <<sub:supported_transport_protocols,reference manual on supported transport protocols>>.
 
 [[sec:declaring_multiple_repositories]]
 ==== Declaring multiple repositories
 
-You can define more than one repository for resolving dependencies. That is helpful if some dependencies are only available in one repository but not the other. You can mix any type of repository described in the <<repository_types,reference section>>.
+You can define more than one repository for resolving dependencies. Declaring multiple repositories is helpful if some dependencies are only available in one repository but not the other. You can mix any type of repository described in the <<repository_types,reference section>>.
 
-This example demonstrates how to declare shortcut and custom URL repositories for a project:
+This example demonstrates how to declare various shortcut and custom URL repositories for a project:
 
 ++++
 <sample id="multiple-repositories" dir="userguide/repositories/declaringMultipleRepositories" title="Declaring multiple repositories">
