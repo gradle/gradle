@@ -43,8 +43,10 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         buildFile << """
             def listener = new TestListenerImpl()
-            ${testTaskName}.addTestListener(listener)
-            ${testTaskName}.ignoreFailures = true
+            tasks.withType(AbstractTestTask) {
+                addTestListener(listener)
+                ignoreFailures = true
+            }
             class TestListenerImpl implements TestListener {
                 void beforeSuite(TestDescriptor suite) { println "START Test Suite [\$suite.className] [\$suite.name]" }
                 void afterSuite(TestDescriptor suite, TestResult result) { println "FINISH Test Suite [\$suite.className] [\$suite.name] [\$result.resultType] [\$result.testCount]" }
@@ -97,7 +99,9 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         createPassingFailingTest()
 
         buildFile << """
-            ${testTaskName}.ignoreFailures = true
+            tasks.withType(AbstractTestTask) {
+                ignoreFailures = true
+            }
         """
 
         when:
@@ -115,7 +119,9 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         createPassingFailingTest()
 
         buildFile << """
-            ${testTaskName}.ignoreFailures = true
+            tasks.withType(AbstractTestTask) {
+                ignoreFailures = true
+            }
         """
 
         when:
@@ -192,7 +198,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         //by build script
         when:
-        buildFile << "${testTaskName}.filter.includeTestsMatching '${testSuite('SomeTest')}.missingMethod'"
+        buildFile << "tasks.withType(AbstractTestTask) { filter.includeTestsMatching '${testSuite('SomeTest')}.missingMethod' }"
         fails(testTaskName)
         then: failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](filter.includeTestsMatching)")
     }
