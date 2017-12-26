@@ -683,7 +683,16 @@ public class PomReader implements PomParent {
      */
     private boolean isActivationPropertyActivated(Element propertyElement) {
         String propertyName = getFirstChildText(propertyElement, "name");
-        return propertyName.startsWith("!");
+        String propertyValue = getFirstChildText(propertyElement, "value");
+        if(propertyName != null && propertyName.length() > 0 ){
+            String systemPropertyValue = System.getProperty(propertyName);
+            if(propertyValue == null){
+                return systemPropertyValue == propertyValue;
+            }else{
+                return propertyValue.equals(systemPropertyValue);
+            }
+        }
+        return false;
     }
 
     /**
