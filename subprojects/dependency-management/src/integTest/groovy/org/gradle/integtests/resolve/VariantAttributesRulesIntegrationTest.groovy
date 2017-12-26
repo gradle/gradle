@@ -162,7 +162,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                             // when Gradle metadata is on, variants used during selection are Gradle defined variants
                             // and here, they do not define any "usage". However, they do define a "status". The selected variant
                             // is target to the metadata rule, which explains we find the "format" attribute here
-                            expectedTargetVariant = variantToTest
+                            expectedTargetVariant = expectedVariant
                             artifact group: 'org', module: 'moduleB', version: '1.0', classifier: 'variant1'
                             expectedAttributes = [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy()?'integration':'release']
                         } else {
