@@ -16,13 +16,14 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import com.google.common.io.Files;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.api.internal.tasks.compile.incremental.asm.ClassDependenciesVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.ints.IntSets;
+import org.gradle.util.internal.Java10ClassReader;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
@@ -46,7 +47,7 @@ public class ClassChangeProcessor {
 
         final ClassReader classReader;
         try {
-            classReader = new ClassReader(Files.toByteArray(input.getFile()));
+            classReader = new Java10ClassReader(Files.toByteArray(input.getFile()));
             String className = classReader.getClassName().replaceAll("/", ".");
             IntSet constants = ClassDependenciesVisitor.retrieveConstants(classReader);
             update(input, spec, className, constants);

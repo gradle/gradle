@@ -22,6 +22,7 @@ import org.gradle.internal.IoActions;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.internal.Java10ClassReader;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
@@ -36,7 +37,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         // Use the ABI as the hash
         byte[] classBytes = ByteStreams.toByteArray(inputStream);
         ApiClassExtractor extractor = new ApiClassExtractor(Collections.<String>emptySet());
-        ClassReader reader = new ClassReader(classBytes);
+        ClassReader reader = new Java10ClassReader(classBytes);
         if (extractor.shouldExtractApiClassFrom(reader)) {
             byte[] signature = extractor.extractApiClassFrom(reader);
             if (signature != null) {
