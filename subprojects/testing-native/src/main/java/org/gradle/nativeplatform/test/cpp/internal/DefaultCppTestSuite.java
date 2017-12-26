@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
@@ -41,11 +42,10 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
         this.objectFactory = objectFactory;
         this.testedComponent = objectFactory.property(CppComponent.class);
         this.testBinary = objectFactory.property(CppTestExecutable.class);
-        getBaseName().set(name);
     }
 
-    public CppTestExecutable addExecutable(CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        CppTestExecutable testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, getName() + "Executable", getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider);
+    public CppTestExecutable addExecutable(String nameSuffix, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        CppTestExecutable testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider);
         this.testBinary.set(testBinary);
         getBinaries().add(testBinary);
         return testBinary;

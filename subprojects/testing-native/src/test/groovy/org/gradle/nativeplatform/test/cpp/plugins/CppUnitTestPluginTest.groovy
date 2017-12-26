@@ -35,7 +35,7 @@ class CppUnitTestPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def projectDir = tmpDir.createDir("project")
-    def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("testApp").build()
+    def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("someApp").build()
 
     def "adds extension with convention for source layout and module name"() {
         given:
@@ -47,7 +47,7 @@ class CppUnitTestPluginTest extends Specification {
 
         then:
         project.unitTest instanceof CppTestSuite
-        project.unitTest.baseName.get() == "test"
+        project.unitTest.baseName.get() == "someAppTest"
         project.unitTest.cppSource.files == [src] as Set
     }
 
@@ -117,13 +117,13 @@ class CppUnitTestPluginTest extends Specification {
 
         def link = project.tasks.linkTest
         link instanceof LinkExecutable
-        link.binaryFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("test"))
+        link.binaryFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("someAppTest"))
         link.debuggable
 
         def install = project.tasks.installTest
         install instanceof InstallExecutable
         install.installDirectory.get().asFile == project.file("build/install/test")
-        install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("test")
+        install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("someAppTest")
     }
 
     def "output locations reflects changes to buildDir"() {
@@ -138,10 +138,10 @@ class CppUnitTestPluginTest extends Specification {
         compileCpp.objectFileDir.get().asFile == projectDir.file("output/obj/test")
 
         def link = project.tasks.linkTest
-        link.binaryFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystem.current().getExecutableName("test"))
+        link.binaryFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystem.current().getExecutableName("someAppTest"))
 
         def install = project.tasks.installTest
         install.installDirectory.get().asFile == project.file("output/install/test")
-        install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("test")
+        install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("someAppTest")
     }
 }

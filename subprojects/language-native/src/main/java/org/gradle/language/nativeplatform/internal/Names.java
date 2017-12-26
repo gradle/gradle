@@ -21,7 +21,7 @@ import org.apache.commons.lang.StringUtils;
 public abstract class Names {
 
     public static Names of(String name) {
-        // Assume that names that end with 'Bundle' represent the 'main' variant of the parent thing
+        // Assume that names that end with 'Executable' represent the 'main' variant of the parent thing
         if (name.equals("main")) {
             return new Main();
         }

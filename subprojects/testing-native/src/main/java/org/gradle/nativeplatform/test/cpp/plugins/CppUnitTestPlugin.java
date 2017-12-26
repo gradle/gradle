@@ -75,11 +75,13 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().add(CppTestSuite.class, "unitTest", testComponent);
         project.getComponents().add(testComponent);
 
+        testComponent.getBaseName().set(project.getName() + "Test");
+
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
-                final DefaultCppTestExecutable binary = (DefaultCppTestExecutable) testComponent.addExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                final DefaultCppTestExecutable binary = (DefaultCppTestExecutable) testComponent.addExecutable("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                 final TaskContainer tasks = project.getTasks();
                 final ProductionCppComponent mainComponent = project.getComponents().withType(ProductionCppComponent.class).findByName("main");
