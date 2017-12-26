@@ -63,4 +63,55 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         result.assertTasksExecuted(':compileDebugSwift', ':createDebug', ':assemble')
         staticLibrary('build/lib/main/debug/Foo').assertExists()
     }
+
+    def "can use link file as task dependency"() {
+        given:
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'foo'"
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+
+            library {
+                linkage = [Linkage.STATIC]
+            }
+            
+            task assembleLinkDebug {
+                dependsOn library.binaries.getByName('mainDebug').map { it.linkFile }
+            }
+         """
+
+        expect:
+        succeeds "assembleLinkDebug"
+        result.assertTasksExecuted(":compileDebugSwift", ":createDebug", ":assembleLinkDebug")
+        staticLibrary("build/lib/main/debug/Foo" ).assertExists()
+    }
+
+    def "can use objects as task dependency"() {
+        given:
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = 'foo'"
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+            
+            library {
+                linkage = [Linkage.STATIC]
+            }
+            
+            task compileDebug {
+                dependsOn library.binaries.getByName('mainDebug').map { it.objects }
+            }
+         """
+
+        expect:
+        succeeds "compileDebug"
+        result.assertTasksExecuted(":compileDebugSwift", ":compileDebug")
+        objectFiles(lib)*.assertExists()
+        staticLibrary("build/lib/main/debug/Foo" ).assertDoesNotExist()
+    }
 }
