@@ -82,7 +82,6 @@ allprojects {
         buildFile.parentFile.file("build/${config}.txt")
     }
 
-    private
     /**
      * Verifies the result of executing the task injected by {@link #prepare()}. The closure delegates to a {@link GraphBuilder} instance.
      */
