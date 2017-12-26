@@ -29,6 +29,7 @@ import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
+import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -45,6 +46,7 @@ public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements Swif
     private final DirectoryProperty installDirectory;
     private final RegularFileProperty runScriptFile;
     private final Property<AbstractLinkTask> linkTaskProperty;
+    private final Property<XCTest> runTaskProperty;
 
     @Inject
     public DefaultSwiftXCTestBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
@@ -53,6 +55,7 @@ public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements Swif
         this.installDirectory = projectLayout.directoryProperty();
         this.runScriptFile = projectLayout.fileProperty();
         this.linkTaskProperty = objectFactory.property(AbstractLinkTask.class);
+        this.runTaskProperty = objectFactory.property(XCTest.class);
     }
 
     @Override
@@ -73,5 +76,10 @@ public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements Swif
     @Override
     public Property<AbstractLinkTask> getLinkTask() {
         return linkTaskProperty;
+    }
+
+    @Override
+    public Property<XCTest> getRunTask() {
+        return runTaskProperty;
     }
 }

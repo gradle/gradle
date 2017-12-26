@@ -29,7 +29,6 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 @UsesNativeServices
 class CppUnitTestPluginTest extends Specification {
@@ -40,7 +39,7 @@ class CppUnitTestPluginTest extends Specification {
 
     def "adds extension with convention for source layout and module name"() {
         given:
-        def src = projectDir.file("src/unitTest/cpp/test.cpp").createFile()
+        def src = projectDir.file("src/test/cpp/test.cpp").createFile()
 
         when:
         project.pluginManager.apply(CppUnitTestPlugin)
@@ -48,7 +47,7 @@ class CppUnitTestPluginTest extends Specification {
 
         then:
         project.unitTest instanceof CppTestSuite
-        project.unitTest.baseName.get() == "unitTest"
+        project.unitTest.baseName.get() == "test"
         project.unitTest.cppSource.files == [src] as Set
     }
 
@@ -85,12 +84,11 @@ class CppUnitTestPluginTest extends Specification {
     def "registers a component for the test suite"() {
         when:
         project.pluginManager.apply(CppUnitTestPlugin)
-        project.pluginManager.apply(CppApplicationPlugin)
         project.evaluate()
 
         then:
-        project.components.unitTest == project.unitTest
-        project.unitTest.binaries.get().name == ['unitTestExecutable']
+        project.components.test == project.unitTest
+        project.unitTest.binaries.get().name == ['testExecutable']
         project.components.containsAll project.unitTest.binaries.get()
 
         and:
@@ -101,48 +99,31 @@ class CppUnitTestPluginTest extends Specification {
         project.unitTest.testBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof CppExecutable }
     }
 
-    def "does not add an executable or compile, link or install tasks when application or library plugin is not applied"() {
-        when:
-        project.pluginManager.apply(CppUnitTestPlugin)
-        project.evaluate()
-
-        then:
-        project.unitTest.binaries.get().isEmpty()
-        !project.tasks.findByName("compileUnitTestCpp")
-        !project.tasks.findByName("linkUnitTest")
-        !project.tasks.findByName("installUnitTest")
-    }
-
-    @Unroll
-    def "adds compile, link and install tasks when #plugin.simpleName is applied"() {
+    def "adds compile, link and install tasks"() {
         given:
-        def src = projectDir.file("src/unitTest/cpp/test.cpp").createFile()
+        def src = projectDir.file("src/test/cpp/test.cpp").createFile()
 
         when:
         project.pluginManager.apply(CppUnitTestPlugin)
-        project.pluginManager.apply(plugin)
         project.evaluate()
 
         then:
-        def compileCpp = project.tasks.compileUnitTestCpp
+        def compileCpp = project.tasks.compileTestCpp
         compileCpp instanceof CppCompile
         compileCpp.source.files == [src] as Set
-        compileCpp.objectFileDir.get().asFile == projectDir.file("build/obj/unit/test")
+        compileCpp.objectFileDir.get().asFile == projectDir.file("build/obj/test")
         compileCpp.debuggable
         !compileCpp.optimized
 
-        def link = project.tasks.linkUnitTest
+        def link = project.tasks.linkTest
         link instanceof LinkExecutable
-        link.binaryFile.get().asFile == projectDir.file("build/exe/unit/test/" + OperatingSystem.current().getExecutableName("unitTest"))
+        link.binaryFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("test"))
         link.debuggable
 
-        def install = project.tasks.installUnitTest
+        def install = project.tasks.installTest
         install instanceof InstallExecutable
-        install.installDirectory.get().asFile == project.file("build/install/unit/test")
-        install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("unitTest")
-
-        where:
-        plugin << [CppApplicationPlugin, CppLibraryPlugin]
+        install.installDirectory.get().asFile == project.file("build/install/test")
+        install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("test")
     }
 
     def "output locations reflects changes to buildDir"() {
@@ -153,14 +134,14 @@ class CppUnitTestPluginTest extends Specification {
         project.evaluate()
 
         then:
-        def compileCpp = project.tasks.compileUnitTestCpp
-        compileCpp.objectFileDir.get().asFile == projectDir.file("output/obj/unit/test")
+        def compileCpp = project.tasks.compileTestCpp
+        compileCpp.objectFileDir.get().asFile == projectDir.file("output/obj/test")
 
-        def link = project.tasks.linkUnitTest
-        link.binaryFile.get().asFile == projectDir.file("output/exe/unit/test/" + OperatingSystem.current().getExecutableName("unitTest"))
+        def link = project.tasks.linkTest
+        link.binaryFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystem.current().getExecutableName("test"))
 
-        def install = project.tasks.installUnitTest
-        install.installDirectory.get().asFile == project.file("output/install/unit/test")
-        install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("unitTest")
+        def install = project.tasks.installTest
+        install.installDirectory.get().asFile == project.file("output/install/test")
+        install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("test")
     }
 }

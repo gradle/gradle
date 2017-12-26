@@ -20,25 +20,26 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.ProductionCppComponent;
-import org.gradle.language.cpp.plugins.CppApplicationPlugin;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
-import org.gradle.language.cpp.plugins.CppLibraryPlugin;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
+import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestSuite;
 import org.gradle.nativeplatform.test.plugins.NativeTestingBasePlugin;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
@@ -70,40 +71,48 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(NativeTestingBasePlugin.class);
 
         // Add the unit test and extension
-        final DefaultCppTestSuite testComponent = componentFactory.newInstance(CppTestSuite.class, DefaultCppTestSuite.class, "unitTest");
+        final DefaultCppTestSuite testComponent = componentFactory.newInstance(CppTestSuite.class, DefaultCppTestSuite.class, "test");
         project.getExtensions().add(CppTestSuite.class, "unitTest", testComponent);
         project.getComponents().add(testComponent);
 
-        Action<Plugin<ProjectInternal>> projectConfiguration = new Action<Plugin<ProjectInternal>>() {
+        project.afterEvaluate(new Action<Project>() {
             @Override
-            public void execute(Plugin<ProjectInternal> plugin) {
+            public void execute(final Project project) {
                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
-                CppExecutable binary = testComponent.addExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                final DefaultCppTestExecutable binary = (DefaultCppTestExecutable) testComponent.addExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                 final TaskContainer tasks = project.getTasks();
                 final ProductionCppComponent mainComponent = project.getComponents().withType(ProductionCppComponent.class).findByName("main");
-                testComponent.getTestedComponent().set(mainComponent);
+                if (mainComponent != null) {
+                    testComponent.getTestedComponent().set(mainComponent);
 
-                // TODO: This should be modeled as a kind of dependency vs wiring tasks together directly.
-                final AbstractLinkTask linkTest = binary.getLinkTask().get();
-                Provider<FileCollection> mainObjects = mainComponent.getDevelopmentBinary().map(new Transformer<FileCollection, CppBinary>() {
-                    @Override
-                    public FileCollection transform(CppBinary devBinary) {
-                        return devBinary.getObjects();
-                    }
-                });
-                linkTest.source(mainObjects);
-                // TODO: We shouldn't have to do this
-                linkTest.dependsOn(mainObjects);
+                    // TODO: This should be modeled as a kind of dependency vs wiring tasks together directly.
+                    final AbstractLinkTask linkTest = binary.getLinkTask().get();
+                    Provider<FileCollection> mainObjects = mainComponent.getDevelopmentBinary().map(new Transformer<FileCollection, CppBinary>() {
+                        @Override
+                        public FileCollection transform(CppBinary devBinary) {
+                            return devBinary.getObjects();
+                        }
+                    });
+                    linkTest.source(mainObjects);
+                    // TODO: We shouldn't have to do this
+                    linkTest.dependsOn(mainObjects);
+                }
 
                 // TODO: Replace with native test task
-                final RunTestExecutable testTask = tasks.create("runUnitTest", RunTestExecutable.class, new Action<RunTestExecutable>() {
+                final RunTestExecutable testTask = tasks.create("runTest", RunTestExecutable.class, new Action<RunTestExecutable>() {
                     @Override
                     public void execute(RunTestExecutable testTask) {
                         testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                         testTask.setDescription("Executes C++ unit tests.");
 
-                        final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installUnitTest");
+                        final InstallExecutable installTask = binary.getInstallTask().get();
+                        testTask.onlyIf(new Spec<Task>() {
+                            @Override
+                            public boolean isSatisfiedBy(Task element) {
+                                return binary.getInstallDirectory().get().getAsFile().exists();
+                            }
+                        });
                         testTask.setExecutable(installTask.getRunScript());
                         testTask.dependsOn(testComponent.getTestBinary().map(new Transformer<Provider<Directory>, CppExecutable>() {
                             @Override
@@ -116,17 +125,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                     }
                 });
 
-                tasks.getByName("test").dependsOn(testTask);
-            }
-        };
-
-        project.getPlugins().withType(CppLibraryPlugin.class, projectConfiguration);
-        // TODO: We will get symbol conflicts with executables since they already have a main()
-        project.getPlugins().withType(CppApplicationPlugin.class, projectConfiguration);
-
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project project) {
+                binary.getRunTask().set(testTask);
                 testComponent.getBinaries().realizeNow();
             }
         });

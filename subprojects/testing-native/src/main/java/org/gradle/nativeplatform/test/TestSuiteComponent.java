@@ -30,5 +30,5 @@ public interface TestSuiteComponent extends SoftwareComponent {
     /**
      * Returns the binary to use as the default to run this test suite.
      */
-    Provider<? extends SoftwareComponent> getTestBinary();
+    Provider<? extends TestComponent> getTestBinary();
 }
