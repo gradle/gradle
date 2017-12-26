@@ -19,6 +19,7 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -121,7 +122,8 @@ project(":b") {
         mavenRepo.module("org.other", "externalA", "1.2").publish()
 
         and:
-        file('settings.gradle') << "include 'a', 'b'"
+        file('settings.gradle') << """rootProject.name='test' 
+include 'a', 'b'"""
 
         and:
         buildFile << """
@@ -153,10 +155,29 @@ project(":b") {
     }
 }
 """
+        def resolve = new ResolveTestFixture(buildFile)
 
-        expect:
+        when:
+        resolve.prepare()
+
+        then:
         succeeds ":b:check"
         executedAndNotSkipped ":a:jar"
+
+        when:
+        succeeds ':b:checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", 'test:a:') {
+                    variant('runtime')
+                    module('org.other:externalA:1.2') {
+                        variant('default')
+                    }
+                }
+            }
+        }
     }
 
     @Issue("GRADLE-2899")
