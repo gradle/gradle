@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.maven
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class MavenSnapshotResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -470,85 +469,6 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         file('build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
         file('a/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
         file('b/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
-    }
-
-    @Ignore
-    //TODO SF need to rework this test. First step might be turning off in-memory metadata caching for this test.
-    def "can update snapshot artifact during build even if it is locked earlier in build"() {
-        given:
-        def module = mavenHttpRepo("/repo", maven("repo1")).module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
-        def module2 = mavenHttpRepo("/repo", maven("repo2")).module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
-        module2.pomFile << '    ' // ensure it's a different length to the first one
-        module2.backingModule.sha1File(module2.pomFile)
-        module2.artifactFile << module2.artifactFile.bytes // ensure it's a different length to the first one
-        module2.backingModule.sha1File(module2.artifactFile)
-        and:
-        settingsFile << "include 'first', 'second'"
-        buildFile << """
-def fileLocks = [:]
-subprojects {
-    repositories {
-        maven { url "http://localhost:${server.port}/repo" }
-    }
-
-    configurations { compile }
-
-    configurations.all {
-        resolutionStrategy.resolutionRules.eachArtifact({ artifact ->
-            artifact.refresh()
-        } as Action)
-    }
-
-    dependencies {
-        compile "org.gradle.integtests.resolve:testproject:1.0-SNAPSHOT"
-    }
-
-    task lock {
-        doLast {
-            configurations.compile.each { file ->
-                println "locking " + file
-                def lockFile = new RandomAccessFile(file.canonicalPath, 'r')
-                fileLocks[file] = lockFile
-            }
-        }
-    }
-
-    task retrieve(type: Sync) {
-        into 'build'
-        from configurations.compile
-    }
-    retrieve.dependsOn 'lock'
-}
-project('second') {
-    lock.dependsOn ':first:lock'
-    retrieve.dependsOn ':first:retrieve'
-
-    task cleanup {
-        doLast {
-            fileLocks.each { key, value ->
-                println "unlocking " + key
-                value.close()
-            }
-        }
-    }
-    cleanup.dependsOn 'retrieve'
-}
-"""
-        when: "Module is requested once"
-        module.metaData.expectGet()
-        module.pom.expectGet()
-        module.artifact.expectGet()
-
-        module2.artifact.expectHead()
-        module2.artifact.sha1.expectGet()
-        module2.artifact.expectGet()
-
-        then:
-        run 'cleanup'
-
-        and:
-        file('first/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module.artifactFile)
-        file('second/build/testproject-1.0-SNAPSHOT.jar').assertIsCopyOf(module2.artifactFile)
     }
 
     def "avoid redownload unchanged artifact when no checksum available"() {
