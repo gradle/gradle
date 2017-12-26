@@ -26,11 +26,11 @@ class XCTestPluginOnUnsupportedPlatformIntegrationTest extends AbstractIntegrati
         buildFile << "apply plugin: 'xctest'"
     }
 
-    def "supports the 'check' lifecycle task when xctest plugin cannot be used"() {
-        succeeds "check"
+    def "fails to build and run tests on unsupported platform"() {
+        fails "check"
 
         expect:
-        result.assertTasksExecuted(":check")
-        result.assertTasksSkipped(":check")
+        failure.assertHasCause("""No tool chain is available to build for platform 'current':
+  - Tool chain 'swiftc' (Swift Compiler): Could not find Swift compiler 'swiftc' in system path.""")
     }
 }
