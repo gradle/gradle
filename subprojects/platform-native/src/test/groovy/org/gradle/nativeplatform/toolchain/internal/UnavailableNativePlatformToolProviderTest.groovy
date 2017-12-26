@@ -52,7 +52,7 @@ class UnavailableNativePlatformToolProviderTest extends Specification {
         toolChain.getCompilerMetadata()
 
         then:
-        thrown(UnsupportedOperationException)
-
+        GradleException e = thrown()
+        e.message == "broken"
     }
 }

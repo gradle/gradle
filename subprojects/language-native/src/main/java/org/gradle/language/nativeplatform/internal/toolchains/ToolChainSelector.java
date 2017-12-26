@@ -19,11 +19,12 @@ package org.gradle.language.nativeplatform.internal.toolchains;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 
 public interface ToolChainSelector {
     <T extends NativePlatform> Result<T> select(Class<T> platformType);
 
-    interface Result<T extends NativePlatform> {
+    interface Result<T extends NativePlatform> extends ToolSearchResult {
         NativeToolChainInternal getToolChain();
 
         T getTargetPlatform();

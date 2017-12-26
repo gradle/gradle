@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.util.TreeVisitor;
 
 import javax.inject.Inject;
 
@@ -40,32 +41,37 @@ public class DefaultToolChainSelector implements ToolChainSelector {
 
     @Override
     public <T extends NativePlatform> Result<T> select(Class<T> platformType) {
-        DefaultNativePlatform targetPlatform = new DefaultNativePlatform("current");
-        NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(targetPlatform);
-        PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
+        DefaultNativePlatform platformRequest = new DefaultNativePlatform("current");
 
-        T t = null;
+        NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(platformRequest);
+        PlatformToolProvider toolProvider = toolChain.select(platformRequest);
+
+        T targetPlatform = null;
         if (CppPlatform.class.isAssignableFrom(platformType)) {
-            t = platformType.cast(new DefaultCppPlatform("current"));
+            targetPlatform = platformType.cast(new DefaultCppPlatform("current"));
         } else if (SwiftPlatform.class.isAssignableFrom(platformType)) {
-            SwiftVersion swiftVersion = SwiftVersion.UNKNOWN;
             if (toolProvider.isAvailable()) {
-                swiftVersion = SwiftVersion.of(toolProvider.getCompilerMetadata().getVersion());
+                try {
+                    targetPlatform = platformType.cast(new DefaultSwiftPlatform("current", SwiftVersion.of(toolProvider.getCompilerMetadata().getVersion())));
+                } catch (IllegalArgumentException ex) {
+                    return new UnavailableToolChainSelection<T>(toolChain, toolProvider);
+                }
+            } else {
+                return new UnavailableToolChainSelection<T>(toolChain, toolProvider);
             }
-            t = platformType.cast(new DefaultSwiftPlatform("current", swiftVersion));
         }
-        return new DefaultResult<T>(toolChain, t, toolProvider);
+        return new DefaultResult<T>(toolChain, toolProvider, targetPlatform);
     }
 
     class DefaultResult<T extends NativePlatform> implements Result<T> {
         private final NativeToolChainInternal toolChain;
-        private final T targetPlatform;
         private final PlatformToolProvider platformToolProvider;
+        private final T targetPlatform;
 
-        public DefaultResult(NativeToolChainInternal toolChain, T targetPlatform, PlatformToolProvider platformToolProvider) {
+        DefaultResult(NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, T targetPlatform) {
             this.toolChain = toolChain;
-            this.targetPlatform = targetPlatform;
             this.platformToolProvider = platformToolProvider;
+            this.targetPlatform = targetPlatform;
         }
 
         @Override
@@ -81,6 +87,51 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         @Override
         public PlatformToolProvider getPlatformToolProvider() {
             return platformToolProvider;
+        }
+
+        @Override
+        public boolean isAvailable() {
+            return true;
+        }
+
+        @Override
+        public void explain(TreeVisitor<? super String> visitor) {
+
+        }
+    }
+
+    class UnavailableToolChainSelection<T extends NativePlatform> implements Result<T> {
+        private final NativeToolChainInternal toolChain;
+        private final PlatformToolProvider platformToolProvider;
+
+        UnavailableToolChainSelection(NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+            this.toolChain = toolChain;
+            this.platformToolProvider = platformToolProvider;
+        }
+
+        @Override
+        public NativeToolChainInternal getToolChain() {
+            return toolChain;
+        }
+
+        @Override
+        public T getTargetPlatform() {
+            return null;
+        }
+
+        @Override
+        public PlatformToolProvider getPlatformToolProvider() {
+            return platformToolProvider;
+        }
+
+        @Override
+        public boolean isAvailable() {
+            return false;
+        }
+
+        @Override
+        public void explain(TreeVisitor<? super String> visitor) {
+            visitor.node("No tool provider available for target platform.");
         }
     }
 }

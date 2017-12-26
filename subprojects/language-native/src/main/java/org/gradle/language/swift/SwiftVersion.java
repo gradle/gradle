@@ -26,7 +26,7 @@ import org.gradle.util.VersionNumber;
  */
 @Incubating
 public enum SwiftVersion {
-    SWIFT2, SWIFT3, UNKNOWN, SWIFT4;
+    SWIFT2, SWIFT3, SWIFT4;
 
     public static SwiftVersion of(VersionNumber swiftCompilerVersion) {
         if (swiftCompilerVersion.getMajor() == 2) {
@@ -36,7 +36,7 @@ public enum SwiftVersion {
         } else if (swiftCompilerVersion.getMajor() == 4) {
             return SWIFT4;
         } else {
-            return UNKNOWN;
+            throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified swift compiler version (%s)", swiftCompilerVersion.toString()));
         }
     }
 }

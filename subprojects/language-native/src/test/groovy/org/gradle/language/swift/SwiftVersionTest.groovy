@@ -42,4 +42,13 @@ class SwiftVersionTest extends Specification {
         '2.2.1'         | SWIFT2
         '2.2'           | SWIFT2
     }
+
+    def "throws exception when Swift language is unknown for specified compiler version"() {
+        when:
+        SwiftVersion.of(VersionNumber.parse("99.0.1"))
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == 'Swift language version is unknown for the specified swift compiler version (99.0.1)'
+    }
 }
