@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -207,7 +206,7 @@ public class AvailableToolChains {
         if (compilerExe.isFile()) {
             SwiftcMetadata version = versionDeterminer.getCompilerMetaData(compilerExe, Collections.<String>emptyList());
             if (version.isAvailable()) {
-                return new InstalledSwiftc("swiftc", SwiftVersion.of(version.getVersion())).inPath(compilerExe.getParentFile(), new File("/usr/bin"));
+                return new InstalledSwiftc("swiftc", version.getVersion()).inPath(compilerExe.getParentFile(), new File("/usr/bin"));
             }
         }
 
@@ -216,7 +215,7 @@ public class AvailableToolChains {
         for (File candidate : swiftcCandidates) {
             SwiftcMetadata version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
             if (version.isAvailable()) {
-                InstalledSwiftc swiftc = new InstalledSwiftc("swiftc", SwiftVersion.of(version.getVersion()));
+                InstalledSwiftc swiftc = new InstalledSwiftc("swiftc", version.getVersion());
                 if (!candidate.equals(firstInPath)) {
                     // Not the first swiftc in the path, needs the path variable updated
                     swiftc.inPath(candidate.getParentFile());
@@ -473,11 +472,11 @@ public class AvailableToolChains {
     }
 
     public static class InstalledSwiftc extends InstalledToolChain {
-        private final SwiftVersion swiftVersion;
+        private final VersionNumber compilerVersion;
 
-        public InstalledSwiftc(String displayName, SwiftVersion swiftVersion) {
+        public InstalledSwiftc(String displayName, VersionNumber compilerVersion) {
             super(displayName);
-            this.swiftVersion = swiftVersion;
+            this.compilerVersion = compilerVersion;
         }
 
         /**
@@ -522,8 +521,8 @@ public class AvailableToolChains {
             return requirement == ToolChainRequirement.SWIFT || requirement == ToolChainRequirement.AVAILABLE;
         }
 
-        public SwiftVersion getSwiftVersion() {
-            return swiftVersion;
+        public VersionNumber getVersion() {
+            return compilerVersion;
         }
     }
 

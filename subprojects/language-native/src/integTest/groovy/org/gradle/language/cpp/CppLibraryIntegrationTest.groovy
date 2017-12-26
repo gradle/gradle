@@ -27,7 +27,7 @@ import static org.gradle.util.Matchers.containsText
 class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements CppTaskNames {
 
     @Override
-    protected String getMainComponentDsl() {
+    protected String getComponentUnderTestDsl() {
         return "library"
     }
 

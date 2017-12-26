@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.test.cpp.plugins
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
 import org.junit.Assume
-import spock.lang.Unroll
 
 class CppUnitTestWithoutComponentIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
     def setup() {
@@ -38,14 +37,10 @@ class CppUnitTestWithoutComponentIntegrationTest extends AbstractNativeUnitTestI
         """
     }
 
-    @Override
-    protected String getMainComponentDsl() {
-        return "unitTest"
-    }
-
-    @Unroll
-    def "can run test executable using lifecycle task #task"() {
-        makeSingleProject()
+    def "builds and runs test suite when no main component"() {
+        buildFile << """
+            apply plugin: 'cpp-unit-test'
+        """
 
         file("src/test/cpp/test.cpp") << """
 int main() {
@@ -54,16 +49,10 @@ int main() {
 """
 
         when:
-        succeeds(task)
+        succeeds("check")
 
         then:
-        result.assertTasksExecuted(tasksToBuildAndRunUnitTest, expectedLifecycleTasks)
-
-        where:
-        task    | expectedLifecycleTasks
-        "test"  | [":test"]
-        "check" | [":test", ":check"]
-        "build" | [":test", ":check", ":build", ":assemble"]
+        result.assertTasksExecuted( tasksToBuildAndRunUnitTest, ":test", ":check")
     }
 
     def "test fails when test executable returns non-zero status"() {

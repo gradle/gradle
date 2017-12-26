@@ -38,7 +38,7 @@ class CppBothLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
     }
 
     @Override
-    protected String getMainComponentDsl() {
+    protected String getComponentUnderTestDsl() {
         return "library"
     }
 
