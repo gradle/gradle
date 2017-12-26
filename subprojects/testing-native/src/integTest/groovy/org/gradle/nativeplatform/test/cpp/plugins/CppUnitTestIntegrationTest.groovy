@@ -36,7 +36,6 @@ class CppUnitTestIntegrationTest extends AbstractNativeLanguageComponentIntegrat
     protected void makeSingleProject() {
         buildFile << """
             apply plugin: 'cpp-unit-test'
-            apply plugin: 'cpp-application'
         """
     }
 
@@ -54,14 +53,14 @@ class CppUnitTestIntegrationTest extends AbstractNativeLanguageComponentIntegrat
         """
 
         app.library.writeSources(file("src/main"))
-        app.simpleTestExecutable.writeSources(file("src/unitTest"))
+        app.simpleTestExecutable.writeSources(file("src/test"))
 
         when:
         succeeds(task)
 
         then:
         result.assertTasksExecuted(":compileDebugCpp",
-            ":compileUnitTestCpp", ":linkUnitTest", ":installUnitTest", ":runUnitTest", expectedLifecycleTasks)
+            ":compileTestCpp", ":linkTest", ":installTest", ":runTest", expectedLifecycleTasks)
 
         where:
         task    | expectedLifecycleTasks
@@ -70,19 +69,54 @@ class CppUnitTestIntegrationTest extends AbstractNativeLanguageComponentIntegrat
         "build" | [":test", ":check", ":build", ":linkDebug", ":assemble"]
     }
 
-    def "does nothing if cpp-library or cpp-application are not applied"() {
-        def app = new CppHelloWorldApp()
+    def "does nothing when cpp-library or cpp-application are not applied and no test source"() {
         buildFile << """
             apply plugin: 'cpp-unit-test'
         """
-
-        app.library.writeSources(file("src/main"))
-        app.simpleTestExecutable.writeSources(file("src/unitTest"))
 
         when:
         succeeds("check")
 
         then:
-        result.assertTasksExecuted( ":test", ":check")
+        result.assertTasksExecuted( ":compileTestCpp", ":linkTest", ":installTest", ":runTest", ":test", ":check")
+        result.assertTasksSkipped( ":compileTestCpp", ":linkTest", ":installTest", ":runTest", ":test", ":check")
+    }
+
+    def "builds and runs test suite when no main component"() {
+        buildFile << """
+            apply plugin: 'cpp-unit-test'
+        """
+
+        file("src/test/cpp/test.cpp") << """
+int main() {
+    return 0;
+}
+"""
+
+        when:
+        succeeds("check")
+
+        then:
+        result.assertTasksExecuted( ":compileTestCpp", ":linkTest", ":installTest", ":runTest", ":test", ":check")
+    }
+
+    def "test fails when application returns non-zero status"() {
+        buildFile << """
+            apply plugin: 'cpp-unit-test'
+        """
+
+        file("src/test/cpp/test.cpp") << """
+int main() {
+    return 1;
+}
+"""
+
+        when:
+        fails("check")
+
+        then:
+        result.assertTasksExecuted( ":compileTestCpp", ":linkTest", ":installTest", ":runTest")
+        failure.assertHasDescription("Execution failed for task ':runTest'.")
+        failure.assertHasCause("There were failing tests. See the results at:")
     }
 }

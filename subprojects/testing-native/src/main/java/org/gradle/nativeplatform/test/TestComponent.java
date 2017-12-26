@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.cpp;
+package org.gradle.nativeplatform.test;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.cpp.CppComponent;
-import org.gradle.nativeplatform.test.TestSuiteComponent;
 
 /**
- * A C++ test suite.
+ * Represents a component that can run tests.
  *
- * @since 4.4
+ * @since 4.5
  */
 @Incubating
-public interface CppTestSuite extends CppComponent, TestSuiteComponent {
+public interface TestComponent extends SoftwareComponent {
     /**
-     * {@inheritDoc}
+     * Returns the task that runs the tests for this component.
      */
-    @Override
-    Provider<? extends CppTestExecutable> getTestBinary();
+    Provider<? extends Task> getRunTask();
 }

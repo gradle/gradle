@@ -18,19 +18,20 @@ package org.gradle.nativeplatform.test.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.cpp.CppComponent;
-import org.gradle.nativeplatform.test.TestSuiteComponent;
+import org.gradle.language.cpp.CppExecutable;
+import org.gradle.nativeplatform.test.TestComponent;
+import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 
 /**
- * A C++ test suite.
+ * A test executable implemented with C++.
  *
- * @since 4.4
+ * @since 4.5
  */
 @Incubating
-public interface CppTestSuite extends CppComponent, TestSuiteComponent {
+public interface CppTestExecutable extends CppExecutable, TestComponent {
     /**
      * {@inheritDoc}
      */
     @Override
-    Provider<? extends CppTestExecutable> getTestBinary();
+    Provider<? extends RunTestExecutable> getRunTask();
 }

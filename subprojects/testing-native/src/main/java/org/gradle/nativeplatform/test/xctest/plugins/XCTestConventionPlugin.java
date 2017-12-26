@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
@@ -88,17 +87,11 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(SwiftBasePlugin.class);
         project.getPluginManager().apply(NativeTestingBasePlugin.class);
 
-        final TaskContainer tasks = project.getTasks();
-
         // Create test suite component
         final DefaultSwiftXCTestSuite testSuite = createTestSuite(project);
 
         // Create test suite test task
         final XCTest testingTask = createTestingTask(project);
-
-        // Wire in to the lifecycle task
-        Task test = tasks.getByName("test");
-        test.dependsOn(testingTask);
 
         project.afterEvaluate(new Action<Project>() {
             @Override
@@ -106,8 +99,9 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
 
                 // Create test suite executable
-                SwiftXCTestBinary binary = testSuite.addExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                DefaultSwiftXCTestBinary binary = (DefaultSwiftXCTestBinary) testSuite.addExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                 testSuite.getTestBinary().set(binary);
+                binary.getRunTask().set(testingTask);
 
                 // Configure tasks
                 configureTestingTask(testSuite, testingTask);
@@ -208,7 +202,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     private DefaultSwiftXCTestSuite createTestSuite(final Project project) {
         // TODO - Reuse logic from Swift*Plugin
         // TODO - component name and extension name aren't the same
-        // TODO - should use `src/xctext/swift` as the convention?
+        // TODO - should use `src/xctest/swift` as the convention?
         // Add the test suite and extension
         DefaultSwiftXCTestSuite testSuite = componentFactory.newInstance(SwiftXCTestSuite.class, DefaultSwiftXCTestSuite.class, "test");
 
