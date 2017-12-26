@@ -36,9 +36,9 @@ import java.util.concurrent.Callable;
  *
  * <ul>
  *
- * <p>Adds a {@code "test"} task.</p>
+ * <li>Adds a {@code "test"} task.</li>
  *
- * <p>Configures the {@code "test"} task to run the tests of the {@code test} component, if present.</p>
+ * <li>Configures the {@code "test"} task to run the tests of the {@code test} component, if present. Expects the test component to be of type {@link TestSuiteComponent}.</li>
  *
  * </ul>
  * @since 4.5

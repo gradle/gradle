@@ -40,7 +40,7 @@ import java.util.concurrent.Callable;
  *
  * <ul>
  *
- * <p>Configures the {@value LifecycleBasePlugin#ASSEMBLE_TASK_NAME} task to build the development binary of the {@code main} component, if present.</p>
+ * <li>Configures the {@value LifecycleBasePlugin#ASSEMBLE_TASK_NAME} task to build the development binary of the {@code main} component, if present. Expects the main component to be of type {@link ProductionComponent}.</li>
  *
  * </ul>
  *
