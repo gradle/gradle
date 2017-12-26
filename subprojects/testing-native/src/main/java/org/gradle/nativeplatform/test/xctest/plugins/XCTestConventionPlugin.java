@@ -90,9 +90,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // Create test suite component
         final DefaultSwiftXCTestSuite testSuite = createTestSuite(project);
 
-        // Create test suite test task
-        final XCTest testingTask = createTestingTask(project);
-
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(Project project) {
@@ -101,6 +98,9 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 // Create test suite executable
                 DefaultSwiftXCTestBinary binary = (DefaultSwiftXCTestBinary) testSuite.addExecutable("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                 testSuite.getTestBinary().set(binary);
+
+                // Create test suite test task
+                XCTest testingTask = createTestingTask(project);
                 binary.getRunTask().set(testingTask);
 
                 // Configure tasks
