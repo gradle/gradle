@@ -19,6 +19,7 @@ package org.gradle.language.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -34,6 +35,14 @@ import java.util.concurrent.Callable;
 
 /**
  * A common base plugin for the native plugins.
+ *
+ * <p>Expects plugins to register the native components in the {@link Project#getComponents()} container, and defines a number of rules that act on these components to configure them.</p>
+ *
+ * <ul>
+ *
+ * <p>Configures the {@value LifecycleBasePlugin#ASSEMBLE_TASK_NAME} task to build the development binary of the {@code main} component, if present.</p>
+ *
+ * </ul>
  *
  * @since 4.5
  */
