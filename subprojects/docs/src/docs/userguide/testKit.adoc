@@ -15,11 +15,6 @@
 [[test_kit]]
 == The Gradle TestKit
 
-[NOTE]
-====
-The Gradle TestKit is currently <<feature_lifecycle,incubating>>. Please be aware that its API and other characteristics may change in later Gradle versions.
-====
-
 The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally. At this time, it is focused on _functional_ testing. That is, testing build logic by exercising it as part of a programmatically executed build. Over time, the TestKit will likely expand to facilitate other kinds of tests.
 
 [[sec:testkit_usage]]
@@ -198,7 +193,7 @@ The following table lists the features that are sensitive to the Gradle version 
 | Minimum Version
 | Description
 
-| <link>Inspecting executed tasks</link>
+| Inspecting executed tasks
 | 2.5
 | Inspecting the executed tasks, using api:org.gradle.testkit.runner.BuildResult#getTasks[] and similar methods.
 
