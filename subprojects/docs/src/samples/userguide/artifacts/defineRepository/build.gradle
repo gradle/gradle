@@ -244,6 +244,13 @@ repositories.withType(IvyArtifactRepository) {
 }
 //END SNIPPET ivy-repo-dynamic-mode
 
+task lookup {
+    doLast {
+        repositories.each { assert it.name }
+        assert repositories[0].name
+    }
+}
+
 //START SNIPPET digest-authentication
 repositories {
     maven {
