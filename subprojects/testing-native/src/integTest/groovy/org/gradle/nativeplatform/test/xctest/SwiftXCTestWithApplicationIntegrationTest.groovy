@@ -44,6 +44,7 @@ class SwiftXCTestWithApplicationIntegrationTest extends AbstractSwiftXCTestWithC
     @Override
     protected void makeSingleProject() {
         buildFile << """
+            apply plugin: 'xctest'
             apply plugin: 'swift-application'
         """
     }

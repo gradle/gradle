@@ -18,19 +18,14 @@ package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
-import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
+import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires([TestPrecondition.SWIFT_SUPPORT])
-abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
-    def setup() {
-        buildFile << """
-            apply plugin: 'xctest'
-        """
-    }
+abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
 
     TestExecutionResult getTestExecutionResult() {
         return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
@@ -48,7 +43,7 @@ abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeLanguage
         succeeds(task)
 
         then:
-        result.assertTasksExecuted(tasksToCompileComponentUnderTest, ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", expectedLifecycleTasks)
+        result.assertTasksExecuted(tasksToBuildAndRunUnitTest, expectedLifecycleTasks)
         fixture.assertTestCasesRan(testExecutionResult)
 
         where:
@@ -71,13 +66,18 @@ abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeLanguage
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(tasksToCompileComponentUnderTest, ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-        result.assertTasksSkipped(tasksToCompileComponentUnderTest, ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
+        result.assertTasksExecuted(tasksToBuildAndRunUnitTest, ":test")
+        result.assertTasksSkipped(tasksToBuildAndRunUnitTest, ":test")
     }
 
     @Override
     protected String getMainComponentDsl() {
         return "xctest"
+    }
+
+    @Override
+    String[] getTasksToBuildAndRunUnitTest() {
+        return tasksToCompileComponentUnderTest + [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
     }
 
     protected abstract String[] getTaskToAssembleComponentUnderTest()

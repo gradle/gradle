@@ -43,6 +43,7 @@ class SwiftXCTestWithSharedLibraryLinkageIntegrationTest extends AbstractSwiftXC
     @Override
     protected void makeSingleProject() {
         buildFile << """
+            apply plugin: 'xctest'
             apply plugin: 'swift-library'
         """
     }

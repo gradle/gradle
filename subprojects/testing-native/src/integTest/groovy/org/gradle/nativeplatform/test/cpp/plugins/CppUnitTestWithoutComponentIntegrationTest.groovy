@@ -16,13 +16,11 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
 import org.junit.Assume
-import spock.lang.Unroll
 
-class CppUnitTestIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
+class CppUnitTestWithoutComponentIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
     def setup() {
         // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
         Assume.assumeTrue(worksWithCppPlugin(toolChain))
@@ -44,44 +42,6 @@ class CppUnitTestIntegrationTest extends AbstractNativeLanguageComponentIntegrat
         return "unitTest"
     }
 
-    @Unroll
-    def "can run test executable using lifecycle task #task"() {
-        def app = new CppHelloWorldApp()
-        buildFile << """
-            apply plugin: 'cpp-library'
-            apply plugin: 'cpp-unit-test'
-        """
-
-        app.library.writeSources(file("src/main"))
-        app.simpleTestExecutable.writeSources(file("src/test"))
-
-        when:
-        succeeds(task)
-
-        then:
-        result.assertTasksExecuted(":compileDebugCpp",
-            ":compileTestCpp", ":linkTest", ":installTest", ":runTest", expectedLifecycleTasks)
-
-        where:
-        task    | expectedLifecycleTasks
-        "test"  | [":test"]
-        "check" | [":test", ":check"]
-        "build" | [":test", ":check", ":build", ":linkDebug", ":assemble"]
-    }
-
-    def "does nothing when cpp-library or cpp-application are not applied and no test source"() {
-        buildFile << """
-            apply plugin: 'cpp-unit-test'
-        """
-
-        when:
-        succeeds("check")
-
-        then:
-        result.assertTasksExecuted( ":compileTestCpp", ":linkTest", ":installTest", ":runTest", ":test", ":check")
-        result.assertTasksSkipped( ":compileTestCpp", ":linkTest", ":installTest", ":runTest", ":test", ":check")
-    }
-
     def "builds and runs test suite when no main component"() {
         buildFile << """
             apply plugin: 'cpp-unit-test'
@@ -97,10 +57,10 @@ int main() {
         succeeds("check")
 
         then:
-        result.assertTasksExecuted( ":compileTestCpp", ":linkTest", ":installTest", ":runTest", ":test", ":check")
+        result.assertTasksExecuted( tasksToBuildAndRunUnitTest, ":test", ":check")
     }
 
-    def "test fails when application returns non-zero status"() {
+    def "test fails when test executable returns non-zero status"() {
         buildFile << """
             apply plugin: 'cpp-unit-test'
         """
@@ -115,8 +75,13 @@ int main() {
         fails("check")
 
         then:
-        result.assertTasksExecuted( ":compileTestCpp", ":linkTest", ":installTest", ":runTest")
+        result.assertTasksExecuted( tasksToBuildAndRunUnitTest)
         failure.assertHasDescription("Execution failed for task ':runTest'.")
         failure.assertHasCause("There were failing tests. See the results at:")
+    }
+
+    @Override
+    String[] getTasksToBuildAndRunUnitTest() {
+        return [":compileTestCpp", ":linkTest", ":installTest", ":runTest"]
     }
 }
