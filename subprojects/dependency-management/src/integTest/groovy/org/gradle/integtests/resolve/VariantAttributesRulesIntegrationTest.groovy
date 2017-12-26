@@ -156,11 +156,34 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
             root(':', ':test:') {
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0") {
+                        String expectedTargetVariant
+                        Map<String, String> expectedAttributes
                         if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                            // when Gradle metadata is on, variants used during selection are Gradle defined variants
+                            // and here, they do not define any "usage". However, they do define a "status". The selected variant
+                            // is target to the metadata rule, which explains we find the "format" attribute here
+                            expectedTargetVariant = variantToTest
                             artifact group: 'org', module: 'moduleB', version: '1.0', classifier: 'variant1'
-                            // for now we only check the selected variant for Gradle, but we should set the appropriate expectations for Ivy and Maven too
-                            variant('customVariant', [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy()?'integration':'release'])
+                            expectedAttributes = [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy()?'integration':'release']
+                        } else {
+                            if (GradleMetadataResolveRunner.useIvy()) {
+                                // Ivy doesn't derive any variant
+                                expectedTargetVariant = 'runtime'
+                                expectedAttributes = [:]
+                            } else {
+                                // for Maven, we derive variants for compile/runtime. Variants are then used during selection, and are subject
+                                // to metadata rules. In this case, we have multiple variants (default, runtime, compile), but only the "compile"
+                                // one is target of the rule (see #getVariantToTest())
+                                expectedTargetVariant = 'compile'
+                                // the format attribute is added by the rule
+                                expectedAttributes = [format: 'custom']
+                                if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                                    // when experimental resolve is on, the "compile" configuration is mapped to the "java-api" usage
+                                    expectedAttributes['org.gradle.usage'] = 'java-api'
+                                }
+                            }
                         }
+                        variant(expectedTargetVariant, expectedAttributes)
                     }
                 }
             }
