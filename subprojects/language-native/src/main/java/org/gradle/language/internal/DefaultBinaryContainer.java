@@ -24,8 +24,8 @@ import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.language.NativeBinaryContainer;
-import org.gradle.language.NativeBinaryProvider;
+import org.gradle.language.BinaryContainer;
+import org.gradle.language.BinaryProvider;
 import org.gradle.util.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -37,7 +37,7 @@ import java.util.Set;
 
 // TODO - error messages
 // TODO - display names for this container and the Provider implementations
-public class DefaultNativeBinaryContainer<T extends SoftwareComponent> implements NativeBinaryContainer<T> {
+public class DefaultBinaryContainer<T extends SoftwareComponent> implements BinaryContainer<T> {
     private enum State {
         Collecting, Realizing, Finalized
     }
@@ -52,13 +52,13 @@ public class DefaultNativeBinaryContainer<T extends SoftwareComponent> implement
     private ImmutableActionSet<T> finalizeActions = ImmutableActionSet.empty();
 
     @Inject
-    public DefaultNativeBinaryContainer(Class<T> elementType, ProviderFactory providerFactory) {
+    public DefaultBinaryContainer(Class<T> elementType, ProviderFactory providerFactory) {
         this.elementType = elementType;
         this.providerFactory = providerFactory;
     }
 
     @Override
-    public <S> NativeBinaryProvider<S> get(final Class<S> type, final Spec<? super S> spec) {
+    public <S> BinaryProvider<S> get(final Class<S> type, final Spec<? super S> spec) {
         SingleElementProvider<S> provider = new SingleElementProvider<S>(type, spec);
         if (state == State.Collecting) {
             pending.add(provider);
@@ -69,7 +69,7 @@ public class DefaultNativeBinaryContainer<T extends SoftwareComponent> implement
     }
 
     @Override
-    public NativeBinaryProvider<T> getByName(final String name) {
+    public BinaryProvider<T> getByName(final String name) {
         return get(elementType, new Spec<T>() {
             @Override
             public boolean isSatisfiedBy(T element) {
@@ -79,7 +79,7 @@ public class DefaultNativeBinaryContainer<T extends SoftwareComponent> implement
     }
 
     @Override
-    public NativeBinaryProvider<T> get(Spec<? super T> spec) {
+    public BinaryProvider<T> get(Spec<? super T> spec) {
         return get(elementType, spec);
     }
 
@@ -153,7 +153,7 @@ public class DefaultNativeBinaryContainer<T extends SoftwareComponent> implement
         return ImmutableSet.copyOf(elements);
     }
 
-    private class SingleElementProvider<S> extends AbstractProvider<S> implements NativeBinaryProvider<S> {
+    private class SingleElementProvider<S> extends AbstractProvider<S> implements BinaryProvider<S> {
         private final Class<S> type;
         private Spec<? super S> spec;
         private S match;

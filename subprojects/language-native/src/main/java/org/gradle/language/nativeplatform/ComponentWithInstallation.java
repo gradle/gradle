@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.language;
+package org.gradle.language.nativeplatform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Provider;
 
 /**
- * Represents a native component whose output includes a runtime component.
+ * Represents a component whose output requires installation prior to execution.
  *
  * @since 4.5
  */
 @Incubating
-public interface ComponentWithRuntimeFile extends SoftwareComponent {
+public interface ComponentWithInstallation extends SoftwareComponent {
     /**
-     * Returns the main output of this component.
+     * Returns the installation directory for this component.
+     *
+     * @since 4.5
      */
-    Provider<RegularFile> getRuntimeFile();
+    Provider<Directory> getInstallDirectory();
 }

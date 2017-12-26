@@ -33,9 +33,9 @@ import java.util.Set;
  * @since 4.5
  */
 @Incubating
-public interface NativeBinaryContainer<T extends SoftwareComponent> {
+public interface BinaryContainer<T extends SoftwareComponent> {
     /**
-     * Returns a {@link NativeBinaryProvider} that contains the single binary matching the specified type and specification. The binary will be in the finalized state.
+     * Returns a {@link BinaryProvider} that contains the single binary matching the specified type and specification. The binary will be in the finalized state.
      * The provider can be used to apply configuration to the element before it is finalized.
      *
      * <p>Querying the return value will fail when there is not exactly one matching binary.
@@ -45,10 +45,10 @@ public interface NativeBinaryContainer<T extends SoftwareComponent> {
      * @param <S> type of the binary to return
      * @return a binary from the collection in a finalized state
      */
-    <S> NativeBinaryProvider<S> get(Class<S> type, Spec<? super S> spec);
+    <S> BinaryProvider<S> get(Class<S> type, Spec<? super S> spec);
 
     /**
-     * Returns a {@link NativeBinaryProvider} that contains the single binary with the given name. The binary will be in the finalized state.
+     * Returns a {@link BinaryProvider} that contains the single binary with the given name. The binary will be in the finalized state.
      * The provider can be used to apply configuration to the element before it is finalized.
      *
      * <p>Querying the return value will fail when there is not exactly one matching binary.
@@ -56,7 +56,7 @@ public interface NativeBinaryContainer<T extends SoftwareComponent> {
      * @param name The name of the binary
      * @return a binary from the collection in a finalized state
      */
-    NativeBinaryProvider<T> getByName(String name);
+    BinaryProvider<T> getByName(String name);
 
     /**
      * Returns a {@link Provider} that contains the single binary matching the given specification. The binary will be in the finalized state.
@@ -67,7 +67,7 @@ public interface NativeBinaryContainer<T extends SoftwareComponent> {
      * @param spec specification to satisfy. The spec is applied to each binary prior to configuration.
      * @return a binary from the collection in a finalized state
      */
-    NativeBinaryProvider<T> get(Spec<? super T> spec);
+    BinaryProvider<T> get(Spec<? super T> spec);
 
     /**
      * Registers an action to execute when an element becomes known. The action is executed for those elements that are required. Fails if any element has already been finalized.

@@ -25,9 +25,9 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.ComponentWithBinaries;
-import org.gradle.language.ComponentWithInstallation;
-import org.gradle.language.ComponentWithLinkFile;
-import org.gradle.language.ComponentWithRuntimeFile;
+import org.gradle.language.nativeplatform.ComponentWithInstallation;
+import org.gradle.language.nativeplatform.ComponentWithLinkFile;
+import org.gradle.language.nativeplatform.ComponentWithRuntimeFile;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 

@@ -19,7 +19,7 @@ package org.gradle.language.cpp;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.ComponentWithInstallation;
+import org.gradle.language.nativeplatform.ComponentWithInstallation;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 
