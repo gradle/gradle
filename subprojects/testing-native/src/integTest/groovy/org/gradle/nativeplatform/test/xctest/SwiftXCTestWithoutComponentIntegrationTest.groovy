@@ -44,5 +44,9 @@ class SwiftXCTestWithoutComponentIntegrationTest extends AbstractSwiftXCTestInte
     }
 
     @Override
-    protected void makeSingleProject() {}
+    protected void makeSingleProject() {
+        buildFile << """
+            apply plugin: 'xctest'
+        """
+    }
 }
