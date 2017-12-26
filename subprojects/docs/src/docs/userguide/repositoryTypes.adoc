@@ -21,7 +21,7 @@ For the use case of overriding remote artifacts with local ones consider using a
 
 Maven Central is a popular repository hosting open source libraries for consumption by Java projects.
 
-To add the link:https://repo.maven.apache.org/maven2/[central Maven 2 repository] add this to your build script:
+To declare the link:https://repo.maven.apache.org/maven2/[central Maven repository] for your build add this to your script:
 
 ++++
 <sample id="mavenCentral" dir="userguide/artifacts/defineRepository" title="Adding central Maven repository">
@@ -34,7 +34,7 @@ To add the link:https://repo.maven.apache.org/maven2/[central Maven 2 repository
 
 http://bintray.com[Bintray]'s JCenter is an up-to-date collection of all popular Maven OSS artifacts, including artifacts published directly to Bintray.
 
-To add the link:https://jcenter.bintray.com[JCenter Maven repository] add this to your build script:
+To declare the link:https://jcenter.bintray.com[JCenter Maven repository] add this to your build script:
 
 ++++
 <sample id="mavenJcenter" dir="userguide/artifacts/defineRepository" title="Adding Bintray's JCenter Maven repository">
@@ -47,7 +47,7 @@ To add the link:https://jcenter.bintray.com[JCenter Maven repository] add this t
 
 The Google repository hosts Android-specific artifacts including the Android SDK. For usage examples please see the link:https://developer.android.com/studio/build/dependencies.html#google-maven[relevant documentation].
 
-To add the link:https://dl.google.com/dl/android/maven2/[Google Maven repository] add this to your build script:
+To declare the link:https://dl.google.com/dl/android/maven2/[Google Maven repository] add this to your build script:
 
 ++++
 <sample id="mavenGoogleRepo" dir="userguide/artifacts/defineRepository" title="Adding Google Maven repository">
@@ -65,7 +65,7 @@ Gradle can consume dependencies available in the link:https://maven.apache.org/g
 Gradle stores resolved dependencies in <<sec:dependency_cache,its own cache>>. A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
 ====
 
-To add the local Maven cache as a repository add this to your build script:
+To declare the local Maven cache as a repository add this to your build script:
 
 ++++
 <sample id="mavenLocalRepo" dir="userguide/artifacts/defineRepository" title="Adding the local Maven cache as a repository">
@@ -117,6 +117,8 @@ Organizations might decide to host dependencies in an in-house Ivy repository. G
 
 [[sec:defining_an_ivy_repository_with_a_standard_layout]]
 ==== Defining an Ivy repository with a standard layout
+
+To declare an Ivy repository using the standard layout no additional customization is needed. You just declare the URL.
 
 ++++
 <sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">

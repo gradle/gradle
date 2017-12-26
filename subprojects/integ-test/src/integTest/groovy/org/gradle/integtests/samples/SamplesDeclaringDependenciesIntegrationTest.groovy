@@ -24,7 +24,7 @@ import org.junit.Rule
 
 import static org.gradle.util.TestPrecondition.JDK8_OR_LATER
 
-class SamplesCustomConfigurationIntegrationTest extends AbstractIntegrationSpec {
+class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
