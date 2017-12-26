@@ -244,15 +244,6 @@ repositories.withType(IvyArtifactRepository) {
 }
 //END SNIPPET ivy-repo-dynamic-mode
 
-task lookup {
-    doLast {
-        //START SNIPPET lookup-resolver
-        println repositories.localRepository.name
-        println repositories['localRepository'].name
-        //END SNIPPET lookup-resolver
-    }
-}
-
 //START SNIPPET digest-authentication
 repositories {
     maven {
