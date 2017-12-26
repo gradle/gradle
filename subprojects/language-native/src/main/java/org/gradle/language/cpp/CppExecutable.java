@@ -17,9 +17,9 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithInstallation;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 
@@ -29,20 +29,13 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
  * @since 4.2
  */
 @Incubating
-public interface CppExecutable extends CppBinary {
+public interface CppExecutable extends CppBinary, ComponentWithInstallation {
     /**
      * Returns the executable file for this binary.
      *
      * @since 4.4
      */
     Provider<RegularFile> getExecutableFile();
-
-    /**
-     * Returns the installation directory for this binary.
-     *
-     * @since 4.4
-     */
-    Provider<Directory> getInstallDirectory();
 
     /**
      * Returns the link task for this binary.

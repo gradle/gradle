@@ -17,8 +17,8 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithLinkFile;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 
 /**
@@ -27,12 +27,7 @@ import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
  * @since 4.5
  */
 @Incubating
-public interface CppStaticLibrary extends CppBinary {
-    /**
-     * Returns the link-time file for this binary.
-     */
-    Provider<RegularFile> getLinkFile();
-
+public interface CppStaticLibrary extends CppBinary, ComponentWithLinkFile {
     /**
      * Returns the create static library task for this binary.
      *
