@@ -15,6 +15,8 @@
  */
 package org.gradle.test.fixtures
 
+import org.gradle.test.fixtures.server.http.HttpDirectoryResource
+
 interface HttpRepository extends Repository {
     enum MetadataType {
         DEFAULT,
@@ -27,6 +29,8 @@ interface HttpRepository extends Repository {
 
     @Override
     HttpModule module(String group, String module, String version)
+
+    HttpDirectoryResource directoryList(String organisation, String module)
 
     MetadataType getProvidesMetadata()
 }

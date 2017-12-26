@@ -117,7 +117,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         """
     }
 
-    def getRepository() {
+    def getRepositoryDeclaration() {
         useIvy() ? ivyRepository : mavenRepository
     }
 
@@ -130,7 +130,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         }
         resolve.prepare()
         buildFile << """
-            $repository
+            $repositoryDeclaration
 
             configurations {
                 $testConfiguration
@@ -160,6 +160,10 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
             return useIvy() ? ivyHttpRepo : mavenHttpRepo
         }
         useIvy() ? ivyHttpRepo("repo", metadataType) : mavenHttpRepo("repo", metadataType)
+    }
+
+    HttpRepository getRepository() {
+        getHttpRepository(HttpRepository.MetadataType.DEFAULT)
     }
 
 }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
@@ -111,7 +112,9 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                 delegate.listModuleVersions(dependency, result);
             } catch (Throwable throwable) {
                 repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ModuleVersionResolveException(dependency.getSelector(), throwable));
+                ModuleComponentSelector selector = dependency.getSelector();
+                String message = "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".";
+                result.failed(new ModuleVersionResolveException(selector, message, throwable));
             }
         }
 

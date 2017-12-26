@@ -186,7 +186,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private ImmutableMetadataSources createMetadataSources() {
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
         if (metadataSources.gradleMetadata) {
-            sources.add(new DefaultGradleModuleMetadataSource(moduleMetadataParser, metadataFactory));
+            sources.add(new DefaultGradleModuleMetadataSource(moduleMetadataParser, metadataFactory, true));
         }
         if (metadataSources.ivyDescriptor) {
             sources.add(new DefaultIvyDescriptorMetadataSource(IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, moduleIdentifierFactory));

@@ -41,7 +41,6 @@ import spock.lang.Specification
 class ExternalResourceResolverTest extends Specification {
     String name = "TestResolver"
     ExternalResourceRepository repository = Mock()
-    VersionLister versionLister = Mock()
     BuildableArtifactResolveResult artifactResult = Mock()
     BuildableModuleComponentMetaDataResolveResult metadataResult = Mock()
     ModuleComponentArtifactIdentifier artifactIdentifier = Stub() {
@@ -61,7 +60,7 @@ class ExternalResourceResolverTest extends Specification {
     ExternalResourceResolver resolver
 
     def setup() {
-        resolver = new TestResolver(name, true, repository, resourceAccessor, versionLister, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory, metadataSources, Stub(MetadataArtifactProvider))
+        resolver = new TestResolver(name, true, repository, resourceAccessor, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory, metadataSources, Stub(MetadataArtifactProvider))
         resolver.artifactResolver = artifactResolver
     }
 

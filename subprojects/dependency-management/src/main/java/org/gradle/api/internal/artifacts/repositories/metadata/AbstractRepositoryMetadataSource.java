@@ -45,7 +45,7 @@ import java.util.List;
 abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponentResolveMetadata> extends AbstractMetadataSource<S> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
-    private final MetadataArtifactProvider metadataArtifactProvider;
+    final MetadataArtifactProvider metadataArtifactProvider;
     private final FileResourceRepository fileResourceRepository;
 
     protected AbstractRepositoryMetadataSource(MetadataArtifactProvider metadataArtifactProvider,

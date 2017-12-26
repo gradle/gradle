@@ -46,9 +46,10 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
                 '1.2'()
             }
         }
+        // We are resolving with `gradleMetadata()` metadata: always use a directory listing (and not maven-metadata.xml)
+        repository.directoryList('org.test', 'projectA').expectGet()
         repositoryInteractions {
             'org.test:projectA' {
-                expectVersionListing()
 
                 '1.2' {
                     expectResolve()
@@ -126,10 +127,10 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
                 '1.2'()
             }
         }
+        // We are resolving with `artifact()` metadata: always use a directory listing (and not maven-metadata.xml)
+        repository.directoryList('org.test', 'projectA').expectGet()
         repositoryInteractions {
             'org.test:projectA' {
-                expectVersionListing()
-
                 '1.2' {
                     expectHeadArtifact()
                     expectGetArtifact()

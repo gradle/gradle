@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultGradleModuleMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultImmutableMetadataSources;
@@ -75,7 +76,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final FileStore<String> resourcesFileStore;
     private final FileResourceRepository fileResourceRepository;
-    private final ExperimentalFeatures experimentalFeatures;
     private final MavenMutableModuleMetadataFactory metadataFactory;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
 
@@ -119,7 +119,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.resourcesFileStore = resourcesFileStore;
         this.fileResourceRepository = fileResourceRepository;
-        this.experimentalFeatures = experimentalFeatures;
         this.metadataFactory = metadataFactory;
         this.metadataSources.setDefaults(experimentalFeatures);
     }
@@ -162,10 +161,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         additionalUrls = Lists.newArrayList(urls);
     }
 
-    protected boolean isPreferGradleMetadata() {
-        return experimentalFeatures.isEnabled();
-    }
-
     public ModuleVersionPublisher createPublisher() {
         return createRealResolver();
     }
@@ -190,8 +185,9 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     private MavenResolver createResolver(URI rootUri) {
         RepositoryTransport transport = getTransport(rootUri.getScheme());
-        ImmutableMetadataSources metadataSources = createMetadataSources();
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, transport.getResourceAccessor(), resourcesFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE);
+        MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), resourcesFileStore);
+        ImmutableMetadataSources metadataSources = createMetadataSources(mavenMetadataLoader);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader);
     }
 
     @Override
@@ -200,13 +196,15 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         configureAction.execute(metadataSources);
     }
 
-    ImmutableMetadataSources createMetadataSources() {
+    ImmutableMetadataSources createMetadataSources(MavenMetadataLoader mavenMetadataLoader) {
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
         if (metadataSources.gradleMetadata) {
-            sources.add(new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory));
+            // Don't list versions for gradleMetadata if maven-metadata.xml will be checked.
+            boolean listVersionsForGradleMetadata = !metadataSources.mavenPom;
+            sources.add(new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory, listVersionsForGradleMetadata));
         }
         if (metadataSources.mavenPom) {
-            sources.add(new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices()));
+            sources.add(new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices(), mavenMetadataLoader));
         }
         if (metadataSources.artifact) {
             sources.add(new DefaultArtifactMetadataSource(metadataFactory));
