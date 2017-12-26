@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest.internal;
+package org.gradle.nativeplatform.test.xctest.internal.execution;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
