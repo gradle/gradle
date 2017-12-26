@@ -29,7 +29,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.internal.DefaultBinaryContainer;
+import org.gradle.language.internal.DefaultBinaryCollection;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
 
@@ -46,7 +46,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final Property<String> baseName;
     private final Names names;
     private final Configuration implementation;
-    private final DefaultBinaryContainer<CppBinary> binaries;
+    private final DefaultBinaryCollection<CppBinary> binaries;
 
     @Inject
     public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
@@ -63,7 +63,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         implementation.setCanBeConsumed(false);
         implementation.setCanBeResolved(false);
 
-        binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryContainer.class, CppBinary.class));
+        binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
     }
 
     protected Names getNames() {
@@ -127,7 +127,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     @Override
-    public DefaultBinaryContainer<CppBinary> getBinaries() {
+    public DefaultBinaryCollection<CppBinary> getBinaries() {
         return binaries;
     }
 }

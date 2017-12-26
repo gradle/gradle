@@ -23,8 +23,8 @@ import org.gradle.language.swift.SwiftBinary
 import org.gradle.language.swift.SwiftSharedLibrary
 import spock.lang.Specification
 
-class DefaultBinaryContainerTest extends Specification {
-    def container = new DefaultBinaryContainer(SwiftBinary, new DefaultProviderFactory())
+class DefaultBinaryCollectionTest extends Specification {
+    def container = new DefaultBinaryCollection(SwiftBinary, new DefaultProviderFactory())
 
     def "can query elements when realized"() {
         def binary1 = Stub(SwiftBinary)

@@ -24,7 +24,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.provider.Property;
 import org.gradle.language.ComponentWithBinaries;
-import org.gradle.language.BinaryContainer;
+import org.gradle.language.BinaryCollection;
 
 /**
  * Configuration for a C++ component, such as a library or executable, defining the source files and private header directories that make up the component. Private headers are those that are visible only to the source files of the component.
@@ -91,5 +91,5 @@ public interface CppComponent extends ComponentWithBinaries {
      *
      * @since 4.5
      */
-    BinaryContainer<? extends CppBinary> getBinaries();
+    BinaryCollection<? extends CppBinary> getBinaries();
 }
