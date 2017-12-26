@@ -63,4 +63,56 @@ class CppStaticLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest 
         result.assertTasksExecuted(':compileDebugCpp', ':createDebug', ':assemble')
         staticLibrary('build/lib/main/debug/foo').assertExists()
     }
+
+    def "can use link file as task dependency"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            
+            library {
+                linkage = [Linkage.STATIC]
+            }
+            
+            task assembleLinkDebug {
+                dependsOn library.binaries.get { !it.optimized }.map { it.linkFile }
+            }
+         """
+
+        expect:
+        succeeds "assembleLinkDebug"
+        result.assertTasksExecuted(':compileDebugCpp', ':createDebug', ":assembleLinkDebug")
+        staticLibrary("build/lib/main/debug/hello").assertExists()
+    }
+
+    def "can use objects as task dependency"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            
+            library {
+                linkage = [Linkage.STATIC]
+            }
+            
+            task compileDebug {
+                dependsOn library.binaries.get { !it.optimized }.map { it.objects }
+            }
+         """
+
+        expect:
+        succeeds "compileDebug"
+        result.assertTasksExecuted(":compileDebugCpp", ":compileDebug")
+        objectFiles(lib.sources)*.assertExists()
+        staticLibrary("build/lib/main/debug/hello").assertDoesNotExist()
+    }
+
 }

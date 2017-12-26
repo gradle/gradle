@@ -158,21 +158,36 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         buildFile << """
             apply plugin: 'cpp-library'
             
-            task assembleLinktimeDebug {
+            task assembleLinkDebug {
                 dependsOn library.binaries.get { !it.optimized }.map { it.linkFile }
             }
+         """
+
+        expect:
+        succeeds "assembleLinkDebug"
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assembleLinkDebug")
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
+    }
+
+    def "can use runtime file as task dependency"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            
             task assembleRuntimeDebug {
                 dependsOn library.binaries.get { !it.optimized }.map { it.runtimeFile }
             }
          """
 
         expect:
-        succeeds "assembleLinktimeDebug"
-        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assembleLinktimeDebug")
-        sharedLibrary("build/lib/main/debug/hello").assertExists()
-
         succeeds "assembleRuntimeDebug"
         result.assertTasksExecuted(compileAndLinkTasks(debug), ":assembleRuntimeDebug")
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
     def "can use objects as task dependency"() {
@@ -194,6 +209,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         succeeds "compileDebug"
         result.assertTasksExecuted(compileTasks(debug), ":compileDebug")
         objectFiles(lib.sources)*.assertExists()
+        sharedLibrary("build/lib/main/debug/hello").assertDoesNotExist()
     }
 
     def "build logic can change source layout convention"() {

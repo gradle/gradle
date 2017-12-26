@@ -22,7 +22,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 
 /**
- * Represents a component whose output includes a file to be used at link time.
+ * Represents a native component whose output includes a file to be used at link time.
  *
  * @since 4.5
  */
