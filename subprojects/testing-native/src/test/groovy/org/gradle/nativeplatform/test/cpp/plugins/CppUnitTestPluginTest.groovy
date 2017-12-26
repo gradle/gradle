@@ -29,6 +29,7 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 @UsesNativeServices
 class CppUnitTestPluginTest extends Specification {
@@ -84,27 +85,42 @@ class CppUnitTestPluginTest extends Specification {
     def "registers a component for the test suite"() {
         when:
         project.pluginManager.apply(CppUnitTestPlugin)
+        project.pluginManager.apply(CppApplicationPlugin)
         project.evaluate()
 
         then:
         project.components.unitTest == project.unitTest
-        project.unitTest.testExecutable.name == 'unitTestExecutable'
-        project.components.containsAll([project.unitTest.testExecutable])
+        project.unitTest.binaries.get().name == ['unitTestExecutable']
+        project.components.containsAll project.unitTest.binaries.get()
 
         and:
-        def binaries = [project.unitTest.testExecutable]
+        def binaries = project.unitTest.binaries.get()
         binaries.findAll { it.debuggable && !it.optimized && it instanceof CppExecutable }.size() == 1
 
         and:
-        project.unitTest.developmentBinary == binaries.find { it.debuggable && !it.optimized && it instanceof CppExecutable }
+        project.unitTest.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof CppExecutable }
     }
 
-    def "adds compile, link and install tasks"() {
+    def "does not add an executable or compile, link or install tasks when application or library plugin is not applied"() {
+        when:
+        project.pluginManager.apply(CppUnitTestPlugin)
+        project.evaluate()
+
+        then:
+        project.unitTest.binaries.get().isEmpty()
+        !project.tasks.findByName("compileUnitTestCpp")
+        !project.tasks.findByName("linkUnitTest")
+        !project.tasks.findByName("installUnitTest")
+    }
+
+    @Unroll
+    def "adds compile, link and install tasks when #plugin.simpleName is applied"() {
         given:
         def src = projectDir.file("src/unitTest/cpp/test.cpp").createFile()
 
         when:
         project.pluginManager.apply(CppUnitTestPlugin)
+        project.pluginManager.apply(plugin)
         project.evaluate()
 
         then:
@@ -124,11 +140,15 @@ class CppUnitTestPluginTest extends Specification {
         install instanceof InstallExecutable
         install.installDirectory.get().asFile == project.file("build/install/unit/test")
         install.runScriptFile.get().asFile.name == OperatingSystem.current().getScriptName("unitTest")
+
+        where:
+        plugin << [CppApplicationPlugin, CppLibraryPlugin]
     }
 
     def "output locations reflects changes to buildDir"() {
         when:
         project.pluginManager.apply(CppUnitTestPlugin)
+        project.pluginManager.apply(CppApplicationPlugin)
         project.buildDir = project.file("output")
         project.evaluate()
 

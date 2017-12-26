@@ -50,19 +50,20 @@ class CppApplicationPluginTest extends Specification {
     def "registers a component for the application"() {
         when:
         project.pluginManager.apply(CppApplicationPlugin)
+        project.evaluate()
 
         then:
         project.components.main == project.application
-        project.components.mainDebug == project.application.debugExecutable
-        project.components.mainRelease == project.application.releaseExecutable
+        project.application.binaries.get().name == ['mainDebug', 'mainRelease']
+        project.components.containsAll project.application.binaries.get()
 
         and:
-        def binaries = [project.application.debugExecutable, project.application.releaseExecutable]
+        def binaries = project.application.binaries.get()
         binaries.findAll { it.debuggable && it.optimized && it instanceof CppExecutable }.size() == 1
         binaries.findAll { it.debuggable && !it.optimized && it instanceof CppExecutable }.size() == 1
 
         and:
-        project.application.developmentBinary == binaries.find { it.debuggable && !it.optimized && it instanceof CppExecutable }
+        project.application.developmentBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof CppExecutable }
     }
 
     def "adds compile, link and install tasks"() {
@@ -71,6 +72,7 @@ class CppApplicationPluginTest extends Specification {
 
         when:
         project.pluginManager.apply(CppApplicationPlugin)
+        project.evaluate()
 
         then:
         def compileDebugCpp = project.tasks.compileDebugCpp
@@ -113,6 +115,7 @@ class CppApplicationPluginTest extends Specification {
     def "output locations are calculated using base name defined on extension"() {
         when:
         project.pluginManager.apply(CppApplicationPlugin)
+        project.evaluate()
         project.application.baseName = "test_app"
 
         then:
@@ -127,6 +130,7 @@ class CppApplicationPluginTest extends Specification {
     def "output locations reflects changes to buildDir"() {
         given:
         project.pluginManager.apply(CppApplicationPlugin)
+        project.evaluate()
 
         when:
         project.buildDir = "output"
@@ -153,6 +157,7 @@ class CppApplicationPluginTest extends Specification {
         project.version = 1.2
         project.group = 'my.group'
         project.application.baseName = 'test_app'
+        project.evaluate()
 
         then:
         def publishing = project.publishing

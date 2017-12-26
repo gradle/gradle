@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,6 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.cpp;
-
-import org.gradle.api.Incubating;
-import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.CppExecutable;
-
-/**
- * A C++ test suite.
- *
- * @since 4.4
- */
-@Incubating
-public interface CppTestSuite extends CppComponent {
-    /**
-     * Returns the executable that will be executed to run the tests.
-     *
-     * @since 4.4
-     */
-    CppExecutable getTestExecutable();
+apply {
+    from("../gradle/remoteHttpCacheSettings.gradle")
 }

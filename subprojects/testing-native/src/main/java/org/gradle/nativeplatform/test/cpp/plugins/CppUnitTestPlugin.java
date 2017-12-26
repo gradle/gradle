@@ -19,12 +19,17 @@ package org.gradle.nativeplatform.test.cpp.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
@@ -72,23 +77,31 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
         final DefaultCppTestSuite testComponent = objectFactory.newInstance(DefaultCppTestSuite.class, "unitTest", project.getLayout(), objectFactory, fileOperations, configurations);
         // Register components created for the test Component and test binaries
         project.getComponents().add(testComponent);
-
-        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
-        CppExecutable binary = testComponent.createExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-
-        project.getComponents().add(binary);
         project.getExtensions().add(CppTestSuite.class, "unitTest", testComponent);
 
         Action<Plugin<ProjectInternal>> projectConfiguration = new Action<Plugin<ProjectInternal>>() {
             @Override
             public void execute(Plugin<ProjectInternal> plugin) {
+                ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
+                CppExecutable binary = testComponent.createExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+
+                project.getComponents().add(binary);
+
                 final TaskContainer tasks = project.getTasks();
-                CppComponent mainComponent = project.getComponents().withType(CppComponent.class).findByName("main");
+                final CppComponent mainComponent = project.getComponents().withType(CppComponent.class).findByName("main");
                 testComponent.getTestedComponent().set(mainComponent);
 
                 // TODO: This should be modeled as a kind of dependency vs wiring tasks together directly.
-                AbstractLinkTask linkTest = tasks.withType(AbstractLinkTask.class).getByName("linkUnitTest");
-                linkTest.source(mainComponent.getDevelopmentBinary().getObjects());
+                final AbstractLinkTask linkTest = binary.getLinkTask().get();
+                Provider<FileCollection> mainObjects = mainComponent.getDevelopmentBinary().map(new Transformer<FileCollection, CppBinary>() {
+                    @Override
+                    public FileCollection transform(CppBinary devBinary) {
+                        return devBinary.getObjects();
+                    }
+                });
+                linkTest.source(mainObjects);
+                // TODO: We shouldn't have to do this
+                linkTest.dependsOn(mainObjects);
 
                 // TODO: Replace with native test task
                 final RunTestExecutable testTask = tasks.create("runUnitTest", RunTestExecutable.class, new Action<RunTestExecutable>() {
@@ -106,12 +119,18 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                 });
 
                 tasks.getByName("check").dependsOn(testTask);
-
             }
         };
 
         project.getPlugins().withType(CppLibraryPlugin.class, projectConfiguration);
         // TODO: We will get symbol conflicts with executables since they already have a main()
         project.getPlugins().withType(CppApplicationPlugin.class, projectConfiguration);
+
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                testComponent.getBinaries().realizeNow();
+            }
+        });
     }
 }

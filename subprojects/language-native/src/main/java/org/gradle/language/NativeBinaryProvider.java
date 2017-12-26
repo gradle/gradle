@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.repositories.resolver;
+package org.gradle.language;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 
-class MavenMetadata {
-    String timestamp;
-    String buildNumber;
-    List<String> versions = new ArrayList<String>();
+/**
+ * Represents a binary that is created and configured as required.
+ *
+ * @since 4.5
+ * @param <T> The type of binary.
+ */
+@Incubating
+public interface NativeBinaryProvider<T> extends Provider<T> {
+    /**
+     * Registers an action to execute to configure the binary. The action is executed when the element is required.
+     */
+    void configure(Action<? super T> action);
 }

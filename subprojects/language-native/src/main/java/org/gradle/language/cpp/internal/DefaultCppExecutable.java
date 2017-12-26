@@ -23,9 +23,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -34,12 +37,16 @@ import javax.inject.Inject;
 public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable {
     private final RegularFileProperty executableFile;
     private final DirectoryProperty installationDirectory;
+    private final Property<InstallExecutable> installTaskProperty;
+    private final Property<AbstractLinkTask> linkTaskProperty;
 
     @Inject
     public DefaultCppExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name, projectLayout, objectFactory, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.executableFile = projectLayout.fileProperty();
         this.installationDirectory = projectLayout.directoryProperty();
+        this.linkTaskProperty = objectFactory.property(AbstractLinkTask.class);
+        this.installTaskProperty = objectFactory.property(InstallExecutable.class);
     }
 
     @Override
@@ -50,5 +57,15 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     @Override
     public DirectoryProperty getInstallDirectory() {
         return installationDirectory;
+    }
+
+    @Override
+    public Property<InstallExecutable> getInstallTask() {
+        return installTaskProperty;
+    }
+
+    @Override
+    public Property<AbstractLinkTask> getLinkTask() {
+        return linkTaskProperty;
     }
 }

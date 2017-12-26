@@ -28,6 +28,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -48,7 +49,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ModuleComponentIdentifier componentIdentifier;
     private final boolean changing;
     private final boolean missing;
-    private final String status;
     private final List<String> statusScheme;
     @Nullable
     private final ModuleSource moduleSource;
@@ -62,12 +62,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final Map<String, DefaultConfigurationMetadata> configurations = Maps.newHashMap();
     private ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
-    protected AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
+    AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.isChanging();
         missing = metadata.isMissing();
-        status = metadata.getStatus();
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
         configurationDefinitions = metadata.getConfigurationDefinitions();
@@ -78,24 +77,19 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         variants = metadata.getVariants();
     }
 
-    private ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
-        AttributeContainer attributes = metadata.getAttributes();
-        if (attributes == null) {
-            attributes = ImmutableAttributes.EMPTY;
-        }
-        return ((AttributeContainerInternal) attributes).asImmutable();
+    private static ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
+        return ((AttributeContainerInternal) metadata.getAttributes()).asImmutable();
     }
 
 
     /**
      * Creates a copy of the given metadata
      */
-    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
+    AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
         changing = metadata.changing;
         missing = metadata.missing;
-        status = metadata.status;
         statusScheme = metadata.statusScheme;
         moduleSource = source;
         configurationDefinitions = metadata.configurationDefinitions;
@@ -204,7 +198,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     @Override
     public String getStatus() {
-        return status;
+        return attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE);
     }
 
     @Override
@@ -286,7 +280,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             && missing == that.missing
             && Objects.equal(moduleVersionIdentifier, that.moduleVersionIdentifier)
             && Objects.equal(componentIdentifier, that.componentIdentifier)
-            && Objects.equal(status, that.status)
             && Objects.equal(statusScheme, that.statusScheme)
             && Objects.equal(moduleSource, that.moduleSource)
             && Objects.equal(configurationDefinitions, that.configurationDefinitions)
@@ -302,7 +295,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             componentIdentifier,
             changing,
             missing,
-            status,
             statusScheme,
             moduleSource,
             configurationDefinitions,

@@ -20,6 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
 
 /**
  * An executable built from C++ source.
@@ -41,4 +43,18 @@ public interface CppExecutable extends CppBinary {
      * @since 4.4
      */
     Provider<Directory> getInstallDirectory();
+
+    /**
+     * Returns the link task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<? extends AbstractLinkTask> getLinkTask();
+
+    /**
+     * Returns the link task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<InstallExecutable> getInstallTask();
 }

@@ -18,23 +18,23 @@ package org.gradle.language.cpp
 
 import org.gradle.nativeplatform.fixtures.app.CppLib
 
-class CppSharedLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
-
-    @Override
-    protected void makeSingleProject() {
-        buildFile << """
-            apply plugin: 'cpp-library'
-        """
-    }
-
+class CppStaticLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
     @Override
     protected String getMainComponentDsl() {
         return "library"
     }
 
     @Override
+    protected void makeSingleProject() {
+        buildFile << """
+            apply plugin: 'cpp-library'
+            library.linkage = [Linkage.STATIC]
+        """
+    }
+
+    @Override
     protected List<String> getTasksToAssembleDevelopmentBinary() {
-        return [":compileDebugCpp", ":linkDebug"]
+        return [":compileDebugCpp", ":createDebug"]
     }
 
     @Override
@@ -42,13 +42,13 @@ class CppSharedLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest 
         return ":compileDebugCpp"
     }
 
-    def "can create shared library binary when only shared linkage is specified"() {
+    def "can create static library binary when only static linkage is specified"() {
         def library = new CppLib()
         buildFile << """
             apply plugin: 'cpp-library'
 
             library {
-                linkage = [Linkage.SHARED]
+                linkage = [Linkage.STATIC]
             }
         """
         settingsFile << """
@@ -60,7 +60,7 @@ class CppSharedLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest 
         succeeds('assemble')
 
         then:
-        result.assertTasksExecuted(':compileDebugCpp', ':linkDebug', ':assemble')
-        sharedLibrary('build/lib/main/debug/foo').assertExists()
+        result.assertTasksExecuted(':compileDebugCpp', ':createDebug', ':assemble')
+        staticLibrary('build/lib/main/debug/foo').assertExists()
     }
 }

@@ -16,13 +16,17 @@
 
 package org.gradle.language.swift
 
+import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
 import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
+import spock.lang.Unroll
 
 class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
-    def "can compile and link against a c++ library"() {
+
+    @Unroll
+    def "can compile and link against a #linkage.toLowerCase() c++ library"() {
         settingsFile << "include 'hello', 'cppGreeter'"
         def cppGreeter = new CppGreeterFunction()
         def lib = new SwiftGreeterUsingCppFunction(cppGreeter)
@@ -34,9 +38,23 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
                 dependencies {
                     api project(':cppGreeter')
                 }
+                library.binaries.configureEach {
+                    if (targetPlatform.operatingSystem.macOsX) {
+                        linkTask.get().linkerArgs.add("-lc++")
+                    } else if (targetPlatform.operatingSystem.linux) {
+                        linkTask.get().linkerArgs.add("-lstdc++")
+                    }
+                }
             }
             project(':cppGreeter') {
                 apply plugin: 'cpp-library'
+                library.linkage = [Linkage.${linkage}]
+                library {
+                    linkage = [Linkage.${linkage}]
+                    binaries.configureEach {
+                        compileTask.get().positionIndependentCode = true
+                    }
+                }
             }
         """
         lib.writeToProject(file("hello"))
@@ -45,14 +63,18 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
         expect:
         succeeds ":hello:assemble"
         result.assertTasksExecuted(
-            ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+            ":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
             ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
 
         swiftLibrary("hello/build/lib/main/debug/Hello").assertExists()
-        cppLibrary("cppGreeter/build/lib/main/debug/cppGreeter").assertExists()
+        cppLibrary(linkage, "cppGreeter/build/lib/main/debug/cppGreeter").assertExists()
+
+        where:
+        linkage << [SHARED, STATIC]
     }
 
-    def "can compile and link against a c++ library with a dependency on a c++ library"() {
+    @Unroll
+    def "can compile and link against a c++ library with a dependency on a #linkage.toLowerCase() c++ library"() {
         settingsFile << "include 'hello', 'cppGreeter', 'logger'"
         def cppGreeter = new CppGreeterFunctionUsesLogger()
         def logger = new CppLogger()
@@ -74,6 +96,12 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
             }
             project(':logger') {
                 apply plugin: 'cpp-library'
+                library {
+                    linkage = [Linkage.${linkage}]
+                    binaries.configureEach {
+                        compileTask.get().positionIndependentCode = true
+                    }
+                }
             }
         """
         lib.writeToProject(file("hello"))
@@ -84,11 +112,24 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
         succeeds ":hello:assemble"
         result.assertTasksExecuted(
             ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
-            ":logger:compileDebugCpp", ":logger:linkDebug",
+            ":logger:compileDebugCpp", ":logger:${createOrLink(linkage)}Debug",
             ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
 
         swiftLibrary("hello/build/lib/main/debug/Hello").assertExists()
         cppLibrary("cppGreeter/build/lib/main/debug/cppGreeter").assertExists()
-        cppLibrary("logger/build/lib/main/debug/logger").assertExists()
+        cppLibrary(linkage,"logger/build/lib/main/debug/logger").assertExists()
+
+        where:
+        linkage << [SHARED, STATIC]
+    }
+
+    NativeBinaryFixture cppLibrary(String linkage, String path) {
+        if (linkage == STATIC) {
+            return staticCppLibrary(path)
+        }
+
+        if (linkage == SHARED) {
+            return cppLibrary(path)
+        }
     }
 }

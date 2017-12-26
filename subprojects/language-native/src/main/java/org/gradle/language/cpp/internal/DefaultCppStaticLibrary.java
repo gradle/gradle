@@ -25,24 +25,22 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppPlatform;
-import org.gradle.language.cpp.CppSharedLibrary;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.language.cpp.CppStaticLibrary;
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppSharedLibrary {
+public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStaticLibrary {
     private final RegularFileProperty linkFile;
-    private final RegularFileProperty runtimeFile;
-    private final Property<AbstractLinkTask> linkTaskProperty;
+    private final Property<CreateStaticLibrary> createTaskProperty;
 
     @Inject
-    public DefaultCppSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+    public DefaultCppStaticLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name, projectLayout, objectFactory, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.linkFile = projectLayout.fileProperty();
-        this.runtimeFile = projectLayout.fileProperty();
-        this.linkTaskProperty = objectFactory.property(AbstractLinkTask.class);
+        this.createTaskProperty = objectFactory.property(CreateStaticLibrary.class);
     }
 
     @Override
@@ -51,12 +49,7 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
     }
 
     @Override
-    public RegularFileProperty getRuntimeFile() {
-        return runtimeFile;
-    }
-
-    @Override
-    public Property<AbstractLinkTask> getLinkTask() {
-        return linkTaskProperty;
+    public Property<CreateStaticLibrary> getCreateTask() {
+        return createTaskProperty;
     }
 }

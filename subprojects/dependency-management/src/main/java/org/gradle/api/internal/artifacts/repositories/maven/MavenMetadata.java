@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp.internal;
+package org.gradle.api.internal.artifacts.repositories.maven;
 
-import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec;
+import java.util.ArrayList;
+import java.util.List;
 
-public class DefaultCppPCHCompileSpec extends AbstractNativeCompileSpec implements CppPCHCompileSpec {
+public class MavenMetadata {
+    public String timestamp;
+    public String buildNumber;
+    public List<String> versions = new ArrayList<String>();
 }

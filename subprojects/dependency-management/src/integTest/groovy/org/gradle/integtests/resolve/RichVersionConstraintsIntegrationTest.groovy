@@ -264,7 +264,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
             }                       
         """
         file("other/build.gradle") << """
-            $repository
+            $repositoryDeclaration
 
             configurations {
                 conf
@@ -315,7 +315,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
             }                       
         """
         file("other/build.gradle") << """
-            $repository
+            $repositoryDeclaration
 
             configurations {
                 conf
@@ -370,7 +370,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
             }                       
         """
         file("other/build.gradle") << """
-            $repository
+            $repositoryDeclaration
 
             configurations {
                 conf
@@ -429,7 +429,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                                   
         """
         file("other/build.gradle") << """
-            $repository
+            $repositoryDeclaration
 
             configurations {
                 conf

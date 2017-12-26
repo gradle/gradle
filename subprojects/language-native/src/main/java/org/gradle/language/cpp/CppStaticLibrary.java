@@ -14,22 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift;
+package org.gradle.language.cpp;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 
 /**
- * Represents a binary that is created and configured as required.
+ * A static library built from C++ source.
  *
  * @since 4.5
- * @param <T> The type of binary.
  */
 @Incubating
-public interface SwiftBinaryProvider<T> extends Provider<T> {
+public interface CppStaticLibrary extends CppBinary {
     /**
-     * Registers an action to execute to configure the binary. The action is executed when the element is required.
+     * Returns the link-time file for this binary.
      */
-    void configure(Action<? super T> action);
+    Provider<RegularFile> getLinkFile();
+
+    /**
+     * Returns the create static library task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<CreateStaticLibrary> getCreateTask();
 }

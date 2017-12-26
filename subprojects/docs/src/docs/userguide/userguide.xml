@@ -15,7 +15,7 @@
   -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
     <bookinfo>
-        <title>Gradle User Guide</title>
+        <title>Gradle User Manual</title>
         <copyright>
             <year>2007-<?dbtimestamp format="Y"?></year>
             <holder>Hans Dockter, Adam Murdoch</holder>

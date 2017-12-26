@@ -385,7 +385,7 @@ application.baseName = 'test_app'
         def project = rootXcodeProject.projectFile
         project.targets.size() == 2
 
-        project.targets[0].name == 'App'
+        project.targets[0].name == 'Test_app'
         project.targets[0].productReference.path == exe("output/exe/main/debug/test_app").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
         project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/exe/main/debug").absolutePath
@@ -415,7 +415,7 @@ library.baseName = 'test_lib'
         def project = rootXcodeProject.projectFile
         project.targets.size() == 2
 
-        project.targets[0].name == 'App'
+        project.targets[0].name == 'Test_lib'
         project.targets[0].productReference.path == sharedLib("output/lib/main/debug/test_lib").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
         project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/debug").absolutePath

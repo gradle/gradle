@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.gradle.internal.SystemProperties;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
@@ -47,7 +48,7 @@ public class PropertiesUtils {
      * <p>Like with {@link java.util.Properties#store(java.io.OutputStream, String)}, Unicode characters are
      * escaped when using the default Latin-1 (ISO-8559-1) encoding.</p>
      */
-    public static void store(Properties properties, OutputStream outputStream, String comment, Charset charset, String lineSeparator) throws IOException {
+    public static void store(Properties properties, OutputStream outputStream, @Nullable String comment, Charset charset, String lineSeparator) throws IOException {
         String rawContents;
         if (charset.equals(Charsets.ISO_8859_1)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();

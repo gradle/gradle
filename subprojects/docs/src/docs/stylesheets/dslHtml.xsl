@@ -29,18 +29,11 @@
     <xsl:param name="appendix.autolabel">0</xsl:param>
     <xsl:param name="table.autolabel">0</xsl:param>
 
-    <!-- No table of contents -->
-    <xsl:param name="generate.toc"/>
+    <xsl:param name="generate.toc">
+        chapter toc,title
+    </xsl:param>
 
     <xsl:template name="formal.object.heading"></xsl:template>
-
-    <!-- customize the stylesheets to add to the <head> element -->
-    <xsl:template name="output.html.stylesheets">
-        <link href="https://fonts.googleapis.com/css?family=Lato:400,400i" rel="stylesheet"/>
-        <link rel="preconnect" href="//assets.gradle.com" crossorigin="crossorigin"/>
-        <link href="base.css" rel="stylesheet" type="text/css"/>
-        <link href="dsl.css" rel="stylesheet" type="text/css"/>
-    </xsl:template>
 
     <!-- customize the page titles -->
     <xsl:template match="book" mode="object.title.markup.textonly">
@@ -57,32 +50,28 @@
 
     <!-- customize the layout of the html page -->
     <xsl:template name="chunk-element-content">
-        <xsl:param name="prev"/>
-        <xsl:param name="next"/>
-        <xsl:param name="nav.context"/>
         <xsl:param name="content">
             <xsl:apply-imports/>
         </xsl:param>
 
         <html>
-            <xsl:call-template name="html.head">
-                <xsl:with-param name="prev" select="$prev"/>
-                <xsl:with-param name="next" select="$next"/>
-            </xsl:call-template>
+            <xsl:call-template name="html.head"></xsl:call-template>
 
             <body>
                 <xsl:call-template name="body.attributes"/>
-                <div class="sidebar">
-                    <ul>
-                        <xsl:apply-templates select="." mode="sidebar"/>
-                        <!-- only apply navbar to sections that are not marked with 'noNavBar' -->
-                        <xsl:apply-templates select="/book/section[not(@condition) or @condition != 'noNavBar']/table[@role = 'dslTypes']" mode="sidebar"/>
-                    </ul>
-                </div>
-                <div class="content">
+                <xsl:call-template name="header.navigation"></xsl:call-template>
+                <main class="main-content">
+                    <nav class="docs-navigation">
+                        <ul>
+                            <xsl:apply-templates select="." mode="sidebar"/>
+                            <!-- only apply navbar to sections that are not marked with 'noNavBar' -->
+                            <xsl:apply-templates select="/book/section[not(@condition) or @condition != 'noNavBar']/table[@role = 'dslTypes']" mode="sidebar"/>
+                        </ul>
+                    </nav>
                     <xsl:copy-of select="$content"/>
-                </div>
-                <!--<script src="sidebar.js" type="text/javascript"/>-->
+                    <aside class="secondary-navigation"></aside>
+                </main>
+                <xsl:call-template name="footer.navigation"></xsl:call-template>
             </body>
         </html>
         <xsl:value-of select="$chunk.append"/>
@@ -93,27 +82,19 @@
       -->
 
     <xsl:template match="book" mode="sidebar">
-        <li class='sidebarHeading selected'>
-            Home
-        </li>
-        <ul class='sections'>
+        <li><a href="/userguide/userguide.html">User Manual</a></li>
+        <li><a href="/dsl/" class="active">DSL Reference Home</a></li>
+        <li><a href="/release-notes.html">Release Notes</a></li>
+        <ul class="sections">
             <xsl:apply-templates select="section" mode="sidebar.link"/>
         </ul>
     </xsl:template>
 
     <xsl:template match="chapter" mode="sidebar">
-        <li>
-            <xsl:call-template name="customXref">
-                <xsl:with-param name="target" select="/"/>
-                <xsl:with-param name="content">
-                    <xsl:text>Home</xsl:text>
-                </xsl:with-param>
-            </xsl:call-template>
-        </li>
-        <li class='sidebarHeading selected'>
-            <xsl:value-of select="title"/>
-        </li>
-        <ul class='sections'>
+        <li><a href="/userguide/userguide.html">User Manual</a></li>
+        <li><a href="/dsl/">DSL Reference Home</a></li>
+        <li><a href="/release-notes.html">Release Notes</a></li>
+        <ul class="sections">
             <xsl:apply-templates select="section[table]" mode="sidebar.link"/>
         </ul>
     </xsl:template>
@@ -138,8 +119,8 @@
     </xsl:template>
 
     <xsl:template match="table" mode="sidebar">
-        <li class='sidebarHeading'>
-            <xsl:value-of select="title"/>
+        <li>
+            <h3><xsl:value-of select="title"/></h3>
         </li>
         <xsl:apply-templates select="tr/td[1]" mode="sidebar"/>
     </xsl:template>

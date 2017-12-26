@@ -19,6 +19,7 @@ package org.gradle.language.cpp;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 
 /**
  * A shared library built from C++ source.
@@ -40,4 +41,11 @@ public interface CppSharedLibrary extends CppBinary {
      * @since 4.4
      */
     Provider<RegularFile> getRuntimeFile();
+
+    /**
+     * Returns the link task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<? extends AbstractLinkTask> getLinkTask();
 }

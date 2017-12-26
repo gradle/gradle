@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestDependency
 import spock.lang.Ignore
+import spock.lang.Issue
 
 class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
@@ -357,6 +358,13 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredDependencies 'a', 'b'
         declaredReplacements 'a->b', 'a->c'
         expect: resolvedModules 'b', 'c'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/1472")
+    def "handles '+' suffix in module name"() {
+        declaredDependencies 'org:foo+', 'org:bar'
+        declaredReplacements 'org:foo+->org:bar'
+        expect: resolvedModules 'org:bar'
     }
 
     def "can provide custom replacement reason"() {

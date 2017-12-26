@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -47,17 +48,18 @@ import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAU
 
 abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
     public static final HashValue EMPTY_CONTENT = HashUtil.createHash("", "MD5");
+    private static final String DEFAULT_STATUS = "integration";
+
     private final ImmutableAttributesFactory attributesFactory;
 
     private ModuleComponentIdentifier componentId;
     private ModuleVersionIdentifier id;
     private boolean changing;
     private boolean missing;
-    private String status = "integration";
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
     private HashValue contentHash = EMPTY_CONTENT;
-    private AttributeContainer componentLevelAttributes;
+    private /*Mutable*/AttributeContainerInternal componentLevelAttributes;
 
     private final VariantMetadataRules variantMetadataRules = new VariantMetadataRules();
 
@@ -68,6 +70,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.attributesFactory = attributesFactory;
         this.componentId = componentIdentifier;
         this.id = id;
+        this.componentLevelAttributes = defaultAttributes(attributesFactory);
     }
 
     AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
@@ -75,13 +78,16 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.id = metadata.getId();
         this.changing = metadata.isChanging();
         this.missing = metadata.isMissing();
-        this.status = metadata.getStatus();
         this.statusScheme = metadata.getStatusScheme();
         this.moduleSource = metadata.getSource();
         this.contentHash = metadata.getContentHash();
         this.variants = metadata.getVariants();
         this.attributesFactory = metadata.getAttributesFactory();
-        this.componentLevelAttributes = metadata.getAttributes();
+        this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) metadata.getAttributes());
+    }
+
+    private static AttributeContainerInternal defaultAttributes(ImmutableAttributesFactory attributesFactory) {
+        return (AttributeContainerInternal) attributesFactory.mutable().attribute(ProjectInternal.STATUS_ATTRIBUTE, DEFAULT_STATUS);
     }
 
     @Override
@@ -102,14 +108,16 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
 
     @Override
     public String getStatus() {
-        return status;
+        return componentLevelAttributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE);
     }
 
     protected abstract ImmutableMap<String, Configuration> getConfigurationDefinitions();
 
     @Override
     public void setStatus(String status) {
-        this.status = status;
+        AttributeContainerInternal attributes = this.componentLevelAttributes;
+        attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, status);
+        componentLevelAttributes = attributes;
     }
 
     @Override
@@ -163,15 +171,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     }
 
     public void setAttributes(AttributeContainer attributes) {
-        // map the "status" attribute to the "status" field
-        // currently this is the only "attribute" that is supported
-        // so this explains that we don't bother storing the whole attribute set
-        // into a mutable attribute container, but only map known attributes
-        // to fiels instead
-        if (attributes.contains(ProjectInternal.STATUS_ATTRIBUTE)) {
-            setStatus(attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE));
+        this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) attributes);
+        // the "status" attribute is mandatory, so if it's missing, we need to add it
+        if (!attributes.contains(ProjectInternal.STATUS_ATTRIBUTE)) {
+            componentLevelAttributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, DEFAULT_STATUS);
         }
-        this.componentLevelAttributes = attributes;
     }
 
     @Override

@@ -37,6 +37,11 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
     private final List<List<? extends ComponentIdentifier>> paths = new ArrayList<List<? extends ComponentIdentifier>>();
     private final ComponentSelector selector;
 
+    public ModuleVersionResolveException(ComponentSelector selector, String message, Throwable cause) {
+        super(message, cause);
+        this.selector = selector;
+    }
+
     public ModuleVersionResolveException(ComponentSelector selector, String message) {
         super(message);
         this.selector = selector;

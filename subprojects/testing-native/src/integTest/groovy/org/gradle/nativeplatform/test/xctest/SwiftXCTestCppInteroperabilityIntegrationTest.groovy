@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDepXCTest
+import spock.lang.Unroll
 
 class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     def setup() {
@@ -31,7 +32,8 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         """
     }
 
-    def "can depend on a c++ library"() {
+    @Unroll
+    def "can depend on a #linkage.toLowerCase() c++ library"() {
         given:
         def cppGreeter = new CppGreeterFunction()
         def lib = new SwiftLibWithCppDepXCTest(cppGreeter)
@@ -45,9 +47,18 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
             dependencies {
                 implementation project(':cppGreeter')
             }
+
+            [library, xctest]*.binaries*.configureEach {
+                if (targetPlatform.operatingSystem.macOsX) {
+                    linkTask.get().linkerArgs.add("-lc++")
+                } else if (targetPlatform.operatingSystem.linux) {
+                    linkTask.get().linkerArgs.add("-lstdc++")
+                }
+            }
             
             project(':cppGreeter') {
                 apply plugin: 'cpp-library'
+                library.linkage = [Linkage.${linkage}]
             }
         """
         lib.writeToProject(testDirectory)
@@ -57,9 +68,12 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
             ":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         lib.assertTestCasesRan(testExecutionResult)
+
+        where:
+        linkage << [SHARED, STATIC]
     }
 
     def "can specify a test dependency on a library with a dependency on a c++ library"() {
