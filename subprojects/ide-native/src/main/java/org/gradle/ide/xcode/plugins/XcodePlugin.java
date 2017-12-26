@@ -194,12 +194,12 @@ public class XcodePlugin extends IdePlugin {
         project.getPlugins().withType(XCTestConventionPlugin.class, new Action<XCTestConventionPlugin>() {
             @Override
             public void execute(XCTestConventionPlugin plugin) {
-                configureXcodeForXCTest(project, PBXTarget.ProductType.UNIT_TEST);
+                configureXcodeForXCTest(project);
             }
         });
     }
 
-    private void configureXcodeForXCTest(final Project project, final PBXTarget.ProductType productType) {
+    private void configureXcodeForXCTest(final Project project) {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(Project project) {
@@ -209,10 +209,10 @@ public class XcodePlugin extends IdePlugin {
 
                 String targetName = component.getModule().get();
                 XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
-                target.setDebug(component.getTestExecutable().get().getInstallDirectory(), productType);
-                target.setRelease(component.getTestExecutable().get().getInstallDirectory(), productType);
-                target.getCompileModules().from(component.getTestExecutable().get().getCompileModules());
-                target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getTestExecutable().get()).getImportPathConfiguration()).getBuildDependencies());
+                target.setDebug(component.getTestBinary().get().getInstallDirectory(), PBXTarget.ProductType.UNIT_TEST);
+                target.setRelease(component.getTestBinary().get().getInstallDirectory(), PBXTarget.ProductType.UNIT_TEST);
+                target.getCompileModules().from(component.getTestBinary().get().getCompileModules());
+                target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getTestBinary().get()).getImportPathConfiguration()).getBuildDependencies());
                 xcode.getProject().addTarget(target);
             }
         });

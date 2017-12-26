@@ -20,6 +20,7 @@ import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.junit.Assume
+import spock.lang.Unroll
 
 class CppUnitTestIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
     def setup() {
@@ -44,7 +45,8 @@ class CppUnitTestIntegrationTest extends AbstractNativeLanguageComponentIntegrat
         return "unitTest"
     }
 
-    def "can run test executable"() {
+    @Unroll
+    def "can run test executable using lifecycle task #task"() {
         def app = new CppHelloWorldApp()
         buildFile << """
             apply plugin: 'cpp-library'
@@ -55,11 +57,17 @@ class CppUnitTestIntegrationTest extends AbstractNativeLanguageComponentIntegrat
         app.simpleTestExecutable.writeSources(file("src/unitTest"))
 
         when:
-        succeeds("check")
+        succeeds(task)
 
         then:
         result.assertTasksExecuted(":compileDebugCpp",
-            ":compileUnitTestCpp", ":linkUnitTest", ":installUnitTest", ":runUnitTest", ":check")
+            ":compileUnitTestCpp", ":linkUnitTest", ":installUnitTest", ":runUnitTest", expectedLifecycleTasks)
+
+        where:
+        task    | expectedLifecycleTasks
+        "test"  | [":test"]
+        "check" | [":test", ":check"]
+        "build" | [":test", ":check", ":build", ":linkDebug", ":assemble"]
     }
 
     def "does nothing if cpp-library or cpp-application are not applied"() {
@@ -75,6 +83,6 @@ class CppUnitTestIntegrationTest extends AbstractNativeLanguageComponentIntegrat
         succeeds("check")
 
         then:
-        result.assertTasksExecuted( ":check")
+        result.assertTasksExecuted( ":test", ":check")
     }
 }

@@ -33,20 +33,20 @@ import javax.inject.Inject;
 public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestSuite {
     private final ObjectFactory objectFactory;
     private final Property<CppComponent> testedComponent;
-    private final Property<CppExecutable> developmentBinary;
+    private final Property<CppExecutable> testBinary;
 
     @Inject
     public DefaultCppTestSuite(String name, ObjectFactory objectFactory, final FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory, configurations);
         this.objectFactory = objectFactory;
         this.testedComponent = objectFactory.property(CppComponent.class);
-        this.developmentBinary = objectFactory.property(CppExecutable.class);
+        this.testBinary = objectFactory.property(CppExecutable.class);
         getBaseName().set(name);
     }
 
     public CppExecutable addExecutable(CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         CppExecutable testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, getName() + "Executable", getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider);
-        developmentBinary.set(testBinary);
+        this.testBinary.set(testBinary);
         getBinaries().add(testBinary);
         return testBinary;
     }
@@ -56,7 +56,7 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
     }
 
     @Override
-    public Property<CppExecutable> getTestExecutable() {
-        return developmentBinary;
+    public Property<CppExecutable> getTestBinary() {
+        return testBinary;
     }
 }

@@ -35,7 +35,7 @@ import javax.inject.Inject;
  */
 public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements SwiftXCTestSuite {
     private final ObjectFactory objectFactory;
-    private final Property<SwiftXCTestBinary> testExecutable;
+    private final Property<SwiftXCTestBinary> testBinary;
     private final Property<SwiftComponent> testedComponent;
 
     @Inject
@@ -43,7 +43,7 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
         super(name, fileOperations, objectFactory, configurations);
         this.testedComponent = objectFactory.property(SwiftComponent.class);
         this.objectFactory = objectFactory;
-        this.testExecutable = objectFactory.property(SwiftXCTestBinary.class);
+        this.testBinary = objectFactory.property(SwiftXCTestBinary.class);
     }
 
     public SwiftXCTestBinary addExecutable(SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
@@ -57,7 +57,7 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
     }
 
     @Override
-    public Property<SwiftXCTestBinary> getTestExecutable() {
-        return testExecutable;
+    public Property<SwiftXCTestBinary> getTestBinary() {
+        return testBinary;
     }
 }

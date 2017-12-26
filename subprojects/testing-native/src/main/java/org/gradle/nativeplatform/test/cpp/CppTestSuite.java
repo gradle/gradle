@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppExecutable;
+import org.gradle.nativeplatform.test.TestSuiteComponent;
 
 /**
  * A C++ test suite.
@@ -27,11 +28,10 @@ import org.gradle.language.cpp.CppExecutable;
  * @since 4.4
  */
 @Incubating
-public interface CppTestSuite extends CppComponent {
+public interface CppTestSuite extends CppComponent, TestSuiteComponent {
     /**
-     * Returns the executable that will be executed to run the tests.
-     *
-     * @since 4.4
+     * {@inheritDoc}
      */
-    Provider<CppExecutable> getTestExecutable();
+    @Override
+    Provider<? extends CppExecutable> getTestBinary();
 }

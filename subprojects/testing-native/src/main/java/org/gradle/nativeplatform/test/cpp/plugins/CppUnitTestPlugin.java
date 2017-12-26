@@ -40,8 +40,8 @@ import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestSuite;
+import org.gradle.nativeplatform.test.plugins.NativeTestingBasePlugin;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
-import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import javax.inject.Inject;
 
@@ -67,7 +67,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
-        project.getPluginManager().apply(TestingBasePlugin.class);
+        project.getPluginManager().apply(NativeTestingBasePlugin.class);
 
         // Add the unit test and extension
         final DefaultCppTestSuite testComponent = componentFactory.newInstance(CppTestSuite.class, DefaultCppTestSuite.class, "unitTest");
@@ -105,7 +105,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
 
                         final InstallExecutable installTask = (InstallExecutable) tasks.getByName("installUnitTest");
                         testTask.setExecutable(installTask.getRunScript());
-                        testTask.dependsOn(testComponent.getTestExecutable().map(new Transformer<Provider<Directory>, CppExecutable>() {
+                        testTask.dependsOn(testComponent.getTestBinary().map(new Transformer<Provider<Directory>, CppExecutable>() {
                             @Override
                             public Provider<Directory> transform(CppExecutable cppExecutable) {
                                 return cppExecutable.getInstallDirectory();
@@ -116,7 +116,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                     }
                 });
 
-                tasks.getByName("check").dependsOn(testTask);
+                tasks.getByName("test").dependsOn(testTask);
             }
         };
 
