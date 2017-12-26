@@ -45,6 +45,7 @@ import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
+import org.gradle.nativeplatform.test.plugins.NativeTestingBasePlugin;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBinary;
@@ -56,7 +57,6 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.testing.base.plugins.TestingBasePlugin;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -85,8 +85,8 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
     @Override
     public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(TestingBasePlugin.class);
         project.getPluginManager().apply(SwiftBasePlugin.class);
+        project.getPluginManager().apply(NativeTestingBasePlugin.class);
 
         final TaskContainer tasks = project.getTasks();
 
@@ -96,16 +96,9 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         // Create test suite test task
         final XCTest testingTask = createTestingTask(project);
 
-        // Create testSuite lifecycle task
-        Task test = tasks.create(testSuite.getName());
+        // Wire in to the lifecycle task
+        Task test = tasks.getByName("test");
         test.dependsOn(testingTask);
-
-        // Swift is only supported on macOS and Linux right now
-        if (OperatingSystem.current().isMacOsX() || OperatingSystem.current().isLinux()) {
-            // Wire to check lifecycle task
-            Task check = tasks.getByName("check");
-            check.dependsOn(test);
-        }
 
         project.afterEvaluate(new Action<Project>() {
             @Override
@@ -114,7 +107,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
                 // Create test suite executable
                 SwiftXCTestBinary binary = testSuite.addExecutable(result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                testSuite.getTestExecutable().set(binary);
+                testSuite.getTestBinary().set(binary);
 
                 // Configure tasks
                 configureTestingTask(testSuite, testingTask);
@@ -129,7 +122,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
     private void configureTestSuiteBuildingTasks(ProjectInternal project, SwiftXCTestSuite testSuite) {
         TaskContainer tasks = project.getTasks();
-        final SwiftXCTestBinary binary = testSuite.getTestExecutable().get();
+        final SwiftXCTestBinary binary = testSuite.getTestBinary().get();
         final Names names = Names.of(binary.getName());
         SwiftCompile compile = binary.getCompileTask().get();
         final AbstractLinkTask link;
@@ -206,7 +199,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     }
 
     private static void configureTestingTask(SwiftXCTestSuite testSuite, XCTest testTask) {
-        SwiftXCTestBinary binary = testSuite.getTestExecutable().get();
+        SwiftXCTestBinary binary = testSuite.getTestBinary().get();
         testTask.getTestInstallDirectory().set(binary.getInstallDirectory());
         testTask.getRunScriptFile().set(binary.getRunScriptFile());
         testTask.getWorkingDirectory().set(binary.getInstallDirectory());
@@ -245,7 +238,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         testSuite.getBinaries().configureEach(new Action<SwiftBinary>() {
             @Override
             public void execute(final SwiftBinary testExecutable) {
-                if (testExecutable != testSuite.getTestExecutable().get()) {
+                if (testExecutable != testSuite.getTestBinary().get()) {
                     return;
                 }
 
@@ -258,7 +251,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
                         // Test configuration extends main configuration
                         testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
-                        project.getDependencies().add(((DefaultSwiftXCTestBinary) testSuite.getTestExecutable().get()).getImportPathConfiguration().getName(), project);
+                        project.getDependencies().add(((DefaultSwiftXCTestBinary) testSuite.getTestBinary().get()).getImportPathConfiguration().getName(), project);
 
                         // Configure test suite link task from tested component compiled objects
                         final AbstractLinkTask linkTest = ((SwiftXCTestBinary) testExecutable).getLinkTask().get();
