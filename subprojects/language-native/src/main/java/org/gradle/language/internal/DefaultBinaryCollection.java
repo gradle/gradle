@@ -24,7 +24,7 @@ import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.language.BinaryContainer;
+import org.gradle.language.BinaryCollection;
 import org.gradle.language.BinaryProvider;
 import org.gradle.util.ConfigureUtil;
 
@@ -37,7 +37,7 @@ import java.util.Set;
 
 // TODO - error messages
 // TODO - display names for this container and the Provider implementations
-public class DefaultBinaryContainer<T extends SoftwareComponent> implements BinaryContainer<T> {
+public class DefaultBinaryCollection<T extends SoftwareComponent> implements BinaryCollection<T> {
     private enum State {
         Collecting, Realizing, Finalized
     }
@@ -52,7 +52,7 @@ public class DefaultBinaryContainer<T extends SoftwareComponent> implements Bina
     private ImmutableActionSet<T> finalizeActions = ImmutableActionSet.empty();
 
     @Inject
-    public DefaultBinaryContainer(Class<T> elementType, ProviderFactory providerFactory) {
+    public DefaultBinaryCollection(Class<T> elementType, ProviderFactory providerFactory) {
         this.elementType = elementType;
         this.providerFactory = providerFactory;
     }

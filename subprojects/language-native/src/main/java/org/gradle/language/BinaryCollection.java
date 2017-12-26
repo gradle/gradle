@@ -33,7 +33,7 @@ import java.util.Set;
  * @since 4.5
  */
 @Incubating
-public interface BinaryContainer<T extends SoftwareComponent> {
+public interface BinaryCollection<T extends SoftwareComponent> {
     /**
      * Returns a {@link BinaryProvider} that contains the single binary matching the specified type and specification. The binary will be in the finalized state.
      * The provider can be used to apply configuration to the element before it is finalized.

@@ -29,5 +29,5 @@ public interface ComponentWithBinaries extends SoftwareComponent {
     /**
      * Returns the binaries of this component.
      */
-    BinaryContainer<? extends SoftwareComponent> getBinaries();
+    BinaryCollection<? extends SoftwareComponent> getBinaries();
 }
