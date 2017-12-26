@@ -22,6 +22,8 @@ import org.gradle.language.ProductionComponent;
 
 /**
  * Represents a C++ component that is the main product of a project.
+ *
+ * @since 4.5
  */
 @Incubating
 public interface ProductionCppComponent extends CppComponent, ProductionComponent {
