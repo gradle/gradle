@@ -22,6 +22,8 @@ import org.gradle.language.ProductionComponent;
 
 /**
  * Represents a Swift component that is the main product of a project.
+ *
+ * @since 4.5
  */
 @Incubating
 public interface ProductionSwiftComponent extends SwiftComponent, ProductionComponent {
