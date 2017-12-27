@@ -25,6 +25,8 @@ import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestBundle;
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestExecutable;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -47,8 +49,14 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
         this.testBinary = objectFactory.property(SwiftXCTestBinary.class);
     }
 
-    public SwiftXCTestBinary addExecutable(String nameSuffix, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        SwiftXCTestBinary result = objectFactory.newInstance(DefaultSwiftXCTestBinary.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), true, false, false, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+    public SwiftXCTestExecutable addExecutable(String nameSuffix, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftXCTestExecutable result = objectFactory.newInstance(DefaultSwiftXCTestExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), true, false, false, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+        getBinaries().add(result);
+        return result;
+    }
+
+    public SwiftXCTestBundle addBundle(String nameSuffix, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftXCTestBundle result = objectFactory.newInstance(DefaultSwiftXCTestBundle.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), true, false, false, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
     }

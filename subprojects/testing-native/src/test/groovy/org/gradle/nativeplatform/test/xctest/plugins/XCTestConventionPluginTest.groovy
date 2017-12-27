@@ -23,7 +23,8 @@ import org.gradle.language.swift.tasks.SwiftCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkMachOBundle
-import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestBundle
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestExecutable
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
 import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle
 import org.gradle.nativeplatform.test.xctest.tasks.XCTest
@@ -84,7 +85,8 @@ class XCTestConventionPluginTest extends Specification {
         project.xctest.testedComponent.orNull == project.application
     }
 
-    def "registers a component for the test suite"() {
+    @Requires(TestPrecondition.MAC_OS_X)
+    def "registers a test bundle for the test suite on macOS"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
         project.evaluate()
@@ -96,10 +98,31 @@ class XCTestConventionPluginTest extends Specification {
 
         and:
         def binaries = project.xctest.binaries.get()
-        binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftXCTestBinary }.size() == 1
+        binaries.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftXCTestBundle }.size() == 1
 
         and:
-        project.xctest.testBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof SwiftXCTestBinary }
+        project.xctest.testBinary.get() == binaries.first()
+    }
+
+    @Requires(TestPrecondition.NOT_MAC_OS_X)
+    def "registers a test executable for the test suite"() {
+        when:
+        project.pluginManager.apply(XCTestConventionPlugin)
+        project.evaluate()
+
+        then:
+        project.components.test == project.xctest
+        project.xctest.binaries.get().name == ['testExecutable']
+        project.components.containsAll(project.xctest.binaries.get())
+
+        and:
+        def binaries = project.xctest.binaries.get()
+        binaries.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof SwiftXCTestExecutable }.size() == 1
+
+        and:
+        project.xctest.testBinary.get() == binaries.first()
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
