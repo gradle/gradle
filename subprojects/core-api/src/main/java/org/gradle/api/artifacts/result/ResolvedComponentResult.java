@@ -94,5 +94,5 @@ public interface ResolvedComponentResult {
      *
      * @since 4.5
      */
-    ResolvedNamedVariantResult getVariant();
+    ResolvedVariantResult getVariant();
 }

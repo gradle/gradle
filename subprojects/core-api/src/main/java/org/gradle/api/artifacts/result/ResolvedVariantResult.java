@@ -30,4 +30,11 @@ public interface ResolvedVariantResult {
      * The attributes associated with this variant.
      */
     AttributeContainer getAttributes();
+
+    /**
+     * The display name of this variant, for diagnostics.
+     *
+     * @since 4.5
+     */
+    String getDisplayName();
 }

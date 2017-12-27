@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.artifacts.result.ResolvedNamedVariantResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -35,9 +35,9 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResult {
     private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<ResolvedDependencyResult>();
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
-    private final ResolvedNamedVariantResult variant;
+    private final ResolvedVariantResult variant;
 
-    public DefaultResolvedComponentResult(ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, ResolvedNamedVariantResult variant) {
+    public DefaultResolvedComponentResult(ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, ResolvedVariantResult variant) {
         assert moduleVersion != null;
         assert selectionReason != null;
         assert variant != null;
@@ -80,7 +80,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResult {
     }
 
     @Override
-    public ResolvedNamedVariantResult getVariant() {
+    public ResolvedVariantResult getVariant() {
         return variant;
     }
 

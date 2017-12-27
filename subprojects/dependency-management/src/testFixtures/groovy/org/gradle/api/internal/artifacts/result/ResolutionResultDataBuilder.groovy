@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.result
 
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.api.artifacts.result.ResolvedNamedVariantResult
+import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
@@ -42,7 +42,7 @@ class ResolutionResultDataBuilder {
     }
 
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1',
-                                                        ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED, ResolvedNamedVariantResult variant = newVariant()) {
+                                                        ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED, ResolvedVariantResult variant = newVariant()) {
         new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(group, module, version), variant)
     }
 
@@ -50,11 +50,11 @@ class ResolutionResultDataBuilder {
         new DefaultResolvedDependencyResult(componentSelector, newModule(group, module, selectedVersion), newModule())
     }
 
-    static ResolvedNamedVariantResult newVariant(String name = 'default', Map<String, String> attributes = [:]) {
+    static ResolvedVariantResult newVariant(String name = 'default', Map<String, String> attributes = [:]) {
         def mutableAttributes = TestUtil.attributesFactory().mutable()
         attributes.each {
             mutableAttributes.attribute(Attribute.of(it.key, String), it.value)
         }
-        return new DefaultResolvedNamedVariantResult(name, mutableAttributes)
+        return new DefaultResolvedVariantResult(name, mutableAttributes)
     }
 }
