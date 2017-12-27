@@ -17,20 +17,30 @@
 package org.gradle.language.nativeplatform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.Directory;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.provider.Provider;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 
 /**
- * Represents a native component that produces an application installation.
+ * Represents a component that produces outputs that run on a native platform.
  *
  * @since 4.5
  */
 @Incubating
-public interface ComponentWithInstallation extends ComponentWithNativeRuntime {
+public interface ComponentWithNativeRuntime extends SoftwareComponent {
     /**
-     * Returns the installation directory for this component.
-     *
-     * @since 4.5
+     * Returns the base name of this component. This is used to calculate output file names.
      */
-    Provider<Directory> getInstallDirectory();
+    Provider<String> getBaseName();
+
+    /**
+     * Returns the target platform for this component.
+     */
+    NativePlatform getTargetPlatform();
+
+    /**
+     * Returns the tool chain for this component.
+     */
+    NativeToolChain getToolChain();
 }

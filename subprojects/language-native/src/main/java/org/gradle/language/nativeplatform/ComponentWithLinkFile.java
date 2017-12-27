@@ -17,7 +17,6 @@
 package org.gradle.language.nativeplatform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 
@@ -27,7 +26,7 @@ import org.gradle.api.provider.Provider;
  * @since 4.5
  */
 @Incubating
-public interface ComponentWithLinkFile extends SoftwareComponent {
+public interface ComponentWithLinkFile extends ComponentWithNativeRuntime {
     /**
      * Returns the link file of this component.
      */

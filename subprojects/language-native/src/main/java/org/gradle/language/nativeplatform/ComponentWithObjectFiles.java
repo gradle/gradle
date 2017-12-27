@@ -17,20 +17,17 @@
 package org.gradle.language.nativeplatform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.Directory;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.file.FileCollection;
 
 /**
- * Represents a native component that produces an application installation.
+ * Represents a component that produces object files.
  *
  * @since 4.5
  */
 @Incubating
-public interface ComponentWithInstallation extends ComponentWithNativeRuntime {
+public interface ComponentWithObjectFiles extends ComponentWithNativeRuntime {
     /**
-     * Returns the installation directory for this component.
-     *
-     * @since 4.5
+     * Returns the object files created for this component.
      */
-    Provider<Directory> getInstallDirectory();
+    FileCollection getObjects();
 }

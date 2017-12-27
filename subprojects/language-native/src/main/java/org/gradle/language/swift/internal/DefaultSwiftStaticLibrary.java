@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
@@ -34,7 +35,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultSwiftStaticLibrary extends DefaultSwiftBinary implements SwiftStaticLibrary {
+public class DefaultSwiftStaticLibrary extends DefaultSwiftBinary implements SwiftStaticLibrary, ConfigurableComponentWithStaticLibrary {
     private final RegularFileProperty linkFile;
     private final Property<CreateStaticLibrary> createTaskProperty;
     private final ConfigurableFileCollection outputs;
