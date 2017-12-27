@@ -27,6 +27,11 @@ public interface PlatformToolProvider extends ToolProvider {
 
     boolean producesImportLibrary();
 
+    /**
+     * Whether or not this tool chain requires a debuggable binary to be stripped or whether the binary is stripped by default.
+     */
+    boolean requiresDebugBinaryStripping();
+
     String getImportLibraryName(String libraryPath);
 
     String getSharedLibraryLinkFileName(String libraryPath);

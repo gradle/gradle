@@ -87,6 +87,11 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     }
 
     @Override
+    public boolean requiresDebugBinaryStripping() {
+        return false;
+    }
+
+    @Override
     public String getSharedLibraryLinkFileName(String libraryName) {
         return withExtension(getSharedLibraryName(libraryName), ".lib");
     }

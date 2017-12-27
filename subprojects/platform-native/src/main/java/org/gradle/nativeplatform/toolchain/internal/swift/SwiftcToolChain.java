@@ -127,8 +127,4 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
         return "Swift Compiler";
     }
 
-    @Override
-    public boolean requiresDebugBinaryStripping() {
-        return true;
-    }
 }

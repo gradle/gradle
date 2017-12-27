@@ -140,11 +140,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     }
 
     @Override
-    public boolean requiresDebugBinaryStripping() {
-        return true;
-    }
-
-    @Override
     public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
         PlatformToolProvider toolProvider = toolProviders.get(targetPlatform);
         if (toolProvider == null) {

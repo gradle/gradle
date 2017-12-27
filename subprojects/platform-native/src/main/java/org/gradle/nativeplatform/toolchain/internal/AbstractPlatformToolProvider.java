@@ -73,6 +73,11 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     }
 
     @Override
+    public boolean requiresDebugBinaryStripping() {
+        return true;
+    }
+
+    @Override
     public String getImportLibraryName(String libraryPath) {
         return getSharedLibraryLinkFileName(libraryPath);
     }

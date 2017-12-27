@@ -23,14 +23,10 @@ import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
 import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 public interface ConfigurableComponentWithSharedLibrary extends ComponentWithSharedLibrary, ComponentWithObjectFiles, ComponentWithOutputs {
     PlatformToolProvider getPlatformToolProvider();
-
-    @Override
-    NativeToolChainInternal getToolChain();
 
     @Override
     Property<RegularFile> getLinkFile();

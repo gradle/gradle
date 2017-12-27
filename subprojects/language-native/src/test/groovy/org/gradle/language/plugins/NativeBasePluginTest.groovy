@@ -214,19 +214,17 @@ class NativeBasePluginTest extends Specification {
         def toolProvider = Stub(PlatformToolProvider)
         toolProvider.getSharedLibraryName(_) >> { String p -> p + ".dll" }
         toolProvider.getLibrarySymbolFileName(_) >> { String p -> p + ".dll.pdb" }
+        toolProvider.requiresDebugBinaryStripping() >> true
 
         def runtimeFileProp = project.objects.property(RegularFile)
         def linkTaskProp = project.objects.property(LinkSharedLibrary)
-
-        def toolChain = Stub(NativeToolChainInternal)
-        toolChain.requiresDebugBinaryStripping() >> true
 
         def sharedLibrary = Stub(ConfigurableComponentWithSharedLibrary)
         sharedLibrary.name >> "windowsDebug"
         sharedLibrary.debuggable >> true
         sharedLibrary.optimized >> true
         sharedLibrary.targetPlatform >> Stub(NativePlatformInternal)
-        sharedLibrary.toolChain >> toolChain
+        sharedLibrary.toolChain >> Stub(NativeToolChainInternal)
         sharedLibrary.platformToolProvider >> toolProvider
         sharedLibrary.baseName >> Providers.of("test_lib")
         sharedLibrary.runtimeFile >> runtimeFileProp
@@ -320,6 +318,7 @@ class NativeBasePluginTest extends Specification {
         def toolProvider = Stub(PlatformToolProvider)
         toolProvider.getExecutableName(_) >> { String p -> p + ".exe" }
         toolProvider.getExecutableSymbolFileName(_) >> { String p -> p + ".exe.pdb" }
+        toolProvider.requiresDebugBinaryStripping() >> true
 
         def exeFileProp = project.objects.property(RegularFile)
         def debugExeFileProp = project.objects.property(RegularFile)
@@ -327,15 +326,12 @@ class NativeBasePluginTest extends Specification {
         def installDirProp = project.objects.property(Directory)
         def installTaskProp = project.objects.property(InstallExecutable)
 
-        def toolChain = Stub(NativeToolChainInternal)
-        toolChain.requiresDebugBinaryStripping() >> true
-
         def executable = Stub(ConfigurableComponentWithExecutable)
         executable.name >> "windowsDebug"
         executable.debuggable >> true
         executable.optimized >> true
         executable.targetPlatform >> Stub(NativePlatformInternal)
-        executable.toolChain >> toolChain
+        executable.toolChain >> Stub(NativeToolChainInternal)
         executable.platformToolProvider >> toolProvider
         executable.baseName >> Providers.of("test_app")
         executable.executableFile >> exeFileProp
