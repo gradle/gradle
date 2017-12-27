@@ -33,8 +33,6 @@ import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-import javax.inject.Inject;
-
 /**
  * Binary of a XCTest suite component.
  * This may be an executable that can be executed directly or a bundle that must be executed through xctest.
@@ -48,7 +46,6 @@ public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements Swif
     private final Property<AbstractLinkTask> linkTaskProperty;
     private final Property<XCTest> runTaskProperty;
 
-    @Inject
     public DefaultSwiftXCTestBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.executableFile = projectLayout.fileProperty();
