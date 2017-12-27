@@ -26,7 +26,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.Names;
@@ -41,13 +40,14 @@ import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
 import org.gradle.nativeplatform.test.plugins.NativeTestingBasePlugin;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
+import org.gradle.nativeplatform.test.xctest.SwiftXCTestBundle;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBinary;
+import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBundle;
+import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestExecutable;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
 import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle;
@@ -110,8 +110,8 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 binary.getRunTask().set(testingTask);
 
                 // Configure tasks
-                configureTestingTask(testSuite, testingTask);
-                configureTestSuiteBuildingTasks((ProjectInternal) project, testSuite);
+                configureTestingTask(binary, testingTask);
+                configureTestSuiteBuildingTasks((ProjectInternal) project, binary);
 
                 configureTestSuiteWithTestedComponentWhenAvailable(project, testSuite);
 
@@ -120,19 +120,17 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureTestSuiteBuildingTasks(ProjectInternal project, SwiftXCTestSuite testSuite) {
-        TaskContainer tasks = project.getTasks();
-        final SwiftXCTestBinary binary = testSuite.getTestBinary().get();
-        final Names names = Names.of(binary.getName());
-        SwiftCompile compile = binary.getCompileTask().get();
-        final AbstractLinkTask link;
+    private void configureTestSuiteBuildingTasks(ProjectInternal project, final DefaultSwiftXCTestBinary binary) {
+        if (binary instanceof SwiftXCTestBundle) {
+            TaskContainer tasks = project.getTasks();
+            final Names names = Names.of(binary.getName());
+            SwiftCompile compile = binary.getCompileTask().get();
 
-        // TODO - make this lazy
-        DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
-        final ModelRegistry modelRegistry = project.getModelRegistry();
-        NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
+            // TODO - make this lazy
+            DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
+            final ModelRegistry modelRegistry = project.getModelRegistry();
+            NativeToolChain toolChain = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
 
-        if (OperatingSystem.current().isMacOsX()) {
             // Platform specific arguments
             compile.getCompilerArgs().addAll(project.provider(new Callable<List<String>>() {
                 @Override
@@ -143,7 +141,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             }));
 
             // Add a link task
-            link = tasks.create(names.getTaskName("link"), LinkMachOBundle.class);
+            final LinkMachOBundle link = tasks.create(names.getTaskName("link"), LinkMachOBundle.class);
             link.getLinkerArgs().set(project.provider(new Callable<List<String>>() {
                 @Override
                 public List<String> call() throws Exception {
@@ -153,42 +151,36 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             }));
 
             InstallXCTestBundle install = tasks.create(names.getTaskName("install"), InstallXCTestBundle.class);
-            install.getBundleBinaryFile().set(binary.getExecutableTestFile());
+            install.getBundleBinaryFile().set(link.getBinaryFile());
             install.getInstallDirectory().set(project.getLayout().getBuildDirectory().dir("install/" + names.getDirName()));
-            ((DefaultSwiftXCTestBinary)binary).getInstallDirectory().set(install.getInstallDirectory());
-            ((DefaultSwiftXCTestBinary)binary).getRunScriptFile().set(install.getRunScriptFile());
+            binary.getInstallDirectory().set(install.getInstallDirectory());
+
+            link.source(binary.getObjects());
+            link.lib(binary.getLinkLibraries());
+            final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
+            Provider<RegularFile> exeLocation = project.getLayout().getBuildDirectory().file(project.getProviders().provider(new Callable<String>() {
+                @Override
+                public String call() {
+                    return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getBaseName().get());
+                }
+            }));
+            link.setOutputFile(exeLocation);
+            link.setTargetPlatform(currentPlatform);
+            link.setToolChain(toolChain);
+            link.setDebuggable(binary.isDebuggable());
+
+            binary.getExecutableFile().set(link.getBinaryFile());
+
+            DefaultSwiftXCTestBundle bundle = (DefaultSwiftXCTestBundle) binary;
+            bundle.getLinkTask().set(link);
+            bundle.getRunScriptFile().set(install.getRunScriptFile());
         } else {
-            link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
-
-            final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
-            install.setPlatform(currentPlatform);
-            install.setToolChain(toolChain);
-            install.getInstallDirectory().set(project.getLayout().getBuildDirectory().dir("install/" + names.getDirName()));
-            install.getSourceFile().set(binary.getExecutableTestFile());
-            install.lib(binary.getRuntimeLibraries());
-            ((DefaultSwiftXCTestBinary)binary).getInstallDirectory().set(install.getInstallDirectory());
-            ((DefaultSwiftXCTestBinary)binary).getRunScriptFile().set(install.getRunScriptFile());
+            DefaultSwiftXCTestExecutable executable = (DefaultSwiftXCTestExecutable) binary;
+            executable.getRunScriptFile().set(executable.getInstallTask().get().getRunScriptFile());
         }
-
-        link.source(binary.getObjects());
-        link.lib(binary.getLinkLibraries());
-        final PlatformToolProvider toolProvider = ((NativeToolChainInternal) toolChain).select(currentPlatform);
-        Provider<RegularFile> exeLocation = project.getLayout().getBuildDirectory().file(project.getProviders().provider(new Callable<String>() {
-            @Override
-            public String call() {
-                return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getBaseName().get());
-            }
-        }));
-        link.setOutputFile(exeLocation);
-        link.setTargetPlatform(currentPlatform);
-        link.setToolChain(toolChain);
-        link.setDebuggable(binary.isDebuggable());
-
-        ((DefaultSwiftXCTestBinary)binary).getExecutableTestFile().set(link.getBinaryFile());
-        ((DefaultSwiftXCTestBinary)binary).getLinkTask().set(link);
     }
 
-    private static XCTest createTestingTask(final Project project) {
+    private XCTest createTestingTask(final Project project) {
         TaskContainer tasks = project.getTasks();
 
         XCTest testTask = tasks.create("xcTest", XCTest.class);
@@ -198,8 +190,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         return testTask;
     }
 
-    private static void configureTestingTask(SwiftXCTestSuite testSuite, XCTest testTask) {
-        SwiftXCTestBinary binary = testSuite.getTestBinary().get();
+    private void configureTestingTask(SwiftXCTestBinary binary, XCTest testTask) {
         testTask.getTestInstallDirectory().set(binary.getInstallDirectory());
         testTask.getRunScriptFile().set(binary.getRunScriptFile());
         testTask.getWorkingDirectory().set(binary.getInstallDirectory());

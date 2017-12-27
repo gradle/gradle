@@ -21,8 +21,10 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftPlatform;
+import org.gradle.nativeplatform.tasks.LinkMachOBundle;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBundle;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -30,8 +32,16 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 
 public class DefaultSwiftXCTestBundle extends DefaultSwiftXCTestBinary implements SwiftXCTestBundle {
+    private final Property<LinkMachOBundle> linkTask;
+
     @Inject
     public DefaultSwiftXCTestBundle(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
+        linkTask = objectFactory.property(LinkMachOBundle.class);
+    }
+
+    @Override
+    public Property<LinkMachOBundle> getLinkTask() {
+        return linkTask;
     }
 }
