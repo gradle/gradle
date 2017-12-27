@@ -27,9 +27,13 @@ import org.gradle.language.ComponentWithBinaries
 import org.gradle.language.ComponentWithOutputs
 import org.gradle.language.ProductionComponent
 import org.gradle.language.internal.DefaultBinaryCollection
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
+import org.gradle.nativeplatform.tasks.ExtractSymbols
+import org.gradle.nativeplatform.tasks.LinkSharedLibrary
+import org.gradle.nativeplatform.tasks.StripSymbols
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -128,7 +132,7 @@ class NativeBasePluginTest extends Specification {
         project.tasks['assembleRelease'] TaskDependencyMatchers.dependsOn('installRelease')
     }
 
-    def "adds tasks to assemble static library"() {
+    def "adds tasks to assemble a static library"() {
         def toolProvider = Stub(PlatformToolProvider)
         toolProvider.getStaticLibraryName(_) >> { String p -> p + ".lib" }
 
@@ -163,6 +167,96 @@ class NativeBasePluginTest extends Specification {
         and:
         linkFileProp.get().asFile == createTask.binaryFile.get().asFile
         createTaskProp.get() == createTask
+    }
+
+    def "adds tasks to assemble a shared library"() {
+        def toolProvider = Stub(PlatformToolProvider)
+        toolProvider.getSharedLibraryName(_) >> { String p -> p + ".dll" }
+
+        def runtimeFileProp = project.objects.property(RegularFile)
+        def linkTaskProp = project.objects.property(LinkSharedLibrary)
+
+        def sharedLibrary = Stub(ConfigurableComponentWithSharedLibrary)
+        sharedLibrary.name >> "windowsDebug"
+        sharedLibrary.targetPlatform >> Stub(NativePlatformInternal)
+        sharedLibrary.toolChain >> Stub(NativeToolChainInternal)
+        sharedLibrary.platformToolProvider >> toolProvider
+        sharedLibrary.baseName >> Providers.of("test_lib")
+        sharedLibrary.runtimeFile >> runtimeFileProp
+        sharedLibrary.linkTask >> linkTaskProp
+
+        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
+        binaries.add(sharedLibrary)
+        def component = Stub(TestComponent)
+        component.binaries >> binaries
+        component.developmentBinary >> Providers.of(sharedLibrary)
+
+        given:
+        project.pluginManager.apply(NativeBasePlugin)
+        project.components.add(component)
+        binaries.realizeNow()
+
+        expect:
+        def linkTask = project.tasks['linkWindowsDebug']
+        linkTask instanceof LinkSharedLibrary
+        linkTask.binaryFile.get().asFile == projectDir.file("build/lib/windows/debug/test_lib.dll")
+
+        and:
+        runtimeFileProp.get().asFile == linkTask.binaryFile.get().asFile
+        linkTaskProp.get() == linkTask
+    }
+
+    def "adds tasks to assemble and strip a shared library"() {
+        def toolProvider = Stub(PlatformToolProvider)
+        toolProvider.getSharedLibraryName(_) >> { String p -> p + ".dll" }
+        toolProvider.getLibrarySymbolFileName(_) >> { String p -> p + ".dll.pdb" }
+
+        def runtimeFileProp = project.objects.property(RegularFile)
+        def linkTaskProp = project.objects.property(LinkSharedLibrary)
+
+        def toolChain = Stub(NativeToolChainInternal)
+        toolChain.requiresDebugBinaryStripping() >> true
+
+        def sharedLibrary = Stub(ConfigurableComponentWithSharedLibrary)
+        sharedLibrary.name >> "windowsDebug"
+        sharedLibrary.debuggable >> true
+        sharedLibrary.optimized >> true
+        sharedLibrary.targetPlatform >> Stub(NativePlatformInternal)
+        sharedLibrary.toolChain >> toolChain
+        sharedLibrary.platformToolProvider >> toolProvider
+        sharedLibrary.baseName >> Providers.of("test_lib")
+        sharedLibrary.runtimeFile >> runtimeFileProp
+        sharedLibrary.linkTask >> linkTaskProp
+
+        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
+        binaries.add(sharedLibrary)
+        def component = Stub(TestComponent)
+        component.binaries >> binaries
+        component.developmentBinary >> Providers.of(sharedLibrary)
+
+        given:
+        project.pluginManager.apply(NativeBasePlugin)
+        project.components.add(component)
+        binaries.realizeNow()
+
+        expect:
+        def linkTask = project.tasks['linkWindowsDebug']
+        linkTask instanceof LinkSharedLibrary
+        linkTask.binaryFile.get().asFile == projectDir.file("build/lib/windows/debug/test_lib.dll")
+
+        def stripTask = project.tasks['stripSymbolsWindowsDebug']
+        stripTask instanceof StripSymbols
+        stripTask.binaryFile.get().asFile == linkTask.binaryFile.get().asFile
+        stripTask.outputFile.get().asFile == projectDir.file("build/lib/windows/debug/stripped/test_lib.dll")
+
+        def extractTask = project.tasks['extractSymbolsWindowsDebug']
+        extractTask instanceof ExtractSymbols
+        extractTask.binaryFile.get().asFile == linkTask.binaryFile.get().asFile
+        extractTask.symbolFile.get().asFile == projectDir.file("build/lib/windows/debug/stripped/test_lib.dll.pdb")
+
+        and:
+        runtimeFileProp.get().asFile == stripTask.outputFile.get().asFile
+        linkTaskProp.get() == linkTask
     }
 
     private ComponentWithOutputs binary(String name, String taskName) {

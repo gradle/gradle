@@ -34,9 +34,17 @@ import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
+import org.gradle.nativeplatform.tasks.ExtractSymbols;
+import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
+import org.gradle.nativeplatform.tasks.StripSymbols;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import java.util.concurrent.Callable;
@@ -93,11 +101,77 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 }
             }
         });
+        components.withType(ConfigurableComponentWithSharedLibrary.class, new Action<ConfigurableComponentWithSharedLibrary>() {
+            @Override
+            public void execute(final ConfigurableComponentWithSharedLibrary library) {
+                final Names names = Names.of(library.getName());
+                NativePlatform currentPlatform = library.getTargetPlatform();
+                NativeToolChainInternal toolChain = library.getToolChain();
+
+                // Add a link task
+                final LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
+                link.source(library.getObjects());
+                link.lib(library.getLinkLibraries());
+                // TODO - need to set soname
+                final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
+                Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
+                    @Override
+                    public String call() {
+                        return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
+                    }
+                }));
+                link.setOutputFile(runtimeFile);
+                link.setTargetPlatform(currentPlatform);
+                link.setToolChain(toolChain);
+                link.setDebuggable(library.isDebuggable());
+
+                Provider<RegularFile> linkFile = link.getBinaryFile();
+                runtimeFile = link.getBinaryFile();
+
+                if (toolProvider.producesImportLibrary()) {
+                    Provider<RegularFile> importLibrary = buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return toolProvider.getImportLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
+                        }
+                    }));
+                    link.getImportLibrary().set(importLibrary);
+                    linkFile = link.getImportLibrary();
+                }
+
+                if (library.isDebuggable() && library.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
+                    Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + library.getBaseName().get());
+                        }
+                    }));
+                    Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + library.getBaseName().get());
+                        }
+                    }));
+                    StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, strippedLocation);
+                    runtimeFile = stripSymbols.getOutputFile();
+                    linkFile = stripSymbols.getOutputFile();
+
+                    ExtractSymbols extractSymbols = extractSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation);
+                    library.getOutputs().from(extractSymbols.getSymbolFile());
+                }
+                library.getLinkTask().set(link);
+                library.getLinkFile().set(linkFile);
+                library.getRuntimeFile().set(runtimeFile);
+                library.getOutputs().from(library.getLinkFile());
+                library.getOutputs().from(library.getRuntimeFile());
+            }
+        });
         components.withType(ConfigurableComponentWithStaticLibrary.class, new Action<ConfigurableComponentWithStaticLibrary>() {
             @Override
             public void execute(final ConfigurableComponentWithStaticLibrary library) {
-                // Add a create task
                 final Names names = Names.of(library.getName());
+
+                // Add a create task
                 final CreateStaticLibrary createTask = tasks.create(names.getTaskName("create"), CreateStaticLibrary.class);
                 createTask.source(library.getObjects());
                 final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
@@ -117,5 +191,25 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 library.getOutputs().from(library.getLinkFile());
             }
         });
+    }
+
+    private StripSymbols stripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> strippedLocation) {
+        StripSymbols stripSymbols = tasks.create(names.getTaskName("stripSymbols"), StripSymbols.class);
+        stripSymbols.getBinaryFile().set(link.getBinaryFile());
+        stripSymbols.getOutputFile().set(strippedLocation);
+        stripSymbols.setTargetPlatform(currentPlatform);
+        stripSymbols.setToolChain(toolChain);
+
+        return stripSymbols;
+    }
+
+    private ExtractSymbols extractSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> symbolLocation) {
+        ExtractSymbols extractSymbols = tasks.create(names.getTaskName("extractSymbols"), ExtractSymbols.class);
+        extractSymbols.getBinaryFile().set(link.getBinaryFile());
+        extractSymbols.getSymbolFile().set(symbolLocation);
+        extractSymbols.setTargetPlatform(currentPlatform);
+        extractSymbols.setToolChain(toolChain);
+
+        return extractSymbols;
     }
 }

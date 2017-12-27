@@ -35,18 +35,6 @@ public interface SwiftBinary extends ComponentWithObjectFiles {
     Provider<String> getModule();
 
     /**
-     * Returns true if this binary has debugging enabled.
-     */
-    boolean isDebuggable();
-
-    /**
-     * Returns true if this binary is optimized.
-     *
-     * @since 4.5
-     */
-    boolean isOptimized();
-
-    /**
      * Returns true if this binary has testing enabled.
      *
      * @since 4.4
