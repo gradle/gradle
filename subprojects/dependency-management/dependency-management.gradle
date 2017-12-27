@@ -17,6 +17,8 @@ dependencies {
     compile project(":resourcesHttp")
 
     compile libraries.asm
+    compile libraries.asm_commons
+    compile libraries.asm_util
     compile libraries.commons_lang
     compile libraries.commons_io
     compile libraries.ivy

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing.signatory.pgp;
+package org.gradle.plugins.signing.signatory.gnupg;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.plugins.signing.SigningExtension;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
 import org.gradle.util.ConfigureUtil;
 
-import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.codehaus.groovy.runtime.DefaultGroovyMethods.asType;
 
 /**
- * A {@link SignatoryProvider} of {@link PgpSignatory} instances.
+ * A {@link SignatoryProvider} of {@link GnupgSignatory} instances.
+ *
+ * @since 4.5
  */
-public class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
+@Incubating
+public class GnupgSignatoryProvider implements SignatoryProvider<GnupgSignatory> {
 
-    private final PgpSignatoryFactory factory = new PgpSignatoryFactory();
+    private final GnupgSignatoryFactory factory = new GnupgSignatoryFactory();
+    private final Map<String, GnupgSignatory> signatories = new LinkedHashMap<String, GnupgSignatory>();
 
-    private final Map<String, PgpSignatory> signatories = new LinkedHashMap<String, PgpSignatory>();
-
+    @Override
     public void configure(final SigningExtension settings, Closure closure) {
         ConfigureUtil.configure(closure, new Object() {
             @SuppressWarnings("unused") // invoked by Groovy
@@ -46,31 +49,25 @@ public class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
     }
 
     private void createSignatoryFor(Project project, String name, Object[] args) {
-        switch (args.length) {
-            case 3:
-                String keyId = args[0].toString();
-                File keyRing = project.file(args[1].toString());
-                String password = args[2].toString();
-                signatories.put(name, factory.createSignatory(name, keyId, keyRing, password));
-                break;
-            case 0:
-                signatories.put(name, factory.createSignatory(project, name, true));
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid args (" + name + ": " + String.valueOf(args) + ")");
+        if (args.length != 0) {
+            throw new IllegalArgumentException("Invalid args (" + name + ": " + String.valueOf(args) + ")");
         }
+        signatories.put(name, factory.createSignatory(project, name, name));
     }
 
-    public PgpSignatory getDefaultSignatory(Project project) {
+    @Override
+    public GnupgSignatory getDefaultSignatory(Project project) {
         return factory.createSignatory(project);
     }
 
-    public PgpSignatory getSignatory(String name) {
+    @Override
+    public GnupgSignatory getSignatory(String name) {
         return signatories.get(name);
     }
 
     @SuppressWarnings("unused") // invoked by Groovy
-    public PgpSignatory propertyMissing(String signatoryName) {
+    public GnupgSignatory propertyMissing(String signatoryName) {
         return getSignatory(signatoryName);
     }
+
 }
