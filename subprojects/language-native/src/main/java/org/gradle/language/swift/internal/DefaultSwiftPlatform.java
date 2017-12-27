@@ -17,19 +17,10 @@
 package org.gradle.language.swift.internal;
 
 import org.gradle.language.swift.SwiftPlatform;
-import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
 public class DefaultSwiftPlatform extends DefaultNativePlatform implements SwiftPlatform {
-    private final SwiftVersion swiftVersion;
-
-    public DefaultSwiftPlatform(String name, SwiftVersion swiftVersion) {
+    public DefaultSwiftPlatform(String name) {
         super(name);
-        this.swiftVersion = swiftVersion;
-    }
-
-    @Override
-    public SwiftVersion getSwiftVersion() {
-        return swiftVersion;
     }
 }

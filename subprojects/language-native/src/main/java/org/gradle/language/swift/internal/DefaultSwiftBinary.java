@@ -42,6 +42,7 @@ import org.gradle.language.cpp.internal.NativeDependencyCache;
 import org.gradle.language.internal.DefaultNativeBinary;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
+import org.gradle.language.swift.SwiftLanguageVersion;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.internal.modulemap.ModuleMap;
@@ -201,6 +202,11 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
 
     public Configuration getImplementationDependencies() {
         return implementation;
+    }
+
+    @Override
+    public SwiftLanguageVersion getSwiftLanguageVersion() {
+        return SwiftLanguageVersion.of(platformToolProvider.getCompilerMetadata().getVersion());
     }
 
     @Inject

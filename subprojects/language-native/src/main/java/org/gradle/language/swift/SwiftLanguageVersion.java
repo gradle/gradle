@@ -25,10 +25,10 @@ import org.gradle.util.VersionNumber;
  * @since 4.5
  */
 @Incubating
-public enum SwiftVersion {
+public enum SwiftLanguageVersion {
     SWIFT2, SWIFT3, SWIFT4;
 
-    public static SwiftVersion of(VersionNumber swiftCompilerVersion) {
+    public static SwiftLanguageVersion of(VersionNumber swiftCompilerVersion) {
         if (swiftCompilerVersion.getMajor() == 2) {
             return SWIFT2;
         } else if (swiftCompilerVersion.getMajor() == 3) {

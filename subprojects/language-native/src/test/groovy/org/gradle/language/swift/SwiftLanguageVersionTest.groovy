@@ -20,13 +20,13 @@ import org.gradle.util.VersionNumber
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.language.swift.SwiftVersion.*
+import static SwiftLanguageVersion.*
 
-@Subject(SwiftVersion)
-class SwiftVersionTest extends Specification {
+@Subject(SwiftLanguageVersion)
+class SwiftLanguageVersionTest extends Specification {
     def "can associate the right Swift language version"() {
         expect:
-        SwiftVersion.of(VersionNumber.parse(compilerVersion)) == languageVersion
+        SwiftLanguageVersion.of(VersionNumber.parse(compilerVersion)) == languageVersion
 
         where:
         // See https://swift.org/download
@@ -45,7 +45,7 @@ class SwiftVersionTest extends Specification {
 
     def "throws exception when Swift language is unknown for specified compiler version"() {
         when:
-        SwiftVersion.of(VersionNumber.parse("99.0.1"))
+        SwiftLanguageVersion.of(VersionNumber.parse("99.0.1"))
 
         then:
         def ex = thrown(IllegalArgumentException)

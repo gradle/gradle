@@ -26,5 +26,4 @@ import org.gradle.nativeplatform.platform.NativePlatform;
  */
 @Incubating
 public interface SwiftPlatform extends NativePlatform {
-    SwiftVersion getSwiftVersion();
 }

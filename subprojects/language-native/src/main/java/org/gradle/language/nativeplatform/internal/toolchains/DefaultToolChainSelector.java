@@ -19,7 +19,6 @@ package org.gradle.language.nativeplatform.internal.toolchains;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppPlatform;
 import org.gradle.language.swift.SwiftPlatform;
-import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -49,28 +48,9 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         if (CppPlatform.class.isAssignableFrom(platformType)) {
             targetPlatform = platformType.cast(new DefaultCppPlatform("current"));
         } else if (SwiftPlatform.class.isAssignableFrom(platformType)) {
-            if (toolProvider.isAvailable()) {
-                try {
-                    targetPlatform = platformType.cast(new DefaultSwiftPlatform("current", SwiftVersion.of(toolProvider.getCompilerMetadata().getVersion())));
-                } catch (IllegalArgumentException ex) {
-                    targetPlatform = platformType.cast(new UnknownSwiftPlatform("current"));
-                }
-            } else {
-                targetPlatform = platformType.cast(new UnknownSwiftPlatform("current"));
-            }
+            targetPlatform = platformType.cast(new DefaultSwiftPlatform("current"));
         }
         return new DefaultResult<T>(toolChain, toolProvider, targetPlatform);
-    }
-
-    class UnknownSwiftPlatform extends DefaultNativePlatform implements SwiftPlatform {
-        public UnknownSwiftPlatform(String name) {
-            super(name);
-        }
-
-        @Override
-        public SwiftVersion getSwiftVersion() {
-            throw new IllegalStateException("Unknown Swift platform doesn't have a Swift version.");
-        }
     }
 
     class DefaultResult<T extends NativePlatform> implements Result<T> {

@@ -17,7 +17,6 @@
 package org.gradle.language.swift
 
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
@@ -31,8 +30,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.swiftVersion == SwiftVersion.of(${
-            VersionNumber.canonicalName}.parse('${AbstractInstalledToolChainIntegrationSpec.toolChain.version}'))
+                        assert it.swiftLanguageVersion == SwiftLanguageVersion.of(${
+            VersionNumber.canonicalName}.parse('${AbstractNativeLanguageComponentIntegrationTest.toolChain.version}'))
                     }
                 }
             }
