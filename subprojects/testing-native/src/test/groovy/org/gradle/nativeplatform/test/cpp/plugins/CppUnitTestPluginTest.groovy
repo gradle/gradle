@@ -17,12 +17,12 @@
 package org.gradle.nativeplatform.test.cpp.plugins
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.cpp.CppExecutable
 import org.gradle.language.cpp.plugins.CppApplicationPlugin
 import org.gradle.language.cpp.plugins.CppLibraryPlugin
 import org.gradle.language.cpp.tasks.CppCompile
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
+import org.gradle.nativeplatform.test.cpp.CppTestExecutable
 import org.gradle.nativeplatform.test.cpp.CppTestSuite
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -93,10 +93,11 @@ class CppUnitTestPluginTest extends Specification {
 
         and:
         def binaries = project.unitTest.binaries.get()
-        binaries.findAll { it.debuggable && !it.optimized && it instanceof CppExecutable }.size() == 1
+        binaries.size() == 1
+        binaries.findAll { it.debuggable && !it.optimized && it instanceof CppTestExecutable }.size() == 1
 
         and:
-        project.unitTest.testBinary.get() == binaries.find { it.debuggable && !it.optimized && it instanceof CppExecutable }
+        project.unitTest.testBinary.get() == binaries.first()
     }
 
     def "adds compile, link and install tasks"() {
