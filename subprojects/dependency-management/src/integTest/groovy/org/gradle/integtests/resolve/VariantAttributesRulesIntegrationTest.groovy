@@ -95,10 +95,10 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0")
                 }
             }
@@ -151,10 +151,10 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0") {
                         if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
                             artifact group: 'org', module: 'moduleB', version: '1.0', classifier: 'variant1'
@@ -222,10 +222,10 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0") {
                         if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
                             artifact group: 'org', module: 'moduleB', version: '1.0', classifier: 'variant1'
@@ -276,10 +276,10 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0")
                 }
             }
@@ -341,10 +341,10 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
             succeeds 'checkDep'
 
-            def variantToTest = variantToTest
+            def expectedVariant = variantToTest
             resolve.expectGraph {
                 root(':', ':test:') {
-                    module("org.test:moduleA:1.0:$variantToTest") {
+                    module("org.test:moduleA:1.0:$expectedVariant") {
                         module("org.test:moduleB:1.0") {
                             artifact(classifier: (selectedVariant - 'custom').toLowerCase())
                         }
