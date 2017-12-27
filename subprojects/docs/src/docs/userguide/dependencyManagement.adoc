@@ -384,7 +384,7 @@ Organizations building software may want to leverage public binary repositories 
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Declaring a repository with the help of shortcut methods</title>
     <imageobject>
-        <imagedata fileref="img/dependency-management-shortcut-repositories.png" width="100mm" />
+        <imagedata fileref="img/dependency-management-shortcut-repositories.png" width="120mm" />
     </imageobject>
 </figure>
 +++++
@@ -427,7 +427,10 @@ This example demonstrates how to declare various shortcut and custom URL reposit
 </sample>
 ++++
 
-The order of declaration determines how Gradle will check for dependencies at runtime. You can learn more about <<sec:dependency_resolution,Gradle's resolution mechanism>> below.
+[NOTE]
+====
+The order of declaration determines how Gradle will check for dependencies at runtime. If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_. You can learn more about <<sec:dependency_resolution,Gradle's resolution mechanism>> below.
+====
 
 [[sec:dependency_resolution]]
 === How dependency resolution works

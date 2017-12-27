@@ -30,7 +30,7 @@ To declare the link:https://repo.maven.apache.org/maven2/[central Maven reposito
 ++++
 
 [[sub:maven_jcenter]]
-=== Maven JCenter repository
+=== JCenter Maven repository
 
 http://bintray.com[Bintray]'s JCenter is an up-to-date collection of all popular Maven OSS artifacts, including artifacts published directly to Bintray.
 
@@ -43,7 +43,7 @@ To declare the link:https://jcenter.bintray.com[JCenter Maven repository] add th
 ++++
 
 [[sub:maven_google]]
-=== Maven Google repository
+=== Google Maven repository
 
 The Google repository hosts Android-specific artifacts including the Android SDK. For usage examples please see the link:https://developer.android.com/studio/build/dependencies.html#google-maven[relevant documentation].
 
@@ -261,7 +261,7 @@ When using a Google Cloud Storage backed repository default application credenti
 
 The following system properties can be used to configure the interactions with s3 repositories:
 
-.S3 Configuration Properties
+.S3 configuration properties
 [cols="a,a", options="header"]
 |===
 | Property
@@ -327,9 +327,9 @@ Failing to specify the region-specific endpoint for buckets requiring V4 signatu
 [[sub:gcs_configuration_properties]]
 ==== Google Cloud Storage configuration properties
 
-The following system properties can be used to configure the interactions with Google Cloud Storage repositories:
+The following system properties can be used to configure the interactions with link:https://cloud.google.com/storage/[Google Cloud Storage] repositories:
 
-.Google Cloud Storage Configuration Properties
+.Google Cloud Storage configuration properties
 [cols="a,a", options="header"]
 |===
 | Property

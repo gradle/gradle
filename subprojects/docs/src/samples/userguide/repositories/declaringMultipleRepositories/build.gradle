@@ -15,7 +15,7 @@ configurations {
 }
 
 dependencies {
-    libs 'com.restlet.client:commons:2.0.0'
+    libs "com.restlet.client:commons:2.0.0"
 }
 
 task copyLibs(type: Copy) {
