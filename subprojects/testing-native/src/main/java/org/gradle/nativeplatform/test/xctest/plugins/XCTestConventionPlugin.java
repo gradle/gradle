@@ -126,6 +126,8 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             final Names names = Names.of(binary.getName());
             SwiftCompile compile = binary.getCompileTask().get();
 
+            // TODO - creating a bundle should be done by some general purpose plugin
+
             // TODO - make this lazy
             DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
             final ModelRegistry modelRegistry = project.getModelRegistry();
