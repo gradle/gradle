@@ -84,6 +84,8 @@ public interface SwiftBinary extends ComponentWithObjectFiles {
 
     /**
      * {@inheritDoc}
+     *
+     * @since 4.5
      */
     SwiftPlatform getTargetPlatform();
 }
