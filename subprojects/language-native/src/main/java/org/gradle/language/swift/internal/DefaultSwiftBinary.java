@@ -127,6 +127,11 @@ public class DefaultSwiftBinary implements SwiftBinary {
     }
 
     @Override
+    public Provider<String> getBaseName() {
+        return module;
+    }
+
+    @Override
     public boolean isDebuggable() {
         return debuggable;
     }

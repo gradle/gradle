@@ -17,11 +17,8 @@
 package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Provider;
 import org.gradle.language.ComponentWithOutputs;
-import org.gradle.language.nativeplatform.ComponentWithLinkFile;
-import org.gradle.language.nativeplatform.ComponentWithRuntimeFile;
-import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
+import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
 
 /**
  * A shared library built from Swift source.
@@ -29,11 +26,5 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
  * @since 4.2
  */
 @Incubating
-public interface SwiftSharedLibrary extends SwiftBinary, ComponentWithLinkFile, ComponentWithRuntimeFile, ComponentWithOutputs {
-    /**
-     * Returns the link task for this binary.
-     *
-     * @since 4.5
-     */
-    Provider<LinkSharedLibrary> getLinkTask();
+public interface SwiftSharedLibrary extends SwiftBinary, ComponentWithSharedLibrary,  ComponentWithOutputs {
 }

@@ -17,19 +17,18 @@
 package org.gradle.language.nativeplatform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 
 /**
- * Represents a native component that produces a file to be used at runtime.
+ * Represents a component that produces a static library.
  *
  * @since 4.5
  */
 @Incubating
-public interface ComponentWithRuntimeFile extends SoftwareComponent {
+public interface ComponentWithStaticLibrary extends ComponentWithLinkFile {
     /**
-     * Returns the runtime file of this component.
+     * Returns the create static library task for this binary.
      */
-    Provider<RegularFile> getRuntimeFile();
+    Provider<? extends CreateStaticLibrary> getCreateTask();
 }

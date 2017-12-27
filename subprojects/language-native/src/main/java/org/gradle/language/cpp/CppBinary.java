@@ -43,9 +43,8 @@ public interface CppBinary extends SoftwareComponent {
      */
     Attribute<Boolean> OPTIMIZED_ATTRIBUTE = Attribute.of("org.gradle.native.optimized", Boolean.class);
 
-
     /**
-     * Returns the base name of the binary.
+     * Returns the base name of the binary. This is used to calculate output file names.
      */
     Provider<String> getBaseName();
 

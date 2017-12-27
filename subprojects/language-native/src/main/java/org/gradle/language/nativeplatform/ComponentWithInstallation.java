@@ -22,7 +22,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Provider;
 
 /**
- * Represents a component whose output requires installation prior to execution.
+ * Represents a native component that produces an application installation.
  *
  * @since 4.5
  */

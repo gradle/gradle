@@ -36,6 +36,11 @@ public interface SwiftBinary extends SoftwareComponent {
     Provider<String> getModule();
 
     /**
+     * Returns the base name of the binary. This is used to calculate output file names.
+     */
+    Provider<String> getBaseName();
+
+    /**
      * Returns true if this binary has debugging enabled.
      */
     boolean isDebuggable();

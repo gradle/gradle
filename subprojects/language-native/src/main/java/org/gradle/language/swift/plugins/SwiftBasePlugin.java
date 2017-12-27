@@ -120,7 +120,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
-                            return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getModule().get());
+                            return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getBaseName().get());
                         }
                     }));
                     link.setOutputFile(exeLocation);
@@ -133,13 +133,13 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + binary.getModule().get());
+                                return toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
                             }
                         }));
                         Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/"+ binary.getModule().get());
+                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/"+ binary.getBaseName().get());
                             }
                         }));
                         StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, strippedLocation);
@@ -179,7 +179,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
-                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getModule().get());
+                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
                         }
                     }));
                     link.setOutputFile(runtimeFile);
@@ -191,13 +191,13 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + binary.getModule().get());
+                                return toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
                             }
                         }));
                         Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/"+ binary.getModule().get());
+                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/"+ binary.getBaseName().get());
                             }
                         }));
                         StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, strippedLocation);
@@ -224,7 +224,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
-                            return toolProvider.getStaticLibraryName("lib/" + names.getDirName() + binary.getModule().get());
+                            return toolProvider.getStaticLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
                         }
                     }));
                     link.setOutputFile(runtimeFile);
