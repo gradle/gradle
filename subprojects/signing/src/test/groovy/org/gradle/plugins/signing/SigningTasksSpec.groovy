@@ -15,6 +15,10 @@
  */
 package org.gradle.plugins.signing
 
+import org.bouncycastle.bcpg.ArmoredInputStream
+import org.gradle.plugins.signing.signatory.Signatory
+import org.gradle.plugins.signing.signatory.SignatoryProvider
+
 class SigningTasksSpec extends SigningProjectSpec {
     
     def setup() {
@@ -62,5 +66,28 @@ class SigningTasksSpec extends SigningProjectSpec {
         then:
         [signSourcesJarTask, signJavadocJarTask]*.name == ["signSourcesJar", "signJavadocJar"]
     }
-    
+
+    def "signing supports custom Signatory"() {
+        setup:
+        def input = getResourceFile("1.txt")
+        def signatureBytes = "Bogus signature".getBytes("UTF-8")
+        signing.signatories = Mock(SignatoryProvider) {
+            getDefaultSignatory(_) >> Mock(Signatory) {
+                sign(_, _) >> { toSign, destination ->
+                    destination.write(signatureBytes)
+                }
+            }
+        }
+
+        def signTask = task("signTestInput", type: Sign) {
+            sign input
+        }
+
+        when:
+        signTask.execute()
+
+        then:
+        new ArmoredInputStream(new FileInputStream(signTask.signatureFiles.singleFile)).bytes == signatureBytes
+    }
+
 }
