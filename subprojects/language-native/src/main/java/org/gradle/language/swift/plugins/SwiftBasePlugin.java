@@ -36,14 +36,12 @@ import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.internal.DefaultSwiftExecutable;
-import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.ExtractSymbols;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -137,7 +135,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                             @Override
                             public String call() {
-                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/"+ binary.getBaseName().get());
+                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
                             }
                         }));
                         StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, strippedLocation);
@@ -163,60 +161,21 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                     executable.getInstallTask().set(install);
                     executable.getOutputs().from(executable.getInstallDirectory());
                 } else if (binary instanceof SwiftSharedLibrary) {
-                    DefaultSwiftSharedLibrary library = (DefaultSwiftSharedLibrary) binary;
-
-                    // Specific compiler arguments
-                    compile.getCompilerArgs().add("-parse-as-library");
-
-                    // Add a link task
-                    final LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
-                    link.source(binary.getObjects());
-                    link.lib(binary.getLinkLibraries());
-                    // TODO - need to set soname
-                    final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
-                    Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
-                        }
-                    }));
-                    link.setOutputFile(runtimeFile);
-                    link.setTargetPlatform(currentPlatform);
-                    link.setToolChain(toolChain);
-                    link.setDebuggable(binary.isDebuggable());
-
-                    if (library.isDebuggable() && library.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
-                        Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
-                            }
-                        }));
-                        Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/"+ binary.getBaseName().get());
-                            }
-                        }));
-                        StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, strippedLocation);
-                        library.getRuntimeFile().set(stripSymbols.getOutputFile());
-                        ExtractSymbols extractSymbols = extractSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation);
-                        library.getOutputs().from(extractSymbols.getSymbolFile());
-                    } else {
-                        library.getRuntimeFile().set(link.getBinaryFile());
-                    }
-                    library.getLinkTask().set(link);
-                    library.getOutputs().from(library.getLinkFile());
-                    library.getOutputs().from(library.getRuntimeFile());
-                } else if (binary instanceof SwiftStaticLibrary) {
                     // Specific compiler arguments
                     compile.getCompilerArgs().add("-parse-as-library");
                 }
             }
         });
+        project.getComponents().withType(SwiftStaticLibrary.class, new Action<SwiftStaticLibrary>() {
+            @Override
+            public void execute(SwiftStaticLibrary library) {
+                // Specific compiler arguments
+                library.getCompileTask().get().getCompilerArgs().add("-parse-as-library");
+            }
+        });
     }
 
-    private StripSymbols stripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform,  Provider<RegularFile> strippedLocation) {
+    private StripSymbols stripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> strippedLocation) {
         StripSymbols stripSymbols = tasks.create(names.getTaskName("stripSymbols"), StripSymbols.class);
         stripSymbols.getBinaryFile().set(link.getBinaryFile());
         stripSymbols.getOutputFile().set(strippedLocation);
@@ -240,7 +199,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
             if (Usage.SWIFT_API.equals(details.getConsumerValue().getName())
-                    && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
+                && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
                 details.compatible();
             }
         }

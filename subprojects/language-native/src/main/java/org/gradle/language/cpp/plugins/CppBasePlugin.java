@@ -33,7 +33,6 @@ import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.internal.DefaultCppExecutable;
-import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
@@ -42,7 +41,6 @@ import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.ExtractSymbols;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -159,66 +157,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
 
                     executable.getOutputs().from(executable.getInstallDirectory());
                 } else if (binary instanceof CppSharedLibrary) {
-                    DefaultCppSharedLibrary library = (DefaultCppSharedLibrary) binary;
-
-                    final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
-
                     compile.setPositionIndependentCode(true);
-
-                    // Add a link task
-                    LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
-                    link.source(binary.getObjects());
-                    link.lib(binary.getLinkLibraries());
-                    // TODO - need to set soname
-                    Provider<RegularFile> binaryFile = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
-                        }
-                    }));
-                    link.getBinaryFile().set(binaryFile);
-                    link.setTargetPlatform(currentPlatform);
-                    link.setToolChain(toolChain);
-                    link.setDebuggable(binary.isDebuggable());
-                    library.getLinkTask().set(link);
-
-                    Provider<RegularFile> linkFile = link.getBinaryFile();
-                    Provider<RegularFile> runtimeFile = link.getBinaryFile();
-                    if (toolProvider.producesImportLibrary()) {
-                        Provider<RegularFile> importLibrary = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getImportLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
-                            }
-                        }));
-                        link.getImportLibrary().set(importLibrary);
-                        linkFile = link.getImportLibrary();
-                    }
-
-                    if (library.isDebuggable() && library.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
-                        Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
-                            }
-                        }));
-                        Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/"+ binary.getBaseName().get());
-                            }
-                        }));
-                        StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, strippedLocation);
-                        linkFile = stripSymbols.getOutputFile();
-                        runtimeFile = stripSymbols.getOutputFile();
-                        ExtractSymbols extractSymbols = extractASymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation);
-                        library.getOutputs().from(extractSymbols);
-                    }
-
-                    library.getLinkFile().set(linkFile);
-                    library.getRuntimeFile().set(runtimeFile);
-                    library.getOutputs().from(library.getLinkFile());
-                    library.getOutputs().from(library.getRuntimeFile());
                 }
             }
 

@@ -21,12 +21,12 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
@@ -35,7 +35,8 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements SwiftSharedLibrary {
+public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements SwiftSharedLibrary, ConfigurableComponentWithSharedLibrary {
+    private final RegularFileProperty linkFile;
     private final RegularFileProperty runtimeFile;
     private final Property<LinkSharedLibrary> linkTaskProperty;
     private final ConfigurableFileCollection outputs;
@@ -43,6 +44,7 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
     @Inject
     public DefaultSwiftSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
+        this.linkFile = projectLayout.fileProperty();
         this.runtimeFile = projectLayout.fileProperty();
         this.linkTaskProperty = objectFactory.property(LinkSharedLibrary.class);
         this.outputs = fileOperations.files();
@@ -54,8 +56,8 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
     }
 
     @Override
-    public Provider<RegularFile> getLinkFile() {
-        return runtimeFile;
+    public RegularFileProperty getLinkFile() {
+        return linkFile;
     }
 
     @Override

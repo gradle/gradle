@@ -43,18 +43,6 @@ public interface CppBinary extends ComponentWithObjectFiles {
     Attribute<Boolean> OPTIMIZED_ATTRIBUTE = Attribute.of("org.gradle.native.optimized", Boolean.class);
 
     /**
-     * Returns true if this binary has debugging enabled.
-     */
-    boolean isDebuggable();
-
-    /**
-     * Returns true if this binary is optimized.
-     *
-     * @since 4.5
-     */
-    boolean isOptimized();
-
-    /**
      * Returns the C++ source files of this binary.
      */
     FileCollection getCppSource();

@@ -35,6 +35,16 @@ public interface ComponentWithNativeRuntime extends SoftwareComponent {
     Provider<String> getBaseName();
 
     /**
+     * Returns true if this component has debugging enabled.
+     */
+    boolean isDebuggable();
+
+    /**
+     * Returns true if this component is optimized.
+     */
+    boolean isOptimized();
+
+    /**
      * Returns the target platform for this component.
      */
     NativePlatform getTargetPlatform();
