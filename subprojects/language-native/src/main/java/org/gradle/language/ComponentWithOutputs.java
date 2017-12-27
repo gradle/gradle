@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform;
+package org.gradle.language;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.file.RegularFile;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.file.FileCollection;
 
 /**
- * Represents a native component whose output includes a file to be used at link time.
+ * Represents a component with output files.
  *
  * @since 4.5
  */
 @Incubating
-public interface ComponentWithLinkFile extends SoftwareComponent {
-    /**
-     * Returns the link file of this component.
-     */
-    Provider<RegularFile> getLinkFile();
+public interface ComponentWithOutputs extends SoftwareComponent {
+    FileCollection getOutputs();
 }

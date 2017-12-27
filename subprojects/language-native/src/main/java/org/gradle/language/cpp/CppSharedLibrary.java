@@ -18,6 +18,7 @@ package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.nativeplatform.ComponentWithLinkFile;
 import org.gradle.language.nativeplatform.ComponentWithRuntimeFile;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
@@ -28,7 +29,7 @@ import org.gradle.nativeplatform.tasks.AbstractLinkTask;
  * @since 4.2
  */
 @Incubating
-public interface CppSharedLibrary extends CppBinary, ComponentWithLinkFile, ComponentWithRuntimeFile {
+public interface CppSharedLibrary extends CppBinary, ComponentWithLinkFile, ComponentWithRuntimeFile, ComponentWithOutputs {
     /**
      * Returns the link task for this binary.
      *

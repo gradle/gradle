@@ -18,16 +18,12 @@ package org.gradle.language.plugins
 
 import org.gradle.api.Task
 import org.gradle.api.component.SoftwareComponent
-import org.gradle.api.file.FileSystemLocation
-import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.internal.tasks.TaskDependencyContainer
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.ComponentWithBinaries
-import org.gradle.language.nativeplatform.ComponentWithInstallation
-import org.gradle.language.nativeplatform.ComponentWithLinkFile
-import org.gradle.language.nativeplatform.ComponentWithRuntimeFile
+import org.gradle.language.ComponentWithOutputs
 import org.gradle.language.ProductionComponent
 import org.gradle.language.internal.DefaultBinaryCollection
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -83,75 +79,67 @@ class NativeBasePluginTest extends Specification {
         project.tasks['assemble'] TaskDependencyMatchers.dependsOn()
     }
 
-    def "assemble task builds installation of development binary of main component"() {
+    def "assemble task builds outputs of development binary of main component"() {
+        def binary1 = binary('debug', 'debugInstall')
+        def binary2 = binary('release', 'releaseInstall')
+        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
+        binaries.add(binary1)
+        binaries.add(binary2)
+        def component = Stub(TestComponent)
+        component.binaries >> binaries
+        component.developmentBinary >> Providers.of(binary1)
+
+        given:
+        project.pluginManager.apply(NativeBasePlugin)
+
+        when:
+        project.components.add(component)
+        binaries.realizeNow()
+
+        then:
+        project.tasks['assemble'] TaskDependencyMatchers.dependsOn('debugInstall')
+    }
+
+    def "adds assemble task for each binary of main component"() {
+        def binary1 = binary('debug', 'installDebug')
+        def binary2 = binary('release', 'installRelease')
+        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
+        binaries.add(binary1)
+        binaries.add(binary2)
+        def component = Stub(TestComponent)
+        component.binaries >> binaries
+        component.developmentBinary >> Providers.of(binary1)
+
+        given:
+        project.pluginManager.apply(NativeBasePlugin)
+
+        when:
+        project.components.add(component)
+        binaries.realizeNow()
+
+        then:
+        project.tasks['assembleDebug'] TaskDependencyMatchers.dependsOn('installDebug')
+        project.tasks['assembleRelease'] TaskDependencyMatchers.dependsOn('installRelease')
+    }
+
+    private ComponentWithOutputs binary(String name, String taskName) {
+        def outputs = fileCollection(taskName)
+        def binary = Stub(ComponentWithOutputs)
+        binary.name >> name
+        binary.outputs >> outputs
+        return binary
+    }
+
+    private FileCollection fileCollection(String taskName) {
         def installTask = Stub(Task)
-        installTask.name >> 'mainInstall'
-        def installDir = Stub(TestProvider)
-        installDir.visitDependencies(_) >> { TaskDependencyResolveContext context ->
-            context.add(installTask)
-        }
-        def binary = Stub(ComponentWithInstallation)
-        binary.installDirectory >> installDir
-        def component = Stub(ProductionComponent)
-        component.name >> 'main'
-        component.developmentBinary >> Providers.of(binary)
-
-        given:
-        project.pluginManager.apply(NativeBasePlugin)
-
-        when:
-        project.components.add(component)
-
-        then:
-        project.tasks['assemble'] TaskDependencyMatchers.dependsOn('mainInstall')
+        installTask.name >> taskName
+        def deps = Stub(TaskDependency)
+        deps.getDependencies(_) >> [installTask]
+        def outputs = Stub(FileCollection)
+        outputs.buildDependencies >> deps
+        return outputs
     }
 
-    def "assemble task builds runtime files of development binary of main component"() {
-        def linkTask = Stub(Task)
-        linkTask.name >> 'mainLink'
-        def runtimeFile = Stub(TestProvider)
-        runtimeFile.visitDependencies(_) >> { TaskDependencyResolveContext context ->
-            context.add(linkTask)
-        }
-        def binary = Stub(ComponentWithRuntimeFile)
-        binary.runtimeFile >> runtimeFile
-        def component = Stub(ProductionComponent)
-        component.name >> 'main'
-        component.developmentBinary >> Providers.of(binary)
-
-        given:
-        project.pluginManager.apply(NativeBasePlugin)
-
-        when:
-        project.components.add(component)
-
-        then:
-        project.tasks['assemble'] TaskDependencyMatchers.dependsOn('mainLink')
-    }
-
-    def "assemble task builds link files of development binary of main component"() {
-        def linkTask = Stub(Task)
-        linkTask.name >> 'mainLink'
-        def linkFile = Stub(TestProvider)
-        linkFile.visitDependencies(_) >> { TaskDependencyResolveContext context ->
-            context.add(linkTask)
-        }
-        def binary = Stub(ComponentWithLinkFile)
-        binary.linkFile >> linkFile
-        def component = Stub(ProductionComponent)
-        component.name >> 'main'
-        component.developmentBinary >> Providers.of(binary)
-
-        given:
-        project.pluginManager.apply(NativeBasePlugin)
-
-        when:
-        project.components.add(component)
-
-        then:
-        project.tasks['assemble'] TaskDependencyMatchers.dependsOn('mainLink')
-    }
-
-    interface TestProvider extends ProviderInternal<FileSystemLocation>, TaskDependencyContainer {
+    interface TestComponent extends ProductionComponent, ComponentWithBinaries {
     }
 }

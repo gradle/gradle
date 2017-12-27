@@ -19,6 +19,7 @@ package org.gradle.language.internal
 import org.gradle.api.Action
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.specs.Spec
+import org.gradle.language.cpp.CppBinary
 import org.gradle.language.swift.SwiftBinary
 import org.gradle.language.swift.SwiftSharedLibrary
 import spock.lang.Specification
@@ -137,6 +138,42 @@ class DefaultBinaryCollectionTest extends Specification {
 
         then:
         1 * finalized.execute(binary1)
+        1 * finalized.execute(binary2)
+        0 * known._
+        0 * configure._
+        0 * finalized._
+    }
+
+    def "runs actions on element of given type when collection is realized"() {
+        def known = Mock(Action)
+        def configure = Mock(Action)
+        def finalized = Mock(Action)
+        def binary1 = Stub(CppBinary)
+        def binary2 = Stub(SwiftBinary)
+
+        when:
+        container.whenElementFinalized(SwiftBinary, finalized)
+        container.configureEach(SwiftBinary, configure)
+        container.whenElementKnown(SwiftBinary, known)
+        container.add(binary1)
+        container.add(binary2)
+
+        then:
+        1 * known.execute(binary2)
+        0 * known._
+        0 * configure._
+        0 * finalized._
+
+        when:
+        container.realizeNow()
+
+        then:
+        1 * configure.execute(binary2)
+        0 * known._
+        0 * configure._
+        0 * finalized._
+
+        then:
         1 * finalized.execute(binary2)
         0 * known._
         0 * configure._

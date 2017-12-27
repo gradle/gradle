@@ -29,7 +29,7 @@ import org.gradle.api.provider.Provider;
 @Incubating
 public interface ComponentWithRuntimeFile extends SoftwareComponent {
     /**
-     * Returns the main output of this component.
+     * Returns the runtime file of this component.
      */
     Provider<RegularFile> getRuntimeFile();
 }

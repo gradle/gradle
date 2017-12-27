@@ -20,18 +20,17 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.ComponentWithBinaries;
-import org.gradle.language.nativeplatform.ComponentWithInstallation;
-import org.gradle.language.nativeplatform.ComponentWithLinkFile;
-import org.gradle.language.nativeplatform.ComponentWithRuntimeFile;
+import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-
-import java.util.concurrent.Callable;
+import org.gradle.language.nativeplatform.internal.Names;
 
 /**
  * A common base plugin for the native plugins.
@@ -40,7 +39,9 @@ import java.util.concurrent.Callable;
  *
  * <ul>
  *
- * <li>Configures the {@value LifecycleBasePlugin#ASSEMBLE_TASK_NAME} task to build the development binary of the {@code main} component, if present. Expects the main component to be of type {@link ProductionComponent}.</li>
+ * <li>Configures the {@value LifecycleBasePlugin#ASSEMBLE_TASK_NAME} task to build the development binary of the main component, if present. Expects the main component to be of type {@link ProductionComponent}.</li>
+ *
+ * <li>Adds an {@code "assemble"} task for each binary of the main component.</li>
  *
  * </ul>
  *
@@ -51,45 +52,35 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
+        final TaskContainer tasks = project.getTasks();
 
-        // Register each child of each component
         final SoftwareComponentContainer components = project.getComponents();
         components.withType(ComponentWithBinaries.class, new Action<ComponentWithBinaries>() {
             @Override
-            public void execute(ComponentWithBinaries component) {
+            public void execute(final ComponentWithBinaries component) {
+                // Register each child of each component
                 component.getBinaries().whenElementKnown(new Action<SoftwareComponent>() {
                     @Override
                     public void execute(SoftwareComponent binary) {
                         components.add(binary);
                     }
                 });
-            }
-        });
-
-        final TaskContainer tasks = project.getTasks();
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(new Callable<Object>() {
-            @Override
-            public Object call() {
-                // Assemble the development binary of the main component by default
-                ProductionComponent productionComponent = project.getComponents().withType(ProductionComponent.class).findByName("main");
-                if (productionComponent == null) {
-                    return null;
+                if (component instanceof ProductionComponent) {
+                    // Add an assemble task for each binary and also wire the development binary in to the `assemble` task
+                    component.getBinaries().whenElementFinalized(ComponentWithOutputs.class, new Action<ComponentWithOutputs>() {
+                        @Override
+                        public void execute(ComponentWithOutputs binary) {
+                            // Determine which output to produce at development time.
+                            FileCollection outputs = binary.getOutputs();
+                            Task lifecycleTask = tasks.create(Names.of(binary.getName()).getTaskName("assemble"));
+                            lifecycleTask.dependsOn(outputs);
+                            if (binary == ((ProductionComponent) component).getDevelopmentBinary().get()) {
+                                tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(outputs);
+                            }
+                        }
+                    });
                 }
-
-                // Determine which output to produce at development time. Should introduce an abstraction for this
-                SoftwareComponent developmentBinary = productionComponent.getDevelopmentBinary().get();
-                if (developmentBinary instanceof ComponentWithInstallation) {
-                    return ((ComponentWithInstallation) developmentBinary).getInstallDirectory();
-                }
-                if (developmentBinary instanceof ComponentWithRuntimeFile) {
-                    return ((ComponentWithRuntimeFile) developmentBinary).getRuntimeFile();
-                }
-                if (developmentBinary instanceof ComponentWithLinkFile) {
-                    return ((ComponentWithLinkFile) developmentBinary).getLinkFile();
-                }
-                return null;
             }
         });
     }
-
 }

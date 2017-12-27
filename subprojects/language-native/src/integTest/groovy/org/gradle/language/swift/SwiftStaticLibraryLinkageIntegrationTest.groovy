@@ -64,6 +64,35 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         staticLibrary('build/lib/main/debug/Foo').assertExists()
     }
 
+    def "can create debug and release variants"() {
+        def library = new SwiftLib()
+        buildFile << """
+            apply plugin: 'swift-library'
+
+            library {
+                linkage = [Linkage.STATIC]
+            }
+        """
+        settingsFile << """
+            rootProject.name = 'foo'
+        """
+        library.writeToProject(testDirectory)
+
+        when:
+        succeeds('assembleDebug')
+
+        then:
+        result.assertTasksExecuted(':compileDebugSwift', ':createDebug', ':assembleDebug')
+        staticLibrary('build/lib/main/debug/Foo').assertExists()
+
+        when:
+        succeeds('assembleRelease')
+
+        then:
+        result.assertTasksExecuted(':compileReleaseSwift', ':createRelease', ':assembleRelease')
+        staticLibrary('build/lib/main/release/Foo').assertExists()
+    }
+
     def "can use link file as task dependency"() {
         given:
         def lib = new SwiftLib()
