@@ -537,8 +537,8 @@ apply plugin: 'swift-library'
             .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
-        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
+        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
         releaseBinary.assertExists()
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
     }
@@ -681,7 +681,7 @@ library.module = 'TestLib'
         project.targets[0].name == 'TestLib'
         project.targets[0].productReference.path == sharedLib("output/lib/main/debug/TestLib").absolutePath
         project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/debug").absolutePath
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/release").absolutePath
+        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("output/lib/main/release/stripped").absolutePath
         project.targets[1].name == '[INDEXING ONLY] TestLib'
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("output/lib/main/debug/TestLib").absolutePath

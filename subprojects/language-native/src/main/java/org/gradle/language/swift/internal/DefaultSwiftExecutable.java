@@ -22,7 +22,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
@@ -83,7 +82,7 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     }
 
     @Override
-    public Property<RegularFile> getDebuggerExecutableFile() {
+    public RegularFileProperty getDebuggerExecutableFile() {
         return debuggerExecutableFile;
     }
 }

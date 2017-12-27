@@ -268,6 +268,7 @@ class NativeBasePluginTest extends Specification {
         toolProvider.getExecutableName(_) >> { String p -> p + ".exe" }
 
         def exeFileProp = project.objects.property(RegularFile)
+        def debugExeFileProp = project.objects.property(RegularFile)
         def linkTaskProp = project.objects.property(LinkExecutable)
         def installDirProp = project.objects.property(Directory)
         def installTaskProp = project.objects.property(InstallExecutable)
@@ -279,6 +280,7 @@ class NativeBasePluginTest extends Specification {
         executable.platformToolProvider >> toolProvider
         executable.baseName >> Providers.of("test_app")
         executable.executableFile >> exeFileProp
+        executable.debuggerExecutableFile >> debugExeFileProp
         executable.linkTask >> linkTaskProp
         executable.installDirectory >> installDirProp
         executable.installTask >> installTaskProp
@@ -306,6 +308,7 @@ class NativeBasePluginTest extends Specification {
 
         and:
         exeFileProp.get().asFile == linkTask.binaryFile.get().asFile
+        debugExeFileProp.get().asFile == linkTask.binaryFile.get().asFile
         linkTaskProp.get() == linkTask
 
         and:
@@ -319,6 +322,7 @@ class NativeBasePluginTest extends Specification {
         toolProvider.getExecutableSymbolFileName(_) >> { String p -> p + ".exe.pdb" }
 
         def exeFileProp = project.objects.property(RegularFile)
+        def debugExeFileProp = project.objects.property(RegularFile)
         def linkTaskProp = project.objects.property(LinkExecutable)
         def installDirProp = project.objects.property(Directory)
         def installTaskProp = project.objects.property(InstallExecutable)
@@ -335,6 +339,7 @@ class NativeBasePluginTest extends Specification {
         executable.platformToolProvider >> toolProvider
         executable.baseName >> Providers.of("test_app")
         executable.executableFile >> exeFileProp
+        executable.debuggerExecutableFile >> debugExeFileProp
         executable.linkTask >> linkTaskProp
         executable.installDirectory >> installDirProp
         executable.installTask >> installTaskProp
@@ -372,6 +377,7 @@ class NativeBasePluginTest extends Specification {
 
         and:
         exeFileProp.get().asFile == stripTask.outputFile.get().asFile
+        debugExeFileProp.get().asFile == linkTask.binaryFile.get().asFile
         linkTaskProp.get() == linkTask
 
         and:

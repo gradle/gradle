@@ -44,6 +44,8 @@ public interface ConfigurableComponentWithExecutable extends ComponentWithExecut
     @Override
     Property<RegularFile> getExecutableFile();
 
+    Property<RegularFile> getDebuggerExecutableFile();
+
     @Override
     Property<Directory> getInstallDirectory();
 

@@ -43,11 +43,13 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     private final Property<InstallExecutable> installTaskProperty;
     private final Property<LinkExecutable> linkTaskProperty;
     private final ConfigurableFileCollection outputs;
+    private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
     public DefaultCppExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name, projectLayout, objectFactory, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.executableFile = projectLayout.fileProperty();
+        this.debuggerExecutableFile = projectLayout.fileProperty();
         this.installationDirectory = projectLayout.directoryProperty();
         this.linkTaskProperty = objectFactory.property(LinkExecutable.class);
         this.installTaskProperty = objectFactory.property(InstallExecutable.class);
@@ -77,5 +79,10 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     @Override
     public Property<LinkExecutable> getLinkTask() {
         return linkTaskProperty;
+    }
+
+    @Override
+    public RegularFileProperty getDebuggerExecutableFile() {
+        return debuggerExecutableFile;
     }
 }
