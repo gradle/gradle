@@ -24,14 +24,12 @@ import org.gradle.api.Plugin;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
@@ -84,18 +82,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 };
 
                 CppCompile compile = tasks.create(names.getCompileTaskName(language), CppCompile.class);
-                configureCompile(compile, binary, currentPlatform, toolChain, systemIncludes);
-                compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
-
-                binary.getObjectsDir().set(compile.getObjectFileDir());
-                binary.getCompileTask().set(compile);
-
-                if (binary instanceof CppSharedLibrary) {
-                    compile.setPositionIndependentCode(true);
-                }
-            }
-
-            private void configureCompile(CppCompile compile, CppBinary binary, NativePlatform currentPlatform, NativeToolChain toolChain, Callable<List<File>> systemIncludes) {
                 compile.includes(binary.getCompileIncludePath());
                 compile.includes(systemIncludes);
                 compile.source(binary.getCppSource());
@@ -107,6 +93,16 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 }
                 compile.setTargetPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
+                compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
+
+                binary.getObjectsDir().set(compile.getObjectFileDir());
+                binary.getCompileTask().set(compile);
+            }
+        });
+        project.getComponents().withType(CppSharedLibrary.class, new Action<CppSharedLibrary>() {
+            @Override
+            public void execute(CppSharedLibrary library) {
+                library.getCompileTask().get().setPositionIndependentCode(true);
             }
         });
     }
