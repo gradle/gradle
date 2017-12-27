@@ -22,6 +22,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
@@ -50,12 +51,14 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
     private final Property<LinkExecutable> linkTaskProperty;
     private final Property<RunTestExecutable> runTask;
     private final ConfigurableFileCollection outputs;
+    private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
     public DefaultCppTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objects, FileOperations fileOperations, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name, projectLayout, objects, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.testedComponent = testedComponent;
         this.executableFile = projectLayout.fileProperty();
+        this.debuggerExecutableFile = projectLayout.fileProperty();
         this.installationDirectory = projectLayout.directoryProperty();
         this.linkTaskProperty = objects.property(LinkExecutable.class);
         this.installTaskProperty = objects.property(InstallExecutable.class);
@@ -71,6 +74,11 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
     @Override
     public RegularFileProperty getExecutableFile() {
         return executableFile;
+    }
+
+    @Override
+    public Property<RegularFile> getDebuggerExecutableFile() {
+        return debuggerExecutableFile;
     }
 
     @Override

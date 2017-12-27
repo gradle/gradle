@@ -127,6 +127,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 link.setDebuggable(executable.isDebuggable());
 
                 executable.getLinkTask().set(link);
+                executable.getDebuggerExecutableFile().set(link.getBinaryFile());
 
                 if (executable.isDebuggable() && executable.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
                     Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {

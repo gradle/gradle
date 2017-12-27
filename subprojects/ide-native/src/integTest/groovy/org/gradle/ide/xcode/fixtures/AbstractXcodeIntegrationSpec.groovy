@@ -192,7 +192,7 @@ Actual: ${actual[key]}
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug").absolutePath
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
-        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release").absolutePath
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release/stripped").absolutePath
     }
 
     void assertTargetIsStaticLibrary(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
