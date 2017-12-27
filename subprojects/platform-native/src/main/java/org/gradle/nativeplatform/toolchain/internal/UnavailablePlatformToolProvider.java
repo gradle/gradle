@@ -52,6 +52,12 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     }
 
     @Override
+    public boolean requiresDebugBinaryStripping() {
+        // Doesn't really make sense
+        return true;
+    }
+
+    @Override
     public String getObjectFileExtension() {
         throw failure();
     }
@@ -68,7 +74,8 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
 
     @Override
     public boolean producesImportLibrary() {
-        return targetOperatingSystem.getInternalOs().isWindows();
+        // Doesn't really make sense
+        return targetOperatingSystem.isWindows();
     }
 
     @Override

@@ -139,10 +139,5 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
         public String getOutputType() {
             return "unavailable";
         }
-
-        @Override
-        public boolean requiresDebugBinaryStripping() {
-            return false;
-        }
     }
 }

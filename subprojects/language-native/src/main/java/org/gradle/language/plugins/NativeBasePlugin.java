@@ -47,7 +47,6 @@ import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import java.util.concurrent.Callable;
@@ -108,7 +107,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(final ConfigurableComponentWithExecutable executable) {
                 final Names names = Names.of(executable.getName());
-                NativeToolChainInternal toolChain = executable.getToolChain();
+                NativeToolChain toolChain = executable.getToolChain();
                 NativePlatform targetPlatform = executable.getTargetPlatform();
 
                 // Add a link task
@@ -129,7 +128,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 executable.getLinkTask().set(link);
                 executable.getDebuggerExecutableFile().set(link.getBinaryFile());
 
-                if (executable.isDebuggable() && executable.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
+                if (executable.isDebuggable() && executable.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
                     Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
@@ -171,7 +170,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
             public void execute(final ConfigurableComponentWithSharedLibrary library) {
                 final Names names = Names.of(library.getName());
                 NativePlatform targetPlatform = library.getTargetPlatform();
-                NativeToolChainInternal toolChain = library.getToolChain();
+                NativeToolChain toolChain = library.getToolChain();
 
                 // Add a link task
                 final LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
@@ -204,7 +203,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                     linkFile = link.getImportLibrary();
                 }
 
-                if (library.isDebuggable() && library.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
+                if (library.isDebuggable() && library.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
                     Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
                         @Override
                         public String call() {
