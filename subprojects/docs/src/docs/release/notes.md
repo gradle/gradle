@@ -48,6 +48,17 @@ Gradle's incremental C/C++ compilation works by analysing and understanding the 
 
 In this release, Gradle's incremental C/C++ compilation is now able to understand most dependencies between source files and header files. This means incremental compilation will occur more often and builds are more likely to see cache hits.
 
+### Support for GnuPG's gpg-agent
+
+Previously, Signing plugin can't sign generated artifacts via GnuPG's agent, which is very inconvenient. Now you can leverage your gpg agent easily with:
+
+    signing {
+        useGpgCmd()
+        sign configurations.archives
+    }
+
+Please see [`signing` plugin](userguide/signing_plugin.html#sec:using_gpg_agent) for more details.    
+
 ### Arbitrary task property names
 
 When registering task properties via the runtime API, property names are not required to be Java identifiers anymore, and can be any non-empty string.
@@ -77,6 +88,11 @@ Included builds may still define build cache configuration in their `settings.gr
 The `buildSrc` build of the root project continues to use its own build cache configuration, due to technical constraints.
 However, the `buildSrc` build of any included build will inherit the build cache configuration from the root build.
 For more on configuring the build cache for the root `buildSrc` build, please see [the Userguide section on this topic](userguide/build_cache.html#buildCacheBuildSrc).
+
+### Configure executable directory in distributions
+
+Previously, executables in distributions would be placed in `bin` directory and couldn't be configured. Now you can configure this directory with `executableDir` property. 
+See [`application` plugin](userguide/application_plugin.html) for more details.
 
 ## Promoted features
 
@@ -178,6 +194,9 @@ We would like to thank the following community members for making contributions 
 - [zosrothko](https://github.com/zosrothko) — Restore Eclipse contribution instructions (gradle/gradle#3715)
 - [Kevin Macksamie](https://github.com/k-mack) — Fix link to Lazy Configuration in docs (gradle/gradle#3848)
 - [Jason Tedor](https://github.com/jasontedor) - Adapt Java version detection to support JEP-322 (gradle/gradle#3892)
+- [S K](https://github.com/xz64) - Add support for configurable start script directory (gradle/gradle#2977)
+- [Jokubas Dargis](https://github.com/eleventigerssc) - Improve performance of resource list operation in GCS repositories (gradle/gradle#3023)
+- [Christoph Böhme](https://github.com/cboehme) - Support for GnuPG's gpg-agent (gradle/gradle#1703)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
