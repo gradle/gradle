@@ -40,7 +40,17 @@ public interface ComponentResult {
      */
     ComponentIdentifier getComponentId();
 
+    /**
+     * Returns the name of the resolved variant. This can currently be 2 different things: for legacy components,
+     * it's going to be the name of a "configuration" (either a project configuration, an Ivy configuration name or a Maven "scope").
+     * For components with variants, it's going to be the name of the variant. This name is going to be used for reporting purposes.
+     */
     String getVariantName();
 
+    /**
+     * Returns the attributes of the resolved variant. This is going to be used for reporting purposes. In practice, variant attributes
+     * should effectively be what defines the _identity_ of the variant. In practice, because we have multiple kind of components, it's
+     * not necessarily the case.
+     */
     AttributeContainer getVariantAttributes();
 }
