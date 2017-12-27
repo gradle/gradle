@@ -30,7 +30,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppBinary;
-import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.ProductionCppComponent;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
@@ -38,6 +37,7 @@ import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestSuite;
@@ -116,9 +116,9 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                             }
                         });
                         testTask.setExecutable(installTask.getRunScript());
-                        testTask.dependsOn(testComponent.getTestBinary().map(new Transformer<Provider<Directory>, CppExecutable>() {
+                        testTask.dependsOn(testComponent.getTestBinary().map(new Transformer<Provider<Directory>, CppTestExecutable>() {
                             @Override
-                            public Provider<Directory> transform(CppExecutable cppExecutable) {
+                            public Provider<Directory> transform(CppTestExecutable cppExecutable) {
                                 return cppExecutable.getInstallDirectory();
                             }
                         }));
