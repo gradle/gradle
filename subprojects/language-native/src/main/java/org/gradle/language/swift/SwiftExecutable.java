@@ -19,6 +19,7 @@ package org.gradle.language.swift;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.nativeplatform.ComponentWithInstallation;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
@@ -29,7 +30,7 @@ import org.gradle.nativeplatform.tasks.LinkExecutable;
  * @since 4.2
  */
 @Incubating
-public interface SwiftExecutable extends SwiftBinary, ComponentWithInstallation {
+public interface SwiftExecutable extends SwiftBinary, ComponentWithInstallation, ComponentWithOutputs {
     /**
      * Returns the executable file for this binary.
      *

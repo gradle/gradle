@@ -19,6 +19,7 @@ package org.gradle.language.cpp;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.nativeplatform.ComponentWithInstallation;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
@@ -29,7 +30,7 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
  * @since 4.2
  */
 @Incubating
-public interface CppExecutable extends CppBinary, ComponentWithInstallation {
+public interface CppExecutable extends CppBinary, ComponentWithInstallation, ComponentWithOutputs {
     /**
      * Returns the executable file for this binary.
      *

@@ -64,6 +64,35 @@ class CppStaticLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest 
         staticLibrary('build/lib/main/debug/foo').assertExists()
     }
 
+    def "can create debug and release variants of library"() {
+        def library = new CppLib()
+        buildFile << """
+            apply plugin: 'cpp-library'
+
+            library {
+                linkage = [Linkage.STATIC]
+            }
+        """
+        settingsFile << """
+            rootProject.name = 'foo'
+        """
+        library.writeToProject(testDirectory)
+
+        when:
+        succeeds('assembleRelease')
+
+        then:
+        result.assertTasksExecuted(':compileReleaseCpp', ':createRelease', ':assembleRelease')
+        staticLibrary('build/lib/main/release/foo').assertExists()
+
+        when:
+        succeeds('assembleDebug')
+
+        then:
+        result.assertTasksExecuted(':compileDebugCpp', ':createDebug', ':assembleDebug')
+        staticLibrary('build/lib/main/debug/foo').assertExists()
+    }
+
     def "can use link file as task dependency"() {
         given:
         settingsFile << "rootProject.name = 'hello'"

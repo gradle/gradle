@@ -95,6 +95,11 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
     }
 
     @Override
+    public <S> void whenElementKnown(final Class<S> type, final Action<? super S> action) {
+        whenElementKnown(new TypeFilteringAction<T, S>(type, action));
+    }
+
+    @Override
     public void whenElementFinalized(Action<? super T> action) {
         if (state == State.Finalized) {
             for (T element : elements) {
@@ -106,11 +111,21 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
     }
 
     @Override
+    public <S> void whenElementFinalized(Class<S> type, Action<? super S> action) {
+        whenElementFinalized(new TypeFilteringAction<T, S>(type, action));
+    }
+
+    @Override
     public void configureEach(Action<? super T> action) {
         if (state != State.Collecting) {
             throw new IllegalStateException("Cannot add actions to this collection as it has already been realized.");
         }
         configureActions = configureActions.add(action);
+    }
+
+    @Override
+    public <S> void configureEach(Class<S> type, Action<? super S> action) {
+        configureEach(new TypeFilteringAction<T, S>(type, action));
     }
 
     public void add(T element) {
@@ -208,6 +223,23 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
                 throw new IllegalStateException("Found multiple elements");
             }
             return match;
+        }
+    }
+
+    private static class TypeFilteringAction<T extends SoftwareComponent, S> implements Action<T> {
+        private final Class<S> type;
+        private final Action<? super S> action;
+
+        TypeFilteringAction(Class<S> type, Action<? super S> action) {
+            this.type = type;
+            this.action = action;
+        }
+
+        @Override
+        public void execute(T t) {
+            if (type.isInstance(t)) {
+                action.execute(type.cast(t));
+            }
         }
     }
 }

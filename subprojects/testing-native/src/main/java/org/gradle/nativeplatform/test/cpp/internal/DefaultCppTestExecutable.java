@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -40,8 +41,8 @@ public class DefaultCppTestExecutable extends DefaultCppExecutable implements Cp
     private final Property<RunTestExecutable> runTask;
 
     @Inject
-    public DefaultCppTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        super(name, projectLayout, objects, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
+    public DefaultCppTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objects, FileOperations fileOperations, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        super(name, projectLayout, objects, fileOperations, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.testedComponent = testedComponent;
         runTask = objects.property(RunTestExecutable.class);
     }

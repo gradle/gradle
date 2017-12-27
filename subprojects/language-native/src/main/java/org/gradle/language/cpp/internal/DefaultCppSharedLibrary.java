@@ -18,9 +18,11 @@ package org.gradle.language.cpp.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -36,13 +38,20 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
     private final RegularFileProperty linkFile;
     private final RegularFileProperty runtimeFile;
     private final Property<AbstractLinkTask> linkTaskProperty;
+    private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultCppSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+    public DefaultCppSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name, projectLayout, objectFactory, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.linkFile = projectLayout.fileProperty();
         this.runtimeFile = projectLayout.fileProperty();
         this.linkTaskProperty = objectFactory.property(AbstractLinkTask.class);
+        this.outputs = fileOperations.files();
+    }
+
+    @Override
+    public ConfigurableFileCollection getOutputs() {
+        return outputs;
     }
 
     @Override
