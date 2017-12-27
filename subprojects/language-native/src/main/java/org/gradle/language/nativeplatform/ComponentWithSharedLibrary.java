@@ -29,12 +29,12 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 @Incubating
 public interface ComponentWithSharedLibrary extends ComponentWithLinkFile, ComponentWithRuntimeFile {
     /**
-     * Returns the link libraries to use to link this binary. Includes the link libraries of the component's dependencies.
+     * Returns the link libraries to use to link the shared library. Includes the link libraries of the component's dependencies.
      */
     FileCollection getLinkLibraries();
 
     /**
-     * Returns the link task for this binary.
+     * Returns the link task for the shared library.
      */
     Provider<? extends LinkSharedLibrary> getLinkTask();
 }

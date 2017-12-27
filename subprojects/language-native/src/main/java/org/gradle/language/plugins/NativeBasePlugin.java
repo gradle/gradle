@@ -34,6 +34,7 @@ import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary;
 import org.gradle.language.nativeplatform.internal.Names;
@@ -41,6 +42,8 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.ExtractSymbols;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
@@ -101,11 +104,72 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 }
             }
         });
+        components.withType(ConfigurableComponentWithExecutable.class, new Action<ConfigurableComponentWithExecutable>() {
+            @Override
+            public void execute(final ConfigurableComponentWithExecutable executable) {
+                final Names names = Names.of(executable.getName());
+                NativeToolChainInternal toolChain = executable.getToolChain();
+                NativePlatform targetPlatform = executable.getTargetPlatform();
+
+                // Add a link task
+                LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
+                link.source(executable.getObjects());
+                link.lib(executable.getLinkLibraries());
+                final PlatformToolProvider toolProvider = executable.getPlatformToolProvider();
+                link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
+                    @Override
+                    public String call() {
+                        return toolProvider.getExecutableName("exe/" + names.getDirName() + executable.getBaseName().get());
+                    }
+                })));
+                link.setTargetPlatform(targetPlatform);
+                link.setToolChain(toolChain);
+                link.setDebuggable(executable.isDebuggable());
+
+                executable.getLinkTask().set(link);
+
+                if (executable.isDebuggable() && executable.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
+                    Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + executable.getBaseName().get());
+                        }
+                    }));
+                    Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() {
+                            return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + executable.getBaseName().get());
+                        }
+                    }));
+                    StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, targetPlatform, strippedLocation);
+                    executable.getExecutableFile().set(stripSymbols.getOutputFile());
+                    ExtractSymbols extractSymbols = extractSymbols(link, names, tasks, toolChain, targetPlatform, symbolLocation);
+                    executable.getOutputs().from(extractSymbols.getSymbolFile());
+                } else {
+                    executable.getExecutableFile().set(link.getBinaryFile());
+                }
+
+                // Add an install task
+                // TODO - should probably not add this for all executables?
+                // TODO - add stripped symbols to the installation
+                final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
+                install.setPlatform(link.getTargetPlatform());
+                install.setToolChain(link.getToolChain());
+                install.getInstallDirectory().set(buildDirectory.dir("install/" + names.getDirName()));
+                install.getSourceFile().set(executable.getExecutableFile());
+                install.lib(executable.getRuntimeLibraries());
+
+                executable.getInstallTask().set(install);
+                executable.getInstallDirectory().set(install.getInstallDirectory());
+
+                executable.getOutputs().from(executable.getInstallDirectory());
+            }
+        });
         components.withType(ConfigurableComponentWithSharedLibrary.class, new Action<ConfigurableComponentWithSharedLibrary>() {
             @Override
             public void execute(final ConfigurableComponentWithSharedLibrary library) {
                 final Names names = Names.of(library.getName());
-                NativePlatform currentPlatform = library.getTargetPlatform();
+                NativePlatform targetPlatform = library.getTargetPlatform();
                 NativeToolChainInternal toolChain = library.getToolChain();
 
                 // Add a link task
@@ -121,7 +185,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                     }
                 }));
                 link.setOutputFile(runtimeFile);
-                link.setTargetPlatform(currentPlatform);
+                link.setTargetPlatform(targetPlatform);
                 link.setToolChain(toolChain);
                 link.setDebuggable(library.isDebuggable());
 
@@ -152,11 +216,11 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                             return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + library.getBaseName().get());
                         }
                     }));
-                    StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, strippedLocation);
+                    StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, targetPlatform, strippedLocation);
                     runtimeFile = stripSymbols.getOutputFile();
                     linkFile = stripSymbols.getOutputFile();
 
-                    ExtractSymbols extractSymbols = extractSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation);
+                    ExtractSymbols extractSymbols = extractSymbols(link, names, tasks, toolChain, targetPlatform, symbolLocation);
                     library.getOutputs().from(extractSymbols.getSymbolFile());
                 }
                 library.getLinkTask().set(link);

@@ -22,26 +22,15 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.cpp.CppBinary;
-import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
-import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.ExtractSymbols;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -68,7 +57,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
 
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
-        final ProviderFactory providers = project.getProviders();
 
         // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
         project.getGradle().getExperimentalFeatures().enable();
@@ -102,61 +90,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 binary.getObjectsDir().set(compile.getObjectFileDir());
                 binary.getCompileTask().set(compile);
 
-                if (binary instanceof CppExecutable) {
-                    DefaultCppExecutable executable = (DefaultCppExecutable) binary;
-                    // Add a link task
-                    LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
-                    link.source(binary.getObjects());
-                    link.lib(binary.getLinkLibraries());
-                    final PlatformToolProvider toolProvider = binary.getPlatformToolProvider();
-                    link.setOutputFile(buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getBaseName().get());
-                        }
-                    })));
-                    link.setTargetPlatform(currentPlatform);
-                    link.setToolChain(toolChain);
-                    link.setDebuggable(binary.isDebuggable());
-
-                    executable.getLinkTask().set(link);
-
-                    if (executable.isDebuggable() && executable.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
-                        Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
-                            }
-                        }));
-                        Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
-                            }
-                        }));
-                        StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, strippedLocation);
-                        executable.getExecutableFile().set(stripSymbols.getOutputFile());
-                        ExtractSymbols extractSymbols = extractASymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation);
-                        executable.getOutputs().from(extractSymbols.getSymbolFile());
-                    } else {
-                        executable.getExecutableFile().set(link.getBinaryFile());
-                    }
-
-                    // Add an install task
-                    // TODO - should probably not add this for all executables?
-                    // TODO - add stripped symbols to the installation
-                    final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
-                    install.setPlatform(link.getTargetPlatform());
-                    install.setToolChain(link.getToolChain());
-                    install.getInstallDirectory().set(buildDirectory.dir("install/" + names.getDirName()));
-                    install.getSourceFile().set(executable.getExecutableFile());
-                    install.lib(binary.getRuntimeLibraries());
-
-                    executable.getInstallTask().set(install);
-                    executable.getInstallDirectory().set(install.getInstallDirectory());
-
-                    executable.getOutputs().from(executable.getInstallDirectory());
-                } else if (binary instanceof CppSharedLibrary) {
+                if (binary instanceof CppSharedLibrary) {
                     compile.setPositionIndependentCode(true);
                 }
             }
@@ -173,26 +107,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 }
                 compile.setTargetPlatform(currentPlatform);
                 compile.setToolChain(toolChain);
-            }
-
-            private StripSymbols stripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> strippedLocation) {
-                StripSymbols stripSymbols = tasks.create(names.getTaskName("stripSymbols"), StripSymbols.class);
-                stripSymbols.getBinaryFile().set(link.getBinaryFile());
-                stripSymbols.getOutputFile().set(strippedLocation);
-                stripSymbols.setTargetPlatform(currentPlatform);
-                stripSymbols.setToolChain(toolChain);
-
-                return stripSymbols;
-            }
-
-            private ExtractSymbols extractASymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> symbolLocation) {
-                ExtractSymbols extractSymbols = tasks.create(names.getTaskName("extractSymbols"), ExtractSymbols.class);
-                extractSymbols.getBinaryFile().set(link.getBinaryFile());
-                extractSymbols.getSymbolFile().set(symbolLocation);
-                extractSymbols.setTargetPlatform(currentPlatform);
-                extractSymbols.setToolChain(toolChain);
-
-                return extractSymbols;
             }
         });
     }

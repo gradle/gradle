@@ -23,29 +23,17 @@ import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
-import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
-import org.gradle.language.swift.internal.DefaultSwiftExecutable;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.ExtractSymbols;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.tasks.StripSymbols;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
 import java.util.concurrent.Callable;
@@ -106,61 +94,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 binary.getCompileTask().set(compile);
                 binary.getObjectsDir().set(compile.getObjectFileDir());
 
-                if (binary instanceof SwiftExecutable) {
-                    DefaultSwiftExecutable executable = (DefaultSwiftExecutable) binary;
-                    // Add a link task
-                    LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
-                    link.source(binary.getObjects());
-                    link.lib(binary.getLinkLibraries());
-                    final PlatformToolProvider toolProvider = executable.getPlatformToolProvider();
-                    Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getBaseName().get());
-                        }
-                    }));
-                    link.setOutputFile(exeLocation);
-                    link.setTargetPlatform(currentPlatform);
-                    link.setToolChain(toolChain);
-                    link.setDebuggable(binary.isDebuggable());
-
-                    executable.getDebuggerExecutableFile().set(link.getBinaryFile());
-                    if (executable.isDebuggable() && executable.isOptimized() && toolChain.requiresDebugBinaryStripping()) {
-                        Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
-                            }
-                        }));
-                        Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + binary.getBaseName().get());
-                            }
-                        }));
-                        StripSymbols stripSymbols = stripSymbols(link, names, tasks, toolChain, currentPlatform, strippedLocation);
-                        executable.getExecutableFile().set(stripSymbols.getOutputFile());
-                        ExtractSymbols extractSymbols = extractSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation);
-                        executable.getOutputs().from(extractSymbols.getSymbolFile());
-                    } else {
-                        executable.getExecutableFile().set(link.getBinaryFile());
-                    }
-
-                    // Add an install task
-                    // TODO - maybe not for all executables
-                    // TODO - add stripped symbols to the installation
-                    InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
-                    install.setPlatform(link.getTargetPlatform());
-                    install.setToolChain(link.getToolChain());
-                    install.getInstallDirectory().set(buildDirectory.dir("install/" + names.getDirName()));
-                    install.getSourceFile().set(executable.getExecutableFile());
-                    install.lib(binary.getRuntimeLibraries());
-                    executable.getInstallDirectory().set(install.getInstallDirectory());
-                    executable.getRunScriptFile().set(install.getRunScriptFile());
-                    executable.getLinkTask().set(link);
-                    executable.getInstallTask().set(install);
-                    executable.getOutputs().from(executable.getInstallDirectory());
-                } else if (binary instanceof SwiftSharedLibrary) {
+                if (binary instanceof SwiftSharedLibrary) {
                     // Specific compiler arguments
                     compile.getCompilerArgs().add("-parse-as-library");
                 }
@@ -173,26 +107,6 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 library.getCompileTask().get().getCompilerArgs().add("-parse-as-library");
             }
         });
-    }
-
-    private StripSymbols stripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> strippedLocation) {
-        StripSymbols stripSymbols = tasks.create(names.getTaskName("stripSymbols"), StripSymbols.class);
-        stripSymbols.getBinaryFile().set(link.getBinaryFile());
-        stripSymbols.getOutputFile().set(strippedLocation);
-        stripSymbols.setTargetPlatform(currentPlatform);
-        stripSymbols.setToolChain(toolChain);
-
-        return stripSymbols;
-    }
-
-    private ExtractSymbols extractSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> symbolLocation) {
-        ExtractSymbols extractSymbols = tasks.create(names.getTaskName("extractSymbols"), ExtractSymbols.class);
-        extractSymbols.getBinaryFile().set(link.getBinaryFile());
-        extractSymbols.getSymbolFile().set(symbolLocation);
-        extractSymbols.setTargetPlatform(currentPlatform);
-        extractSymbols.setToolChain(toolChain);
-
-        return extractSymbols;
     }
 
     static class SwiftCppUsageCompatibilityRule implements AttributeCompatibilityRule<Usage> {

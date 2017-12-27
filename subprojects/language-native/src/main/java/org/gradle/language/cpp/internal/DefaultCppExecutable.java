@@ -29,18 +29,19 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable {
+public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable, ConfigurableComponentWithExecutable {
     private final RegularFileProperty executableFile;
     private final DirectoryProperty installationDirectory;
     private final Property<InstallExecutable> installTaskProperty;
-    private final Property<AbstractLinkTask> linkTaskProperty;
+    private final Property<LinkExecutable> linkTaskProperty;
     private final ConfigurableFileCollection outputs;
 
     @Inject
@@ -48,7 +49,7 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
         super(name, projectLayout, objectFactory, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.executableFile = projectLayout.fileProperty();
         this.installationDirectory = projectLayout.directoryProperty();
-        this.linkTaskProperty = objectFactory.property(AbstractLinkTask.class);
+        this.linkTaskProperty = objectFactory.property(LinkExecutable.class);
         this.installTaskProperty = objectFactory.property(InstallExecutable.class);
         this.outputs = fileOperations.files();
     }
@@ -74,7 +75,7 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     }
 
     @Override
-    public Property<AbstractLinkTask> getLinkTask() {
+    public Property<LinkExecutable> getLinkTask() {
         return linkTaskProperty;
     }
 }

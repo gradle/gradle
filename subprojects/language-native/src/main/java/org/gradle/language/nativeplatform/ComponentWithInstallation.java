@@ -18,7 +18,9 @@ package org.gradle.language.nativeplatform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
 
 /**
  * Represents a native component that produces an application installation.
@@ -28,9 +30,17 @@ import org.gradle.api.provider.Provider;
 @Incubating
 public interface ComponentWithInstallation extends ComponentWithNativeRuntime {
     /**
-     * Returns the installation directory for this component.
-     *
-     * @since 4.5
+     * Returns the runtime libraries required for the installation. Includes the runtime libraries of the component's dependencies.
+     */
+    FileCollection getRuntimeLibraries();
+
+    /**
+     * Returns the installation directory.
      */
     Provider<Directory> getInstallDirectory();
+
+    /**
+     * Returns the install task.
+     */
+    Provider<? extends InstallExecutable> getInstallTask();
 }
