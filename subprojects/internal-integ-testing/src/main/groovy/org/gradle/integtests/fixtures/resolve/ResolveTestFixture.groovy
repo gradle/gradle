@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedComponentResult
-import org.gradle.api.artifacts.result.ResolvedNamedVariantResult
+import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
@@ -673,8 +673,8 @@ class GenerateGraphTask extends DefaultTask {
         return "[id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}][variant:${formatVariant(result.variant)}]"
     }
 
-    def formatVariant(ResolvedNamedVariantResult variant) {
-        return "name:${variant.name} attributes:${formatAttributes(variant.attributes)}"
+    def formatVariant(ResolvedVariantResult variant) {
+        return "name:${variant.displayName} attributes:${formatAttributes(variant.attributes)}"
     }
 
     def formatAttributes(AttributeContainer attributes) {

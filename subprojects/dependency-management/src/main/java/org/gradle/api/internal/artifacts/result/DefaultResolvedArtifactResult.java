@@ -24,14 +24,20 @@ import org.gradle.api.component.Artifact;
 import java.io.File;
 
 public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
+    private static final String UNDEFINED_VARIANT_NAME = "undefined";
+
     private final ComponentArtifactIdentifier identifier;
     private final ResolvedVariantResult variant;
     private final Class<? extends Artifact> type;
     private final File file;
 
     public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier, AttributeContainer variantAttributes, Class<? extends Artifact> type, File file) {
+        this(identifier, UNDEFINED_VARIANT_NAME, variantAttributes, type, file);
+    }
+
+    public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier, String variantDisplayName, AttributeContainer variantAttributes, Class<? extends Artifact> type, File file) {
         this.identifier = identifier;
-        this.variant = new DefaultResolvedVariantResult(variantAttributes);
+        this.variant = new DefaultResolvedVariantResult(variantDisplayName, variantAttributes);
         this.type = type;
         this.file = file;
     }
