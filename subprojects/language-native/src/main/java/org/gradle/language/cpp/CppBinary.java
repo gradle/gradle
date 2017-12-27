@@ -18,11 +18,10 @@ package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.tasks.CppCompile;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
 
 /**
  * A binary built from C++ source and linked from the resulting object files.
@@ -30,7 +29,7 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
  * @since 4.2
  */
 @Incubating
-public interface CppBinary extends SoftwareComponent {
+public interface CppBinary extends ComponentWithObjectFiles {
     /**
      * The dependency resolution attribute use to indicate whether a binary is debuggable or not.
      */
@@ -42,11 +41,6 @@ public interface CppBinary extends SoftwareComponent {
      * @since 4.5
      */
     Attribute<Boolean> OPTIMIZED_ATTRIBUTE = Attribute.of("org.gradle.native.optimized", Boolean.class);
-
-    /**
-     * Returns the base name of the binary. This is used to calculate output file names.
-     */
-    Provider<String> getBaseName();
 
     /**
      * Returns true if this binary has debugging enabled.
@@ -81,25 +75,9 @@ public interface CppBinary extends SoftwareComponent {
     FileCollection getRuntimeLibraries();
 
     /**
-     * Returns the object files created for this binary.
-     *
-     * @since 4.4
-     */
-    FileCollection getObjects();
-
-    /**
-     * Returns the target platform for this binary.
-     *
-     * @since 4.5
+     * {@inheritDoc}
      */
     CppPlatform getTargetPlatform();
-
-    /**
-     * Returns the tool chain for this binary.
-     *
-     * @since 4.5
-     */
-    NativeToolChain getToolChain();
 
     /**
      * Returns the compile task for this binary.

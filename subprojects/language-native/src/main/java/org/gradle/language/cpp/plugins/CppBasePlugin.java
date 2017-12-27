@@ -31,17 +31,14 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
-import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
-import org.gradle.language.cpp.internal.DefaultCppStaticLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.ExtractSymbols;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
@@ -222,27 +219,6 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                     library.getRuntimeFile().set(runtimeFile);
                     library.getOutputs().from(library.getLinkFile());
                     library.getOutputs().from(library.getRuntimeFile());
-                } else if (binary instanceof CppStaticLibrary) {
-                    DefaultCppStaticLibrary library = (DefaultCppStaticLibrary) binary;
-
-                    final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
-
-                    // Add a link task
-                    final CreateStaticLibrary link = tasks.create(names.getTaskName("create"), CreateStaticLibrary.class);
-                    link.source(binary.getObjects());
-                    Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getStaticLibraryName("lib/" + names.getDirName() + binary.getBaseName().get());
-                        }
-                    }));
-                    link.setOutputFile(runtimeFile);
-                    link.setTargetPlatform(currentPlatform);
-                    link.setToolChain(toolChain);
-
-                    library.getLinkFile().set(link.getBinaryFile());
-                    library.getCreateTask().set(link);
-                    library.getOutputs().from(library.getLinkFile());
                 }
             }
 

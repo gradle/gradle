@@ -19,6 +19,7 @@ package org.gradle.language.plugins
 import org.gradle.api.Task
 import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDependencyMatchers
@@ -26,6 +27,11 @@ import org.gradle.language.ComponentWithBinaries
 import org.gradle.language.ComponentWithOutputs
 import org.gradle.language.ProductionComponent
 import org.gradle.language.internal.DefaultBinaryCollection
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
@@ -120,6 +126,43 @@ class NativeBasePluginTest extends Specification {
         then:
         project.tasks['assembleDebug'] TaskDependencyMatchers.dependsOn('installDebug')
         project.tasks['assembleRelease'] TaskDependencyMatchers.dependsOn('installRelease')
+    }
+
+    def "adds tasks to assemble static library"() {
+        def toolProvider = Stub(PlatformToolProvider)
+        toolProvider.getStaticLibraryName(_) >> { String p -> p + ".lib" }
+
+        def linkFileProp = project.objects.property(RegularFile)
+        def createTaskProp = project.objects.property(CreateStaticLibrary)
+
+        def staticLib = Stub(ConfigurableComponentWithStaticLibrary)
+        staticLib.name >> "windowsDebug"
+        staticLib.targetPlatform >> Stub(NativePlatformInternal)
+        staticLib.toolChain >> Stub(NativeToolChainInternal)
+        staticLib.platformToolProvider >> toolProvider
+        staticLib.baseName >> Providers.of("test_lib")
+        staticLib.linkFile >> linkFileProp
+        staticLib.createTask >> createTaskProp
+
+        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
+        binaries.add(staticLib)
+        def component = Stub(TestComponent)
+        component.binaries >> binaries
+        component.developmentBinary >> Providers.of(staticLib)
+
+        given:
+        project.pluginManager.apply(NativeBasePlugin)
+        project.components.add(component)
+        binaries.realizeNow()
+
+        expect:
+        def createTask = project.tasks['createWindowsDebug']
+        createTask instanceof CreateStaticLibrary
+        createTask.binaryFile.get().asFile == projectDir.file("build/lib/windows/debug/test_lib.lib")
+
+        and:
+        linkFileProp.get().asFile == createTask.binaryFile.get().asFile
+        createTaskProp.get() == createTask
     }
 
     private ComponentWithOutputs binary(String name, String taskName) {

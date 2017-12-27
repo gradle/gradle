@@ -23,14 +23,23 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+
+import java.util.concurrent.Callable;
 
 /**
  * A common base plugin for the native plugins.
@@ -53,6 +62,8 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         final TaskContainer tasks = project.getTasks();
+        final ProviderFactory providers = project.getProviders();
+        final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
         final SoftwareComponentContainer components = project.getComponents();
         components.withType(ComponentWithBinaries.class, new Action<ComponentWithBinaries>() {
@@ -80,6 +91,30 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                         }
                     });
                 }
+            }
+        });
+        components.withType(ConfigurableComponentWithStaticLibrary.class, new Action<ConfigurableComponentWithStaticLibrary>() {
+            @Override
+            public void execute(final ConfigurableComponentWithStaticLibrary library) {
+                // Add a create task
+                final Names names = Names.of(library.getName());
+                final CreateStaticLibrary createTask = tasks.create(names.getTaskName("create"), CreateStaticLibrary.class);
+                createTask.source(library.getObjects());
+                final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
+                Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
+                    @Override
+                    public String call() {
+                        return toolProvider.getStaticLibraryName("lib/" + names.getDirName() + library.getBaseName().get());
+                    }
+                }));
+                createTask.setOutputFile(runtimeFile);
+                createTask.setTargetPlatform(library.getTargetPlatform());
+                createTask.setToolChain(library.getToolChain());
+
+                // Wire the task into the library model
+                library.getLinkFile().set(createTask.getBinaryFile());
+                library.getCreateTask().set(createTask);
+                library.getOutputs().from(library.getLinkFile());
             }
         });
     }
