@@ -197,6 +197,7 @@ We would like to thank the following community members for making contributions 
 - [S K](https://github.com/xz64) - Add support for configurable start script directory (gradle/gradle#2977)
 - [Jokubas Dargis](https://github.com/eleventigerssc) - Improve performance of resource list operation in GCS repositories (gradle/gradle#3023)
 - [Christoph Böhme](https://github.com/cboehme) - Support for GnuPG's gpg-agent (gradle/gradle#1703)
+- [George Thomas](https://github.com/smoothreggae) - Fix apostrophe abuse in dependency management section of user guide (gradle/gradle#3895)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
