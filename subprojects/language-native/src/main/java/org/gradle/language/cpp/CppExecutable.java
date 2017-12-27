@@ -17,12 +17,9 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.RegularFile;
-import org.gradle.api.provider.Provider;
 import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.nativeplatform.ComponentWithExecutable;
 import org.gradle.language.nativeplatform.ComponentWithInstallation;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
 
 /**
  * An executable built from C++ source.
@@ -30,25 +27,5 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
  * @since 4.2
  */
 @Incubating
-public interface CppExecutable extends CppBinary, ComponentWithInstallation, ComponentWithOutputs {
-    /**
-     * Returns the executable file for this binary.
-     *
-     * @since 4.4
-     */
-    Provider<RegularFile> getExecutableFile();
-
-    /**
-     * Returns the link task for this binary.
-     *
-     * @since 4.5
-     */
-    Provider<? extends AbstractLinkTask> getLinkTask();
-
-    /**
-     * Returns the link task for this binary.
-     *
-     * @since 4.5
-     */
-    Provider<InstallExecutable> getInstallTask();
+public interface CppExecutable extends CppBinary, ComponentWithExecutable, ComponentWithInstallation, ComponentWithOutputs {
 }

@@ -18,6 +18,7 @@ package org.gradle.language.plugins
 
 import org.gradle.api.Task
 import org.gradle.api.component.SoftwareComponent
+import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.provider.Providers
@@ -27,11 +28,14 @@ import org.gradle.language.ComponentWithBinaries
 import org.gradle.language.ComponentWithOutputs
 import org.gradle.language.ProductionComponent
 import org.gradle.language.internal.DefaultBinaryCollection
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
 import org.gradle.nativeplatform.tasks.ExtractSymbols
+import org.gradle.nativeplatform.tasks.InstallExecutable
+import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.tasks.StripSymbols
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
@@ -257,6 +261,122 @@ class NativeBasePluginTest extends Specification {
         and:
         runtimeFileProp.get().asFile == stripTask.outputFile.get().asFile
         linkTaskProp.get() == linkTask
+    }
+
+    def "adds tasks to assemble an executable"() {
+        def toolProvider = Stub(PlatformToolProvider)
+        toolProvider.getExecutableName(_) >> { String p -> p + ".exe" }
+
+        def exeFileProp = project.objects.property(RegularFile)
+        def linkTaskProp = project.objects.property(LinkExecutable)
+        def installDirProp = project.objects.property(Directory)
+        def installTaskProp = project.objects.property(InstallExecutable)
+
+        def executable = Stub(ConfigurableComponentWithExecutable)
+        executable.name >> "windowsDebug"
+        executable.targetPlatform >> Stub(NativePlatformInternal)
+        executable.toolChain >> Stub(NativeToolChainInternal)
+        executable.platformToolProvider >> toolProvider
+        executable.baseName >> Providers.of("test_app")
+        executable.executableFile >> exeFileProp
+        executable.linkTask >> linkTaskProp
+        executable.installDirectory >> installDirProp
+        executable.installTask >> installTaskProp
+
+        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
+        binaries.add(executable)
+        def component = Stub(TestComponent)
+        component.binaries >> binaries
+        component.developmentBinary >> Providers.of(executable)
+
+        given:
+        project.pluginManager.apply(NativeBasePlugin)
+        project.components.add(component)
+        binaries.realizeNow()
+
+        expect:
+        def linkTask = project.tasks['linkWindowsDebug']
+        linkTask instanceof LinkExecutable
+        linkTask.binaryFile.get().asFile == projectDir.file("build/exe/windows/debug/test_app.exe")
+
+        def installTask = project.tasks['installWindowsDebug']
+        installTask instanceof InstallExecutable
+        installTask.sourceFile.get().asFile == linkTask.binaryFile.get().asFile
+        installTask.installDirectory.get().asFile == projectDir.file("build/install/windows/debug")
+
+        and:
+        exeFileProp.get().asFile == linkTask.binaryFile.get().asFile
+        linkTaskProp.get() == linkTask
+
+        and:
+        installDirProp.get().asFile == installTask.installDirectory.get().asFile
+        installTaskProp.get() == installTask
+    }
+
+    def "adds tasks to assemble and strip an executable"() {
+        def toolProvider = Stub(PlatformToolProvider)
+        toolProvider.getExecutableName(_) >> { String p -> p + ".exe" }
+        toolProvider.getExecutableSymbolFileName(_) >> { String p -> p + ".exe.pdb" }
+
+        def exeFileProp = project.objects.property(RegularFile)
+        def linkTaskProp = project.objects.property(LinkExecutable)
+        def installDirProp = project.objects.property(Directory)
+        def installTaskProp = project.objects.property(InstallExecutable)
+
+        def toolChain = Stub(NativeToolChainInternal)
+        toolChain.requiresDebugBinaryStripping() >> true
+
+        def executable = Stub(ConfigurableComponentWithExecutable)
+        executable.name >> "windowsDebug"
+        executable.debuggable >> true
+        executable.optimized >> true
+        executable.targetPlatform >> Stub(NativePlatformInternal)
+        executable.toolChain >> toolChain
+        executable.platformToolProvider >> toolProvider
+        executable.baseName >> Providers.of("test_app")
+        executable.executableFile >> exeFileProp
+        executable.linkTask >> linkTaskProp
+        executable.installDirectory >> installDirProp
+        executable.installTask >> installTaskProp
+
+        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
+        binaries.add(executable)
+        def component = Stub(TestComponent)
+        component.binaries >> binaries
+        component.developmentBinary >> Providers.of(executable)
+
+        given:
+        project.pluginManager.apply(NativeBasePlugin)
+        project.components.add(component)
+        binaries.realizeNow()
+
+        expect:
+        def linkTask = project.tasks['linkWindowsDebug']
+        linkTask instanceof LinkExecutable
+        linkTask.binaryFile.get().asFile == projectDir.file("build/exe/windows/debug/test_app.exe")
+
+        def stripTask = project.tasks['stripSymbolsWindowsDebug']
+        stripTask instanceof StripSymbols
+        stripTask.binaryFile.get().asFile == linkTask.binaryFile.get().asFile
+        stripTask.outputFile.get().asFile == projectDir.file("build/exe/windows/debug/stripped/test_app.exe")
+
+        def extractTask = project.tasks['extractSymbolsWindowsDebug']
+        extractTask instanceof ExtractSymbols
+        extractTask.binaryFile.get().asFile == linkTask.binaryFile.get().asFile
+        extractTask.symbolFile.get().asFile == projectDir.file("build/exe/windows/debug/stripped/test_app.exe.pdb")
+
+        def installTask = project.tasks['installWindowsDebug']
+        installTask instanceof InstallExecutable
+        installTask.sourceFile.get().asFile == stripTask.outputFile.get().asFile
+        installTask.installDirectory.get().asFile == projectDir.file("build/install/windows/debug")
+
+        and:
+        exeFileProp.get().asFile == stripTask.outputFile.get().asFile
+        linkTaskProp.get() == linkTask
+
+        and:
+        installDirProp.get().asFile == installTask.installDirectory.get().asFile
+        installTaskProp.get() == installTask
     }
 
     private ComponentWithOutputs binary(String name, String taskName) {
