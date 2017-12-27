@@ -50,8 +50,6 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(NativeBasePlugin.class);
         project.getPluginManager().apply(SwiftCompilerPlugin.class);
 
-        // TODO - Merge with CppBasePlugin to remove code duplication
-
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
         final ProviderFactory providers = project.getProviders();
@@ -93,11 +91,13 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
 
                 binary.getCompileTask().set(compile);
                 binary.getObjectsDir().set(compile.getObjectFileDir());
-
-                if (binary instanceof SwiftSharedLibrary) {
-                    // Specific compiler arguments
-                    compile.getCompilerArgs().add("-parse-as-library");
-                }
+            }
+        });
+        project.getComponents().withType(SwiftSharedLibrary.class, new Action<SwiftSharedLibrary>() {
+            @Override
+            public void execute(SwiftSharedLibrary library) {
+                // Specific compiler arguments
+                library.getCompileTask().get().getCompilerArgs().add("-parse-as-library");
             }
         });
         project.getComponents().withType(SwiftStaticLibrary.class, new Action<SwiftStaticLibrary>() {
