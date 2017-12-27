@@ -17,19 +17,18 @@
 package org.gradle.language.nativeplatform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 
 /**
- * Represents a native component that produces a file to be used at runtime.
+ * Represents a native component that produces a shared library.
  *
  * @since 4.5
  */
 @Incubating
-public interface ComponentWithRuntimeFile extends SoftwareComponent {
+public interface ComponentWithSharedLibrary extends ComponentWithLinkFile, ComponentWithRuntimeFile {
     /**
-     * Returns the runtime file of this component.
+     * Returns the link task for this binary.
      */
-    Provider<RegularFile> getRuntimeFile();
+    Provider<? extends LinkSharedLibrary> getLinkTask();
 }

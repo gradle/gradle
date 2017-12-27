@@ -170,7 +170,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         Provider<RegularFile> exeLocation = project.getLayout().getBuildDirectory().file(project.getProviders().provider(new Callable<String>() {
             @Override
             public String call() {
-                return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getModule().get());
+                return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getBaseName().get());
             }
         }));
         link.setOutputFile(exeLocation);

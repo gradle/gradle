@@ -28,7 +28,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.CppSharedLibrary;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -37,7 +37,7 @@ import javax.inject.Inject;
 public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppSharedLibrary {
     private final RegularFileProperty linkFile;
     private final RegularFileProperty runtimeFile;
-    private final Property<AbstractLinkTask> linkTaskProperty;
+    private final Property<LinkSharedLibrary> linkTaskProperty;
     private final ConfigurableFileCollection outputs;
 
     @Inject
@@ -45,7 +45,7 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
         super(name, projectLayout, objectFactory, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.linkFile = projectLayout.fileProperty();
         this.runtimeFile = projectLayout.fileProperty();
-        this.linkTaskProperty = objectFactory.property(AbstractLinkTask.class);
+        this.linkTaskProperty = objectFactory.property(LinkSharedLibrary.class);
         this.outputs = fileOperations.files();
     }
 
@@ -65,7 +65,7 @@ public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppShar
     }
 
     @Override
-    public Property<AbstractLinkTask> getLinkTask() {
+    public Property<LinkSharedLibrary> getLinkTask() {
         return linkTaskProperty;
     }
 }

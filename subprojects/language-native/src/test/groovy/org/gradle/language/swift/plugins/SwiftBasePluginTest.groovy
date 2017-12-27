@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.plugins
 
+import org.gradle.api.internal.provider.Providers
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftPlatform
 import org.gradle.language.swift.internal.DefaultSwiftBinary
@@ -63,12 +64,11 @@ class SwiftBasePluginTest extends Specification {
     }
 
     def "adds link and install task for executable"() {
-        def module = project.objects.property(String)
-        module.set("TestApp")
         def executable = Stub(DefaultSwiftExecutable)
         def executableFile = project.layout.fileProperty()
         executable.name >> name
-        executable.module >> module
+        executable.module >> Providers.of("TestApp")
+        executable.baseName >> Providers.of("test_app")
         executable.executableFile >> executableFile
         executable.targetPlatform >> Stub(SwiftPlatformInternal)
         executable.platformToolProvider >> new TestPlatformToolProvider()
@@ -80,7 +80,7 @@ class SwiftBasePluginTest extends Specification {
         then:
         def link = project.tasks[linkTask]
         link instanceof LinkExecutable
-        link.binaryFile.get().asFile == projectDir.file("build/exe/$exeDir" + OperatingSystem.current().getExecutableName("TestApp"))
+        link.binaryFile.get().asFile == projectDir.file("build/exe/$exeDir" + OperatingSystem.current().getExecutableName("test_app"))
 
         def install = project.tasks[installTask]
         install instanceof InstallExecutable
@@ -95,11 +95,10 @@ class SwiftBasePluginTest extends Specification {
     }
 
     def "adds link task for shared library"() {
-        def module = project.objects.property(String)
-        module.set("TestLib")
         def library = Stub(DefaultSwiftSharedLibrary)
         library.name >> name
-        library.module >> module
+        library.module >> Providers.of("TestLib")
+        library.baseName >> Providers.of("test_lib")
         library.targetPlatform >> Stub(SwiftPlatformInternal)
         library.platformToolProvider >> new TestPlatformToolProvider()
 
@@ -110,7 +109,7 @@ class SwiftBasePluginTest extends Specification {
         then:
         def link = project.tasks[taskName]
         link instanceof LinkSharedLibrary
-        link.binaryFile.get().asFile == projectDir.file("build/lib/${libDir}" + OperatingSystem.current().getSharedLibraryName("TestLib"))
+        link.binaryFile.get().asFile == projectDir.file("build/lib/${libDir}" + OperatingSystem.current().getSharedLibraryName("test_lib"))
 
         where:
         name        | taskName        | libDir
