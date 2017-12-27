@@ -18,10 +18,14 @@
 
 package org.gradle.buildinit.plugins.internal.maven
 
+import groovy.util.slurpersupport.GPathResult
 import org.apache.maven.project.MavenProject
+import org.gradle.api.artifacts.ModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.util.RelativePathUtil
+
 /**
  * This script obtains the effective POM of the current project, reads its dependencies
  * and generates build.gradle scripts. It also generates settings.gradle for multimodule builds. <br/>
@@ -211,18 +215,24 @@ ${globalExclusions(this.effectivePom)}
         return buffer.toString()
     }
 
-    private generateFqn(def project, def allProjects, StringBuilder buffer) {
+    private generateFqn(GPathResult project, GPathResult allProjects, StringBuilder buffer) {
         def artifactId = project.artifactId.text()
         buffer.insert(0, ":${artifactId}")
         //we don't need the top-level parent in gradle, so we stop on it
-        if (project.parent.artifactId.text() != allProjects[0].artifactId.text()) {
+        if (getModuleIdentifier(project.parent) != getModuleIdentifier(allProjects[0])) {
             def parentInBuild = allProjects.find { proj ->
-                proj.artifactId.text() == project.parent.artifactId.text()
+                getModuleIdentifier(proj) == getModuleIdentifier(project.parent)
             }
             if (parentInBuild) {
                 generateFqn(parentInBuild, allProjects, buffer)
             }
         }
+    }
+
+    private ModuleIdentifier getModuleIdentifier(GPathResult project) {
+        def artifactId = project.artifactId.text()
+        def groupId = project.groupId ? project.groupId.text() : project.parent.groupId.text()
+        return new DefaultModuleIdentifier(groupId, artifactId)
     }
 
     def localRepoUri = {
