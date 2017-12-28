@@ -63,7 +63,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         project.getComponents().withType(DefaultCppBinary.class, new Action<DefaultCppBinary>() {
             @Override
             public void execute(final DefaultCppBinary binary) {
-                final Names names = Names.of(binary.getName());
+                final Names names = binary.getNames();
 
                 String language = "cpp";
                 final NativePlatform currentPlatform = binary.getTargetPlatform();

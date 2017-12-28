@@ -59,7 +59,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         project.getComponents().withType(DefaultSwiftBinary.class, new Action<DefaultSwiftBinary>() {
             @Override
             public void execute(final DefaultSwiftBinary binary) {
-                final Names names = Names.of(binary.getName());
+                final Names names = binary.getNames();
                 SwiftCompile compile = tasks.create(names.getCompileTaskName("swift"), SwiftCompile.class);
                 compile.getModules().from(binary.getCompileModules());
                 compile.getSource().from(binary.getSwiftSource());

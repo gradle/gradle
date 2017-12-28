@@ -19,6 +19,7 @@ package org.gradle.language.swift.plugins
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.language.nativeplatform.internal.Names
 import org.gradle.language.swift.SwiftPlatform
 import org.gradle.language.swift.internal.DefaultSwiftBinary
 import org.gradle.language.swift.internal.DefaultSwiftExecutable
@@ -44,6 +45,7 @@ class SwiftBasePluginTest extends Specification {
     def "adds compile task for component"() {
         def binary = Stub(DefaultSwiftBinary)
         binary.name >> name
+        binary.names >> Names.of(name)
         binary.module >> project.objects.property(String)
         binary.targetPlatform >> Stub(SwiftPlatformInternal)
 
@@ -68,6 +70,7 @@ class SwiftBasePluginTest extends Specification {
         def executable = Stub(DefaultSwiftExecutable)
         def executableFile = project.layout.fileProperty()
         executable.name >> name
+        executable.names >> Names.of(name)
         executable.module >> Providers.of("TestApp")
         executable.baseName >> Providers.of("test_app")
         executable.executableFile >> executableFile
@@ -98,6 +101,7 @@ class SwiftBasePluginTest extends Specification {
     def "adds link task for shared library"() {
         def library = Stub(DefaultSwiftSharedLibrary)
         library.name >> name
+        library.names >> Names.of(name)
         library.module >> Providers.of("TestLib")
         library.baseName >> Providers.of("test_lib")
         library.targetPlatform >> Stub(SwiftPlatformInternal)

@@ -36,7 +36,7 @@ class DefaultSwiftComponentTest extends Specification {
     DefaultSwiftComponent component
 
     def setup() {
-        _ * configurations.maybeCreate("implementation") >> implementation
+        _ * configurations.create("implementation") >> implementation
         component = new TestComponent("main", fileOperations, objectFactory, configurations)
     }
 

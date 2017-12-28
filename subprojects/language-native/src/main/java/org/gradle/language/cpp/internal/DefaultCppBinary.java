@@ -36,6 +36,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.tasks.CppCompile;
+import org.gradle.language.internal.DefaultNativeBinary;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -45,8 +46,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultCppBinary implements CppBinary {
-    private final String name;
+public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Provider<String> baseName;
     private final boolean debuggable;
     private final boolean optimized;
@@ -63,7 +63,7 @@ public class DefaultCppBinary implements CppBinary {
     private final Configuration implementation;
 
     public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        this.name = name;
+        super(name);
         this.baseName = baseName;
         this.debuggable = debuggable;
         this.optimized = optimized;
@@ -75,22 +75,22 @@ public class DefaultCppBinary implements CppBinary {
         this.implementation = implementation;
         this.compileTaskProperty = objects.property(CppCompile.class);
 
-        Names names = Names.of(name);
+        Names names = getNames();
 
         // TODO - reduce duplication with Swift binary
-        Configuration includePathConfig = configurations.maybeCreate(names.withPrefix("cppCompile"));
+        Configuration includePathConfig = configurations.create(names.withPrefix("cppCompile"));
         includePathConfig.setCanBeConsumed(false);
         includePathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
         includePathConfig.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
         includePathConfig.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
 
-        Configuration nativeLink = configurations.maybeCreate(names.withPrefix("nativeLink"));
+        Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
         nativeLink.setCanBeConsumed(false);
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
         nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
         nativeLink.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
 
-        Configuration nativeRuntime = configurations.maybeCreate(names.withPrefix("nativeRuntime"));
+        Configuration nativeRuntime = configurations.create(names.withPrefix("nativeRuntime"));
         nativeRuntime.setCanBeConsumed(false);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
@@ -119,11 +119,6 @@ public class DefaultCppBinary implements CppBinary {
     @Inject
     protected NativeDependencyCache getNativeDependencyCache() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     @Override

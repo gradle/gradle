@@ -123,7 +123,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     private void configureTestSuiteBuildingTasks(ProjectInternal project, final DefaultSwiftXCTestBinary binary) {
         if (binary instanceof SwiftXCTestBundle) {
             TaskContainer tasks = project.getTasks();
-            final Names names = Names.of(binary.getName());
+            final Names names = binary.getNames();
             SwiftCompile compile = binary.getCompileTask().get();
 
             // TODO - creating a bundle should be done by some general purpose plugin

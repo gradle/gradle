@@ -39,6 +39,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.internal.NativeDependencyCache;
+import org.gradle.language.internal.DefaultNativeBinary;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftPlatform;
@@ -55,8 +56,7 @@ import java.util.Set;
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
-public class DefaultSwiftBinary implements SwiftBinary {
-    private final String name;
+public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBinary {
     private final Provider<String> module;
     private final boolean debuggable;
     private final boolean optimized;
@@ -75,7 +75,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
     private final Configuration implementation;
 
     public DefaultSwiftBinary(String name, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        this.name = name;
+        super(name);
         this.module = module;
         this.debuggable = debuggable;
         this.optimized = optimized;
@@ -89,24 +89,24 @@ public class DefaultSwiftBinary implements SwiftBinary {
         this.implementation = implementation;
         this.platformToolProvider = platformToolProvider;
 
-        Names names = Names.of(name);
+        Names names = getNames();
 
         // TODO - reduce duplication with C++ binary
-        importPathConfiguration = configurations.maybeCreate(names.withPrefix("swiftCompile"));
+        importPathConfiguration = configurations.create(names.withPrefix("swiftCompile"));
         importPathConfiguration.extendsFrom(implementation);
         importPathConfiguration.setCanBeConsumed(false);
         importPathConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         importPathConfiguration.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
         importPathConfiguration.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
 
-        Configuration nativeLink = configurations.maybeCreate(names.withPrefix("nativeLink"));
+        Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
         nativeLink.extendsFrom(implementation);
         nativeLink.setCanBeConsumed(false);
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
         nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debuggable);
         nativeLink.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, optimized);
 
-        Configuration nativeRuntime = configurations.maybeCreate(names.withPrefix("nativeRuntime"));
+        Configuration nativeRuntime = configurations.create(names.withPrefix("nativeRuntime"));
         nativeRuntime.extendsFrom(implementation);
         nativeRuntime.setCanBeConsumed(false);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
@@ -116,11 +116,6 @@ public class DefaultSwiftBinary implements SwiftBinary {
         compileModules = new FileCollectionAdapter(new ModulePath(importPathConfiguration));
         linkLibs = nativeLink;
         runtimeLibs = nativeRuntime;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     @Override
