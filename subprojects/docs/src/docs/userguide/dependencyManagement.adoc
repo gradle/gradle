@@ -93,6 +93,17 @@ Using dynamic versions in a build bears the risk of potentially breaking it. As 
 </sample>
 ++++
 
+A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic dependency versions and their respective, selected versions.
+
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Dynamic dependencies in build scan</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-dynamic-dependency-build-scan.png" width="135mm" />
+    </imageobject>
+</figure>
++++++
+
 By default, Gradle caches dynamic versions of dependencies for 24 hours. The <<sec:controlling_caching,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
 
 ===== Declaring a changing version of a binary dependency
