@@ -18,7 +18,6 @@ package org.gradle.internal.logging.console.taskgrouping
 
 import org.fusesource.jansi.Ansi
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -194,7 +193,7 @@ class BasicGroupedTaskLoggingFunctionalSpec extends AbstractConsoleGroupedTaskFu
 
         when:
         handle.waitForAllPendingCalls()
-        assertOutputContains(gradle, "Before${SystemProperties.instance.lineSeparator}")
+        assertOutputContains(gradle, "Before")
         handle.releaseAll()
         result = gradle.waitForFinish()
 
