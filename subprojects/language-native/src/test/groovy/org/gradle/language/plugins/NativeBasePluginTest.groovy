@@ -21,6 +21,7 @@ import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDependencyMatchers
@@ -29,6 +30,8 @@ import org.gradle.language.ComponentWithOutputs
 import org.gradle.language.ProductionComponent
 import org.gradle.language.internal.DefaultBinaryCollection
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
@@ -152,16 +155,9 @@ class NativeBasePluginTest extends Specification {
         staticLib.linkFile >> linkFileProp
         staticLib.createTask >> createTaskProp
 
-        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
-        binaries.add(staticLib)
-        def component = Stub(TestComponent)
-        component.binaries >> binaries
-        component.developmentBinary >> Providers.of(staticLib)
-
         given:
         project.pluginManager.apply(NativeBasePlugin)
-        project.components.add(component)
-        binaries.realizeNow()
+        project.components.add(staticLib)
 
         expect:
         def createTask = project.tasks['createWindowsDebug']
@@ -189,16 +185,9 @@ class NativeBasePluginTest extends Specification {
         sharedLibrary.runtimeFile >> runtimeFileProp
         sharedLibrary.linkTask >> linkTaskProp
 
-        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
-        binaries.add(sharedLibrary)
-        def component = Stub(TestComponent)
-        component.binaries >> binaries
-        component.developmentBinary >> Providers.of(sharedLibrary)
-
         given:
         project.pluginManager.apply(NativeBasePlugin)
-        project.components.add(component)
-        binaries.realizeNow()
+        project.components.add(sharedLibrary)
 
         expect:
         def linkTask = project.tasks['linkWindowsDebug']
@@ -230,16 +219,9 @@ class NativeBasePluginTest extends Specification {
         sharedLibrary.runtimeFile >> runtimeFileProp
         sharedLibrary.linkTask >> linkTaskProp
 
-        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
-        binaries.add(sharedLibrary)
-        def component = Stub(TestComponent)
-        component.binaries >> binaries
-        component.developmentBinary >> Providers.of(sharedLibrary)
-
         given:
         project.pluginManager.apply(NativeBasePlugin)
-        project.components.add(component)
-        binaries.realizeNow()
+        project.components.add(sharedLibrary)
 
         expect:
         def linkTask = project.tasks['linkWindowsDebug']
@@ -283,16 +265,9 @@ class NativeBasePluginTest extends Specification {
         executable.installDirectory >> installDirProp
         executable.installTask >> installTaskProp
 
-        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
-        binaries.add(executable)
-        def component = Stub(TestComponent)
-        component.binaries >> binaries
-        component.developmentBinary >> Providers.of(executable)
-
         given:
         project.pluginManager.apply(NativeBasePlugin)
-        project.components.add(component)
-        binaries.realizeNow()
+        project.components.add(executable)
 
         expect:
         def linkTask = project.tasks['linkWindowsDebug']
@@ -340,16 +315,9 @@ class NativeBasePluginTest extends Specification {
         executable.installDirectory >> installDirProp
         executable.installTask >> installTaskProp
 
-        def binaries = new DefaultBinaryCollection(SoftwareComponent, null)
-        binaries.add(executable)
-        def component = Stub(TestComponent)
-        component.binaries >> binaries
-        component.developmentBinary >> Providers.of(executable)
-
         given:
         project.pluginManager.apply(NativeBasePlugin)
-        project.components.add(component)
-        binaries.realizeNow()
+        project.components.add(executable)
 
         expect:
         def linkTask = project.tasks['linkWindowsDebug']
@@ -379,6 +347,32 @@ class NativeBasePluginTest extends Specification {
         and:
         installDirProp.get().asFile == installTask.installDirectory.get().asFile
         installTaskProp.get() == installTask
+    }
+
+    def "adds outgoing configuration for component with link usage"() {
+        def component = Stub(ConfigurableComponentWithLinkUsage)
+        component.name >> "debugWindows"
+        component.implementationDependencies >> Stub(ConfigurationInternal)
+
+        given:
+        project.pluginManager.apply(NativeBasePlugin)
+        project.components.add(component)
+
+        expect:
+        project.configurations['debugWindowsLinkElements']
+    }
+
+    def "adds outgoing configuration for component with runtime usage"() {
+        def component = Stub(ConfigurableComponentWithRuntimeUsage)
+        component.name >> "debugWindows"
+        component.implementationDependencies >> Stub(ConfigurationInternal)
+
+        given:
+        project.pluginManager.apply(NativeBasePlugin)
+        project.components.add(component)
+
+        expect:
+        project.configurations['debugWindowsRuntimeElements']
     }
 
     private ComponentWithOutputs binary(String name, String taskName) {

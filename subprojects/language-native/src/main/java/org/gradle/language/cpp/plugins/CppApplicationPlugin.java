@@ -41,9 +41,6 @@ import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 
 import javax.inject.Inject;
 
-import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
-import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
-
 /**
  * <p>A plugin that produces a native application from C++ source.</p>
  *
@@ -90,25 +87,10 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                 // Use the debug variant as the development binary
                 application.getDevelopmentBinary().set(debugExecutable);
 
-                // TODO - add lifecycle tasks to assemble each variant
-
                 final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
-                final Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
-                debugRuntimeElements.extendsFrom(application.getImplementationDependencies());
-                debugRuntimeElements.setCanBeResolved(false);
-                debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-                debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debugExecutable.isDebuggable());
-                debugRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, debugExecutable.isOptimized());
-                debugRuntimeElements.getOutgoing().artifact(debugExecutable.getExecutableFile());
-
-                final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
-                releaseRuntimeElements.extendsFrom(application.getImplementationDependencies());
-                releaseRuntimeElements.setCanBeResolved(false);
-                releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-                releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, releaseExecutable.isDebuggable());
-                releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, releaseExecutable.isOptimized());
-                releaseRuntimeElements.getOutgoing().artifact(releaseExecutable.getExecutableFile());
+                Configuration debugRuntimeElements = debugExecutable.getRuntimeElements().get();
+                Configuration releaseRuntimeElements = releaseExecutable.getRuntimeElements().get();
 
                 final MainExecutableVariant mainVariant = new MainExecutableVariant();
                 NativeVariant debugVariant = new NativeVariant("debug", runtimeUsage, debugRuntimeElements.getAllArtifacts(), debugRuntimeElements);

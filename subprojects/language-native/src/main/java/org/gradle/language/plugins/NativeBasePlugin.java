@@ -21,12 +21,18 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.AttributeDisambiguationRule;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
@@ -35,9 +41,12 @@ import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
@@ -51,6 +60,8 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import java.util.concurrent.Callable;
 
+import static org.gradle.language.cpp.CppBinary.*;
+
 /**
  * A common base plugin for the native plugins.
  *
@@ -59,6 +70,12 @@ import java.util.concurrent.Callable;
  * <ul>
  *
  * <li>Configures the {@value LifecycleBasePlugin#ASSEMBLE_TASK_NAME} task to build the development binary of the main component, if present. Expects the main component to be of type {@link ProductionComponent}.</li>
+ *
+ * <li>Adds tasks to compile and link an executable.</li>
+
+ * <li>Adds tasks to compile and link a shared library.</li>
+ *
+ * <li>Adds tasks to compile and create a static library.</li>
  *
  * <li>Adds an {@code "assemble"} task for each binary of the main component.</li>
  *
@@ -71,11 +88,15 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
+
         final TaskContainer tasks = project.getTasks();
         final ProviderFactory providers = project.getProviders();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
         final SoftwareComponentContainer components = project.getComponents();
+
+        // Add lifecycle tasks
+
         components.withType(ComponentWithBinaries.class, new Action<ComponentWithBinaries>() {
             @Override
             public void execute(final ComponentWithBinaries component) {
@@ -103,6 +124,9 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 }
             }
         });
+
+        // Add tasks to build various kinds of components
+
         components.withType(ConfigurableComponentWithExecutable.class, new Action<ConfigurableComponentWithExecutable>() {
             @Override
             public void execute(final ConfigurableComponentWithExecutable executable) {
@@ -255,6 +279,56 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 library.getOutputs().from(library.getLinkFile());
             }
         });
+
+        // Add outgoing configurations and publications
+
+        ObjectFactory objectFactory = project.getObjects();
+        final ConfigurationContainer configurations = project.getConfigurations();
+        final Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
+        final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
+
+        project.getDependencies().getAttributesSchema().attribute(LINKAGE_ATTRIBUTE).getDisambiguationRules().add(LinkageSelectionRule.class);
+
+        components.withType(ConfigurableComponentWithLinkUsage.class, new Action<ConfigurableComponentWithLinkUsage>() {
+            @Override
+            public void execute(ConfigurableComponentWithLinkUsage component) {
+                Names names = Names.of(component.getName());
+
+                Configuration linkElements = configurations.create(names.withSuffix("linkElements"));
+                linkElements.extendsFrom(component.getImplementationDependencies());
+                linkElements.setCanBeResolved(false);
+                linkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
+                linkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, component.isDebuggable());
+                linkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, component.isOptimized());
+                if (component.getLinkage() != null) {
+                    linkElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, component.getLinkage());
+                }
+                linkElements.getOutgoing().artifact(component.getLinkFile());
+
+                component.getLinkElements().set(linkElements);
+            }
+        });
+        components.withType(ConfigurableComponentWithRuntimeUsage.class, new Action<ConfigurableComponentWithRuntimeUsage>() {
+            @Override
+            public void execute(ConfigurableComponentWithRuntimeUsage component) {
+                Names names = Names.of(component.getName());
+
+                Configuration runtimeElements = configurations.create(names.withSuffix("runtimeElements"));
+                runtimeElements.extendsFrom(component.getImplementationDependencies());
+                runtimeElements.setCanBeResolved(false);
+                runtimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
+                runtimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, component.isDebuggable());
+                runtimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, component.isOptimized());
+                if (component.getLinkage() != null) {
+                    runtimeElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, component.getLinkage());
+                }
+                if (component.hasRuntimeFile()) {
+                    runtimeElements.getOutgoing().artifact(component.getRuntimeFile());
+                }
+
+                component.getRuntimeElements().set(runtimeElements);
+            }
+        });
     }
 
     private StripSymbols stripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChain toolChain, NativePlatform currentPlatform, Provider<RegularFile> strippedLocation) {
@@ -275,5 +349,14 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         extractSymbols.setToolChain(toolChain);
 
         return extractSymbols;
+    }
+
+    static class LinkageSelectionRule implements AttributeDisambiguationRule<Linkage> {
+        @Override
+        public void execute(MultipleCandidatesDetails<Linkage> details) {
+            if (details.getCandidateValues().contains(Linkage.SHARED)) {
+                details.closestMatch(Linkage.SHARED);
+            }
+        }
     }
 }

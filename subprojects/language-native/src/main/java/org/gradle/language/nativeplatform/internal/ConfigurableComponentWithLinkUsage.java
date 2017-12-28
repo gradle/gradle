@@ -14,19 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp;
+package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.language.ComponentWithOutputs;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.language.nativeplatform.ComponentWithLinkUsage;
-import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
-import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
+import org.gradle.nativeplatform.Linkage;
+
+import javax.annotation.Nullable;
 
 /**
- * A shared library built from C++ source.
- *
- * @since 4.2
+ * A configurable view of a component that has a link usage. This should become public in some form.
  */
-@Incubating
-public interface CppSharedLibrary extends CppBinary, ComponentWithSharedLibrary, ComponentWithLinkUsage, ComponentWithRuntimeUsage, ComponentWithOutputs {
+public interface ConfigurableComponentWithLinkUsage extends ComponentWithLinkUsage {
+    Configuration getImplementationDependencies();
+
+    @Nullable
+    Linkage getLinkage();
+
+    @Override
+    Property<Configuration> getLinkElements();
+
+    Provider<RegularFile> getLinkFile();
 }

@@ -25,6 +25,9 @@ import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+/**
+ * A configurable view of a component that produces a shared library. This should become public in some form.
+ */
 public interface ConfigurableComponentWithSharedLibrary extends ComponentWithSharedLibrary, ComponentWithObjectFiles, ComponentWithOutputs {
     PlatformToolProvider getPlatformToolProvider();
 

@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.plugins
 
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.language.cpp.internal.DefaultCppBinary
@@ -71,6 +72,7 @@ class CppBasePluginTest extends Specification {
         executable.getExecutableFile() >> executableFile
         executable.targetPlatform >> Stub(CppPlatformInternal)
         executable.platformToolProvider >> new TestPlatformToolProvider()
+        executable.implementationDependencies >> Stub(ConfigurationInternal)
 
         when:
         project.pluginManager.apply(CppBasePlugin)
@@ -101,6 +103,7 @@ class CppBasePluginTest extends Specification {
         library.baseName >> baseName
         library.targetPlatform >> Stub(CppPlatformInternal)
         library.platformToolProvider >> new TestPlatformToolProvider()
+        library.implementationDependencies >> Stub(ConfigurationInternal)
 
         when:
         project.pluginManager.apply(CppBasePlugin)
