@@ -32,7 +32,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppPlatform;
-import org.gradle.language.nativeplatform.PublicationAwareComponent;
+import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
