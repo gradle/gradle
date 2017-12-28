@@ -75,6 +75,15 @@ public class DefaultCancellableOperationManager implements CancellableOperationM
         }
     }
 
+    @Override
+    public void closeInput() {
+        try {
+            input.close();
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
     private static boolean isCancellation(int c) {
         return c == KEY_CODE_CTRL_D || c == EOF;
     }

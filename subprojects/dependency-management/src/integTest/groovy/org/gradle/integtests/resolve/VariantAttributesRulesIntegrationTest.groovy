@@ -95,10 +95,10 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0")
                 }
             }
@@ -124,7 +124,141 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         repository {
             'org.test:moduleB:1.0' {
-                variant 'customVariant', [format: 'will be overriden']
+                variant('customVariant') {
+                    if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                        artifact 'variant1'
+                    }
+                    attribute 'format', 'will be overriden'
+                }
+            }
+        }
+
+        when:
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                    expectGetVariantArtifacts('customVariant')
+                } else {
+                    expectGetArtifact()
+                }
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def expectedVariant = variantToTest
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org.test:moduleA:1.0:$expectedVariant") {
+                    module("org.test:moduleB:1.0") {
+                        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                            artifact group: 'org', module: 'moduleB', version: '1.0', classifier: 'variant1'
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // This test documents the current behavior. It's not necessarily
+    // what we want, but there doesn't seem to be a good use case for mutating
+    // artifact attributes
+    def "can specify an artifact attribute on a variant to mitigate missing withArtifacts rules"() {
+        given:
+        withDefaultVariantToTest()
+        buildFile << """
+            dependencies {
+                artifactTypes {
+                    jar {
+                        // declares that the 'jar' artifact type wants a 'format' attribute with value 'custom'
+                        // and this is missing from component and variant metatada
+                        attributes.attribute(formatAttribute, 'custom')
+                    }
+                }
+                components {
+                    withModule('org.test:moduleB') {
+                        withVariant("$variantToTest") { 
+                            attributes {
+                                // defines the 'format' attribute with value 'custom' on all variants
+                                // which will be inherited by artifacts
+                                attribute(formatAttribute, "custom")
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        repository {
+            'org.test:moduleB:1.0' {
+                variant('customVariant') {
+                    if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                        artifact 'variant1'
+                    }
+                }
+            }
+        }
+
+        when:
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                    expectGetVariantArtifacts('customVariant')
+                } else {
+                    expectGetArtifact()
+                }
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def expectedVariant = variantToTest
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org.test:moduleA:1.0:$expectedVariant") {
+                    module("org.test:moduleB:1.0") {
+                        if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
+                            artifact group: 'org', module: 'moduleB', version: '1.0', classifier: 'variant1'
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    def "rule is applied only once"() {
+        given:
+        withDefaultVariantToTest()
+        buildFile << """
+            int cpt
+            dependencies {
+                components {
+                    withModule('org.test:moduleB') {
+                        withVariant("$variantToTest") { 
+                            attributes {
+                                if (++cpt == 2) {
+                                    throw new IllegalStateException("rule should only be applied once")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        repository {
+            'org.test:moduleB:1.0' {
+                variant 'customVariant', [format: 'custom']
             }
         }
 
@@ -142,10 +276,10 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0")
                 }
             }
@@ -207,10 +341,10 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         if (GradleMetadataResolveRunner.isGradleMetadataEnabled()) {
             succeeds 'checkDep'
 
-            def variantToTest = variantToTest
+            def expectedVariant = variantToTest
             resolve.expectGraph {
                 root(':', ':test:') {
-                    module("org.test:moduleA:1.0:$variantToTest") {
+                    module("org.test:moduleA:1.0:$expectedVariant") {
                         module("org.test:moduleB:1.0") {
                             artifact(classifier: (selectedVariant - 'custom').toLowerCase())
                         }

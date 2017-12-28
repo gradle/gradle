@@ -91,11 +91,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('org.test:moduleB:', 'org.test:moduleB:1.0')
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module('org.test:moduleB:1.0')
                 }
             }
@@ -141,11 +141,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('org.test:moduleB:', 'org.test:moduleB:1.0')
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module('org.test:moduleB:1.0')
                 }
             }
@@ -190,10 +190,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest")
+                module("org.test:moduleA:1.0:$expectedVariant")
             }
         }
     }
@@ -237,11 +237,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org.test:moduleB:1.0")
-                module("org.test:moduleA:1.0:$variantToTest")
+                module("org.test:moduleA:1.0:$expectedVariant")
             }
         }
     }
@@ -287,10 +287,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest")
+                module("org.test:moduleA:1.0:$expectedVariant")
             }
         }
 
@@ -337,10 +337,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module('org.test:moduleB:1.0')
                 }
             }
@@ -388,11 +388,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('org.test:moduleB:', 'org.test:moduleB:1.0')
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module('org.test:moduleB:1.0')
                 }
             }
@@ -425,10 +425,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest")
+                module("org.test:moduleA:1.0:$expectedVariant")
             }
         }
     }
@@ -461,10 +461,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module('org.test:moduleB:1.0')
                 }
             }
@@ -516,11 +516,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('org.test:moduleC:', 'org.test:moduleC:1.0')
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0") {
                         module('org.test:moduleC:1.0')
                     }
@@ -600,10 +600,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0") {
                         module('org.test:moduleC:1.0') {
                             module('org.test:moduleD:1.0')
