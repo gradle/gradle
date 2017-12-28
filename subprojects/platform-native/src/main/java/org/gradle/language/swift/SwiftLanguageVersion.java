@@ -26,12 +26,23 @@ import org.gradle.util.VersionNumber;
  */
 @Incubating
 public enum SwiftLanguageVersion {
-    SWIFT2, SWIFT3, SWIFT4;
+    SWIFT3(3), SWIFT4(4);
+
+    private final int version;
+
+    SwiftLanguageVersion(int version) {
+        this.version = version;
+    }
+
+    /**
+     * Returns the Swift language version in numerical value
+     */
+    public int getVersion() {
+        return version;
+    }
 
     public static SwiftLanguageVersion of(VersionNumber swiftCompilerVersion) {
-        if (swiftCompilerVersion.getMajor() == 2) {
-            return SWIFT2;
-        } else if (swiftCompilerVersion.getMajor() == 3) {
+        if (swiftCompilerVersion.getMajor() == 3) {
             return SWIFT3;
         } else if (swiftCompilerVersion.getMajor() == 4) {
             return SWIFT4;

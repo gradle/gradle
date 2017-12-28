@@ -34,6 +34,7 @@ import org.gradle.language.swift.ProductionSwiftComponent;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.SwiftLanguageVersion;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
@@ -95,14 +96,20 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(final Project project) {
                 ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
+                SwiftLanguageVersion swiftLanguageVersion = testSuite.getSwiftLanguageVersionSupport().getOrNull();
+                if (swiftLanguageVersion == null) {
+                    swiftLanguageVersion = SwiftLanguageVersion.of(result.getPlatformToolProvider().getCompilerMetadata().getVersion());
+                    testSuite.getSwiftLanguageVersionSupport().set(swiftLanguageVersion);
+                }
+                testSuite.getSwiftLanguageVersionSupport().lockNow();
 
                 // Create test suite executable
                 DefaultSwiftXCTestBinary binary;
                 if (result.getTargetPlatform().getOperatingSystem().isMacOsX()) {
-                    binary = (DefaultSwiftXCTestBinary) testSuite.addBundle("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    binary = (DefaultSwiftXCTestBinary) testSuite.addBundle("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), swiftLanguageVersion);
 
                 } else {
-                    binary = (DefaultSwiftXCTestBinary) testSuite.addExecutable("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    binary = (DefaultSwiftXCTestBinary) testSuite.addExecutable("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), swiftLanguageVersion);
                 }
                 testSuite.getTestBinary().set(binary);
 

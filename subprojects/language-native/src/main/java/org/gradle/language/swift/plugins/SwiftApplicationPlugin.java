@@ -32,6 +32,7 @@ import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.SwiftLanguageVersion;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
 import org.gradle.util.GUtil;
@@ -87,8 +88,15 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
 
                 ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
 
-                SwiftExecutable debugExecutable = application.addExecutable("debug", true, false, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                application.addExecutable("release", true, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                SwiftLanguageVersion swiftLanguageVersion = application.getSwiftLanguageVersionSupport().getOrNull();
+                if (swiftLanguageVersion == null) {
+                    swiftLanguageVersion = SwiftLanguageVersion.of(result.getPlatformToolProvider().getCompilerMetadata().getVersion());
+                    application.getSwiftLanguageVersionSupport().set(swiftLanguageVersion);
+                }
+                application.getSwiftLanguageVersionSupport().lockNow();
+
+                SwiftExecutable debugExecutable = application.addExecutable("debug", true, false, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), swiftLanguageVersion);
+                application.addExecutable("release", true, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), swiftLanguageVersion);
 
                 // Add outgoing APIs
                 // TODO - remove this

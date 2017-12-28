@@ -59,6 +59,10 @@
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]ide-native[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]plugins[/\\]ide[/\\]api[/\\][^/\\]+"/>
 
+    <!-- These packages are duplicated in platform-native from language-native, don't require a package-info.java in each place -->
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]platform-native[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]language[/\\]swift[/\\][^/\\]+"/>
+
     <!-- Don't require api docs for projects only used internally -->
     <suppress checks="Javadoc.*"
               files=".*[/\\]subprojects[/\\]internal-.+[/\\]src[/\\]main[/\\].+"/>

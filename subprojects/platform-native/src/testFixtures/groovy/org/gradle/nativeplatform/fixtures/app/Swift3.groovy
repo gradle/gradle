@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.compilespec;
+package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.language.swift.SwiftLanguageVersion;
-import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.gradle.integtests.fixtures.SourceFile
 
-import java.io.File;
-
-public interface SwiftCompileSpec extends NativeCompileSpec {
-    String getModuleName();
-    void setModuleName(String moduleName);
-
-    File getModuleFile();
-    void setModuleFile(File file);
-
-    SwiftLanguageVersion getSwiftLanguageVersionSupport();
-    void setSwiftLanguageVersionSupport(SwiftLanguageVersion swiftLanguageVersionSupport);
+class Swift3 extends SourceFileElement {
+    @Override
+    SourceFile getSourceFile() {
+        sourceFile("swift", "swift3-code.swift", """
+            public func someFunc() {
+                typealias Name = (firstName: String, lastName: String)
+                let names: [Name] = [("Bart", "den Hollander")]
+                
+                names.forEach({ first, last in
+                    print(last)  // "den Hollander"
+                })
+            }
+        """)
+    }
 }

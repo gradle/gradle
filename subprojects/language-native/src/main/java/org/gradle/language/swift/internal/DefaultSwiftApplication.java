@@ -26,6 +26,7 @@ import org.gradle.language.ComponentDependencies;
 import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.swift.SwiftLanguageVersion;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -59,8 +60,8 @@ public class DefaultSwiftApplication extends DefaultSwiftComponent implements Sw
         action.execute(dependencies);
     }
 
-    public SwiftExecutable addExecutable(String nameSuffix, boolean debuggable, boolean optimized, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        SwiftExecutable result = objectFactory.newInstance(DefaultSwiftExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), debuggable, optimized, testable, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+    public SwiftExecutable addExecutable(String nameSuffix, boolean debuggable, boolean optimized, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, SwiftLanguageVersion swiftLanguageVersion) {
+        SwiftExecutable result = objectFactory.newInstance(DefaultSwiftExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), debuggable, optimized, testable, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, swiftLanguageVersion);
         getBinaries().add(result);
         return result;
     }

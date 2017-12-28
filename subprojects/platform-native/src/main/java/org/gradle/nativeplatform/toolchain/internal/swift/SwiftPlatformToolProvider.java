@@ -45,7 +45,6 @@ import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigu
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.VersionNumber;
 
 class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
     private final ToolSearchPath toolSearchPath;
@@ -98,10 +97,10 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
 
     protected Compiler<SwiftCompileSpec> createSwiftCompiler() {
         CommandLineToolConfigurationInternal swiftCompilerTool = (CommandLineToolConfigurationInternal) toolRegistry.getSwiftCompiler();
-        SwiftCompiler swiftCompiler = new SwiftCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(ToolType.SWIFT_COMPILER, "swiftc"), context(swiftCompilerTool), getObjectFileExtension(), workerLeaseService);
+        SwiftCompiler swiftCompiler = new SwiftCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(ToolType.SWIFT_COMPILER, "swiftc"), context(swiftCompilerTool), getObjectFileExtension(), workerLeaseService, swiftcMetaData.getVersion());
         // TODO - OutputCleaningCompiler shouldn't be required
         OutputCleaningCompiler<SwiftCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<SwiftCompileSpec>(swiftCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
-        return new VersionAwareCompiler<SwiftCompileSpec>(outputCleaningCompiler, new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), VersionNumber.UNKNOWN));
+        return new VersionAwareCompiler<SwiftCompileSpec>(outputCleaningCompiler, new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), swiftcMetaData.getVersion()));
     }
 
     @Override

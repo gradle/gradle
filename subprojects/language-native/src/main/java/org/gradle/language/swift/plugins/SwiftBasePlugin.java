@@ -28,11 +28,11 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 
@@ -80,9 +80,10 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         return "modules/" + names.getDirName() + binary.getModule().get() + ".swiftmodule";
                     }
                 })));
+                compile.getSwiftLanguageVersionSupport().set(binary.getSwiftLanguageVersion());
                 binary.getModuleFile().set(compile.getModuleFile());
 
-                NativePlatform currentPlatform = binary.getTargetPlatform();
+                SwiftPlatform currentPlatform = binary.getTargetPlatform();
                 compile.setTargetPlatform(currentPlatform);
 
                 // TODO - make this lazy
@@ -113,7 +114,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
             if (Usage.SWIFT_API.equals(details.getConsumerValue().getName())
-                && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
+                    && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
                 details.compatible();
             }
         }

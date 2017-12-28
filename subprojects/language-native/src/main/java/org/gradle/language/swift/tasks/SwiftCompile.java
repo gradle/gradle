@@ -41,6 +41,7 @@ import org.gradle.language.base.compile.CompilerVersion;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.swift.SwiftLanguageVersion;
 import org.gradle.language.swift.tasks.internal.DefaultSwiftCompileSpec;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -72,6 +73,7 @@ public class SwiftCompile extends DefaultTask {
     private final ListProperty<String> compilerArgs;
     private final DirectoryProperty objectFileDir;
     private final ConfigurableFileCollection source;
+    private final Property<SwiftLanguageVersion> swiftLanguageVersionSupport;
     private final Map<String, String> macros = new LinkedHashMap<String, String>();
 
     public SwiftCompile() {
@@ -81,6 +83,7 @@ public class SwiftCompile extends DefaultTask {
         moduleName = getProject().getObjects().property(String.class);
         moduleFile = newOutputFile();
         modules = getProject().files();
+        swiftLanguageVersionSupport = getProject().getObjects().property(SwiftLanguageVersion.class);
     }
 
     /**
@@ -241,6 +244,16 @@ public class SwiftCompile extends DefaultTask {
     }
 
     /**
+     * The Swift language version support for compiling the source.
+     *
+     * @since 4.5
+     */
+    @Input
+    public Property<SwiftLanguageVersion> getSwiftLanguageVersionSupport() {
+        return swiftLanguageVersionSupport;
+    }
+
+    /**
      * The compiler used, including the type and the version.
      *
      * @since 4.4
@@ -288,6 +301,7 @@ public class SwiftCompile extends DefaultTask {
         spec.setOptimized(isOptimized());
         spec.setIncrementalCompile(false);
         spec.setOperationLogger(operationLogger);
+        spec.setSwiftLanguageVersionSupport(swiftLanguageVersionSupport.get());
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
         Compiler<SwiftCompileSpec> baseCompiler = platformToolProvider.newCompiler(SwiftCompileSpec.class);

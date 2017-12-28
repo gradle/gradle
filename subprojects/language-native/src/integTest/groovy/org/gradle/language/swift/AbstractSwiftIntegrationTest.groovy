@@ -16,6 +16,8 @@
 
 package org.gradle.language.swift
 
+import org.gradle.nativeplatform.fixtures.app.SourceFileElement
+import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.util.Matchers
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -47,7 +49,15 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
         failure.assertThatCause(Matchers.containsText("Swift compiler failed while compiling swift file(s)"))
     }
 
-    protected abstract List<String> getTasksToAssembleDevelopmentBinary()
-
     protected abstract String getDevelopmentBinaryCompileTask()
+
+    @Override
+    SourceFileElement getSwift3Component() {
+        return new Swift3()
+    }
+
+    @Override
+    String getTaskNameToAssembleDevelopmentBinary() {
+        return "assemble"
+    }
 }

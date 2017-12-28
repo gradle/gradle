@@ -56,13 +56,11 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
     private final WorkerLeaseService workerLeaseService;
     private final Map<NativePlatform, PlatformToolProvider> toolProviders = Maps.newHashMap();
 
-    public SwiftcToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver, ExecActionFactory execActionFactory,
-                           CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProvider<SwiftcMetadata> compilerMetaDataProvider, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
+    public SwiftcToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProvider<SwiftcMetadata> compilerMetaDataProvider, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
         this(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, new ToolSearchPath(operatingSystem), compilerMetaDataProvider, instantiator, workerLeaseService);
     }
 
-    SwiftcToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver, ExecActionFactory execActionFactory,
-                    CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, ToolSearchPath tools, CompilerMetaDataProvider<SwiftcMetadata> compilerMetaDataProvider, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
+    SwiftcToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, ToolSearchPath tools, CompilerMetaDataProvider<SwiftcMetadata> compilerMetaDataProvider, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
         super(name, buildOperationExecutor, operatingSystem, fileResolver);
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.compilerMetaDataProvider = compilerMetaDataProvider;

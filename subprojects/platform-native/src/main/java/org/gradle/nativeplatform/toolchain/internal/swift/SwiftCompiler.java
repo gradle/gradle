@@ -36,6 +36,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -49,11 +50,13 @@ import java.util.Map;
 class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final String objectFileExtension;
+    private final VersionNumber swiftCompilerVersion;
 
-    SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, WorkerLeaseService workerLeaseService) {
+    SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, WorkerLeaseService workerLeaseService, VersionNumber swiftCompilerVersion) {
         super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), false, workerLeaseService);
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.objectFileExtension = objectFileExtension;
+        this.swiftCompilerVersion = swiftCompilerVersion;
     }
 
     @Override
@@ -119,6 +122,9 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 if (spec.isOptimized()) {
                     genericArgs.add("-O");
                 }
+
+                genericArgs.add("-swift-version");
+                genericArgs.add(String.valueOf(spec.getSwiftLanguageVersionSupport().getVersion()));
 
                 CommandLineToolInvocation perFileInvocation =
                     newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs, importRootArgs), spec.getOperationLogger());

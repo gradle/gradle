@@ -17,9 +17,12 @@
 package org.gradle.language.swift
 
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
+import org.gradle.nativeplatform.fixtures.app.SourceFileElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
+import org.hamcrest.Matchers
+import org.junit.Assume
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
@@ -40,4 +43,62 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         expect:
         succeeds "verifyBinariesSwiftVersion"
     }
+
+    def "throws exception when modifying Swift component language support after the binaries are known"() {
+        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(4))
+
+        given:
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl} {
+                swiftLanguageVersionSupport = SwiftLanguageVersion.SWIFT3
+            }
+
+            ${componentUnderTestDsl}.binaries.whenElementKnown {
+                ${componentUnderTestDsl}.swiftLanguageVersionSupport = SwiftLanguageVersion.SWIFT4
+            }
+        """
+        settingsFile << "rootProject.name = 'swift-project'"
+
+        expect:
+        fails "verifyBinariesSwiftVersion"
+        failure.assertHasDescription("A problem occurred configuring root project 'swift-project'.")
+        failure.assertHasCause("This property is locked and cannot be changed.")
+    }
+
+    def "can build Swift 3 source code on Swift 4 compiler"() {
+        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(4))
+
+        given:
+        makeSingleProject()
+        swift3Component.writeToProject(testDirectory)
+        buildFile << """
+            ${componentUnderTestDsl} {
+                swiftLanguageVersionSupport = SwiftLanguageVersion.SWIFT3
+            }
+
+            task verifyBinariesSwiftVersion {
+                doLast {
+                    ${componentUnderTestDsl}.binaries.get().each {
+                        assert it.swiftLanguageVersion == SwiftLanguageVersion.SWIFT3
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = 'project'"
+
+        when:
+        succeeds "verifyBinariesSwiftVersion"
+        succeeds taskNameToAssembleDevelopmentBinary
+
+        then:
+        result.assertTasksExecuted(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksNotSkipped(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
+    }
+
+    abstract SourceFileElement getSwift3Component()
+
+    abstract String getTaskNameToAssembleDevelopmentBinary()
+
+    protected abstract List<String> getTasksToAssembleDevelopmentBinary()
 }
