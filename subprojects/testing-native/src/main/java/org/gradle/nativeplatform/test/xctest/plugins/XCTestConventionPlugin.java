@@ -136,7 +136,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             // Platform specific arguments
             compile.getCompilerArgs().addAll(project.provider(new Callable<List<String>>() {
                 @Override
-                public List<String> call() throws Exception {
+                public List<String> call() {
                     File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
                     return Arrays.asList("-parse-as-library", "-g", "-F" + frameworkDir.getAbsolutePath());
                 }
@@ -146,7 +146,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             final LinkMachOBundle link = tasks.create(names.getTaskName("link"), LinkMachOBundle.class);
             link.getLinkerArgs().set(project.provider(new Callable<List<String>>() {
                 @Override
-                public List<String> call() throws Exception {
+                public List<String> call() {
                     File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
                     return Lists.newArrayList("-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks");
                 }

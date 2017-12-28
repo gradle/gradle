@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
@@ -33,13 +34,18 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.nativeplatform.PublicationAwareComponent;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
@@ -57,6 +63,7 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.util.GUtil;
 
 import java.util.concurrent.Callable;
 
@@ -69,15 +76,15 @@ import static org.gradle.language.cpp.CppBinary.*;
  *
  * <ul>
  *
- * <li>Configures the {@value LifecycleBasePlugin#ASSEMBLE_TASK_NAME} task to build the development binary of the main component, if present. Expects the main component to be of type {@link ProductionComponent}.</li>
- *
- * <li>Adds tasks to compile and link an executable.</li>
-
- * <li>Adds tasks to compile and link a shared library.</li>
- *
- * <li>Adds tasks to compile and create a static library.</li>
+ * <li>Configures the {@value LifecycleBasePlugin#ASSEMBLE_TASK_NAME} task to build the development binary of the main component, if present. Expects the main component to be of type {@link ProductionComponent} and {@link ComponentWithBinaries}.</li>
  *
  * <li>Adds an {@code "assemble"} task for each binary of the main component.</li>
+ *
+ * <li>Adds tasks to compile and link an executable. Currently requires component implements internal API {@link ConfigurableComponentWithExecutable}.</li>
+
+ * <li>Adds tasks to compile and link a shared library. Currently requires component implements internal API {@link ConfigurableComponentWithSharedLibrary}.</li>
+ *
+ * <li>Adds tasks to compile and create a static library. Currently requires component implements internal API {@link ConfigurableComponentWithStaticLibrary}.</li>
  *
  * </ul>
  *
@@ -327,6 +334,47 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 }
 
                 component.getRuntimeElements().set(runtimeElements);
+            }
+        });
+
+        project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
+            @Override
+            public void execute(AppliedPlugin appliedPlugin) {
+                components.withType(PublicationAwareComponent.class, new Action<PublicationAwareComponent>() {
+                    @Override
+                    public void execute(final PublicationAwareComponent component) {
+                        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
+                            @Override
+                            public void execute(PublishingExtension publishing) {
+                                final ComponentWithVariants mainVariant = component.getMainPublication();
+                                publishing.getPublications().create("main", MavenPublication.class, new Action<MavenPublication>() {
+                                    @Override
+                                    public void execute(MavenPublication publication) {
+                                        // TODO - should track changes to these properties
+                                        publication.setGroupId(project.getGroup().toString());
+                                        publication.setArtifactId(component.getBaseName().get());
+                                        publication.setVersion(project.getVersion().toString());
+                                        publication.from(mainVariant);
+                                        ((MavenPublicationInternal) publication).publishWithOriginalFileName();
+                                    }
+                                });
+                                for (final SoftwareComponent child : mainVariant.getVariants()) {
+                                    publishing.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
+                                        @Override
+                                        public void execute(MavenPublication publication) {
+                                            // TODO - should track changes to these properties
+                                            publication.setGroupId(project.getGroup().toString());
+                                            publication.setArtifactId(component.getBaseName().get() + "_" + GUtil.toWords(child.getName(), '_'));
+                                            publication.setVersion(project.getVersion().toString());
+                                            publication.from(child);
+                                            ((MavenPublicationInternal) publication).publishWithOriginalFileName();
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
             }
         });
     }

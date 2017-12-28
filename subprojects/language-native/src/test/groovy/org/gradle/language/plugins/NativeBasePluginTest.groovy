@@ -17,18 +17,24 @@
 package org.gradle.language.plugins
 
 import org.gradle.api.Task
+import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.ComponentWithBinaries
 import org.gradle.language.ComponentWithOutputs
 import org.gradle.language.ProductionComponent
 import org.gradle.language.internal.DefaultBinaryCollection
+import org.gradle.language.nativeplatform.PublicationAwareComponent
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage
@@ -375,6 +381,59 @@ class NativeBasePluginTest extends Specification {
         project.configurations['debugWindowsRuntimeElements']
     }
 
+    def "adds Maven publications for component with main publication"() {
+        def usage1 = Stub(UsageContext)
+        usage1.artifacts >> [Stub(PublishArtifact)]
+
+        def variant1 = Stub(SoftwareComponentInternal)
+        variant1.name >> "debug"
+        variant1.usages >> [usage1]
+
+        def usage2 = Stub(UsageContext)
+        usage2.artifacts >> [Stub(PublishArtifact)]
+
+        def variant2 = Stub(SoftwareComponentInternal)
+        variant2.name >> "release"
+        variant2.usages >> [usage2]
+
+        def mainVariant = Stub(TestVariant)
+        mainVariant.name >> "main"
+        mainVariant.variants >> [variant1, variant2]
+
+        def component = Stub(PublicationAwareComponent)
+        component.mainPublication >> mainVariant
+        component.baseName >> Providers.of('test_app')
+
+        given:
+        project.pluginManager.apply(NativeBasePlugin)
+        project.pluginManager.apply(MavenPublishPlugin)
+        project.components.add(component)
+        project.group = "my.group"
+        project.version = "1.2"
+
+        expect:
+        def publishing = project.publishing
+        publishing.publications.size() == 3
+
+        def main = publishing.publications.main
+        main.groupId == 'my.group'
+        main.artifactId == 'test_app'
+        main.version == '1.2'
+        main.artifacts.empty
+
+        def debug = publishing.publications.debug
+        debug.groupId == 'my.group'
+        debug.artifactId == 'test_app_debug'
+        debug.version == '1.2'
+        debug.artifacts.size() == 1
+
+        def release = publishing.publications.release
+        release.groupId == 'my.group'
+        release.artifactId == 'test_app_release'
+        release.version == '1.2'
+        release.artifacts.size() == 1
+    }
+
     private ComponentWithOutputs binary(String name, String taskName) {
         def outputs = fileCollection(taskName)
         def binary = Stub(ComponentWithOutputs)
@@ -394,5 +453,8 @@ class NativeBasePluginTest extends Specification {
     }
 
     interface TestComponent extends ProductionComponent, ComponentWithBinaries {
+    }
+
+    interface TestVariant extends ComponentWithVariants, SoftwareComponentInternal {
     }
 }

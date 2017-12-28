@@ -87,6 +87,18 @@ allprojects { p ->
         return OperatingSystem.current().linkLibrarySuffix.substring(1)
     }
 
+    String staticLibraryName(Object path) {
+        return OperatingSystem.current().getStaticLibraryName(path.toString())
+    }
+
+    String withStaticLibrarySuffix(Object path) {
+        return path + OperatingSystem.current().staticLibrarySuffix
+    }
+
+    String getStaticLibraryExtension() {
+        return OperatingSystem.current().staticLibrarySuffix.substring(1)
+    }
+
     String withSharedLibrarySuffix(Object path) {
         return path + OperatingSystem.current().sharedLibrarySuffix
     }

@@ -106,7 +106,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
                     Configuration api = library.getApiDependencies();
 
-                    Configuration debugApiElements = configurations.maybeCreate("debugSwiftApiElements");
+                    Configuration debugApiElements = configurations.create("debugSwiftApiElements");
                     debugApiElements.extendsFrom(api);
                     debugApiElements.setCanBeResolved(false);
                     debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
@@ -114,7 +114,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                     debugApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, debugSharedLibrary.isOptimized());
                     debugApiElements.getOutgoing().artifact(compileDebug.getModuleFile());
 
-                    Configuration releaseApiElements = configurations.maybeCreate("releaseSwiftApiElements");
+                    Configuration releaseApiElements = configurations.create("releaseSwiftApiElements");
                     releaseApiElements.extendsFrom(api);
                     releaseApiElements.setCanBeResolved(false);
                     releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
@@ -136,7 +136,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
                         Configuration api = library.getApiDependencies();
 
-                        Configuration debugApiElements = configurations.maybeCreate("debugStaticSwiftApiElements");
+                        Configuration debugApiElements = configurations.create("debugStaticSwiftApiElements");
                         debugApiElements.extendsFrom(api);
                         debugApiElements.setCanBeResolved(false);
                         debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
@@ -144,7 +144,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                         debugApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, debugStaticLibrary.isOptimized());
                         debugApiElements.getOutgoing().artifact(compileDebug.getModuleFile());
 
-                        Configuration releaseApiElements = configurations.maybeCreate("releaseStaticSwiftApiElements");
+                        Configuration releaseApiElements = configurations.create("releaseStaticSwiftApiElements");
                         releaseApiElements.extendsFrom(api);
                         releaseApiElements.setCanBeResolved(false);
                         releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));

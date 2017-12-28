@@ -24,14 +24,16 @@ import org.gradle.api.provider.Property;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.nativeplatform.PublicationAwareComponent;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultCppApplication extends DefaultCppComponent implements CppApplication {
+public class DefaultCppApplication extends DefaultCppComponent implements CppApplication, PublicationAwareComponent {
     private final ObjectFactory objectFactory;
     private final Property<CppExecutable> developmentBinary;
+    private final MainExecutableVariant mainVariant = new MainExecutableVariant();
 
     @Inject
     public DefaultCppApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
@@ -44,6 +46,11 @@ public class DefaultCppApplication extends DefaultCppComponent implements CppApp
         DefaultCppExecutable result = objectFactory.newInstance(DefaultCppExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), debuggable, optimized, getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
+    }
+
+    @Override
+    public MainExecutableVariant getMainPublication() {
+        return mainVariant;
     }
 
     @Override
