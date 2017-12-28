@@ -623,7 +623,11 @@ dependencies { implementation 'some.group:greeter:1.2' }
         run("installDebug")
 
         then:
-        installation(consumer.file("build/install/main/debug")).exec().out == app.withFeatureDisabled().expectedOutput
+        def debugInstall = installation(consumer.file("build/install/main/debug"))
+        debugInstall.exec().out == app.withFeatureDisabled().expectedOutput
+        debugInstall.assertIncludesLibraries("greeting")
+        def debugLib = sharedLibrary(producer.file("build/lib/main/debug/greeting"))
+        sharedLibrary(consumer.file("build/install/main/debug/lib/greeting")).file.assertIsCopyOf(debugLib.file)
 
         when:
         executer.inDirectory(consumer)
@@ -631,6 +635,11 @@ dependencies { implementation 'some.group:greeter:1.2' }
 
         then:
         installation(consumer.file("build/install/main/release")).exec().out == app.withFeatureEnabled().expectedOutput
+        def releaseInstall = installation(consumer.file("build/install/main/release"))
+        releaseInstall.exec().out == app.withFeatureEnabled().expectedOutput
+        releaseInstall.assertIncludesLibraries("greeting")
+        def releaseLib = sharedLibrary(producer.file("build/lib/main/release/greeting"))
+        sharedLibrary(consumer.file("build/install/main/release/lib/greeting")).file.assertIsCopyOf(releaseLib.strippedRuntimeFile)
     }
 
 }
