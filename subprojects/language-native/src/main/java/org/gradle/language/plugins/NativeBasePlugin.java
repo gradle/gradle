@@ -45,13 +45,14 @@ import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
+import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary;
 import org.gradle.language.nativeplatform.internal.Names;
+import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
@@ -85,6 +86,12 @@ import static org.gradle.language.cpp.CppBinary.*;
  * <li>Adds tasks to compile and link a shared library. Currently requires component implements internal API {@link ConfigurableComponentWithSharedLibrary}.</li>
  *
  * <li>Adds tasks to compile and create a static library. Currently requires component implements internal API {@link ConfigurableComponentWithStaticLibrary}.</li>
+ *
+ * <li>Adds outgoing configuration and artifacts for link file. Currently requires component implements internal API {@link ConfigurableComponentWithLinkUsage}.</li>
+ *
+ * <li>Adds outgoing configuration and artifacts for runtime file. Currently requires component implements internal API {@link ConfigurableComponentWithRuntimeUsage}.</li>
+ *
+ * <li>Maven publications. Currently requires component implements internal API {@link PublicationAwareComponent}.</li>
  *
  * </ul>
  *
@@ -121,7 +128,8 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                         public void execute(ComponentWithOutputs binary) {
                             // Determine which output to produce at development time.
                             FileCollection outputs = binary.getOutputs();
-                            Task lifecycleTask = tasks.create(Names.of(binary.getName()).getTaskName("assemble"));
+                            Names names = ((ComponentWithNames) binary).getNames();
+                            Task lifecycleTask = tasks.create(names.getTaskName("assemble"));
                             lifecycleTask.dependsOn(outputs);
                             if (binary == ((ProductionComponent) component).getDevelopmentBinary().get()) {
                                 tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(outputs);
@@ -137,7 +145,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         components.withType(ConfigurableComponentWithExecutable.class, new Action<ConfigurableComponentWithExecutable>() {
             @Override
             public void execute(final ConfigurableComponentWithExecutable executable) {
-                final Names names = Names.of(executable.getName());
+                final Names names = executable.getNames();
                 NativeToolChain toolChain = executable.getToolChain();
                 NativePlatform targetPlatform = executable.getTargetPlatform();
 
@@ -199,7 +207,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         components.withType(ConfigurableComponentWithSharedLibrary.class, new Action<ConfigurableComponentWithSharedLibrary>() {
             @Override
             public void execute(final ConfigurableComponentWithSharedLibrary library) {
-                final Names names = Names.of(library.getName());
+                final Names names = library.getNames();
                 NativePlatform targetPlatform = library.getTargetPlatform();
                 NativeToolChain toolChain = library.getToolChain();
 
@@ -264,7 +272,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         components.withType(ConfigurableComponentWithStaticLibrary.class, new Action<ConfigurableComponentWithStaticLibrary>() {
             @Override
             public void execute(final ConfigurableComponentWithStaticLibrary library) {
-                final Names names = Names.of(library.getName());
+                final Names names = library.getNames();
 
                 // Add a create task
                 final CreateStaticLibrary createTask = tasks.create(names.getTaskName("create"), CreateStaticLibrary.class);
@@ -299,7 +307,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         components.withType(ConfigurableComponentWithLinkUsage.class, new Action<ConfigurableComponentWithLinkUsage>() {
             @Override
             public void execute(ConfigurableComponentWithLinkUsage component) {
-                Names names = Names.of(component.getName());
+                Names names = component.getNames();
 
                 Configuration linkElements = configurations.create(names.withSuffix("linkElements"));
                 linkElements.extendsFrom(component.getImplementationDependencies());
@@ -318,7 +326,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         components.withType(ConfigurableComponentWithRuntimeUsage.class, new Action<ConfigurableComponentWithRuntimeUsage>() {
             @Override
             public void execute(ConfigurableComponentWithRuntimeUsage component) {
-                Names names = Names.of(component.getName());
+                Names names = component.getNames();
 
                 Configuration runtimeElements = configurations.create(names.withSuffix("runtimeElements"));
                 runtimeElements.extendsFrom(component.getImplementationDependencies());

@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 /**
  * A configurable view of a component that has a runtime usage. This should become public in some form.
  */
-public interface ConfigurableComponentWithRuntimeUsage extends ComponentWithRuntimeUsage {
+public interface ConfigurableComponentWithRuntimeUsage extends ComponentWithRuntimeUsage, ComponentWithNames {
     Configuration getImplementationDependencies();
 
     @Nullable

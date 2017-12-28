@@ -51,7 +51,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
         linkage = new LockableSetProperty<Linkage>(objectFactory.setProperty(Linkage.class));
         linkage.add(Linkage.SHARED);
 
-        api = configurations.maybeCreate(getNames().withSuffix("api"));
+        api = configurations.create(getNames().withSuffix("api"));
         api.setCanBeConsumed(false);
         api.setCanBeResolved(false);
         getImplementationDependencies().extendsFrom(api);

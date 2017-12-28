@@ -36,7 +36,7 @@ class DefaultCppComponentTest extends Specification {
     DefaultCppComponent component
 
     def setup() {
-        _ * configurations.maybeCreate("implementation") >> implementation
+        _ * configurations.create("implementation") >> implementation
         component = new TestComponent("main", fileOperations, objectFactory, configurations)
     }
 

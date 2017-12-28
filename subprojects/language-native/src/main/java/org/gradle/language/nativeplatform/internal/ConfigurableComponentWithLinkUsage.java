@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 /**
  * A configurable view of a component that has a link usage. This should become public in some form.
  */
-public interface ConfigurableComponentWithLinkUsage extends ComponentWithLinkUsage {
+public interface ConfigurableComponentWithLinkUsage extends ComponentWithLinkUsage, ComponentWithNames {
     Configuration getImplementationDependencies();
 
     @Nullable

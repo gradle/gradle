@@ -30,6 +30,7 @@ import org.gradle.internal.Cast;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.internal.DefaultBinaryCollection;
+import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
 
@@ -37,7 +38,7 @@ import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
-public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent {
+public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent, ComponentWithNames {
     private final FileCollection cppSource;
     private final String name;
     private final FileOperations fileOperations;
@@ -59,14 +60,15 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         baseName = objectFactory.property(String.class);
 
         names = Names.of(name);
-        implementation = configurations.maybeCreate(names.withSuffix("implementation"));
+        implementation = configurations.create(names.withSuffix("implementation"));
         implementation.setCanBeConsumed(false);
         implementation.setCanBeResolved(false);
 
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
     }
 
-    protected Names getNames() {
+    @Override
+    public Names getNames() {
         return names;
     }
 

@@ -34,12 +34,14 @@ import org.gradle.language.ComponentWithBinaries
 import org.gradle.language.ComponentWithOutputs
 import org.gradle.language.ProductionComponent
 import org.gradle.language.internal.DefaultBinaryCollection
-import org.gradle.language.nativeplatform.internal.PublicationAwareComponent
+import org.gradle.language.nativeplatform.internal.ComponentWithNames
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary
+import org.gradle.language.nativeplatform.internal.Names
+import org.gradle.language.nativeplatform.internal.PublicationAwareComponent
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary
 import org.gradle.nativeplatform.tasks.ExtractSymbols
@@ -154,6 +156,7 @@ class NativeBasePluginTest extends Specification {
 
         def staticLib = Stub(ConfigurableComponentWithStaticLibrary)
         staticLib.name >> "windowsDebug"
+        staticLib.names >> Names.of("windowsDebug")
         staticLib.targetPlatform >> Stub(NativePlatformInternal)
         staticLib.toolChain >> Stub(NativeToolChainInternal)
         staticLib.platformToolProvider >> toolProvider
@@ -184,6 +187,7 @@ class NativeBasePluginTest extends Specification {
 
         def sharedLibrary = Stub(ConfigurableComponentWithSharedLibrary)
         sharedLibrary.name >> "windowsDebug"
+        sharedLibrary.names >> Names.of("windowsDebug")
         sharedLibrary.targetPlatform >> Stub(NativePlatformInternal)
         sharedLibrary.toolChain >> Stub(NativeToolChainInternal)
         sharedLibrary.platformToolProvider >> toolProvider
@@ -216,6 +220,7 @@ class NativeBasePluginTest extends Specification {
 
         def sharedLibrary = Stub(ConfigurableComponentWithSharedLibrary)
         sharedLibrary.name >> "windowsDebug"
+        sharedLibrary.names >> Names.of("windowsDebug")
         sharedLibrary.debuggable >> true
         sharedLibrary.optimized >> true
         sharedLibrary.targetPlatform >> Stub(NativePlatformInternal)
@@ -261,6 +266,7 @@ class NativeBasePluginTest extends Specification {
 
         def executable = Stub(ConfigurableComponentWithExecutable)
         executable.name >> "windowsDebug"
+        executable.names >> Names.of("windowsDebug")
         executable.targetPlatform >> Stub(NativePlatformInternal)
         executable.toolChain >> Stub(NativeToolChainInternal)
         executable.platformToolProvider >> toolProvider
@@ -309,6 +315,7 @@ class NativeBasePluginTest extends Specification {
 
         def executable = Stub(ConfigurableComponentWithExecutable)
         executable.name >> "windowsDebug"
+        executable.names >> Names.of("windowsDebug")
         executable.debuggable >> true
         executable.optimized >> true
         executable.targetPlatform >> Stub(NativePlatformInternal)
@@ -358,6 +365,7 @@ class NativeBasePluginTest extends Specification {
     def "adds outgoing configuration for component with link usage"() {
         def component = Stub(ConfigurableComponentWithLinkUsage)
         component.name >> "debugWindows"
+        component.names >> Names.of("debugWindows")
         component.implementationDependencies >> Stub(ConfigurationInternal)
 
         given:
@@ -371,6 +379,7 @@ class NativeBasePluginTest extends Specification {
     def "adds outgoing configuration for component with runtime usage"() {
         def component = Stub(ConfigurableComponentWithRuntimeUsage)
         component.name >> "debugWindows"
+        component.names >> Names.of("debugWindows")
         component.implementationDependencies >> Stub(ConfigurationInternal)
 
         given:
@@ -436,8 +445,9 @@ class NativeBasePluginTest extends Specification {
 
     private ComponentWithOutputs binary(String name, String taskName) {
         def outputs = fileCollection(taskName)
-        def binary = Stub(ComponentWithOutputs)
+        def binary = Stub(TestBinary)
         binary.name >> name
+        binary.names >> Names.of(name)
         binary.outputs >> outputs
         return binary
     }
@@ -450,6 +460,9 @@ class NativeBasePluginTest extends Specification {
         def outputs = Stub(FileCollection)
         outputs.buildDependencies >> deps
         return outputs
+    }
+
+    interface TestBinary extends ComponentWithOutputs, ComponentWithNames {
     }
 
     interface TestComponent extends ProductionComponent, ComponentWithBinaries {
