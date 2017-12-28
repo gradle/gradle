@@ -302,7 +302,7 @@ Let's say you want to create tasks for your project that use the link:https://ww
 ++++
 <sample id="dependencyReport" dir="userguide/dependencies/dependenciesReport" title="Rendering the dependency report for a custom configuration">
     <sourcefile file="build.gradle" snippet="dependency-declaration" />
-    <output args="dependencies --configuration scm"/>
+    <output args="-q dependencies --configuration scm"/>
 </sample>
 ++++
 
@@ -333,7 +333,7 @@ A project may request two different versions of the same dependency either as di
 ++++
 <sample id="dependencyInsightReport" dir="userguide/dependencies/dependencyInsightReport" title="Using the dependency insight report for a given dependency">
     <sourcefile file="build.gradle" snippet="dependency-declaration" />
-    <output args="dependencyInsight --dependency commons-codec --configuration scm"/>
+    <output args="-q dependencyInsight --dependency commons-codec --configuration scm"/>
 </sample>
 ++++
 
