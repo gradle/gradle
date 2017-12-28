@@ -16,10 +16,10 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
-
 
 class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
     def "can publish the binaries and headers of a library to a Maven repository"() {
@@ -50,7 +50,7 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractCppInst
         then:
         result.assertTasksExecuted(
             ':compileDebugSharedCpp', ':linkDebugShared',
-            ':compileReleaseSharedCpp', ':linkReleaseShared', ':stripSymbolsReleaseShared',
+            ':compileReleaseSharedCpp', ':linkReleaseShared', stripSymbolsTasks('ReleaseShared', toolChain),
             ':compileDebugStaticCpp', ':createDebugStatic',
             ':compileReleaseStaticCpp', ':createReleaseStatic',
             ":generatePomFileForDebugSharedPublication",
@@ -149,5 +149,70 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractCppInst
         releaseStaticMetadata.variants.size() == 2
         releaseStaticMetadata.variant('releaseStatic-link')
         releaseStaticMetadata.variant('releaseStatic-runtime')
+    }
+
+    def "correct variant of published library is selected when resolving"() {
+        def app = new CppAppWithLibraryAndOptionalFeature()
+
+        def repoDir = file("repo")
+        def producer = file("greeting")
+        producer.file("build.gradle") << """
+            apply plugin: 'cpp-library'
+            apply plugin: 'maven-publish'
+            
+            group = 'some.group'
+            version = '1.2'
+            publishing {
+                repositories { maven { url '${repoDir.toURI()}' } }
+            }
+            
+            library {
+                linkage = [Linkage.STATIC, Linkage.SHARED]
+                binaries.configureEach {
+                    if (optimized) {
+                        compileTask.get().macros(WITH_FEATURE: "true")
+                    }
+                }
+            }
+        """
+        app.greeterLib.writeToProject(file(producer))
+
+        executer.inDirectory(producer)
+        run('publish')
+
+        def consumer = file("consumer").createDir()
+        consumer.file("build.gradle") << """
+            apply plugin: 'cpp-application'
+            repositories { maven { url '${repoDir.toURI()}' } }
+            dependencies { implementation 'some.group:greeting:1.2' }
+            application {
+                binaries.get { it.optimized }.configure {
+                    compileTask.get().macros(WITH_FEATURE: "true")
+                }
+            }
+        """
+        app.main.writeToProject(consumer)
+
+        when:
+        executer.inDirectory(consumer)
+        run("installDebug")
+
+        then:
+        def debugInstall = installation(consumer.file("build/install/main/debug"))
+        debugInstall.exec().out == app.withFeatureDisabled().expectedOutput
+        debugInstall.assertIncludesLibraries("greeting")
+        def debugLib = sharedLibrary(producer.file("build/lib/main/debug/shared/greeting"))
+        sharedLibrary(consumer.file("build/install/main/debug/lib/greeting")).file.assertIsCopyOf(debugLib.file)
+
+        when:
+        executer.inDirectory(consumer)
+        run("installRelease")
+
+        then:
+        def releaseInstall = installation(consumer.file("build/install/main/release"))
+        releaseInstall.exec().out == app.withFeatureEnabled().expectedOutput
+        releaseInstall.assertIncludesLibraries("greeting")
+        def releaseLib = sharedLibrary(producer.file("build/lib/main/release/shared/greeting"))
+        sharedLibrary(consumer.file("build/install/main/release/lib/greeting")).file.assertIsCopyOf(releaseLib.strippedRuntimeFile)
     }
 }

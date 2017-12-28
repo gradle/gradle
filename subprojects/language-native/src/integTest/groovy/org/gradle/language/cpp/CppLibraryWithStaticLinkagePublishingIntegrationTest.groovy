@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -123,5 +124,66 @@ class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractCppIn
         def releaseRuntime = releaseMetadata.variant('release-runtime')
         releaseRuntime.dependencies.empty
         releaseRuntime.files.empty
+    }
+
+    def "correct variant of published library is selected when resolving"() {
+        def app = new CppAppWithLibraryAndOptionalFeature()
+
+        def repoDir = file("repo")
+        def producer = file("greeting")
+        producer.file("build.gradle") << """
+            apply plugin: 'cpp-library'
+            apply plugin: 'maven-publish'
+            
+            group = 'some.group'
+            version = '1.2'
+            publishing {
+                repositories { maven { url '${repoDir.toURI()}' } }
+            }
+            
+            library {
+                linkage = [Linkage.STATIC]
+                binaries.configureEach {
+                    if (optimized) {
+                        compileTask.get().macros(WITH_FEATURE: "true")
+                    }
+                }
+            }
+        """
+        app.greeterLib.writeToProject(file(producer))
+
+        executer.inDirectory(producer)
+        run('publish')
+
+        def consumer = file("consumer").createDir()
+        consumer.file("build.gradle") << """
+            apply plugin: 'cpp-application'
+            repositories { maven { url '${repoDir.toURI()}' } }
+            dependencies { implementation 'some.group:greeting:1.2' }
+            application {
+                binaries.get { it.optimized }.configure {
+                    compileTask.get().macros(WITH_FEATURE: "true")
+                }
+            }
+        """
+        app.main.writeToProject(consumer)
+
+        when:
+        executer.inDirectory(consumer)
+        run("installDebug")
+
+        then:
+        def debugInstall = installation(consumer.file("build/install/main/debug"))
+        debugInstall.exec().out == app.withFeatureDisabled().expectedOutput
+        debugInstall.assertIncludesLibraries()
+
+        when:
+        executer.inDirectory(consumer)
+        run("installRelease")
+
+        then:
+        def releaseInstall = installation(consumer.file("build/install/main/release"))
+        releaseInstall.exec().out == app.withFeatureEnabled().expectedOutput
+        releaseInstall.assertIncludesLibraries()
     }
 }

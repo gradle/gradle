@@ -221,7 +221,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolCh
         executable.exec().out == app.expectedOutput
     }
 
-    def "uses the basename to calculate the coords"() {
+    def "uses the basename to calculate the coordinates"() {
         def app = new CppAppWithLibrary()
 
         given:
