@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform;
+package org.gradle.language.nativeplatform.internal;
 
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
