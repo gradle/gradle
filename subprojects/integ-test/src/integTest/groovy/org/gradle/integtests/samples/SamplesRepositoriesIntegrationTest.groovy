@@ -13,29 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
-import org.junit.Test
 
-import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.assertThat
+class SamplesRepositoriesIntegrationTest extends AbstractIntegrationSpec {
 
-class SamplesRepositoriesIntegrationTest extends AbstractIntegrationTest {
+    @Rule
+    Sample sample = new Sample(testDirectoryProvider)
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'userguide/artifacts/defineRepository')
-
-    @Test
-    public void repositoryNotations() {
+    @UsesSample("userguide/artifacts/defineRepository")
+    def "can use repositories notation"() {
         // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
         // code snippets from this build script in the user's guide.
-        File projectDir = sample.dir
-        String output = executer.inDirectory(projectDir).withQuietLogging().withTasks('lookup').run().output
-        assertThat(output, equalTo("""localRepository
-localRepository
-"""))
+        executer.inDirectory(sample.dir)
+
+        expect:
+        succeeds('lookup')
     }
 }
