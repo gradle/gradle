@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
+package org.gradle.language.nativeplatform;
 
-import org.gradle.api.Incubating;
-
-import java.util.Set;
+import org.gradle.api.component.ComponentWithVariants;
+import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.provider.Provider;
 
 /**
- * Represents a {@link SoftwareComponent} that provides one or more mutually exclusive children, or variants.
- *
- * @since 4.3
+ * This should become public at some point.
  */
-@Incubating
-public interface ComponentWithVariants extends SoftwareComponent {
-    Set<? extends SoftwareComponent> getVariants();
+public interface PublicationAwareComponent extends SoftwareComponent {
+    Provider<String> getBaseName();
+
+    ComponentWithVariants getMainPublication();
 }

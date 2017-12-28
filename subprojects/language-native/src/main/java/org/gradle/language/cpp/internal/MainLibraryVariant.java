@@ -26,19 +26,19 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class MainLibraryVariant implements ComponentWithVariants, SoftwareComponentInternal {
     private final Set<SoftwareComponent> variants = new HashSet<SoftwareComponent>();
     private final String name;
     private final Usage usage;
-    private final Set<? extends PublishArtifact> artifacts;
+    private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final Configuration dependencies;
 
-    public MainLibraryVariant(String name, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration dependencies) {
+    public MainLibraryVariant(String name, Usage usage, Configuration dependencies) {
         this.name = name;
         this.usage = usage;
-        this.artifacts = artifacts;
         this.dependencies = dependencies;
     }
 
@@ -55,6 +55,10 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     @Override
     public Set<? extends SoftwareComponent> getVariants() {
         return variants;
+    }
+
+    public void addArtifact(PublishArtifact artifact) {
+        artifacts.add(artifact);
     }
 
     /**
