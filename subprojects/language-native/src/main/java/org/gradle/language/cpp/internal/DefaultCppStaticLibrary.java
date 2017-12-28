@@ -21,23 +21,31 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.CppStaticLibrary;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary;
+import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStaticLibrary, ConfigurableComponentWithStaticLibrary {
+public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStaticLibrary, ConfigurableComponentWithStaticLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage {
     private final RegularFileProperty linkFile;
     private final Property<CreateStaticLibrary> createTaskProperty;
+    private final Property<Configuration> linkElements;
+    private final Property<Configuration> runtimeElements;
     private final ConfigurableFileCollection outputs;
 
     @Inject
@@ -45,6 +53,8 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
         super(name, projectLayout, objectFactory, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.linkFile = projectLayout.fileProperty();
         this.createTaskProperty = objectFactory.property(CreateStaticLibrary.class);
+        this.linkElements = objectFactory.property(Configuration.class);
+        this.runtimeElements = objectFactory.property(Configuration.class);
         this.outputs = fileOperations.files();
     }
 
@@ -61,5 +71,31 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     @Override
     public Property<CreateStaticLibrary> getCreateTask() {
         return createTaskProperty;
+    }
+
+    @Override
+    public Property<Configuration> getLinkElements() {
+        return linkElements;
+    }
+
+    @Override
+    public Property<Configuration> getRuntimeElements() {
+        return runtimeElements;
+    }
+
+    @Nullable
+    @Override
+    public Linkage getLinkage() {
+        return Linkage.STATIC;
+    }
+
+    @Override
+    public boolean hasRuntimeFile() {
+        return false;
+    }
+
+    @Override
+    public Provider<RegularFile> getRuntimeFile() {
+        return Providers.notDefined();
     }
 }

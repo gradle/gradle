@@ -60,6 +60,7 @@ public class DefaultCppBinary implements CppBinary {
     private final PlatformToolProvider platformToolProvider;
     private final Configuration includePathConfiguration;
     private final Property<CppCompile> compileTaskProperty;
+    private final Configuration implementation;
 
     public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         this.name = name;
@@ -71,6 +72,7 @@ public class DefaultCppBinary implements CppBinary {
         this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
+        this.implementation = implementation;
         this.compileTaskProperty = objects.property(CppCompile.class);
 
         Names names = Names.of(name);
@@ -157,6 +159,10 @@ public class DefaultCppBinary implements CppBinary {
     @Override
     public FileCollection getRuntimeLibraries() {
         return runtimeLibraries;
+    }
+
+    public Configuration getImplementationDependencies() {
+        return implementation;
     }
 
     public DirectoryProperty getObjectsDir() {

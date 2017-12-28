@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift.plugins
 
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftPlatform
@@ -101,6 +102,7 @@ class SwiftBasePluginTest extends Specification {
         library.baseName >> Providers.of("test_lib")
         library.targetPlatform >> Stub(SwiftPlatformInternal)
         library.platformToolProvider >> new TestPlatformToolProvider()
+        library.implementationDependencies >> Stub(ConfigurationInternal)
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)

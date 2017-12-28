@@ -72,6 +72,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
     private final NativeToolChainInternal toolChain;
     private final PlatformToolProvider platformToolProvider;
     private final Configuration importPathConfiguration;
+    private final Configuration implementation;
 
     public DefaultSwiftBinary(String name, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         this.name = name;
@@ -85,6 +86,7 @@ public class DefaultSwiftBinary implements SwiftBinary {
         this.compileTaskProperty = objectFactory.property(SwiftCompile.class);
         this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
+        this.implementation = implementation;
         this.platformToolProvider = platformToolProvider;
 
         Names names = Names.of(name);
@@ -200,6 +202,10 @@ public class DefaultSwiftBinary implements SwiftBinary {
 
     public PlatformToolProvider getPlatformToolProvider() {
         return platformToolProvider;
+    }
+
+    public Configuration getImplementationDependencies() {
+        return implementation;
     }
 
     @Inject

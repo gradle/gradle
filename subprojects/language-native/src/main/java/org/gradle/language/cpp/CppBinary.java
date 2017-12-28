@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
+import org.gradle.nativeplatform.Linkage;
 
 /**
  * A binary built from C++ source and linked from the resulting object files.
@@ -41,6 +42,13 @@ public interface CppBinary extends ComponentWithObjectFiles {
      * @since 4.5
      */
     Attribute<Boolean> OPTIMIZED_ATTRIBUTE = Attribute.of("org.gradle.native.optimized", Boolean.class);
+
+    /**
+     * The dependency resolution attribute use to indicate which linkage a binary uses.
+     *
+     * @since 4.5
+     */
+    Attribute<Linkage> LINKAGE_ATTRIBUTE = Attribute.of("org.gradle.native.linkage", Linkage.class);
 
     /**
      * Returns the C++ source files of this binary.

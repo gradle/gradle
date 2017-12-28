@@ -18,6 +18,8 @@ package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.nativeplatform.ComponentWithLinkUsage;
+import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.ComponentWithStaticLibrary;
 
 /**
@@ -26,5 +28,5 @@ import org.gradle.language.nativeplatform.ComponentWithStaticLibrary;
  * @since 4.5
  */
 @Incubating
-public interface CppStaticLibrary extends CppBinary, ComponentWithStaticLibrary, ComponentWithOutputs {
+public interface CppStaticLibrary extends CppBinary, ComponentWithStaticLibrary, ComponentWithLinkUsage, ComponentWithRuntimeUsage, ComponentWithOutputs {
 }

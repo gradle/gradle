@@ -25,6 +25,9 @@ import org.gradle.language.nativeplatform.ComponentWithStaticLibrary;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+/**
+ * A configurable view of a component that produces a static library. This should become public in some form.
+ */
 public interface ConfigurableComponentWithStaticLibrary extends ComponentWithStaticLibrary, ComponentWithObjectFiles, ComponentWithOutputs {
     PlatformToolProvider getPlatformToolProvider();
 

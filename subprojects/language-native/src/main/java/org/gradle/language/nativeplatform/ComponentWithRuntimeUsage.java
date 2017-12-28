@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp;
+package org.gradle.language.nativeplatform;
 
 import org.gradle.api.Incubating;
-import org.gradle.language.ComponentWithOutputs;
-import org.gradle.language.nativeplatform.ComponentWithLinkUsage;
-import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
-import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.provider.Provider;
 
 /**
- * A shared library built from C++ source.
+ * Represents a native component whose runtime file and dependencies are published for consumption by some other project.
  *
- * @since 4.2
+ * @since 4.5
  */
 @Incubating
-public interface CppSharedLibrary extends CppBinary, ComponentWithSharedLibrary, ComponentWithLinkUsage, ComponentWithRuntimeUsage, ComponentWithOutputs {
+public interface ComponentWithRuntimeUsage extends ComponentWithNativeRuntime {
+    /**
+     * Returns the outgoing runtime elements of this component.
+     */
+    Provider<Configuration> getRuntimeElements();
 }

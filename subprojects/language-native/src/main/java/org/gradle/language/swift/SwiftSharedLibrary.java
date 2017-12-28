@@ -18,6 +18,8 @@ package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.nativeplatform.ComponentWithLinkUsage;
+import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
 
 /**
@@ -26,5 +28,5 @@ import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
  * @since 4.2
  */
 @Incubating
-public interface SwiftSharedLibrary extends SwiftBinary, ComponentWithSharedLibrary,  ComponentWithOutputs {
+public interface SwiftSharedLibrary extends SwiftBinary, ComponentWithSharedLibrary, ComponentWithRuntimeUsage, ComponentWithLinkUsage, ComponentWithOutputs {
 }
