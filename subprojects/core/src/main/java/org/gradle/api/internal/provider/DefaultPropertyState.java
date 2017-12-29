@@ -23,7 +23,7 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
-public class DefaultPropertyState<T> implements PropertyInternal, PropertyState<T>, ProviderInternal<T> {
+public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertyState<T>, ProviderInternal<T> {
     private final Class<T> type;
     private Provider<? extends T> provider = Providers.notDefined();
 
