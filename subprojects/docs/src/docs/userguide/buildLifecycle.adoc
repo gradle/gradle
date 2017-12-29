@@ -99,7 +99,7 @@ The `includeFlat` method takes directory names as an argument. These directories
 The multi-project tree created in the settings file is made up of so called _project descriptors_. You can modify these descriptors in the settings file at any time. To access a descriptor you can do:
 
 ++++
-<sample id="customLayout" dir="userguide/multiproject/customLayout" title="Modification of elements of the project tree">
+<sample id="customLayout" dir="userguide/multiproject/customLayout" title="Lookup of elements of the project tree">
                 <sourcefile file="settings.gradle" snippet="lookup-project"/>
             </sample>
 ++++

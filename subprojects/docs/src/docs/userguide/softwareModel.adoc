@@ -231,7 +231,7 @@ Managed properties can be of any scalar type. In addition, properties can also b
 | Only if read/write
 |
 ++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="a managed set">
+<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="a scalar collection">
     <sourcefile file="build.gradle" snippet="property-type-collection-scalar"/>
 </sample>
 ++++
