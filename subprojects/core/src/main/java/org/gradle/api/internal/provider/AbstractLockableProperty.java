@@ -22,6 +22,7 @@ public abstract class AbstractLockableProperty<T> extends AbstractProvider<T> im
     private PropertyInternal<T> delegate;
     private boolean locked;
     private T value;
+    private Class<T> type;
 
     public AbstractLockableProperty(PropertyInternal<T> delegate) {
         this.delegate = delegate;
@@ -36,7 +37,7 @@ public abstract class AbstractLockableProperty<T> extends AbstractProvider<T> im
     @Nullable
     @Override
     public Class<T> getType() {
-        return delegate.getType();
+        return locked ? type : delegate.getType();
     }
 
     @Nullable
@@ -49,6 +50,7 @@ public abstract class AbstractLockableProperty<T> extends AbstractProvider<T> im
         locked = true;
         T currentValue = delegate.getOrNull();
         value = currentValue == null ? null : immutableCopy(currentValue);
+        type = delegate.getType();
         delegate = null;
     }
 

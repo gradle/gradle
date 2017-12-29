@@ -43,6 +43,12 @@ abstract class LockablePropertySpec<T> extends Specification {
 
     def "delegates to original property before property is locked"() {
         when:
+        property.getType()
+
+        then:
+        1 * target.getType()
+
+        when:
         property.set(someValue())
 
         then:
@@ -130,6 +136,7 @@ abstract class LockablePropertySpec<T> extends Specification {
 
         then:
         1 * target.getOrNull() >> { value }
+        1 * target.getType()
         0 * target._
 
         when:
@@ -153,6 +160,7 @@ abstract class LockablePropertySpec<T> extends Specification {
 
         then:
         1 * target.getOrNull() >> null
+        1 * target.getType()
         0 * target._
 
         when:
@@ -177,6 +185,7 @@ abstract class LockablePropertySpec<T> extends Specification {
 
         then:
         1 * target.getOrNull() >> { value }
+        1 * target.getType()
         0 * target._
 
         when:
@@ -195,5 +204,14 @@ abstract class LockablePropertySpec<T> extends Specification {
         1 * transformer.transform(toImmutable(someValue())) >> 46
         1 * transformer.transform(toImmutable(someValue())) >> 47
         0 * target._
+    }
+
+    def "can query type from original property locked"() {
+        given:
+        target.getType() >> String
+        property.lockNow()
+
+        expect:
+        property.getType() == String
     }
 }
