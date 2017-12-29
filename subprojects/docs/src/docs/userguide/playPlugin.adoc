@@ -333,7 +333,7 @@ Of course, pay attention to keep Play version and Scala version for the dependen
 You can further configure the default source sets to do things like add new directories, add filters, etc.
 
 ++++
-<sample id="addExtraPlaySourcesets" dir="play/sourcesets" title="Adding extra source sets to a Play application">
+<sample id="addExtraPlaySourcesets" dir="play/sourcesets" title="Configuring extra source sets to a Play application">
     <sourcefile file="build.gradle" snippet="default-sourcesets"/>
 </sample>
 ++++

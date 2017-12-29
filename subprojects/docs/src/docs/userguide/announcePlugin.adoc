@@ -30,7 +30,7 @@ The Gradle announce plugin allows you to send custom announcements during a buil
 To use the announce plugin, apply it to your build script:
 
 ++++
-<sample id="useAnnouncePlugin" dir="announce" title="Using the announce plugin">
+<sample id="useAnnouncePlugin" dir="announce" title="Applying the announce plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
 ++++

@@ -372,14 +372,16 @@ But trying to compile a component _brokenclient_ that declares a dependency onto
             </sample>
 ++++
 
-On the other hand, if _Person.java_ in _client_ is updated and its API hasn't changed, _client_ will not be recompiled. This is in particular important for incremental builds of large projects, where we can avoid the compilation of dependencies in chain, and then dramatically reduce build duration:
+On the other hand, if _Person.java_ in _client_ is updated and its API hasn't changed, _client_ will not be recompiled.
 
 ++++
-<sample id="apiSpecification-client" dir="javaLibraryPlugin/apispec-support" title="Recompiling the client">
+<sample id="apiSpecification-client" dir="javaLibraryPlugin/apispec-support" title="Making non-API implementation-only change">
                 <sourcefile file="src/main/java/org/gradle/Person.java"/>
                 <output args=":updateMainComponent" ignoreExtraLines="true" hidden="true" outputFile="buildingJavaLibraries-updateSources.out"/>
             </sample>
 ++++
+
+This is in particular important for incremental builds of large projects, where we can avoid the compilation of dependencies in chain, and then dramatically reduce build duration:
 
 ++++
 <sample id="apiSpecification-client" dir="javaLibraryPlugin/apispec" title="Recompiling the client">
