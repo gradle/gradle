@@ -38,6 +38,7 @@ import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginManager
 
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.PropertyState
 
@@ -195,6 +196,17 @@ operator fun Project.getValue(any: Any, property: KProperty<*>): Any? =
 inline
 fun <reified T> ObjectFactory.property(): Property<T> =
     property(T::class.java)
+
+
+/**
+ * Creates a [ListProperty] that holds values of the given type [T].
+ *
+ * @see [ObjectFactory.listProperty]
+ */
+@Incubating
+inline
+fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
+    listProperty(T::class.java)
 
 
 /**
