@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.metadata;
+package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
-import org.gradle.util.VersionNumber;
-
-public interface CompilerMetadata extends ToolSearchResult {
-    String getVendor();
-
-    VersionNumber getVersion();
+class SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest {
+    @Override
+    protected void makeSingleProject() {
+        buildFile << """
+            apply plugin: 'xctest'
+            apply plugin: 'swift-library'
+            library.linkage = [Linkage.SHARED, Linkage.STATIC]
+        """
+    }
 }

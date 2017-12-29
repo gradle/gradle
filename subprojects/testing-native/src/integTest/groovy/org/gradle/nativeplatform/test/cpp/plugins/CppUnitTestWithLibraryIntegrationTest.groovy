@@ -40,11 +40,6 @@ class CppUnitTestWithLibraryIntegrationTest extends AbstractNativeUnitTestIntegr
         """
     }
 
-    @Override
-    protected String getMainComponentDsl() {
-        return "unitTest"
-    }
-
     @Unroll
     def "can run test executable using lifecycle task #task"() {
         def app = new CppHelloWorldApp()

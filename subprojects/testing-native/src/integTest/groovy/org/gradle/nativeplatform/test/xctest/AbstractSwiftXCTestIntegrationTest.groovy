@@ -26,7 +26,6 @@ import spock.lang.Unroll
 
 @Requires([TestPrecondition.SWIFT_SUPPORT])
 abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
-
     TestExecutionResult getTestExecutionResult() {
         return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
     }
@@ -68,11 +67,6 @@ abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTest
         then:
         result.assertTasksExecuted(tasksToBuildAndRunUnitTest, ":test")
         result.assertTasksSkipped(tasksToBuildAndRunUnitTest, ":test")
-    }
-
-    @Override
-    protected String getMainComponentDsl() {
-        return "xctest"
     }
 
     @Override

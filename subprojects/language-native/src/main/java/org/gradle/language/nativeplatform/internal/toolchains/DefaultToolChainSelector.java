@@ -39,28 +39,29 @@ public class DefaultToolChainSelector implements ToolChainSelector {
 
     @Override
     public <T extends NativePlatform> Result<T> select(Class<T> platformType) {
-        DefaultNativePlatform targetPlatform = new DefaultNativePlatform("current");
-        NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(targetPlatform);
-        PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
+        DefaultNativePlatform platformRequest = new DefaultNativePlatform("current");
 
-        T t = null;
+        NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(platformRequest);
+        PlatformToolProvider toolProvider = toolChain.select(platformRequest);
+
+        T targetPlatform = null;
         if (CppPlatform.class.isAssignableFrom(platformType)) {
-            t = platformType.cast(new DefaultCppPlatform("current"));
+            targetPlatform = platformType.cast(new DefaultCppPlatform("current"));
         } else if (SwiftPlatform.class.isAssignableFrom(platformType)) {
-            t = platformType.cast(new DefaultSwiftPlatform("current"));
+            targetPlatform = platformType.cast(new DefaultSwiftPlatform("current"));
         }
-        return new DefaultResult<T>(toolChain, t, toolProvider);
+        return new DefaultResult<T>(toolChain, toolProvider, targetPlatform);
     }
 
     class DefaultResult<T extends NativePlatform> implements Result<T> {
         private final NativeToolChainInternal toolChain;
-        private final T targetPlatform;
         private final PlatformToolProvider platformToolProvider;
+        private final T targetPlatform;
 
-        public DefaultResult(NativeToolChainInternal toolChain, T targetPlatform, PlatformToolProvider platformToolProvider) {
+        DefaultResult(NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, T targetPlatform) {
             this.toolChain = toolChain;
-            this.targetPlatform = targetPlatform;
             this.platformToolProvider = platformToolProvider;
+            this.targetPlatform = targetPlatform;
         }
 
         @Override

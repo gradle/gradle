@@ -49,6 +49,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -262,5 +263,10 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     @Override
     public String getExecutableSymbolFileName(String executablePath) {
         return withExtension(getExecutableName(executablePath), ".pdb");
+    }
+
+    @Override
+    public CompilerMetadata getCompilerMetadata() {
+        throw new UnsupportedOperationException("Compiler metadata for Visual C++ is not yet implemented");
     }
 }

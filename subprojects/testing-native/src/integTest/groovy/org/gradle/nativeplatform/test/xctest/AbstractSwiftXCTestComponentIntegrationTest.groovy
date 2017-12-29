@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.toolchain.internal.metadata;
+package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
-import org.gradle.util.VersionNumber;
+import org.gradle.language.swift.AbstractSwiftComponentIntegrationTest
 
-public interface CompilerMetadata extends ToolSearchResult {
-    String getVendor();
-
-    VersionNumber getVersion();
+abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwiftComponentIntegrationTest {
+    @Override
+    protected String getComponentUnderTestDsl() {
+        return "xctest"
+    }
 }
