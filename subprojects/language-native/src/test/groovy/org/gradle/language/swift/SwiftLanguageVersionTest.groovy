@@ -19,12 +19,14 @@ package org.gradle.language.swift
 import org.gradle.util.VersionNumber
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import static SwiftLanguageVersion.*
 
 @Subject(SwiftLanguageVersion)
 class SwiftLanguageVersionTest extends Specification {
-    def "can associate the right Swift language version"() {
+    @Unroll
+    def "can associate the compiler version #compilerVersion to #languageVersion language version"() {
         expect:
         SwiftLanguageVersion.of(VersionNumber.parse(compilerVersion)) == languageVersion
 
@@ -39,8 +41,6 @@ class SwiftLanguageVersionTest extends Specification {
         '3.0.2'         | SWIFT3
         '3.0.1'         | SWIFT3
         '3.0'           | SWIFT3
-        '2.2.1'         | SWIFT2
-        '2.2'           | SWIFT2
     }
 
     def "throws exception when Swift language is unknown for specified compiler version"() {

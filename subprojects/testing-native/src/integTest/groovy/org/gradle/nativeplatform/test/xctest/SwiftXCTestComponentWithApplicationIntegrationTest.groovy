@@ -24,4 +24,9 @@ class SwiftXCTestComponentWithApplicationIntegrationTest extends AbstractSwiftXC
             apply plugin: 'swift-application'
         """
     }
+
+    @Override
+    List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
+        return [":compileDebugSwift", ":relocateMainForTest"] + super.getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
+    }
 }

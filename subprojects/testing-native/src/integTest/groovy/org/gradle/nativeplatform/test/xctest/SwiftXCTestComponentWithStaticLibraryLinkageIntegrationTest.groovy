@@ -25,4 +25,9 @@ class SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest extends Abstra
             library.linkage = [Linkage.STATIC]
         """
     }
+
+    @Override
+    List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
+        return [":compileDebugSwift"] + super.getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
+    }
 }

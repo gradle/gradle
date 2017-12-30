@@ -25,4 +25,9 @@ class SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest extends Abstract
             library.linkage = [Linkage.SHARED, Linkage.STATIC]
         """
     }
+
+    @Override
+    List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
+        return [":compileDebugSharedSwift"] + super.getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
+    }
 }

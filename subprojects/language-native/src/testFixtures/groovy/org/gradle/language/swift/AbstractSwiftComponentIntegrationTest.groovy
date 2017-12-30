@@ -92,13 +92,12 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         succeeds taskNameToAssembleDevelopmentBinary
 
         then:
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
-        result.assertTasksNotSkipped(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
     abstract SourceFileElement getSwift3Component()
 
     abstract String getTaskNameToAssembleDevelopmentBinary()
 
-    protected abstract List<String> getTasksToAssembleDevelopmentBinary()
+    abstract List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
 }

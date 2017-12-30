@@ -49,6 +49,8 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
         failure.assertThatCause(Matchers.containsText("Swift compiler failed while compiling swift file(s)"))
     }
 
+    protected abstract List<String> getTasksToAssembleDevelopmentBinary()
+
     protected abstract String getDevelopmentBinaryCompileTask()
 
     @Override
@@ -59,5 +61,10 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
     @Override
     String getTaskNameToAssembleDevelopmentBinary() {
         return "assemble"
+    }
+
+    @Override
+    List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
+        return getTasksToAssembleDevelopmentBinary()
     }
 }

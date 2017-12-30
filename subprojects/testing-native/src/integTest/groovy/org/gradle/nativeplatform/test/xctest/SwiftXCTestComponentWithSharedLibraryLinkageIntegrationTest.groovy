@@ -24,4 +24,9 @@ class SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest extends Abstra
             apply plugin: 'swift-library'
         """
     }
+
+    @Override
+    List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
+        return [":compileDebugSwift"] + super.getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
+    }
 }
