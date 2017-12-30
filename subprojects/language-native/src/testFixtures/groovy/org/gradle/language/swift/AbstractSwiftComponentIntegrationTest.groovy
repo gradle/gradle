@@ -121,6 +121,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         fails taskNameToAssembleDevelopmentBinary
 
         then:
+        failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
         failure.assertHasCause("swiftc compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftLanguageVersion.SWIFT4.version}'")
     }
 
