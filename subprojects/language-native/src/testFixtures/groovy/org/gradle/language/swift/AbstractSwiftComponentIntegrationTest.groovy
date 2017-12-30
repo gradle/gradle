@@ -95,7 +95,38 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
+    def "throws exception with meaningful message when building Swift 4 source code on Swift 3 compiler"() {
+        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(3))
+
+        given:
+        makeSingleProject()
+        swift4Component.writeToProject(testDirectory)
+        buildFile << """
+            ${componentUnderTestDsl} {
+                swiftLanguageVersionSupport = SwiftLanguageVersion.SWIFT4
+            }
+
+            task verifyBinariesSwiftVersion {
+                doLast {
+                    ${componentUnderTestDsl}.binaries.get().each {
+                        assert it.swiftLanguageVersion == SwiftLanguageVersion.SWIFT4
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = 'project'"
+
+        when:
+        succeeds "verifyBinariesSwiftVersion"
+        fails taskNameToAssembleDevelopmentBinary
+
+        then:
+        failure.assertHasCause("swiftc compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftLanguageVersion.SWIFT4.version}'")
+    }
+
     abstract SourceFileElement getSwift3Component()
+
+    abstract SourceFileElement getSwift4Component()
 
     abstract String getTaskNameToAssembleDevelopmentBinary()
 

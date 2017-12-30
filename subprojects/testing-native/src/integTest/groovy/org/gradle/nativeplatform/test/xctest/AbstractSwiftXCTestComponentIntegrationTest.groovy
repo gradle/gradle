@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.test.xctest
 import org.gradle.language.swift.AbstractSwiftComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.SourceFileElement
 import org.gradle.nativeplatform.fixtures.app.Swift3Test
+import org.gradle.nativeplatform.fixtures.app.Swift4Test
 
 abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwiftComponentIntegrationTest {
     @Override
@@ -29,6 +30,11 @@ abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwift
     @Override
     SourceFileElement getSwift3Component() {
         return new Swift3Test()
+    }
+
+    @Override
+    SourceFileElement getSwift4Component() {
+        return new Swift4Test()
     }
 
     @Override

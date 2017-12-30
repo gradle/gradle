@@ -24,6 +24,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -61,6 +62,15 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
     @Override
     protected void addOptionsFileArgs(List<String> args, File tempDir) {
+    }
+
+    @Override
+    public WorkResult execute(SwiftCompileSpec spec) {
+        if (swiftCompilerVersion.getMajor() < spec.getSwiftLanguageVersionSupport().getVersion()) {
+            throw new IllegalArgumentException(String.format("swiftc compiler version '%s' doesn't support Swift language version '%d'", swiftCompilerVersion.toString(), spec.getSwiftLanguageVersionSupport().getVersion()));
+        }
+
+        return super.execute(spec);
     }
 
     protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {

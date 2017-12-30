@@ -18,6 +18,7 @@ package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.app.SourceFileElement
 import org.gradle.nativeplatform.fixtures.app.Swift3
+import org.gradle.nativeplatform.fixtures.app.Swift4
 import org.gradle.util.Matchers
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -56,6 +57,11 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
     @Override
     SourceFileElement getSwift3Component() {
         return new Swift3()
+    }
+
+    @Override
+    SourceFileElement getSwift4Component() {
+        return new Swift4()
     }
 
     @Override
