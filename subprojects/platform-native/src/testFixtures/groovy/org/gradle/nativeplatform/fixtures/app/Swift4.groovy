@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.SourceFile
 class Swift4 extends SourceFileElement {
     @Override
     SourceFile getSourceFile() {
-        sourceFile("swift", "swift3-code.swift", '''
+        sourceFile("swift", "swift4-code.swift", '''
             public func someFunc() {
                 let longString = """
                         When you write a string that spans multiple
