@@ -1,0 +1,45 @@
+# Gradle 5.0 preview features
+
+## Enhanced support for Maven repositories
+
+Because these improvements change the resolution result for certain Gradle `Configuration` instances, we consider them to be "potentially breaking changes". As such, these improvements are _opt-in_ for the Gradle 4.x stream of releases, but we expect to make them the default in Gradle 5.0.
+
+### Dependency constraints from Maven POM files
+
+With the introduction of 'dependency constraints', Gradle can now provide a better experience for consumers of Maven repositories. There is not a clear 1:1 mapping between dependency constraints and Maven POM features, but there are some cases where it makes sense for Gradle to map a Maven POM feature to a dependency constraint. 
+
+#### Maven `optional` dependencies
+
+Whenever a POM file contains a dependency with `<optional>true</optional>`, Gradle 5.0 will create a _dependency constraint_ for that dependency. This constraint will produce the expected result for an optional dependency: if the dependency module is brought into the graph by another edge, then the constraint will apply when choosing the version for that dependency.
+
+#### Maven BOM files and `<dependencyManagement>`
+
+Gradle now provides support for a "Maven BOM" file, which is effectively a POM file that uses `<dependencyManagement>` to control the dependency versions for another project. Since Gradle has no concept of a "parent POM" file, support for Maven BOM is similar to the use of `<scope>import</scope>` when depending on a BOM in Maven, but is done via a regular dependency declaration.
+
+When Gradle discovers a dependency on a Maven BOM file, all dependencies declared in the `<dependencyManagement>` block are treated as Gradle _dependency constraints_. This means that any `<dependencyManagement>` versions defined in the BOM file can impact the resolved graph. Gradle treats any POM file with `<packaging>pom</packaging>` as a potential BOM file: if a dependency resolves to a Maven module with `pom` packaging, then a _dependency constraint_ will be produced for every dependency declared in a `dependencyManagement` block. 
+
+Note one major difference between the handling of BOM files in Maven and Gradle: a dependency on a BOM is just a regular dependency, and can be published and resolved transitively just like any other dependency. This is different from Maven, where a BOM is _imported_ into the build, and downstream consumers do not automatically benefit from the dependency constraints defined. For example, if project A depends on project B, and project B _imports_ the BOM for project C, then a dependency declared in project A will not use the versions defined in project C.
+
+### Runtime scoped dependencies are not included in Java compile classpath
+
+Since v1.0, Gradle has been included `runtime` scoped dependencies in the Java compile classpath. While this often works fine, it has a number of drawbacks:
+- It's easy to publish a compile-time dependency with `runtime` scope, causing issues for non-Gradle consumers
+- The compile classpath is much larger than it needs to be, slowing down compilation
+- The compile classpath includes `runtime` files that do not impact compilation, resulting in unnecessary re-compilation when these files change.
+
+With Gradle 5.0, we intend to change this behaviour. A Maven POM will be considered to define an `api` and `runtime` variant for a Java library, with the `api` variant only including `compile` scoped dependencies. The Java compile classpath will use the `api` variant for each resolved dependency, while the Java runtime classpath will use the `runtime` variant. The net result is that `runtime` scoped dependencies will no longer be available in the compile classpath.
+
+## New Gradle `.module` metadata format
+
+In order to provide rich support for variant-aware dependency management and dependency constraints, Gradle 5.0 will define a new module metadata format, that can be used in conjunction with Ivy descriptor and Maven POM files in existing repositories.
+This new metadata format is under active development, so we have made it _opt-in_ for the Gradle 4.x stream.
+
+Issues with enabling it by default in Gradle 4.x:
+- We do not yet guarantee backward or forward compatibility for the metadata file format. Thus, resolution may change when upgrading Gradle, if a metadata file is published with an old format.
+- An additional request is required for Maven and Ivy repositories to check for the new metadata file.
+
+## Gradle does not search for `.jar` file when POM/Ivy file is missing
+
+A regular `maven` or `ivy` module will be defined by the presence of a `pom` or `ivy.xml` file. However, Gradle will also search for a `.jar` file in these repositories, in the off chance that the module was "published" without any metadata file. If the jar file is discovered, it's considered to be a module with no dependencies.
+
+This behaviour will no longer be the default in Gradle 5.0, reducing the number of network requests and working in a less surprising manner. It will be possible to opt-in to these "artifact only modules" by configuring the `metadataSources` for a repository.
