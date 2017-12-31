@@ -21,6 +21,9 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 public interface ToolChainSelector {
+    /**
+     * Selects a platform of the given type that can run on the host machine, and a toolchain to build for this platform.
+     */
     <T extends NativePlatform> Result<T> select(Class<T> platformType);
 
     interface Result<T extends NativePlatform> {

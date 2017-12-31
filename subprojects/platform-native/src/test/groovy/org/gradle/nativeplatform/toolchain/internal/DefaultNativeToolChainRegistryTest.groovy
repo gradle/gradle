@@ -161,7 +161,7 @@ class DefaultNativeToolChainRegistryTest extends Specification {
         }
         TestNativeToolChain testToolChain = Mock(TestNativeToolChain) {
             _ * getName() >> name
-            _ * select(platform) >> platformToolChain
+            _ * select(_, platform) >> platformToolChain
         }
         factory.create(name) >> testToolChain
         return testToolChain
@@ -175,7 +175,7 @@ class DefaultNativeToolChainRegistryTest extends Specification {
         TestNativeToolChain testToolChain = Mock(TestNativeToolChain) {
             _ * getName() >> name
             _ * getDisplayName() >> "Tool chain '$name'"
-            _ * select(platform) >> platformToolChain
+            _ * select(_, platform) >> platformToolChain
         }
         factory.create(name) >> testToolChain
         return testToolChain
