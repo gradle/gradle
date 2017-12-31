@@ -863,7 +863,7 @@ Due to this mechanism, your CUnit sources may not contain a `main` method since 
 A api:org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec[] component has an associated api:org.gradle.nativeplatform.NativeExecutableSpec[] or api:org.gradle.nativeplatform.NativeLibrarySpec[] component. For each api:org.gradle.nativeplatform.NativeBinarySpec[] configured for the main component, a matching api:org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec[] will be configured on the test suite component. These test suite binaries can be configured in a similar way to any other binary instance:
 
 ++++
-<sample id="cunitSources" dir="native-binaries/cunit" title="Building CUnit tests">
+<sample id="cunitSources" dir="native-binaries/cunit" title="Configuring CUnit tests">
                 <sourcefile file="build.gradle" snippet="configure-test-binary"/>
             </sample>
 ++++
