@@ -29,7 +29,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.Swiftc;
 import org.gradle.nativeplatform.toolchain.SwiftcPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.ExtendableToolChain;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
@@ -45,7 +45,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain> implements Swiftc, NativeToolChainInternal {
+public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain> implements Swiftc {
     public static final String DEFAULT_NAME = "swiftc";
 
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
@@ -102,6 +102,18 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
         }
 
         return new SwiftPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, workerLeaseService, swiftcMetaData);
+    }
+
+    @Override
+    public PlatformToolProvider select(NativeLanguage sourceLanguage, NativePlatformInternal targetMachine) {
+        switch (sourceLanguage) {
+            case SWIFT:
+                // TODO - select only when Swift compiler is available
+            case ANY:
+                return select(targetMachine);
+            default:
+                return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), String.format("Don't know how to compile language %s.", sourceLanguage));
+        }
     }
 
     @Override

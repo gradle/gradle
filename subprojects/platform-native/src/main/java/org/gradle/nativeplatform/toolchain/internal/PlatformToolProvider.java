@@ -26,6 +26,9 @@ public interface PlatformToolProvider extends ToolProvider {
 
     String getSharedLibraryName(String libraryPath);
 
+    /**
+     * Does this tool chain produce an import library when linking a shared library?
+     */
     boolean producesImportLibrary();
 
     /**

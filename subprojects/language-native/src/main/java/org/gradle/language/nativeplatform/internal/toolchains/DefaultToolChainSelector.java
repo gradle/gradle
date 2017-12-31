@@ -23,6 +23,7 @@ import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -41,8 +42,15 @@ public class DefaultToolChainSelector implements ToolChainSelector {
     public <T extends NativePlatform> Result<T> select(Class<T> platformType) {
         DefaultNativePlatform platformRequest = new DefaultNativePlatform("current");
 
-        NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(platformRequest);
-        PlatformToolProvider toolProvider = toolChain.select(platformRequest);
+        // TODO - push all this stuff down to the tool chain and let it create the specific platform and provider
+
+        NativeLanguage sourceLanguage = platformType == SwiftPlatform.class ? NativeLanguage.SWIFT : NativeLanguage.CPP;
+        NativeToolChainRegistryInternal registry = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class);
+        NativeToolChainInternal toolChain = registry.getForPlatform(sourceLanguage, platformRequest);
+        // TODO - don't select again here, as the selection is already performed to select the toolchain
+        PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, platformRequest);
+
+        // TODO - use a better name for the platforms, rather than "current"
 
         T targetPlatform = null;
         if (CppPlatform.class.isAssignableFrom(platformType)) {

@@ -67,8 +67,13 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
 
     @Override
     public NativeToolChain getForPlatform(NativePlatform targetPlatform) {
+        return getForPlatform(NativeLanguage.ANY, (NativePlatformInternal) targetPlatform);
+    }
+
+    @Override
+    public NativeToolChainInternal getForPlatform(NativeLanguage sourceLanguage, NativePlatformInternal targetMachine) {
         for (NativeToolChainInternal toolChain : searchOrder) {
-            if (toolChain.select((NativePlatformInternal) targetPlatform).isAvailable()) {
+            if (toolChain.select(sourceLanguage, targetMachine).isAvailable()) {
                 return toolChain;
             }
         }
@@ -76,10 +81,10 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
         // No tool chains can build for this platform. Assemble a description of why
         Map<String, PlatformToolProvider> candidates = new LinkedHashMap<String, PlatformToolProvider>();
         for (NativeToolChainInternal toolChain : searchOrder) {
-            candidates.put(toolChain.getDisplayName(), toolChain.select((NativePlatformInternal) targetPlatform));
+            candidates.put(toolChain.getDisplayName(), toolChain.select(sourceLanguage, targetMachine));
         }
 
-        return new UnavailableNativeToolChain(new UnavailableToolChainDescription(targetPlatform, candidates));
+        return new UnavailableNativeToolChain(new UnavailableToolChainDescription(targetMachine, candidates));
     }
 
     private static class UnavailableToolChainDescription implements ToolSearchResult {
@@ -133,6 +138,11 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
         @Override
         public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), failure);
+        }
+
+        @Override
+        public PlatformToolProvider select(NativeLanguage sourceLanguage, NativePlatformInternal targetMachine) {
+            return select(targetMachine);
         }
 
         @Override
