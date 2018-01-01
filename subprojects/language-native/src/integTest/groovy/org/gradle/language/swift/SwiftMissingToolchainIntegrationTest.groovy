@@ -35,6 +35,12 @@ class SwiftMissingToolchainIntegrationTest extends AbstractIntegrationSpec {
         new SwiftApp().writeToProject(testDirectory)
 
         when:
+        succeeds("tasks")
+
+        then:
+        noExceptionThrown()
+
+        when:
         fails("assemble")
 
         then:

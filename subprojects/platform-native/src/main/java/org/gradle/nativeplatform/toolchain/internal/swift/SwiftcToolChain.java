@@ -108,7 +108,6 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
     public PlatformToolProvider select(NativeLanguage sourceLanguage, NativePlatformInternal targetMachine) {
         switch (sourceLanguage) {
             case SWIFT:
-                // TODO - select only when Swift compiler is available
             case ANY:
                 return select(targetMachine);
             default:

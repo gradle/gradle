@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 
 public interface PlatformToolProvider extends ToolProvider {
     String getObjectFileExtension();
@@ -47,4 +48,6 @@ public interface PlatformToolProvider extends ToolProvider {
     String getLibrarySymbolFileName(String libraryPath);
 
     CompilerMetadata getCompilerMetadata();
+
+    ToolSearchResult isToolAvailable(ToolType toolType);
 }
