@@ -19,7 +19,22 @@ package org.gradle.nativeplatform.toolchain.internal;
 // This should be replaced by some stronger modelling and made open rather than hardcoding a set of source languages here
 public enum NativeLanguage {
     // For legacy software model behaviour, which is to assume that any kind of runtime can be built when any compiler is available
-    ANY,
-    CPP,
-    SWIFT
+    ANY() {
+        @Override
+        public String toString() {
+            return "any language";
+        }
+    },
+    CPP() {
+        @Override
+        public String toString() {
+            return "C++";
+        }
+    },
+    SWIFT() {
+        @Override
+        public String toString() {
+            return "Swift";
+        }
+    };
 }

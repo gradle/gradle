@@ -115,7 +115,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
         ToolChainAvailability result = new ToolChainAvailability();
         result.mustBeAvailable(getAvailability());
         if (visualCpp != null && !visualCpp.isSupportedPlatform(targetPlatform)) {
-            result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
+            result.unavailable(String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
         }
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);

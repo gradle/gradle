@@ -19,14 +19,13 @@ package org.gradle.language.cpp
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
+import org.gradle.nativeplatform.fixtures.HostPlatform
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.junit.Assume
 
-
-class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec {
+class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec implements HostPlatform {
     def "user receives reasonable error message when no tool chains are available"() {
         given:
         buildFile << """
@@ -60,14 +59,14 @@ class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileDebugCpp'.")
         if (OperatingSystem.current().windows) {
-            failure.assertHasCause("""No tool chain is available to build for platform 'current':
+            failure.assertHasCause("""No tool chain is available to build C++ for host operating system '${osName}' architecture '${archName}':
   - Tool chain 'visualCpp' (Visual Studio): The specified installation directory '${file('vs-install')}' does not appear to contain a Visual Studio installation.
   - Tool chain 'gcc' (GNU GCC):
       - Could not find C compiler 'gcc'. Searched in: ${file('gcc-bin')}
   - Tool chain 'clang' (Clang):
       - Could not find C compiler 'clang'. Searched in: ${file('clang-bin')}""")
         } else {
-            failure.assertHasCause("""No tool chain is available to build for platform 'current':
+            failure.assertHasCause("""No tool chain is available to build C++ for host operating system '${osName}' architecture '${archName}':
   - Tool chain 'visualCpp' (Visual Studio): Visual Studio is not available on this operating system.
   - Tool chain 'gcc' (GNU GCC):
       - Could not find C compiler 'gcc'. Searched in: ${file('gcc-bin')}
@@ -103,9 +102,5 @@ class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         installation("build/install/main/debug").exec().out == app.expectedOutput(clang)
-    }
-
-    NativeInstallationFixture installation(Object installDir, OperatingSystem os = OperatingSystem.current()) {
-        return new NativeInstallationFixture(file(installDir), os)
     }
 }

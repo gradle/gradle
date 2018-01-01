@@ -40,7 +40,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
 
     @Override
     public <T extends NativePlatform> Result<T> select(Class<T> platformType) {
-        DefaultNativePlatform platformRequest = new DefaultNativePlatform("current");
+        DefaultNativePlatform platformRequest = DefaultNativePlatform.host();
 
         // TODO - push all this stuff down to the tool chain and let it create the specific platform and provider
 
