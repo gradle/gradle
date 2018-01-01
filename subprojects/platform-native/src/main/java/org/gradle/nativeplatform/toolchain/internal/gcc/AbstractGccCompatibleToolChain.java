@@ -45,6 +45,7 @@ import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineT
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,7 +155,15 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     public PlatformToolProvider select(NativeLanguage sourceLanguage, NativePlatformInternal targetMachine) {
         switch (sourceLanguage) {
             case CPP:
-                // TODO - select only when C++ compiler is available
+                PlatformToolProvider toolProvider = select(targetMachine);
+                if (!toolProvider.isAvailable()) {
+                    return toolProvider;
+                }
+                ToolSearchResult cppCompiler = toolProvider.isToolAvailable(ToolType.CPP_COMPILER);
+                if (!cppCompiler.isAvailable()) {
+                    return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), cppCompiler);
+                }
+                return toolProvider;
             case ANY:
                 return select(targetMachine);
             default:

@@ -17,7 +17,13 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
+import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
+import org.junit.Assume
 
 
 class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec {
@@ -43,15 +49,63 @@ class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec {
         new CppApp().writeToProject(testDirectory)
 
         when:
+        succeeds("tasks")
+
+        then:
+        noExceptionThrown()
+
+        when:
         fails("assemble")
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileDebugCpp'.")
-        failure.assertHasCause("""No tool chain is available to build for platform 'current':
+        if (OperatingSystem.current().windows) {
+            failure.assertHasCause("""No tool chain is available to build for platform 'current':
+  - Tool chain 'visualCpp' (Visual Studio): The specified installation directory '${file('vs-install')}' does not appear to contain a Visual Studio installation.
+  - Tool chain 'gcc' (GNU GCC):
+      - Could not find C compiler 'gcc'. Searched in: ${file('gcc-bin')}
+  - Tool chain 'clang' (Clang):
+      - Could not find C compiler 'clang'. Searched in: ${file('clang-bin')}""")
+        } else {
+            failure.assertHasCause("""No tool chain is available to build for platform 'current':
   - Tool chain 'visualCpp' (Visual Studio): Visual Studio is not available on this operating system.
   - Tool chain 'gcc' (GNU GCC):
       - Could not find C compiler 'gcc'. Searched in: ${file('gcc-bin')}
   - Tool chain 'clang' (Clang):
       - Could not find C compiler 'clang'. Searched in: ${file('clang-bin')}""")
+        }
+    }
+
+    def "can build with Clang when gcc is available but g++ is not available"() {
+        def gcc = AvailableToolChains.getToolChain(ToolChainRequirement.GCC)
+        Assume.assumeTrue(gcc != null)
+        def clang = AvailableToolChains.getToolChain(ToolChainRequirement.CLANG)
+        Assume.assumeTrue(clang != null)
+
+        buildFile << """
+            apply plugin: 'cpp-application'
+            model {
+                toolChains {
+                    withType(Gcc) {
+                        eachPlatform {
+                            cppCompiler.executable = 'does-not-exist'
+                        }
+                    }
+                }
+            }
+"""
+
+        def app = new CppCompilerDetectingTestApp()
+        app.writeToProject(testDirectory)
+
+        when:
+        run("assemble")
+
+        then:
+        installation("build/install/main/debug").exec().out == app.expectedOutput(clang)
+    }
+
+    NativeInstallationFixture installation(Object installDir, OperatingSystem os = OperatingSystem.current()) {
+        return new NativeInstallationFixture(file(installDir), os)
     }
 }

@@ -123,6 +123,11 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     }
 
     @Override
+    public ToolSearchResult isToolAvailable(ToolType toolType) {
+        throw failure();
+    }
+
+    @Override
     public CompilerMetadata getCompilerMetadata() {
         throw failure();
     }

@@ -51,7 +51,9 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpe
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.util.TreeVisitor;
 
 import java.io.File;
 import java.util.List;
@@ -95,6 +97,20 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     @Override
     public String getSharedLibraryLinkFileName(String libraryName) {
         return withExtension(getSharedLibraryName(libraryName), ".lib");
+    }
+
+    @Override
+    public ToolSearchResult isToolAvailable(ToolType toolType) {
+        return new ToolSearchResult() {
+            @Override
+            public boolean isAvailable() {
+                return true;
+            }
+
+            @Override
+            public void explain(TreeVisitor<? super String> visitor) {
+            }
+        };
     }
 
     @Override
