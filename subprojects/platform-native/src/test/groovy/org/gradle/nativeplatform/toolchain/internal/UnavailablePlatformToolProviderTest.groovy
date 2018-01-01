@@ -30,4 +30,15 @@ class UnavailablePlatformToolProviderTest extends Specification {
         provider.explain(formatter)
         formatter.toString() == "don't know how to build this thing"
     }
+
+    def "tool lookup returns same failure"() {
+        def provider = new UnavailablePlatformToolProvider(Stub(OperatingSystemInternal), "don't know how to build this thing")
+
+        expect:
+        def toolResult = provider.isToolAvailable(ToolType.C_COMPILER)
+        !toolResult.available
+        def formatter = new TreeFormatter()
+        toolResult.explain(formatter)
+        formatter.toString() == "don't know how to build this thing"
+    }
 }

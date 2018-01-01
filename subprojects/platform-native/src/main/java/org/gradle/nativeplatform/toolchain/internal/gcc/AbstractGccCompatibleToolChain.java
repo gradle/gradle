@@ -93,8 +93,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         configInsertLocation = 0;
     }
 
-    protected CommandLineToolSearchResult locate(GccCommandLineToolConfigurationInternal gccTool) {
-        return toolSearchPath.locate(gccTool.getToolType(), gccTool.getExecutable());
+    protected CommandLineToolSearchResult locate(GccCommandLineToolConfigurationInternal tool) {
+        return toolSearchPath.locate(tool.getToolType(), tool.getExecutable());
     }
 
     @Override
@@ -143,6 +143,10 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
     @Override
     public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
+        return select(NativeLanguage.ANY, targetPlatform);
+    }
+
+    private PlatformToolProvider getProviderForPlatform(NativePlatformInternal targetPlatform) {
         PlatformToolProvider toolProvider = toolProviders.get(targetPlatform);
         if (toolProvider == null) {
             toolProvider = createPlatformToolProvider(targetPlatform);
@@ -153,19 +157,34 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
     @Override
     public PlatformToolProvider select(NativeLanguage sourceLanguage, NativePlatformInternal targetMachine) {
+        PlatformToolProvider toolProvider = getProviderForPlatform(targetMachine);
         switch (sourceLanguage) {
             case CPP:
-                PlatformToolProvider toolProvider = select(targetMachine);
-                if (!toolProvider.isAvailable()) {
+                ToolSearchResult cppCompiler = toolProvider.isToolAvailable(ToolType.CPP_COMPILER);
+                if (cppCompiler.isAvailable()) {
                     return toolProvider;
                 }
-                ToolSearchResult cppCompiler = toolProvider.isToolAvailable(ToolType.CPP_COMPILER);
-                if (!cppCompiler.isAvailable()) {
-                    return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), cppCompiler);
-                }
-                return toolProvider;
+                // No C++ compiler, complain about it
+                return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), cppCompiler);
             case ANY:
-                return select(targetMachine);
+                ToolSearchResult cCompiler = toolProvider.isToolAvailable(ToolType.C_COMPILER);
+                if (cCompiler.isAvailable()) {
+                    return toolProvider;
+                }
+                ToolSearchResult compiler = toolProvider.isToolAvailable(ToolType.CPP_COMPILER);
+                if (compiler.isAvailable()) {
+                    return toolProvider;
+                }
+                compiler = toolProvider.isToolAvailable(ToolType.OBJECTIVEC_COMPILER);
+                if (compiler.isAvailable()) {
+                    return toolProvider;
+                }
+                compiler = toolProvider.isToolAvailable(ToolType.OBJECTIVECPP_COMPILER);
+                if (compiler.isAvailable()) {
+                    return toolProvider;
+                }
+                // No compilers available, complain about the missing C compiler
+                return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), cCompiler);
             default:
                 return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), String.format("Don't know how to compile language %s.", sourceLanguage));
         }
@@ -194,7 +213,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
 
     protected void initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {
         // Attempt to determine whether the compiler is the correct implementation
-        boolean found = false;
         for (GccCommandLineToolConfigurationInternal tool : platformToolChain.getCompilers()) {
             CommandLineToolSearchResult compiler = locate(tool);
             if (compiler.isAvailable()) {
@@ -205,21 +223,9 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
                 }
                 // Assume all the other compilers are ok, if they happen to be installed
                 LOGGER.debug("Found {} with version {}", tool.getToolType().getToolName(), gccMetadata);
-                found = true;
                 initForImplementation(platformToolChain, gccMetadata);
                 break;
             }
-        }
-
-        // Attempt to locate each tool
-        for (GccCommandLineToolConfigurationInternal tool : platformToolChain.getTools()) {
-            found |= toolSearchPath.locate(tool.getToolType(), tool.getExecutable()).isAvailable();
-        }
-        if (!found) {
-            // No tools found - report just the C compiler as missing
-            // TODO - report whichever tool is actually required, eg if there's only assembler source, complain about the assembler
-            GccCommandLineToolConfigurationInternal cCompiler = platformToolChain.getcCompiler();
-            availability.mustBeAvailable(locate(cCompiler));
         }
     }
 

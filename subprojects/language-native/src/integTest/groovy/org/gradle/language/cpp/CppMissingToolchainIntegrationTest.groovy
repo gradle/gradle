@@ -62,16 +62,16 @@ class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec impleme
             failure.assertHasCause("""No tool chain is available to build C++ for host operating system '${osName}' architecture '${archName}':
   - Tool chain 'visualCpp' (Visual Studio): The specified installation directory '${file('vs-install')}' does not appear to contain a Visual Studio installation.
   - Tool chain 'gcc' (GNU GCC):
-      - Could not find C compiler 'gcc'. Searched in: ${file('gcc-bin')}
+      - Could not find C++ compiler 'g++'. Searched in: ${file('gcc-bin')}
   - Tool chain 'clang' (Clang):
-      - Could not find C compiler 'clang'. Searched in: ${file('clang-bin')}""")
+      - Could not find C++ compiler 'clang++'. Searched in: ${file('clang-bin')}""")
         } else {
             failure.assertHasCause("""No tool chain is available to build C++ for host operating system '${osName}' architecture '${archName}':
   - Tool chain 'visualCpp' (Visual Studio): Visual Studio is not available on this operating system.
   - Tool chain 'gcc' (GNU GCC):
-      - Could not find C compiler 'gcc'. Searched in: ${file('gcc-bin')}
+      - Could not find C++ compiler 'g++'. Searched in: ${file('gcc-bin')}
   - Tool chain 'clang' (Clang):
-      - Could not find C compiler 'clang'. Searched in: ${file('clang-bin')}""")
+      - Could not find C++ compiler 'clang++'. Searched in: ${file('clang-bin')}""")
         }
     }
 
