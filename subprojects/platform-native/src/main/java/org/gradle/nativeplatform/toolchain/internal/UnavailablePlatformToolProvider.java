@@ -124,7 +124,7 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
 
     @Override
     public ToolSearchResult isToolAvailable(ToolType toolType) {
-        throw failure();
+        return this;
     }
 
     @Override
