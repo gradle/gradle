@@ -50,6 +50,15 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         return Architectures.forInput(architectureName);
     }
 
+    public static DefaultNativePlatform host() {
+        return new DefaultNativePlatform("host", getCurrentOperatingSystem(), getCurrentArchitecture()) {
+            @Override
+            public String getDisplayName() {
+                return String.format("host %s %s", getOperatingSystem(), getArchitecture());
+            }
+        };
+    }
+
     @Override
     public String getName() {
         return name;

@@ -101,6 +101,32 @@ class DefaultNativeToolChainRegistryTest extends Specification {
   - Tool chain 'test3': not me either""")
     }
 
+    def "provides unavailable tool chain when no tool chain available for requested source language and target platform"() {
+        unavailableToolChain("test", "nope")
+        unavailableToolChain("test2", "not me")
+        unavailableToolChain("test3", "not me either")
+
+        given:
+        registry.registerDefaultToolChain("test", TestNativeToolChain)
+        registry.registerDefaultToolChain("test2", TestNativeToolChain)
+        registry.registerDefaultToolChain("test3", TestNativeToolChain)
+        registry.addDefaultToolChains()
+
+        and:
+        def tc = registry.getForPlatform(NativeLanguage.CPP, platform)
+        def result = tc.select(platform)
+
+        when:
+        result.newCompiler(CCompileSpec.class)
+
+        then:
+        GradleException e = thrown()
+        e.message == toPlatformLineSeparators("""No tool chain is available to build C++ for platform 'platform':
+  - Tool chain 'test': nope
+  - Tool chain 'test2': not me
+  - Tool chain 'test3': not me either""")
+    }
+
     def "can use DSL to configure toolchains"() {
         def defaultToolChain = availableToolChain("test")
         def anotherToolChain = unavailableToolChain("another")

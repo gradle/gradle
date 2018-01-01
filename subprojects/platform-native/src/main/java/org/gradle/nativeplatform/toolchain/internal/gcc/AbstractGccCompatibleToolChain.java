@@ -174,7 +174,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     private PlatformToolProvider createPlatformToolProvider(NativePlatformInternal targetPlatform) {
         TargetPlatformConfiguration targetPlatformConfigurationConfiguration = getPlatformConfiguration(targetPlatform);
         if (targetPlatformConfigurationConfiguration == null) {
-            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
+            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
         }
 
         DefaultGccPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultGccPlatformToolChain.class, targetPlatform);

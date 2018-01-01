@@ -116,7 +116,8 @@ class VisualCppToolChainTest extends Specification {
         when:
         def visualStudio = Stub(VisualStudioInstall)
         def visualCpp = Stub(VisualCppInstall)
-        def platform = Stub(NativePlatformInternal) { getName() >> 'platform' }
+        def platform = Stub(NativePlatformInternal)
+        platform.displayName >> '<platform>'
         visualStudioLookup.available >> true
         windowsSdkLookup.available >> true
 		ucrtLookup.available >> false
@@ -130,7 +131,7 @@ class VisualCppToolChainTest extends Specification {
 
         then:
         !result.available
-        getMessage(result) == "Don't know how to build for platform 'platform'."
+        getMessage(result) == "Don't know how to build for <platform>."
     }
 
     def "is available when visual studio installation and windows SDK can be located and visual studio install supports target platform"() {

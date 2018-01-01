@@ -74,12 +74,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     def "is unavailable when platform is not known and is not the default platform"() {
         given:
-        platform.name >> 'unknown'
+        platform.displayName >> '<unknown>'
 
         expect:
         def platformToolChain = toolChain.select(platform)
         !platformToolChain.available
-        getMessage(platformToolChain) == "Don't know how to build for platform 'unknown'."
+        getMessage(platformToolChain) == "Don't know how to build for <unknown>."
     }
 
     def "is unavailable when no language tools can be found"() {
