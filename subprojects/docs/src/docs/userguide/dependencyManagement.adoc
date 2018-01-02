@@ -201,6 +201,53 @@ A project's configurations are managed by a `configurations` object. Configurati
 [[sec:customizing_dependencies]]
 === Customizing dependency declarations
 
+[[sec:excluding_transitive_module_dependencies]]
+==== Excluding transitive module dependencies
+
+Declared dependencies in build script can pull it a lot of transitive dependencies. You might decide that you do not want a particular transitive dependency as part of the dependency graph for a good reason.
+
+- The dependency is undesired due to licensing reasons.
+- The dependency is not available in any of the declared repositories.
+- The metadata for the dependency exists but the artifact does not.
+- The metadata provides incorrect coordinates for a transitive dependency.
+
+Transitive dependencies can be excluded on the level of a declared dependency or a configuration. Let's demonstrate both use cases. In the following two examples the build script declares a dependency on Log4J, a popular logging framework in the Java world. The metadata of the particular version of Log4J used in the example declares transitive dependencies. If resolved from Maven Central some of the transitive dependencies provide metadata but not the corresponding binary artifact. As a result any task requiring the binary file e.g. a compilation task will fail.
+
+++++
+<sample id="unresolvedTransitiveDependencies" dir="userguide/dependencies/unresolvedTransitiveDependencies" title="Unresolved artifacts for transitive dependencies">
+    <sourcefile file="build.gradle" snippet="unresolved-transitive-dependencies"/>
+    <output args="-q compileJava"/>
+</sample>
+++++
+
+The situation can be fixed by excluding the dependencies that do not exist in the declare repositories on the particular dependency declaration. Exclusions need to spelled out as a key/value pair for the `group` or `module` or both. Please refer to api:org.gradle.api.artifacts.ModuleDependency#exclude(java.util.Map)[] for more information.
+
+++++
+<sample id="exclude-transitive-for-dependency" dir="userguide/dependencies/excludingTransitiveDependenciesForDependency" title="Excluding transitive dependency for a particular dependency declaration">
+    <sourcefile file="build.gradle" snippet="exclude-transitive-dependencies"/>
+</sample>
+++++
+
+You will find that other dependencies might want to pull in the same transitive, missing dependency artifacts. Alternatively, you can also exclude the transitive dependencies for all declared dependencies of a particular configuration defined by api:org.gradle.api.artifacts.Configuration#exclude(java.util.Map)[].
+
+++++
+<sample id="exclude-transitive-for-configuration" dir="userguide/dependencies/excludingTransitiveDependenciesForConfiguration" title="Excluding transitive dependency for a particular configuration">
+    <sourcefile file="build.gradle" snippet="exclude-transitive-dependencies"/>
+</sample>
+++++
+
+[NOTE]
+====
+As a build script author you often times know that you want to exclude a dependency for all configurations available for the project. The Groovy DSL uses meta programming capbilities of the language to allow the use of the `all` keyword to define a global rule e.g. `configurations.all { ... }`.
+====
+
+You might encounter other uses that don't quite fit the bill of an exclude rule. For example you might want to automatically select a version for a dependency with a specific requested version or you'll want to select a different group for a requested dependency if to react to a relocation. Those use cases are better served with the api:org.gradle.api.artifacts.ResolutionStrategy[] API. Some of these use cases are covered in <<sec:finetuning_the_dependency_resolution_process>>.
+
+[[sec:enforcing_dependency_version]]
+==== Enforcing a particular dependency version
+
+Gradle resolves transitive dependencies by default.
+
 [[ssub:multi_artifact_dependencies]]
 ==== Depending on modules with multiple artifacts
 
@@ -250,32 +297,6 @@ It is easy to iterate over the dependency artifacts of a configuration:
                 <output args="-q listJars"/>
             </sample>
 ++++
-
-[[sub:exclude_transitive_dependencies]]
-==== Excluding transitive dependencies
-
-You can exclude a _transitive_ dependency either by configuration or by dependency:
-
-++++
-<sample id="exclude-dependencies" dir="userguide/artifacts/excludesAndClassifiers" title="Excluding transitive dependencies">
-                <sourcefile file="build.gradle" snippet="exclude-dependencies"/>
-            </sample>
-++++
-
-If you define an exclude for a particular configuration, the excluded transitive dependency will be filtered for all dependencies when resolving this configuration or any inheriting configuration. If you want to exclude a transitive dependency from all your configurations you can use the Groovy spread-dot operator to express this in a concise way, as shown in the example. When defining an exclude, you can specify either only the organization or only the module name or both. Also look at the API documentation of the api:org.gradle.api.artifacts.Dependency[] and api:org.gradle.api.artifacts.Configuration[] classes.
-
-Not every transitive dependency can be excluded - some transitive dependencies might be essential for correct runtime behavior of the application. Generally, one can exclude transitive dependencies that are either not required by runtime or that are guaranteed to be available on the target environment/platform.
-
-Should you exclude per-dependency or per-configuration? It turns out that in the majority of cases you want to use the per-configuration exclusion. Here are some typical reasons why one might want to exclude a transitive dependency. Bear in mind that for some of these use cases there are better solutions than exclusions!
-
-* The dependency is undesired due to licensing reasons.
-* The dependency is not available in any remote repositories.
-* The dependency is not needed for runtime.
-* The dependency has a version that conflicts with a desired version. For that use case please refer to <<sub:version_conflicts>> and the documentation on api:org.gradle.api.artifacts.ResolutionStrategy[] for a potentially better solution to the problem.
-
-Basically, in most of the cases excluding the transitive dependency should be done per configuration. This way the dependency declaration is more explicit. It is also more accurate because a per-dependency exclude rule does not guarantee the given transitive dependency does not show up in the configuration. For example, some other dependency, which does not have any exclude rules, might pull in that unwanted transitive dependency.
-
-Other examples of dependency exclusions can be found in the reference for the api:org.gradle.api.artifacts.ModuleDependency[] or api:org.gradle.api.artifacts.dsl.DependencyHandler[] classes.
 
 [[sec:optional_attributes]]
 ==== Optional attributes
