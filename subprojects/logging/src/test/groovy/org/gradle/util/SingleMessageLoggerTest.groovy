@@ -32,7 +32,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def setup() {
-        SingleMessageLogger.init(Mock(UsageLocationReporter), [WarningType.All] as Set)
+        SingleMessageLogger.init(Mock(UsageLocationReporter), WarningType.All)
     }
 
     def cleanup() {

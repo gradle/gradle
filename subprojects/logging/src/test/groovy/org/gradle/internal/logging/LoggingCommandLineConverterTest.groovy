@@ -118,9 +118,9 @@ class LoggingCommandLineConverterTest extends Specification {
     }
 
     def getsAllWarningTypes() {
-        expectedConfig.warningTypes = [WarningType.All, WarningType.Deprecation, WarningType.None] as Set
+        expectedConfig.warningType = WarningType.All
         expect:
-        checkConversion(['--warnings=all', '--warnings=deprecation', '--warnings=none'])
+        checkConversion(['--warnings=all'])
     }
 
     void checkConversion(List<String> args) {
@@ -128,6 +128,6 @@ class LoggingCommandLineConverterTest extends Specification {
         assert actual.logLevel == expectedConfig.logLevel
         assert actual.consoleOutput == expectedConfig.consoleOutput
         assert actual.showStacktrace == expectedConfig.showStacktrace
-        assert actual.warningTypes == expectedConfig.warningTypes
+        assert actual.warningType == expectedConfig.warningType
     }
 }

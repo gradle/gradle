@@ -149,13 +149,16 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * {@inheritDoc}
      */
     @Override
-    public Set<WarningType> getWarningTypes() {
-        return loggingConfiguration.getWarningTypes();
+    public WarningType getWarningType() {
+        return loggingConfiguration.getWarningType();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void setWarningTypes(Set<WarningType> warningTypes) {
-        loggingConfiguration.setWarningTypes(warningTypes);
+    public void setWarningType(WarningType warningType) {
+        loggingConfiguration.setWarningType(warningType);
     }
 
     /**
@@ -204,7 +207,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     protected StartParameter prepareNewInstance(StartParameter p) {
         prepareNewBuild(p);
-        p.setWarningTypes(getWarningTypes());
+        p.setWarningType(getWarningType());
         p.buildFile = buildFile;
         p.projectDir = projectDir;
         p.settingsFile = settingsFile;
@@ -239,7 +242,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.setLogLevel(getLogLevel());
         p.setConsoleOutput(getConsoleOutput());
         p.setShowStacktrace(getShowStacktrace());
-        p.setWarningTypes(getWarningTypes());
+        p.setWarningType(getWarningType());
         p.profile = profile;
         p.continueOnFailure = continueOnFailure;
         p.offline = offline;

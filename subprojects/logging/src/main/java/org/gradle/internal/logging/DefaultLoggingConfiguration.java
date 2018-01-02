@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.logging;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
@@ -26,13 +25,12 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningType;
 
 import java.io.Serializable;
-import java.util.Set;
 
 public class DefaultLoggingConfiguration implements Serializable, LoggingConfiguration {
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
-    private Set<WarningType> warningTypes = Sets.newHashSet();
+    private WarningType warningType =  WarningType.Summary;
 
     public boolean equals(Object obj) {
         return EqualsBuilder.reflectionEquals(this, obj);
@@ -65,13 +63,13 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     }
 
     @Override
-    public Set<WarningType> getWarningTypes() {
-        return warningTypes;
+    public WarningType getWarningType() {
+        return warningType;
     }
 
     @Override
-    public void setWarningTypes(Set<WarningType> warningTypes) {
-        this.warningTypes = warningTypes;
+    public void setWarningType(WarningType warningType) {
+        this.warningType = warningType;
     }
 
     @Override

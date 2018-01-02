@@ -16,9 +16,6 @@
 
 package org.gradle.internal.logging;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
@@ -30,7 +27,6 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
-import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 
@@ -177,7 +173,7 @@ public class LoggingConfigurationBuildOptions {
         }
     }
 
-    public static class WarningsOption extends ListBuildOption<LoggingConfiguration> {
+    public static class WarningsOption extends StringBuildOption<LoggingConfiguration> {
         public static final String LONG_OPTION = "warnings";
         public static final String GRADLE_PROPERTY = "org.gradle.warnings";
 
@@ -186,20 +182,12 @@ public class LoggingConfigurationBuildOptions {
         }
 
         @Override
-        public void applyTo(List<String> values, LoggingConfiguration settings, final Origin origin) {
-            Iterable<WarningType> warningTypes = Iterables.transform(values, new Function<String, WarningType>() {
-                @Override
-                public WarningType apply(String input) {
-                    try {
-                        return WarningType.valueOf(StringUtils.capitalize(input.toLowerCase(Locale.ENGLISH)));
-                    } catch (IllegalArgumentException e) {
-                        origin.handleInvalidValue(input);
-                        return null;
-                    }
-                }
-            });
-            settings.setWarningTypes(Sets.newHashSet(warningTypes));
+        public void applyTo(String value, LoggingConfiguration settings, final Origin origin) {
+            try {
+                settings.setWarningType(WarningType.valueOf(StringUtils.capitalize(value.toLowerCase(Locale.ENGLISH))));
+            } catch (IllegalArgumentException e) {
+                origin.handleInvalidValue(value);
+            }
         }
     }
-
 }
