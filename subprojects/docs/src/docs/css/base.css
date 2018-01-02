@@ -629,6 +629,8 @@ h3.releaseinfo {
         top: 0;
         left: 0;
         right: 0;
+        -webkit-box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
+        -moz-box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
         box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
         z-index: 1;
     }
@@ -1112,18 +1114,30 @@ h3.releaseinfo {
     .site-footer__navigation {
         max-width: 90rem;
     }
+
+    .ui-logos .ui-logo {
+        box-shadow: 0 6px 15px 1px rgba(0, 0, 0, 0.56);
+    }
 }
 
 /* User Manual Home */
-.technology-logos {
+.technology-logos,
+.ui-logos {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-around;
 }
 
-.technology-logo {
+.technology-logo,
+.ui-logo {
     flex: 0 1 auto;
+}
+
+.ui-logo {
+    width: 224px;
+    height: 135px;
+    margin: 12px;
 }
 
 .legalnotice {
@@ -1304,13 +1318,6 @@ table .caution {
 .hl-annotation { color: #007; }
 
 .hl-directive { color: #555; }
-
-/**
- * TITLEPAGE
- */
-.home {
-
-}
 
 /*
  * Single page html
