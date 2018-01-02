@@ -184,6 +184,7 @@
                                 <ul id="best-practices">
                                     <li><a href="/userguide/organizing_build_logic.html">Organizing Build Logic</a></li>
                                     <li><a href="https://guides.gradle.org/performance/">Optimizing Build Performance</a></li></ul></li>
+                                    <li><a href="https://guides.gradle.org/using-build-cache/">Using the Build Cache</a></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#sample-gradle-builds" aria-expanded="false" aria-controls="sample-gradle-builds">Sample Gradle Builds</a>
                                 <ul id="sample-gradle-builds">
                                     <li><a href="https://github.com/gradle/gradle/tree/master/subprojects/docs/src/samples">Sample Projects</a></li>
@@ -203,7 +204,6 @@
                                     <li><a href="https://guides.gradle.org/publishing-plugins-to-gradle-plugin-portal/">Publishing Gradle Plugins</a></li>
                                 </ul>
                             </li>
-                            <li><a href="https://guides.gradle.org/using-build-cache/">Developing Cacheable Tasks</a></li>
                             <li><a href="https://guides.gradle.org/using-the-worker-api/">Developing Parallel Tasks</a></li>
                             <li><a href="/userguide/lazy_configuration.html">Lazy Task Configuration</a></li>
                             <li><a href="/userguide/java_gradle_plugin.html">Plugin Development Plugin</a></li>
