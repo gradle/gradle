@@ -60,5 +60,5 @@ abstract class AbstractCppIntegrationTest extends AbstractNativeLanguageComponen
 
     protected abstract String getDevelopmentBinaryCompileTask()
 
-    protected abstract String getMainComponentDsl()
+    protected abstract String getComponentUnderTestDsl()
 }

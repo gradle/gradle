@@ -20,7 +20,7 @@ import org.gradle.nativeplatform.fixtures.app.CppLib
 
 class CppStaticLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
     @Override
-    protected String getMainComponentDsl() {
+    protected String getComponentUnderTestDsl() {
         return "library"
     }
 

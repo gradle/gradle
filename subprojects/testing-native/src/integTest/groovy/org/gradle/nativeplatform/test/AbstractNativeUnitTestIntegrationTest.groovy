@@ -16,9 +16,9 @@
 
 package org.gradle.nativeplatform.test
 
-import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
-abstract class AbstractNativeUnitTestIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
+abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "does nothing when no source files are present"() {
         given:
         makeSingleProject()
@@ -30,6 +30,8 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToBuildAndRunUnitTest, ":test", ":check")
         result.assertTasksSkipped(tasksToBuildAndRunUnitTest, ":test", ":check")
     }
+
+    protected abstract void makeSingleProject();
 
     abstract String[] getTasksToBuildAndRunUnitTest()
 }

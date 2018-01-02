@@ -17,45 +17,18 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.Internal;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-public abstract class LockableCollectionProperty<T, C extends Collection<T>> extends AbstractProvider<C> implements CollectionPropertyInternal<T, C> {
+public abstract class LockableCollectionProperty<T, C extends Collection<T>> extends AbstractLockableProperty<C> implements CollectionPropertyInternal<T, C> {
     private CollectionPropertyInternal<T, C> delegate;
     private boolean locked;
     private C value;
 
     public LockableCollectionProperty(CollectionPropertyInternal<T, C> delegate) {
+        super(delegate);
         this.delegate = delegate;
-    }
-
-    @Nullable
-    @Override
-    public Class<C> getType() {
-        return null;
-    }
-
-    public void lockNow() {
-        locked = true;
-        C currentValue = delegate.getOrNull();
-        value = currentValue == null ? null : immutableCopy(currentValue);
-        delegate = null;
-    }
-
-    protected abstract C immutableCopy(C value);
-
-    private void assertNotLocked() {
-        if (locked) {
-            throw new IllegalStateException("This property is locked and cannot be changed.");
-        }
-    }
-
-    @Override
-    public void setFromAnyValue(Object object) {
-        assertNotLocked();
-        delegate.setFromAnyValue(object);
     }
 
     @Override
@@ -89,9 +62,8 @@ public abstract class LockableCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    @Nullable
-    @Internal
-    public C getOrNull() {
-        return locked ? value : delegate.getOrNull();
+    public void lockNow() {
+        super.lockNow();
+        delegate = null;
     }
 }

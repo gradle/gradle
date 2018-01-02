@@ -17,35 +17,90 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.Factory;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.Map;
 
+/**
+ * A view of the properties of a task.
+ *
+ * This includes inputs, outputs, destroyables and local state properties.
+ *
+ * Once created, the view is immutable and registering additional or changing existing task properties will not be detected.
+ *
+ * Created by {@link DefaultTaskProperties#resolve(PropertyWalker, PathToFileResolver, TaskInternal)}.
+ */
+@NonNullApi
 public interface TaskProperties {
 
+    /**
+     * A factory for the input properties.
+     *
+     * Calling `create` on the factory results in evaluating the input properties and gathering them into a Map.
+     */
     Factory<Map<String, Object>> getInputPropertyValues();
 
+    /**
+     * Input file properties.
+     *
+     * It is guaranteed that all the {@link TaskInputFilePropertySpec}s have a name and that the names are unique.
+     */
     ImmutableSortedSet<TaskInputFilePropertySpec> getInputFileProperties();
 
+    /**
+     * The input files.
+     */
     FileCollection getInputFiles();
 
+    /**
+     * Whether there are source files.
+     *
+     * Source files are {@link TaskInputFilePropertySpec}s where {@link TaskInputFilePropertySpec#isSkipWhenEmpty()} returns true.
+     */
     boolean hasSourceFiles();
 
+    /**
+     * The source files.
+     */
     FileCollection getSourceFiles();
 
+    /**
+     * Output file properties.
+     *
+     * It is guaranteed that all the {@link TaskOutputFilePropertySpec}s have a name and that the names are unique.
+     */
     ImmutableSortedSet<TaskOutputFilePropertySpec> getOutputFileProperties();
 
+    /**
+     * The output files.
+     */
     FileCollection getOutputFiles();
 
+    /**
+     * Whether output properties have been declared.
+     */
     boolean hasDeclaredOutputs();
 
+    /**
+     * The files that represent the local state.
+     */
     FileCollection getLocalStateFiles();
 
+    /**
+     * The files that are destroyed.
+     */
     FileCollection getDestroyableFiles();
 
+    /**
+     * Validations for the properties.
+     */
     void validate(TaskValidationContext validationContext);
 }

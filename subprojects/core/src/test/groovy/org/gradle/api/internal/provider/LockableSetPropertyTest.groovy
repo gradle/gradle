@@ -26,18 +26,33 @@ class LockableSetPropertyTest extends LockableCollectionPropertySpec<Set<String>
     }
 
     @Override
-    LockableCollectionProperty<String, Set<String>> property(CollectionPropertyInternal<String, Set<String>> target) {
+    LockableCollectionProperty<String, Set<String>> property(PropertyInternal<Set<String>> target) {
         return new LockableSetProperty<String>(target)
     }
 
     @Override
-    Set<String> toMutable(Collection<String> values) {
+    Set<String> toMutable(Set<String> values) {
         return new LinkedHashSet<String>(values)
     }
 
     @Override
-    Set<String> toImmutable(Collection<String> values) {
+    Set<String> toImmutable(Set<String> values) {
         return ImmutableSet.copyOf(values)
+    }
+
+    @Override
+    Set<String> someValue() {
+        return ["abc"] as Set
+    }
+
+    @Override
+    Set<String> someOtherValue() {
+        return ["cde"] as Set
+    }
+
+    @Override
+    Set<String> brokenValue() {
+        return ["broken"] as Set
     }
 
     interface TestProperty extends CollectionPropertyInternal<String, Set<String>>, SetProperty<String> {}

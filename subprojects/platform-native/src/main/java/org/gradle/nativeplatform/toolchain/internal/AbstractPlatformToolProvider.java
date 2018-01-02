@@ -35,6 +35,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCom
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.util.TreeVisitor;
 
 import static org.gradle.internal.FileUtils.withExtension;
@@ -217,5 +218,10 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     @Override
     public String getObjectFileExtension() {
         return targetOperatingSystem.isWindows() ? ".obj" : ".o";
+    }
+
+    @Override
+    public CompilerMetadata getCompilerMetadata() {
+        throw unavailableTool("Compiler is not available");
     }
 }

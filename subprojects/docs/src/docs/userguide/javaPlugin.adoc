@@ -998,7 +998,7 @@ Manifests are merged in the order they are declared by the `from` statement. If 
 You can easily write a manifest to disk.
 
 ++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="manifest" dir="userguide/tutorial/manifest" title="Separate MANIFEST.MF for a particular archive">
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="manifest" dir="userguide/tutorial/manifest" title="Saving a MANIFEST.MF to disk">
                 <sourcefile file="build.gradle" snippet="write"/>
             </sample>
 ++++

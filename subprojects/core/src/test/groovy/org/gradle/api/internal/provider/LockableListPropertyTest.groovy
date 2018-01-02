@@ -26,18 +26,33 @@ class LockableListPropertyTest extends LockableCollectionPropertySpec<List<Strin
     }
 
     @Override
-    LockableCollectionProperty<String, List<String>> property(CollectionPropertyInternal<String, List<String>> target) {
+    LockableCollectionProperty<String, List<String>> property(PropertyInternal<List<String>> target) {
         return new LockableListProperty<String>(target)
     }
 
     @Override
-    List<String> toMutable(Collection<String> values) {
+    List<String> toMutable(List<String> values) {
         return new ArrayList<String>(values)
     }
 
     @Override
-    List<String> toImmutable(Collection<String> values) {
+    List<String> toImmutable(List<String> values) {
         return ImmutableList.copyOf(values)
+    }
+
+    @Override
+    List<String> someValue() {
+        return ["abc"]
+    }
+
+    @Override
+    List<String> someOtherValue() {
+        return ["cde"]
+    }
+
+    @Override
+    List<String> brokenValue() {
+        return ["broken"]
     }
 
     interface TestProperty extends CollectionPropertyInternal<String, List<String>>, ListProperty<String> {}

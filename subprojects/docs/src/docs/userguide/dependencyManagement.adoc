@@ -320,13 +320,66 @@ You can also assign collections or arrays of dependency notations to a configura
 [[sec:inspecting_dependencies]]
 === Inspecting dependencies
 
-You can generate dependency reports from the command line (see <<sec:listing_dependencies>>). With the help of the Project report plugin (see <<project_report_plugin>>) such a report can be created by your build.
+Gradle provides sufficient tooling to navigate large dependency graphs and mitigate situations that can lead to link:https://en.wikipedia.org/wiki/Dependency_hell[dependency hell]. Users can chose to render the full graph of dependencies as well as identify the selection reason and origin for a dependency. The origin of a dependency can be a declared dependency in the build script or a transitive dependency in graph plus their corresponding configuration. Gradle offers both capabilities through visual representation via build scans and as command line tooling.
 
-Since Gradle 1.2 there is also a new programmatic API to access the resolved dependency information. The dependency reports (see the previous paragraph) are using this API under the covers. The API lets you walk the resolved dependency graph and provides information about the dependencies. In future releases the API will grow to provide more information about the resolution result. For more information about the API please refer to the Javadocs on api:org.gradle.api.artifacts.ResolvableDependencies#getResolutionResult[]. Potential usages of the api:org.gradle.api.artifacts.result.ResolutionResult[] API:
+[[sec:listing_dependencies]]
+==== Listing all dependencies in a project
 
-* Creation of advanced dependency reports tailored to your use case.
-* Enabling the build logic to make decisions based on the content of the dependency graph.
+A project can declare one or more dependencies. Gradle can visualize the whole dependency tree for every configuration available in the project with the help of the _dependency report_.
 
+Rendering the dependency tree is particularly useful if you'd like identify which dependencies have been resolved at runtime. It also provides you with information about any dependency conflict resolution that occurred in the process and clearly indicates the selected version. The dependency report always contains declared and transitive dependencies.
+
+Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<sub:scope_of_dependency_configurations,custom configuration>> so that it doesn't doesn't pollute other contexts like the compilation classpath for your production source code.
+
+A link:https://scans.gradle.com/[build scan] can visualize dependencies as a navigable, searchable tree. Additional context information can be rendered by clicking on a specific dependency in the graph.
+
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Dependency tree in a build scan</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-dependencies-report-build-scan.png" width="180mm" />
+    </imageobject>
+</figure>
++++++
+
+To render the dependencies graph from the command line execute the `dependencies` task for the corresponding configuration.
+
+++++
+<sample id="dependencyReport" dir="userguide/dependencies/dependenciesReport" title="Rendering the dependency report for a custom configuration">
+    <sourcefile file="build.gradle" snippet="dependency-declaration" />
+    <output args="-q dependencies --configuration scm"/>
+</sample>
+++++
+
+The dependencies report rendered as console output provides detailed information about the dependencies available in the graph. Any dependency that could not be resolved is marked with `FAILED` in red color. Dependencies with the same coordinates that can occur multiple times in the graph are omitted and indicated by an asterisk. Dependencies that had to undergo conflict resolution render the requested and selected version separated by a right arrow character.
+
+==== Identifying which dependency version was selected and why
+
+Large software projects inevitably deal with an increased number of dependencies either through direct or transitive dependencies. The <<sec:listing_dependencies,dependencies report>> provides you with the raw list of dependencies but does not explain _why_ they have been selected or _which_ dependency is responsible for pulling them into the graph.
+
+The _dependency insight report_ can answer both questions. Given a dependency in the dependency graph you can identify the selection reason and track down the origin of the dependency selection. You can think of the dependency insight report as the inverse representation of the dependency report for a given dependency.
+
+Let's have a look at a concrete example. A project may request two different versions of the same dependency either as direct or transitive dependency. Gradle applies version conflict resolution to ensure that only one version of the dependency exists in the dependency graph. The dependency insight report can tell you the selection reason (conflict resolution) and the origin(s) of the dependency in the graph up to the configuration.
+
+The dependency tree in a link:https://scans.gradle.com/[build scan] renders the selection reason as well as the origin of a dependency if you click on a dependency and select the "Required By" tab.
+
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Dependency insight capabilities in a build scan</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-dependency-insight-report-build-scan.png" />
+    </imageobject>
+</figure>
++++++
+
+The dependency insight report on the command line can be rendered by executing the `dependencyInsight` task. You have to provide the mandatory parameter `--dependency` to specify the coordinates of the dependency under inspection.
+
+++++
+<sample id="dependencyInsightReport" dir="userguide/dependencies/dependencyInsightReport" title="Using the dependency insight report for a given dependency">
+    <sourcefile file="build.gradle" snippet="dependency-declaration" />
+    <output args="-q dependencyInsight --dependency commons-codec --configuration scm"/>
+</sample>
+++++
 
 [[sec:working_with_dependencies]]
 === Working with dependencies

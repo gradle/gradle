@@ -176,7 +176,7 @@ Optionally, a repository with pattern layout can have its `'organisation'` part 
 You can specify credentials for Ivy repositories secured by basic authentication.
 
 ++++
-<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
+<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with authentication">
     <sourcefile file="build.gradle" snippet="authenticated-ivy-repo"/>
 </sample>
 ++++
