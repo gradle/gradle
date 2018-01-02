@@ -297,7 +297,7 @@ A project can declare one or more dependencies. Gradle can visualize the whole d
 
 Rendering the dependency tree is particularly useful if you'd like identify which dependencies have been resolved at runtime. It also provides you with information about any dependency conflict resolution that occurred in the process and clearly indicates the selected version. The dependency report always contains declared and transitive dependencies.
 
-Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<sub:scope_of_dependency_configurations,custom configuration>> so that it doesn't doesn't convolute other contexts like the compilation classpath for your production source code. To render the dependencies graph execute the `dependencies` task for the corresponding configuration.
+Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<sub:scope_of_dependency_configurations,custom configuration>> so that it doesn't doesn't pollute other contexts like the compilation classpath for your production source code. To render the dependencies graph execute the `dependencies` task for the corresponding configuration.
 
 ++++
 <sample id="dependencyReport" dir="userguide/dependencies/dependenciesReport" title="Rendering the dependency report for a custom configuration">
@@ -308,7 +308,7 @@ Let's say you'd want to create tasks for your project that use the link:https://
 
 [NOTE]
 ====
-The dependencies report provides detailed information about the dependencies available in the graph. Any dependency that could not be resolved is marked with `FAILED` in red color. Dependencies with the same coordinates that can occur multiple times in the graph are omitted indicated by an asterisk (`*`) character. Dependencies that had to undergo conflict resolution render the requested and selected version separated by a right arrow character.
+The dependencies report provides detailed information about the dependencies available in the graph. Any dependency that could not be resolved is marked with `FAILED` in red color. Dependencies with the same coordinates that can occur multiple times in the graph are omitted and indicated by an asterisk. Dependencies that had to undergo conflict resolution render the requested and selected version separated by a right arrow character.
 ====
 
 A link:https://scans.gradle.com/[build scan] can visualize dependencies as a navigable, searchable tree. Additional context information can be rendered by clicking on a specific dependency in the graph.
@@ -322,7 +322,7 @@ A link:https://scans.gradle.com/[build scan] can visualize dependencies as a nav
 </figure>
 +++++
 
-==== Identifying the origin and selection reason for a dependency
+==== Identifying which dependency version was selected and why
 
 Large software projects inevitably deal with an increased number of dependencies either through direct or transitive dependencies. The <<sec:listing_dependencies,dependencies report>> provides you with the raw list of dependencies but does not explain _why_ they have been selected or _which_ dependency is responsible for pulling them into the graph.
 
