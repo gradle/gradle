@@ -43,4 +43,8 @@ abstract class AbstractBeanNode {
     public String getParentPropertyName() {
         return parentPropertyName;
     }
+
+    public Class<?> getBeanClass() {
+        return beanClass;
+    }
 }

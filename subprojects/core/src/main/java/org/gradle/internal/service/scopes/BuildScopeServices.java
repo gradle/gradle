@@ -63,6 +63,8 @@ import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
+import org.gradle.api.internal.tasks.properties.CachingClassImplementationHasher;
+import org.gradle.api.internal.tasks.properties.ClassImplementationHasher;
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker;
 import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
@@ -240,8 +242,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultPropertyMetadataStore(annotationHandlers);
     }
 
-    protected PropertyWalker createPropertyWalker(PropertyMetadataStore propertyMetadataStore, ClassLoaderHierarchyHasher hasher) {
-        return new DefaultPropertyWalker(propertyMetadataStore, hasher);
+    protected ClassImplementationHasher createClassImplemenationHasher(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        return new CachingClassImplementationHasher(classLoaderHierarchyHasher);
+    }
+
+    protected PropertyWalker createPropertyWalker(PropertyMetadataStore propertyMetadataStore, ClassImplementationHasher classImplementationHasher) {
+        return new DefaultPropertyWalker(propertyMetadataStore, classImplementationHasher);
     }
 
     protected TaskClassInfoStore createTaskClassInfoStore() {

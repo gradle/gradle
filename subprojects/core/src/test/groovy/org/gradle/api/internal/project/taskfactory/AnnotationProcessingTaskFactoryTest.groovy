@@ -22,12 +22,12 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.properties.ClassImplementationHasher
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GFileUtils
@@ -41,8 +41,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private AnnotationProcessingTaskFactory factory
     private ITaskFactory delegate
     private TaskClassInfoStore taskClassInfoStore
-    private classloaderHasher = Mock(ClassLoaderHierarchyHasher)
-    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]), classloaderHasher)
+    private classImplementationHasher = Mock(ClassImplementationHasher)
+    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]), classImplementationHasher)
 
     private Map args = new HashMap()
 

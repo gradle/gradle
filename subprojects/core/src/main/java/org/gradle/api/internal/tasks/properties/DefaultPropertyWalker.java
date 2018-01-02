@@ -22,7 +22,6 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
@@ -31,11 +30,8 @@ import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.util.DeferredUtil;
 import org.gradle.util.DeprecationLogger;
@@ -54,11 +50,11 @@ import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR
 public class DefaultPropertyWalker implements PropertyWalker {
 
     private final PropertyMetadataStore propertyMetadataStore;
-    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+    private final ClassImplementationHasher classImplementationHasher;
 
-    public DefaultPropertyWalker(PropertyMetadataStore propertyMetadataStore, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    public DefaultPropertyWalker(PropertyMetadataStore propertyMetadataStore, ClassImplementationHasher classImplementationHasher) {
         this.propertyMetadataStore = propertyMetadataStore;
-        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+        this.classImplementationHasher = classImplementationHasher;
     }
 
     @Override
@@ -77,13 +73,13 @@ public class DefaultPropertyWalker implements PropertyWalker {
                     queue.add(new PropertyNode(nestedPropertyName, nestedBean));
                 }
             } else {
-                visitProperties(node, nestedTypeMetadata, queue, visitor, specFactory, classLoaderHierarchyHasher);
+                visitProperties(node, nestedTypeMetadata, queue, visitor, specFactory, classImplementationHasher);
             }
         }
     }
 
-    private static void visitProperties(PropertyNode node, TypeMetadata typeMetadata, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory specFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        visitImplementation(node, visitor, specFactory, classLoaderHierarchyHasher);
+    private static void visitProperties(PropertyNode node, TypeMetadata typeMetadata, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory specFactory, ClassImplementationHasher classImplementationHasher) {
+        visitImplementation(node, visitor, specFactory, classImplementationHasher);
         for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
             if (propertyValueVisitor == null) {
@@ -106,10 +102,10 @@ public class DefaultPropertyWalker implements PropertyWalker {
         }
     }
 
-    private static void visitImplementation(PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, ClassLoaderHierarchyHasher hasher) {
+    private static void visitImplementation(PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, ClassImplementationHasher hasher) {
         // The root bean (Task) implementation is currently tracked separately
         if (!node.isRoot()) {
-            DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("$$implementation$$"), new ImplementationPropertyValue(node.getBean(), hasher));
+            DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("$$implementation$$"), new ImplementationPropertyValue(hasher.getImplementationHash(node.getBeanClass())));
             implementation.optional(false);
             visitor.visitInputProperty(implementation);
         }
@@ -213,23 +209,15 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     private static class ImplementationPropertyValue implements ValidatingValue {
 
-        private final HashCode value;
+        private final HashCode hash;
 
-        public ImplementationPropertyValue(Object bean, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-            BuildCacheHasher buildCacheHasher = new DefaultBuildCacheHasher();
-            HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(bean.getClass().getClassLoader());
-            String typeName = bean.getClass().getName();
-            if (classLoaderHash != null) {
-                new ImplementationSnapshot(typeName, classLoaderHash).appendToHasher(buildCacheHasher);
-            } else {
-                buildCacheHasher.putString(typeName);
-            }
-            this.value = buildCacheHasher.hash();
+        public ImplementationPropertyValue(@Nullable HashCode hash) {
+            this.hash = hash;
         }
 
         @Override
         public Object call() {
-            return value;
+            return hash;
         }
 
         @Override
