@@ -770,7 +770,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @return The test framework options.
      */
     @Nested
-    // TODO:LPTR This doesn't resolve any of the nested options for the concrete subtypes
     public TestFrameworkOptions getOptions() {
         return getTestFramework().getOptions();
     }
