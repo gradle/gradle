@@ -296,10 +296,9 @@
             <p class="lead">Gradle is an open-source build automation tool focused on flexibility and performance. Gradle build scripts are written using a <a href="http://groovy-lang.org/">Groovy</a> or <a href="https://kotlinlang.org/">Kotlin</a> DSL.</p>
 
             <ul>
-                <li><strong>Highly customizable</strong> — Gradle is modeled in a way that customizable and extensible in the most fundamental ways.</li>
-                <li><strong>Fast</strong> — Gradle completes tasks quickly by reusing outputs from previous executions, processing only inputs that changed, and executing tasks in parallel.</li>
-                <li><strong>Open source</strong> — Gradle is an open source project, licensed under the Apache License v2.0.</li>
-                <li><strong>Powerful</strong> — Gradle is the official build tool for Android, and comes with support for many popular languages and technologies.</li>
+                <li><p><strong>Highly customizable</strong> — Gradle is modeled in a way that customizable and extensible in the most fundamental ways.</p></li>
+                <li><p><strong>Fast</strong> — Gradle completes tasks quickly by reusing outputs from previous executions, processing only inputs that changed, and executing tasks in parallel.</p></li>
+                <li><p><strong>Powerful</strong> — Gradle is the official build tool for Android, and comes with support for many popular languages and technologies.</p></li>
             </ul>
 
             <div class="technology-logos">
@@ -326,7 +325,7 @@
             <p>You can also invoke Gradle via its <a href="/userguide/command_line_interface.html">command line interface</a>
                 in your terminal or through your continuous integration server.</p>
 
-            <p><a href="https://scans.gradle.com/get-started" title="Get started with build scans">Gradle build scans</a> help you understand build results, improve build performance, and collaborate to fix problems faster.</p>
+            <p><a href="https://scans.gradle.com/" title="Get started with build scans">Gradle build scans</a> help you understand build results, improve build performance, and collaborate to fix problems faster.</p>
 
             <h2>Getting help</h2>
 
