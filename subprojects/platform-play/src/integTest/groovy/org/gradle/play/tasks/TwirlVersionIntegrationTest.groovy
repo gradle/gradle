@@ -36,6 +36,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "changing between twirl-incompatible versions of play causes Twirl to recompile" () {
+        executer.expectDeprecationWarning()
         withPlayVersion("2.2.1")
         withTemplateSource(file("app", "views", "index.scala.html"))
 
