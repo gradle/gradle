@@ -111,18 +111,21 @@ See [`application` plugin](userguide/application_plugin.html) for more details.
 
 Now [CodeNarc](http://codenarc.sourceforge.net/)'s default version has been upgraded to 1.0, enjoy!
 
-### Richer task inputs
+### Use of runtime types when declaring `@Nested` task inputs
 
-The detection of task input and output annotations for `@Nested` properties now works on the runtime type of the nested bean.
-Earlier Gradle versions used the declared type for detecting annotations.
-Moreover, `Iterable`s can now be annotated with `@Nested` and each element of the iterable will be added as a separate nested input.
+When analyzing @Nested task properties for declared input and output sub-properties, Gradle used to only observe the declared type of the property.
+This meant ignoring any sub-properties declared by a runtime sub-type.
+Since Gradle 4.5, Gradle uses the [type of the actual value instead](userguide/more_about_tasks.html#sec:task_input_nested_inputs), and hence can discover all sub-properties declared this way.
+This allows for a few new tricks.
 
-This allows for richer modelling inputs and solves some problems on how to declare inputs which are only determined by subclasses.
+#### Rich Java compiler arguments
 
-### Rich Java compiler arguments
+When you have to expose a file location to your annotation processor, it is essential for Gradle to learn about this additional input (or output).
+Without tracking the location and contents of the given file (or directory), features like incremental build and task output caching cannot function correctly.
+Before Gradle 4.5 you had to let Gradle know manually by calling `compileJava.inputs.file(...)` or similar.
 
-As a first use-case of richer task inputs, the `CompileJava` task now supports richer compiler arguments.
-It declares a property [`CompileJava.options.compilerArgumentProviders`](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders), which allows to add instances implementing [`CompilerArgumentProvider`](javadoc/org/gradle/api/tasks/compile/CompilerArgumentProvider.html) and then adds the necessary command line arguments.
+Gradle 4.5 introduces a better way to handle this situation by modeling the annotation processor as a [`CompilerArgumentProvider`](javadoc/org/gradle/api/tasks/compile/CompilerArgumentProvider.html).
+This approach allows the declaration of complex inputs and outputs, just like how you would declare `@InputFile` and `@OutputDirectory` properties on the task type.
 
 For example, to declare annotation processor arguments, it is now be possible to do the following:
 
@@ -151,7 +154,14 @@ For example, to declare annotation processor arguments, it is now be possible to
         compileJava.options.compilerArgumentProviders << new MyAnnotationProcessor(inputFile, outputFile)
 
 This models an annotation processor which requires an input file and generates an output file.
-The arguments will be passed to the annotation processor via compiler argumetns as absolute paths, while Gradle would use the incremental task information for determining the build cache key of the `compileJava` task and for incremental build.
+
+The approach is not limited to annotation processors, but can be used to declare any kind of command-line argument to the compiler.
+The only thing you need to do is to add your custom `CompilerArgumentsProvider` to [`CompileJava.options.compilerArgumentProviders`](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders).
+
+#### `@Nested` on iterables
+
+When adding [`@Nested`](javadoc/org/gradle/api/tasks/Nested.html) to an iterable, each element is treated as a separate nested input.
+[`CompileJava.options.compilerArgumentProviders`](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders) shows this new behavior.
 
 ## Promoted features
 
