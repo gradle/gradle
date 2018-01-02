@@ -334,9 +334,9 @@
             <p>If you ever run into trouble, there are a number of ways to get help:</p>
 
             <ul>
-                <li><strong><a href="https://discuss.gradle.org" title="Gradle help and discussion forums">Forum</a></strong> — Community members and core contributors answer your questions.</li>
-                <li><strong><a href="https://gradle.org/training/" title="Gradle training schedule">Training</a></strong> — Free, web-based Gradle training from Gradle developers happens every month.</li>
-                <li><strong><a href="https://gradle.org/services/">Enterprise Services</a></strong> — Support and training can be purchased alongside a <a href="https://gradle.com/enterprise">Gradle Enterprise</a> subscription.</li>
+                <li><p><strong><a href="https://discuss.gradle.org" title="Gradle help and discussion forums">Forum</a></strong> — Community members and core contributors answer your questions.</p></li>
+                <li><p><strong><a href="https://gradle.org/training/" title="Gradle training schedule">Training</a></strong> — Free, web-based Gradle training from Gradle developers happens every month.</p></li>
+                <li><p><strong><a href="https://gradle.org/services/">Enterprise Services</a></strong> — Support and training can be purchased alongside a <a href="https://gradle.com/enterprise">Gradle Enterprise</a> subscription.</p></li>
             </ul>
 
             <p>We hope you build happiness with Gradle!</p>
