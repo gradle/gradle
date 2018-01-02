@@ -69,12 +69,12 @@ public class PropertyValidationAccess {
             TypeToken<?> beanType = node.getBeanType();
             Class<?> beanClass = beanType.getRawType();
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(beanClass);
-            if (Iterable.class.isAssignableFrom(beanClass) && !typeMetadata.isAnnotated()) {
+            if (node.isIterable(typeMetadata)) {
                 @SuppressWarnings("unchecked")
                 TypeToken<Iterable> typeToken = (TypeToken<Iterable>) beanType;
                 ParameterizedType type = (ParameterizedType) typeToken.getSupertype(Iterable.class).getType();
                 TypeToken<?> nestedType = TypeToken.of(type.getActualTypeArguments()[0]);
-                queue.add(new TypeNode(node.parentPropertyName + "$1", nestedType));
+                queue.add(new TypeNode(node.getParentPropertyName() + "<" + beanClass.getSimpleName() + ">", nestedType));
             } else {
                 validateTaskClass(topLevelBean, cacheable, problems, queue, node, typeMetadata);
             }
@@ -110,25 +110,16 @@ public class PropertyValidationAccess {
         return String.format("Task type '%s': property '%s' %s.", task.getName(), qualifiedPropertyName, validationMessage);
     }
 
-    private static class TypeNode {
-        private final String parentPropertyName;
+    private static class TypeNode extends AbstractBeanNode {
         private final TypeToken<?> beanType;
 
         public TypeNode(@Nullable String parentPropertyName, TypeToken<?> beanType) {
-            this.parentPropertyName = parentPropertyName;
+            super(parentPropertyName, beanType.getRawType());
             this.beanType = beanType;
-        }
-
-        public Class<?> getBeanClass() {
-            return beanType.getRawType();
         }
 
         public TypeToken<?> getBeanType() {
             return beanType;
-        }
-
-        public String getQualifiedPropertyName(String propertyName) {
-            return parentPropertyName == null ? propertyName : parentPropertyName + "." + propertyName;
         }
     }
 

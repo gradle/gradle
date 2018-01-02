@@ -69,7 +69,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
             PropertyNode node = queue.remove();
             Object nested = node.getBean();
             TypeMetadata nestedTypeMetadata = propertyMetadataStore.getTypeMetadata(nested.getClass());
-            if (!node.isRoot() && (nested instanceof Iterable<?>) && !nestedTypeMetadata.isAnnotated()) {
+            if (node.isIterable(nestedTypeMetadata)) {
                 Iterable<?> nestedBeans = (Iterable<?>) nested;
                 int count = 0;
                 for (Object nestedBean : nestedBeans) {
@@ -108,32 +108,23 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     private static void visitImplementation(PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, ClassLoaderHierarchyHasher hasher) {
         // The root bean (Task) implementation is currently tracked separately
-        if (node.parentPropertyName != null) {
+        if (!node.isRoot()) {
             DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("$$implementation$$"), new ImplementationPropertyValue(node.getBean(), hasher));
             implementation.optional(false);
             visitor.visitInputProperty(implementation);
         }
     }
 
-    private static class PropertyNode {
-        private final String parentPropertyName;
+    private static class PropertyNode extends AbstractBeanNode {
         private final Object bean;
 
         public PropertyNode(@Nullable String parentPropertyName, Object bean) {
-            this.parentPropertyName = parentPropertyName;
-            this.bean = Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + parentPropertyName + "'");
+            super(parentPropertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + parentPropertyName + "'").getClass());
+            this.bean = bean;
         }
 
         public Object getBean() {
             return bean;
-        }
-
-        public String getQualifiedPropertyName(String propertyName) {
-            return parentPropertyName == null ? propertyName : parentPropertyName + "." + propertyName;
-        }
-
-        public boolean isRoot() {
-            return parentPropertyName == null;
         }
     }
 
