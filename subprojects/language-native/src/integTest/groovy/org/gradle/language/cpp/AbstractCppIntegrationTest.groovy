@@ -17,20 +17,9 @@
 package org.gradle.language.cpp
 
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.util.Matchers
-import org.junit.Assume
 
 abstract class AbstractCppIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
-    def setup() {
-        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
-        Assume.assumeTrue(worksWithCppPlugin(toolChain))
-    }
-
-    static boolean worksWithCppPlugin(AvailableToolChains.ToolChainCandidate toolChain) {
-        toolChain.id != "mingw" && toolChain.id != "gcccygwin"
-    }
-
     def "skip assemble tasks when no source"() {
         given:
         makeSingleProject()

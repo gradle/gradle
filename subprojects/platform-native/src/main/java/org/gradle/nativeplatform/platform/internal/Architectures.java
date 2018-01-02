@@ -48,6 +48,10 @@ public class Architectures {
         return new DefaultArchitecture(input);
     }
 
+    public static ArchitectureInternal of(KnownArchitecture architecture) {
+        return new DefaultArchitecture(architecture.canonicalName);
+    }
+
     public static class KnownArchitecture {
         private final String canonicalName;
         private final List<String> aliases;

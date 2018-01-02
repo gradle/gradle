@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputApp
@@ -26,7 +27,7 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleLinkOutputAppWi
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleLinkOutputLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 
-class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
     def "removes stale object files for executable"() {
         settingsFile << "rootProject.name = 'app'"
