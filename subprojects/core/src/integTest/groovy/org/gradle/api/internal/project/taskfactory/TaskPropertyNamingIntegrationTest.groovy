@@ -141,14 +141,14 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "test", "printMetadata"
-        output =~ /Input property 'input'/
-        output =~ /Input property 'bean\.class'/
+        output.contains "Input property 'input'"
+        output.contains "Input property 'bean.class'"
 
-        output =~ /Input property 'bean\.input'/
-        output =~ /Input property 'bean\.nestedBean.class'/
-        output =~ /Input file property 'bean\.inputDir'/
-        output =~ /Input file property 'bean\.nestedBean.inputFile'/
-        output =~ /Output file property 'bean\.outputDir'/
+        output.contains "Input property 'bean.input'"
+        output.contains "Input property 'bean.nestedBean.class'"
+        output.contains "Input file property 'bean.inputDir'"
+        output.contains "Input file property 'bean.nestedBean.inputFile'"
+        output.contains "Output file property 'bean.outputDir'"
     }
 
     def "nested iterable properties have names"() {
@@ -179,11 +179,11 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds 'test', 'printMetadata'
-        output =~ /Input property 'beans\.class'/
-        output =~ $/Input property 'beans\.\$1.\$\$$implementation\$\$'/$
-        output =~ $/Input property 'beans\.\$1.input'/$
-        output =~ $/Input property 'beans\.\$2.\$\$$implementation\$\$'/$
-        output =~ $/Input property 'beans\.\$2.secondInput'/$
+        output.contains "Input property 'beans.class'"
+        output.contains "Input property 'beans.\$1.\$\$implementation\$\$"
+        output.contains "Input property 'beans.\$1.input'"
+        output.contains "Input property 'beans.\$2.\$\$implementation\$\$'"
+        output.contains "Input property 'beans.\$2.secondInput'"
     }
 
     def "nested destroyables are discovered"() {
@@ -212,7 +212,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "destroy", "printMetadata"
 
         then:
-        output =~ /Input property 'bean\.class'/
+        output.contains "Input property 'bean.class'"
         output =~ /Destroys: '.*destroyed'/
     }
 
@@ -242,7 +242,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "taskWithLocalState", "printMetadata"
 
         then:
-        output =~ /Input property 'bean\.class'/
+        output.contains "Input property 'bean.class'"
         output =~ /Local state: '.*localState'/
     }
 
@@ -268,12 +268,12 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test", "printMetadata"
 
         then:
-        output =~ /Input property 'input'/
-        output =~ /Input property 'bean\.input'/
+        output.contains "Input property 'input'"
+        output.contains "Input property 'bean.input'"
 
-        output =~ /Input property 'bean\.class'/
-        output =~ /Input property 'bean\.nestedBean\.class'/
-        output =~ /Input file property 'bean\.inputDir'/
+        output.contains "Input property 'bean.class'"
+        output.contains "Input property 'bean.nestedBean.class'"
+        output.contains "Input file property 'bean.inputDir'"
     }
 
     String classesForNestedProperties() {
