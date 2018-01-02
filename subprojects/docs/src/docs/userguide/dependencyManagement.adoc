@@ -306,10 +306,7 @@ Let's say you'd want to create tasks for your project that use the link:https://
 </sample>
 ++++
 
-[NOTE]
-====
 The dependencies report provides detailed information about the dependencies available in the graph. Any dependency that could not be resolved is marked with `FAILED` in red color. Dependencies with the same coordinates that can occur multiple times in the graph are omitted and indicated by an asterisk. Dependencies that had to undergo conflict resolution render the requested and selected version separated by a right arrow character.
-====
 
 A link:https://scans.gradle.com/[build scan] can visualize dependencies as a navigable, searchable tree. Additional context information can be rendered by clicking on a specific dependency in the graph.
 
