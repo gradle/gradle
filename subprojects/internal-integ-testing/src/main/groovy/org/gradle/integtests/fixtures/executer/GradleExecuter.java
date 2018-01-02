@@ -30,7 +30,6 @@ import java.io.PipedOutputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 public interface GradleExecuter extends Stoppable {
     /**
@@ -433,9 +432,7 @@ public interface GradleExecuter extends Stoppable {
      *
      * @see WarningType
      */
-    GradleExecuter withWarnings(WarningType... warningTypes);
-
-    GradleExecuter withWarnings(Set<WarningType> warningTypes);
+    GradleExecuter withWarningType(WarningType warningType);
 
     /**
      * Execute the builds without adding the {@code "--stacktrace"} argument.

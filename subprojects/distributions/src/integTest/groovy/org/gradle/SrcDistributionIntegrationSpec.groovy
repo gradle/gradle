@@ -47,7 +47,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
             inDirectory(contentsDir)
             usingExecutable('gradlew')
             withTasks('binZip')
-            withWarnings([] as Set)
+            withWarningType(null)
         }.run()
 
         then:

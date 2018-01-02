@@ -78,10 +78,10 @@ public class SingleMessageLogger {
         }
     }
 
-    public static void init(UsageLocationReporter reporter, Set<WarningType> warningTypes) {
+    public static void init(UsageLocationReporter reporter, WarningType warningType) {
         LOCK.lock();
         try {
-            handler.init(reporter, warningTypes);
+            handler.init(reporter, warningType);
         } finally {
             LOCK.unlock();
         }

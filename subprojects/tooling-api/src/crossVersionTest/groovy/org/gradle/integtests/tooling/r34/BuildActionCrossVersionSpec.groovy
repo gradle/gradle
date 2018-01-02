@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.tooling.r34
 
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -34,7 +34,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def "can load custom action from url containing whitespaces"() {
         setup:
         toolingApi.requireIsolatedDaemons()
-        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(dist, temporaryFolder).withWarnings([] as Set), temporaryFolder.testDirectory)
+        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(dist, temporaryFolder).withWarningType(null), temporaryFolder.testDirectory)
         builder.sourceFile('ActionImpl.java') << """
             public class ActionImpl implements ${BuildAction.name}<Void> {
                 public Void execute(${BuildController.name} controller) {

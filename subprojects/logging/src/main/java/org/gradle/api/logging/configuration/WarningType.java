@@ -31,9 +31,9 @@ public enum WarningType {
     All,
 
     /**
-     * Show deprecation warnings.
+     * Display a summary at the end of the build instead of rendering all warnings into the console output.
      */
-    Deprecation,
+    Summary,
 
     /**
      * No deprecation warnings at all.

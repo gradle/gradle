@@ -38,7 +38,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final handler = new LoggingDeprecatedFeatureHandler(locationReporter)
 
     def setup() {
-        handler.init(locationReporter, [WarningType.All] as Set)
+        handler.init(locationReporter, WarningType.All)
     }
 
     def 'logs each deprecation warning only once'() {
@@ -71,8 +71,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def "no warnings should be displayed in #mode"() {
         when:
-        def warningTypes = type == null ? [] : [type]
-        handler.init(locationReporter, warningTypes as Set)
+        handler.init(locationReporter, type)
         handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature1'))
 
         then:

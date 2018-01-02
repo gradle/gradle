@@ -154,7 +154,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean requiresGradleDistribution;
     private boolean useOwnUserHomeServices;
     private ConsoleOutput consoleType;
-    protected Set<WarningType> warningTypes = Sets.newHashSet(WarningType.All);
+    protected WarningType warningType = WarningType.All;
     private boolean showStacktrace = true;
 
     private int expectedDeprecationWarnings;
@@ -235,7 +235,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         checkDeprecations = true;
         durationMeasurement = null;
         consoleType = null;
-        warningTypes = Sets.newHashSet(WarningType.All);
+        warningType = WarningType.All;
         return this;
     }
 
@@ -386,7 +386,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             executer.withConsole(consoleType);
         }
 
-        executer.withWarnings(warningTypes);
+        executer.withWarningType(warningType);
 
         if (!showStacktrace) {
             executer.withStacktraceDisabled();
@@ -741,14 +741,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
-    public GradleExecuter withWarnings(WarningType... warningTypes) {
-        withWarnings(Sets.newHashSet(warningTypes));
-        return this;
-    }
-
-    @Override
-    public GradleExecuter withWarnings(Set<WarningType> warningTypes) {
-        this.warningTypes = warningTypes;
+    public GradleExecuter withWarningType(WarningType warningType) {
+        this.warningType = warningType;
         return this;
     }
 
@@ -877,8 +871,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add("--console=" + consoleType.toString().toLowerCase());
         }
 
-        for (WarningType type : warningTypes) {
-            allArgs.add("--warnings=" + type.toString().toLowerCase(Locale.ENGLISH));
+        if (warningType != null) {
+            allArgs.add("--warnings=" + warningType.toString().toLowerCase(Locale.ENGLISH));
         }
 
         allArgs.addAll(args);
@@ -1021,9 +1015,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return null;
     }
 
-    private boolean isJava7Home(String path){
-        for(String jdk7Path: JDK7_PATHS){
-            if(path.contains(jdk7Path)){
+    private boolean isJava7Home(String path) {
+        for (String jdk7Path : JDK7_PATHS) {
+            if (path.contains(jdk7Path)) {
                 return true;
             }
         }

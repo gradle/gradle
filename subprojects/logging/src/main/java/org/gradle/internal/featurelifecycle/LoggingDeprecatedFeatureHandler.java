@@ -36,7 +36,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     private static boolean traceLoggingEnabled;
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
-    private Set<WarningType> warningTypes = new HashSet<WarningType>();
+    private WarningType warningType;
 
     public LoggingDeprecatedFeatureHandler() {
         this(new UsageLocationReporter() {
@@ -49,9 +49,9 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         this.locationReporter = locationReporter;
     }
 
-    public void init(UsageLocationReporter reporter, Set<WarningType> warningTypes) {
+    public void init(UsageLocationReporter reporter, WarningType warningType) {
         this.locationReporter = reporter;
-        this.warningTypes = warningTypes;
+        this.warningType = warningType;
     }
 
     public void reset() {
@@ -68,22 +68,18 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             }
             message.append(usage.getMessage());
             logTraceIfNecessary(usage.getStack(), message);
-            if (warningTypes.contains(WarningType.All) || warningTypes.contains(WarningType.Deprecation)) {
+            if (warningType==WarningType.All) {
                 LOGGER.warn(message.toString());
             }
         }
     }
 
     public void reportSuppressedDeprecations() {
-        if (defaultWarningType() && !messages.isEmpty()) {
+        if (warningType == WarningType.Summary && !messages.isEmpty()) {
             LOGGER.warn("\nThere're {} deprecation warnings, which may break the build in Gradle {}. Please run with --warnings=all to see them.",
                 messages.size(),
                 GradleVersion.current().getNextMajor().getVersion());
         }
-    }
-
-    private boolean defaultWarningType() {
-        return warningTypes.isEmpty();
     }
 
     private static void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
