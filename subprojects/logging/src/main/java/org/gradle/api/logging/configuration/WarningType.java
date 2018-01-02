@@ -19,43 +19,24 @@ package org.gradle.api.logging.configuration;
 import org.gradle.api.Incubating;
 
 /**
- * Specifies the warning type a user wants to see
+ * Specifies the warning type a user wants to see.
  *
  * @since 4.5
  */
 @Incubating
 public enum WarningType {
     /**
-     * Show all warnings
+     * Show all warnings.
      */
-    All("all"),
+    All,
 
     /**
-     * Show deprecation warnings
+     * Show deprecation warnings.
      */
-    Deprecation("deprecation"),
+    Deprecation,
 
     /**
      * No deprecation warnings at all.
      */
-    None("none");
-
-    private String buildOption;
-
-    WarningType(String buildOption) {
-        this.buildOption = buildOption;
-    }
-
-    public String getBuildOption() {
-        return this.buildOption;
-    }
-
-    public static WarningType fromBuildOption(String value) {
-        for (WarningType warningType : values()) {
-            if (warningType.buildOption.equalsIgnoreCase(value)) {
-                return warningType;
-            }
-        }
-        throw new IllegalArgumentException("No enum constant WarningType." + value);
-    }
+    None
 }

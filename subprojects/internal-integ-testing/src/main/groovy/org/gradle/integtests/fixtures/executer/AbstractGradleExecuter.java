@@ -878,7 +878,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         for (WarningType type : warningTypes) {
-            allArgs.add("--warnings=" + type.getBuildOption());
+            allArgs.add("--warnings=" + type.toString().toLowerCase(Locale.ENGLISH));
         }
 
         allArgs.addAll(args);

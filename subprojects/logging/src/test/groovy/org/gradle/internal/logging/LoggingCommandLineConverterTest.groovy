@@ -19,6 +19,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
+import org.gradle.api.logging.configuration.WarningType
 import org.gradle.cli.CommandLineArgumentException
 import spock.lang.Specification
 
@@ -56,12 +57,12 @@ class LoggingCommandLineConverterTest extends Specification {
     }
 
     def convertsWarnLevel() {
-         expectedConfig.logLevel = LogLevel.WARN
+        expectedConfig.logLevel = LogLevel.WARN
 
-         expect:
-         checkConversion(['-w'])
-         checkConversion(['--warn'])
-     }
+        expect:
+        checkConversion(['-w'])
+        checkConversion(['--warn'])
+    }
 
     def convertsConsole() {
         expectedConfig.consoleOutput = consoleOutput
@@ -116,10 +117,17 @@ class LoggingCommandLineConverterTest extends Specification {
         converter.logLevels == [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.QUIET, LogLevel.WARN] as Set
     }
 
+    def getsAllWarningTypes() {
+        expectedConfig.warningTypes = [WarningType.All, WarningType.Deprecation, WarningType.None] as Set
+        expect:
+        checkConversion(['--warnings=all', '--warnings=deprecation', '--warnings=none'])
+    }
+
     void checkConversion(List<String> args) {
         def actual = converter.convert(args, new DefaultLoggingConfiguration())
         assert actual.logLevel == expectedConfig.logLevel
         assert actual.consoleOutput == expectedConfig.consoleOutput
         assert actual.showStacktrace == expectedConfig.showStacktrace
+        assert actual.warningTypes == expectedConfig.warningTypes
     }
 }
