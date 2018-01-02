@@ -347,6 +347,10 @@
 
             <p>We hope you build happiness with Gradle!</p>
 
+            <h2>Licenses</h2>
+
+            <p>Gradle build tool source code is open and licensed under the <a href="https://github.com/gradle/gradle/blob/master/LICENSE">Apache License 2.0</a>.</p>
+
             <xsl:apply-templates mode="book.titlepage.recto.auto.mode" select="bookinfo/legalnotice"/>
         </main>
     </xsl:template>
