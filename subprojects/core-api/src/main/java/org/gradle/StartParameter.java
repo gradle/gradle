@@ -145,6 +145,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         loggingConfiguration.setConsoleOutput(consoleOutput);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Set<WarningType> getWarningTypes() {
         return loggingConfiguration.getWarningTypes();
@@ -201,6 +204,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     protected StartParameter prepareNewInstance(StartParameter p) {
         prepareNewBuild(p);
+        p.setWarningTypes(getWarningTypes());
         p.buildFile = buildFile;
         p.projectDir = projectDir;
         p.settingsFile = settingsFile;

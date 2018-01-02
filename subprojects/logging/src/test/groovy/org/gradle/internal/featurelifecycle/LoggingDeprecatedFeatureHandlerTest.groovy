@@ -71,14 +71,15 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def "no warnings should be displayed in #mode"() {
         when:
-        handler.init(locationReporter, [type] as Set)
+        def warningTypes = type == null ? [] : [type]
+        handler.init(locationReporter, warningTypes as Set)
         handler.deprecatedFeatureUsed(deprecatedFeatureUsage('feature1'))
 
         then:
         outputEventListener.events.empty
 
         where:
-        type << [WarningType.None, WarningType.Summary]
+        type << [WarningType.None, null]
     }
 
     @Unroll
