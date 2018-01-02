@@ -68,18 +68,22 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             }
             message.append(usage.getMessage());
             logTraceIfNecessary(usage.getStack(), message);
-            if (warningTypes.contains(WarningType.All)) {
+            if (warningTypes.contains(WarningType.All) || warningTypes.contains(WarningType.Deprecation)) {
                 LOGGER.warn(message.toString());
             }
         }
     }
 
     public void reportSuppressedDeprecations() {
-        if (warningTypes.contains(WarningType.Summary) && !messages.isEmpty()) {
+        if (defaultWarningType() && !messages.isEmpty()) {
             LOGGER.warn("\nThere're {} deprecation warnings, which may break the build in Gradle {}. Please run with --warnings=all to see them.",
                 messages.size(),
                 GradleVersion.current().getNextMajor().getVersion());
         }
+    }
+
+    private boolean defaultWarningType() {
+        return warningTypes.isEmpty();
     }
 
     private static void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
@@ -142,7 +146,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
 
     static boolean isTraceLoggingEnabled() {
         String value = System.getProperty(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
-        if(value == null) {
+        if (value == null) {
             return traceLoggingEnabled;
         }
         return Boolean.parseBoolean(value);

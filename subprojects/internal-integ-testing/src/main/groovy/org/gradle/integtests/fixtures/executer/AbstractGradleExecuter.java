@@ -742,7 +742,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter withWarnings(WarningType... warningTypes) {
-        this.warningTypes = Sets.newHashSet(warningTypes);
+        withWarnings(Sets.newHashSet(warningTypes));
         return this;
     }
 

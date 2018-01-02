@@ -49,7 +49,6 @@ public interface LoggingConfiguration {
 
     /**
      * Specifies if deprecation warnings should be written to the console.
-     * Defaults to {@link WarningType#Summary}
      * @since 4.5
      */
     @Incubating

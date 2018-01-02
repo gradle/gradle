@@ -88,7 +88,8 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         if (warningsCountInConsole > 0) {
             executer.expectDeprecationWarnings(warningsCountInConsole)
         }
-        executer.withWarnings(warnings)
+        def warningTypes = warnings == null ? [] : [warnings]
+        executer.withWarnings(warningTypes as Set)
         run('deprecated', 'broken')
 
         then:
@@ -110,13 +111,13 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         assertFullStacktraceResult(fullStacktraceEnabled, warningsCountInConsole)
 
         where:
-        scenario                                 | warnings            | warningsCountInConsole | warningsCountInSummary | fullStacktraceEnabled
-        'without stacktrace and --warnings=all'  | WarningType.All     | 4                      | 0                      | false
-        'with stacktrace and --warnings=all'     | WarningType.All     | 4                      | 0                      | true
-        'without stacktrace and --warnings=no'   | WarningType.None    | 0                      | 0                      | false
-        'with stacktrace and --warnings=no'      | WarningType.None    | 0                      | 0                      | true
-        'without stacktrace and --warnings=auto' | WarningType.Summary | 0                      | 4                      | false
-        'with stacktrace and --warnings=auto'    | WarningType.Summary | 0                      | 4                      | true
+        scenario                                 | warnings         | warningsCountInConsole | warningsCountInSummary | fullStacktraceEnabled
+        'without stacktrace and --warnings=all'  | WarningType.All  | 4                      | 0                      | false
+        'with stacktrace and --warnings=all'     | WarningType.All  | 4                      | 0                      | true
+        'without stacktrace and --warnings=no'   | WarningType.None | 0                      | 0                      | false
+        'with stacktrace and --warnings=no'      | WarningType.None | 0                      | 0                      | true
+        'without stacktrace and --warnings=auto' | null             | 0                      | 4                      | false
+        'with stacktrace and --warnings=auto'    | null             | 0                      | 4                      | true
     }
 
     def incrementWarningCountIfJava7(int warningCount) {

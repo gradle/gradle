@@ -32,7 +32,7 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
-    private Set<WarningType> warningTypes = Sets.newHashSet(WarningType.Summary);
+    private Set<WarningType> warningTypes = Sets.newHashSet();
 
     public boolean equals(Object obj) {
         return EqualsBuilder.reflectionEquals(this, obj);

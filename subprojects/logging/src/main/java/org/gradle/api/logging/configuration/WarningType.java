@@ -26,14 +26,14 @@ import org.gradle.api.Incubating;
 @Incubating
 public enum WarningType {
     /**
-     * Show all warnings (e.g. deprecation warnings)
+     * Show all warnings
      */
     All("all"),
 
     /**
-     * Default value. By default, all deprecation warnings will be suppressed and a single summary message will be displayed at the end of a build indicating how many deprecation warnings suppressed.
+     * Show deprecation warnings
      */
-    Summary("summary"),
+    Deprecation("deprecation"),
 
     /**
      * No deprecation warnings at all.
