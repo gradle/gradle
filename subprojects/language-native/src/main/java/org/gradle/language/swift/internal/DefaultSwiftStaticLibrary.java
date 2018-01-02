@@ -31,7 +31,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithStaticLibrary;
-import org.gradle.language.swift.SwiftLanguageVersion;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.nativeplatform.Linkage;
@@ -50,8 +49,8 @@ public class DefaultSwiftStaticLibrary extends DefaultSwiftBinary implements Swi
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultSwiftStaticLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, SwiftLanguageVersion swiftLanguageVersion) {
-        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, swiftLanguageVersion);
+    public DefaultSwiftStaticLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.linkFile = projectLayout.fileProperty();
         this.createTaskProperty = objectFactory.property(CreateStaticLibrary.class);
         this.linkElements = objectFactory.property(Configuration.class);

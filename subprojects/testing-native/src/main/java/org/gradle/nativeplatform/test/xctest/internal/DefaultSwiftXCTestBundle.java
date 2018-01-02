@@ -23,7 +23,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.swift.SwiftLanguageVersion;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBundle;
@@ -36,8 +35,8 @@ public class DefaultSwiftXCTestBundle extends DefaultSwiftXCTestBinary implement
     private final Property<LinkMachOBundle> linkTask;
 
     @Inject
-    public DefaultSwiftXCTestBundle(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, SwiftLanguageVersion swiftLanguageVersion) {
-        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, swiftLanguageVersion);
+    public DefaultSwiftXCTestBundle(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         linkTask = objectFactory.property(LinkMachOBundle.class);
     }
 

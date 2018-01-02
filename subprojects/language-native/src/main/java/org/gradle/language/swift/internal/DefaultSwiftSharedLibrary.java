@@ -29,7 +29,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary;
-import org.gradle.language.swift.SwiftLanguageVersion;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.nativeplatform.Linkage;
@@ -49,8 +48,8 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultSwiftSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, SwiftLanguageVersion swiftLanguageVersion) {
-        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, swiftLanguageVersion);
+    public DefaultSwiftSharedLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.linkFile = projectLayout.fileProperty();
         this.runtimeFile = projectLayout.fileProperty();
         this.linkTaskProperty = objectFactory.property(LinkSharedLibrary.class);

@@ -29,7 +29,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.swift.SwiftExecutable;
-import org.gradle.language.swift.SwiftLanguageVersion;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
@@ -47,8 +46,8 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultSwiftExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, SwiftLanguageVersion swiftLanguageVersion) {
-        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, swiftLanguageVersion);
+    public DefaultSwiftExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.executableFile = projectLayout.fileProperty();
         this.installDirectory = projectLayout.directoryProperty();
         this.linkTaskProperty = objectFactory.property(LinkExecutable.class);

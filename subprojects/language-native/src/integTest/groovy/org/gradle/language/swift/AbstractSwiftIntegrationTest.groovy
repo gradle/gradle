@@ -70,6 +70,11 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
     }
 
     @Override
+    String getTaskNameToCompileDevelopmentBinary() {
+        return "compileDebugSwift"
+    }
+
+    @Override
     List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
         return getTasksToAssembleDevelopmentBinary()
     }

@@ -33,7 +33,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.swiftLanguageVersion == SwiftLanguageVersion.of(${
+                        assert it.swiftLanguageVersion.get() == SwiftLanguageVersion.of(${
             VersionNumber.canonicalName}.parse('${AbstractNativeLanguageComponentIntegrationTest.toolChain.version}'))
                     }
                 }
@@ -57,6 +57,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             ${componentUnderTestDsl}.binaries.whenElementKnown {
                 ${componentUnderTestDsl}.swiftLanguageVersionSupport = SwiftLanguageVersion.SWIFT4
             }
+
+            task verifyBinariesSwiftVersion {}
         """
         settingsFile << "rootProject.name = 'swift-project'"
 
@@ -80,7 +82,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.swiftLanguageVersion == SwiftLanguageVersion.SWIFT3
+                        assert it.swiftLanguageVersion.get() == SwiftLanguageVersion.SWIFT3
                     }
                 }
             }
@@ -109,7 +111,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.swiftLanguageVersion == SwiftLanguageVersion.SWIFT4
+                        assert it.swiftLanguageVersion.get() == SwiftLanguageVersion.SWIFT4
                     }
                 }
             }
@@ -121,9 +123,11 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         fails taskNameToAssembleDevelopmentBinary
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
+        failure.assertHasDescription("Execution failed for task ':$taskNameToCompileDevelopmentBinary'.")
         failure.assertHasCause("swiftc compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftLanguageVersion.SWIFT4.version}'")
     }
+
+    abstract String getTaskNameToCompileDevelopmentBinary()
 
     abstract SourceFileElement getSwift3Component()
 

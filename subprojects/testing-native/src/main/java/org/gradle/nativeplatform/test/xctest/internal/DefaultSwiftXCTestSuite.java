@@ -25,7 +25,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.language.ComponentDependencies;
 import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.SwiftLanguageVersion;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
@@ -55,14 +54,14 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
         this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
     }
 
-    public SwiftXCTestExecutable addExecutable(String nameSuffix, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, SwiftLanguageVersion swiftLanguageVersion) {
-        SwiftXCTestExecutable result = objectFactory.newInstance(DefaultSwiftXCTestExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), true, false, false, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, swiftLanguageVersion);
+    public SwiftXCTestExecutable addExecutable(String nameSuffix, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftXCTestExecutable result = objectFactory.newInstance(DefaultSwiftXCTestExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), true, false, false, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
     }
 
-    public SwiftXCTestBundle addBundle(String nameSuffix, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, SwiftLanguageVersion swiftLanguageVersion) {
-        SwiftXCTestBundle result = objectFactory.newInstance(DefaultSwiftXCTestBundle.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), true, false, false, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, swiftLanguageVersion);
+    public SwiftXCTestBundle addBundle(String nameSuffix, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftXCTestBundle result = objectFactory.newInstance(DefaultSwiftXCTestBundle.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), true, false, false, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
     }
