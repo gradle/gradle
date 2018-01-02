@@ -59,7 +59,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run 'consumer'
-
         then:
         executedAndNotSkipped(':generator', ':consumer')
 
@@ -102,7 +101,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run 'consumer'
-
         then:
         executedAndNotSkipped(':generator', ':consumer')
     }
@@ -141,7 +139,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run 'consumer'
-
         then:
         // FIXME: Should have been executed
         notExecuted(':generator')
@@ -168,21 +165,18 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         fixture.runTask()
-
         then:
         executedAndNotSkipped(fixture.task)
 
         when:
         fixture.changeFirstBean(change)
         fixture.runTask()
-
         then:
         skipped(fixture.task)
 
         when:
         fixture.changeSecondBean(change)
         fixture.runTask()
-
         then:
         executedAndNotSkipped(fixture.task)
 
@@ -211,14 +205,12 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         fixture.runTask()
-
         then:
         executedAndNotSkipped(fixture.task)
 
         when:
         fixture.changeFirstBean('inputProperty')
         fixture.runTask()
-
         then:
         if (to == 'null') {
             skipped(fixture.task)
@@ -245,21 +237,18 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         fixture.runTask()
-
         then:
         executedAndNotSkipped(fixture.task)
 
         when:
         fixture.changeFirstBean(change)
         fixture.runTask()
-
         then:
         executedAndNotSkipped(fixture.task)
 
         when:
         fixture.changeSecondBean(change)
         fixture.runTask()
-
         then:
         skipped(fixture.task)
 
@@ -282,14 +271,12 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         fixture.runTask()
-
         then:
         executedAndNotSkipped(fixture.task)
 
         when:
         fixture.changeFirstBean('inputProperty')
         fixture.runTask()
-
         then:
         if (from == 'null') {
             skipped(fixture.task)
@@ -462,19 +449,16 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run task
-
         then:
         executedAndNotSkipped(task)
 
         when:
         run task
-
         then:
         skipped task
 
         when:
         run task, '-PuseOther=true'
-
         then:
         executedAndNotSkipped task
     }
@@ -532,21 +516,17 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run task
-
         then:
         executedAndNotSkipped task
 
         when:
         run task
-
         then:
         skipped task
 
         when:
         run task, '-Pinput=changed'
-
         then:
         executedAndNotSkipped task
     }
-
 }
