@@ -54,7 +54,7 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
         def stdOut = new ByteArrayOutputStream()
         def args = [deprecatedArgs]
         if (warningsType != null) {
-            args.add("--warnings=" + warningsType.getBuildOption())
+            args.add("--warnings=" + warningsType.toString().toLowerCase(Locale.ENGLISH))
         }
         toolingApi.withConnection { connection -> connection.newBuild().withArguments(args).forTasks('help').setStandardOutput(stdOut).run() }
 

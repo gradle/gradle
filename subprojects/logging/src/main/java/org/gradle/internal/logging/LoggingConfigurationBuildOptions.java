@@ -34,7 +34,6 @@ import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -189,11 +188,10 @@ public class LoggingConfigurationBuildOptions {
         @Override
         public void applyTo(List<String> values, LoggingConfiguration settings, final Origin origin) {
             Iterable<WarningType> warningTypes = Iterables.transform(values, new Function<String, WarningType>() {
-                @Nullable
                 @Override
-                public WarningType apply(@Nullable String input) {
+                public WarningType apply(String input) {
                     try {
-                        return WarningType.fromBuildOption(input);
+                        return WarningType.valueOf(StringUtils.capitalize(input.toLowerCase(Locale.ENGLISH)));
                     } catch (IllegalArgumentException e) {
                         origin.handleInvalidValue(input);
                         return null;
