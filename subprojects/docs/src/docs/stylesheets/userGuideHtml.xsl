@@ -121,7 +121,7 @@
                                             <li><a href="/userguide/jdepend_plugin.html">JDepend Plugin</a></li>
                                             <li><a href="/userguide/osgi_plugin.html">OSGi Plugin</a></li>
                                             <li><a href="/userguide/play_plugin.html">Play Plugin</a></li>
-                                            <li><a href="/userguide/project_reports_plugin.html">Project Report Plugin</a></li>
+                                            <li><a href="/userguide/project_report_plugin.html">Project Report Plugin</a></li>
                                             <li><a href="/userguide/pmd_plugin.html">PMD Plugin</a></li>
                                             <li><a href="/userguide/scala_plugin.html">Scala Plugin</a></li>
                                             <li><a href="/userguide/war_plugin.html">WAR Plugin</a></li>
@@ -132,7 +132,7 @@
                             </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#building-cpp-projects" aria-expanded="false" aria-controls="building-native-projects">C++ Projects</a>
                                 <ul id="building-cpp-projects">
-                                    <li><a class="nav-dropdown" data-toggle="collapse" href="#native-tutorials" aria-expanded="false" aria-controls="cpp-tutorials">C++ Tutorials</a>
+                                    <li><a class="nav-dropdown" data-toggle="collapse" href="#cpp-tutorials" aria-expanded="false" aria-controls="cpp-tutorials">C++ Tutorials</a>
                                         <ul id="cpp-tutorials">
                                             <li><a href="https://guides.gradle.org/building-cpp-executables/">Building C++ Executables</a></li>
                                             <li><a href="https://guides.gradle.org/building-cpp-executables/">Building C++ Libraries</a></li>
