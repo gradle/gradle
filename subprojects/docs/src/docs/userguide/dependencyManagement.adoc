@@ -288,7 +288,7 @@ You can also assign collections or arrays of dependency notations to a configura
 [[sec:inspecting_dependencies]]
 === Inspecting dependencies
 
-Gradle provides sufficient tooling to navigate large dependency graphs and mitigate situations that can lead to link:https://en.wikipedia.org/wiki/Dependency_hell[dependency hell]. Users can chose to render the full graph of dependencies as well as identify the selection reason and origin for a dependency. Gradle offers both capabilities as command line tooling and through visual representation via build scans.
+Gradle provides sufficient tooling to navigate large dependency graphs and mitigate situations that can lead to link:https://en.wikipedia.org/wiki/Dependency_hell[dependency hell]. Users can chose to render the full graph of dependencies as well as identify the selection reason and origin for a dependency. The origin of a dependency can be a declared dependency in the build script or a transitive dependency in graph plus their corresponding configuration. Gradle offers both capabilities as command line tooling and through visual representation via build scans.
 
 [[sec:listing_dependencies]]
 ==== Listing all dependencies in a project
