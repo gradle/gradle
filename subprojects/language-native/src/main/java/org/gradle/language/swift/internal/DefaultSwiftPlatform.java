@@ -18,9 +18,10 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 
 public class DefaultSwiftPlatform extends DefaultNativePlatform implements SwiftPlatform {
-    public DefaultSwiftPlatform(String name) {
-        super(name);
+    public DefaultSwiftPlatform(String name, NativePlatformInternal targetMachine) {
+        super(name, targetMachine.getOperatingSystem(), targetMachine.getArchitecture());
     }
 }

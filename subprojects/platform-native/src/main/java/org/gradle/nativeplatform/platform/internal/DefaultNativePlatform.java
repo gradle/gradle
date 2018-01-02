@@ -30,7 +30,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         this(name, getCurrentOperatingSystem(), getCurrentArchitecture());
     }
 
-    protected DefaultNativePlatform(String name, OperatingSystemInternal operatingSystem, ArchitectureInternal architecture) {
+    public DefaultNativePlatform(String name, OperatingSystemInternal operatingSystem, ArchitectureInternal architecture) {
         this.name = name;
         this.architecture = architecture;
         this.operatingSystem = operatingSystem;
@@ -51,12 +51,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     }
 
     public static DefaultNativePlatform host() {
-        return new DefaultNativePlatform("host", getCurrentOperatingSystem(), getCurrentArchitecture()) {
-            @Override
-            public String getDisplayName() {
-                return String.format("host %s %s", getOperatingSystem(), getArchitecture());
-            }
-        };
+        return new HostPlatform();
     }
 
     @Override
@@ -92,5 +87,29 @@ public class DefaultNativePlatform implements NativePlatformInternal {
     @Override
     public void operatingSystem(String name) {
         operatingSystem = new DefaultOperatingSystem(name);
+    }
+
+    public DefaultNativePlatform withArchitecture(ArchitectureInternal architecture) {
+        return new DefaultNativePlatform(name, operatingSystem, architecture);
+    }
+
+    private static class HostPlatform extends DefaultNativePlatform {
+        HostPlatform() {
+            super("host", DefaultNativePlatform.getCurrentOperatingSystem(), DefaultNativePlatform.getCurrentArchitecture());
+        }
+
+        HostPlatform(ArchitectureInternal architecture) {
+            super("host", DefaultNativePlatform.getCurrentOperatingSystem(), architecture);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return String.format("host %s %s", getOperatingSystem(), getArchitecture());
+        }
+
+        @Override
+        public DefaultNativePlatform withArchitecture(ArchitectureInternal architecture) {
+            return new HostPlatform(architecture);
+        }
     }
 }
