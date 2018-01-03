@@ -56,8 +56,8 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         then:
         executedAndNotSkipped":stripSymbolsDebug"
-        fixture("build/exe/main/debug/app").assertHasDebugSymbolsFor(withoutHeaders(app.original))
-        fixture("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
+        executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(withoutHeaders(app.original))
+        binary("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
     }
 
     def "strip is skipped when there are no changes"() {
@@ -72,7 +72,7 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         then:
         skipped":stripSymbolsDebug"
-        fixture("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
+        binary("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
     }
 
     def "strip is re-executed when changes are made"() {
@@ -88,10 +88,10 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         then:
         executedAndNotSkipped":stripSymbolsDebug"
-        fixture("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.alternate))
+        binary("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.alternate))
     }
 
-    NativeBinaryFixture fixture(String path) {
+    NativeBinaryFixture binary(String path) {
         return new NativeBinaryFixture(file(path), toolChain)
     }
 
