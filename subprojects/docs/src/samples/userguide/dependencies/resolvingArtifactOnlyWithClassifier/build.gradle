@@ -3,7 +3,7 @@ repositories {
     ivy {
         url 'https://ajax.googleapis.com/ajax/libs'
         layout 'pattern', {
-            artifact '[organization]/[revision]/[module].[ext]'
+            artifact '[organization]/[revision]/[module](.[classifier]).[ext]'
         }
     }
 }
@@ -13,7 +13,7 @@ configurations {
 }
 
 dependencies {
-    js 'jquery:jquery:3.2.1@js'
+    js 'jquery:jquery:3.2.1:min@js'
 }
 //END SNIPPET artifact-only-dependency-declaration
 

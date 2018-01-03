@@ -274,58 +274,28 @@ If the project requires a specific version of a dependency on a configuration-le
 [[sub:resolve_specific_artifacts_from_dependency]]
 ==== Resolving specific artifacts from a binary dependency
 
-Gradle assumes to find metadata when resolving dependencies. Projects may want to use Gradle's dependency resolution engine to download artifacts from repositories that do not provide metadata e.g. just a plain ZIP file or if the project only needs to process a particular artifact without
+Whenever Gradle tries to resolve a dependency from a Maven or Ivy repository, it looks for a metadata file and the default artifact file, a JAR. The build files if none of these artifact files can be resolved. Under certain conditions, you might want to tweak the way Gradle resolves artifacts for a dependency.
 
+- The dependency only provides a non-standard artifact without any metadata e.g. a ZIP file.
+- The dependency metadata declares more than one artifact e.g. an Ivy dependency descriptor.
+- You only want to download an specific artifact without any of the transitive dependencies declared in the metadata.
 
-
-[[ssub:multi_artifact_dependencies]]
-==== Depending on modules with multiple artifacts
-
-As mentioned earlier, a Maven module has only one artifact. Hence, when your project depends on a Maven module, it's obvious what its artifact is.
-With Gradle or Ivy, the case is different. Ivy's dependency descriptor (`ivy.xml`) can declare multiple artifacts.
-For more information, see the Ivy reference for `ivy.xml`.
-In Gradle, when you declare a dependency on an Ivy module, you actually declare a dependency on the `default` configuration of that module.
-So the actual set of artifacts (typically jars) you depend on is the set of artifacts that are associated with the
-`default` configuration of that module. Here are some situations where this matters:
-
-* The `default` configuration of a module contains undesired artifacts. Rather than depending on the whole configuration, a dependency on just the desired artifacts is declared.
-* The desired artifact belongs to a configuration other than `default`. That configuration is explicitly named as part of the dependency declaration.
-
-There are other situations where it is necessary to fine-tune dependency declarations.
-Please see the api:org.gradle.api.artifacts.dsl.DependencyHandler[] class in the API documentation for examples and a complete reference for declaring dependencies.
-
-[[ssub:artifact_dependencies]]
-==== Artifact only notation
-
-As said above, if no module descriptor file can be found, Gradle by default downloads a jar with the name of the module. But sometimes, even if the repository contains module descriptors, you want to download only the artifact jar, without the dependencies.footnote:[Gradle supports partial multiproject builds (see <<multi_project_builds>>).] And sometimes you want to download a zip from a repository, that does not have module descriptors. Gradle provides an _artifact only_ notation for those use cases - simply prefix the extension that you want to be downloaded with `'@'` sign:
-++++
-<sample id="artifactOnly" dir="userguide/artifacts/externalDependencies" title="Artifact only notation">
-                        <sourcefile file="build.gradle" snippet="artifact-only"/>
-                    </sample>
-++++
-
-An artifact only notation creates a module dependency which downloads only the artifact file with the specified extension. Existing module descriptors are ignored.
-
-[[sub:classifiers]]
-==== Classifiers
-
-The Maven dependency management has the notion of classifiers.footnote:[ http://books.sonatype.com/mvnref-book/reference/pom-relationships-sect-project-relationships.html[] ] Gradle supports this. To retrieve classified dependencies from a Maven repository you can write:
+Gradle is a polyglot build tool and not limited to resolving just Java libraries. Let's assume you wanted to build a web application using JavaScript on the client-side. Most project might just check in external JavaScript libraries into version control. Thinking about it a external JavaScript library is no different than a reusable Java library so why not download it from a repository. link:https://developers.google.com/speed/libraries/[Google Hosted Libraries] is a distribution platform for popular, open-source JavaScript libraries. With the help of the artifact-only notation you can download just a JavaScript library file e.g. JQuery. The `@` character separates the dependency's coordinates from the artifact's file extension. The api:org.gradle.api.artifacts.dsl.DependencyHandler[] also allows for declaring the `extension` attribute as map notation.
 
 ++++
-<sample id="classifier" dir="userguide/artifacts/excludesAndClassifiers" title="Dependency with classifier">
-                    <sourcefile file="build.gradle" snippet="classifier"/>
-                </sample>
+<sample id="artifact-only-dependency-declaration" dir="userguide/dependencies/resolvingArtifactOnly" title="Resolving a JavaScript artifact for a declared dependency">
+    <sourcefile file="build.gradle" snippet="artifact-only-dependency-declaration"/>
+</sample>
 ++++
 
-As can be seen in the first line above, classifiers can be used together with the artifact only notation.
+Some dependencies ship different "flavors" of the same artifact or they might publish multiple artifacts that belong to a specific version of the dependency but have a different purpose. For example a Java library may the artifact with the compiled class files, another one with just the source code and a third containing the Javadocs. In JavaScript, a library may exist as uncompressed or minified artifact. In Gradle, a specific artifact identifier is called _classifier_, a term commonly-used in Maven and Ivy dependency management.
 
-It is easy to iterate over the dependency artifacts of a configuration:
+Let's we wanted to download the minified artifact of the JQuery library instead of the uncompressed file. You can provide the classifier `min` as part of the dependency declaration. The api:org.gradle.api.artifacts.dsl.DependencyHandler[] also allows for declaring the `classifier` attribute as map notation.
 
 ++++
-<sample id="externalDependencies" dir="userguide/artifacts/externalDependencies" title="Iterating over a configuration">
-                <sourcefile file="build.gradle" snippet="use-configuration"/>
-                <output args="-q listJars"/>
-            </sample>
+<sample id="artifact-only-dependency-declaration-with-classifier" dir="userguide/dependencies/resolvingArtifactOnlyWithClassifier" title="Resolving a JavaScript artifact with classifier for a declared dependency">
+    <sourcefile file="build.gradle" snippet="artifact-only-dependency-declaration"/>
+</sample>
 ++++
 
 [[sec:optional_attributes]]

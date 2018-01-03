@@ -19,6 +19,7 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
 class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationSpec {
@@ -87,7 +88,7 @@ class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationS
         succeeds('copyLibs')
 
         then:
-        def libs = sample.dir.file('build/libs').listFiles()
+        def libs = listFileInBuildLibsDir()
         libs.any { it.name == 'commons-codec-1.9.jar' }
         !libs.any { it.name == 'commons-codec-1.10.jar' }
     }
@@ -100,8 +101,34 @@ class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationS
         succeeds('copyLibs')
 
         then:
-        def libs = sample.dir.file('build/libs').listFiles()
+        def libs = listFileInBuildLibsDir()
         libs.any { it.name == 'commons-codec-1.9.jar' }
         !libs.any { it.name == 'commons-codec-1.10.jar' }
+    }
+
+    @UsesSample("userguide/dependencies/resolvingArtifactOnly")
+    def "can resolve dependency with artifact-only declaration"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('copyLibs')
+
+        then:
+        listFileInBuildLibsDir().any { it.name == 'jquery-3.2.1.js' }
+    }
+
+    @UsesSample("userguide/dependencies/resolvingArtifactOnlyWithClassifier")
+    def "can resolve dependency with artifact-only declaration with classifier"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('copyLibs')
+
+        then:
+        listFileInBuildLibsDir().any { it.name == 'jquery-3.2.1-min.js' }
+    }
+
+    private TestFile[] listFileInBuildLibsDir() {
+        sample.dir.file('build/libs').listFiles()
     }
 }
