@@ -271,6 +271,13 @@ If the project requires a specific version of a dependency on a configuration-le
 </sample>
 ++++
 
+[[sub:resolve_specific_artifacts_from_dependency]]
+==== Resolving specific artifacts from a binary dependency
+
+Gradle assumes to find metadata when resolving dependencies. Projects may want to use Gradle's dependency resolution engine to download artifacts from repositories that do not provide metadata e.g. just a plain ZIP file or if the project only needs to process a particular artifact without
+
+
+
 [[ssub:multi_artifact_dependencies]]
 ==== Depending on modules with multiple artifacts
 

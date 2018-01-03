@@ -1,0 +1,14 @@
+apply plugin: 'java-library'
+
+repositories {
+    google()
+}
+
+dependencies {
+    implementation 'com.crashlytics.sdk.android:crashlytics:2.2.4@aar'
+}
+
+task copyLibs(type: Copy) {
+    from configurations.compileClasspath
+    into "$buildDir/libs"
+}
