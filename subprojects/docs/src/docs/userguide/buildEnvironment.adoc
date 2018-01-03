@@ -75,6 +75,10 @@ The following example demonstrates usage of various properties.
 </sample>
 ++++
 
+You can use link:https://scans.gradle.com[build scans] to see what the build environment was for a given build using `--scan`.
+
+image:img/build-scan-infrastructure.png[Build Environment in build scan]
+
 ==== Forked Java processes
 
 Many settings (like the Java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle must launch a separate JVM process to execute the build after parsing the various `gradle.properties` files. When running with the daemon, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
