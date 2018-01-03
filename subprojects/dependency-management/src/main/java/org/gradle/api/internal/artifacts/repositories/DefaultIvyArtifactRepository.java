@@ -348,7 +348,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
         void setDefaults(FeaturePreviews featurePreviews) {
             ivyDescriptor();
-            if (featurePreviews.isExperimentalEnabled()) {
+            if (featurePreviews.isGradleMetadataEnabled()) {
                 gradleMetadata();
             } else {
                 artifact();

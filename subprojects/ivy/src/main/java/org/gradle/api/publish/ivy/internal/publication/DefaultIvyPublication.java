@@ -290,7 +290,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             // Always publish `ComponentWithVariants`
             return true;
         }
-        return featurePreviews.isExperimentalEnabled();
+        return featurePreviews.isGradleMetadataEnabled();
     }
 
     private static File assertDescriptorFile(FileCollection ref) {

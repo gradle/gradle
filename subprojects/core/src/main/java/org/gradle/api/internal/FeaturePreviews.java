@@ -18,17 +18,17 @@ package org.gradle.api.internal;
 import org.gradle.StartParameter;
 
 public class FeaturePreviews {
-    private StartParameterInternal startParameter;
+    private StartParameter startParameter;
 
     public FeaturePreviews(StartParameter startParameter) {
-        this.startParameter = (StartParameterInternal) startParameter;
+        this.startParameter = startParameter;
     }
 
     public boolean isAdvancedPomSupportEnabled() {
         return startParameter.isAdvancedPomSupport();
     }
 
-    public boolean isExperimentalEnabled() {
-        return startParameter.isExperimental();
+    public boolean isGradleMetadataEnabled() {
+        return startParameter.isGradleMetadata();
     }
 }

@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.language.cpp.CppSharedLibrary;
@@ -58,7 +57,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
         // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
-        ((StartParameterInternal) project.getGradle().getStartParameter()).setExperimental(true);
+        project.getGradle().getStartParameter().setGradleMetadata(true);
 
         // Create the tasks for each C++ binary that is registered
         project.getComponents().withType(DefaultCppBinary.class, new Action<DefaultCppBinary>() {

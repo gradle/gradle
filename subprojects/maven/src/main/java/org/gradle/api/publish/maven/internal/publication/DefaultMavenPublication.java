@@ -383,7 +383,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             // Always publish `ComponentWithVariants`
             return true;
         }
-        return featurePreviews.isExperimentalEnabled();
+        return featurePreviews.isGradleMetadataEnabled();
     }
 
     @Override

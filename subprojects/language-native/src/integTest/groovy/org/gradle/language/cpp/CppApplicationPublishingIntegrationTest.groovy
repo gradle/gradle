@@ -28,7 +28,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
 
     def setup() {
         when:
-        FeaturePreviewsFixture.enableExperimental(consumer.file("gradle.properties"))
+        FeaturePreviewsFixture.enableGradleMetadata(consumer.file("gradle.properties"))
         consumer.file("build.gradle") << """
             repositories {
                 maven { 

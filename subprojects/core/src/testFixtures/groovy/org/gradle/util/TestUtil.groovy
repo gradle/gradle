@@ -84,10 +84,10 @@ class TestUtil {
         return NamedObjectInstantiator.INSTANCE
     }
 
-    static FeaturePreviews featurePreviews(boolean advancedPomSupportEnabled = false, boolean experimentalEnabled = false) {
+    static FeaturePreviews featurePreviews(boolean advancedPomSupportEnabled = false, boolean gradleMetadataEnabled = false) {
         def startParameter = new StartParameterInternal()
-        startParameter.setAdvancedPomSupport(advancedPomSupportEnabled)
-        startParameter.setExperimental(experimentalEnabled)
+        startParameter.advancedPomSupport = advancedPomSupportEnabled
+        startParameter.gradleMetadata = gradleMetadataEnabled
         return new FeaturePreviews(startParameter)
     }
 

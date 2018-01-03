@@ -258,7 +258,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
         void setDefaults(FeaturePreviews featurePreviews) {
             mavenPom();
-            if (featurePreviews.isExperimentalEnabled()) {
+            if (featurePreviews.isGradleMetadataEnabled()) {
                 gradleMetadata();
             } else {
                 artifact();

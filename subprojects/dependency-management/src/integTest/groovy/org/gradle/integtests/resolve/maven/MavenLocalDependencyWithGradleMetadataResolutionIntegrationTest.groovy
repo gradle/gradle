@@ -27,7 +27,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
 
     def setup() {
         resolve.prepare()
-        FeaturePreviewsFixture.enableExperimental(propertiesFile)
+        FeaturePreviewsFixture.enableGradleMetadata(propertiesFile)
         settingsFile << "rootProject.name = 'test'"
     }
 

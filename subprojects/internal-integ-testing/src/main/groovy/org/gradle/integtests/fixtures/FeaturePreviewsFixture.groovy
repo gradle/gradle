@@ -18,9 +18,9 @@ package org.gradle.integtests.fixtures
 
 class FeaturePreviewsFixture {
 
-    static void enableExperimental(File file) {
+    static void enableGradleMetadata(File file) {
         file << """
-org.gradle.experimental=true
+org.gradle.gradlemetadata=true
 """
     }
 

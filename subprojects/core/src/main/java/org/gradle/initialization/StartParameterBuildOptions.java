@@ -58,7 +58,7 @@ public class StartParameterBuildOptions {
         options.add(new BuildCacheOption());
         options.add(new BuildScanOption());
         options.add(new AdvancedPomSupportOption());
-        options.add(new ExperimentalOption());
+        options.add(new GradleMetadataOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -308,16 +308,16 @@ public class StartParameterBuildOptions {
         }
     }
 
-    public static class ExperimentalOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String GRADLE_PROPERTY = "org.gradle.experimental";
+    public static class GradleMetadataOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String GRADLE_PROPERTY = "org.gradle.gradlemetadata";
 
-        public ExperimentalOption() {
-            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("experimental", "Enables experimental features.", "Disables experimental features.").internal());
+        public GradleMetadataOption() {
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("gradle-metadata", "Enables the gradle metadata format for resolving and publishing dependencies.", "Disables the gradle metadata format for resolving and publishing dependencies.").incubating());
         }
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setExperimental(value);
+            settings.setGradleMetadata(value);
         }
     }
 }

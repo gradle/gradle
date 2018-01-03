@@ -30,7 +30,7 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
         resolve.prepare()
         server.start()
 
-        FeaturePreviewsFixture.enableExperimental(propertiesFile)
+        FeaturePreviewsFixture.enableGradleMetadata(propertiesFile)
         settingsFile << "rootProject.name = 'test'"
 
     }
