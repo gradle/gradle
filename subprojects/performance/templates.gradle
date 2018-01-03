@@ -22,6 +22,14 @@ import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGen
 import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
+
+// === Gradle Build ===
+task gradleBuildCurrent(type: RemoteProject) {
+    dependsOn rootProject.determineCommitId
+    remoteUri = rootDir.absolutePath
+    ref = provider { rootProject.determineCommitId.commitId }
+}
+
 // === Java ===
 ['largeMonolithicJavaProject', 'largeJavaMultiProject',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
