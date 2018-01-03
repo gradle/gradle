@@ -34,6 +34,10 @@ A convenience for dealing with sets has been added. TBD - link to API
 
 ### Faster C/C++ compilation and builds
 
+### Faster up-to-date builds
+
+Configuration time, input snapshotting and dependency resolution have all been improved in this release. [Large Android projects](https://github.com/gradle/perf-android-large) will benefit the most from these enhancements, with up to 30% faster up-to-date builds. Java and native projects benefit as well, with an improvement of up to 20%.
+
 #### Build Cache Support
 
 We introduced [experimental C/C++ caching support](https://docs.gradle.org/4.3/release-notes.html#experimental-task-output-caching-for-c/c++-compilation) in Gradle 4.3, but this feature was hidden behind an additional flag until we had fixed some underlying correctness issues.
