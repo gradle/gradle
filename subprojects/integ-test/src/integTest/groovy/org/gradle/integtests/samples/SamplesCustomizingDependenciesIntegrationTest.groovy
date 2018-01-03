@@ -24,6 +24,8 @@ import org.junit.Rule
 
 class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
+    private static final String COPY_LIBS_TASK_NAME = 'copyLibs'
+
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
@@ -85,7 +87,7 @@ class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationS
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('copyLibs')
+        succeeds(COPY_LIBS_TASK_NAME)
 
         then:
         def libs = listFileInBuildLibsDir()
@@ -98,7 +100,7 @@ class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationS
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('copyLibs')
+        succeeds(COPY_LIBS_TASK_NAME)
 
         then:
         def libs = listFileInBuildLibsDir()
@@ -111,10 +113,10 @@ class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationS
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('copyLibs')
+        succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        listFileInBuildLibsDir().any { it.name == 'jquery-3.2.1.js' }
+        assertSingleLib('jquery-3.2.1.js')
     }
 
     @UsesSample("userguide/dependencies/resolvingArtifactOnlyWithClassifier")
@@ -122,13 +124,41 @@ class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationS
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('copyLibs')
+        succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        listFileInBuildLibsDir().any { it.name == 'jquery-3.2.1-min.js' }
+        assertSingleLib('jquery-3.2.1-min.js')
+    }
+
+    @UsesSample("userguide/dependencies/disablingTransitiveDependencyResolution")
+    def "can disable transitive dependency resolution for dependency"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        assertSingleLib('guava-23.0.jar')
+    }
+
+    @UsesSample("userguide/dependencies/disablingTransitiveDependencyResolutionForConfiguration")
+    def "can disable transitive dependency resolution for particular configuration"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        assertSingleLib('guava-23.0.jar')
     }
 
     private TestFile[] listFileInBuildLibsDir() {
         sample.dir.file('build/libs').listFiles()
+    }
+
+    private void assertSingleLib(String filename) {
+        def libs = listFileInBuildLibsDir()
+        assert libs.size() == 1
+        assert libs[0].name == filename
     }
 }

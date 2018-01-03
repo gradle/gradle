@@ -298,6 +298,30 @@ Let's we wanted to download the minified artifact of the JQuery library instead 
 </sample>
 ++++
 
+[[sub:disabling_resolution_transitive_dependencies]]
+==== Disabling resolution of transitive dependencies
+
+By default Gradle resolves all transitive dependencies found in the metadata for a dependency. Sometimes this behavior may not be desirable for individual dependencies e.g. if the metadata is incorrect or defines a large graph of transitive dependencies. You can tell Gradle to disable transitive dependency management for a dependency by setting api:org.gradle.api.artifacts.ModuleDependency#setTransitive(boolean)[] to `true`. As a result only the main artifact will be resolved for the dependency.
+
+++++
+<sample id="disabling-transitive-dependency-resolution" dir="userguide/dependencies/disablingTransitiveDependencyResolution" title="Disabling transitive dependency resolution for a declared dependency">
+    <sourcefile file="build.gradle" snippet="transitive-per-dependency"/>
+</sample>
+++++
+
+[NOTE]
+====
+Disabling transitive dependency resolution will likely require you to declare the necessary runtime dependencies in your build script which otherwise would have been resolved automatically. Not doing so might lead to runtime classpath issues.
+====
+
+A project can decide to do away without transitive dependency resolution completely. You either don't want to rely on the metadata published to the consumed repositories or you want to gain full control over the dependencies in your graph. Transitive dependency resolution can be disabled on a configuration-level for any configuration return `true` for api:org.gradle.api.artifacts.Configuration#isCanBeResolved()[]. For more information please see api:org.gradle.api.artifacts.Configuration#setTransitive(boolean)[].
+
+++++
+<sample id="disabling-transitive-dependency-resolution-for-configuration" dir="userguide/dependencies/disablingTransitiveDependencyResolutionForConfiguration" title="Disabling transitive dependency resolution on the configuration-level">
+    <sourcefile file="build.gradle" snippet="transitive-per-configuration"/>
+</sample>
+++++
+
 [[sec:optional_attributes]]
 ==== Optional attributes
 
