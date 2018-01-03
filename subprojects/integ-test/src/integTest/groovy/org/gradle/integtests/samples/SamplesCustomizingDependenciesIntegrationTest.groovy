@@ -54,10 +54,13 @@ class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationS
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('compileJava')
+        succeeds('compileJava', COPY_LIBS_TASK_NAME)
 
         then:
         sample.dir.file('build/classes/java/main/Main.class').isFile()
+        def libs = listFilesInBuildLibsDir()
+        libs.size() == 3
+        libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
     }
 
     @UsesSample("userguide/dependencies/excludingTransitiveDependenciesForConfiguration")
@@ -65,10 +68,13 @@ class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationS
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('compileJava')
+        succeeds('compileJava', COPY_LIBS_TASK_NAME)
 
         then:
         sample.dir.file('build/classes/java/main/Main.class').isFile()
+        def libs = listFilesInBuildLibsDir()
+        libs.size() == 3
+        libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
     }
 
     @UsesSample("userguide/dependencies/excludingTransitiveDependenciesForAllConfigurations")
@@ -76,10 +82,13 @@ class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationS
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('compileJava')
+        succeeds('compileJava', COPY_LIBS_TASK_NAME)
 
         then:
         sample.dir.file('build/classes/java/main/Main.class').isFile()
+        def libs = listFilesInBuildLibsDir()
+        libs.size() == 3
+        libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
     }
 
     @UsesSample("userguide/dependencies/forcingDependencyVersion")
@@ -90,7 +99,7 @@ class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationS
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        def libs = listFileInBuildLibsDir()
+        def libs = listFilesInBuildLibsDir()
         libs.any { it.name == 'commons-codec-1.9.jar' }
         !libs.any { it.name == 'commons-codec-1.10.jar' }
     }
@@ -103,7 +112,7 @@ class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationS
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        def libs = listFileInBuildLibsDir()
+        def libs = listFilesInBuildLibsDir()
         libs.any { it.name == 'commons-codec-1.9.jar' }
         !libs.any { it.name == 'commons-codec-1.10.jar' }
     }
@@ -152,12 +161,12 @@ class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationS
         assertSingleLib('guava-23.0.jar')
     }
 
-    private TestFile[] listFileInBuildLibsDir() {
+    private TestFile[] listFilesInBuildLibsDir() {
         sample.dir.file('build/libs').listFiles()
     }
 
     private void assertSingleLib(String filename) {
-        def libs = listFileInBuildLibsDir()
+        def libs = listFilesInBuildLibsDir()
         assert libs.size() == 1
         assert libs[0].name == filename
     }

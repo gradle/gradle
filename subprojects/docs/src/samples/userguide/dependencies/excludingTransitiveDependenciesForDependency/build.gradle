@@ -13,3 +13,8 @@ dependencies {
     }
 }
 //END SNIPPET exclude-transitive-dependencies
+
+task copyLibs(type: Copy) {
+    from configurations.compileClasspath
+    into "$buildDir/libs"
+}
