@@ -67,7 +67,7 @@ class RunningPlayApp {
 
 
     static int regexParseHttpPortStandalone(output, int occurrence) {
-        return parseHttpPort(output, /play - Listening for HTTP on .*:([0-9]+)/, occurrence)
+        return parseHttpPort(output, /(?:play|Server) - Listening for HTTP on .*:([0-9]+)/, occurrence)
     }
 
 

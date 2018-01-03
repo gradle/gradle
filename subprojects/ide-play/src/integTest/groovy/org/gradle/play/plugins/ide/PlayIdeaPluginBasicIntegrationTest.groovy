@@ -18,10 +18,16 @@ package org.gradle.play.plugins.ide
 
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
+import org.gradle.play.internal.platform.PlayMajorVersion
 
 import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIml
 
 class PlayIdeaPluginBasicIntegrationTest extends PlayIdeaPluginIntegrationTest {
+    static final Map PLAY_VERSION_TO_CLASSPATH_SIZE = [(PlayMajorVersion.PLAY_2_2_X): 99,
+                                                       (PlayMajorVersion.PLAY_2_3_X): 102,
+                                                       (PlayMajorVersion.PLAY_2_4_X): 96,
+                                                       (PlayMajorVersion.PLAY_2_5_X): 105,
+                                                       (PlayMajorVersion.PLAY_2_6_X): 108]
 
     @Override
     PlayApp getPlayApp() {
@@ -29,15 +35,15 @@ class PlayIdeaPluginBasicIntegrationTest extends PlayIdeaPluginIntegrationTest {
     }
 
     String[] getSourcePaths() {
-        [ "public", "conf", "app", "test", "build/src/play/binary/routesScalaSources", "build/src/play/binary/twirlTemplatesScalaSources" ]
+        ["public", "conf", "app", "test", "build/src/play/binary/routesScalaSources", "build/src/play/binary/twirlTemplatesScalaSources"]
     }
 
     String[] getBuildTasks() {
-        [ ":compilePlayBinaryPlayRoutes", ":compilePlayBinaryPlayTwirlTemplates", ":ideaProject", ":ideaModule", ":ideaWorkspace", ":idea" ]
+        [":compilePlayBinaryPlayRoutes", ":compilePlayBinaryPlayTwirlTemplates", ":ideaProject", ":ideaModule", ":ideaWorkspace", ":idea"]
     }
 
     int getExpectedScalaClasspathSize() {
-        102
+        return PLAY_VERSION_TO_CLASSPATH_SIZE[PlayMajorVersion.forPlayVersion(version.toString())]
     }
 
     def "when model configuration changes, IDEA metadata can be rebuilt"() {

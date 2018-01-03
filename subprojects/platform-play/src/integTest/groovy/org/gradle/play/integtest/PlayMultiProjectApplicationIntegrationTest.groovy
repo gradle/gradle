@@ -111,7 +111,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         runningApp.verifyStarted()
 
         and:
-        runningApp.verifyContent();
+        runningApp.verifyContent()
 
         when: "stopping gradle"
         build.cancelWithEOT().waitForFinish()
