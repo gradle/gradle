@@ -30,7 +30,7 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
         resolve.prepare()
         server.start()
 
-        ExperimentalFeaturesFixture.enable(propertiesFile)
+        ExperimentalFeaturesFixture.enableExperimental(propertiesFile)
         settingsFile << "rootProject.name = 'test'"
 
     }
@@ -117,7 +117,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
 
@@ -128,7 +128,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
 
@@ -144,7 +144,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
     }

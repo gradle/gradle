@@ -47,7 +47,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
         disableModuleMetadataPublishing()
 
         // Instead enable via property
-        ExperimentalFeaturesFixture.enable(propertiesFile)
+        ExperimentalFeaturesFixture.enableExperimental(propertiesFile)
 
         createBuildScripts("""
             publishing {

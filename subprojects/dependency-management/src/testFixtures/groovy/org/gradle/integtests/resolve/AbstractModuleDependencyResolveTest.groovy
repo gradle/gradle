@@ -126,7 +126,8 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         resolve.expectDefaultConfiguration(usesJavaLibraryVariants() ? "runtime" : "default")
         settingsFile << "rootProject.name = '$rootProjectName'"
         if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-            ExperimentalFeaturesFixture.enable(propertiesFile)
+            ExperimentalFeaturesFixture.enableAdvancedPomSupport(propertiesFile)
+            ExperimentalFeaturesFixture.enableExperimental(propertiesFile)
         }
         resolve.prepare()
         buildFile << """

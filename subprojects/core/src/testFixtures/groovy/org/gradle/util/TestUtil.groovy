@@ -84,11 +84,10 @@ class TestUtil {
         return NamedObjectInstantiator.INSTANCE
     }
 
-    static ExperimentalFeatures experimentalFeatures(boolean enabled = false) {
+    static ExperimentalFeatures experimentalFeatures(boolean advancedPomSupportEnabled = false, boolean experimentalEnabled = false) {
         def startParameter = new StartParameterInternal()
-        if (enabled) {
-            startParameter.setExperimental(true)
-        }
+        startParameter.setAdvancedPomSupport(advancedPomSupportEnabled)
+        startParameter.setExperimental(experimentalEnabled)
         return new ExperimentalFeatures(startParameter)
     }
 

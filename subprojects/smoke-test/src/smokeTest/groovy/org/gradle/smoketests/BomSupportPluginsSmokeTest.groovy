@@ -33,7 +33,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         settingsFile << """
             rootProject.name = 'springbootproject'
         """
-        ExperimentalFeaturesFixture.enable(propertiesFile)
+        ExperimentalFeaturesFixture.enableAdvancedPomSupport(testProjectDir.newFile('gradle.properties'))
         def buildScript = """
             plugins {
                 id "java"
