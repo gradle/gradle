@@ -19,7 +19,7 @@ package org.gradle.integtests.fixtures
 class ExperimentalFeaturesFixture {
     static void enable(File file) {
         file << """
-            gradle.experimentalFeatures.enable()
+org.gradle.experimental=true
 """
     }
 }

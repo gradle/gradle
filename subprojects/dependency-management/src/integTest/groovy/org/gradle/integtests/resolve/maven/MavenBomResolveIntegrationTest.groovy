@@ -28,7 +28,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     def setup() {
         resolve.prepare()
-        ExperimentalFeaturesFixture.enable(settingsFile)
+        ExperimentalFeaturesFixture.enable(propertiesFile)
         settingsFile << "rootProject.name = 'testproject'"
         buildFile << """
             repositories { maven { url "${mavenHttpRepo.uri}" } }

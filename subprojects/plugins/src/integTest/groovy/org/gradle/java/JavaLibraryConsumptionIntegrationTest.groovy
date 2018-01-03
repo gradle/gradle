@@ -23,7 +23,7 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
 
     def "runtime dependencies from maven modules do not leak into compile classpath"() {
         given:
-        ExperimentalFeaturesFixture.enable(settingsFile)
+        ExperimentalFeaturesFixture.enable(propertiesFile)
         buildFile << """
             apply plugin: 'java-library'
             ${jcenterRepository()}

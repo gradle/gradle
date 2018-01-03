@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
-import org.gradle.api.internal.ExperimentalFeatures
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
@@ -54,7 +53,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
         authenticationContainer,
         moduleIdentifierFactory,
         Mock(FileResourceRepository),
-        new ExperimentalFeatures(),
+        TestUtil.experimentalFeatures(),
         mavenMetadataFactory
     )
     final ProgressLoggerFactory progressLoggerFactory = Mock()

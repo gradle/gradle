@@ -32,7 +32,7 @@ trait GradleMetadataAwarePublishingSpec {
     void prepare() {
         executer.beforeExecute {
             if (publishModuleMetadata) {
-                withArgument("-Dorg.gradle.internal.experimentalFeatures")
+                withArgument("--experimental")
             }
         }
     }

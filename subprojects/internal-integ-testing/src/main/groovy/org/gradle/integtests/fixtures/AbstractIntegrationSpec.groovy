@@ -88,6 +88,10 @@ class AbstractIntegrationSpec extends Specification {
         testDirectory.file('settings.gradle')
     }
 
+    protected TestFile getPropertiesFile() {
+        testDirectory.file('gradle.properties')
+    }
+
     def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
         buildTestFixture.singleProjectBuild(projectName, cl)
     }

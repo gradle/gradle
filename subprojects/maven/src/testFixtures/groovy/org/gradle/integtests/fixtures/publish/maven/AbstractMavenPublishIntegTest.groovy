@@ -68,7 +68,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
     private def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
-        ExperimentalFeaturesFixture.enable(settingsFile)
+        ExperimentalFeaturesFixture.enable(propertiesFile)
         def attributes = params.variant == null ?
             "" :
             """ 

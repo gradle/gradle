@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
-import org.gradle.api.internal.ExperimentalFeatures
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.component.SoftwareComponentInternal
@@ -54,7 +53,7 @@ class DefaultIvyPublicationTest extends Specification {
     def notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     def attributesFactory = TestUtil.attributesFactory()
-    def experimentalFeatures = new ExperimentalFeatures()
+    def experimentalFeatures = TestUtil.experimentalFeatures()
 
     File ivyDescriptorFile
     File moduleDescriptorFile

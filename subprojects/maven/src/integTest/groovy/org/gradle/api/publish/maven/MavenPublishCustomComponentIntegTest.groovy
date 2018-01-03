@@ -42,12 +42,12 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
         publishedModule.parsedModuleMetadata.variants.isEmpty()
     }
 
-    def "can enable module metadata publishing via init script"() {
-        // Don't enable via system property
+    def "can enable module metadata publishing via property"() {
+        // Don't enable via command line argument
         disableModuleMetadataPublishing()
 
-        // Instead enable via DSL
-        ExperimentalFeaturesFixture.enable(file("init.gradle"))
+        // Instead enable via property
+        ExperimentalFeaturesFixture.enable(propertiesFile)
 
         createBuildScripts("""
             publishing {
@@ -61,7 +61,6 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
 
 
         when:
-        executer.withArguments("-I", "init.gradle")
         run "publish"
 
         then:
