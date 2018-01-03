@@ -171,6 +171,49 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         failureCauseContains("' must contain a settings file.")
     }
 
+    def 'main build can request plugins to be applied to source dependency build'() {
+        depProject.settingsFile.delete()
+        depProject.buildFile.delete()
+
+        singleProjectBuild("buildSrc") {
+            file("src/main/groovy/MyPlugin.groovy") << """
+                import org.gradle.api.*
+                import org.gradle.api.initialization.*
+                
+                class MyPlugin implements Plugin<Settings> {
+                    void apply(Settings settings) {
+                        settings.gradle.allprojects {
+                            apply plugin: 'java'
+                            group = 'org.test'
+                            version = '1.0'
+                        }
+                    }
+                }
+            """
+            file("src/main/resources/META-INF/gradle-plugins/com.example.MyPlugin.properties") << """
+                implementation-class=MyPlugin
+            """
+        }
+
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(DirectoryRepositorySpec) {
+                            sourceDir = file("dep")
+                            plugins {
+                                id "com.example.MyPlugin"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds('assemble')
+        assertRepoCheckedOut()
+    }
+
     def 'can build from sub-directory of repository'() {
         file('repoRoot').mkdir()
         file('dep').renameTo(file('repoRoot/dep'))
