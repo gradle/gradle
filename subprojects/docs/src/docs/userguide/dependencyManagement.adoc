@@ -201,6 +201,8 @@ A project's configurations are managed by a `configurations` object. Configurati
 [[sec:customizing_dependencies]]
 === Customizing dependency declarations
 
+Dependency declarations and their resolution behavior can be customized to a high degree. Transitive module resolution and enforcing specific dependency versions represent just some of the scenarios that can be solved to meet enterprise requirements.
+
 [[sec:excluding_transitive_module_dependencies]]
 ==== Excluding transitive module dependencies
 
@@ -246,7 +248,28 @@ You might encounter other uses that don't quite fit the bill of an exclude rule.
 [[sec:enforcing_dependency_version]]
 ==== Enforcing a particular dependency version
 
-Gradle resolves transitive dependencies by default.
+By default Gradle resolves transitive dependencies and resolves any version conflicts by selecting the latest version found in the dependency graph. Some project might need to divert from this behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
+
+[NOTE]
+====
+Enforcing a version of a dependency requires a conscious decision on your part. Changing the version of a transitive dependency might lead to runtime errors if external libraries do not properly function with it out. Alternatively, you might want to consider upgrading your source code to use a newer version of the library.
+====
+
+Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10. However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore. A dependency version can be enforced by declaring it and setting api:org.gradle.api.artifacts.ExternalDependency#setForce(boolean)[] to `true`.
+
+++++
+<sample id="force-per-dependency" dir="userguide/dependencies/forcingDependencyVersion" title="Enforcing a dependency version">
+    <sourcefile file="build.gradle" snippet="force-per-dependency"/>
+</sample>
+++++
+
+If the project requires a specific version of a dependency on a configuration-level then it can be achieved by calling the method api:org.gradle.api.artifacts.ResolutionStrategy#force(java.lang.Object...)[]. Forced dependencies applied to a configuration only work if the configuration is resolvable that is api:org.gradle.api.artifacts.Configuration#isCanBeResolved()[] returns `true`.
+
+++++
+<sample id="force-per-configuration" dir="userguide/dependencies/forcingDependencyVersionPerConfiguration" title="Enforcing a dependency version on the configuration-level">
+    <sourcefile file="build.gradle" snippet="force-per-configuration"/>
+</sample>
+++++
 
 [[ssub:multi_artifact_dependencies]]
 ==== Depending on modules with multiple artifacts
