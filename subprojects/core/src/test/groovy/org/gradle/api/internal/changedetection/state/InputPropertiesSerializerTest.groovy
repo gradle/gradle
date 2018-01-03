@@ -185,11 +185,14 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes implementation properties with unknown classloader"() {
-        def original = [a: new ImplementationSnapshot("someClassName", null)]
-        write(original)
+        def original = new ImplementationSnapshot("someClassName", null)
+        def originalMap = [a: original]
+        write(originalMap)
 
         expect:
-        original == written
+        ImplementationSnapshot copy = written.a
+        original.typeName == copy.typeName
+        copy.hasUnknownClassLoader()
     }
 
     private ArrayValueSnapshot array(ValueSnapshot... elements) {

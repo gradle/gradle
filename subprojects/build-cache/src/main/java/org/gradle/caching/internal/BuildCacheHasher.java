@@ -18,6 +18,11 @@ package org.gradle.caching.internal;
 
 import org.gradle.internal.hash.HashCode;
 
+import javax.annotation.Nullable;
+
+/**
+ * Hasher used for building hashes for build cache keys.
+ */
 public interface BuildCacheHasher {
     BuildCacheHasher putByte(byte b);
     BuildCacheHasher putBytes(byte[] bytes);
@@ -29,5 +34,17 @@ public interface BuildCacheHasher {
     BuildCacheHasher putBoolean(boolean b);
     BuildCacheHasher putString(CharSequence charSequence);
     BuildCacheHasher putNull();
+
+    /**
+     * Marks this build cache hash as invalid.
+     */
+    void markAsInvalid();
+
+    /**
+     * Returns the combined hash.
+     *
+     * If the build cache hash is invalid, {@code null is returned}.
+     */
+    @Nullable
     HashCode hash();
 }

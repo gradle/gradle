@@ -51,22 +51,25 @@ public class ImplementationSnapshot implements ValueSnapshot {
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        hasher.putString(ImplementationSnapshot.class.getName());
-        hasher.putString(typeName);
-        hasher.putHash(classLoaderHash);
+        if (classLoaderHash == null) {
+            hasher.markAsInvalid();
+        } else {
+            hasher.putString(ImplementationSnapshot.class.getName());
+            hasher.putString(typeName);
+            hasher.putHash(classLoaderHash);
+        }
     }
 
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
         ValueSnapshot other = snapshotter.snapshot(value);
-        if (this.equals(other)) {
+        if (this.isSameSnapshot(other)) {
             return this;
         }
         return other;
     }
 
-    @Override
-    public boolean equals(Object o) {
+    private boolean isSameSnapshot(Object o) {
         if (this == o) {
             return true;
         }
@@ -80,6 +83,26 @@ public class ImplementationSnapshot implements ValueSnapshot {
             return false;
         }
         return classLoaderHash != null ? classLoaderHash.equals(that.classLoaderHash) : that.classLoaderHash == null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ImplementationSnapshot that = (ImplementationSnapshot) o;
+        if (classLoaderHash == null || that.classLoaderHash == null) {
+            return false;
+        }
+        if (this == o) {
+            return true;
+        }
+
+
+        if (!typeName.equals(that.typeName)) {
+            return false;
+        }
+        return classLoaderHash.equals(that.classLoaderHash);
     }
 
     @Override

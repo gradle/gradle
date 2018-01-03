@@ -19,10 +19,11 @@ package org.gradle.api.tasks
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheFixture
 import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
-class NestedInputIntegrationTest extends AbstractIntegrationSpec {
+class NestedInputIntegrationTest extends AbstractIntegrationSpec implements BuildCacheFixture {
 
     @Unroll
     def "nested #type.simpleName input adds a task dependency"() {
@@ -528,5 +529,60 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         run task, '-Pinput=changed'
         then:
         executedAndNotSkipped task
+    }
+
+    def "task with nested bean loaded with custom classloader is not cached"() {
+        file("input.txt").text = "data"
+        buildFile << taskWithNestedBeanFromCustomClassloader()
+
+        when:
+        withBuildCache().run "customTask", "--info"
+        then:
+        output.contains "Could not append invalid inputPropertyHash for 'bean.\$\$implementation\$\$' to build cache key."
+        output.contains "Not caching task ':customTask' because no valid cache key was generated"
+    }
+
+    def "task with nested bean loaded with custom classloader is never up-to-date"() {
+        file("input.txt").text = "data"
+        buildFile << taskWithNestedBeanFromCustomClassloader()
+
+        when:
+        run "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        run "customTask", "--info"
+        then:
+        executedAndNotSkipped ":customTask"
+        output.contains "Value of input property 'bean.\$\$implementation\$\$' has changed for task ':customTask'"
+    }
+
+    private static String taskWithNestedBeanFromCustomClassloader() {
+        """
+            @CacheableTask
+            class TaskWithNestedProperty extends DefaultTask  {
+                @Nested
+                Object bean
+                @TaskAction action() {
+                    bean.output.text = bean.input.text
+                }
+            }
+
+            def NestedBean = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
+                import org.gradle.api.tasks.*
+
+                class NestedBean {
+                    @InputFile File input
+                    @OutputFile File output
+                }
+            '''
+
+            task customTask(type: TaskWithNestedProperty) {
+                bean = NestedBean.newInstance()
+                bean.input = file("input.txt")
+                bean.output = file("build/output.txt")
+            }
+        """
     }
 }
