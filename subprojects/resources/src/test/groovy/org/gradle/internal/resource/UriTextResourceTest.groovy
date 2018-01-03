@@ -270,4 +270,16 @@ class UriTextResourceTest extends Specification {
         extractCharacterEncoding('text/plain; charset=', null) == null
         extractCharacterEncoding('text/plain; charset; charset=;charset="missing-quote', null) == "missing-quote"
     }
+
+    def canUseCustomUserAgent() {
+        setup:
+        def original = System.getProperty('http.agent')
+        System.setProperty('http.agent', 'my-agent')
+
+        expect:
+        UriTextResource.userAgentString == 'my-agent'
+
+        cleanup:
+        System.setProperty('http.agent', original == null ? '' : original)
+    }
 }

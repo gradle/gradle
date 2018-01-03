@@ -155,8 +155,8 @@ public class Download implements IDownload {
     }
 
     private String calculateUserAgent() {
-        String customUserAgent = System.getProperty("org.gradle.customUserAgent");
-        if (customUserAgent != null) {
+        String customUserAgent = System.getProperty("http.agent");
+        if (customUserAgent != null && !customUserAgent.isEmpty()) {
             return customUserAgent;
         }
         String osName = System.getProperty("os.name");
