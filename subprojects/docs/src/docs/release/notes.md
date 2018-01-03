@@ -98,6 +98,10 @@ For more on configuring the build cache for the root `buildSrc` build, please se
 Previously, executables in distributions would be placed in `bin` directory and couldn't be configured. Now you can configure this directory with `executableDir` property. 
 See [`application` plugin](userguide/application_plugin.html) for more details.
 
+### Default CodeNarc has been upgraded to 1.0
+
+Now [CodeNarc](http://codenarc.sourceforge.net/)'s default version has been upgraded to 1.0, enjoy!
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
