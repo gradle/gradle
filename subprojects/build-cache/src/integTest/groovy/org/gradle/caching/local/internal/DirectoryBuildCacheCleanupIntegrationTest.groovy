@@ -76,7 +76,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         calculateCacheSize(originalList) >= MAX_CACHE_SIZE
 
         when:
-        cleanupBuildCacheNow()
+        markCacheDirForCleanup()
         and:
         withBuildCache().succeeds("cacheable")
         then:
@@ -96,7 +96,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         calculateCacheSize(originalList) >= MAX_CACHE_SIZE
 
         when:
-        cleanupBuildCacheNow()
+        markCacheDirForCleanup()
         def timeNow = System.currentTimeMillis()
         originalList.eachWithIndex { cacheEntry, index ->
             // Set the lastModified time for each cache entry back monotonically increasing days
@@ -146,7 +146,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         recentlyUsed.size() == 3
 
         when:
-        cleanupBuildCacheNow()
+        markCacheDirForCleanup()
         and:
         withBuildCache().succeeds("cacheable")
 
@@ -166,7 +166,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         calculateCacheSize(originalList) >= MAX_CACHE_SIZE
 
         when:
-        cleanupBuildCacheNow()
+        markCacheDirForCleanup()
         and:
         withBuildCache().succeeds("cacheable")
         then:
@@ -270,7 +270,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         def lastCleanupCheck = gcFile().makeOlder().lastModified()
 
         when:
-        cleanupBuildCacheNow()
+        markCacheDirForCleanup()
         and:
         // During the build, the build cache should be over the target still
         withBuildCache().succeeds("cacheable", "assertBuildCacheOverTarget")
@@ -315,7 +315,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         def lastCleanupCheck = gcFile().makeOlder().lastModified()
 
         when:
-        cleanupBuildCacheNow()
+        markCacheDirForCleanup()
         and:
         // During the build, the build cache should be over the target still (the composite didn't clean it up)
         withBuildCache().succeeds("assertBuildCacheOverTarget")
@@ -362,7 +362,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         def lastCleanupCheck = gcFile().makeOlder().lastModified()
 
         when:
-        cleanupBuildCacheNow()
+        markCacheDirForCleanup()
         and:
         // During the build, the build cache should be over the target still (the composite didn't clean it up)
         withBuildCache().succeeds("assertBuildCacheOverTarget", "-i")
@@ -396,7 +396,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         def lastCleanupCheck = gcFile().makeOlder().lastModified()
 
         when:
-        cleanupBuildCacheNow()
+        markCacheDirForCleanup()
         and:
         // During the build, the build cache should be over the target still
         withBuildCache().succeeds("assertBuildCacheOverTarget", "-i")
@@ -404,6 +404,11 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         // build cache has been cleaned up now
         calculateCacheSize(listCacheFiles()) <= MAX_CACHE_SIZE
         gcFile().lastModified() >= lastCleanupCheck
+    }
+
+    void markCacheDirForCleanup() {
+        gcFile().assertIsFile()
+        gcFile().lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(60)
     }
 
     private static long calculateCacheSize(List<TestFile> originalList) {
