@@ -1,0 +1,11 @@
+ext.isCI = project.hasProperty("isCI")
+
+task performRelease {
+    doLast {
+        if (isCI) {
+            println("Performing release actions")
+        } else {
+            throw new InvalidUserDataException("Cannot perform release outside of CI")
+        }
+    }
+}
