@@ -24,6 +24,7 @@ import java.util.Set;
 
 public class StartParameterInternal extends StartParameter implements Deprecatable {
     private final Deprecatable deprecationHandler = new LoggingDeprecatable();
+    private boolean experimental;
 
     @Override
     public StartParameter newInstance() {
@@ -47,5 +48,13 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
     @Override
     public void checkDeprecation() {
         deprecationHandler.checkDeprecation();
+    }
+
+    public void setExperimental(boolean experimental) {
+        this.experimental = experimental;
+    }
+
+    public boolean isExperimental() {
+        return experimental;
     }
 }

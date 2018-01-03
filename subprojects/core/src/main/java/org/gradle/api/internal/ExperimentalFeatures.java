@@ -15,19 +15,16 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.StartParameter;
+
 public class ExperimentalFeatures {
-    private static final String ENABLE_EXPERIMENTAL_FEATURES = "org.gradle.internal.experimentalFeatures";
-    private boolean enabled;
+    private StartParameterInternal startParameter;
 
-    public ExperimentalFeatures() {
-        enabled = System.getProperty(ENABLE_EXPERIMENTAL_FEATURES) != null;
-    }
-
-    public void enable() {
-        enabled = true;
+    public ExperimentalFeatures(StartParameter startParameter) {
+        this.startParameter = (StartParameterInternal) startParameter;
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return startParameter.isExperimental();
     }
 }

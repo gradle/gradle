@@ -57,6 +57,7 @@ public class StartParameterBuildOptions {
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
         options.add(new BuildScanOption());
+        options.add(new ExperimentalOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -290,6 +291,19 @@ public class StartParameterBuildOptions {
             } else {
                 settings.setNoBuildScan(true);
             }
+        }
+    }
+
+    public static class ExperimentalOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String GRADLE_PROPERTY = "org.gradle.experimental";
+
+        public ExperimentalOption() {
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("experimental", "Enables experimental features.", "Disables experimental features.").internal());
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setExperimental(value);
         }
     }
 }
