@@ -30,6 +30,11 @@ task gradleBuildCurrent(type: RemoteProject) {
     ref = provider { rootProject.determineCommitId.commitId }
 }
 
+task gradleBuildBaseline(type: RemoteProject) {
+    remoteUri = rootDir.absolutePath
+    ref = '3c30656'
+}
+
 // === Java ===
 ['largeMonolithicJavaProject', 'largeJavaMultiProject',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
