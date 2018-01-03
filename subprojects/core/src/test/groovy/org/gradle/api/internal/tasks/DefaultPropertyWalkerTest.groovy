@@ -51,7 +51,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFile' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFiles' })
         1 * visitor.visitInputProperty({ it.propertyName == 'bean.class' && it.value == NestedBean.name })
-        1 * visitor.visitInputProperty({ it.propertyName == 'bean.$$implementation$$' })
+        1 * visitor.visitInputProperty({ it.propertyName == 'bean.$$implementation' })
         1 * visitor.visitInputProperty({ it.propertyName == 'bean.nestedInput' && it.value == 'nested' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'bean.inputDir' })
 

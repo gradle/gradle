@@ -538,7 +538,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Buil
         when:
         withBuildCache().run "customTask", "--info"
         then:
-        output.contains "The implementation of 'bean.\$\$implementation\$\$' cannot be determined, because it was loaded via some unknown classloader"
+        output.contains "The implementation of 'bean.\$\$implementation' cannot be determined, because it was loaded via some unknown classloader"
         output.contains "Not caching task ':customTask' because no valid cache key was generated"
     }
 
@@ -555,7 +555,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Buil
         run "customTask", "--info"
         then:
         executedAndNotSkipped ":customTask"
-        output.contains "Value of input property 'bean.\$\$implementation\$\$' has changed for task ':customTask'"
+        output.contains "Value of input property 'bean.\$\$implementation' has changed for task ':customTask'"
     }
 
     private static String taskWithNestedBeanFromCustomClassloader() {

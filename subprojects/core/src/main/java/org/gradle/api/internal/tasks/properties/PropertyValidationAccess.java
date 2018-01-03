@@ -74,7 +74,7 @@ public class PropertyValidationAccess {
                 TypeToken<Iterable> typeToken = (TypeToken<Iterable>) beanType;
                 ParameterizedType type = (ParameterizedType) typeToken.getSupertype(Iterable.class).getType();
                 TypeToken<?> nestedType = TypeToken.of(type.getActualTypeArguments()[0]);
-                queue.add(new TypeNode(node.getParentPropertyName() + "<" + beanClass.getSimpleName() + ">", nestedType));
+                queue.add(new TypeNode(node.getParentPropertyName() + "<" + nestedType.getRawType().getSimpleName() + ">", nestedType));
             } else {
                 validateTaskClass(topLevelBean, cacheable, problems, queue, node, typeMetadata);
             }

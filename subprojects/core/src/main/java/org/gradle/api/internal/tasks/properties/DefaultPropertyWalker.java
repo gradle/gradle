@@ -102,7 +102,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
     private static void visitImplementation(PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory) {
         // The root bean (Task) implementation is currently tracked separately
         if (!node.isRoot()) {
-            DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("$$implementation$$"), new ImplementationPropertyValue(node.getBean().getClass()));
+            DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("$$implementation"), new ImplementationPropertyValue(node.getBean().getClass()));
             implementation.optional(false);
             visitor.visitInputProperty(implementation);
         }
