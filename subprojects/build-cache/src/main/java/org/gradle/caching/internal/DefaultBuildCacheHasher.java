@@ -104,7 +104,15 @@ public class DefaultBuildCacheHasher implements BuildCacheHasher {
     }
 
     @Override
+    public boolean isValid() {
+        return valid;
+    }
+
+    @Override
     public HashCode hash() {
-        return valid ? hasher.hash() : null;
+        if (!valid) {
+            throw new IllegalStateException("Build cache hash is not valid");
+        }
+        return hasher.hash();
     }
 }

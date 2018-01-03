@@ -486,7 +486,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Buil
         failure.assertHasCause('Null is not allowed as nested property \'beans.$2\'')
     }
 
-    def "nested iterable beans can be iterables again"() {
+    def "nested iterable beans can be iterables themselves"() {
         buildFile << """
             class TaskWithNestedIterable extends DefaultTask {
                 @Nested
@@ -538,7 +538,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Buil
         when:
         withBuildCache().run "customTask", "--info"
         then:
-        output.contains "Could not append invalid inputPropertyHash for 'bean.\$\$implementation\$\$' to build cache key."
+        output.contains "The implementation of 'bean.\$\$implementation\$\$' cannot be determined, because it was loaded via some unknown classloader"
         output.contains "Not caching task ':customTask' because no valid cache key was generated"
     }
 

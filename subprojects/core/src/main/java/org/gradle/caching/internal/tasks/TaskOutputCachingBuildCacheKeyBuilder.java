@@ -31,4 +31,6 @@ public interface TaskOutputCachingBuildCacheKeyBuilder {
     void appendOutputPropertyName(String propertyName);
 
     TaskOutputCachingBuildCacheKey build();
+
+    void inputPropertyLoadedByUnknownClassloader(String propertyName);
 }

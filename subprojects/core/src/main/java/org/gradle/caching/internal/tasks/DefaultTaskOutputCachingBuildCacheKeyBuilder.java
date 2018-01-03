@@ -34,7 +34,6 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 @NonNullApi
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputCachingBuildCacheKeyBuilder {
@@ -48,6 +47,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     private ImmutableList<String> actionTypes;
     private boolean valid = true;
     private final ImmutableSortedMap.Builder<String, HashCode> inputHashes = ImmutableSortedMap.naturalOrder();
+    private final ImmutableSortedSet.Builder<String> inputPropertiesLoadedByUnknownClassLoader = ImmutableSortedSet.naturalOrder();
     private final ImmutableSortedSet.Builder<String> outputPropertyNames = ImmutableSortedSet.naturalOrder();
 
     public DefaultTaskOutputCachingBuildCacheKeyBuilder(Path taskPath) {
@@ -97,18 +97,19 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     }
 
     @Override
-    public void appendInputPropertyHash(String propertyName, @Nullable HashCode hashCode) {
+    public void appendInputPropertyHash(String propertyName, HashCode hashCode) {
         hasher.putString(propertyName);
-        if (hashCode != null) {
-            hasher.putHash(hashCode);
-            inputHashes.put(propertyName, hashCode);
-            LOGGER.info("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
-        } else {
-            valid = false;
-            // Add a random hash to make sure it shows up as changed in the build scan
-            inputHashes.put(propertyName, HashCode.fromInt(new Random().nextInt()));
-            LOGGER.info("Could not append invalid inputPropertyHash for '{}' to build cache key.", propertyName);
-        }
+        hasher.putHash(hashCode);
+        inputHashes.put(propertyName, hashCode);
+        LOGGER.info("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
+    }
+
+    @Override
+    public void inputPropertyLoadedByUnknownClassloader(String propertyName) {
+        valid = false;
+        // Add a random hash to make sure it shows up as changed in the build scan
+        inputPropertiesLoadedByUnknownClassLoader.add(propertyName);
+        LOGGER.info("The implementation of '{}' cannot be determined, because it was loaded via some unknown classloader", propertyName);
     }
 
     @Override
@@ -124,7 +125,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
 
     @Override
     public TaskOutputCachingBuildCacheKey build() {
-        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionClassLoaderHashes, actionTypes, inputHashes.build(), outputPropertyNames.build());
+        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionClassLoaderHashes, actionTypes, inputHashes.build(), inputPropertiesLoadedByUnknownClassLoader.build(), outputPropertyNames.build());
         HashCode hash;
         if (!valid) {
             hash = null;
