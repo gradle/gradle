@@ -21,7 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.util.internal.Java10ClassReader;
+import org.gradle.util.internal.PatchedClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 
@@ -127,7 +127,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         InputStream classStream = null;
         try {
             classStream = new BufferedInputStream(new FileInputStream(testClassFile));
-            final ClassReader classReader = new Java10ClassReader(IOUtils.toByteArray(classStream));
+            final ClassReader classReader = new PatchedClassReader(IOUtils.toByteArray(classStream));
             classReader.accept(classVisitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
         } catch (Throwable e) {
             throw new GradleException("failed to read class file " + testClassFile.getAbsolutePath(), e);

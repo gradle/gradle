@@ -23,8 +23,8 @@ import org.objectweb.asm.ClassReader;
  * A <b>temporary workaround</b> for reading Java 10 class files. This special class reader will pretend that Java 10
  * classes are Java 9 classes, making it possible to read them.
  */
-public class Java10ClassReader extends ClassReader {
-    public Java10ClassReader(byte[] b) {
+public class PatchedClassReader extends ClassReader {
+    public PatchedClassReader(byte[] b) {
         super(fixupClassVersion(b));
     }
 

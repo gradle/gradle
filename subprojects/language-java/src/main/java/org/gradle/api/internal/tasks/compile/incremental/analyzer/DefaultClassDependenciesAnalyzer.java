@@ -21,7 +21,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.tasks.compile.incremental.asm.ClassDependenciesVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.util.internal.Java10ClassReader;
+import org.gradle.util.internal.PatchedClassReader;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ import java.io.InputStream;
 public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyzer {
 
     public ClassAnalysis getClassAnalysis(InputStream input) throws IOException {
-        ClassReader reader = new Java10ClassReader(ByteStreams.toByteArray(input));
+        ClassReader reader = new PatchedClassReader(ByteStreams.toByteArray(input));
         String className = reader.getClassName().replace("/", ".");
         return ClassDependenciesVisitor.analyze(className, reader);
     }
