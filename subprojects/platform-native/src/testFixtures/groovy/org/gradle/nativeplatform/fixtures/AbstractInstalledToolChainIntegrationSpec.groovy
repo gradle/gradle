@@ -73,15 +73,15 @@ allprojects { p ->
     }
 
     String withLinkLibrarySuffix(Object path) {
-        return path + OperatingSystem.current().linkLibrarySuffix
+        return path + (toolChain.visualCpp ? OperatingSystem.current().linkLibrarySuffix : OperatingSystem.current().sharedLibrarySuffix)
     }
 
     String linkLibraryName(Object path) {
-        return OperatingSystem.current().getLinkLibraryName(path.toString())
+        return toolChain.visualCpp ? OperatingSystem.current().getLinkLibraryName(path.toString()) : OperatingSystem.current().getSharedLibraryName(path.toString())
     }
 
     String getLinkLibrarySuffix() {
-        return OperatingSystem.current().linkLibrarySuffix.substring(1)
+        return toolChain.visualCpp ? OperatingSystem.current().linkLibrarySuffix.substring(1) : OperatingSystem.current().sharedLibrarySuffix.substring(1)
     }
 
     String staticLibraryName(Object path) {
