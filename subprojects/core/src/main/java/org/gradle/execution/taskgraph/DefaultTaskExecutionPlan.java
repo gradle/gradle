@@ -608,7 +608,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     @Override
                     public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                         ResourceLock projectLock = getProjectLock(taskInfo);
-                        TaskMutationInfo taskMutationInfo = getUpdatedTaskMutationInfo(taskInfo);
+                        TaskMutationInfo taskMutationInfo = getResolvedTaskMutationInfo(taskInfo);
 
                         // TODO: convert output file checks to a resource lock
                         if (!projectLock.tryLock() || !workerLease.tryLock() || !canRunWithCurrentlyExecutedTasks(taskInfo, taskMutationInfo)) {
@@ -635,7 +635,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return selected.get();
     }
 
-    private TaskMutationInfo getUpdatedTaskMutationInfo(TaskInfo taskInfo) {
+    private TaskMutationInfo getResolvedTaskMutationInfo(TaskInfo taskInfo) {
         TaskInternal task = taskInfo.getTask();
         TaskMutationInfo taskMutationInfo = taskMutations.get(taskInfo);
         if (!taskMutationInfo.resolved) {
@@ -644,8 +644,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             PathToFileResolver resolver = serviceRegistry.get(PathToFileResolver.class);
             PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
             TaskProperties taskProperties = DefaultTaskProperties.resolve(propertyWalker, resolver, task);
-            taskMutationInfo.outputPaths.addAll(getOutputPaths(taskInfo, taskProperties.getOutputFiles(), taskProperties.getLocalStateFiles()));
-            taskMutationInfo.destroyablePaths.addAll(getDestroyablePaths(taskInfo, taskProperties.getDestroyableFiles()));
+            taskMutationInfo.outputPaths.addAll(getOutputPaths(canonicalizedFileCache, taskInfo, taskProperties.getOutputFiles(), taskProperties.getLocalStateFiles()));
+            taskMutationInfo.destroyablePaths.addAll(getDestroyablePaths(canonicalizedFileCache, taskInfo, taskProperties.getDestroyableFiles()));
             taskMutationInfo.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
             taskMutationInfo.hasOutputs = taskProperties.hasDeclaredOutputs();
             taskMutationInfo.hasLocalState = !taskProperties.getLocalStateFiles().isEmpty();
@@ -821,7 +821,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return null;
     }
 
-    private Set<String> getOutputPaths(TaskInfo task, FileCollection outputFiles, FileCollection localStateFiles) {
+    private static Set<String> getOutputPaths(Map<File, String> canonicalizedFileCache, TaskInfo task, FileCollection outputFiles, FileCollection localStateFiles) {
         try {
             return canonicalizedPaths(canonicalizedFileCache, Iterables.concat(outputFiles, localStateFiles));
         } catch (ResourceDeadlockException e) {
@@ -829,7 +829,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private Set<String> getDestroyablePaths(TaskInfo task, FileCollection destroyableFiles) {
+    private static Set<String> getDestroyablePaths(Map<File, String> canonicalizedFileCache, TaskInfo task, FileCollection destroyableFiles) {
         try {
             return canonicalizedPaths(canonicalizedFileCache, destroyableFiles);
         } catch (ResourceDeadlockException e) {
@@ -886,7 +886,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private boolean canRemoveTaskMutation(TaskMutationInfo taskMutationInfo) {
+    private static boolean canRemoveTaskMutation(TaskMutationInfo taskMutationInfo) {
         return taskMutationInfo != null && taskMutationInfo.task.isComplete() && taskMutationInfo.consumingTasks.isEmpty();
     }
 
@@ -906,7 +906,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         });
     }
 
-    private void enforceFinalizerTasks(TaskInfo taskInfo) {
+    private static void enforceFinalizerTasks(TaskInfo taskInfo) {
         for (TaskInfo finalizerNode : taskInfo.getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
                 enforceWithDependencies(finalizerNode, Sets.<TaskInfo>newHashSet());
@@ -914,7 +914,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void enforceWithDependencies(TaskInfo nodeInfo, Set<TaskInfo> enforcedTasks) {
+    private static void enforceWithDependencies(TaskInfo nodeInfo, Set<TaskInfo> enforcedTasks) {
         Deque<TaskInfo> candidateNodes = new ArrayDeque<TaskInfo>();
         candidateNodes.add(nodeInfo);
 
