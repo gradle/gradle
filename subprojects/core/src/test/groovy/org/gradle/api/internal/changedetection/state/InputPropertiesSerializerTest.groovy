@@ -176,6 +176,22 @@ class InputPropertiesSerializerTest extends Specification {
         original == written
     }
 
+    def "serializes implementation properties"() {
+        def original = [a: new ImplementationSnapshot("someClassName", HashCode.fromString("0123456789"))]
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes implementation properties with unknown classloader"() {
+        def original = [a: new ImplementationSnapshot("someClassName", null)]
+        write(original)
+
+        expect:
+        original == written
+    }
+
     private ArrayValueSnapshot array(ValueSnapshot... elements) {
         return new ArrayValueSnapshot(elements)
     }

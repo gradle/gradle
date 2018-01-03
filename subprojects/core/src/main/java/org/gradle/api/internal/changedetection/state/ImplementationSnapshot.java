@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * Identifies a type in a classloader hierarchy. The type is identified by its name,
  * the classloader hierarchy by its hash code.
  */
-public class ImplementationSnapshot implements Snapshot {
+public class ImplementationSnapshot implements ValueSnapshot {
     private final String typeName;
     private final HashCode classLoaderHash;
 
@@ -57,6 +57,15 @@ public class ImplementationSnapshot implements Snapshot {
     }
 
     @Override
+    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
+        ValueSnapshot other = snapshotter.snapshot(value);
+        if (this.equals(other)) {
+            return this;
+        }
+        return other;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -70,10 +79,7 @@ public class ImplementationSnapshot implements Snapshot {
         if (!typeName.equals(that.typeName)) {
             return false;
         }
-        if (classLoaderHash == null || that.classLoaderHash == null) {
-            return false;
-        }
-        return classLoaderHash.equals(that.classLoaderHash);
+        return classLoaderHash != null ? classLoaderHash.equals(that.classLoaderHash) : that.classLoaderHash == null;
     }
 
     @Override

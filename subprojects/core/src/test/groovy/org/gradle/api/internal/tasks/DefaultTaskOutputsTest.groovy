@@ -25,7 +25,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.execution.TaskProperties
-import org.gradle.api.internal.tasks.properties.ClassImplementationHasher
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.util.UsesNativeServices
@@ -55,7 +54,6 @@ class DefaultTaskOutputsTest extends Specification {
             new SimpleFileCollection(it*.call().flatten().collect { new File((String) it) })
         }
     ]   as FileResolver
-    def classImplementationHasher = Mock(ClassImplementationHasher)
     def project = Stub(ProjectInternal) {
         getFileFileResolver() >> resolver
     }
@@ -84,7 +82,7 @@ class DefaultTaskOutputsTest extends Specification {
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
 
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]), classImplementationHasher), new DefaultPropertySpecFactory(task, resolver))
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultPropertyMetadataStore([])), new DefaultPropertySpecFactory(task, resolver))
 
     void hasNoOutputsByDefault() {
         setup:

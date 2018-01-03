@@ -32,7 +32,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.util.DeferredUtil;
 import org.gradle.util.DeprecationLogger;
 
@@ -50,11 +49,9 @@ import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR
 public class DefaultPropertyWalker implements PropertyWalker {
 
     private final PropertyMetadataStore propertyMetadataStore;
-    private final ClassImplementationHasher classImplementationHasher;
 
-    public DefaultPropertyWalker(PropertyMetadataStore propertyMetadataStore, ClassImplementationHasher classImplementationHasher) {
+    public DefaultPropertyWalker(PropertyMetadataStore propertyMetadataStore) {
         this.propertyMetadataStore = propertyMetadataStore;
-        this.classImplementationHasher = classImplementationHasher;
     }
 
     @Override
@@ -73,13 +70,13 @@ public class DefaultPropertyWalker implements PropertyWalker {
                     queue.add(new PropertyNode(nestedPropertyName, nestedBean));
                 }
             } else {
-                visitProperties(node, nestedTypeMetadata, queue, visitor, specFactory, classImplementationHasher);
+                visitProperties(node, nestedTypeMetadata, queue, visitor, specFactory);
             }
         }
     }
 
-    private static void visitProperties(PropertyNode node, TypeMetadata typeMetadata, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory specFactory, ClassImplementationHasher classImplementationHasher) {
-        visitImplementation(node, visitor, specFactory, classImplementationHasher);
+    private static void visitProperties(PropertyNode node, TypeMetadata typeMetadata, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+        visitImplementation(node, visitor, specFactory);
         for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
             if (propertyValueVisitor == null) {
@@ -102,11 +99,11 @@ public class DefaultPropertyWalker implements PropertyWalker {
         }
     }
 
-    private static void visitImplementation(PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory, ClassImplementationHasher hasher) {
+    private static void visitImplementation(PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory) {
         // The root bean (Task) implementation is currently tracked separately
         if (!node.isRoot()) {
-            DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("$$implementation$$"), new ImplementationPropertyValue(hasher.getImplementationHash(node.getBeanClass())));
-            implementation.optional(true);
+            DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("$$implementation$$"), new ImplementationPropertyValue(node.getBean().getClass()));
+            implementation.optional(false);
             visitor.visitInputProperty(implementation);
         }
     }
@@ -209,15 +206,15 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     private static class ImplementationPropertyValue implements ValidatingValue {
 
-        private final HashCode hash;
+        private final Class<?> beanClass;
 
-        public ImplementationPropertyValue(@Nullable HashCode hash) {
-            this.hash = hash;
+        public ImplementationPropertyValue(Class<?> beanClass) {
+            this.beanClass = beanClass;
         }
 
         @Override
         public Object call() {
-            return hash;
+            return beanClass;
         }
 
         @Override

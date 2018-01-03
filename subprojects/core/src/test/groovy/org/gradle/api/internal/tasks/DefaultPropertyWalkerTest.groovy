@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.properties.ClassImplementationHasher
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
@@ -35,15 +34,11 @@ import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
-import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
     def visitor = Mock(PropertyVisitor)
-    def classImplementationHasher = Stub(ClassImplementationHasher) {
-        getImplementationHash(_) >> new DefaultBuildCacheHasher().putString("classloader").hash()
-    }
 
     def "visits properties"() {
         def task = project.tasks.create("myTask", MyTask)
@@ -119,6 +114,6 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
-        new DefaultPropertyWalker(new DefaultPropertyMetadataStore(annotationHandlers as List), classImplementationHasher).visitProperties(specFactory, visitor, task)
+        new DefaultPropertyWalker(new DefaultPropertyMetadataStore(annotationHandlers as List)).visitProperties(specFactory, visitor, task)
     }
 }

@@ -22,7 +22,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.tasks.properties.ClassImplementationHasher
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.tasks.TaskPropertyTestUtils
@@ -41,8 +40,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private AnnotationProcessingTaskFactory factory
     private ITaskFactory delegate
     private TaskClassInfoStore taskClassInfoStore
-    private classImplementationHasher = Mock(ClassImplementationHasher)
-    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]), classImplementationHasher)
+    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))
 
     private Map args = new HashMap()
 
