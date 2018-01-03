@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class ConfigurationDefaultsIntegrationTest extends AbstractDependencyResolutionTest {
@@ -84,6 +85,33 @@ configurations.conf.defaultDependencies { deps ->
 
         then:
         succeeds "checkExplicit"
+    }
+
+    @Ignore
+    @Issue("gradle/gradle#3908")
+    def "defaultDependencies action is executed only when configuration participates in resolution"() {
+        buildFile << """
+configurations {
+    other
+    conf {
+        defaultDependencies { deps ->
+            println 'project.status == ' + project.status
+            assert project.status == 'foo'
+            deps.add project.dependencies.create("org:default-dependency:1.0")
+        }
+    }
+}
+dependencies {
+    other "org:explicit-dependency:1.0"
+}
+// Resolve unrelated configuration should not realize defaultDependencies
+println configurations.other.files
+
+project.status = 'foo'
+"""
+
+        expect:
+        succeeds "checkDefault"
     }
 
     @Issue("gradle/gradle#812")

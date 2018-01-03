@@ -62,4 +62,42 @@ public class ExtendingConfigurationsIntegrationTest extends AbstractDependencyRe
         then:
         noExceptionThrown()
     }
+
+    def "resolving parent configuration does not impact iteration order for child configuration"() {
+        mavenRepo.module("org", "foo").publish()
+        mavenRepo.module("org", "bar").publish()
+
+        buildFile << """
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+configurations {
+    one
+    child.extendsFrom one
+    two
+    child.extendsFrom two
+}
+dependencies {
+    one "org:foo:1.0"
+    two "org:bar:1.0"
+}
+
+task checkResolveChild {
+    doFirst {
+        assert configurations.child.files*.name == ['foo-1.0.jar', 'bar-1.0.jar']
+    }
+}
+
+task checkResolveParentThenChild {
+    doFirst {
+        assert configurations.two.files*.name == ['bar-1.0.jar']
+        assert configurations.child.files*.name == ['foo-1.0.jar', 'bar-1.0.jar']
+    }
+}
+"""
+
+        expect:
+        succeeds "checkResolveChild"
+        succeeds "checkResolveParentThenChild"
+    }
 }
