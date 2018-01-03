@@ -50,6 +50,52 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         gitCheckout.file('.git').assertExists()
     }
 
+    def 'can define and use source repositories with submodules'() {
+        given:
+        // Populate submodule origin
+        deeperRepo.file('foo').text = "bar"
+        deeperRepo.commit("initial commit", "foo")
+        // Add submodule to repo
+        repo.addSubmodule(deeperRepo)
+        def commit = repo.commit('initial commit')
+
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds('assemble')
+
+        then:
+        // Git repo is cloned
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
+        gitCheckout.file('.git').assertExists()
+        // Submodule is cloned
+        gitCheckout.file('deeperDep/.git').assertExists()
+        gitCheckout.file('deeperDep/foo').text == "bar"
+
+        when:
+        // Update submodule origin
+        deeperRepo.file('foo').text = "baz"
+        deeperRepo.commit("update file", "foo")
+        // Update parent repository
+        commit = repo.updateSubmodulesToLatest()
+        gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
+        succeeds('assemble')
+
+        then:
+        // Submodule is updated
+        gitCheckout.file('deeperDep/foo').text == "baz"
+    }
+
     @Issue('gradle/gradle-native#206')
     def 'can define and use source repositories with initscript resolution present'() {
         given:

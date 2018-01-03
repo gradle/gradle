@@ -17,7 +17,6 @@
 package org.gradle.vcs.git.internal
 
 import com.google.common.collect.Maps
-import groovy.transform.NotYetImplemented
 import org.eclipse.jgit.revwalk.RevCommit
 import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -130,22 +129,18 @@ class GitVersionControlSystemSpec extends Specification {
         target.file('repo/newFile.txt').exists()
     }
 
-    // This doesn't work yet because we don't update submodules when a repo is updated in place.
-    @NotYetImplemented
     def 'update a cloned repository with submodules'() {
         given:
         repo.addSubmodule(submoduleRepo)
         def target = tmpDir.file('versionDir')
         gitVcs.populate(target, repoHead, repoSpec)
 
+        // Modify the submodule origin repository
         submoduleRepo.workTree.file("foo.txt").text = "goodbye from submodule"
         submoduleRepo.commit("Change submodule message")
 
-        // TODO: JGit doesn't support these commands easily
-        "git submodule foreach git fetch".execute([], repo.workTree).waitFor()
-        "git submodule foreach git checkout origin/master".execute([], repo.workTree).waitFor()
-        repo.git.add().addFilepattern("submodule").call()
-        repo.commit("Update submodule")
+        // Set the submodule in the parent to the latest commit in the origin
+        repo.updateSubmodulesToLatest()
 
         repoHead = GitVersionRef.from(repo.head)
 

@@ -25,6 +25,7 @@ import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.GradleException;
 import org.gradle.vcs.VersionControlSpec;
@@ -108,6 +109,22 @@ public class GitVersionControlSystem implements VersionControlSystem {
             git = Git.open(workingDir);
             git.fetch().setRemote(getRemoteForUrl(git.getRepository(), gitSpec.getUrl())).call();
             git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
+            SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository());
+            try {
+                while (walker.next()) {
+                    Repository submodule = walker.getRepository();
+                    try {
+                        Git submoduleGit = Git.wrap(submodule);
+                        submoduleGit.fetch().call();
+                        submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
+                    } finally {
+                        submodule.close();
+                    }
+                }
+            } finally {
+                walker.close();
+            }
+            git.submoduleUpdate().call();
         } catch (IOException e) {
             throw wrapGitCommandException("update", gitSpec.getUrl(), workingDir, e);
         } catch (URISyntaxException e) {

@@ -16,11 +16,14 @@
 
 package org.gradle.vcs.fixtures;
 
+import com.google.common.collect.Lists;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.gradle.api.Named;
 import org.gradle.internal.UncheckedException;
 import org.gradle.test.fixtures.file.TestFile;
@@ -31,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public class GitRepository extends ExternalResource implements Named {
     private final String repoName;
@@ -94,11 +98,44 @@ public class GitRepository extends ExternalResource implements Named {
     }
 
     public void addSubmodule(GitRepository submoduleRepo) throws GitAPIException {
-        git.submoduleAdd().
-            setURI(submoduleRepo.getWorkTree().toString()).
-            setPath(submoduleRepo.getName()).
-            call();
-        commit("add submodule " + submoduleRepo.getName(), submoduleRepo.getName());
+        Repository submodule = null;
+        try {
+            submodule = git.submoduleAdd().
+                setURI(submoduleRepo.getWorkTree().toString()).
+                setPath(submoduleRepo.getName()).
+                call();
+            commit("add submodule " + submoduleRepo.getName(), submoduleRepo.getName());
+        } finally {
+            if (submodule != null) {
+                submodule.close();
+            }
+        }
+    }
+
+    /**
+     * Updates any submodules in this repository to the latest in the submodule origin repository
+     */
+    public RevCommit updateSubmodulesToLatest() throws GitAPIException {
+        List<String> submodulePaths = Lists.newArrayList();
+        try {
+            SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository());
+            try {
+                while (walker.next()) {
+                    Repository submodule = walker.getRepository();
+                    try {
+                        submodulePaths.add(walker.getPath());
+                        Git.wrap(submodule).pull().call();
+                    } finally {
+                        submodule.close();
+                    }
+                }
+            } finally {
+                walker.close();
+            }
+            return commit("update submodules", submodulePaths.toArray(new String[submodulePaths.size()]));
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     /**
