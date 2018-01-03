@@ -588,7 +588,7 @@ Hence it can discover all sub-properties declared by a runtime sub-type.
 
 When adding `@api:org.gradle.api.tasks.Nested[]` to an iterable, each element is treated as a separate nested input.
 
-This allows some richer modelling and extensibility for tasks, as e.g. shown by `api:org.gradle.api.tasks.compile.CompileOptions#getCompilerArgumentProviders[]`.
+This allows richer modeling and extensibility for tasks, as e.g. shown by `api:org.gradle.api.tasks.compile.CompileOptions#getCompilerArgumentProviders[]`.
 
 For example, to declare annotation processor arguments, it is possible to do the following:
 

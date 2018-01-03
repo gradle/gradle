@@ -113,7 +113,7 @@ Now [CodeNarc](http://codenarc.sourceforge.net/)'s default version has been upgr
 
 ### Use of runtime types when declaring `@Nested` task inputs
 
-When analyzing @Nested task properties for declared input and output sub-properties, Gradle used to only observe the declared type of the property.
+When analyzing `@Nested` task properties for declared input and output sub-properties, Gradle used to only observe the declared type of the property.
 This meant ignoring any sub-properties declared by a runtime sub-type.
 Since Gradle 4.5, Gradle uses the [type of the actual value instead](userguide/more_about_tasks.html#sec:task_input_nested_inputs), and hence can discover all sub-properties declared this way.
 This allows for a few new tricks.
@@ -122,7 +122,7 @@ This allows for a few new tricks.
 
 When you have to expose a file location to your annotation processor, it is essential for Gradle to learn about this additional input (or output).
 Without tracking the location and contents of the given file (or directory), features like incremental build and task output caching cannot function correctly.
-Before Gradle 4.5 you had to let Gradle know manually by calling `compileJava.inputs.file(...)` or similar.
+Before Gradle 4.5 you had to let Gradle know about such inputs or outputs manually by calling `compileJava.inputs.file(...)` or similar.
 
 Gradle 4.5 introduces a better way to handle this situation by modeling the annotation processor as a [`CompilerArgumentProvider`](javadoc/org/gradle/api/tasks/compile/CompilerArgumentProvider.html).
 This approach allows the declaration of complex inputs and outputs, just like how you would declare `@InputFile` and `@OutputDirectory` properties on the task type.
@@ -160,8 +160,14 @@ The only thing you need to do is to add your custom `CompilerArgumentsProvider` 
 
 #### `@Nested` on iterables
 
-When adding [`@Nested`](javadoc/org/gradle/api/tasks/Nested.html) to an iterable, each element is treated as a separate nested input.
-[`CompileJava.options.compilerArgumentProviders`](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders) shows this new behavior.
+When applying the [`@Nested`](javadoc/org/gradle/api/tasks/Nested.html) to an iterable property, each element is now treated as a separate nested input.
+[`CompileJava.options.compilerArgumentProviders`](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders) shows this new behavior:
+
+    @Nested
+    @Incubating
+    public List<CompilerArgumentProvider> getCompilerArgumentProviders() {
+        return compilerArgumentProviders;
+    }
 
 ## Promoted features
 

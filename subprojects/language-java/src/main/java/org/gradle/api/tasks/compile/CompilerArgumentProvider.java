@@ -19,11 +19,14 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.Incubating;
 
 /**
- * Provides arguments to the compiler.
+ * Provides command-line arguments to the compiler.
  *
  * @since 4.5
  */
 @Incubating
 public interface CompilerArgumentProvider {
+    /**
+     * The command-line arguments which will be provided to the compiler.
+     */
     Iterable<String> asArguments();
 }
