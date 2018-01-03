@@ -412,6 +412,10 @@ p .right {
     padding-bottom: 0;
 }
 
+.citetitle {
+    font-style: normal;
+}
+
 table th.border-right {
     border-right: solid #d0d0d0 1px;
 }
@@ -1138,15 +1142,6 @@ h3.releaseinfo {
     width: 224px;
     height: 135px;
     margin: 12px;
-}
-
-.legalnotice {
-    color: #666;
-}
-
-.legalnotice p:first-of-type:before {
-    content: "Copyright Notice: ";
-    font-weight: 500;
 }
 
 .segmentedlist {
