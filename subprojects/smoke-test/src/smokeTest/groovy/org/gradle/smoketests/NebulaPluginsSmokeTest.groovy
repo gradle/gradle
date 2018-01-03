@@ -27,7 +27,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         buildFile << """
             plugins {
                 id "java"
-                id "nebula.dependency-recommender" version "5.0.0"
+                id "nebula.dependency-recommender" version "5.1.0"
             }
 
             ${jcenterRepository()}
@@ -51,7 +51,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         when:
         buildFile << """
             plugins {
-                id 'nebula.plugin-plugin' version '5.18.0'
+                id 'nebula.plugin-plugin' version '6.1.1'
             }
         """
 
@@ -117,7 +117,7 @@ testCompile('junit:junit:4.7')""")
         when:
         buildFile << """
             plugins {
-                id "nebula.dependency-lock" version "4.9.5"
+                id "nebula.dependency-lock" version "5.0.0"
             }
         """.stripIndent()
 
