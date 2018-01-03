@@ -24,7 +24,11 @@ public class ExperimentalFeatures {
         this.startParameter = (StartParameterInternal) startParameter;
     }
 
-    public boolean isEnabled() {
+    public boolean isAdvancedPomSupportEnabled() {
+        return startParameter.isAdvancedPomSupport();
+    }
+
+    public boolean isExperimentalEnabled() {
         return startParameter.isExperimental();
     }
 }

@@ -95,6 +95,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildScan;
     private boolean noBuildScan;
     private boolean interactive;
+    private boolean advancedPomSupport;
 
     /**
      * {@inheritDoc}
@@ -849,5 +850,25 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public void setInteractive(boolean interactive) {
         this.interactive = interactive;
+    }
+
+    /**
+     * Returns true when optional dependencies, compile/runtime scope separation and BOMs are included in dependency resolution.
+     *
+     * @since 4.5
+     */
+    @Incubating
+    public boolean isAdvancedPomSupport() {
+        return advancedPomSupport;
+    }
+
+    /**
+     * Specified if optional dependencies, compile/runtime scope separation and BOMs are to be included in dependency resolution.
+     *
+     * @since 4.5
+     */
+    @Incubating
+    public void setAdvancedPomSupport(boolean advancedPomSupport) {
+        this.advancedPomSupport = advancedPomSupport;
     }
 }

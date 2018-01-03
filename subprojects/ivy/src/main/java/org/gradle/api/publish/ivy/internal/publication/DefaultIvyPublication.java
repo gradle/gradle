@@ -290,7 +290,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             // Always publish `ComponentWithVariants`
             return true;
         }
-        return experimentalFeatures.isEnabled();
+        return experimentalFeatures.isExperimentalEnabled();
     }
 
     private static File assertDescriptorFile(FileCollection ref) {

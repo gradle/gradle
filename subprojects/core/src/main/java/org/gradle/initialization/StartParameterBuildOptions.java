@@ -57,6 +57,7 @@ public class StartParameterBuildOptions {
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
         options.add(new BuildScanOption());
+        options.add(new AdvancedPomSupportOption());
         options.add(new ExperimentalOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
@@ -291,6 +292,19 @@ public class StartParameterBuildOptions {
             } else {
                 settings.setNoBuildScan(true);
             }
+        }
+    }
+
+    public static class AdvancedPomSupportOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String GRADLE_PROPERTY = "org.gradle.advancedpomsupport";
+
+        public AdvancedPomSupportOption() {
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("advanced-pom-support", "Enables support for optional dependencies, compile/runtime scope separation and BOMs.", "Disables support for optional dependencies, compile/runtime scope separation and BOMs").incubating());
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setAdvancedPomSupport(value);
         }
     }
 
