@@ -31,7 +31,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -85,7 +85,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final DefaultIvyDependencySet ivyDependencies;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final ExperimentalFeatures experimentalFeatures;
+    private final FeaturePreviews featurePreviews;
     private FileCollection ivyDescriptorFile;
     private FileCollection gradleModuleDescriptorFile;
     private SoftwareComponentInternal component;
@@ -94,13 +94,13 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     public DefaultIvyPublication(
         String name, Instantiator instantiator, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-        ImmutableAttributesFactory immutableAttributesFactory, ExperimentalFeatures experimentalFeatures) {
+        ImmutableAttributesFactory immutableAttributesFactory, FeaturePreviews featurePreviews) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
         configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator);
         this.immutableAttributesFactory = immutableAttributesFactory;
-        this.experimentalFeatures = experimentalFeatures;
+        this.featurePreviews = featurePreviews;
         ivyArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory);
         ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class);
         descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this);
@@ -290,7 +290,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             // Always publish `ComponentWithVariants`
             return true;
         }
-        return experimentalFeatures.isExperimentalEnabled();
+        return featurePreviews.isExperimentalEnabled();
     }
 
     private static File assertDescriptorFile(FileCollection ref) {

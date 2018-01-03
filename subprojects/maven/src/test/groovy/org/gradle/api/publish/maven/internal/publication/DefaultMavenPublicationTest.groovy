@@ -393,7 +393,7 @@ class DefaultMavenPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver, TestFiles.fileCollectionFactory(), TestUtil.experimentalFeatures(), TestUtil.attributesFactory())
+        def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver, TestFiles.fileCollectionFactory(), TestUtil.featurePreviews(), TestUtil.attributesFactory())
         publication.setPomFile(new SimpleFileCollection(pomFile))
         publication.setGradleModuleMetadataFile(new SimpleFileCollection(gradleMetadataFile))
         return publication;

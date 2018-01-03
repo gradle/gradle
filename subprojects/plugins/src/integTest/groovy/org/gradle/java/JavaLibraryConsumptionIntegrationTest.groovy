@@ -17,13 +17,13 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 
 class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
 
     def "runtime dependencies from maven modules do not leak into compile classpath"() {
         given:
-        ExperimentalFeaturesFixture.enableAdvancedPomSupport(propertiesFile)
+        FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
         buildFile << """
             apply plugin: 'java-library'
             ${jcenterRepository()}

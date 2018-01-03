@@ -17,10 +17,10 @@ package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
 
-public class ExperimentalFeatures {
+public class FeaturePreviews {
     private StartParameterInternal startParameter;
 
-    public ExperimentalFeatures(StartParameter startParameter) {
+    public FeaturePreviews(StartParameter startParameter) {
         this.startParameter = (StartParameterInternal) startParameter;
     }
 

@@ -16,7 +16,7 @@
 package org.gradle.integtests.fixtures.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.test.fixtures.ArtifactResolutionExpectationSpec
 import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
@@ -68,8 +68,8 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
     private def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
-        ExperimentalFeaturesFixture.enableExperimental(propertiesFile)
-        ExperimentalFeaturesFixture.enableAdvancedPomSupport(propertiesFile)
+        FeaturePreviewsFixture.enableExperimental(propertiesFile)
+        FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
         def attributes = params.variant == null ?
             "" :
             """ 

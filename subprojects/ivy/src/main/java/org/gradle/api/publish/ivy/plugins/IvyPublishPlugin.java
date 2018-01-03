@@ -25,7 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -74,19 +74,19 @@ public class IvyPublishPlugin implements Plugin<Project> {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final FileCollectionFactory fileCollectionFactory;
     private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final ExperimentalFeatures experimentalFeatures;
+    private final FeaturePreviews featurePreviews;
 
     @Inject
     public IvyPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver,
                             ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-                            ImmutableAttributesFactory immutableAttributesFactory, ExperimentalFeatures experimentalFeatures) {
+                            ImmutableAttributesFactory immutableAttributesFactory, FeaturePreviews featurePreviews) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.projectDependencyResolver = projectDependencyResolver;
         this.fileCollectionFactory = fileCollectionFactory;
         this.immutableAttributesFactory = immutableAttributesFactory;
-        this.experimentalFeatures = experimentalFeatures;
+        this.featurePreviews = featurePreviews;
     }
 
     public void apply(final Project project) {
@@ -189,7 +189,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
             NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
             return instantiator.newInstance(
                 DefaultIvyPublication.class,
-                name, instantiator, publicationIdentity, notationParser, projectDependencyResolver, fileCollectionFactory, immutableAttributesFactory, experimentalFeatures
+                name, instantiator, publicationIdentity, notationParser, projectDependencyResolver, fileCollectionFactory, immutableAttributesFactory, featurePreviews
             );
         }
     }

@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvid
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.DefaultActionConfiguration;
-import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
@@ -112,7 +112,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         InstantiatorFactory instantiatorFactory,
                                         FileResourceRepository fileResourceRepository,
                                         ModuleMetadataParser moduleMetadataParser,
-                                        ExperimentalFeatures experimentalFeatures,
+                                        FeaturePreviews featurePreviews,
                                         IvyMutableModuleMetadataFactory metadataFactory) {
         super(instantiatorFactory.decorate(), authenticationContainer);
         this.fileResolver = fileResolver;
@@ -130,7 +130,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.metaDataProvider = new MetaDataProvider();
         this.instantiator = instantiatorFactory.decorate();
         this.ivyContextManager = ivyContextManager;
-        this.metadataSources.setDefaults(experimentalFeatures);
+        this.metadataSources.setDefaults(featurePreviews);
     }
 
     @Override
@@ -346,9 +346,9 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         boolean ivyDescriptor;
         boolean artifact;
 
-        void setDefaults(ExperimentalFeatures experimentalFeatures) {
+        void setDefaults(FeaturePreviews featurePreviews) {
             ivyDescriptor();
-            if (experimentalFeatures.isExperimentalEnabled()) {
+            if (featurePreviews.isExperimentalEnabled()) {
                 gradleMetadata();
             } else {
                 artifact();

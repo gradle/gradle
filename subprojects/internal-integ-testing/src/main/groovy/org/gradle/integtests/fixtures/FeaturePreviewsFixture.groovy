@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
-class ExperimentalFeaturesFixture {
+class FeaturePreviewsFixture {
 
     static void enableExperimental(File file) {
         file << """

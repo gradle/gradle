@@ -53,7 +53,7 @@ class DefaultIvyPublicationTest extends Specification {
     def notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     def attributesFactory = TestUtil.attributesFactory()
-    def experimentalFeatures = TestUtil.experimentalFeatures()
+    def featurePreviews = TestUtil.featurePreviews()
 
     File ivyDescriptorFile
     File moduleDescriptorFile
@@ -281,7 +281,7 @@ class DefaultIvyPublicationTest extends Specification {
             projectDependencyResolver,
             TestFiles.fileCollectionFactory(),
             attributesFactory,
-            experimentalFeatures
+            featurePreviews
         )
         publication.setIvyDescriptorFile(new SimpleFileCollection(ivyDescriptorFile))
         publication.setGradleModuleDescriptorFile(new SimpleFileCollection(moduleDescriptorFile))

@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
@@ -30,7 +30,7 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
         resolve.prepare()
         server.start()
 
-        ExperimentalFeaturesFixture.enableExperimental(propertiesFile)
+        FeaturePreviewsFixture.enableExperimental(propertiesFile)
         settingsFile << "rootProject.name = 'test'"
 
     }

@@ -34,7 +34,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
@@ -101,7 +101,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<MavenDependency>();
     private final Set<MavenDependency> apiDependencyConstraints = new LinkedHashSet<MavenDependency>();
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
-    private final ExperimentalFeatures experimentalFeatures;
+    private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private FileCollection pomFile;
     private FileCollection moduleMetadataFile;
@@ -112,7 +112,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     public DefaultMavenPublication(
         String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-        ExperimentalFeatures experimentalFeatures,
+        FeaturePreviews featurePreviews,
         ImmutableAttributesFactory immutableAttributesFactory) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
@@ -120,7 +120,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.immutableAttributesFactory = immutableAttributesFactory;
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
-        this.experimentalFeatures = experimentalFeatures;
+        this.featurePreviews = featurePreviews;
     }
 
     public String getName() {
@@ -383,7 +383,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             // Always publish `ComponentWithVariants`
             return true;
         }
-        return experimentalFeatures.isExperimentalEnabled();
+        return featurePreviews.isExperimentalEnabled();
     }
 
     @Override

@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser.FORMAT_VERSION
@@ -27,7 +27,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
 
     def setup() {
         resolve.prepare()
-        ExperimentalFeaturesFixture.enableExperimental(propertiesFile)
+        FeaturePreviewsFixture.enableExperimental(propertiesFile)
         settingsFile << "rootProject.name = 'test'"
     }
 

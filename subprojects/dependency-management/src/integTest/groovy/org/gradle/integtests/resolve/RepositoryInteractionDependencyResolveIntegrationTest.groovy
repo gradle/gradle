@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.HttpRepository
@@ -197,7 +197,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         given:
         setupRepositories(REPO_TYPES)
         if (testVariant.contains('+experimental')) {
-            ExperimentalFeaturesFixture.enableAdvancedPomSupport(propertiesFile)
+            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
         }
         setupModuleChain(chain)
 
@@ -241,7 +241,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
     def "explicit compile configuration selection works for a chain of pure maven dependencies (experimental=#experimental)"() {
         given:
         if (experimental) {
-            ExperimentalFeaturesFixture.enableAdvancedPomSupport(propertiesFile)
+            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
         }
         def modules = ['mavenCompile1', 'mavenCompile2', 'mavenCompile3']
         setupRepositories(modules)
@@ -318,7 +318,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
     @Unroll
     def "with experimental resolve behavior, explicit #conf configuration selection still works for maven dependencies"() {
         given:
-        ExperimentalFeaturesFixture.enableAdvancedPomSupport(propertiesFile)
+        FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
         def modules = ['maven', 'mavenCompile1', 'maven-gradle', 'mavenCompile2']
         setupRepositories(modules)
         setupModuleChain(modules)
@@ -363,7 +363,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
     def "explicit configuration selection in ivy modules is supported=#supported if targeting a #target module (experimental=#experimental)"() {
         given:
         if (experimental) {
-            ExperimentalFeaturesFixture.enableAdvancedPomSupport(propertiesFile)
+            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
         }
         String targetRepoName = supported? "$target-select" : target //use a different name if selection is supported to not follow the default expectations defined in leaksRuntime()
         setupRepositories([targetRepoName, 'ivy'])
