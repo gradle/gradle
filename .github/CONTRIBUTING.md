@@ -38,10 +38,9 @@ Please consider reading [How to Write a Git Commit Message](http://chris.beams.i
 * Keep commits discrete: avoid including multiple unrelated changes in a single commit
 * Keep commits self-contained: avoid spreading a single change across multiple commits. A single commit should make sense in isolation
 * If your commit pertains to a GitHub issue, include (`See #123`) in the commit message on a separate line
-* Please check that your email address matches that on your [CLA](http://gradle.org/cla)
+* [Sign off](https://git-scm.com/docs/git-commit#git-commit---signoff) your Git commits to indicate that you agree to the terms of [Developer Certificate of Origin](https://developercertificate.org/).
 
 ### Submitting Your Change
-Before we can accept any code contributions, you must complete and electronically sign a [Gradle CLA](http://gradle.org/cla).
 
 All code contributions should be submitted via a [pull request](https://help.github.com/articles/using-pull-requests) from a [forked GitHub repository](https://help.github.com/articles/fork-a-repo).
 
