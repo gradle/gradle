@@ -96,7 +96,7 @@ JAVA_OPTS="-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.en
 ----
 ====
 
-You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for forked JVM processes, including the Gradle Daemon and worker processes executed through api:org.gradle.workers.WorkerExecutor[]
+You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for forked JVM processes, including the Gradle Daemon and worker processes executed through api:org.gradle.workers.WorkerExecutor[].
 
 .Changing JVM settings for forked Gradle JVMs
 ====
@@ -113,7 +113,7 @@ Many settings (like the Java version and maximum heap size) can only be specifie
 When running with the daemon, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
 ====
 
-When using api:org.gradle.api.tasks.testing.Test#setMaxParallelForks[] for JUnit or TestNG tests, Gradle will fork test worker JVMs that you can configure through the `test` task. See examples in the api:org.gradle.api.tasks.testing.Test[] API documentation and <<sec:test_execution>>.
+When using api:org.gradle.api.tasks.testing.Test#setMaxParallelForks[] for JUnit or TestNG tests, Gradle will fork test worker JVMs that you can configure through the `test` task. See examples in the api:org.gradle.api.tasks.testing.Test[] API documentation and <<sec:test_execution, test execution in the Java plugin reference>>.
 
 [[sec:gradle_system_properties]]
 === System properties
