@@ -322,25 +322,6 @@ A project can decide to do away without transitive dependency resolution complet
 </sample>
 ++++
 
-[[sec:optional_attributes]]
-==== Optional attributes
-
-All attributes for a dependency are optional, except the name. Which attributes are required for actually finding dependencies in the repository will depend on the repository type. See <<sec:declaring_repositories>>. For example, if you work with Maven repositories, you need to define the group, name and version. If you work with filesystem repositories you might only need the name or the name and the version.
-
-++++
-<sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies" title="Optional attributes of dependencies">
-                <sourcefile file="build.gradle" snippet="dependencies-with-empty-attributes"/>
-            </sample>
-++++
-
-You can also assign collections or arrays of dependency notations to a configuration:
-
-++++
-<sample id="listGrouping" dir="userguide/artifacts/externalDependencies" title="Collections and arrays of dependencies">
-                <sourcefile file="build.gradle" snippet="list-grouping"/>
-            </sample>
-++++
-
 [[sec:inspecting_dependencies]]
 === Inspecting dependencies
 
