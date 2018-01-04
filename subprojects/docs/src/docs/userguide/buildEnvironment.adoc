@@ -38,8 +38,6 @@ Setting up a consistent environment for your build is as simple as placing these
 * `gradle.properties` in `GRADLE_USER_HOME` directory.
 * system properties, e.g. when `-Dgradle.user.home` is set on the command line.
 
-For multi-project builds you can place `gradle.properties` files in any subproject directory; however, it is recommended to place one `gradle.properties` file in the project root.
-
 The following properties can be used to configure the Gradle build environment:
 
 `org.gradle.caching=(true,false)`::
@@ -62,6 +60,8 @@ Specifies the JVM arguments used for the forked processes like the Gradle Daemon
 When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. The `lifecycle` level is the default. See <<sec:choosing_a_log_level>>.
 `org.gradle.parallel=(true,false)`::
 When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute projects in parallel. For limitations of this option please see <<sec:parallel_execution>>.
+`org.gradle.warning.mode=(all,none,summary)`::
+When set to `all`, `summary` or `none`, Gradle will use different warning type display. See <<sec:command_line_logging>> for details.
 `org.gradle.workers.max=(max # of worker processes)`::
 When configured, Gradle will use a maximum of the given number of workers. Default is number of CPU processors. See also <<sec:command_line_performance, performance command-line options>>.
 
@@ -213,8 +213,6 @@ Suppose you'd like to ensure release builds are only triggered by CI. A simple w
     <output args="performRelease -PisCI=true --quiet"/>
 </sample>
 ++++
-
-Here, the value of `isCI` is stored in an extra property so that it can be accessed by other parts of the Gradle build. You can read more about extra properties and how they compare to project properties in <<sec:extra_properties>> or in the api:org.gradle.api.plugins.ExtraPropertiesExtension[] API documentation.
 
 [[sec:accessing_the_web_via_a_proxy]]
 === Accessing the web through a HTTP proxy
