@@ -1,3 +1,28 @@
+The Gradle team is pleased to announce Gradle 4.5.
+
+First and foremost, this release of Gradle features improvements to the build cache:
+
+ - The ANTLR plugin now [takes advantage of the build cache](#antlr-task-is-now-cacheable-by-default).
+ - Caching for C and C++ compilation is now stable.
+ - A couple of rough edges to build cache behavior have been polished, read [details below](#potential-breaking-changes).
+
+In addition to cacheability, incremental compilation for C/C++ is now able to understand most dependencies between source files and header files, which will result in fewer files compiled and a higher cache hit-rate. Read [details about C and C++ compiliation improvements here](#c/c++-compilation-improvements).
+
+Now for performance improvements everyone can enjoy: configuration time, input snapshotting and dependency resolution have all been improved in this release. Large Android projects will benefit the most from these enhancements, with up to 30% faster up-to-date builds. Java and native projects benefit as well, with an improvement of up to 20%.
+
+Documentation has been upgraded in this release, with use-case oriented examples for several highly trafficked pages, improved navigation, and a more pleasant experience in many ways. Read [details about the improvements](#documentation-enhancements), or just start with the new [docs home page](userguide/userguide.html).
+
+Next up, you can finally [sign artifacts using gnupg-agent](#signing-artifacts-with-gpg-agent). Special thanks to [Christoph Böhme](https://github.com/cboehme) for contributing this highly-anticipated feature.
+
+Individual deprecation warnings are no longer displayed in console output by default, as many users often cannot take action on deprecation warnings from third party plugins. You can now [control the verbosity of logging deprecation warnings](#default-deprecation-warning-logging-reduced).
+
+Last but not least, 2 Kotlin DSL updates:
+  
+  - You can now [generate Gradle Kotlin DSL scripts](#init-task-can-now-generate-kotlin-dsl-build-scripts) using `gradle init --dsl kotlin`.
+  - [Kotlin DSL v0.14](https://github.com/gradle/kotlin-dsl/releases/tag/v0.14.0) is included in this release of Gradle. It features code navigation to Gradle sources in IDEs with the Gradle binary distribution (not just `-all` anymore), embedded Kotlin upgraded to 1.2.0 and more.
+
+We hope you will build happiness with Gradle 4.5, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -24,28 +49,11 @@ Think of every feature section as a mini blog post.
   NOTE: Totally fine to just link to an example that show the feature.
 -->
 
-### Deprecation warning improvements
+### ANTLR task is now cacheable by default
 
-In this release, deprecation warnings are no longer displayed in the console output by default. Instead, all deprecation warnings in the build will be collected and a single "summary" will be rendered at the end of the build:
+When generating grammar sources with ANTLR, now the task's outputs are stored and retrieved from the build cache.
 
-    There're <number> deprecation warnings, which may break the build in Gradle 5.0. Please run with --warning-mode=all to see them.
-
-You can run the build with the command line option `--warning-mode=all` or the property `org.gradle.warning.mode=all` to have all warnings displayed as earlier version of Gradle.
-Of course, you can use the command line option `--warning-mode=none` or the property `org.gradle.warning.mode=none` to suppress all warnings, including the one displayed at the end of the build.
-
-### Provider API documentation
-
-In this release, the Gradle team added a new chapter in the user guide documenting the [Provider API](userguide/lazy_configuration.html).
-
-### Provider API improvements
-
-A convenience for dealing with sets has been added. TBD - link to API
-
-### Faster C/C++ compilation and builds
-
-### Faster up-to-date builds
-
-Configuration time, input snapshotting and dependency resolution have all been improved in this release. [Large Android projects](https://github.com/gradle/perf-android-large) will benefit the most from these enhancements, with up to 30% faster up-to-date builds. Java and native projects benefit as well, with an improvement of up to 20%.
+### C/C++ compilation improvements
 
 #### Build Cache Support
 
@@ -53,7 +61,7 @@ We introduced [experimental C/C++ caching support](https://docs.gradle.org/4.3/r
 
 In this release, we have fixed some underlying issues with calculating the correct build cache key for C++ compilation and have removed the special flag.  If you [enable the build cache](userguide/build_cache.html#sec:build_cache_enable), Gradle will try to reuse task outputs from C/C++ compile tasks when all inputs (compiler flags, source, dependencies) are identical, which can [greatly reduce](https://blog.gradle.org/introducing-gradle-build-cache) build times.
 
-Please note that there are [some caveats](userguide/build_cache.html#sec:task_output_caching_known_issues_caveats) when using the build cache.  In particular for C++, object files that contain absolute paths (e.g., object files with debug information) are reusable and cacheable, but may cause problems when debugging.
+Please note that there are [some caveats](userguide/build_cache.html#sec:task_output_caching_known_issues_caveats) when using the build cache. In particular for C++, object files that contain absolute paths (e.g., object files with debug information) are reusable and cacheable, but may cause problems when debugging.
 
 #### Incremental Compilation
 
@@ -61,26 +69,34 @@ Gradle's incremental C/C++ compilation works by analysing and understanding the 
 
 In this release, Gradle's incremental C/C++ compilation is now able to understand most dependencies between source files and header files. This means incremental compilation will occur more often and builds are more likely to see cache hits.
 
-### Support for GnuPG's gpg-agent
+### Documentation enhancements
 
-Previously, Signing plugin can't sign generated artifacts via GnuPG's agent, which is very inconvenient. Now you can leverage your gpg agent easily with:
+This release of Gradle adds more examples and use-case oriented documentation. In particular, notable improvements have been made to documentation for the [command-line interface](userguide/command_line_interface.html), [configuring the build environment](userguide/build_environment.html), [dependency management](userguide/dependency_management.html), [Gradle wrapper](userguide/gradle_wrapper.html), and [Provider API](userguide/lazy_configuration.html).
+
+In addition, major improvements were made to discoverability of content through improved navigation in the user manual and DSL reference. docs.gradle.org now loads faster (especially in Asia), is more mobile-friendly, and gives you a much better sense of where you are.
+
+Your feedback will be very helpful for continued improvement, which you can provide through new "star ratings" and "edit this page" functionality on each user manual page, in addition to GitHub issues.
+
+### Signing artifacts with gpg-agent
+
+You can now sign generated artifacts via GnuPG's agent. Example usage:
 
     signing {
         useGpgCmd()
         sign configurations.archives
     }
 
-Please see [`signing` plugin](userguide/signing_plugin.html#sec:using_gpg_agent) for more details.    
+Please see [`signing` plugin documentation](userguide/signing_plugin.html#sec:using_gpg_agent) for more details.
 
-### Arbitrary task property names
+### Default deprecation warning logging reduced
 
-When registering task properties via the runtime API, property names are not required to be Java identifiers anymore, and can be any non-empty string.
+In this release, deprecation warnings are no longer displayed in the console output by default. Instead, all deprecation warnings in the build will be collected and a summary will be rendered at the end of the build.
 
-### ANTLR task is now cacheable by default
+You can run the build with the command line option `--warning-mode=all` or the property `org.gradle.warning.mode=all` to have all warnings displayed as earlier version of Gradle. You can use the command line option `--warning-mode=none` or the Gradle property `org.gradle.warning.mode=none` to suppress all warnings, including the one displayed at the end of the build.
 
-When generating grammar sources with ANTLR, now the task's outputs are stored and retrieved from the build cache.
+Learn more about customizing logging warnings in the [command-line interface documentation](userguide/command_line_interface.html#sec:command_line_logging).
 
-### The `init` task can now generate Kotlin DSL build scripts
+### Init task can now generate Kotlin DSL build scripts
 
 It is now possible to generate new Gradle builds using the Kotlin DSL with the help of the `init` task and its new `--dsl` option:
 
@@ -90,39 +106,23 @@ The new option defaults to `groovy` and is supported by all build setup types ex
 
 See the user guide section on the [`init` plugin](userguide/build_init_plugin.html) for more information.
 
-### Included builds of composite build now share build cache configuration
+### New plugin APIs
 
-Previously, each build within a composite build used its own build cache configuration.
-Now, included builds, and their `buildSrc` builds, automatically inherit the build cache configuration of the root build.
-This makes managing build cache configuration for composite builds simpler and effectively allows better build cache utilization.
+#### Provider API improvements
 
-Included builds may still define build cache configuration in their `settings.gradle` file, it is just no longer respected.
+A convenience for dealing with sets has been added. TBD - link to API
 
-The `buildSrc` build of the root project continues to use its own build cache configuration, due to technical constraints.
-However, the `buildSrc` build of any included build will inherit the build cache configuration from the root build.
-For more on configuring the build cache for the root `buildSrc` build, please see [the Userguide section on this topic](userguide/build_cache.html#buildCacheBuildSrc).
+#### Use of runtime types when declaring `@Nested` task inputs
 
-### Configure executable directory in distributions
+When analyzing `@Nested` task properties for declared input and output sub-properties, Gradle used to only observe the declared type of the property. This meant ignoring any sub-properties declared by a runtime sub-type.
 
-Previously, executables in distributions would be placed in `bin` directory and couldn't be configured. Now you can configure this directory with `executableDir` property. 
-See [`application` plugin](userguide/application_plugin.html) for more details.
-
-### Default CodeNarc has been upgraded to 1.0
-
-Now [CodeNarc](http://codenarc.sourceforge.net/)'s default version has been upgraded to 1.0, enjoy!
-
-### Use of runtime types when declaring `@Nested` task inputs
-
-When analyzing `@Nested` task properties for declared input and output sub-properties, Gradle used to only observe the declared type of the property.
-This meant ignoring any sub-properties declared by a runtime sub-type.
 Since Gradle 4.5, Gradle uses the [type of the actual value instead](userguide/more_about_tasks.html#sec:task_input_nested_inputs), and hence can discover all sub-properties declared this way.
-This allows for a few new tricks.
 
 #### Rich Java compiler arguments
 
 When you have to expose a file location to your annotation processor, it is essential for Gradle to learn about this additional input (or output).
 Without tracking the location and contents of the given file (or directory), features like incremental build and task output caching cannot function correctly.
-Before Gradle 4.5 you had to let Gradle know about such inputs or outputs manually by calling `compileJava.inputs.file(...)` or similar.
+Before Gradle 4.5, you had to let Gradle know about such inputs or outputs manually by calling `compileJava.inputs.file(...)` or similar.
 
 Gradle 4.5 introduces a better way to handle this situation by modeling the annotation processor as a [`CompilerArgumentProvider`](javadoc/org/gradle/api/tasks/compile/CompilerArgumentProvider.html).
 This approach allows the declaration of complex inputs and outputs, just like how you would declare `@InputFile` and `@OutputDirectory` properties on the task type.
@@ -169,6 +169,20 @@ When applying the [`@Nested`](javadoc/org/gradle/api/tasks/Nested.html) to an it
         return compilerArgumentProviders;
     }
 
+### Default CodeNarc has been upgraded to 1.0
+
+Now [CodeNarc](http://codenarc.sourceforge.net/)'s default version has been upgraded to 1.0, enjoy!
+
+### Configure executable directory in distributions
+
+Previously, executables in distributions would be placed in `bin` directory and couldn't be configured. Now you can configure this directory with `executableDir` property.
+
+See [`application` plugin](userguide/application_plugin.html) for more details.
+
+### Arbitrary task property names
+
+When registering task properties via the runtime API, property names are not required to be Java identifiers anymore, and can be any non-empty string.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -207,18 +221,31 @@ The command line options for searching in parent directories for a `settings.gra
 ### Example breaking change
 -->
 
-### HTTP build cache does not follow redirects
+### Build Cache
 
-When connecting to an HTTP build cache backend via [HttpBuildCache](dsl/org.gradle.caching.http.HttpBuildCache.html), Gradle does not follow redirects any more, and treats them as errors instead.
-Getting a redirect from the build cache backend is mostly a configuration error (e.g. using an http url instead of https), and has negative effects on performance.
+#### HTTP build cache does not follow redirects
 
-### Build cache configuration of included builds no longer respected
+When connecting to an HTTP build cache backend via [HttpBuildCache](dsl/org.gradle.caching.http.HttpBuildCache.html), Gradle does not follow redirects any more, and treats them as errors instead. Getting a redirect from the build cache backend is mostly a configuration error (e.g. using an http url instead of https), and has negative effects on performance.
+
+#### Build cache configuration of included builds no longer respected
 
 In earlier versions of Gradle, each included build within a composite used its own build cache configuration.
 Now, included builds inherit the configuration from the root build. 
 Included builds may still define build cache configuration in their `settings.gradle` file, it is just no longer used.
 
 This change will not cause build breakage and does not require any change in build logic to adapt to.
+
+#### Included builds of composite build now share build cache configuration
+
+Previously, each build within a composite build used its own build cache configuration.
+Now, included builds, and their `buildSrc` builds, automatically inherit the build cache configuration of the root build.
+This makes managing build cache configuration for composite builds simpler and effectively allows better build cache utilization.
+
+Included builds may still define build cache configuration in their `settings.gradle` file, it is just no longer respected.
+
+The `buildSrc` build of the root project continues to use its own build cache configuration, due to technical constraints.
+However, the `buildSrc` build of any included build will inherit the build cache configuration from the root build.
+For more on configuring the build cache for the root `buildSrc` build, please see [the documentation for using the build cache](userguide/build_cache.html#buildCacheBuildSrc).
 
 ### Incubating `Depend` task removed
 
@@ -232,8 +259,7 @@ If you have a use case that requires reacting to the canonical path of inputs, p
 
 ### Project.file() no longer normalizes case
 
-The `Project.file()` and related methods used to normalize the case on case-insensitive file systems. This means that the method would check whether any parts of the hierarchy of a given file already
-existed in a different case and would adjust the given file accordingly. This lead to lots of IO during configuration time without a strong benefit. 
+The `Project.file()` and related methods used to normalize the case on case-insensitive file systems. This means that the method would check whether any parts of the hierarchy of a given file already existed in a different case and would adjust the given file accordingly. This lead to lots of IO during configuration time without a strong benefit. 
 
 The `Project.file()` method will now ignore case and only normalize redundant segments like `/../`. It will not touch the file system.
 
