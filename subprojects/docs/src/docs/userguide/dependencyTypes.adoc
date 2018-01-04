@@ -1,5 +1,5 @@
 [[dependency_types]]
-== Dependency types
+== Dependency Types
 
 [[sub:module_dependencies]]
 === External module dependencies
