@@ -68,7 +68,7 @@ Modern software projects rarely build code in isolation. Projects reference exte
 
 ===== Declaring a concrete version of a binary dependency
 
-A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework]. The following code snippet declares a compile-time dependency on the Spring web module by its coordinates: `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the dependency including its transitive dependencies at runtime from the link:https://search.maven.org/[Maven Central repository] and uses it to compile Java source code. The version attribute of the dependency coordinates points to a _concrete version_ indicating that the underlying artifacts don't change over time. The use of concrete versions ensures reproducibility for the aspect of dependency resolution.
+A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework]. The following code snippet declares a compile-time dependency on the Spring web module by its coordinates: `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the dependency including its transitive dependencies from the link:https://search.maven.org/[Maven Central repository] and uses it to compile Java source code. The version attribute of the dependency coordinates points to a _concrete version_ indicating that the underlying artifacts don't change over time. The use of concrete versions ensures reproducibility for the aspect of dependency resolution.
 
 ++++
 <sample id="binary-dependencies-concrete-version" dir="userguide/dependencies/declaringBinaryDependenciesWithConcreteVersion" title="Declaring a binary dependencies with a concrete version">
@@ -108,7 +108,7 @@ By default, Gradle caches dynamic versions of dependencies for 24 hours. The <<s
 
 ===== Declaring a changing version of a binary dependency
 
-A team might to decide to implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early and often is to release a so-called _changing version_. A changing version indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
+A team might decide to implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early and often is to release a so-called _changing version_. A changing version indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
 
 In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version[snapshot versions]. Snapshot versions contain the suffix `-SNAPSHOT`. The following example demonstrates how to declare a snapshot version on the Spring dependency.
 
@@ -125,7 +125,7 @@ Gradle is flexible enough to treat any version as changing version. All you need
 [[sec:declaring_file_dependency]]
 ==== Declaring a file dependency
 
-For historical reasons, projects sometimes do not rely on a binary repository product e.g. JFrog Artifactory or Sonatype Nexus for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_, the reason being that they represent a files without any metadata (like information about transitive dependencies, the origin or its author) attached to them.
+Projects sometimes do not rely on a binary repository product e.g. JFrog Artifactory or Sonatype Nexus for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_, the reason being that they represent a files without any metadata (like information about transitive dependencies, the origin or its author) attached to them.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
