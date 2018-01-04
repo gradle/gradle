@@ -56,10 +56,11 @@ class DefaultBinaryCollectionTest extends Specification {
 
     def "cannot get elements from when known action"() {
         given:
+        container.add(Stub(SwiftBinary))
         container.whenElementKnown { container.get() }
 
         when:
-        container.add(Stub(SwiftBinary))
+        container.realizeNow()
 
         then:
         def e = thrown(IllegalStateException)
@@ -105,7 +106,7 @@ class DefaultBinaryCollectionTest extends Specification {
         e.message == 'Cannot add an element to this collection as it has already been realized.'
     }
 
-    def "runs actions when collection is realized"() {
+    def "runs actions only when collection is realized"() {
         def known = Mock(Action)
         def configure = Mock(Action)
         def finalized = Mock(Action)
@@ -120,14 +121,19 @@ class DefaultBinaryCollectionTest extends Specification {
         container.add(binary2)
 
         then:
-        1 * known.execute(binary1)
-        1 * known.execute(binary2)
         0 * known._
         0 * configure._
         0 * finalized._
 
         when:
         container.realizeNow()
+
+        then:
+        1 * known.execute(binary1)
+        1 * known.execute(binary2)
+        0 * known._
+        0 * configure._
+        0 * finalized._
 
         then:
         1 * configure.execute(binary1)
@@ -159,13 +165,18 @@ class DefaultBinaryCollectionTest extends Specification {
         container.add(binary2)
 
         then:
-        1 * known.execute(binary2)
         0 * known._
         0 * configure._
         0 * finalized._
 
         when:
         container.realizeNow()
+
+        then:
+        1 * known.execute(binary2)
+        0 * known._
+        0 * configure._
+        0 * finalized._
 
         then:
         1 * configure.execute(binary2)
