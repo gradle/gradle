@@ -16,7 +16,7 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.gradle.api.logging.configuration.WarningType;
+import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     private static boolean traceLoggingEnabled;
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
-    private WarningType warningType;
+    private WarningMode warningMode;
 
     public LoggingDeprecatedFeatureHandler() {
         this(new UsageLocationReporter() {
@@ -49,9 +49,9 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         this.locationReporter = locationReporter;
     }
 
-    public void init(UsageLocationReporter reporter, WarningType warningType) {
+    public void init(UsageLocationReporter reporter, WarningMode warningMode) {
         this.locationReporter = reporter;
-        this.warningType = warningType;
+        this.warningMode = warningMode;
     }
 
     public void reset() {
@@ -68,15 +68,15 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             }
             message.append(usage.getMessage());
             logTraceIfNecessary(usage.getStack(), message);
-            if (warningType==WarningType.All) {
+            if (warningMode == WarningMode.All) {
                 LOGGER.warn(message.toString());
             }
         }
     }
 
     public void reportSuppressedDeprecations() {
-        if (warningType == WarningType.Summary && !messages.isEmpty()) {
-            LOGGER.warn("\nThere're {} deprecation warnings, which may break the build in Gradle {}. Please run with --warnings=all to see them.",
+        if (warningMode == WarningMode.Summary && !messages.isEmpty()) {
+            LOGGER.warn("\nThere're {} deprecation warnings, which may break the build in Gradle {}. Please run with --warning-mode=all to see them.",
                 messages.size(),
                 GradleVersion.current().getNextMajor().getVersion());
         }

@@ -19,7 +19,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
-import org.gradle.api.logging.configuration.WarningType
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.cli.CommandLineArgumentException
 import spock.lang.Specification
 
@@ -117,10 +117,10 @@ class LoggingCommandLineConverterTest extends Specification {
         converter.logLevels == [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.QUIET, LogLevel.WARN] as Set
     }
 
-    def getsAllWarningTypes() {
-        expectedConfig.warningType = WarningType.All
+    def getsWarningMode() {
+        expectedConfig.warningMode = WarningMode.All
         expect:
-        checkConversion(['--warnings=all'])
+        checkConversion(['--warning-mode=all'])
     }
 
     void checkConversion(List<String> args) {
@@ -128,6 +128,6 @@ class LoggingCommandLineConverterTest extends Specification {
         assert actual.logLevel == expectedConfig.logLevel
         assert actual.consoleOutput == expectedConfig.consoleOutput
         assert actual.showStacktrace == expectedConfig.showStacktrace
-        assert actual.warningType == expectedConfig.warningType
+        assert actual.warningMode == expectedConfig.warningMode
     }
 }

@@ -59,7 +59,7 @@ public class TestClient {
             .useGradleUserHomeDir(new File("${temporaryFolder.file("userHome").toString().replace(File.separator,"/")}"))
             .connect()
             .newBuild()
-            .withArguments("--warnings=all")
+            .withArguments("--warning-mode=all")
             .forTasks("help")
             .setStandardOutput(System.out)
             .setStandardError(System.out)

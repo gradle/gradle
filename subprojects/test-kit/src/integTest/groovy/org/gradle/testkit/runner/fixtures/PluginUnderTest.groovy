@@ -81,7 +81,7 @@ class PluginUnderTest {
         new NoDaemonGradleExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider)
             .usingProjectDirectory(projectDir)
             .withArguments('classes', '--no-daemon')
-            .withWarningType(null)
+            .withWarningMode(null)
             .run()
         this
     }

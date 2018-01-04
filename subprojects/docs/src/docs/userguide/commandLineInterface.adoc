@@ -279,10 +279,10 @@ Features:
 By default, to avoid bothering users, Gradle won't display all warnings (e.g. deprecation warnings). Instead, Gradle will collect them and render a summary at the end of the build:
 
 ----
-There're <number> deprecation warnings, which may break the build in Gradle 5.0. Please run with --warnings=all to see them.
+There're <number> deprecation warnings, which may break the build in Gradle 5.0. Please run with --warning-mode=all to see them.
 ----
 
-`--warnings=(all,summary,none)`::
+`--warning-mode=(all,summary,none)`::
 Specifies which type of warnings to display.
 +
 Set to `all` to display all warnings.

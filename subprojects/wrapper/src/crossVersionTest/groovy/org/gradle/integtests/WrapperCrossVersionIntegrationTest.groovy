@@ -44,7 +44,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
     void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
         when:
-        GradleExecuter executer = prepareWrapperExecuter(current, previous).withWarningType(null)
+        GradleExecuter executer = prepareWrapperExecuter(current, previous).withWarningMode(null)
 
         then:
         checkWrapperWorksWith(executer, previous)
