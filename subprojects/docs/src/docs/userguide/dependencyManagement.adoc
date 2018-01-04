@@ -466,7 +466,7 @@ Under the covers Gradle resolves dependencies from the respective URL of the pub
 [[sec:declaring_custom_repository]]
 ==== Declaring a custom repository by URL
 
-Most enterprise projects set up a binary repository available only within the intranet. In-house repositories enable teams to publish internal binaries, setup user management and security measure and ensure uptime and availability. Specifying a custom URL is also helpful if you want to declare a less popular, but publicly-available repository.
+Most enterprise projects set up a binary repository available only within an intranet. In-house repositories enable teams to publish internal binaries, setup user management and security measure and ensure uptime and availability. Specifying a custom URL is also helpful if you want to declare a less popular, but publicly-available repository.
 
 Add the following code to declare an in-house repository for your build reachable through a custom URL.
 
