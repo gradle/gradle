@@ -412,6 +412,94 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Buil
         }
     }
 
+    def "execution fails when a nested property throws an exception"() {
+        buildFile << """
+            class TaskWithFailingNestedInput extends DefaultTask {
+                @Nested
+                Object getNested() {
+                    throw new RuntimeException("BOOM")
+                }
+                
+                @Input
+                String input = "Hello"
+                
+                @OutputFile
+                File outputFile
+                
+                @TaskAction
+                void doStuff() {
+                    outputFile.text = input
+                }
+            }            
+            
+            task myTask(type: TaskWithFailingNestedInput) {
+                outputFile = file('build/output.txt')
+            }
+        """
+
+        expect:
+        fails "myTask"
+        failure.assertHasDescription("Execution failed for task ':myTask'.")
+        failure.assertHasCause("BOOM")
+    }
+
+    def "null on nested bean is validated"() {
+        buildFile << """
+            class TaskWithAbsentNestedInput extends DefaultTask {
+                @Nested
+                Object nested
+                
+                @Input
+                String input = "Hello"
+                
+                @OutputFile
+                File outputFile
+                
+                @TaskAction
+                void doStuff() {
+                    outputFile.text = input
+                }
+            }            
+            
+            task myTask(type: TaskWithAbsentNestedInput) {
+                outputFile = file('build/output.txt')
+            }            
+        """
+
+        expect:
+        fails "myTask"
+        failure.assertHasDescription("A problem was found with the configuration of task ':myTask'.")
+        failure.assertHasCause("No value has been specified for property 'nested'.")
+    }
+
+    def "null on optional nested bean is allowed"() {
+        buildFile << """
+            class TaskWithAbsentNestedInput extends DefaultTask {
+                @Nested
+                @Optional
+                Object nested
+                
+                @Input
+                String input = "Hello"
+                
+                @OutputFile
+                File outputFile
+                
+                @TaskAction
+                void doStuff() {
+                    outputFile.text = input
+                }
+            }            
+            
+            task myTask(type: TaskWithAbsentNestedInput) {
+                outputFile = file('build/output.txt')
+            }            
+        """
+
+        expect:
+        succeeds "myTask"
+    }
+
     def "changes to nested bean implementation are detected"() {
         buildFile << """
             class TaskWithNestedInput extends DefaultTask {
@@ -425,7 +513,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Buil
                 void doStuff() {
                     outputFile.text = nested.input
                 }
-                
             }
             
             class NestedBean {
@@ -555,7 +642,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Buil
         run "customTask", "--info"
         then:
         executedAndNotSkipped ":customTask"
-        output.contains "Value of input property 'bean.\$\$implementation' has changed for task ':customTask'"
+        output.contains "Value of input property 'bean.class' has changed for task ':customTask'"
     }
 
     private static String taskWithNestedBeanFromCustomClassLoader() {
