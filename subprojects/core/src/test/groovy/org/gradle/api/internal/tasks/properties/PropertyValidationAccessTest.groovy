@@ -108,8 +108,8 @@ class PropertyValidationAccessTest extends Specification {
 
         then:
         problems.keySet() == validationProblems(TaskWithIterableNested, [
-                "property 'beans<NestedBean>.nonAnnotated' is not annotated with an input or output annotation",
-                "property 'beanList<NestedBean>.nonAnnotated' is not annotated with an input or output annotation"
+                "property 'beans*.nonAnnotated' is not annotated with an input or output annotation",
+                "property 'beanList*.nonAnnotated' is not annotated with an input or output annotation"
         ])
     }
 
@@ -126,7 +126,7 @@ class PropertyValidationAccessTest extends Specification {
 
         then:
         problems.keySet() == validationProblems(TaskWithIterableInIterable, [
-                "property 'beans<Set><NestedBean>.nonAnnotated' is not annotated with an input or output annotation",
+                "property 'beans**.nonAnnotated' is not annotated with an input or output annotation",
         ])
     }
 
