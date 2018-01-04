@@ -20,5 +20,5 @@ dependencies {
     performanceTestImplementation libraries.commons_compress
 
     // so that all Gradle features are available
-    performanceTestRuntime rootProject.configurations.testRuntime.allDependencies
+    performanceTestRuntime allTestRuntimeDependencies
 }
