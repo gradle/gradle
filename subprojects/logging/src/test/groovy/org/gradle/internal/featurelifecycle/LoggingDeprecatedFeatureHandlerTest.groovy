@@ -17,7 +17,7 @@
 package org.gradle.internal.featurelifecycle
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.logging.configuration.WarningType
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.testing.internal.util.Specification
@@ -38,7 +38,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final handler = new LoggingDeprecatedFeatureHandler(locationReporter)
 
     def setup() {
-        handler.init(locationReporter, WarningType.All)
+        handler.init(locationReporter, WarningMode.All)
     }
 
     def 'logs each deprecation warning only once'() {
@@ -78,7 +78,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         outputEventListener.events.empty
 
         where:
-        type << [WarningType.None, null]
+        type << [WarningMode.None, null]
     }
 
     @Unroll

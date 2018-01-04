@@ -19,12 +19,12 @@ package org.gradle.api.logging.configuration;
 import org.gradle.api.Incubating;
 
 /**
- * Specifies the warning type a user wants to see.
+ * Specifies the warning mode a user wants to see.
  *
  * @since 4.5
  */
 @Incubating
-public enum WarningType {
+public enum WarningMode {
     /**
      * Show all warnings.
      */

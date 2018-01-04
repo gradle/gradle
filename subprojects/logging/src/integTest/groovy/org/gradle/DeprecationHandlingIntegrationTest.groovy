@@ -17,7 +17,7 @@
 package org.gradle
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.logging.configuration.WarningType
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -88,7 +88,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         if (warningsCountInConsole > 0) {
             executer.expectDeprecationWarnings(warningsCountInConsole)
         }
-        executer.withWarningType(warnings)
+        executer.withWarningMode(warnings)
         run('deprecated', 'broken')
 
         then:
@@ -111,12 +111,12 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         scenario                                    | warnings            | warningsCountInConsole | warningsCountInSummary | fullStacktraceEnabled
-        'without stacktrace and --warnings=all'     | WarningType.All     | 4                      | 0                      | false
-        'with stacktrace and --warnings=all'        | WarningType.All     | 4                      | 0                      | true
-        'without stacktrace and --warnings=no'      | WarningType.None    | 0                      | 0                      | false
-        'with stacktrace and --warnings=no'         | WarningType.None    | 0                      | 0                      | true
-        'without stacktrace and --warnings=summary' | WarningType.Summary | 0                      | 4                      | false
-        'with stacktrace and --warnings=summary'    | WarningType.Summary | 0                      | 4                      | true
+        'without stacktrace and --warning-mode=all'     | WarningMode.All     | 4                      | 0                      | false
+        'with stacktrace and --warning-mode=all'        | WarningMode.All     | 4                      | 0                      | true
+        'without stacktrace and --warning-mode=no'      | WarningMode.None    | 0                      | 0                      | false
+        'with stacktrace and --warning-mode=no'         | WarningMode.None    | 0                      | 0                      | true
+        'without stacktrace and --warning-mode=summary' | WarningMode.Summary | 0                      | 4                      | false
+        'with stacktrace and --warning-mode=summary'    | WarningMode.Summary | 0                      | 4                      | true
     }
 
     def incrementWarningCountIfJava7(int warningCount) {

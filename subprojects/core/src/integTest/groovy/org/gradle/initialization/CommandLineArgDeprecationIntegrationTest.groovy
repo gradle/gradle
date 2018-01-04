@@ -17,7 +17,7 @@
 package org.gradle.initialization
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.logging.configuration.WarningType
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import spock.lang.Unroll
@@ -45,7 +45,7 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "deprecation warning appears when using #deprecatedArgs and warningtype #warningsType in Tooling API"() {
+    def "deprecation warning appears when using #deprecatedArgs and warning mode #warningsType in Tooling API"() {
         given:
         ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
         toolingApi.requireIsolatedDaemons()
@@ -54,7 +54,7 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
         def stdOut = new ByteArrayOutputStream()
         def args = [deprecatedArgs]
         if (warningsType != null) {
-            args.add("--warnings=" + warningsType.toString().toLowerCase(Locale.ENGLISH))
+            args.add("--warning-mode=" + warningsType.toString().toLowerCase(Locale.ENGLISH))
         }
         toolingApi.withConnection { connection -> connection.newBuild().withArguments(args).forTasks('help').setStandardOutput(stdOut).run() }
 
@@ -64,12 +64,12 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         issue                                          | deprecatedArgs        | warningsType     | warningCountInConsole | warningCountInSummary | message
-        'https://github.com/gradle/gradle/issues/1425' | '--recompile-scripts' | WarningType.All  | 1                     | 0                     | RECOMPILE_SCRIPTS_MESSAGE
-        'https://github.com/gradle/gradle/issues/3077' | '--no-rebuild'        | WarningType.All  | 1                     | 0                     | NO_REBUILD_MESSAGE
-        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | WarningType.All  | 1                     | 0                     | NO_REBUILD_MESSAGE
-        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | WarningType.All  | 1                     | 0                     | NO_REBUILD_MESSAGE
+        'https://github.com/gradle/gradle/issues/1425' | '--recompile-scripts' | WarningMode.All  | 1                     | 0                     | RECOMPILE_SCRIPTS_MESSAGE
+        'https://github.com/gradle/gradle/issues/3077' | '--no-rebuild'        | WarningMode.All  | 1                     | 0                     | NO_REBUILD_MESSAGE
+        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | WarningMode.All  | 1                     | 0                     | NO_REBUILD_MESSAGE
+        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | WarningMode.All  | 1                     | 0                     | NO_REBUILD_MESSAGE
         'https://github.com/gradle/gradle/issues/3077' | '-a'                  | null             | 0                     | 1                     | NO_REBUILD_MESSAGE
-        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | WarningType.None | 0                     | 0                     | NO_REBUILD_MESSAGE
+        'https://github.com/gradle/gradle/issues/3077' | '-a'                  | WarningMode.None | 0                     | 0                     | NO_REBUILD_MESSAGE
     }
 
     def incrementWarningCountIfJava7(int warningCount) {

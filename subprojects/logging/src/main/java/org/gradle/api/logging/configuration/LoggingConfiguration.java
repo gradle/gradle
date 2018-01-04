@@ -50,14 +50,14 @@ public interface LoggingConfiguration {
      * @since 4.5
      */
     @Incubating
-    WarningType getWarningType();
+    WarningMode getWarningMode();
 
     /**
      * Specifies which type of warnings should be written to the console.
      * @since 4.5
      */
     @Incubating
-    void setWarningType(WarningType warningType);
+    void setWarningMode(WarningMode warningMode);
 
     /**
      * Returns the detail that should be included in stacktraces. Defaults to {@link ShowStacktrace#INTERNAL_EXCEPTIONS}.

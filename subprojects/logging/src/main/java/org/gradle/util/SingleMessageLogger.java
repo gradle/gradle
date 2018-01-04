@@ -18,7 +18,7 @@ package org.gradle.util;
 
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.logging.configuration.WarningType;
+import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
@@ -78,10 +78,10 @@ public class SingleMessageLogger {
         }
     }
 
-    public static void init(UsageLocationReporter reporter, WarningType warningType) {
+    public static void init(UsageLocationReporter reporter, WarningMode warningMode) {
         LOCK.lock();
         try {
-            handler.init(reporter, warningType);
+            handler.init(reporter, warningMode);
         } finally {
             LOCK.unlock();
         }
