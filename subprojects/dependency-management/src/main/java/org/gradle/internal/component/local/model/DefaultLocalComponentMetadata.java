@@ -54,10 +54,10 @@ import java.util.Set;
 public class DefaultLocalComponentMetadata implements LocalComponentMetadata, BuildableLocalComponentMetadata {
     private final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newLinkedHashMap();
     private final Multimap<String, LocalComponentArtifactMetadata> allArtifacts = ArrayListMultimap.create();
-    private final Multimap<String, LocalFileDependencyMetadata> allFiles = ArrayListMultimap.create();
     private final SetMultimap<String, DefaultVariantMetadata> allVariants = LinkedHashMultimap.create();
     private final List<LocalOriginDependencyMetadata> allDependencies = Lists.newArrayList();
     private final Multimap<String, ExcludeMetadata> allExcludes = ArrayListMultimap.create();
+    private final Multimap<String, LocalFileDependencyMetadata> allFiles = ArrayListMultimap.create();
     private final ModuleVersionIdentifier id;
     private final ComponentIdentifier componentIdentifier;
     private final String status;
@@ -130,12 +130,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
             LocalComponentArtifactMetadata artifactMetadata = new PublishArtifactLocalArtifactMetadata(componentIdentifier, artifact);
-            addArtifact(configuration, artifactMetadata);
+            allArtifacts.put(configuration, artifactMetadata);
         }
-    }
-
-    public void addArtifact(String configuration, LocalComponentArtifactMetadata artifactMetadata) {
-        allArtifacts.put(configuration, artifactMetadata);
     }
 
     @Override
@@ -199,10 +195,6 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public ComponentIdentifier getComponentId() {
         return componentIdentifier;
-    }
-
-    public List<LocalOriginDependencyMetadata> getDependencies() {
-        return allDependencies;
     }
 
     @Override
