@@ -46,7 +46,7 @@ Many long-form options, have short option equivalents. The following are equival
 
 [NOTE]
 ====
-Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed. See the <<sec:gradle_properties_and_system_properties, configuring build environment guide>> for details.
+Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed. See the <<sec:gradle_configuration_properties, configuring build environment guide>> for details.
 ====
 
 The following sections describe use of the Gradle command-line interface, grouped roughly by user goal. Some plugins also add their own command line options, for example <<test_filtering,`--tests` for Java test filtering>>.
@@ -181,7 +181,7 @@ Debug <<gradle_daemon, Gradle Daemon>> process.
 === Performance options
 Try these options when optimizing build performance. Learn more about https://guides.gradle.org/performance/[improving performance of Gradle builds here].
 
-Many of these options can be specified in `gradle.properties` so command-line flags are not necessary. See the <<sec:gradle_properties_and_system_properties, configuring build environment guide>>.
+Many of these options can be specified in `gradle.properties` so command-line flags are not necessary. See the <<sec:gradle_configuration_properties, configuring build environment guide>>.
 
 `--build-cache`, `--no-build-cache`::
 Toggles the <<build_cache, Gradle build cache>>. Gradle will try to reuse outputs from previous builds. _Default is off_.
@@ -228,7 +228,7 @@ Gradle Daemon will stop itself after this number of milliseconds of idle time. _
 ==== Setting log level
 You can customize the verbosity of Gradle logging with the following options, ordered from least verbose to most verbose. Learn more in the <<logging, logging documentation>>.
 
-`-Dorg.gradle.logging.level=(quiet warn lifecycle info debug)`::
+`-Dorg.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 Set logging level via Gradle properties.
 
 `-q`, `--quiet`::
@@ -357,13 +357,13 @@ Specifies the project-specific cache directory. Default value is `.gradle` in th
 Don't search in parent directories for a `settings.gradle` file.
 
 `-D`, `--system-prop`::
-Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<sec:gradle_properties_and_system_properties>>.
+Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<sec:gradle_system_properties>>.
 
 `-I`, `--init-script`::
 Specifies an initialization script. See <<init_scripts>>.
 
 `-P`, `--project-prop`::
-Sets a project property of the root project, for example `-Pmyprop=myvalue`. See <<sec:gradle_properties_and_system_properties>>.
+Sets a project property of the root project, for example `-Pmyprop=myvalue`. See <<sec:project_properties>>.
 
 `-Dorg.gradle.jvmargs`::
 Set JVM arguments.
