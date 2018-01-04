@@ -41,6 +41,10 @@ import spock.lang.Unroll
  * By using the currently built Gradle version to run the Gradle build at:
  * - the last commit of the current working copy
  * - the baseline commit defined for the `gradleBuildBaseline` template in `subprojects/performance/templates.gradle`
+ *
+ * When accepting a regression or settling an improvement:
+ * - update the baseline commit in `subprojects/performance/templates.gradle`
+ * - be careful when rebasing/squashing/merging
  */
 @Category(PerformanceRegressionTest)
 class GradleBuildPerformanceTest extends Specification {
