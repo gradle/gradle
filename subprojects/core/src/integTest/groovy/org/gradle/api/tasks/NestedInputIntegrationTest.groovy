@@ -533,18 +533,18 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Buil
 
     def "task with nested bean loaded with custom classloader is not cached"() {
         file("input.txt").text = "data"
-        buildFile << taskWithNestedBeanFromCustomClassloader()
+        buildFile << taskWithNestedBeanFromCustomClassLoader()
 
         when:
         withBuildCache().run "customTask", "--info"
         then:
-        output.contains "The implementation of 'bean.\$\$implementation' cannot be determined, because it was loaded via some unknown classloader"
+        output.contains "The implementation of 'bean' cannot be determined, because it was loaded by an unknown classloader"
         output.contains "Not caching task ':customTask' because no valid cache key was generated"
     }
 
     def "task with nested bean loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
-        buildFile << taskWithNestedBeanFromCustomClassloader()
+        buildFile << taskWithNestedBeanFromCustomClassLoader()
 
         when:
         run "customTask"
@@ -558,7 +558,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Buil
         output.contains "Value of input property 'bean.\$\$implementation' has changed for task ':customTask'"
     }
 
-    private static String taskWithNestedBeanFromCustomClassloader() {
+    private static String taskWithNestedBeanFromCustomClassLoader() {
         """
             @CacheableTask
             class TaskWithNestedProperty extends DefaultTask  {

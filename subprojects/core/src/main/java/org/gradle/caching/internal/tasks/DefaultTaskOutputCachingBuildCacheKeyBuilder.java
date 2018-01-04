@@ -105,11 +105,11 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     }
 
     @Override
-    public void inputPropertyLoadedByUnknownClassloader(String propertyName) {
+    public void inputPropertyLoadedByUnknownClassLoader(String propertyName) {
         valid = false;
-        // Add a random hash to make sure it shows up as changed in the build scan
-        inputPropertiesLoadedByUnknownClassLoader.add(propertyName);
-        LOGGER.info("The implementation of '{}' cannot be determined, because it was loaded via some unknown classloader", propertyName);
+        String sanitizedPropertyName = propertyName.replace(".$$implementation", "");
+        inputPropertiesLoadedByUnknownClassLoader.add(sanitizedPropertyName);
+        LOGGER.info("The implementation of '{}' cannot be determined, because it was loaded by an unknown classloader", sanitizedPropertyName);
     }
 
     @Override
