@@ -25,12 +25,10 @@ import org.gradle.api.component.Artifact
 import org.gradle.api.component.Component
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.component.ComponentTypeRegistration
 import org.gradle.api.internal.component.ComponentTypeRegistry
-import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
@@ -46,7 +44,6 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     def repositoryHandler = Stub(RepositoryHandler)
     def resolveIvyFactory = Mock(ResolveIvyFactory)
     def globalDependencyResolutionRules = Mock(GlobalDependencyResolutionRules)
-    def cacheLockingManager = Mock(CacheLockingManager)
     def componentTypeRegistry = Mock(ComponentTypeRegistry)
     def artifactResolver = Mock(ArtifactResolver)
     def repositoryChain = Mock(ComponentResolvers)
@@ -127,9 +124,6 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     }
 
     private def withArtifactResolutionInteractions(int numberOfComponentsToResolve = 1) {
-        1 * cacheLockingManager.useCache(_) >> { Factory action ->
-            action.create()
-        }
         1 * resolveIvyFactory.create(_, _, _) >> repositoryChain
         1 * repositoryChain.artifactResolver >> artifactResolver
         1 * repositoryChain.componentResolver >> componentMetaDataResolver
@@ -139,7 +133,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     }
 
     private DefaultArtifactResolutionQuery createArtifactResolutionQuery(ComponentTypeRegistry componentTypeRegistry) {
-        new DefaultArtifactResolutionQuery(configurationContainerInternal, repositoryHandler, resolveIvyFactory, globalDependencyResolutionRules, cacheLockingManager, componentTypeRegistry)
+        new DefaultArtifactResolutionQuery(configurationContainerInternal, repositoryHandler, resolveIvyFactory, globalDependencyResolutionRules, componentTypeRegistry)
     }
 
     private ComponentTypeRegistry createTestComponentTypeRegistry() {

@@ -17,20 +17,21 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 import static org.gradle.api.tasks.LocalStateFixture.defineTaskWithLocalState
 
-class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
+
+    def localCache = new TestBuildCache(file("local-cache"))
+    def remoteCache = new TestBuildCache(file("remote-cache"))
 
     def setup() {
         executer.beforeExecute { it.withBuildCacheEnabled() }
+        settingsFile << localCache.localCacheConfiguration()
     }
-
-    def remoteCacheDir = file("remote-cache-dir")
 
     def "describes error while packing archive"() {
         when:
@@ -55,8 +56,8 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         succeeds "customTask"
         output =~ /Failed to store cache entry .+ for task ':customTask'/
         output =~ /Could not pack property 'output'/
-        listCacheFiles().empty
-        listCacheTempFiles().empty
+        localCache.assertEmpty()
+        localCache.listCacheTempFiles().empty
 
         when:
         buildFile << """
@@ -77,7 +78,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
     def "archive is not pushed to remote when packing fails"() {
         when:
         file("input.txt") << "data"
-        enableRemote()
+        settingsFile << remoteCache.remoteCacheConfiguration()
 
         // Just a way to induce a packing error, i.e. corrupt/partial archive
         buildFile << """
@@ -96,25 +97,15 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         then:
         executer.withStackTraceChecksDisabled()
         succeeds "customTask"
-        listCacheFiles(remoteCacheDir).empty
+        remoteCache.assertEmpty()
         output =~ /org.gradle.api.GradleException: Could not pack property 'output'/
     }
 
-    TestFile enableRemote() {
-        settingsFile << """
-            buildCache {
-                remote(DirectoryBuildCache) {
-                    push = true
-                    directory = '${TextUtil.escapeString(remoteCacheDir.absolutePath)}'
-                }
-            }
-        """
-    }
 
     def "corrupt archive loaded from remote cache is not copied into local cache"() {
         when:
         file("input.txt") << "data"
-        enableRemote()
+        settingsFile << remoteCache.remoteCacheConfiguration()
         buildFile << """
             apply plugin: "base"
             task customTask {
@@ -130,11 +121,11 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         succeeds("customTask")
 
         then:
-        listCacheFiles(remoteCacheDir).size() == 1
+        remoteCache.listCacheFiles().size() == 1
 
         when:
-        listCacheFiles(remoteCacheDir).first().text = "corrupt"
-        listCacheFiles()*.delete()
+        remoteCache.listCacheFiles().first().text = "corrupt"
+        localCache.listCacheFiles()*.delete()
 
         then:
         executer.withStackTraceChecksDisabled()
@@ -143,8 +134,8 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         output =~ /java.util.zip.ZipException: Not in GZIP format/
 
         and:
-        listCacheFiles().size() == 1
-        listCacheFiles().first().text != "corrupt"
+        localCache.listCacheFiles().size() == 1
+        localCache.listCacheFiles().first().text != "corrupt"
 
         when:
         settingsFile << """
@@ -174,10 +165,10 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         succeeds("customTask")
 
         then:
-        listCacheFiles().size() == 1
+        localCache.listCacheFiles().size() == 1
 
         when:
-        listCacheFiles().first().bytes = listCacheFiles().first().bytes[0..-100]
+        localCache.listCacheFiles().first().bytes = localCache.listCacheFiles().first().bytes[0..-100]
 
         then:
         executer.withStackTraceChecksDisabled()
@@ -188,8 +179,8 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         output =~ /java.io.EOFException: Unexpected end of ZLIB input stream/
 
         and:
-        listCacheFiles().size() == 1
-        listCacheFailedFiles().size() == 1
+        localCache.listCacheFiles().size() == 1
+        localCache.listCacheFailedFiles().size() == 1
 
         and:
         succeeds("clean", "customTask")
@@ -213,8 +204,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
         succeeds("cacheable")
 
         then:
-        def cacheFiles = listCacheFiles()
-        cacheFiles.size() == 1
+        localCache.listCacheFiles().size() == 1
 
         when:
         cleanBuildDir()
@@ -226,7 +216,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
 
         then:
         output =~ /Cached result format error, corrupted origin metadata\./
-        listCacheFailedFiles().size() == 1
+        localCache.listCacheFailedFiles().size() == 1
 
         when:
         file("build").deleteDir()
@@ -264,7 +254,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     def corruptMetadata(Closure corrupter) {
-        def cacheFiles = listCacheFiles()
+        def cacheFiles = localCache.listCacheFiles()
         assert cacheFiles.size() == 1
         def cacheEntry = cacheFiles[0]
         def tgzCacheEntry = temporaryFolder.file("cache.tgz")

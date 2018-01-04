@@ -62,7 +62,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':shadowJar').outcome == SUCCESS
 
         where:
-        version << ["1.2.4", "2.0.1"]
+        version << ["1.2.4", "2.0.2"]
     }
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
@@ -72,7 +72,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             buildscript {
                 ${jcenterRepository()}
                 dependencies {
-                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.6"
+                    classpath "org.asciidoctor:asciidoctor-gradle-plugin:1.5.7"
                 }
             }
 
@@ -101,7 +101,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             plugins {
                 id 'java'
                 id 'application'
-                id "com.bmuschko.docker-java-application" version "3.2.0"
+                id "com.bmuschko.docker-java-application" version "3.2.1"
             }
 
             mainClassName = 'org.gradle.JettyMain'
@@ -128,7 +128,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         buildFile << """
             plugins {
                 id 'java'
-                id 'io.spring.dependency-management' version '1.0.3.RELEASE'
+                id 'io.spring.dependency-management' version '1.0.4.RELEASE'
             }
 
             ${mavenCentralRepository()}
@@ -159,7 +159,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             buildscript {
                 ${mavenCentralRepository()}
                 dependencies {
-                    classpath('org.springframework.boot:spring-boot-gradle-plugin:1.5.8.RELEASE')
+                    classpath('org.springframework.boot:spring-boot-gradle-plugin:1.5.9.RELEASE')
                 }
             }
 
@@ -192,7 +192,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             
             plugins { 
                 id 'java'
-                id 'io.spring.dependency-management' version '1.0.3.RELEASE' 
+                id 'io.spring.dependency-management' version '1.0.4.RELEASE' 
             }
             
             ${mavenCentralRepository()}
@@ -229,7 +229,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         def stopPort = portAllocator.assignPort()
         buildFile << """
             plugins {
-                id "com.bmuschko.tomcat" version "2.4.1"
+                id "com.bmuschko.tomcat" version "2.4.2"
             }
 
             ${mavenCentralRepository()}
@@ -315,7 +315,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id "org.xtext.xtend" version "1.0.19"
+                id "org.xtext.xtend" version "1.0.20"
             }
 
             ${mavenCentralRepository()}
