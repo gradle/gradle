@@ -17,11 +17,12 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
-class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
     def repo = new MavenFileRepository(file("repo"))
     def consumer = file("consumer").createDir()
 

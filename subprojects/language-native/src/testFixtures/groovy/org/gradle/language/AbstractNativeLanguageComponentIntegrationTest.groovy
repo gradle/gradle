@@ -30,7 +30,7 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
                         assert it.targetPlatform.operatingSystem.name == "${OperatingSystem.current().name}"
-                        assert it.targetPlatform.architecture.name == "${DefaultNativePlatform.currentArchitecture.name}"
+                        assert it.targetPlatform.architecture.name == "${defaultArchitecture}"
                     }
                 }
             }
@@ -55,6 +55,10 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
 
         expect:
         succeeds "verifyBinariesToolChainType"
+    }
+
+    protected String getDefaultArchitecture() {
+        DefaultNativePlatform.currentArchitecture.name
     }
 
     protected abstract void makeSingleProject()

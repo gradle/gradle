@@ -31,7 +31,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
-import org.gradle.plugins.signing.signatory.gnupg.GnupgSignatoryProvider;
+import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider;
 import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider;
 import org.gradle.plugins.signing.type.SignatureType;

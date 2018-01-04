@@ -18,9 +18,10 @@ package org.gradle.language.cpp.internal;
 
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 
 public class DefaultCppPlatform extends DefaultNativePlatform implements CppPlatform {
-    public DefaultCppPlatform(String name) {
-        super(name);
+    public DefaultCppPlatform(String name, NativePlatformInternal targetMachine) {
+        super(name, targetMachine.getOperatingSystem(), targetMachine.getArchitecture());
     }
 }

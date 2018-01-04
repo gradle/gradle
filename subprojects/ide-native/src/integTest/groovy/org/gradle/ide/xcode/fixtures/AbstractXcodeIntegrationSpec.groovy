@@ -48,7 +48,7 @@ rootProject.name = "${rootProjectName}"
     }
 
     protected NativeBinaryFixture fixture(TestFile binary) {
-        new NativeBinaryFixture(binary, null)
+        new NativeBinaryFixture(binary, AvailableToolChains.defaultToolChain)
     }
 
     protected TestFile exe(String str) {

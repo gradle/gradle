@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.platform;
 
+import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.HasInternalProtocol;
@@ -38,7 +39,7 @@ import org.gradle.platform.base.Platform;
  */
 @Incubating
 @HasInternalProtocol
-public interface NativePlatform extends Platform {
+public interface NativePlatform extends Platform, Describable {
     /**
      * The cpu architecture being targeted. Defaults to the default architecture produced by the tool chain.
      */

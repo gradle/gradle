@@ -55,6 +55,7 @@ import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchR
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
@@ -88,6 +89,11 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
         this.execActionFactory = execActionFactory;
         this.workerLeaseService = workerLeaseService;
         this.metadataProvider = metadataProvider;
+    }
+
+    @Override
+    public ToolSearchResult isToolAvailable(ToolType toolType) {
+        return toolSearchPath.locate(toolType, toolRegistry.getTool(toolType).getExecutable());
     }
 
     @Override

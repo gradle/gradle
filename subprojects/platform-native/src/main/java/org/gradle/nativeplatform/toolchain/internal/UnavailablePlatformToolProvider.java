@@ -22,6 +22,7 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
+import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
 
@@ -34,6 +35,13 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     public UnavailablePlatformToolProvider(OperatingSystemInternal targetOperatingSystem, ToolSearchResult failure) {
         this.targetOperatingSystem = targetOperatingSystem;
         this.failure = failure;
+    }
+
+    public UnavailablePlatformToolProvider(OperatingSystemInternal targetOperatingSystem, String failure) {
+        this.targetOperatingSystem = targetOperatingSystem;
+        ToolChainAvailability result = new ToolChainAvailability();
+        result.unavailable(failure);
+        this.failure = result;
     }
 
     @Override
@@ -112,6 +120,11 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
     @Override
     public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> specType) {
         throw failure();
+    }
+
+    @Override
+    public ToolSearchResult isToolAvailable(ToolType toolType) {
+        return this;
     }
 
     @Override

@@ -16,21 +16,12 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.util.Matchers
-import org.junit.Assume
 
 abstract class AbstractCppIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
-    def setup() {
-        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
-        Assume.assumeTrue(worksWithCppPlugin(toolChain))
-    }
-
-    static boolean worksWithCppPlugin(AvailableToolChains.ToolChainCandidate toolChain) {
-        toolChain.id != "mingw" && toolChain.id != "gcccygwin"
-    }
-
     def "skip assemble tasks when no source"() {
         given:
         makeSingleProject()
@@ -54,6 +45,14 @@ abstract class AbstractCppIntegrationTest extends AbstractNativeLanguageComponen
         failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(Matchers.containsText("C++ compiler failed while compiling broken.cpp"))
+    }
+
+    @Override
+    protected String getDefaultArchitecture() {
+        if (toolChain.meets(ToolChainRequirement.GCC) && OperatingSystem.current().windows) {
+            return "x86"
+        }
+        return super.defaultArchitecture
     }
 
     protected abstract List<String> getTasksToAssembleDevelopmentBinary()
