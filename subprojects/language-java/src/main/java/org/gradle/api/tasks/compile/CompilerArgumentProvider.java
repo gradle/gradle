@@ -14,8 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.api.tasks.compile;
 
-public interface PropertyMetadataStore {
-    <T> TypeMetadata getTypeMetadata(Class<T> type);
+import org.gradle.api.Incubating;
+
+/**
+ * Provides command-line arguments to the compiler.
+ *
+ * @since 4.5
+ */
+@Incubating
+public interface CompilerArgumentProvider {
+    /**
+     * The command-line arguments which will be provided to the compiler.
+     */
+    Iterable<String> asArguments();
 }

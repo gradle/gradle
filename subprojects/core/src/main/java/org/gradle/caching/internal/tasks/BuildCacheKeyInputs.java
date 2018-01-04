@@ -34,6 +34,7 @@ public class BuildCacheKeyInputs {
     private final List<HashCode> actionClassLoaderHashes;
     private final ImmutableList<String> actionClassNames;
     private final ImmutableSortedMap<String, HashCode> inputHashes;
+    private ImmutableSortedSet<String> inputPropertiesLoadedByUnknownClassLoader;
     private final ImmutableSortedSet<String> outputPropertyNames;
 
     public BuildCacheKeyInputs(
@@ -42,10 +43,12 @@ public class BuildCacheKeyInputs {
         @Nullable List<HashCode> actionClassLoaderHashes,
         @Nullable ImmutableList<String> actionClassNames,
         @Nullable ImmutableSortedMap<String, HashCode> inputHashes,
+        @Nullable ImmutableSortedSet<String> inputPropertiesLoadedByUnknownClassLoader,
         @Nullable ImmutableSortedSet<String> outputPropertyNames
     ) {
         this.taskClass = taskClass;
         this.inputHashes = inputHashes;
+        this.inputPropertiesLoadedByUnknownClassLoader = inputPropertiesLoadedByUnknownClassLoader;
         this.classLoaderHash = classLoaderHash;
         this.actionClassLoaderHashes = actionClassLoaderHashes;
         this.actionClassNames = actionClassNames;
@@ -89,6 +92,7 @@ public class BuildCacheKeyInputs {
             + ", actionClassLoaderHashes=" + actionClassLoaderHashes
             + ", actionClassNames=" + actionClassNames
             + ", inputHashes=" + inputHashes
+            + ", inputPropertyNamesLoadedByUnknownClassLoader=" + inputPropertiesLoadedByUnknownClassLoader
             + ", outputPropertyNames=" + outputPropertyNames
             + '}';
     }

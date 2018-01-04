@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.compile;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
@@ -50,7 +51,7 @@ public class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
     private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
-            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "incremental");
+            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "incremental", "allCompilerArgs", "compilerArgumentProviders");
 
     private boolean failOnError = true;
 
@@ -77,6 +78,7 @@ public class CompileOptions extends AbstractOptions {
     private String extensionDirs;
 
     private List<String> compilerArgs = Lists.newArrayList();
+    private List<CompilerArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
 
     private boolean incremental;
 
@@ -336,6 +338,33 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
+     * Returns all compiler arguments, added to the {@link #getCompilerArgs()} or the {@link #getCompilerArgumentProviders()} property.
+     *
+     * @since 4.5
+     */
+    @Incubating
+    @Internal
+    public List<String> getAllCompilerArgs() {
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        builder.addAll(getCompilerArgs());
+        for (CompilerArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
+            builder.addAll(compilerArgumentProvider.asArguments());
+        }
+        return builder.build();
+    }
+
+    /**
+     * Compiler argument providers.
+     *
+     * @since 4.5
+     */
+    @Nested
+    @Incubating
+    public List<CompilerArgumentProvider> getCompilerArgumentProviders() {
+        return compilerArgumentProviders;
+    }
+
+    /**
      * Sets any additional arguments to be passed to the compiler.
      * Defaults to the empty list.
      */
@@ -505,4 +534,5 @@ public class CompileOptions extends AbstractOptions {
     public void setAnnotationProcessorGeneratedSourcesDirectory(Provider<File> file) {
         this.annotationProcessorGeneratedSourcesDirectory.set(file);
     }
+
 }

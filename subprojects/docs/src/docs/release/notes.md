@@ -111,6 +111,64 @@ See [`application` plugin](userguide/application_plugin.html) for more details.
 
 Now [CodeNarc](http://codenarc.sourceforge.net/)'s default version has been upgraded to 1.0, enjoy!
 
+### Use of runtime types when declaring `@Nested` task inputs
+
+When analyzing `@Nested` task properties for declared input and output sub-properties, Gradle used to only observe the declared type of the property.
+This meant ignoring any sub-properties declared by a runtime sub-type.
+Since Gradle 4.5, Gradle uses the [type of the actual value instead](userguide/more_about_tasks.html#sec:task_input_nested_inputs), and hence can discover all sub-properties declared this way.
+This allows for a few new tricks.
+
+#### Rich Java compiler arguments
+
+When you have to expose a file location to your annotation processor, it is essential for Gradle to learn about this additional input (or output).
+Without tracking the location and contents of the given file (or directory), features like incremental build and task output caching cannot function correctly.
+Before Gradle 4.5 you had to let Gradle know about such inputs or outputs manually by calling `compileJava.inputs.file(...)` or similar.
+
+Gradle 4.5 introduces a better way to handle this situation by modeling the annotation processor as a [`CompilerArgumentProvider`](javadoc/org/gradle/api/tasks/compile/CompilerArgumentProvider.html).
+This approach allows the declaration of complex inputs and outputs, just like how you would declare `@InputFile` and `@OutputDirectory` properties on the task type.
+
+For example, to declare annotation processor arguments, it is now be possible to do the following:
+
+        class MyAnnotationProcessor implements CompilerArgumentProvider {
+            @InputFile
+            @PathSensitivite(NONE)
+            File inputFile
+            
+            @OutputFile
+            File outputFile
+            
+            MyAnnotationProcessor(File inputFile, File outputFile) {
+                this.inputFile = inputFile
+                this.outputFile = outputFile
+            }
+            
+            @Override
+            List<String> asArguments() {
+                [
+                    "-AinputFile=${inputFile.absolutePath}",
+                    "-AoutputFile=${outputFile.absolutePath}"
+                ]
+            }
+        }
+        
+        compileJava.options.compilerArgumentProviders << new MyAnnotationProcessor(inputFile, outputFile)
+
+This models an annotation processor which requires an input file and generates an output file.
+
+The approach is not limited to annotation processors, but can be used to declare any kind of command-line argument to the compiler.
+The only thing you need to do is to add your custom `CompilerArgumentsProvider` to [`CompileJava.options.compilerArgumentProviders`](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders).
+
+#### `@Nested` on iterables
+
+When applying the [`@Nested`](javadoc/org/gradle/api/tasks/Nested.html) to an iterable property, each element is now treated as a separate nested input.
+[`CompileJava.options.compilerArgumentProviders`](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgumentProviders) shows this new behavior:
+
+    @Nested
+    @Incubating
+    public List<CompilerArgumentProvider> getCompilerArgumentProviders() {
+        return compilerArgumentProviders;
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

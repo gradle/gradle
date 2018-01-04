@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
@@ -36,10 +37,10 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 
 /**
  * Class for easy access to task property validation from the validator task.
@@ -54,23 +55,34 @@ public class PropertyValidationAccess {
     );
 
     @SuppressWarnings("unused")
-    public static void collectTaskValidationProblems(Class<?> beanClass, Map<String, Boolean> problems) {
+    public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems) {
         DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore();
         PropertyMetadataStore metadataStore = new DefaultPropertyMetadataStore(ImmutableList.of(
             new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
         ));
-        Queue<ClassNode> queue = new ArrayDeque<ClassNode>();
-        queue.add(new ClassNode(null, beanClass));
-        boolean cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(beanClass)).isCacheable();
+        Queue<TypeNode> queue = new ArrayDeque<TypeNode>();
+        queue.add(new TypeNode(null, TypeToken.of(topLevelBean)));
+        boolean cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(topLevelBean)).isCacheable();
 
         while (!queue.isEmpty()) {
-            ClassNode node = queue.remove();
-            validateTaskClass(beanClass, cacheable, problems, queue, node, metadataStore.getTypeMetadata(node.getBeanClass()));
+            TypeNode node = queue.remove();
+            TypeToken<?> beanType = node.getBeanType();
+            Class<?> beanClass = beanType.getRawType();
+            TypeMetadata typeMetadata = metadataStore.getTypeMetadata(beanClass);
+            if (node.isIterable(typeMetadata)) {
+                @SuppressWarnings("unchecked")
+                TypeToken<Iterable> typeToken = (TypeToken<Iterable>) beanType;
+                ParameterizedType type = (ParameterizedType) typeToken.getSupertype(Iterable.class).getType();
+                TypeToken<?> nestedType = TypeToken.of(type.getActualTypeArguments()[0]);
+                queue.add(new TypeNode(node.getParentPropertyName() + "*", nestedType));
+            } else {
+                validateTaskClass(topLevelBean, cacheable, problems, queue, node, typeMetadata);
+            }
         }
     }
 
-    private static void validateTaskClass(Class<?> beanClass, boolean cacheable, Map<String, Boolean> problems, Queue<ClassNode> queue, ClassNode node, Set<PropertyMetadata> typeMetadata) {
-        for (PropertyMetadata metadata : typeMetadata) {
+    private static void validateTaskClass(Class<?> beanClass, boolean cacheable, Map<String, Boolean> problems, Queue<TypeNode> queue, TypeNode node, TypeMetadata typeMetadata) {
+        for (PropertyMetadata metadata : typeMetadata.getPropertiesMetadata()) {
             String qualifiedPropertyName = node.getQualifiedPropertyName(metadata.getFieldName());
             for (String validationMessage : metadata.getValidationMessages()) {
                 problems.put(propertyValidationMessage(beanClass, qualifiedPropertyName, validationMessage), Boolean.FALSE);
@@ -89,7 +101,7 @@ public class PropertyValidationAccess {
                 }
             }
             if (metadata.isAnnotationPresent(Nested.class)) {
-                queue.add(new ClassNode(qualifiedPropertyName, metadata.getDeclaredType()));
+                queue.add(new TypeNode(qualifiedPropertyName, TypeToken.of(metadata.getMethod().getGenericReturnType())));
             }
         }
     }
@@ -98,21 +110,16 @@ public class PropertyValidationAccess {
         return String.format("Task type '%s': property '%s' %s.", task.getName(), qualifiedPropertyName, validationMessage);
     }
 
-    private static class ClassNode {
-        private final String parentPropertyName;
-        private final Class<?> propertyClass;
+    private static class TypeNode extends AbstractBeanNode {
+        private final TypeToken<?> beanType;
 
-        public ClassNode(@Nullable String parentPropertyName, Class<?> beanClass) {
-            this.parentPropertyName = parentPropertyName;
-            this.propertyClass = beanClass;
+        public TypeNode(@Nullable String parentPropertyName, TypeToken<?> beanType) {
+            super(parentPropertyName, beanType.getRawType());
+            this.beanType = beanType;
         }
 
-        public Class<?> getBeanClass() {
-            return propertyClass;
-        }
-
-        public String getQualifiedPropertyName(String propertyName) {
-            return parentPropertyName == null ? propertyName : parentPropertyName + "." + propertyName;
+        public TypeToken<?> getBeanType() {
+            return beanType;
         }
     }
 

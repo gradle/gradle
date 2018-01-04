@@ -19,10 +19,11 @@ package org.gradle.api.tasks
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheFixture
 import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
-class NestedInputIntegrationTest extends AbstractIntegrationSpec {
+class NestedInputIntegrationTest extends AbstractIntegrationSpec implements BuildCacheFixture {
 
     @Unroll
     def "nested #type.simpleName input adds a task dependency"() {
@@ -59,7 +60,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run 'consumer'
-
         then:
         executedAndNotSkipped(':generator', ':consumer')
 
@@ -102,7 +102,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run 'consumer'
-
         then:
         executedAndNotSkipped(':generator', ':consumer')
     }
@@ -141,7 +140,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run 'consumer'
-
         then:
         // FIXME: Should have been executed
         notExecuted(':generator')
@@ -168,21 +166,18 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         fixture.runTask()
-
         then:
         executedAndNotSkipped(fixture.task)
 
         when:
         fixture.changeFirstBean(change)
         fixture.runTask()
-
         then:
         skipped(fixture.task)
 
         when:
         fixture.changeSecondBean(change)
         fixture.runTask()
-
         then:
         executedAndNotSkipped(fixture.task)
 
@@ -211,14 +206,12 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         fixture.runTask()
-
         then:
         executedAndNotSkipped(fixture.task)
 
         when:
         fixture.changeFirstBean('inputProperty')
         fixture.runTask()
-
         then:
         if (to == 'null') {
             skipped(fixture.task)
@@ -245,21 +238,18 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         fixture.runTask()
-
         then:
         executedAndNotSkipped(fixture.task)
 
         when:
         fixture.changeFirstBean(change)
         fixture.runTask()
-
         then:
         executedAndNotSkipped(fixture.task)
 
         when:
         fixture.changeSecondBean(change)
         fixture.runTask()
-
         then:
         skipped(fixture.task)
 
@@ -282,14 +272,12 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         fixture.runTask()
-
         then:
         executedAndNotSkipped(fixture.task)
 
         when:
         fixture.changeFirstBean('inputProperty')
         fixture.runTask()
-
         then:
         if (from == 'null') {
             skipped(fixture.task)
@@ -424,4 +412,177 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "changes to nested bean implementation are detected"() {
+        buildFile << """
+            class TaskWithNestedInput extends DefaultTask {
+                @Nested
+                Object nested
+                
+                @OutputFile
+                File outputFile
+                
+                @TaskAction
+                void doStuff() {
+                    outputFile.text = nested.input
+                }
+                
+            }
+            
+            class NestedBean {
+                @Input
+                input
+            }
+            
+            class OtherNestedBean {
+                @Input
+                input
+            }
+            
+            boolean useOther = project.findProperty('useOther')
+            
+            task myTask(type: TaskWithNestedInput) {
+                outputFile = file('build/output.txt')
+                nested = useOther ? new OtherNestedBean(input: 'string') : new NestedBean(input: 'string')
+            }
+        """
+
+        def task = ':myTask'
+
+        when:
+        run task
+        then:
+        executedAndNotSkipped(task)
+
+        when:
+        run task
+        then:
+        skipped task
+
+        when:
+        run task, '-PuseOther=true'
+        then:
+        executedAndNotSkipped task
+    }
+
+    def "elements of nested iterable cannot be null"() {
+        buildFile << """
+            class TaskWithNestedIterable extends DefaultTask {
+                @Nested
+                Iterable<Object> beans
+            }
+            
+            class NestedBean {
+                @Input
+                String input
+            }
+            
+            task myTask(type: TaskWithNestedIterable) {
+                beans = [new NestedBean(input: 'input'), null]
+            }
+        """
+
+        expect:
+        fails 'myTask'
+        failure.assertHasCause('Null is not allowed as nested property \'beans.$2\'')
+    }
+
+    def "nested iterable beans can be iterables themselves"() {
+        buildFile << """
+            class TaskWithNestedIterable extends DefaultTask {
+                @Nested
+                Iterable<Object> beans
+                
+                @OutputFile
+                File outputFile
+                
+                @TaskAction
+                void doStuff() {
+                    outputFile.text = beans.flatten()*.input.join('\\n')
+                }
+            }
+            
+            class NestedBean {
+                @Input
+                String input
+            }
+            
+            def inputString = project.findProperty('input') ?: 'input'
+            
+            task myTask(type: TaskWithNestedIterable) {
+                outputFile = file('build/output.txt')
+                beans = [[new NestedBean(input: inputString)], [new NestedBean(input: 'secondInput')]]
+            }
+        """
+        def task = ':myTask'
+
+        when:
+        run task
+        then:
+        executedAndNotSkipped task
+
+        when:
+        run task
+        then:
+        skipped task
+
+        when:
+        run task, '-Pinput=changed'
+        then:
+        executedAndNotSkipped task
+    }
+
+    def "task with nested bean loaded with custom classloader is not cached"() {
+        file("input.txt").text = "data"
+        buildFile << taskWithNestedBeanFromCustomClassLoader()
+
+        when:
+        withBuildCache().run "customTask", "--info"
+        then:
+        output.contains "The implementation of 'bean' cannot be determined, because it was loaded by an unknown classloader"
+        output.contains "Not caching task ':customTask' because no valid cache key was generated"
+    }
+
+    def "task with nested bean loaded with custom classloader is never up-to-date"() {
+        file("input.txt").text = "data"
+        buildFile << taskWithNestedBeanFromCustomClassLoader()
+
+        when:
+        run "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        run "customTask", "--info"
+        then:
+        executedAndNotSkipped ":customTask"
+        output.contains "Value of input property 'bean.\$\$implementation' has changed for task ':customTask'"
+    }
+
+    private static String taskWithNestedBeanFromCustomClassLoader() {
+        """
+            @CacheableTask
+            class TaskWithNestedProperty extends DefaultTask  {
+                @Nested
+                Object bean
+                @TaskAction action() {
+                    bean.output.text = bean.input.text
+                }
+            }
+
+            def NestedBean = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
+                import org.gradle.api.tasks.*
+
+                class NestedBean {
+                    @InputFile File input
+                    @OutputFile File output
+                }
+            '''
+
+            task customTask(type: TaskWithNestedProperty) {
+                bean = NestedBean.newInstance()
+                bean.input = file("input.txt")
+                bean.output = file("build/output.txt")
+            }
+        """
+    }
 }
