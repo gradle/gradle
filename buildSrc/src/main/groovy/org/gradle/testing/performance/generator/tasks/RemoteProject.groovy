@@ -24,12 +24,61 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
 
+/**
+ * Checkout a project template from a git repository.
+ *
+ * In git terms, you can target a <em>branch</em>, a <em>commit</em> or a <em>tag</em>.
+ * This task distinguishes <em>branch</em> and other git references usage as a mean to optimize the cloning/checkout
+ * process.
+ *
+ * When targeting a <em>branch</em>, set the {@link #branch} property to the <em>branch</em> name.
+ * The task will then do a shallow clone at the specified branch in a single step.
+ *
+ * When targeting a <em>commit</em> or a <em>tag</em>, set the {@link #ref} property accordingly.
+ * The task will then do a full clone and then checkout the specified git reference.
+ */
 class RemoteProject extends DefaultTask {
-    @Input String remoteUri
-    @Input @Optional String branch
-    @Input @Optional Property<String> ref = project.objects.property(String)
-    @Input @Optional String subdirectory
-    @OutputDirectory File outputDirectory = project.file("$project.buildDir/$name")
+
+    /**
+     * URI of the git repository.
+     *
+     * Either the remote git repository URL, the path to a local bare git repository or the path to a local git clone.
+     */
+    @Input
+    String remoteUri
+
+    /**
+     * Git branch to use.
+     *
+     * If unset, {@link #ref} must be set.
+     */
+    @Input
+    @Optional
+    String branch
+
+    /**
+     * Git reference to use.
+     *
+     * If unset, {@link #branch} must be set.
+     */
+    @Input
+    @Optional
+    Property<String> ref = project.objects.property(String)
+
+    /**
+     * Relative path of a subdirectory within the git repository to use as the project template base directory.
+     *
+     * If unset, the root directory of the git repository is used.
+     */
+    @Input
+    @Optional
+    String subdirectory
+
+    /**
+     * Directory where the project template should be copied.
+     */
+    @OutputDirectory
+    File outputDirectory = project.file("$project.buildDir/$name")
 
     @TaskAction
     void checkout() {
