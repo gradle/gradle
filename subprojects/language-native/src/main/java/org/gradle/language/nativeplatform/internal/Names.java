@@ -31,6 +31,16 @@ public abstract class Names {
         return new Other(name);
     }
 
+    /**
+     * Camel case formatted base name.
+     */
+    public abstract String getBaseName();
+
+    /**
+     * Lower case formatted base name, with '_' separators
+     */
+    public abstract String getLowerBaseName();
+
     public abstract String withPrefix(String prefix);
 
     public abstract String withSuffix(String suffix);
@@ -43,6 +53,16 @@ public abstract class Names {
     public abstract String getDirName();
 
     private static class Main extends Names {
+        @Override
+        public String getBaseName() {
+            return "main";
+        }
+
+        @Override
+        public String getLowerBaseName() {
+            return "main";
+        }
+
         @Override
         public String getCompileTaskName(String language) {
             return "compile" + StringUtils.capitalize(language);
@@ -71,11 +91,13 @@ public abstract class Names {
 
     private static class Other extends Names {
         private final String baseName;
+        private final String lowerBaseName;
         private final String capitalizedBaseName;
         private final String dirName;
 
         Other(String name) {
             StringBuilder baseName = new StringBuilder();
+            StringBuilder lowerBaseName = new StringBuilder();
             StringBuilder capBaseName = new StringBuilder();
             StringBuilder dirName = new StringBuilder();
             int startLast = 0;
@@ -83,17 +105,28 @@ public abstract class Names {
             for (; i < name.length(); i++) {
                 if (Character.isUpperCase(name.charAt(i))) {
                     if (i > startLast) {
-                        append(name, startLast, i, baseName, capBaseName, dirName);
+                        append(name, startLast, i, baseName, lowerBaseName, capBaseName, dirName);
                     }
                     startLast = i;
                 }
             }
             if (i > startLast) {
-                append(name, startLast, i, baseName, capBaseName, dirName);
+                append(name, startLast, i, baseName, lowerBaseName, capBaseName, dirName);
             }
             this.baseName = baseName.toString();
+            this.lowerBaseName = lowerBaseName.toString();
             this.capitalizedBaseName = capBaseName.toString();
             this.dirName = dirName.toString();
+        }
+
+        @Override
+        public String getBaseName() {
+            return baseName;
+        }
+
+        @Override
+        public String getLowerBaseName() {
+            return lowerBaseName;
         }
 
         @Override
@@ -122,7 +155,7 @@ public abstract class Names {
             return dirName;
         }
 
-        private void append(String name, int start, int end, StringBuilder baseName, StringBuilder capBaseName, StringBuilder dirName) {
+        private void append(String name, int start, int end, StringBuilder baseName, StringBuilder lowerBaseName, StringBuilder capBaseName, StringBuilder dirName) {
             dirName.append(Character.toLowerCase(name.charAt(start)));
             dirName.append(name.substring(start + 1, end));
             dirName.append('/');
@@ -132,7 +165,10 @@ public abstract class Names {
                     baseName.append(name.substring(start + 1, end));
                 } else {
                     baseName.append(name.substring(start, end));
+                    lowerBaseName.append('-');
                 }
+                lowerBaseName.append(Character.toLowerCase(name.charAt(start)));
+                lowerBaseName.append(name.substring(start + 1, end));
                 capBaseName.append(Character.toUpperCase(name.charAt(start)));
                 capBaseName.append(name.substring(start + 1, end));
             }

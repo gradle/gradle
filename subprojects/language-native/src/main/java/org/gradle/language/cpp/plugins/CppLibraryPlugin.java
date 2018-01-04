@@ -37,6 +37,8 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
+import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
+import org.gradle.language.cpp.internal.DefaultCppStaticLibrary;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
 import org.gradle.language.internal.NativeComponentFactory;
@@ -146,12 +148,12 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                     // Define the outgoing publications
                     // TODO - move this to a shared location
 
-                    library.getBinaries().whenElementKnown(CppSharedLibrary.class, new Action<CppSharedLibrary>() {
+                    library.getBinaries().whenElementKnown(DefaultCppSharedLibrary.class, new Action<DefaultCppSharedLibrary>() {
                         @Override
-                        public void execute(CppSharedLibrary library) {
+                        public void execute(DefaultCppSharedLibrary library) {
                             Configuration linkElements = library.getLinkElements().get();
                             Configuration runtimeElements = library.getRuntimeElements().get();
-                            NativeVariant variant = new NativeVariant(library.getName(), linkUsage, linkElements, runtimeUsage, runtimeElements);
+                            NativeVariant variant = new NativeVariant(library.getNames(), linkUsage, linkElements, runtimeUsage, runtimeElements);
                             mainVariant.addVariant(variant);
                         }
                     });
@@ -170,12 +172,12 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                     // Define the outgoing publications
                     // TODO - move this to a shared location
 
-                    library.getBinaries().whenElementKnown(CppStaticLibrary.class, new Action<CppStaticLibrary>() {
+                    library.getBinaries().whenElementKnown(DefaultCppStaticLibrary.class, new Action<DefaultCppStaticLibrary>() {
                         @Override
-                        public void execute(CppStaticLibrary library) {
+                        public void execute(DefaultCppStaticLibrary library) {
                             Configuration linkElements = library.getLinkElements().get();
                             Configuration runtimeElements = library.getRuntimeElements().get();
-                            NativeVariant variant = new NativeVariant(library.getName(), linkUsage, linkElements, runtimeUsage, runtimeElements);
+                            NativeVariant variant = new NativeVariant(library.getNames(), linkUsage, linkElements, runtimeUsage, runtimeElements);
                             mainVariant.addVariant(variant);
                         }
                     });

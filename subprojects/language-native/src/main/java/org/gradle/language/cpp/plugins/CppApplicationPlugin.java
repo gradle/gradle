@@ -28,6 +28,7 @@ import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
+import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.cpp.internal.NativeVariant;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
@@ -87,11 +88,11 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
         // TODO - move this to a shared location
 
         final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
-        application.getBinaries().whenElementKnown(CppExecutable.class, new Action<CppExecutable>() {
+        application.getBinaries().whenElementKnown(DefaultCppExecutable.class, new Action<DefaultCppExecutable>() {
             @Override
-            public void execute(CppExecutable executable) {
+            public void execute(DefaultCppExecutable executable) {
                 Configuration runtimeElements = executable.getRuntimeElements().get();
-                NativeVariant variant = new NativeVariant(executable.getName(), runtimeUsage, runtimeElements.getAllArtifacts(), runtimeElements);
+                NativeVariant variant = new NativeVariant(executable.getNames(), runtimeUsage, runtimeElements.getAllArtifacts(), runtimeElements);
                 application.getMainPublication().addVariant(variant);
             }
         });
