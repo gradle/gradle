@@ -92,14 +92,14 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
         api.files.size() == 1
         api.files[0].name == 'cpp-api-headers.zip'
         api.files[0].url == 'test-1.2-cpp-api-headers.zip'
-        mainMetadata.variant("debugShared-link").availableAt.coords == "some.group:test_debug_shared:1.2"
-        mainMetadata.variant("debugShared-runtime").availableAt.coords == "some.group:test_debug_shared:1.2"
-        mainMetadata.variant("debugStatic-link").availableAt.coords == "some.group:test_debug_static:1.2"
-        mainMetadata.variant("debugStatic-runtime").availableAt.coords == "some.group:test_debug_static:1.2"
-        mainMetadata.variant("releaseShared-link").availableAt.coords == "some.group:test_release_shared:1.2"
-        mainMetadata.variant("releaseShared-runtime").availableAt.coords == "some.group:test_release_shared:1.2"
-        mainMetadata.variant("releaseStatic-link").availableAt.coords == "some.group:test_release_static:1.2"
-        mainMetadata.variant("releaseStatic-runtime").availableAt.coords == "some.group:test_release_static:1.2"
+        mainMetadata.variant("debug-shared-link").availableAt.coords == "some.group:test_debug_shared:1.2"
+        mainMetadata.variant("debug-shared-runtime").availableAt.coords == "some.group:test_debug_shared:1.2"
+        mainMetadata.variant("debug-static-link").availableAt.coords == "some.group:test_debug_static:1.2"
+        mainMetadata.variant("debug-static-runtime").availableAt.coords == "some.group:test_debug_static:1.2"
+        mainMetadata.variant("release-shared-link").availableAt.coords == "some.group:test_release_shared:1.2"
+        mainMetadata.variant("release-shared-runtime").availableAt.coords == "some.group:test_release_shared:1.2"
+        mainMetadata.variant("release-static-link").availableAt.coords == "some.group:test_release_static:1.2"
+        mainMetadata.variant("release-static-runtime").availableAt.coords == "some.group:test_release_static:1.2"
 
         def debugShared = repo.module('some.group', 'test_debug_shared', '1.2')
         debugShared.assertPublished()
@@ -111,8 +111,8 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
 
         def debugSharedMetadata = debugShared.parsedModuleMetadata
         debugSharedMetadata.variants.size() == 2
-        debugSharedMetadata.variant('debugShared-link')
-        debugSharedMetadata.variant('debugShared-runtime')
+        debugSharedMetadata.variant('debug-shared-link')
+        debugSharedMetadata.variant('debug-shared-runtime')
 
         def debugStatic = repo.module('some.group', 'test_debug_static', '1.2')
         debugStatic.assertPublished()
@@ -123,8 +123,8 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
 
         def debugStaticMetadata = debugStatic.parsedModuleMetadata
         debugStaticMetadata.variants.size() == 2
-        debugStaticMetadata.variant('debugStatic-link')
-        debugStaticMetadata.variant('debugStatic-runtime')
+        debugStaticMetadata.variant('debug-static-link')
+        debugStaticMetadata.variant('debug-static-runtime')
 
         def releaseShared = repo.module('some.group', 'test_release_shared', '1.2')
         releaseShared.assertPublished()
@@ -136,8 +136,8 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
 
         def releaseSharedMetadata = releaseShared.parsedModuleMetadata
         releaseSharedMetadata.variants.size() == 2
-        releaseSharedMetadata.variant('releaseShared-link')
-        releaseSharedMetadata.variant('releaseShared-runtime')
+        releaseSharedMetadata.variant('release-shared-link')
+        releaseSharedMetadata.variant('release-shared-runtime')
 
         def releaseStatic = repo.module('some.group', 'test_release_static', '1.2')
         releaseStatic.assertPublished()
@@ -148,8 +148,8 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
 
         def releaseStaticMetadata = releaseStatic.parsedModuleMetadata
         releaseStaticMetadata.variants.size() == 2
-        releaseStaticMetadata.variant('releaseStatic-link')
-        releaseStaticMetadata.variant('releaseStatic-runtime')
+        releaseStaticMetadata.variant('release-static-link')
+        releaseStaticMetadata.variant('release-static-runtime')
     }
 
     def "correct variant of published library is selected when resolving"() {

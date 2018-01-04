@@ -22,49 +22,83 @@ class NamesTest extends Specification {
     def "names for main"() {
         expect:
         def name = Names.of("main")
+        name.baseName == "main"
+        name.lowerBaseName == "main"
         name.getCompileTaskName("cpp") == "compileCpp"
         name.getTaskName("link") == "link"
-        name.getDirName() == "main/"
+        name.dirName == "main/"
         name.withPrefix("compile") == "compile"
         name.withSuffix("implementation") == "implementation"
     }
 
-    def "names for variants of main"() {
+    def "names for single dimension variant of main"() {
         expect:
         def name = Names.of("mainDebug")
+        name.baseName == "debug"
+        name.lowerBaseName == "debug"
         name.getCompileTaskName("cpp") == "compileDebugCpp"
         name.getTaskName("link") == "linkDebug"
-        name.getDirName() == "main/debug/"
+        name.dirName == "main/debug/"
         name.withPrefix("compile") == "compileDebug"
         name.withSuffix("implementation") == "debugImplementation"
+    }
+
+    def "names for multi-dimension variant of main"() {
+        expect:
+        def name = Names.of("mainDebugStatic")
+        name.baseName == "debugStatic"
+        name.lowerBaseName == "debug-static"
+        name.getCompileTaskName("cpp") == "compileDebugStaticCpp"
+        name.getTaskName("link") == "linkDebugStatic"
+        name.dirName == "main/debug/static/"
+        name.withPrefix("compile") == "compileDebugStatic"
+        name.withSuffix("implementation") == "debugStaticImplementation"
     }
 
     def "names for custom"() {
         expect:
         def name = Names.of("custom")
+        name.baseName == "custom"
+        name.lowerBaseName == "custom"
         name.getCompileTaskName("cpp") == "compileCustomCpp"
         name.getTaskName("link") == "linkCustom"
-        name.getDirName() == "custom/"
+        name.dirName == "custom/"
         name.withPrefix("compile") == "compileCustom"
         name.withSuffix("implementation") == "customImplementation"
     }
 
-    def "names for variants of custom"() {
+    def "names for single dimension variant of custom"() {
         expect:
         def name = Names.of("customRelease")
+        name.baseName == "customRelease"
+        name.lowerBaseName == "custom-release"
         name.getCompileTaskName("cpp") == "compileCustomReleaseCpp"
         name.getTaskName("link") == "linkCustomRelease"
-        name.getDirName() == "custom/release/"
+        name.dirName == "custom/release/"
         name.withPrefix("compile") == "compileCustomRelease"
         name.withSuffix("implementation") == "customReleaseImplementation"
+    }
+
+    def "names for multi-dimension variant of custom"() {
+        expect:
+        def name = Names.of("customReleaseStatic")
+        name.baseName == "customReleaseStatic"
+        name.lowerBaseName == "custom-release-static"
+        name.getCompileTaskName("cpp") == "compileCustomReleaseStaticCpp"
+        name.getTaskName("link") == "linkCustomReleaseStatic"
+        name.dirName == "custom/release/static/"
+        name.withPrefix("compile") == "compileCustomReleaseStatic"
+        name.withSuffix("implementation") == "customReleaseStaticImplementation"
     }
 
     def "names for test variants of custom"() {
         expect:
         def name = Names.of("customExecutable")
+        name.baseName == "custom"
+        name.lowerBaseName == "custom"
         name.getCompileTaskName("cpp") == "compileCustomCpp"
         name.getTaskName("link") == "linkCustom"
-        name.getDirName() == "custom/"
+        name.dirName == "custom/"
         name.withPrefix("compile") == "compileCustom"
         name.withSuffix("implementation") == "customImplementation"
     }
