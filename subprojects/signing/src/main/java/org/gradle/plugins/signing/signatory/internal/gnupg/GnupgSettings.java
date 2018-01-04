@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing.signatory.gnupg;
+package org.gradle.plugins.signing.signatory.internal.gnupg;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.os.OperatingSystem;
