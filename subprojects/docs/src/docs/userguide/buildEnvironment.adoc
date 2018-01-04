@@ -22,8 +22,8 @@ When configuring Gradle behavior you can use these methods, listed in order of h
 
 * <<command_line_interface, Command-line flags>> such as `--build-cache`. These have precedence over properties and environment variables.
 * <<sec:gradle_system_properties, System properties>> such as `systemProp.http.proxyHost=somehost.org` stored in a `gradle.properties` file.
-* <<sec:gradle_configuration_properties, Gradle properties>> such as `org.gradle.caching=true` that are typically stored in a `gradle.properties` file in a project root directory or `$GRADLE_USER_HOME`.
-* <<sec:gradle_environment_variables, Environment variables>> such as `$GRADLE_OPTS` sourced by the environment that executes Gradle.
+* <<sec:gradle_configuration_properties, Gradle properties>> such as `org.gradle.caching=true` that are typically stored in a `gradle.properties` file in a project root directory or `GRADLE_USER_HOME` environment variable.
+* <<sec:gradle_environment_variables, Environment variables>> such as `GRADLE_OPTS` sourced by the environment that executes Gradle.
 
 Aside from configuring the build environment, you can configure a given project build using <<sec:project_properties, Project properties>> such as `-PreleaseType=final`.
 
@@ -35,10 +35,10 @@ Gradle provides several options that make it easy to configure the Java process 
 Setting up a consistent environment for your build is as simple as placing these settings into a `gradle.properties` file. The configuration is applied in following order (if an option is configured in multiple locations the _last one wins_):
 
 * `gradle.properties` in project root directory.
-* `gradle.properties` in `$GRADLE_USER_HOME` directory.
+* `gradle.properties` in `GRADLE_USER_HOME` directory.
 * system properties, e.g. when `-Dgradle.user.home` is set on the command line.
 
-For multi-project builds you can place `gradle.properties` files in any subproject directory.
+For multi-project builds you can place `gradle.properties` files in any subproject directory; however, it is recommended to place one `gradle.properties` file in the project root.
 
 The following properties can be used to configure the Gradle build environment:
 
@@ -57,9 +57,9 @@ When set to `true`, Gradle will run the build with remote debugging enabled, lis
 `org.gradle.java.home=(path to JDK home)`::
 Specifies the Java home for the Gradle build process. The value can be set to either a `jdk` or `jre` location, however, depending on what your build does, using a JDK is safer. A reasonable default is used if the setting is unspecified.
 `org.gradle.jvmargs=(JVM arguments)`::
-Specifies the JVM arguments used for the forked processes like the Gradle Daemon and workers. The setting is particularly useful for tweaking memory settings. The default max memory is `-Xmx=1024m` for forked JVMs.
-`org.gradle.logging.level==(quiet,warn,lifecycle,info,debug)`::
-When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. See <<sec:choosing_a_log_level>>.
+Specifies the JVM arguments used for the forked processes like the Gradle Daemon and workers. The setting is particularly useful for <<sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance.
+`org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
+When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. The `lifecycle` level is the default. See <<sec:choosing_a_log_level>>.
 `org.gradle.parallel=(true,false)`::
 When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute projects in parallel. For limitations of this option please see <<sec:parallel_execution>>.
 `org.gradle.workers.max=(max # of worker processes)`::
@@ -79,11 +79,41 @@ You can use link:https://scans.gradle.com[build scans] to see what the build env
 
 image:img/build-scan-infrastructure.png[Build Environment in build scan]
 
-==== Forked Java processes
+[[sec:configuring_jvm_memory]]
+=== Configuring JVM memory
 
-Many settings (like the Java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle must launch a separate JVM process to execute the build after parsing the various `gradle.properties` files. When running with the daemon, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
+Gradle defaults to 1024 megabytes maximum heap per JVM process (`-Xmx1024m`), however, that may be too much or too little depending on the size of your project. There are many JVM options (this link:https://dzone.com/articles/java-performance-tuning[blog post on Java performance tuning] and link:http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html[this reference] may be helpful).
 
-This launching of an extra JVM on every build execution is quite expensive, which is why if you are setting either `org.gradle.java.home` or `org.gradle.jvmargs` we highly recommend that you use the <<gradle_daemon, Gradle Daemon>>.
+You can adjust JVM options for Gradle in the following ways:
+
+The `JAVA_OPTS` environment variable is used for the Gradle client, but not forked JVMs.
+
+.Changing JVM settings for Gradle client JVM
+====
+[source,properties]
+----
+JAVA_OPTS="-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+----
+====
+
+You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for forked JVM processes, including the Gradle Daemon and worker processes executed through api:org.gradle.workers.WorkerExecutor[]
+
+.Changing JVM settings for forked Gradle JVMs
+====
+[source,properties]
+----
+org.gradle.jvmargs=-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+----
+====
+
+[NOTE]
+====
+Many settings (like the Java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle must launch a separate JVM process to execute the build after parsing the various `gradle.properties` files.
+
+When running with the daemon, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
+====
+
+When using api:org.gradle.api.tasks.testing.Test#setMaxParallelForks[] for JUnit or TestNG tests, Gradle will fork test worker JVMs that you can configure through the `test` task. See examples in the api:org.gradle.api.tasks.testing.Test[] API documentation and <<sec:test_execution>>.
 
 [[sec:gradle_system_properties]]
 === System properties
@@ -170,6 +200,22 @@ If a project property is referenced but does not exist, an exception will be thr
 You should check for existence of optional project properties before you access them using the api:org.gradle.api.Project#hasProperty(java.lang.String)[] method.
 ====
 
+[[sec:configuring_task_using_project_properties]]
+=== Configuring a task using project properties
+
+It's possible to change the behavior of a task based on project properties specified at invocation time.
+
+Suppose you'd like to ensure release builds are only triggered by CI. A simple way to handle this is through an `isCI` project property.
+
+++++
+<sample id="configureTaskUsingProjectProperty" dir="userguide/tutorial/configureTaskUsingProjectProperty" title="Prevent releasing outside of CI">
+    <sourcefile file="build.gradle"/>
+    <output args="performRelease -PisCI=true --quiet"/>
+</sample>
+++++
+
+Here, the value of `isCI` is stored in an extra property so that it can be accessed by other parts of the Gradle build. You can read more about extra properties and how they compare to project properties in <<sec:extra_properties>> or in the api:org.gradle.api.plugins.ExtraPropertiesExtension[] API documentation.
+
 [[sec:accessing_the_web_via_a_proxy]]
 === Accessing the web through a HTTP proxy
 
@@ -212,17 +258,3 @@ If your proxy requires NTLM authentication, you may need to provide the authenti
 
 * Set the `http.proxyUser` system property to a value like `__domain__/__username__`.
 * Provide the authentication domain via the `http.auth.ntlm.domain` system property.
-
-[[sec:configuring_task_using_project_properties]]
-=== Configuring a task using project properties
-
-It's possible to change the behavior of a task based on project properties specified at invocation time.
-
-Suppose you'd like to ensure release builds are only triggered by CI. A simple way to handle this is through an `isCI` project property.
-
-++++
-<sample id="configureTaskUsingProjectProperty" dir="userguide/tutorial/configureTaskUsingProjectProperty" title="Prevent releasing outside of CI">
-    <sourcefile file="build.gradle"/>
-    <output args="performRelease -PisCI=true --quiet"/>
-</sample>
-++++
