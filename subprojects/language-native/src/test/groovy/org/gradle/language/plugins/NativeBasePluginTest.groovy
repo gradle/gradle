@@ -83,6 +83,7 @@ class NativeBasePluginTest extends Specification {
         when:
         binaries.add(b1)
         binaries.add(b2)
+        binaries.realizeNow()
 
         then:
         project.components.size() == 3
