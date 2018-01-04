@@ -20,10 +20,13 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import spock.lang.Unroll
 
 @Unroll
@@ -44,7 +47,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         result.buildCacheKey != null
-        result.inputHashes.keySet() == ['input1', 'input2'] as Set
+        result.inputHashes.keySet() == ['bean.class', 'input1', 'input2'] as Set
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
@@ -57,7 +60,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                     gradlePluginPortal()
                 }
                 dependencies {
-                    classpath "com.gradle:build-scan-plugin:1.9"
+                    classpath "${AutoAppliedBuildScanPlugin.GROUP}:${AutoAppliedBuildScanPlugin.NAME}:${AutoAppliedBuildScanPlugin.VERSION}"
                 }
             }
             
@@ -79,7 +82,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         result.buildCacheKey != null
-        result.inputHashes.keySet() == ['input1', 'input2'] as Set
+        result.inputHashes.keySet() == ['bean.class', 'input1', 'input2'] as Set
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
@@ -108,6 +111,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.containsKey("actionClassLoaderHashes") && result.actionClassLoaderHashes == null
         result.containsKey("actionClassNames") && result.actionClassNames == null
         result.containsKey("inputHashes") && result.inputHashes == null
+        result.containsKey("inputPropertiesLoadedByUnknownClassLoader") && result.inputPropertiesLoadedByUnknownClassLoader == null
         result.containsKey("outputPropertyNames") && result.outputPropertyNames == null
     }
 
@@ -128,6 +132,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassLoaderHashes != null
         result.actionClassNames != null
         result.containsKey("inputHashes") && result.inputHashes == null
+        result.containsKey("inputPropertiesLoadedByUnknownClassLoader") && result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames != null
     }
 
@@ -164,6 +169,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassLoaderHashes.last() == null
         result.actionClassNames != null
         result.inputHashes != null
+        result.containsKey("inputPropertiesLoadedByUnknownClassLoader") && result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames != null
     }
 
@@ -186,8 +192,37 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.containsKey("buildCacheKey") && result.buildCacheKey == null
-        result.containsKey("classLoaderHash") && result.classLoaderHash != null
+        result.classLoaderHash != null
         result.actionClassLoaderHashes.last() == null
+        result.actionClassNames != null
+        result.inputHashes != null
+        result.containsKey("inputPropertiesLoadedByUnknownClassLoader") && result.inputPropertiesLoadedByUnknownClassLoader == null
+        result.outputPropertyNames != null
+    }
+
+    def "handles invalid nested bean classloader"() {
+        given:
+        buildScript """
+            ${customTaskCode('foo', 'bar')}
+            def classLoader = new GroovyClassLoader(this.class.classLoader)
+            def c = classLoader.parseClass ''' 
+                class A {
+                    @$Input.name
+                    String input = 'nested'
+                }
+            '''
+            customTask.bean = c.newInstance()
+        """
+
+        when:
+        succeeds('customTask', '--build-cache')
+
+        then:
+        def result = operations.first(SnapshotTaskInputsBuildOperationType).result
+        result.containsKey("buildCacheKey") && result.buildCacheKey == null
+        result.inputPropertiesLoadedByUnknownClassLoader == ["bean"]
+        result.classLoaderHash != null
+        result.actionClassLoaderHashes != null
         result.actionClassNames != null
         result.inputHashes != null
         result.outputPropertyNames != null
@@ -224,7 +259,11 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 void generate() {
                     outputFile1.text = "done1"
                     outputFile2.text = "done2"
-                }
+                }   
+
+                @$Nested.name
+                @$Optional.name
+                Object bean
             }
 
         """

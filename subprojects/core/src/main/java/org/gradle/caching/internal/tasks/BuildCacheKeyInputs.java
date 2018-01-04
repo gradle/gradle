@@ -65,6 +65,10 @@ public class BuildCacheKeyInputs {
         return inputHashes;
     }
 
+    public ImmutableSortedSet<String> getInputPropertiesLoadedByUnknownClassLoader() {
+        return inputPropertiesLoadedByUnknownClassLoader;
+    }
+
     @Nullable
     public HashCode getClassLoaderHash() {
         return classLoaderHash;
