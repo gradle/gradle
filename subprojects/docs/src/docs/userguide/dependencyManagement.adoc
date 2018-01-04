@@ -55,7 +55,7 @@ Gradle builds can declare dependencies on external binaries, raw files and other
 [[sec:declaring_binary_dependency]]
 ==== Declaring a binary dependency
 
-Modern software projects rarely build code in isolation. Projects reference external libraries for the purpose of reusing existing and proven functionality, so-called _binary dependencies_. A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework]. Spring supports a variety of features, from dependency injection to web functionality. Upon resolution binary dependencies are downloaded from dedicated repositories and stored in a cache to avoid unnecessary network traffic.
+Modern software projects rarely build code in isolation. Projects reference external libraries for the purpose of reusing existing and proven functionality, so-called _binary dependencies_. Upon resolution binary dependencies are downloaded from dedicated repositories and stored in a cache to avoid unnecessary network traffic.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -68,7 +68,7 @@ Modern software projects rarely build code in isolation. Projects reference exte
 
 ===== Declaring a concrete version of a binary dependency
 
-The following code snippet declares a compile-time dependency on the Spring web module by its coordinates: `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the dependency including its transitive dependencies at runtime from the link:https://search.maven.org/[Maven Central repository] and uses it to compile Java source code. The version attribute of the dependency coordinates points to a _concrete version_ indicating that the underlying artifacts don't change over time. The use of concrete versions ensures reproducibility for the aspect of dependency resolution.
+A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework]. The following code snippet declares a compile-time dependency on the Spring web module by its coordinates: `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the dependency including its transitive dependencies at runtime from the link:https://search.maven.org/[Maven Central repository] and uses it to compile Java source code. The version attribute of the dependency coordinates points to a _concrete version_ indicating that the underlying artifacts don't change over time. The use of concrete versions ensures reproducibility for the aspect of dependency resolution.
 
 ++++
 <sample id="binary-dependencies-concrete-version" dir="userguide/dependencies/declaringBinaryDependenciesWithConcreteVersion" title="Declaring a binary dependencies with a concrete version">
