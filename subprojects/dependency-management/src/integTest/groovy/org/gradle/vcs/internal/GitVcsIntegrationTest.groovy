@@ -389,5 +389,76 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         cleanup:
         server.stop()
     }
+
+    def "external modifications to source dependency directories are reset"() {
+        given:
+        repo.file('foo').text = "bar"
+        def commit = repo.commit('initial commit')
+
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds('assemble')
+
+        then:
+        // Git repo is cloned
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
+        gitCheckout.file('foo').text == "bar"
+
+        when:
+        repo.file('foo').text = "baz"
+        succeeds('assemble')
+
+        then:
+        gitCheckout.file('foo').text == "bar"
+    }
+
+    def "external modifications to source dependency submodule directories are reset"() {
+        given:
+        // Populate submodule origin
+        deeperRepo.file('foo').text = "bar"
+        deeperRepo.commit("initial commit", "foo")
+        // Add submodule to repo
+        repo.addSubmodule(deeperRepo)
+        def commit = repo.commit('initial commit')
+
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds('assemble')
+
+        then:
+        // Git repo is cloned
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
+        gitCheckout.file('deeperDep/foo').text == "bar"
+
+        when:
+        deeperRepo.file('deeperDep/foo').text = "baz"
+        succeeds('assemble')
+
+        then:
+        gitCheckout.file('deeperDep/foo').text == "bar"
+    }
+
     // TODO: Use HTTP hosting for git repo
 }
