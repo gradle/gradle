@@ -1,5 +1,5 @@
 [[repository_types]]
-== Repository types
+== Repository Types
 
 [[sec:flat_dir_resolver]]
 === Flat directory repository
