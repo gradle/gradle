@@ -139,6 +139,42 @@ When executed with `--continue`, Gradle will execute _every_ task to be executed
 
 If a task fails, any subsequent tasks that were depending on it will not be executed. For example, tests will not run if there is a compilation failure in the code under test; because the test task will depend on the compilation task (either directly or indirectly).
 
+=== Common tasks
+
+The following are task conventions applied by built-in and most major Gradle plugins.
+
+==== Computing all outputs
+
+It is common in Gradle builds for the `build` task to designate assembling all outputs and running all checks.
+
+----
+❯ gradle build
+----
+
+==== Running applications
+
+It is common for applications to be run with the `run` task, which assembles the application and executes some script or binary.
+
+----
+❯ gradle run
+----
+
+==== Running all checks
+
+It is common for _all_ verification tasks, including tests and linting, to be executed using the `check` task.
+
+----
+❯ gradle check
+----
+
+==== Cleaning outputs
+
+You can delete the contents of the build directory using the `clean` task, though doing so will cause pre-computed outputs to be lost, causing significant additional build time for the subsequent task execution.
+
+----
+❯ gradle clean
+----
+
 [[sec:command_line_completion]]
 === Command-Line completion
 
@@ -475,39 +511,3 @@ You can get a hierarchical view of elements for <<software_model,software model>
 ----
 
 Learn more about <<model-report,the model report>> in the software model documentation.
-
-=== Common tasks
-
-The following are task conventions applied by built-in and most major Gradle plugins.
-
-==== Computing all outputs
-
-It is common in Gradle builds for the `build` task to designate assembling all outputs and running all checks.
-
-----
-❯ gradle build
-----
-
-==== Running applications
-
-It is common for applications to be run with the `run` task, which assembles the application and executes some script or binary.
-
-----
-❯ gradle run
-----
-
-==== Running all checks
-
-It is common for _all_ verification tasks, including tests and linting, to be executed using the `check` task.
-
-----
-❯ gradle check
-----
-
-==== Cleaning outputs
-
-You can delete the contents of the build directory using the `clean` task, though doing so will cause pre-computed outputs to be lost, causing significant additional build time for the subsequent task execution.
-
-----
-❯ gradle clean
-----
