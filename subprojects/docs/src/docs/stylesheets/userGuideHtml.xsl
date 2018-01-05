@@ -26,6 +26,7 @@
     <xsl:param name="generate.toc">
         part toc,title
         chapter toc,title
+        appendix toc,title
     </xsl:param>
 
     <!--
