@@ -14,38 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.cpp.plugins
+package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.language.AbstractNativeDependenciesIntegrationTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
-
-class CppUnitTestDependenciesIntegrationTest extends AbstractNativeDependenciesIntegrationTest {
+@Requires(TestPrecondition.SWIFT_SUPPORT)
+class XCTestDependenciesIntegrationTest extends AbstractNativeDependenciesIntegrationTest {
     @Override
     protected void makeComponentWithLibrary() {
         buildFile << """
-            apply plugin: 'cpp-unit-test'
+            apply plugin: 'xctest'
             project(':lib') {
-                apply plugin: 'cpp-library'
+                apply plugin: 'swift-library'
             }
 """
-        file("src/test/cpp/main.cpp") << """
-            int main() { return 0; }
+        file("src/test/swift/Test.swift") << """
+            class Test {
+            }
 """
-        file("lib/src/main/cpp/lib.cpp") << """
-            #ifdef _WIN32
-            #define EXPORT_FUNC __declspec(dllexport)
-            #else
-            #define EXPORT_FUNC
-            #endif
-            
-            void EXPORT_FUNC lib_func() { }
+        file("lib/src/main/swift/Lib.swift") << """
+            class Lib {
+            }
 """
-
     }
 
     @Override
     protected String getComponentUnderTestDsl() {
-        return "unitTest"
+        return "xctest"
     }
 
     @Override
@@ -55,11 +52,11 @@ class CppUnitTestDependenciesIntegrationTest extends AbstractNativeDependenciesI
 
     @Override
     protected List<String> getAssembleDevBinaryTasks() {
-        return [":compileTestCpp", ":linkTest"]
+        return [":compileTestSwift", ":linkTest"]
     }
 
     @Override
     protected List<String> getLibDebugTasks() {
-        return [":lib:compileDebugCpp", ":lib:linkDebug"]
+        return [":lib:compileDebugSwift", ":lib:linkDebug"]
     }
 }
