@@ -21,6 +21,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildCacheFixture
 import org.gradle.util.ToBeImplemented
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class NestedInputIntegrationTest extends AbstractIntegrationSpec implements BuildCacheFixture {
@@ -555,6 +556,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Buil
         buildFile << """
             class TaskWithNestedIterable extends DefaultTask {
                 @Nested
+                @Optional
                 Iterable<Object> beans
             }
             
@@ -616,6 +618,42 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Buil
         run task, '-Pinput=changed'
         then:
         executedAndNotSkipped task
+    }
+
+    @Ignore
+    @ToBeImplemented("A cycle in nested properties currently causes the build to never terminate")
+    def "recursive nested bean causes build to fail"() {
+        buildFile << """
+            class TaskWithNestedInput extends DefaultTask {
+                @Nested
+                Object nested
+                
+                @Input
+                String input = "Hello"
+                
+                @OutputFile
+                File outputFile
+                
+                @TaskAction
+                void doStuff() {
+                    outputFile.text = input
+                }
+            }            
+            
+            class NestedBean {
+                @Nested
+                NestedBean nested
+            }
+            
+            task myTask(type: TaskWithNestedInput) {
+                outputFile = file('build/output.txt')
+                nested = new NestedBean()
+                nested.nested = nested
+            }            
+        """
+
+        expect:
+        fails "myTask"
     }
 
     def "task with nested bean loaded with custom classloader is not cached"() {
