@@ -175,6 +175,110 @@ You can delete the contents of the build directory using the `clean` task, thoug
 ❯ gradle clean
 ----
 
+[[sec:command_line_project_reporting]]
+=== Project reporting
+
+Gradle provides several built-in tasks which show particular details of your build. This can be useful for understanding the structure and dependencies of your build, and for debugging problems.
+
+You can get basic help about available reporting options using `gradle help`.
+
+==== Listing projects
+
+Running `gradle projects` gives you a list of the sub-projects of the selected project, displayed in a hierarchy.
+
+----
+❯ gradle projects
+----
+
+You also get a project report within build scans. Learn more about https://guides.gradle.org/creating-build-scans/[creating build scans].
+
+==== Listing tasks
+
+Running `gradle tasks` gives you a list of the main tasks of the selected project. This report shows the default tasks for the project, if any, and a description for each task.
+
+----
+❯ gradle tasks
+----
+
+By default, this report shows only those tasks which have been assigned to a task group. You can obtain more information in the task listing using the `--all` option.
+
+----
+❯ gradle tasks --all
+----
+
+[[sec:show_task_details]]
+==== Show task usage details
+
+Running `gradle help --task someTask` gives you detailed information about a specific task.
+
+++++
+<sample id="taskHelp" dir="userguide/tutorial/projectReports" title="Obtaining detailed help for tasks">
+    <output args="-q help --task libs"/>
+</sample>
+++++
+
+This information includes the full task path, the task type, possible command line options and the description of the given task.
+
+==== Reporting dependencies
+
+Build scans give a full, visual report of what project and binary dependencies exist on which configurations, transitive dependencies, and dependency version selection.
+
+----
+❯ gradle myTask --scan
+----
+
+This will give you a link to a web-based report, where you can find dependency information like this.
+
+image::img/gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
+
+Learn more in <<sec:inspecting_dependencies>>.
+
+==== Listing project dependencies
+
+Running `gradle dependencies` gives you a list of the dependencies of the selected project, broken down by configuration. For each configuration, the direct and transitive dependencies of that configuration are shown in a tree. Below is an example of this report:
+
+----
+❯ gradle dependencies
+----
+
+Concrete examples of build scripts and output available in the <<dependency_management, dependency management chapter>>.
+
+Running `gradle buildEnvironment` visualises the buildscript dependencies of the selected project, similarly to how `gradle dependencies` visualizes the dependencies of the software being built.
+
+----
+❯ gradle buildEnvironment
+----
+
+Running `gradle dependencyInsight` gives you an insight into a particular dependency (or dependencies) that match specified input.
+
+----
+❯ gradle dependencyInsight
+----
+
+Since a dependency report can get large, it can be useful to restrict the report to a particular configuration. This is achieved with the optional `--configuration` parameter:
+
+[[sec:listing_properties]]
+==== Listing project properties
+
+Running `gradle properties` gives you a list of the properties of the selected project.
+
+++++
+<sample id="propertyListReport" dir="userguide/tutorial/projectReports" title="Information about properties">
+    <output args="-q api:properties" ignoreExtraLines="true"/>
+</sample>
+++++
+
+==== Software Model reports
+
+You can get a hierarchical view of elements for <<software_model,software model>> projects using the `model` task:
+
+----
+❯ gradle model
+----
+
+Learn more about <<model-report,the model report>> in the software model documentation.
+
+
 [[sec:command_line_completion]]
 === Command-line completion
 
@@ -406,108 +510,3 @@ Set JVM arguments.
 
 `-Dorg.gradle.java.home`::
 Set JDK home dir.
-
-[[sec:command_line_project_reporting]]
-=== Project reporting
-
-Gradle provides several built-in tasks which show particular details of your build. This can be useful for understanding the structure and dependencies of your build, and for debugging problems.
-
-You can get basic help about available reporting options using `gradle help`.
-
-==== Listing projects
-
-Running `gradle projects` gives you a list of the sub-projects of the selected project, displayed in a hierarchy.
-
-----
-❯ gradle projects
-----
-
-You also get a project report within build scans. Learn more about https://guides.gradle.org/creating-build-scans/[creating build scans].
-
-==== Listing tasks
-
-Running `gradle tasks` gives you a list of the main tasks of the selected project. This report shows the default tasks for the project, if any, and a description for each task.
-
-----
-❯ gradle tasks
-----
-
-By default, this report shows only those tasks which have been assigned to a task group. You can obtain more information in the task listing using the `--all` option.
-
-----
-❯ gradle tasks --all
-----
-
-[[sec:show_task_details]]
-==== Show task usage details
-
-Running `gradle help --task someTask` gives you detailed information about a specific task.
-
-++++
-<sample id="taskHelp" dir="userguide/tutorial/projectReports" title="Obtaining detailed help for tasks">
-    <output args="-q help --task libs"/>
-</sample>
-++++
-
-This information includes the full task path, the task type, possible command line options and the description of the given task.
-
-==== Reporting dependencies
-
-Build scans give a full, visual report of what project and binary dependencies exist on which configurations, transitive dependencies, and dependency version selection.
-
-----
-❯ gradle myTask --scan
-----
-
-This will give you a link to a web-based report, where you can find dependency information like this.
-
-image::img/gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
-
-==== Listing project dependencies
-
-Running `gradle dependencies` gives you a list of the dependencies of the selected project, broken down by configuration. For each configuration, the direct and transitive dependencies of that configuration are shown in a tree. Below is an example of this report:
-
-----
-❯ gradle dependencies
-----
-
-Running `gradle buildEnvironment` visualises the buildscript dependencies of the selected project, similarly to how `gradle dependencies` visualizes the dependencies of the software being built.
-
-----
-❯ gradle buildEnvironment
-----
-
-Running `gradle dependencyInsight` gives you an insight into a particular dependency (or dependencies) that match specified input.
-
-----
-❯ gradle dependencyInsight
-----
-
-Since a dependency report can get large, it can be useful to restrict the report to a particular configuration. This is achieved with the optional `--configuration` parameter:
-
-++++
-<sample id="dependencyListReportFiltered" dir="userguide/tutorial/projectReports" title="Filtering dependency report by configuration">
-    <output args="-q api:dependencies --configuration testCompile"/>
-</sample>
-++++
-
-[[sec:listing_properties]]
-==== Listing project properties
-
-Running `gradle properties` gives you a list of the properties of the selected project.
-
-++++
-<sample id="propertyListReport" dir="userguide/tutorial/projectReports" title="Information about properties">
-    <output args="-q api:properties" ignoreExtraLines="true"/>
-</sample>
-++++
-
-==== Software Model reports
-
-You can get a hierarchical view of elements for <<software_model,software model>> projects using the `model` task:
-
-----
-❯ gradle model
-----
-
-Learn more about <<model-report,the model report>> in the software model documentation.
