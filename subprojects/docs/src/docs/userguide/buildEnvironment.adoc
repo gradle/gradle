@@ -59,7 +59,7 @@ Specifies the JVM arguments used for the forked processes like the Gradle Daemon
 `org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. The `lifecycle` level is the default. See <<sec:choosing_a_log_level>>.
 `org.gradle.parallel=(true,false)`::
-When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute projects in parallel. For limitations of this option please see <<sec:parallel_execution>>.
+When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute projects in parallel. To learn more about parallel task execution, see link:https://guides.gradle.org/performance/#parallel_execution[the Gradle performance guide].
 `org.gradle.warning.mode=(all,none,summary)`::
 When set to `all`, `summary` or `none`, Gradle will use different warning type display. See <<sec:command_line_logging>> for details.
 `org.gradle.workers.max=(max # of worker processes)`::
