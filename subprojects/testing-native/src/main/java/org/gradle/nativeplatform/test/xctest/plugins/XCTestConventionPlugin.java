@@ -260,7 +260,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
 
                     linkTest.source(unexportMainSymbol.getObjects());
                 } else {
-
                     linkTest.source(testedBinary.getObjects());
                 }
             }

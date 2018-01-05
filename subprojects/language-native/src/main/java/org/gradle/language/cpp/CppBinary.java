@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithDependencies;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
 import org.gradle.nativeplatform.Linkage;
@@ -30,7 +31,7 @@ import org.gradle.nativeplatform.Linkage;
  * @since 4.2
  */
 @Incubating
-public interface CppBinary extends ComponentWithObjectFiles {
+public interface CppBinary extends ComponentWithObjectFiles, ComponentWithDependencies {
     /**
      * The dependency resolution attribute use to indicate whether a binary is debuggable or not.
      */

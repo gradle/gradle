@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,24 @@
 
 package org.gradle.language;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.file.FileCollection;
 
 /**
- * Represents a component with output files.
+ * Represents a component with implementation dependencies.
  *
- * @since 4.5
+ * @since 4.6
  */
 @Incubating
-public interface ComponentWithOutputs extends SoftwareComponent {
+public interface ComponentWithDependencies extends SoftwareComponent {
     /**
-     * Returns the outputs produced for this component.
+     * Returns the dependencies of this component.
      */
-    FileCollection getOutputs();
+    ComponentDependencies getDependencies();
+
+    /**
+     * Executes the given action to configure the dependencies of this component.
+     */
+    void dependencies(Action<? super ComponentDependencies> action);
 }

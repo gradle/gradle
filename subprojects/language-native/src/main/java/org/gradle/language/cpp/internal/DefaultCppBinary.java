@@ -16,10 +16,12 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
@@ -33,6 +35,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.language.ComponentDependencies;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.tasks.CppCompile;
@@ -62,7 +65,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Property<CppCompile> compileTaskProperty;
     private final Configuration implementation;
 
-    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+    public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name);
         this.baseName = baseName;
         this.debuggable = debuggable;
@@ -72,12 +75,16 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
-        this.implementation = implementation;
         this.compileTaskProperty = objects.property(CppCompile.class);
 
         Names names = getNames();
 
         // TODO - reduce duplication with Swift binary
+        this.implementation = configurations.create(name + "Implementation");
+        implementation.setCanBeConsumed(false);
+        implementation.setCanBeResolved(false);
+        implementation.extendsFrom(componentImplementation);
+
         Configuration includePathConfig = configurations.create(names.withPrefix("cppCompile"));
         includePathConfig.setCanBeConsumed(false);
         includePathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
@@ -104,6 +111,26 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         includePath = componentHeaderDirs.plus(new FileCollectionAdapter(new IncludePath(includePathConfig)));
         linkLibraries = nativeLink;
         runtimeLibraries = nativeRuntime;
+    }
+
+    @Override
+    public ComponentDependencies getDependencies() {
+        return new ComponentDependencies() {
+            @Override
+            public void implementation(Object notation) {
+                implementation.getDependencies().add(getDependencyHandler().create(notation));
+            }
+        };
+    }
+
+    @Override
+    public void dependencies(Action<? super ComponentDependencies> action) {
+        action.execute(getDependencies());
+    }
+
+    @Inject
+    protected DependencyHandler getDependencyHandler() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
