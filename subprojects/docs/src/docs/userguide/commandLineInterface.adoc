@@ -88,10 +88,10 @@ When executing the Gradle Wrapper from subprojects, one must reference `gradlew`
 ====
 
 ==== Executing multiple tasks
-You can also specify multiple tasks. For example, the following will execute the `compile` and `test` tasks in the order that they are listed on the command-line and will also execute the dependencies for each task.
+You can also specify multiple tasks. For example, the following will execute the `test` and `deploy` tasks in the order that they are listed on the command-line and will also execute the dependencies for each task.
 
 ----
-❯ gradle compile test
+❯ gradle test deploy
 ----
 
 [[sec:excluding_tasks_from_the_command_line]]
