@@ -16,6 +16,7 @@
 
 package org.gradle.api.logging.configuration;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
 
 /**
@@ -43,6 +44,20 @@ public interface LoggingConfiguration {
      * Specifies the style of logging output that should be written to the console.
      */
     void setConsoleOutput(ConsoleOutput consoleOutput);
+
+    /**
+     * Specifies which type of warnings should be written to the console.
+     * @since 4.5
+     */
+    @Incubating
+    WarningMode getWarningMode();
+
+    /**
+     * Specifies which type of warnings should be written to the console.
+     * @since 4.5
+     */
+    @Incubating
+    void setWarningMode(WarningMode warningMode);
 
     /**
      * Returns the detail that should be included in stacktraces. Defaults to {@link ShowStacktrace#INTERNAL_EXCEPTIONS}.

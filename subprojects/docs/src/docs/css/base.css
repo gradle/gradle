@@ -104,7 +104,7 @@ h3 {
 
 h4, h5, h6 {
     margin-top: 1rem;
-    font-size: 1rem;
+    font-size: 1.0625rem;
 }
 
 p {
@@ -784,6 +784,7 @@ h3.releaseinfo {
 
 /* Fixed intra-chapter navigation for desktops */
 @media screen and (min-width: 75rem) {
+    .book .toc,
     .chapter .toc {
         position: fixed;
         left: calc(50% + 380px);
@@ -795,21 +796,26 @@ h3.releaseinfo {
     }
 
     /* Replace TOC header only on desktop */
+    .book .toc:before,
     .chapter .toc:before {
         content: "Contents";
         display: block;
         font-weight: 500;
         margin: 0.4rem 0 0.625rem 0;
     }
+
+    .book .toc p:first-of-type,
     .chapter .toc p:first-of-type {
         display: none;
     }
 
+    .book .toc a,
     .chapter .toc a {
         color: #02303A;
         opacity: 0.7;
     }
 
+    .book .toc a.active,
     .chapter .toc a.active {
         color: #1BA8C4;
         opacity: 1.0;
@@ -840,6 +846,7 @@ h3.releaseinfo {
 }
 
 @media screen and (min-width: 84.375rem) {
+    .book .toc,
     .chapter .toc {
         left: calc(50% + 26.25rem);
     }
@@ -851,6 +858,7 @@ h3.releaseinfo {
 }
 
 @media screen and (min-width: 93.75rem) {
+    .book .toc,
     .chapter .toc {
         left: calc(50% + 31.25rem);
     }
@@ -864,15 +872,19 @@ h3.releaseinfo {
 /*
  * Table of Contents
  */
+.book .toc p,
 .chapter .toc p {
     font-size: 1em;
 }
 
+.book .toc dl dt,
+.book .toc a,
 .chapter .toc dl dt,
 .chapter .toc a {
     line-height: 1.0;
 }
 
+.book .toc dl dt,
 .chapter .toc dl dt {
     padding-bottom: 0.625rem;
 }
@@ -888,26 +900,6 @@ h3.releaseinfo {
 
 .toc dl, .list-of-examples dl {
     margin-left: 0;
-}
-
-
-.book .toc > dl > dt {
-    margin-top: 0.6em;
-}
-
-.book .toc > dl > dt > .part {
-    display: inline-block;
-    font-size: 1.25em;
-    margin-top: 0.6em;
-    margin-bottom: 0.3em;
-}
-
-.book .toc > dl > dd {
-    margin-left: 0;
-}
-
-.book .toc, .book .list-of-examples {
-    margin-top: 1.5em;
 }
 
 .navheader, .navfooter, .navbar {

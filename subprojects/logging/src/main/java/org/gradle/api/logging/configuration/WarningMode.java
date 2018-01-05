@@ -14,8 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.api.logging.configuration;
 
-public interface PropertyMetadataStore {
-    <T> TypeMetadata getTypeMetadata(Class<T> type);
+import org.gradle.api.Incubating;
+
+/**
+ * Specifies the warning mode a user wants to see.
+ *
+ * @since 4.5
+ */
+@Incubating
+public enum WarningMode {
+    /**
+     * Show all warnings.
+     */
+    All,
+
+    /**
+     * Display a summary at the end of the build instead of rendering all warnings into the console output.
+     */
+    Summary,
+
+    /**
+     * No deprecation warnings at all.
+     */
+    None
 }

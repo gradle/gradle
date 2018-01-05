@@ -46,13 +46,13 @@ Many long-form options, have short option equivalents. The following are equival
 
 [NOTE]
 ====
-Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed. See the <<sec:gradle_properties_and_system_properties, configuring build environment guide>> for details.
+Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed. See the <<sec:gradle_configuration_properties, configuring build environment guide>> for details.
 ====
 
 The following sections describe use of the Gradle command-line interface, grouped roughly by user goal. Some plugins also add their own command line options, for example <<test_filtering,`--tests` for Java test filtering>>.
 
 [[sec:command_line_executing_tasks]]
-=== Executing Tasks
+=== Executing tasks
 
 You can run a task and all of its dependencies.
 ----
@@ -116,7 +116,7 @@ You can exclude a task from being executed using the `-x` or `--exclude-task` co
 You can see that the `test` task is not executed, even though it is a dependency of the `dist` task. The `test` task's dependencies such as `compileTest` are not executed either. Those dependencies of `test` that are required by another task, such as `compile`, are still executed.
 
 [[sec:rerun_tasks]]
-==== Forcing Tasks To Execute
+==== Forcing tasks to execute
 
 You can force Gradle to execute all tasks ignoring <<sec:up_to_date_checks,up-to-date checks>> using the `--rerun-tasks` option:
 
@@ -127,7 +127,7 @@ You can force Gradle to execute all tasks ignoring <<sec:up_to_date_checks,up-to
 This will force `test` and _all_ task dependencies of `test` to execute. It's a little like running `gradle clean test`, but without the build's generated output being deleted.
 
 [[sec:continue_build_on_failure]]
-==== Continuing the Build When a Failure Occurs
+==== Continuing the build when a failure occurs
 
 By default, Gradle will abort execution and fail the build as soon as any task fails. This allows the build to complete sooner, but hides other failures that would have occurred. In order to discover as many failures as possible in a single build execution, you can use the `--continue` option.
 
@@ -140,7 +140,7 @@ When executed with `--continue`, Gradle will execute _every_ task to be executed
 If a task fails, any subsequent tasks that were depending on it will not be executed. For example, tests will not run if there is a compilation failure in the code under test; because the test task will depend on the compilation task (either directly or indirectly).
 
 [[sec:command_line_completion]]
-=== Command-Line Completion
+=== Command-Line completion
 
 Gradle provides bash and zsh tab completion support for tasks, options, and Gradle properties through https://github.com/gradle/gradle-completion[gradle-completion], installed separately.
 
@@ -154,7 +154,7 @@ Gradle provides bash and zsh tab completion support for tasks, options, and Grad
 ++++
 
 [[sec:command_line_debugging]]
-=== Debugging Options
+=== Debugging options
 
 `-?`, `-h`, `--help`::
 Shows a help message with all available CLI options.
@@ -178,10 +178,10 @@ Debug Gradle client (non-Daemon) process. Gradle will wait for you to attach a d
 Debug <<gradle_daemon, Gradle Daemon>> process.
 
 [[sec:command_line_performance]]
-=== Performance Options
+=== Performance options
 Try these options when optimizing build performance. Learn more about https://guides.gradle.org/performance/[improving performance of Gradle builds here].
 
-Many of these options can be specified in `gradle.properties` so command-line flags are not necessary. See the <<sec:gradle_properties_and_system_properties, configuring build environment guide>>.
+Many of these options can be specified in `gradle.properties` so command-line flags are not necessary. See the <<sec:gradle_configuration_properties, configuring build environment guide>>.
 
 `--build-cache`, `--no-build-cache`::
 Toggles the <<build_cache, Gradle build cache>>. Gradle will try to reuse outputs from previous builds. _Default is off_.
@@ -203,7 +203,7 @@ Generate a build scan with detailed performance diagnostics.
 
 image:img/gradle-core-test-build-scan-performance.png[Build Scan performance report]
 
-==== Gradle Daemon
+==== Gradle daemon options
 You can manage the <<gradle_daemon,Gradle Daemon>> through the following command line options.
 
 `--daemon`, `--no-daemon`::
@@ -223,12 +223,12 @@ Gradle Daemon will stop itself after this number of milliseconds of idle time. _
 
 
 [[sec:command_line_logging]]
-=== Logging Options
+=== Logging options
 
-==== Setting Log Level
+==== Setting log level
 You can customize the verbosity of Gradle logging with the following options, ordered from least verbose to most verbose. Learn more in the <<logging, logging documentation>>.
 
-`-Dorg.gradle.logging.level=(quiet warn lifecycle info debug)`::
+`-Dorg.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 Set logging level via Gradle properties.
 
 `-q`, `--quiet`::
@@ -245,7 +245,7 @@ Log in debug mode (includes normal stacktrace).
 
 Lifecycle is the default log level.
 
-==== Customizing Log Format
+==== Customizing log format
 You can control the use of rich output (colors and font variants) by specifying the "console" mode in the following ways:
 
 `-Dorg.gradle.console=(auto,plain,rich,verbose)`::
@@ -262,8 +262,28 @@ Set to `rich` to enable color and other rich output in the console output, regar
 +
 Set to `verbose` to enable color and other rich output like the `rich`, but output task names and outcomes at the lifecycle log level, as is done by default in Gradle 3.5 and earlier.
 
-==== Rich Console
+==== Showing or hiding warnings
+By default, Gradle won't display all warnings (e.g. deprecation warnings). Instead, Gradle will collect them and render a summary at the end of the build like:
 
+----
+There're <number> deprecation warnings, which may break the build in Gradle 5.0. Please run with --warning-mode=all to see them.
+----
+
+You can control the verbosity of warnings on the console with the following options:
+
+`-Dorg.gradle.warning.mode=(all,none,summary)`::
+Specify warning mode via <<sec:gradle_properties, Gradle properties>>. Different modes described immediately below.
+
+`--warning-mode=(all,none,summary)`::
+Specifies how to log warnings. Default is `summary`.
++
+Set to `all` to log all warnings.
++
+Set to `summary` to suppress all warnings and log a summary at the end of the build.
++
+Set to `none` to suppress all warnings, including the summary at the end of the build.
+
+==== Rich Console
 Gradle's rich console displays extra information while builds are running.
 
 image::img/rich-cli.png[alt="Gradle Rich Console"]
@@ -274,7 +294,8 @@ Features:
  * Progress bar and timer visually describe overall status
  * Parallel work-in-progress lines below describe what is happening now
 
-=== Execution Options
+[[sec:command_line_execution_options]]
+=== Execution options
 The following options affect how builds are executed, by changing what is built or how dependencies are resolved.
 
 `--include-build`::
@@ -290,7 +311,7 @@ Refresh the state of dependencies. Learn more about how to use this in the depen
 Run Gradle with all task actions disabled. Use this to show which task would have executed.
 
 [[sec:command_line_bootstrapping_projects]]
-=== Bootstrapping New Projects
+=== Bootstrapping new projects
 
 ==== Creating new Gradle builds
 Use the built-in `gradle init` task to create a new Gradle builds, with new or existing projects.
@@ -314,7 +335,7 @@ The built-in `gradle wrapper` task generates a script, `gradlew`, that invokes a
 
 You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. Full details on how to use these options are documented in the <<gradle_wrapper,Gradle wrapper section>>.
 
-=== Environment Options
+=== Environment options
 You can customize many aspects about where build scripts, settings, caches, and so on through the options below. Learn more about customizing your <<build_environment, build environment>>.
 
 `-b`, `--build-file`::
@@ -336,13 +357,13 @@ Specifies the project-specific cache directory. Default value is `.gradle` in th
 Don't search in parent directories for a `settings.gradle` file.
 
 `-D`, `--system-prop`::
-Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<sec:gradle_properties_and_system_properties>>.
+Sets a system property of the JVM, for example `-Dmyprop=myvalue`. See <<sec:gradle_system_properties>>.
 
 `-I`, `--init-script`::
 Specifies an initialization script. See <<init_scripts>>.
 
 `-P`, `--project-prop`::
-Sets a project property of the root project, for example `-Pmyprop=myvalue`. See <<sec:gradle_properties_and_system_properties>>.
+Sets a project property of the root project, for example `-Pmyprop=myvalue`. See <<sec:project_properties>>.
 
 `-Dorg.gradle.jvmargs`::
 Set JVM arguments.
@@ -351,7 +372,7 @@ Set JVM arguments.
 Set JDK home dir.
 
 [[sec:command_line_project_reporting]]
-=== Project Reporting
+=== Project reporting
 
 Gradle provides several built-in tasks which show particular details of your build. This can be useful for understanding the structure and dependencies of your build, and for debugging problems.
 

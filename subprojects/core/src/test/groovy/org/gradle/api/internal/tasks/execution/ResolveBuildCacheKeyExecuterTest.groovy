@@ -128,38 +128,37 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         when:
         inputs.inputHashes >> ImmutableSortedMap.copyOf(b: HashCode.fromInt(0x000000bb), a: HashCode.fromInt(0x000000aa))
-
         then:
         adapter.inputHashes == [a: "000000aa", b: "000000bb"]
 
         when:
-        inputs.classLoaderHash >> HashCode.fromInt(0x000000cc)
+        inputs.inputPropertiesLoadedByUnknownClassLoader >> ImmutableSortedSet.of("bean", "someOtherBean")
+        then:
+        adapter.inputPropertiesLoadedByUnknownClassLoader == ["bean", "someOtherBean"] as SortedSet
 
+        when:
+        inputs.classLoaderHash >> HashCode.fromInt(0x000000cc)
         then:
         adapter.classLoaderHash == "000000cc"
 
         when:
         inputs.actionClassLoaderHashes >> ImmutableList.copyOf([HashCode.fromInt(0x000000ee), HashCode.fromInt(0x000000dd)])
-
         then:
         adapter.actionClassLoaderHashes == ["000000ee", "000000dd"]
 
         when:
         inputs.actionClassNames >> ImmutableList.copyOf(["foo", "bar"])
-
         then:
         adapter.actionClassNames == ["foo", "bar"]
 
         when:
         inputs.outputPropertyNames >> ImmutableSortedSet.copyOf(["2", "1"])
-
         then:
         adapter.outputPropertyNames == ["1", "2"]
 
         when:
         key.hashCode >> HashCode.fromInt(0x000000ff)
         key.valid >> true
-
         then:
         adapter.buildCacheKey == "000000ff"
     }

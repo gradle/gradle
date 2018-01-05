@@ -16,13 +16,16 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.api.internal.tasks.ValidatingValue;
 import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
@@ -39,7 +42,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
-import java.util.Set;
 
 import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
 
@@ -58,53 +60,66 @@ public class DefaultPropertyWalker implements PropertyWalker {
         queue.add(new PropertyNode(null, bean));
         while (!queue.isEmpty()) {
             PropertyNode node = queue.remove();
-            Set<PropertyMetadata> typeMetadata = propertyMetadataStore.getTypeMetadata(node.getBean().getClass());
-            visitProperties(node, typeMetadata, queue, visitor, specFactory);
+            Object nested = node.getBean();
+            TypeMetadata nestedTypeMetadata = propertyMetadataStore.getTypeMetadata(nested.getClass());
+            if (node.isIterable(nestedTypeMetadata)) {
+                Iterable<?> nestedBeans = (Iterable<?>) nested;
+                int count = 0;
+                for (Object nestedBean : nestedBeans) {
+                    String nestedPropertyName = node.getQualifiedPropertyName("$" + count++);
+                    queue.add(new PropertyNode(nestedPropertyName, nestedBean));
+                }
+            } else {
+                visitProperties(node, nestedTypeMetadata, queue, visitor, specFactory);
+            }
         }
     }
 
-    private static void visitProperties(PropertyNode node, Set<PropertyMetadata> typeMetadata, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory inputs) {
-        for (PropertyMetadata propertyMetadata : typeMetadata) {
+    private static void visitProperties(PropertyNode node, TypeMetadata typeMetadata, Queue<PropertyNode> queue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+        visitImplementation(node, visitor, specFactory);
+        for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
-            String propertyName = node.getQualifiedPropertyName(propertyMetadata.getFieldName());
             if (propertyValueVisitor == null) {
                 continue;
             }
+            String propertyName = node.getQualifiedPropertyName(propertyMetadata.getFieldName());
             Object bean = node.getBean();
             PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata.getAnnotations(), bean, propertyMetadata.getMethod());
-            propertyValueVisitor.visitPropertyValue(propertyValue, visitor, inputs);
+            propertyValueVisitor.visitPropertyValue(propertyValue, visitor, specFactory);
             if (propertyValue.isAnnotationPresent(Nested.class)) {
                 try {
-                    Object nestedBean = propertyValue.getValue();
-                    if (nestedBean != null) {
-                        queue.add(new PropertyNode(propertyName, nestedBean));
+                    Object nested = propertyValue.getValue();
+                    if (nested != null) {
+                        queue.add(new PropertyNode(propertyName, nested));
+                    } else if (!propertyValue.isOptional()) {
+                        visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new AbsentPropertyValue()));
                     }
                 } catch (Exception e) {
-                    // No nested bean
+                    visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new InvalidPropertyValue(e)));
                 }
             }
         }
     }
 
-    private static String propertyValidationMessage(String propertyName, String message) {
-        return String.format("property '%s' %s", propertyName, message);
+    private static void visitImplementation(PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+        // The root bean (Task) implementation is currently tracked separately
+        if (!node.isRoot()) {
+            DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("class"), new ImplementationPropertyValue(node.getBean().getClass()));
+            implementation.optional(false);
+            visitor.visitInputProperty(implementation);
+        }
     }
 
-    private static class PropertyNode {
-        private final String parentPropertyName;
+    private static class PropertyNode extends AbstractBeanNode {
         private final Object bean;
 
         public PropertyNode(@Nullable String parentPropertyName, Object bean) {
-            this.parentPropertyName = parentPropertyName;
+            super(parentPropertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + parentPropertyName + "'").getClass());
             this.bean = bean;
         }
 
         public Object getBean() {
             return bean;
-        }
-
-        public String getQualifiedPropertyName(String propertyName) {
-            return parentPropertyName == null ? propertyName : parentPropertyName + "." + propertyName;
         }
     }
 
@@ -188,6 +203,56 @@ public class DefaultPropertyWalker implements PropertyWalker {
             } else {
                 valueValidator.validate(propertyName, unpacked, context, ERROR);
             }
+        }
+    }
+
+    private static class ImplementationPropertyValue implements ValidatingValue {
+
+        private final Class<?> beanClass;
+
+        public ImplementationPropertyValue(Class<?> beanClass) {
+            this.beanClass = beanClass;
+        }
+
+        @Override
+        public Object call() {
+            return beanClass;
+        }
+
+        @Override
+        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+        }
+    }
+
+    private static class AbsentPropertyValue implements ValidatingValue {
+        @Nullable
+        @Override
+        public Object call() {
+            return null;
+        }
+
+        @Override
+        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+            context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", propertyName));
+        }
+    }
+
+    private static class InvalidPropertyValue implements ValidatingValue {
+        private final Exception exception;
+
+        public InvalidPropertyValue(Exception exception) {
+            this.exception = exception;
+        }
+
+        @Nullable
+        @Override
+        public Object call() {
+            return null;
+        }
+
+        @Override
+        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+            throw UncheckedException.throwAsUncheckedException(exception);
         }
     }
 }

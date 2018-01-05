@@ -33,12 +33,14 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         toolingApi.requireDaemons()
     }
 
-    def configureJava7(){
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk7.javaHome.absolutePath)
+    def configureJava7() {
+        projectDir.file("gradle.properties").writeProperties(
+            ["org.gradle.java.home": AvailableJavaHomes.jdk7.javaHome.absolutePath, 'org.gradle.warning.mode': 'all'])
     }
 
-    def configureJava8(){
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath)
+    def configureJava8() {
+        projectDir.file("gradle.properties").writeProperties(
+            ["org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath, 'org.gradle.warning.mode': 'all'])
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk7 == null })

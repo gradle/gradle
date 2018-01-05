@@ -65,6 +65,10 @@
                 <td><literal>[]</literal></td>
             </tr>
             <tr>
+                <td>compilerArgumentProviders</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
                 <td>sourcepath</td>
                 <td><literal>null</literal></td>
             </tr>

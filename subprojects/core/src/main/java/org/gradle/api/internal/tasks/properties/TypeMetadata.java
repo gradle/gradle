@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-public interface PropertyMetadataStore {
-    <T> TypeMetadata getTypeMetadata(Class<T> type);
+import java.util.Set;
+
+public interface TypeMetadata {
+    Set<PropertyMetadata> getPropertiesMetadata();
+    boolean isAnnotated();
 }
