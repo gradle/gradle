@@ -66,7 +66,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
                 Iterable<?> nestedBeans = (Iterable<?>) nested;
                 int count = 0;
                 for (Object nestedBean : nestedBeans) {
-                    String nestedPropertyName = node.getQualifiedPropertyName("$" + ++count);
+                    String nestedPropertyName = node.getQualifiedPropertyName("$" + count++);
                     queue.add(new PropertyNode(nestedPropertyName, nestedBean));
                 }
             } else {

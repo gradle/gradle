@@ -572,7 +572,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Buil
 
         expect:
         fails 'myTask'
-        failure.assertHasCause('Null is not allowed as nested property \'beans.$2\'')
+        failure.assertHasCause('Null is not allowed as nested property \'beans.$1\'')
     }
 
     def "nested iterable beans can be iterables themselves"() {
