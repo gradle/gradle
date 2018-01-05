@@ -109,22 +109,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
             git = Git.open(workingDir);
             git.fetch().setRemote(getRemoteForUrl(git.getRepository(), gitSpec.getUrl())).call();
             git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
-            SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository());
-            try {
-                while (walker.next()) {
-                    Repository submodule = walker.getRepository();
-                    try {
-                        Git submoduleGit = Git.wrap(submodule);
-                        submoduleGit.fetch().call();
-                        submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
-                    } finally {
-                        submodule.close();
-                    }
-                }
-            } finally {
-                walker.close();
-            }
-            git.submoduleUpdate().call();
+            updateSubModules(git);
         } catch (IOException e) {
             throw wrapGitCommandException("update", gitSpec.getUrl(), workingDir, e);
         } catch (URISyntaxException e) {
@@ -137,6 +122,26 @@ public class GitVersionControlSystem implements VersionControlSystem {
             if (git != null) {
                 git.close();
             }
+        }
+    }
+
+    private static void updateSubModules(Git git) throws IOException, GitAPIException {
+        SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository());
+        try {
+            while (walker.next()) {
+                Repository submodule = walker.getRepository();
+                try {
+                    Git submoduleGit = Git.wrap(submodule);
+                    submoduleGit.fetch().call();
+                    git.submoduleUpdate().addPath(walker.getPath()).call();
+                    submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
+                    updateSubModules(submoduleGit);
+                } finally {
+                    submodule.close();
+                }
+            }
+        } finally {
+            walker.close();
         }
     }
 

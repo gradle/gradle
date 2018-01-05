@@ -97,14 +97,14 @@ public class GitRepository extends ExternalResource implements Named {
         git.close();
     }
 
-    public void addSubmodule(GitRepository submoduleRepo) throws GitAPIException {
+    public RevCommit addSubmodule(GitRepository submoduleRepo) throws GitAPIException {
         Repository submodule = null;
         try {
             submodule = git.submoduleAdd().
                 setURI(submoduleRepo.getWorkTree().toString()).
                 setPath(submoduleRepo.getName()).
                 call();
-            commit("add submodule " + submoduleRepo.getName(), submoduleRepo.getName());
+            return commit("add submodule " + submoduleRepo.getName(), submoduleRepo.getName());
         } finally {
             if (submodule != null) {
                 submodule.close();

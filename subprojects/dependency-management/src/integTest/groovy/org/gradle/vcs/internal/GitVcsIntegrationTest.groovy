@@ -28,6 +28,9 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Rule
     GitRepository deeperRepo = new GitRepository('deeperDep', temporaryFolder.getTestDirectory())
 
+    @Rule
+    GitRepository evenDeeperRepo = new GitRepository('evenDeeperDep', temporaryFolder.getTestDirectory())
+
     def 'can define and use source repositories'() {
         given:
         def commit = repo.commit('initial commit')
@@ -53,9 +56,12 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     def 'can define and use source repositories with submodules'() {
         given:
         // Populate submodule origin
+        evenDeeperRepo.file('foo').text = "baz"
+        evenDeeperRepo.commit('initial commit', "foo")
         deeperRepo.file('foo').text = "bar"
         deeperRepo.commit("initial commit", "foo")
         // Add submodule to repo
+        deeperRepo.addSubmodule(evenDeeperRepo)
         repo.addSubmodule(deeperRepo)
         def commit = repo.commit('initial commit')
 
@@ -81,12 +87,17 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         // Submodule is cloned
         gitCheckout.file('deeperDep/.git').assertExists()
         gitCheckout.file('deeperDep/foo').text == "bar"
+        gitCheckout.file('deeperDep/evenDeeperDep/.git').assertExists()
+        gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "baz"
 
         when:
         // Update submodule origin
+        evenDeeperRepo.file('foo').text = "buzz"
+        evenDeeperRepo.commit("update file", "foo")
         deeperRepo.file('foo').text = "baz"
         deeperRepo.commit("update file", "foo")
         // Update parent repository
+        deeperRepo.updateSubmodulesToLatest()
         commit = repo.updateSubmodulesToLatest()
         gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
         succeeds('assemble')
@@ -94,6 +105,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         then:
         // Submodule is updated
         gitCheckout.file('deeperDep/foo').text == "baz"
+        gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "buzz"
     }
 
     @Issue('gradle/gradle-native#206')
@@ -416,7 +428,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         gitCheckout.file('foo').text == "bar"
 
         when:
-        repo.file('foo').text = "baz"
+        gitCheckout.file('foo').text = "baz"
         succeeds('assemble')
 
         then:
@@ -426,9 +438,12 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     def "external modifications to source dependency submodule directories are reset"() {
         given:
         // Populate submodule origin
+        evenDeeperRepo.file('foo').text = "baz"
+        evenDeeperRepo.commit('initial commit', "foo")
         deeperRepo.file('foo').text = "bar"
         deeperRepo.commit("initial commit", "foo")
         // Add submodule to repo
+        deeperRepo.addSubmodule(evenDeeperRepo)
         repo.addSubmodule(deeperRepo)
         def commit = repo.commit('initial commit')
 
@@ -448,16 +463,18 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         succeeds('assemble')
 
         then:
-        // Git repo is cloned
         def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
         gitCheckout.file('deeperDep/foo').text == "bar"
+        gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "baz"
 
         when:
-        deeperRepo.file('deeperDep/foo').text = "baz"
+        gitCheckout.file('deeperDep/foo').text = "baz"
+        gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "buzz"
         succeeds('assemble')
 
         then:
         gitCheckout.file('deeperDep/foo').text == "bar"
+        gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "baz"
     }
 
     // TODO: Use HTTP hosting for git repo

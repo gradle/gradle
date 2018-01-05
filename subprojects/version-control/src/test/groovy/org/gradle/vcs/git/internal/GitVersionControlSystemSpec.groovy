@@ -38,10 +38,11 @@ class GitVersionControlSystemSpec extends Specification {
     GitRepository repo = new GitRepository(tmpDir.getTestDirectory())
     GitRepository repo2 = new GitRepository(tmpDir.getTestDirectory().file('other'))
     GitRepository submoduleRepo = new GitRepository("submodule", tmpDir.testDirectory)
+    GitRepository submoduleRepo2 = new GitRepository("submodule2", tmpDir.testDirectory)
 
     // Directory clean up needs to happen after all of the repos have closed
     @Rule
-    RuleChain rules = RuleChain.outerRule(tmpDir).around(repo).around(repo2).around(submoduleRepo)
+    RuleChain rules = RuleChain.outerRule(tmpDir).around(repo).around(repo2).around(submoduleRepo).around(submoduleRepo2)
 
     def setup() {
         gitVcs = new GitVersionControlSystem()
@@ -62,6 +63,9 @@ class GitVersionControlSystemSpec extends Specification {
 
         submoduleRepo.workTree.file("foo.txt") << "hello from submodule"
         submoduleRepo.commit("initial commit")
+
+        submoduleRepo2.workTree.file("bar.txt") << "hello from another submodule"
+        submoduleRepo2.commit("initial commit")
     }
 
     def 'clone a repository'() {
@@ -112,7 +116,6 @@ class GitVersionControlSystemSpec extends Specification {
     def 'update a cloned repository'() {
         given:
         def target = tmpDir.file('versionDir')
-        def workingDir = gitVcs.populate(target, repoHead, repoSpec)
         def newFile = repo.workTree.file('newFile.txt')
         newFile << 'I am new!'
         repo.commit('Add newFile.txt')
@@ -122,7 +125,7 @@ class GitVersionControlSystemSpec extends Specification {
         !target.file('repo/newFile.txt').exists()
 
         when:
-        workingDir = gitVcs.populate(target, repoHead, repoSpec)
+        def workingDir = gitVcs.populate(target, repoHead, repoSpec)
 
         then:
         workingDir.path == target.file('repo').path
@@ -131,21 +134,28 @@ class GitVersionControlSystemSpec extends Specification {
 
     def 'update a cloned repository with submodules'() {
         given:
-        repo.addSubmodule(submoduleRepo)
         def target = tmpDir.file('versionDir')
+        submoduleRepo.addSubmodule(submoduleRepo2)
+        repo.addSubmodule(submoduleRepo)
+        repoHead = GitVersionRef.from(repo.head)
         gitVcs.populate(target, repoHead, repoSpec)
 
         // Modify the submodule origin repository
         submoduleRepo.workTree.file("foo.txt").text = "goodbye from submodule"
         submoduleRepo.commit("Change submodule message")
 
+        submoduleRepo2.workTree.file("bar.txt").text = "goodbye from another submodule"
+        submoduleRepo2.commit("Change submodule message")
+
         // Set the submodule in the parent to the latest commit in the origin
+        submoduleRepo.updateSubmodulesToLatest()
         repo.updateSubmodulesToLatest()
 
         repoHead = GitVersionRef.from(repo.head)
 
         expect:
         target.file('repo/submodule/foo.txt').text == "hello from submodule"
+        target.file('repo/submodule/submodule2/bar.txt').text == "hello from another submodule"
 
         when:
         def workingDir = gitVcs.populate(target, repoHead, repoSpec)
@@ -153,6 +163,7 @@ class GitVersionControlSystemSpec extends Specification {
         then:
         workingDir.path == target.file('repo').path
         target.file('repo/submodule/foo.txt').text == "goodbye from submodule"
+        target.file('repo/submodule/submodule2/bar.txt').text == "goodbye from another submodule"
     }
 
     def 'error if working dir is not a repository'() {
