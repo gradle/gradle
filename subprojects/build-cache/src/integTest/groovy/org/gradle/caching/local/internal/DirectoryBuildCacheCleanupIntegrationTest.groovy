@@ -160,7 +160,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         assertCacheWasCleanedUpSince(lastCleanupCheck)
     }
 
-    @Ignore("Looks like GradleBuild doesn't work with build operations")
+    @Ignore("Looks like GradleBuild doesn't work with build operations, see https://github.com/gradle/gradle/issues/3983")
     def "GradleBuild tasks do not try to clean build cache"() {
         file("included/build.gradle") << """
             apply plugin: 'java'
