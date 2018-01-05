@@ -42,7 +42,7 @@ class BuildCacheCleanupOperationsCrossVersionSpec extends ToolingApiSpecificatio
                 @TaskAction 
                 void generate() {
                     logger.warn("Run " + run)
-                    def data = new byte[1024*1024]
+                    def data = new byte[1024 * 1024]
                     new Random().nextBytes(data)
                     outputFile.bytes = data
                 }
@@ -83,7 +83,7 @@ class BuildCacheCleanupOperationsCrossVersionSpec extends ToolingApiSpecificatio
             }
         }
         then:
-        assert cacheDir.directorySize() >= 4 * 1024 * 1024
+        cacheDir.directorySize() >= 4 * 1024 * 1024
 
         when:
         def gcFile = cacheDir.file("gc.properties")
@@ -104,6 +104,6 @@ class BuildCacheCleanupOperationsCrossVersionSpec extends ToolingApiSpecificatio
         then:
         listener.operation("Clean up Build cache (" + cacheDir + ")")
 
-        cacheDir.directorySize() <= 2*1024*1024
+        cacheDir.directorySize() <= 2 * 1024 * 1024
     }
 }
