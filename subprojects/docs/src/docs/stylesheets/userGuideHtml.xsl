@@ -171,7 +171,9 @@
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#managing-dependencies" aria-expanded="false" aria-controls="managing-dependencies">Managing Dependencies</a>
                                 <ul id="managing-dependencies">
                                     <li><a href="/userguide/artifact_dependencies_tutorial.html">Dependency Management Basics</a></li>
-                                    <li><a href="/userguide/dependency_management.html">Advanced Dependency Management</a></li></ul></li>
+                                    <li><a href="/userguide/dependency_management.html">Advanced Dependency Management</a></li>
+                                    <li><a href="/userguide/dependency_types.html">Dependency Types</a></li>
+                                    <li><a href="/userguide/repository_types.html">Repository Types</a></li></ul></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing-artifacts" aria-expanded="false" aria-controls="publishing-artifacts">Publishing Artifacts</a>
                                 <ul id="publishing-artifacts">
                                     <li><a href="/userguide/artifact_management.html">Publishing Artifacts Overview</a></li>
