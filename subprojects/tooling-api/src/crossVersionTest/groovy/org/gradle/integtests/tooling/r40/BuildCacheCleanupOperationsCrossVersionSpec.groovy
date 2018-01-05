@@ -54,7 +54,7 @@ class BuildCacheCleanupOperationsCrossVersionSpec extends ToolingApiSpecificatio
         """
 
         def cacheLimit
-        sizeBasedCleanup = targetVersion < GradleVersion.version("4.5")
+        sizeBasedCleanup = targetVersion < GradleVersion.version("4.6")
         if (!sizeBasedCleanup) {
             cacheLimit = "removeUnusedEntriesAfterDays = 1"
         } else {
