@@ -51,6 +51,8 @@ public class DirectoryBuildCache extends AbstractBuildCache {
     }
 
     /**
+     * Used to be the target size of the build cache in megabytes, now returns {@code 0}.
+     *
      * @deprecated Use {@link #getRemoveUnusedEntriesAfterDays()} instead.
      */
     @Deprecated
@@ -60,6 +62,8 @@ public class DirectoryBuildCache extends AbstractBuildCache {
     }
 
     /**
+     * Used to set the target size of the build cache in megabytes, now has no effect.
+     *
      * @deprecated Use {@link #setRemoveUnusedEntriesAfterDays(int)} instead.
      */
     @Deprecated
