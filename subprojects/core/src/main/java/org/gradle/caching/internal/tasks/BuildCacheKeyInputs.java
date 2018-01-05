@@ -34,7 +34,7 @@ public class BuildCacheKeyInputs {
     private final List<HashCode> actionClassLoaderHashes;
     private final ImmutableList<String> actionClassNames;
     private final ImmutableSortedMap<String, HashCode> inputHashes;
-    private ImmutableSortedSet<String> inputPropertiesLoadedByUnknownClassLoader;
+    private final ImmutableSortedSet<String> inputPropertiesLoadedByUnknownClassLoader;
     private final ImmutableSortedSet<String> outputPropertyNames;
 
     public BuildCacheKeyInputs(
@@ -63,6 +63,10 @@ public class BuildCacheKeyInputs {
     @Nullable
     public ImmutableSortedMap<String, HashCode> getInputHashes() {
         return inputHashes;
+    }
+
+    public ImmutableSortedSet<String> getInputPropertiesLoadedByUnknownClassLoader() {
+        return inputPropertiesLoadedByUnknownClassLoader;
     }
 
     @Nullable
