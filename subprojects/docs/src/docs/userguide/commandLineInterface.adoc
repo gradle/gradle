@@ -176,7 +176,7 @@ You can delete the contents of the build directory using the `clean` task, thoug
 ----
 
 [[sec:command_line_completion]]
-=== Command-Line completion
+=== Command-line completion
 
 Gradle provides bash and zsh tab completion support for tasks, options, and Gradle properties through https://github.com/gradle/gradle-completion[gradle-completion], installed separately.
 
@@ -223,7 +223,7 @@ Many of these options can be specified in `gradle.properties` so command-line fl
 Toggles the <<build_cache, Gradle build cache>>. Gradle will try to reuse outputs from previous builds. _Default is off_.
 
 `--configure-on-demand`, `--no-configure-on-demand`::
-Toggles <<configuration_on_demand, Configure-on-demand>>. Only relevant projects are configured in this build run. _Default is off_.
+Toggles <<sec:configuration_on_demand, Configure-on-demand>>. Only relevant projects are configured in this build run. _Default is off_.
 
 `--max-workers`::
 Sets maximum number of workers that Gradle may use. _Default is number of processors_.
