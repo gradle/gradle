@@ -54,7 +54,7 @@ The following sections describe use of the Gradle command-line interface, groupe
 [[sec:command_line_executing_tasks]]
 === Executing tasks
 
-You can run a task and all of its dependencies.
+You can run a task and all of its <<sec:task_dependencies,dependencies>>.
 ----
 ❯ gradle myTask
 ----
