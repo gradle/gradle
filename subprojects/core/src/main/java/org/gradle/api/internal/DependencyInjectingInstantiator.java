@@ -106,6 +106,9 @@ public class DependencyInjectingInstantiator implements Instantiator {
             if (pos < parameters.length && targetType.isInstance(parameters[pos])) {
                 resolvedParameters[i] = parameters[pos];
                 pos++;
+            } else if (pos < parameters.length && parameters[pos] instanceof NullReference) {
+                resolvedParameters[i] = null;
+                pos++;
             } else {
                 resolvedParameters[i] = services.get(constructor.getGenericParameterTypes()[i]);
             }

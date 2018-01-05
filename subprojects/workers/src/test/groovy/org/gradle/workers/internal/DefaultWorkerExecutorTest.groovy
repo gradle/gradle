@@ -33,6 +33,8 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import javax.inject.Inject
+
 @UsesNativeServices
 class DefaultWorkerExecutorTest extends Specification {
     @Rule RedirectStdOutAndErr output = new RedirectStdOutAndErr()
@@ -209,6 +211,20 @@ class DefaultWorkerExecutorTest extends Specification {
         e.message == "The worker classpath cannot be set when using isolation mode NONE"
     }
 
+    def "can configure with null parameters"() {
+        when:
+        workerExecutor.submit(HasInjectConstructor.class) { WorkerConfiguration configuration ->
+            configuration.isolationMode = IsolationMode.NONE
+            configuration.params = [null, null]
+        }
+
+        and:
+        workerExecutor.await()
+
+        then:
+        1 * asyncWorkTracker.waitForCompletion(_, false)
+    }
+
     @Unroll
     def "cannot set bootstrap classpath in isolation mode #isolationMode"() {
         when:
@@ -295,6 +311,22 @@ class DefaultWorkerExecutorTest extends Specification {
     }
 
     static class TestRunnable implements Runnable {
+        @Override
+        void run() {
+            println "executing"
+        }
+    }
+
+    static class HasInjectConstructor implements Runnable {
+        String param1
+        Number param2
+
+        @Inject
+        HasInjectConstructor(String param1, Number param2) {
+            this.param1 = param1
+            this.param2 = param2
+        }
+
         @Override
         void run() {
             println "executing"

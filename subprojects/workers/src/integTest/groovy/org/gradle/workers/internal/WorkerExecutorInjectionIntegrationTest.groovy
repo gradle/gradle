@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
+import spock.lang.Issue
 import spock.lang.Timeout
 import spock.lang.Unroll
 
@@ -39,6 +40,47 @@ class WorkerExecutorInjectionIntegrationTest extends AbstractWorkerExecutorInteg
 
         where:
         forbiddenType << [Project, FileResolver]
+    }
+
+    @Issue("gradle/gradle#2405")
+    def "workers can inject null"() {
+        given:
+        buildFile << """
+            class VerifyingRunnable implements Runnable {
+                final String itemName
+
+                @Inject
+                public VerifyingRunnable(String itemName) {
+                    this.itemName = itemName
+                }
+
+                public void run() {
+                    assert itemName == null
+                }
+            }
+
+            class VerifyingRunnableTask extends DefaultTask {
+                @Inject
+                WorkerExecutor getWorkerExecutor() {
+                    throw new UnsupportedOperationException()
+                }
+
+                @TaskAction
+                void executeRunnable() {
+                    workerExecutor.submit(VerifyingRunnable.class) { config ->
+                        config.isolationMode = IsolationMode.NONE
+                        config.params = [ null ]
+                    }
+                }
+            }
+
+            task firstTask(type: VerifyingRunnableTask) {
+            }
+        """
+
+        expect:
+        args("--max-workers=1")
+        succeeds("firstTask")
     }
 
     String getRunnableInjecting(String isolationMode, String injectedClass) {

@@ -53,6 +53,18 @@ class DependencyInjectingInstantiatorTest extends Specification {
         result.param2 == 12
     }
 
+    def "injects NullReference parameters into constructor to set nulls"() {
+        given:
+        classGenerator.generate(_) >> { Class<?> c -> c }
+
+        when:
+        def result = instantiator.newInstance(HasInjectConstructor, NullReference.get(), NullReference.get())
+
+        then:
+        result.param1 == null
+        result.param2 == null
+    }
+
     def "injects missing parameters from provided service registry"() {
         given:
         classGenerator.generate(_) >> { Class<?> c -> c }

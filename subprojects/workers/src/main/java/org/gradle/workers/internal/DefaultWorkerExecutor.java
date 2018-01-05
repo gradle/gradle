@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.NullReference;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
@@ -179,7 +180,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         Iterable<Class<?>> paramTypes = CollectionUtils.collect(configuration.getParams(), new Transformer<Class<?>, Object>() {
             @Override
             public Class<?> transform(Object o) {
-                return o.getClass();
+                return o == null ? NullReference.class : o.getClass();
             }
         });
         return toDaemonOptions(actionClass, paramTypes, configuration.getForkOptions(), configuration.getClasspath());
@@ -232,7 +233,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         addVisibilityFor(actionClass, classpathBuilder, sharedPackagesBuilder, true);
 
         for (Class<?> paramClass : paramClasses) {
-            addVisibilityFor(paramClass, classpathBuilder, sharedPackagesBuilder, false);
+            if (!paramClass.isInstance(NullReference.get())) {
+                addVisibilityFor(paramClass, classpathBuilder, sharedPackagesBuilder, false);
+            }
         }
 
         Iterable<File> daemonClasspath = classpathBuilder.build();
