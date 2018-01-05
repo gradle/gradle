@@ -655,6 +655,56 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         fails "myTask"
     }
 
+    def "implementation of nested property is tracked"() {
+        buildFile << """
+            class TaskWithNestedAction extends DefaultTask {
+                @Nested
+                Action action
+            
+                @OutputFile
+                File outputFile = new File(temporaryDir, "output.txt")
+            
+                @TaskAction
+                void generate() {
+                    action.execute(outputFile)
+                }
+            }
+            
+            // build.gradle
+            task myTask(type: TaskWithNestedAction)
+            
+            apply from: 'configureTaskAction.gradle'
+        """
+
+        def taskActionFile = file('configureTaskAction.gradle')
+        taskActionFile << """
+            myTask.action = new Action() {
+                void execute(outputFile) {
+                    outputFile.text = "hello"
+                }
+            }
+        """
+        taskActionFile.makeOlder()
+
+        when:
+        run 'myTask'
+        then:
+        executedAndNotSkipped(':myTask')
+
+        when:
+        taskActionFile.text = """
+            myTask.action = new Action() {
+                void execute(outputFile) {
+                    outputFile.text = "changed"
+                }
+            }
+        """
+        run 'myTask', '--info'
+        then:
+        executedAndNotSkipped(':myTask')
+        file('build/tmp/myTask/output.txt').text == "changed"
+    }
+
     def "task with nested bean loaded with custom classloader is not cached"() {
         file("input.txt").text = "data"
         buildFile << taskWithNestedBeanFromCustomClassLoader()
