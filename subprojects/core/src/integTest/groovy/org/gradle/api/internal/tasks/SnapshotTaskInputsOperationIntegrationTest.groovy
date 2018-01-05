@@ -47,7 +47,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         result.buildCacheKey != null
-        result.inputHashes.keySet() == ['bean.class', 'input1', 'input2'] as Set
+        result.inputHashes.keySet() == ['input1', 'input2'] as Set
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
@@ -82,7 +82,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         result.buildCacheKey != null
-        result.inputHashes.keySet() == ['bean.class', 'input1', 'input2'] as Set
+        result.inputHashes.keySet() == ['input1', 'input2'] as Set
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
