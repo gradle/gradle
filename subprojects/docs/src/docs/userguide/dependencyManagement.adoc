@@ -50,7 +50,7 @@ Both tools rely on descriptor XML files, which contain information about the dep
 [[sec:declaring_dependencies]]
 === Declaring dependencies
 
-Gradle builds can declare dependencies on external binaries, raw files and other Gradle projects. You can find examples for common scenarios in this section. Please also check out the <<dependency_types,full reference on all types of dependencies>> for more information.
+Gradle builds can declare dependencies on external binaries, raw files and other Gradle projects. You can find examples for common scenarios in this section. For more information, see the <<dependency_types,full reference on all types of dependencies>>.
 
 [[sec:declaring_binary_dependency]]
 ==== Declaring a binary dependency
@@ -76,7 +76,7 @@ A typical example for such a library in a Java project is the link:https://proje
 </sample>
 ++++
 
-A Gradle project can define other types of repositories hosting binary dependencies. You can learn more about the syntax and API in the section on <<sec:declaring_repositories,declaring repositories>>. Please refer to <<java_plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for binary dependencies declarations is <<sec:customizing_dependencies,highly customizable>>.
+A Gradle project can define other types of repositories hosting binary dependencies. You can learn more about the syntax and API in the section on <<sec:declaring_repositories,declaring repositories>>. Refer to <<java_plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for binary dependencies declarations is <<sec:customizing_dependencies,highly customizable>>.
 
 ===== Declaring a dynamic version of a binary dependency
 
@@ -175,7 +175,7 @@ The following example declares the dependencies on the `utils` and `api` project
 
 Every dependency declared for a Gradle project applies to a specific scope. For example some dependencies should be used for compiling source code whereas others only need to be available at runtime. Gradle represents the scope of a dependency with the help of a api:org.gradle.api.artifacts.Configuration[].
 
-Many Gradle plugins add pre-defined configurations to your project. The Java plugin, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests and the like. Please see <<sec:java_plugin_and_dependency_management,the Java plugin chapter>> for an example. The sections above demonstrate how to <<sec:declaring_dependencies,declare dependencies>> for different use cases.
+Many Gradle plugins add pre-defined configurations to your project. The Java plugin, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests and the like. See <<sec:java_plugin_and_dependency_management,the Java plugin chapter>> for an example. The sections above demonstrate how to <<sec:declaring_dependencies,declare dependencies>> for different use cases.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -445,7 +445,7 @@ To learn more about the API of the configuration class see the API documentation
 [[sec:declaring_repositories]]
 === Declaring repositories
 
-Gradle can resolve external dependencies from one or many repositories based on Maven, Ivy or flat directory directory formats. Please also check out the <<repository_types,full reference on all types of repositories>> for more information.
+Gradle can resolve external dependencies from one or many repositories based on Maven, Ivy or flat directory directory formats. Check out the <<repository_types,full reference on all types of repositories>> for more information.
 
 [[sec:declaring_public_repository]]
 ==== Declaring a publicly-available repository
@@ -484,7 +484,7 @@ Add the following code to declare an in-house repository for your build reachabl
 </sample>
 ++++
 
-Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage please check the <<sub:supported_transport_protocols,reference manual on supported transport protocols>>.
+Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage see the <<sub:supported_transport_protocols,reference manual on supported transport protocols>>.
 
 [[sec:declaring_multiple_repositories]]
 ==== Declaring multiple repositories
@@ -817,7 +817,7 @@ This method:
 
 Module replacement rules allow a build to declare that a legacy library has been replaced by a new one. A good example when a new library replaced a legacy one is the "google-collections" -&gt; "guava" migration. The team that created google-collections decided to change the module name from "com.google.collections:google-collections" into "com.google.guava:guava". This is a legal scenario in the industry: teams need to be able to change the names of products they maintain, including the module coordinates. Renaming of the module coordinates has impact on conflict resolution.
 
-To explain the impact on conflict resolution, let's consider the "google-collections" -&gt; "guava" scenario. It may happen that both libraries are pulled into the same dependency graph. For example, "our" project depends on guava but some of our dependencies pull in a legacy version of google-collections. This can cause runtime errors, for example during test or application execution. Gradle does not automatically resolve the google-collections VS guava conflict because it is not considered as a "version conflict". It's because the module coordinates for both libraries are completely different and conflict resolution is activated when "group" and "name" coordinates are the same but there are different versions available in the dependency graph (for more info, please refer to the section on conflict resolution). Traditional remedies to this problem are:
+To explain the impact on conflict resolution, let's consider the "google-collections" -&gt; "guava" scenario. It may happen that both libraries are pulled into the same dependency graph. For example, "our" project depends on guava but some of our dependencies pull in a legacy version of google-collections. This can cause runtime errors, for example during test or application execution. Gradle does not automatically resolve the google-collections VS guava conflict because it is not considered as a "version conflict". It's because the module coordinates for both libraries are completely different and conflict resolution is activated when "group" and "name" coordinates are the same but there are different versions available in the dependency graph (for more info, refer to the section on conflict resolution). Traditional remedies to this problem are:
 
 * Declare exclusion rule to avoid pulling in "google-collections" to graph. It is probably the most popular approach.
 * Avoid dependencies that pull in legacy libraries.
@@ -831,9 +831,9 @@ Traditional approaches work but they are not general enough. For example, an org
                 </sample>
 ++++
 
-For more examples and detailed API, please refer to the DSL reference for api:org.gradle.api.artifacts.dsl.ComponentMetadataHandler[].
+For more examples and detailed API, refer to the DSL reference for api:org.gradle.api.artifacts.dsl.ComponentMetadataHandler[].
 
-What happens when we declare that "google-collections" are replaced by "guava"? Gradle can use this information for conflict resolution. Gradle will consider every version of "guava" newer/better than any version of "google-collections". Also, Gradle will ensure that only guava jar is present in the classpath / resolved file list. Please note that if only "google-collections" appears in the dependency graph (e.g. no "guava") Gradle will not eagerly replace it with "guava". Module replacement is an information that Gradle uses for resolving conflicts. If there is no conflict (e.g. only "google-collections" or only "guava" in the graph) the replacement information is not used.
+What happens when we declare that "google-collections" are replaced by "guava"? Gradle can use this information for conflict resolution. Gradle will consider every version of "guava" newer/better than any version of "google-collections". Also, Gradle will ensure that only guava jar is present in the classpath / resolved file list. Note that if only "google-collections" appears in the dependency graph (e.g. no "guava") Gradle will not eagerly replace it with "guava". Module replacement is an information that Gradle uses for resolving conflicts. If there is no conflict (e.g. only "google-collections" or only "guava" in the graph) the replacement information is not used.
 
 Currently it is not possible to declare that certain modules is replaced by a set of modules. However, it is possible to declare that multiple modules are replaced by a single module.
 
