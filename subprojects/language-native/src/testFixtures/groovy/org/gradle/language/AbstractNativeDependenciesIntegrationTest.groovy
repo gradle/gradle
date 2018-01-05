@@ -20,6 +20,12 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 
 
 abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    def setup() {
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+    }
+
     def "can define implementation dependencies on binary"() {
         given:
         settingsFile << 'include "lib"'

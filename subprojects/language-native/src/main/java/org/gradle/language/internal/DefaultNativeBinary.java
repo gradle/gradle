@@ -16,16 +16,38 @@
 
 package org.gradle.language.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.language.ComponentDependencies;
+import org.gradle.language.ComponentWithDependencies;
+import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.Names;
 
-public class DefaultNativeBinary implements ComponentWithNames {
+import javax.inject.Inject;
+
+public abstract class DefaultNativeBinary implements ComponentWithNames, ComponentWithObjectFiles, ComponentWithDependencies {
     private final String name;
     private final Names names;
+    private final DirectoryProperty objectsDir;
+    private final Configuration implementation;
 
-    public DefaultNativeBinary(String name) {
+    public DefaultNativeBinary(String name, ProjectLayout projectLayout, ConfigurationContainer configurations, Configuration componentImplementation) {
         this.name = name;
         this.names = Names.of(name);
+
+        this.objectsDir = projectLayout.directoryProperty();
+
+        this.implementation = configurations.create(name + "Implementation");
+        implementation.setCanBeConsumed(false);
+        implementation.setCanBeResolved(false);
+        implementation.extendsFrom(componentImplementation);
     }
 
     @Override
@@ -37,4 +59,38 @@ public class DefaultNativeBinary implements ComponentWithNames {
     public Names getNames() {
         return names;
     }
+
+    public DirectoryProperty getObjectsDir() {
+        return objectsDir;
+    }
+
+    @Override
+    public FileCollection getObjects() {
+        return objectsDir.getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o"));
+    }
+
+    @Override
+    public ComponentDependencies getDependencies() {
+        return new ComponentDependencies() {
+            @Override
+            public void implementation(Object notation) {
+                implementation.getDependencies().add(getDependencyHandler().create(notation));
+            }
+        };
+    }
+
+    @Override
+    public void dependencies(Action<? super ComponentDependencies> action) {
+        action.execute(getDependencies());
+    }
+
+    @Inject
+    protected DependencyHandler getDependencyHandler() {
+        throw new UnsupportedOperationException();
+    }
+
+    public Configuration getImplementationDependencies() {
+        return implementation;
+    }
+
 }
