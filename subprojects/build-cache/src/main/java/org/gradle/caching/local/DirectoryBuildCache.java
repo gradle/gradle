@@ -73,6 +73,8 @@ public class DirectoryBuildCache extends AbstractBuildCache {
 
     /**
      * Returns the number of days after unused entries are garbage collected. Defaults to 7 days.
+     *
+     * @since 4.6
      */
     public int getRemoveUnusedEntriesAfterDays() {
         return removeUnusedEntriesAfterDays;
@@ -82,6 +84,8 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      * Sets the number of days after unused entries are garbage collected. Defaults to 7 days.
      *
      * Must be greater than 1.
+     *
+     * @since 4.6
      */
     public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
         if (removeUnusedEntriesAfterDays < 1) {

@@ -40,7 +40,7 @@ Previously, Gradle would clean up the [local build cache directory](userguide/bu
 From now on Gradle will instead clean up everything older than 7 days, regardless of the size of the cache directory.
 As a consequence `targetSizeInMB` is now deprecated, and changing its value has no effect.
 
-The minimum age for entries to be cleaned up can now be configured in `settings.gradle` via the [`removeUnusedEntriesAfterDays`](https://docs.gradle.org/current/dsl/org.gradle.caching.local.DirectoryBuildCache.html#org.gradle.caching.local.DirectoryBuildCache:removeUnusedEntriesAfterDays) property:
+The minimum age for entries to be cleaned up can now be configured in `settings.gradle` via the [`removeUnusedEntriesAfterDays`](dsl/org.gradle.caching.local.DirectoryBuildCache.html#org.gradle.caching.local.DirectoryBuildCache:removeUnusedEntriesAfterDays) property:
 
 ```
 buildCache {
