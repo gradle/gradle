@@ -91,9 +91,11 @@ public class DefaultPropertyWalker implements PropertyWalker {
                     Object nested = propertyValue.getValue();
                     if (nested != null) {
                         queue.add(new PropertyNode(propertyName, nested));
+                    } else if (!propertyValue.isOptional()) {
+                        visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new AbsentPropertyValue()));
                     }
                 } catch (Exception e) {
-                    // No nested bean
+                    visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new InvalidPropertyValue(e)));
                 }
             }
         }
@@ -102,7 +104,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
     private static void visitImplementation(PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory) {
         // The root bean (Task) implementation is currently tracked separately
         if (!node.isRoot()) {
-            DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("$$implementation"), new ImplementationPropertyValue(node.getBean().getClass()));
+            DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("class"), new ImplementationPropertyValue(node.getBean().getClass()));
             implementation.optional(false);
             visitor.visitInputProperty(implementation);
         }
@@ -219,6 +221,38 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
         @Override
         public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+        }
+    }
+
+    private static class AbsentPropertyValue implements ValidatingValue {
+        @Nullable
+        @Override
+        public Object call() {
+            return null;
+        }
+
+        @Override
+        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+            context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", propertyName));
+        }
+    }
+
+    private static class InvalidPropertyValue implements ValidatingValue {
+        private final Exception exception;
+
+        public InvalidPropertyValue(Exception exception) {
+            this.exception = exception;
+        }
+
+        @Nullable
+        @Override
+        public Object call() {
+            return null;
+        }
+
+        @Override
+        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
+            throw UncheckedException.throwAsUncheckedException(exception);
         }
     }
 }

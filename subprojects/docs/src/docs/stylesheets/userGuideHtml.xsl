@@ -292,10 +292,21 @@
 
     <!-- BOOK TITLEPAGE -->
     <xsl:template name="book.titlepage">
+        <a name="introduction"/>
         <main class="home">
             <header>
                 <xsl:apply-templates mode="book.titlepage.recto.auto.mode" select="bookinfo/title"/>
             </header>
+
+            <div class="toc">
+                <p><b>Table of Contents</b></p>
+                <dl>
+                    <dt><span class="section"><a href="userguide.html#introduction">Introduction</a></span></dt>
+                    <dt><span class="section"><a href="userguide.html#new-projects">New projects with Gradle</a></span></dt><dt><span class="section"><a href="userguide.html#existing-projects">Using existing Gradle builds</a></span></dt>
+                    <dt><span class="section"><a href="userguide.html#getting-help">Getting help</a></span></dt>
+                    <dt><span class="section"><a href="userguide.html#licenses">Licenses</a></span></dt>
+                </dl>
+            </div>
 
             <p class="lead">Gradle is an open-source build automation tool focused on flexibility and performance. Gradle build scripts are written using a <a href="http://groovy-lang.org/">Groovy</a> or <a href="https://kotlinlang.org/">Kotlin</a> DSL.</p>
 
@@ -317,13 +328,13 @@
 
             <p>Read about <a href="https://gradle.org/features/">Gradle features</a> to learn what is possible with Gradle.</p>
 
-            <h2>New projects with Gradle</h2>
+            <h2 id="new-projects">New projects with Gradle</h2>
 
             <p>Getting started with Gradle is easy! First, follow our guide to <a href="https://gradle.org/install/">download and install Gradle</a>, then check out Gradle <a href="https://gradle.org/guides/#getting-started">getting started guides</a> to create your first build.</p>
 
             <p>If you're currently using Maven, see a visual <a href="https://gradle.org/maven-vs-gradle/">Gradle vs Maven comparison</a> and follow the guide for <a href="https://guides.gradle.org/migrating-from-maven/">migrating from Maven to Gradle</a>.</p>
 
-            <h2>Using existing Gradle builds</h2>
+            <h2 id="existing-projects">Using existing Gradle builds</h2>
 
             <p>Gradle supports many major IDEs, including Android Studio, Eclipse, IntelliJ IDEA, Visual Studio 2017, and XCode.</p>
 
@@ -338,7 +349,7 @@
 
             <p><a href="https://scans.gradle.com/" title="Get started with build scans">Gradle build scans</a> help you understand build results, improve build performance, and collaborate to fix problems faster.</p>
 
-            <h2>Getting help</h2>
+            <h2 id="getting-help">Getting help</h2>
 
             <p>If you ever run into trouble, there are a number of ways to get help:</p>
 
@@ -350,7 +361,7 @@
 
             <p>We hope you build happiness with Gradle!</p>
 
-            <h2>Licenses</h2>
+            <h2 id="licenses">Licenses</h2>
 
             <p>Gradle build tool source code is open and licensed under the <a href="https://github.com/gradle/gradle/blob/master/LICENSE">Apache License 2.0</a>.</p>
 
