@@ -162,7 +162,7 @@
                                     <li><a href="/userguide/more_about_tasks.html">Authoring Tasks</a></li>
                                     <li><a href="/userguide/logging.html">Logging</a></li>
                                     <li><a href="/userguide/test_kit.html">Testing with TestKit</a></li>
-                                    <li><a href="/userguide/multi_project_builds.html">Configuring Multi-Project Builds</a></li>
+                                    <li><a href="/userguide/multi_project_builds.html">Authoring Multi-Project Builds</a></li>
                                     <li><a href="/userguide/standard_plugins.html">Standard Gradle Plugins</a></li>
                                     <li><a href="/userguide/plugins.html">Using Gradle Plugins</a></li>
                                     <li><a href="/userguide/writing_build_scripts.html">Writing Build Scripts</a></li>
