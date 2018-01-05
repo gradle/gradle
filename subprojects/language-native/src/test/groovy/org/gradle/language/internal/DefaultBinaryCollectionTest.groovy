@@ -389,6 +389,79 @@ class DefaultBinaryCollectionTest extends Specification {
         0 * action._
     }
 
+    def "cannot add configure by name action after container is realized"() {
+        def binary = Stub(SwiftBinary)
+        binary.name >> 'test1'
+
+        given:
+        container.add(binary)
+        def p = container.getByName('test1')
+        container.realizeNow()
+
+        when:
+        p.configure { }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot add actions to this collection as it has already been realized.'
+    }
+
+    def "fires finalize event for element with name after configuration has completed"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def finalAction = Mock(Action)
+        def binary1 = Stub(SwiftBinary)
+        binary1.name >> "test1"
+        def binary2 = Stub(SwiftBinary)
+        binary2.name >> "test2"
+
+        when:
+        def p = container.getByName("test1")
+        p.whenFinalized(finalAction)
+        p.configure(action1)
+        container.configureEach(action2)
+
+        container.add(binary1)
+        container.add(binary2)
+
+        then:
+        0 * _
+
+        when:
+        container.realizeNow()
+
+        then:
+        1 * action1.execute(binary1)
+        1 * action2.execute(binary1)
+        1 * action2.execute(binary2)
+        0 * _
+
+        then:
+        1 * finalAction.execute(binary1)
+        0 * _
+    }
+
+    def "can receive finalize event for element with name after configuration has completed"() {
+        def binary1 = Stub(SwiftBinary)
+        binary1.name >> "test1"
+        def binary2 = Stub(SwiftBinary)
+        binary2.name >> "test2"
+        def finalAction = Mock(Action)
+
+        given:
+        def p = container.getByName("test1")
+        container.add(binary1)
+        container.add(binary2)
+        container.realizeNow()
+
+        when:
+        p.whenFinalized(finalAction)
+
+        then:
+        1 * finalAction.execute(binary1)
+        0 * _
+    }
+
     def "can get by spec before element is present and query after container realized"() {
         def spec = Stub(Spec)
         def binary1 = Stub(SwiftBinary)
@@ -449,6 +522,38 @@ class DefaultBinaryCollectionTest extends Specification {
         def p = container.get(spec)
         p.present
         p.get() == binary2
+    }
+
+    def "fires finalize event for element by spec after configuration has completed"() {
+        def spec = Stub(Spec)
+        def binary1 = Stub(SwiftBinary)
+        def binary2 = Stub(SwiftBinary)
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def finalizeAction = Mock(Action)
+
+        spec.isSatisfiedBy(binary2) >> true
+
+        given:
+        def p = container.get(spec)
+        p.whenFinalized(finalizeAction)
+        p.configure(action1)
+        container.configureEach(action2)
+        container.add(binary1)
+        container.add(binary2)
+
+        when:
+        container.realizeNow()
+
+        then:
+        1 * action1.execute(binary2)
+        1 * action2.execute(binary1)
+        1 * action2.execute(binary2)
+        0 * _
+
+        then:
+        1 * finalizeAction.execute(binary2)
+        0 * _
     }
 
     def "reuses the result of matching by spec"() {
