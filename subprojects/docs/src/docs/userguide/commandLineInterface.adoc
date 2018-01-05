@@ -504,7 +504,7 @@ Running `gradle properties` gives you a list of the properties of the selected p
 
 ==== Software Model reports
 
-You can get a hierarchical view of elements for <<software_model,software model>> projects (deprecated) using the `model` task:
+You can get a hierarchical view of elements for <<software_model,software model>> projects using the `model` task:
 
 ----
 ❯ gradle model
