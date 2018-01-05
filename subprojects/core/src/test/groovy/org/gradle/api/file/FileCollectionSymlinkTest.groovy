@@ -24,6 +24,10 @@ import spock.lang.Unroll
 @Requires(TestPrecondition.SYMLINKS)
 class FileCollectionSymlinkTest extends AbstractProjectBuilderSpec {
 
+    private static final String SYMLINKED = 'symlinked'
+    private static final String SYMLINK = 'symlink'
+    private static final String FILE = 'file'
+
     TestFile baseDir
     TestFile file
     TestFile symlink
@@ -31,17 +35,21 @@ class FileCollectionSymlinkTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         baseDir = temporaryFolder.file('files')
-        file = baseDir.file('file')
+    }
+
+    private void createFiles(TestFile baseDir) {
+        file = baseDir.file(FILE)
         file.text = 'regular file'
-        symlinked = baseDir.file('symlinked')
+        symlinked = baseDir.file(SYMLINKED)
         symlinked.text = 'target of symlink'
-        symlink = baseDir.file('symlink')
+        symlink = baseDir.file(SYMLINK)
         symlink.createLink(symlinked)
     }
 
     @Unroll
     def "project.#method can handle symlinks"() {
-        def fileCollection = this."${method}"()
+        def fileCollection = this."${method}"(baseDir, *arguments)
+        createFiles(baseDir)
 
         expect:
         fileCollection.contains(file)
@@ -52,14 +60,16 @@ class FileCollectionSymlinkTest extends AbstractProjectBuilderSpec {
         (fileCollection - project.files(symlink)).files == [file, symlinked] as Set
 
         where:
-        method << ["files", "fileTree"]
+        method     | arguments
+        "files"    | [FILE, SYMLINK, SYMLINKED]
+        "fileTree" | []
     }
 
-    def files() {
-        project.files(file, symlink, symlinked)
+    def files(baseDir, String... fileNames) {
+        project.files(fileNames.collect { baseDir.file(it) })
     }
 
-    def fileTree() {
+    def fileTree(baseDir) {
         project.fileTree(baseDir)
     }
 }
