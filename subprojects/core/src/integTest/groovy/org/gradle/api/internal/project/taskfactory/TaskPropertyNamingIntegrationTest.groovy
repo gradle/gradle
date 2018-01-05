@@ -179,10 +179,9 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds 'test', 'printMetadata'
-        output.contains "Input property 'beans.class'"
-        output.contains "Input property 'beans.\$1.\$\$implementation"
+        output.contains "Input property 'beans.\$1.class'"
         output.contains "Input property 'beans.\$1.input'"
-        output.contains "Input property 'beans.\$2.\$\$implementation'"
+        output.contains "Input property 'beans.\$2.class'"
         output.contains "Input property 'beans.\$2.secondInput'"
     }
 
@@ -272,7 +271,6 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Input property 'bean.input'"
 
         output.contains "Input property 'bean.class'"
-        output.contains "Input property 'bean.nestedBean.class'"
         output.contains "Input file property 'bean.inputDir'"
     }
 

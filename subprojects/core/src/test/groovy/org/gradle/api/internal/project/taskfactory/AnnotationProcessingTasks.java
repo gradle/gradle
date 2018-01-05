@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Input;
@@ -412,6 +413,18 @@ public class AnnotationProcessingTasks {
         }
     }
 
+    public static class TaskWithNestedIterable extends TaskWithAction {
+        Bean bean = new Bean();
+
+        public TaskWithNestedIterable(File inputFile) {
+            bean.inputFile = inputFile;
+        }
+
+        @Nested
+        public List<?> getBeans() {
+            return ImmutableList.of(bean);
+        }
+    }
 
     public static class TaskWithNestedBeanWithPrivateClass extends TaskWithAction {
         Bean2 bean = new Bean2();
