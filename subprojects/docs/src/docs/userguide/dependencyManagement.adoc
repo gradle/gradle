@@ -206,14 +206,14 @@ Dependency declarations and their resolution behavior can be customized to a hig
 [[sec:excluding_transitive_module_dependencies]]
 ==== Excluding transitive module dependencies
 
-Declared dependencies in build script can pull it a lot of transitive dependencies. You might decide that you do not want a particular transitive dependency as part of the dependency graph for a good reason.
+Declared dependencies in a build script can pull in a lot of transitive dependencies. You might decide that you do not want a particular transitive dependency as part of the dependency graph for a good reason.
 
-- The dependency is undesired due to licensing reasons.
+- The dependency is undesired due to licensing constraints.
 - The dependency is not available in any of the declared repositories.
 - The metadata for the dependency exists but the artifact does not.
 - The metadata provides incorrect coordinates for a transitive dependency.
 
-Transitive dependencies can be excluded on the level of a declared dependency or a configuration. Let's demonstrate both use cases. In the following two examples the build script declares a dependency on Log4J, a popular logging framework in the Java world. The metadata of the particular version of Log4J used in the example declares transitive dependencies.
+Transitive dependencies can be excluded on the level of a declared dependency or a configuration. Let's demonstrate both use cases. In the following two examples the build script declares a dependency on Log4J, a popular logging framework in the Java world. The metadata of the particular version of Log4J also defines transitive dependencies.
 
 ++++
 <sample id="unresolvedTransitiveDependencies" dir="userguide/dependencies/unresolvedTransitiveDependencies" title="Unresolved artifacts for transitive dependencies">
@@ -221,7 +221,7 @@ Transitive dependencies can be excluded on the level of a declared dependency or
 </sample>
 ++++
 
-If resolved from Maven Central some of the transitive dependencies provide metadata but not the corresponding binary artifact. As a result any task requiring the binary file e.g. a compilation task will fail.
+If resolved from Maven Central some of the transitive dependencies provide metadata but not the corresponding binary artifact. As a result any task requiring the binary files will fail e.g. a compilation task.
 
 ```
 > gradle -q compileJava
@@ -239,7 +239,7 @@ Could not resolve all files for configuration ':compileClasspath'.
       https://repo.maven.apache.org/maven2/com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar
 ```
 
-The situation can be fixed by excluding the dependencies that do not exist in the declare repositories on the particular dependency declaration. Exclusions need to spelled out as a key/value pair for the `group` or `module` or both. Please refer to api:org.gradle.api.artifacts.ModuleDependency#exclude(java.util.Map)[] for more information.
+The situation can be fixed by excluding the dependencies that do not exist in the declared repositories for the particular dependency declaration. Exclusions need to spelled out as a key/value pair as `group` and/or `module` attributes. Please refer to api:org.gradle.api.artifacts.ModuleDependency#exclude(java.util.Map)[] for more information.
 
 ++++
 <sample id="exclude-transitive-for-dependency" dir="userguide/dependencies/excludingTransitiveDependenciesForDependency" title="Excluding transitive dependency for a particular dependency declaration">
@@ -247,7 +247,7 @@ The situation can be fixed by excluding the dependencies that do not exist in th
 </sample>
 ++++
 
-You will find that other dependencies might want to pull in the same transitive, missing dependency artifacts. Alternatively, you can also exclude the transitive dependencies for all declared dependencies of a particular configuration defined by api:org.gradle.api.artifacts.Configuration#exclude(java.util.Map)[].
+You will find that other dependencies might want to pull in the same transitive but missing dependency artifacts. Alternatively, you can exclude the transitive dependencies for a particular configuration by calling the method api:org.gradle.api.artifacts.Configuration#exclude(java.util.Map)[].
 
 ++++
 <sample id="exclude-transitive-for-configuration" dir="userguide/dependencies/excludingTransitiveDependenciesForConfiguration" title="Excluding transitive dependency for a particular configuration">
@@ -257,22 +257,22 @@ You will find that other dependencies might want to pull in the same transitive,
 
 [NOTE]
 ====
-As a build script author you often times know that you want to exclude a dependency for all configurations available for the project. The Groovy DSL uses meta programming capbilities of the language to allow the use of the `all` keyword to define a global rule e.g. `configurations.all { ... }`.
+As a build script author you often times know that you want to exclude a dependency for all configurations available for the project. The Groovy DSL uses meta programming capabilities to allow the use of the `all` keyword to define a global rule e.g. `configurations.all { ... }`.
 ====
 
-You might encounter other uses that don't quite fit the bill of an exclude rule. For example you might want to automatically select a version for a dependency with a specific requested version or you'll want to select a different group for a requested dependency if to react to a relocation. Those use cases are better served with the api:org.gradle.api.artifacts.ResolutionStrategy[] API. Some of these use cases are covered in <<sec:finetuning_the_dependency_resolution_process>>.
+You might encounter other use cases that don't quite fit the bill of an exclude rule. For example you want to automatically select a version for a dependency with a specific requested version or you want to select a different group for a requested dependency to react to a relocation. Those use cases are better solved by the api:org.gradle.api.artifacts.ResolutionStrategy[] API. Some of these use cases are covered in <<sec:finetuning_the_dependency_resolution_process>>.
 
 [[sec:enforcing_dependency_version]]
 ==== Enforcing a particular dependency version
 
-By default Gradle resolves transitive dependencies and resolves any version conflicts by selecting the latest version found in the dependency graph. Some project might need to divert from this behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
+Gradle resolves any dependency version conflicts by selecting the latest version found in the dependency graph. Some projects might need to divert from the default behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
 
 [NOTE]
 ====
-Enforcing a version of a dependency requires a conscious decision on your part. Changing the version of a transitive dependency might lead to runtime errors if external libraries do not properly function with it out. Alternatively, you might want to consider upgrading your source code to use a newer version of the library.
+Enforcing a version of a dependency requires a conscious decision. Changing the version of a transitive dependency might lead to runtime errors if external libraries do not properly function without them. Alternatively, consider upgrading your source code to use a newer version of the library.
 ====
 
-Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10. However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore. A dependency version can be enforced by declaring it and setting api:org.gradle.api.artifacts.ExternalDependency#setForce(boolean)[] to `true`.
+Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10. However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore. A dependency version can be enforced by declaring it in the build script and setting api:org.gradle.api.artifacts.ExternalDependency#setForce(boolean)[] to `true`.
 
 ++++
 <sample id="force-per-dependency" dir="userguide/dependencies/forcingDependencyVersion" title="Enforcing a dependency version">
@@ -280,7 +280,7 @@ Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga
 </sample>
 ++++
 
-If the project requires a specific version of a dependency on a configuration-level then it can be achieved by calling the method api:org.gradle.api.artifacts.ResolutionStrategy#force(java.lang.Object...)[]. Forced dependencies applied to a configuration only work if the configuration is resolvable that is api:org.gradle.api.artifacts.Configuration#isCanBeResolved()[] returns `true`.
+If the project requires a specific version of a dependency on a configuration-level then it can be achieved by calling the method api:org.gradle.api.artifacts.ResolutionStrategy#force(java.lang.Object...)[]. Forced dependencies on the configuration-level only work if the configuration is resolvable; that is api:org.gradle.api.artifacts.Configuration#isCanBeResolved()[] returns `true`.
 
 ++++
 <sample id="force-per-configuration" dir="userguide/dependencies/forcingDependencyVersionPerConfiguration" title="Enforcing a dependency version on the configuration-level">
@@ -291,13 +291,15 @@ If the project requires a specific version of a dependency on a configuration-le
 [[sub:resolve_specific_artifacts_from_dependency]]
 ==== Resolving specific artifacts from a binary dependency
 
-Whenever Gradle tries to resolve a dependency from a Maven or Ivy repository, it looks for a metadata file and the default artifact file, a JAR. The build files if none of these artifact files can be resolved. Under certain conditions, you might want to tweak the way Gradle resolves artifacts for a dependency.
+Whenever Gradle tries to resolve a dependency from a Maven or Ivy repository, it looks for a metadata file and the default artifact file, a JAR. The build fails if none of these artifact files can be resolved. Under certain conditions, you might want to tweak the way Gradle resolves artifacts for a dependency.
 
 - The dependency only provides a non-standard artifact without any metadata e.g. a ZIP file.
 - The dependency metadata declares more than one artifact e.g. an Ivy dependency descriptor.
 - You only want to download an specific artifact without any of the transitive dependencies declared in the metadata.
 
-Gradle is a polyglot build tool and not limited to resolving just Java libraries. Let's assume you wanted to build a web application using JavaScript on the client-side. Most project might just check in external JavaScript libraries into version control. Thinking about it a external JavaScript library is no different than a reusable Java library so why not download it from a repository. link:https://developers.google.com/speed/libraries/[Google Hosted Libraries] is a distribution platform for popular, open-source JavaScript libraries. With the help of the artifact-only notation you can download just a JavaScript library file e.g. JQuery. The `@` character separates the dependency's coordinates from the artifact's file extension. The api:org.gradle.api.artifacts.dsl.DependencyHandler[] also allows for declaring the `extension` attribute as map notation.
+Gradle is a polyglot build tool and not limited to resolving just Java libraries. Let's assume you wanted to build a web application using JavaScript on the client-side. Most projects check in external JavaScript libraries into version control. An external JavaScript library is no different than a reusable Java library so why not download it from a repository?
+
+link:https://developers.google.com/speed/libraries/[Google Hosted Libraries] is a distribution platform for popular, open-source JavaScript libraries. With the help of the artifact-only notation you can download just a JavaScript library file e.g. JQuery. The `@` character separates the dependency's coordinates from the artifact's file extension. The api:org.gradle.api.artifacts.dsl.DependencyHandler[] also allows for declaring the `extension` attribute as map notation.
 
 ++++
 <sample id="artifact-only-dependency-declaration" dir="userguide/dependencies/resolvingArtifactOnly" title="Resolving a JavaScript artifact for a declared dependency">
@@ -305,9 +307,11 @@ Gradle is a polyglot build tool and not limited to resolving just Java libraries
 </sample>
 ++++
 
-Some dependencies ship different "flavors" of the same artifact or they might publish multiple artifacts that belong to a specific version of the dependency but have a different purpose. For example a Java library may the artifact with the compiled class files, another one with just the source code and a third containing the Javadocs. In JavaScript, a library may exist as uncompressed or minified artifact. In Gradle, a specific artifact identifier is called _classifier_, a term commonly-used in Maven and Ivy dependency management.
+Some dependencies ship different "flavors" of the same artifact or they publish multiple artifacts that belong to a specific version of the dependency but have a different purpose. It's common that Java library publishes the artifact with the compiled class files, another one with just the source code in it and a third one containing the Javadocs.
 
-Let's we wanted to download the minified artifact of the JQuery library instead of the uncompressed file. You can provide the classifier `min` as part of the dependency declaration. The api:org.gradle.api.artifacts.dsl.DependencyHandler[] also allows for declaring the `classifier` attribute as map notation.
+In JavaScript, a library may exist as uncompressed or minified artifact. In Gradle, a specific artifact identifier is called _classifier_, a term commonly-used in Maven and Ivy dependency management.
+
+Let's say we wanted to download the minified artifact of the JQuery library instead of the uncompressed file. You can provide the classifier `min` as part of the dependency declaration. The api:org.gradle.api.artifacts.dsl.DependencyHandler[] also allows for declaring the `classifier` attribute as map notation.
 
 ++++
 <sample id="artifact-only-dependency-declaration-with-classifier" dir="userguide/dependencies/resolvingArtifactOnlyWithClassifier" title="Resolving a JavaScript artifact with classifier for a declared dependency">
@@ -318,7 +322,7 @@ Let's we wanted to download the minified artifact of the JQuery library instead 
 [[sub:disabling_resolution_transitive_dependencies]]
 ==== Disabling resolution of transitive dependencies
 
-By default Gradle resolves all transitive dependencies found in the metadata for a dependency. Sometimes this behavior may not be desirable for individual dependencies e.g. if the metadata is incorrect or defines a large graph of transitive dependencies. You can tell Gradle to disable transitive dependency management for a dependency by setting api:org.gradle.api.artifacts.ModuleDependency#setTransitive(boolean)[] to `true`. As a result only the main artifact will be resolved for the dependency.
+By default Gradle resolves all transitive dependencies specified by the dependency metadata. Sometimes this behavior may not be desirable e.g. if the metadata is incorrect or defines a large graph of transitive dependencies. You can tell Gradle to disable transitive dependency management for a dependency by setting api:org.gradle.api.artifacts.ModuleDependency#setTransitive(boolean)[] to `true`. As a result only the main artifact will be resolved for the dependency.
 
 ++++
 <sample id="disabling-transitive-dependency-resolution" dir="userguide/dependencies/disablingTransitiveDependencyResolution" title="Disabling transitive dependency resolution for a declared dependency">
