@@ -14,7 +14,7 @@ Some projects might prefer to store dependencies on a shared drive or as part of
 
 This adds repositories which look into one or more directories for finding dependencies. Note that this type of repository does not support any meta-data formats like Ivy XML or Maven POM files. Instead, Gradle will dynamically generate a module descriptor (without any dependency information) based on the presence of artifacts. However, as Gradle prefers to use modules whose descriptor has been created from real meta-data rather than being generated, flat directory repositories cannot be used to override artifacts with real meta-data from other repositories. For example, if Gradle finds only `jmxri-1.2.1.jar` in a flat directory repository, but `jmxri-1.2.1.pom` in another repository that supports meta-data, it will use the second repository to provide the module.
 
-For the use case of overriding remote artifacts with local ones consider using an Ivy or Maven repository instead whose URL points to a local directory. If you only work with flat directory repositories you don't need to set all attributes of a dependency. Please see <<sec:optional_attributes>> for more information.
+For the use case of overriding remote artifacts with local ones consider using an Ivy or Maven repository instead whose URL points to a local directory. If you only work with flat directory repositories you don't need to set all attributes of a dependency. For more information, see <<sec:optional_attributes>>.
 
 [[sub:maven_central]]
 === Maven Central repository
@@ -45,7 +45,7 @@ To declare the link:https://jcenter.bintray.com[JCenter Maven repository] add th
 [[sub:maven_google]]
 === Google Maven repository
 
-The Google repository hosts Android-specific artifacts including the Android SDK. For usage examples please see the link:https://developer.android.com/studio/build/dependencies.html#google-maven[relevant documentation].
+The Google repository hosts Android-specific artifacts including the Android SDK. For usage examples, see the link:https://developer.android.com/studio/build/dependencies.html#google-maven[relevant documentation].
 
 To declare the link:https://dl.google.com/dl/android/maven2/[Google Maven repository] add this to your build script:
 
@@ -315,7 +315,7 @@ Some of the AWS S3 regions (eu-central-1 - Frankfurt) require that all HTTP requ
 When a region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle will use the default AWS region (us-east-1) and the
 following warning will appear on the console:
 
-Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, please use region-specific endpoint to access buckets located in regions that require V4 signing.
+Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, use region-specific endpoint to access buckets located in regions that require V4 signing.
 
 Failing to specify the region-specific endpoint for buckets requiring V4 signatures means:
 
