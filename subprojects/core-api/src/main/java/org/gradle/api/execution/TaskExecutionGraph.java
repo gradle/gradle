@@ -152,7 +152,7 @@ public interface TaskExecutionGraph {
      * @return The tasks. Returns an empty set if there are no dependent tasks.
      * @throws IllegalStateException When this graph has not been populated or the task is not part of it.
      *
-     * @since 4.5
+     * @since 4.6
      */
     @Incubating
     Set<Task> getDependencies(Task task);
