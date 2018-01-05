@@ -69,7 +69,7 @@
                             <li><a href="/userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
                             <li><a href="https://docs.gradle.com/build-scan-plugin">Build Scans</a></li>
                             <li><a href="/userguide/build_environment.html">Build Environment</a></li>
-                            <li><a href="/userguide/init_scripts.html">Init Scripts</a></li>
+                            <li><a href="/userguide/init_scripts.html">Initialization Scripts</a></li>
                             <li><a href="/userguide/intro_multi_project_builds.html">Multi-Project Builds</a></li>
                             <li><a href="/userguide/build_cache.html">Build Cache</a></li>
                             <li><a href="/userguide/composite_builds.html">Composite Builds</a></li>

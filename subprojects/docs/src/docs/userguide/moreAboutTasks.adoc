@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[more_about_tasks]]
-== More about Tasks
+== Authoring Tasks
 
 In the introductory tutorial (<<tutorial_using_tasks>>) you learned how to create simple tasks. You also learned how to add additional behavior to these tasks later on, and you learned how to create dependencies between tasks. This was all about simple tasks, but Gradle takes the concept of tasks further. Gradle supports _enhanced tasks_, which are tasks that have their own properties and methods. This is really different from what you are used to with Ant targets. Such enhanced tasks are either provided by you or built into Gradle.
 
