@@ -213,14 +213,31 @@ Declared dependencies in build script can pull it a lot of transitive dependenci
 - The metadata for the dependency exists but the artifact does not.
 - The metadata provides incorrect coordinates for a transitive dependency.
 
-Transitive dependencies can be excluded on the level of a declared dependency or a configuration. Let's demonstrate both use cases. In the following two examples the build script declares a dependency on Log4J, a popular logging framework in the Java world. The metadata of the particular version of Log4J used in the example declares transitive dependencies. If resolved from Maven Central some of the transitive dependencies provide metadata but not the corresponding binary artifact. As a result any task requiring the binary file e.g. a compilation task will fail.
+Transitive dependencies can be excluded on the level of a declared dependency or a configuration. Let's demonstrate both use cases. In the following two examples the build script declares a dependency on Log4J, a popular logging framework in the Java world. The metadata of the particular version of Log4J used in the example declares transitive dependencies.
 
 ++++
 <sample id="unresolvedTransitiveDependencies" dir="userguide/dependencies/unresolvedTransitiveDependencies" title="Unresolved artifacts for transitive dependencies">
     <sourcefile file="build.gradle" snippet="unresolved-transitive-dependencies"/>
-    <output args="-q compileJava"/>
 </sample>
 ++++
+
+If resolved from Maven Central some of the transitive dependencies provide metadata but not the corresponding binary artifact. As a result any task requiring the binary file e.g. a compilation task will fail.
+
+```
+> gradle -q compileJava
+
+* What went wrong:
+Could not resolve all files for configuration ':compileClasspath'.
+> Could not find jms.jar (javax.jms:jms:1.1).
+  Searched in the following locations:
+      https://repo.maven.apache.org/maven2/javax/jms/jms/1.1/jms-1.1.jar
+> Could not find jmxtools.jar (com.sun.jdmk:jmxtools:1.2.1).
+  Searched in the following locations:
+      https://repo.maven.apache.org/maven2/com/sun/jdmk/jmxtools/1.2.1/jmxtools-1.2.1.jar
+> Could not find jmxri.jar (com.sun.jmx:jmxri:1.2.1).
+  Searched in the following locations:
+      https://repo.maven.apache.org/maven2/com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar
+```
 
 The situation can be fixed by excluding the dependencies that do not exist in the declare repositories on the particular dependency declaration. Exclusions need to spelled out as a key/value pair for the `group` or `module` or both. Please refer to api:org.gradle.api.artifacts.ModuleDependency#exclude(java.util.Map)[] for more information.
 
