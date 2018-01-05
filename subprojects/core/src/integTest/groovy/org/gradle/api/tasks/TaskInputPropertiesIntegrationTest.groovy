@@ -19,12 +19,13 @@ package org.gradle.api.tasks
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.BuildCacheFixture
+import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.Actions
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec implements BuildCacheFixture {
 
     def "reports which properties are not serializable"() {
         buildFile << """
@@ -764,6 +765,8 @@ task someTask(type: SomeTask) {
         def expectedUpToDateCounts = [inputFile: 2, outputFile: 2, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
         def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}"}
         def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}"}
+        def localCache = new TestBuildCache(file('cache-dir'))
+        settingsFile << localCache.localCacheConfiguration()
 
         expect:
         succeeds(*arguments)
@@ -771,18 +774,15 @@ task someTask(type: SomeTask) {
 
         when:
         inputFile.text = "changed"
-
         then:
         withBuildCache().succeeds(*arguments)
         executedAndNotSkipped(':myTask')
-
         and:
         succeeds(*upToDateArguments)
         skipped(':myTask')
 
         when:
         file('build').deleteDir()
-
         then:
         withBuildCache().succeeds(*upToDateArguments)
         skipped(':myTask')
