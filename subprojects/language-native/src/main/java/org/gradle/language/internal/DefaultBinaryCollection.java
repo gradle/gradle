@@ -218,6 +218,18 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
             });
         }
 
+        @Override
+        public void whenFinalized(final Action<? super S> action) {
+            whenElementFinalized(new Action<T>() {
+                @Override
+                public void execute(T t) {
+                    if (match == t) {
+                        action.execute(match);
+                    }
+                }
+            });
+        }
+
         @Nullable
         @Override
         public S getOrNull() {

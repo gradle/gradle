@@ -40,7 +40,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
      * <p>Querying the return value will fail when there is not exactly one matching binary.
      *
      * @param type type to match
-     * @param spec specification to satisfy. The spec is applied to each binary prior to configuration.
+     * @param spec specification to satisfy. The spec is applied to each binary <em>prior</em> to configuration.
      * @param <S> type of the binary to return
      * @return a binary from the collection in a finalized state
      */
