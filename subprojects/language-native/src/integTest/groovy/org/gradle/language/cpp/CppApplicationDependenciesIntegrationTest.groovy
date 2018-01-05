@@ -28,7 +28,13 @@ class CppApplicationDependenciesIntegrationTest extends AbstractNativeProduction
             }
 """
         file("lib/src/main/cpp/lib.cpp") << """
-            void lib_func() { }
+            #ifdef _WIN32
+            #define EXPORT_FUNC __declspec(dllexport)
+            #else
+            #define EXPORT_FUNC
+            #endif
+            
+            void EXPORT_FUNC lib_func() { }
 """
         file("src/main/cpp/app.cpp") << """
             int main() {
