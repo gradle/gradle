@@ -36,11 +36,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Local build cache directory cleanup is now time-based
 
-Previously, Gradle would clean up the local build cache directory only if the size of its contents reached 5 GB, or whatever was configured in `targetSizeInMB`.
+Previously, Gradle would clean up the [local build cache directory](userguide/build_cache.html#sec:build_cache_configure_local) only if the size of its contents reached 5 GB, or whatever was configured in `targetSizeInMB`.
 From now on Gradle will instead clean up everything older than 7 days, regardless of the size of the cache directory.
 As a consequence `targetSizeInMB` is now deprecated, and changing its value has no effect.
 
-The minimum age for entries to be cleaned up can now be configured in `settings.gradle` via:
+The minimum age for entries to be cleaned up can now be configured in `settings.gradle` via the [`removeUnusedEntriesAfterDays`](https://docs.gradle.org/current/dsl/org.gradle.caching.local.DirectoryBuildCache.html#org.gradle.caching.local.DirectoryBuildCache:removeUnusedEntriesAfterDays) property:
 
 ```
 buildCache {

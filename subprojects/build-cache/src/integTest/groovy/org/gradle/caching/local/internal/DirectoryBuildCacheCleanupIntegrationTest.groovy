@@ -73,18 +73,21 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         def lastCleanupCheck = gcFile().makeOlder().lastModified()
 
         when:
-        def trashFile = cacheDir.file("0" * 32).createFile()
-        trashFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_CACHE_AGE) * 2
+        def newTrashFile = cacheDir.file("0" * 32).createFile()
+        def oldTrashFile = cacheDir.file("1" * 32).createFile()
+        oldTrashFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_CACHE_AGE) * 2
         run()
         then:
-        trashFile.assertIsFile()
+        newTrashFile.assertIsFile()
+        oldTrashFile.assertIsFile()
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
 
         when:
         lastCleanupCheck = markCacheForCleanup()
         run()
         then:
-        trashFile.assertDoesNotExist()
+        newTrashFile.assertIsFile()
+        oldTrashFile.assertDoesNotExist()
         assertCacheWasCleanedUpSince(lastCleanupCheck)
     }
 
