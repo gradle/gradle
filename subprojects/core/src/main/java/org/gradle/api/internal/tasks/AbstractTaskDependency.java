@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
+@NonNullApi
 public abstract class AbstractTaskDependency implements TaskDependencyInternal {
-    public Set<Task> getDependencies(Task task) {
+    public Set<? extends Task> getDependencies(@Nullable Task task) {
         CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
-        context.add(this);
-        return context.resolve(task);
+        return context.getDependencies(task, this);
     }
 }

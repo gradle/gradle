@@ -25,10 +25,16 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "allows optional @#annotation.simpleName to have null value"() {
         buildFile << """
+            import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
+            import org.gradle.api.internal.tasks.TaskPropertyUtils
+            import org.gradle.api.internal.tasks.properties.PropertyWalker
+
             class CustomTask extends DefaultTask {
                 @Optional @$annotation.simpleName input
                 @TaskAction void doSomething() {
-                    assert inputs.files.empty
+                    def visitor = new GetInputFilesVisitor(this.toString())
+                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), this, visitor)
+                    assert visitor.files.empty
                 }
             }
 

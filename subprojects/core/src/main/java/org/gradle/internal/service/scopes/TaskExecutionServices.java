@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
@@ -103,6 +104,7 @@ public class TaskExecutionServices {
                                     BuildScanPluginApplied buildScanPlugin,
                                     PathToFileResolver resolver,
                                     PropertyWalker propertyWalker,
+                                    TaskExecutionGraph taskExecutionGraph,
                                     BuildInvocationScopeId buildInvocationScopeId
     ) {
 
@@ -136,7 +138,7 @@ public class TaskExecutionServices {
         executer = new FinalizeInputFilePropertiesTaskExecuter(executer);
         executer = new CleanupStaleOutputsExecuter(cleanupRegistry, taskOutputFilesRepository, buildOperationExecutor, executer);
         executer = new ResolveTaskArtifactStateTaskExecuter(repository, resolver, propertyWalker, executer);
-        executer = new SkipTaskWithNoActionsExecuter(executer);
+        executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new ExecuteAtMostOnceTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);

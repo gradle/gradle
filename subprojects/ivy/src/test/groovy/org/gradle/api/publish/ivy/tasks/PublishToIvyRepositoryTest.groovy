@@ -23,6 +23,8 @@ import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
+import static org.gradle.api.tasks.TaskPropertyTestUtils.getInputFiles
+
 class PublishToIvyRepositoryTest extends AbstractProjectBuilderSpec {
 
     PublishToIvyRepository publish
@@ -63,7 +65,7 @@ class PublishToIvyRepositoryTest extends AbstractProjectBuilderSpec {
         publish.publication = publication
 
         then:
-        publish.inputs.files.files == publishableFiles.files
+        getInputFiles(publish).files == publishableFiles.files
     }
 
     PublishToIvyRepository createPublish(String name) {
