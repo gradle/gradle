@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,18 @@
 package org.gradle.language;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.file.FileCollection;
 
 /**
- * Represents a component with output files.
+ * Allows the implementation dependencies of a component to be specified.
  *
- * @since 4.5
+ * @since 4.6
  */
 @Incubating
-public interface ComponentWithOutputs extends SoftwareComponent {
+public interface ComponentDependencies {
     /**
-     * Returns the outputs produced for this component.
+     * Adds an implementation dependency to this component.
+     *
+     * @param notation The dependency notation, as per {@link org.gradle.api.artifacts.dsl.DependencyHandler#create(Object)}.
      */
-    FileCollection getOutputs();
+    void implementation(Object notation);
 }
