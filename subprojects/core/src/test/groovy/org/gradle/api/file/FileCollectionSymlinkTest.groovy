@@ -15,42 +15,33 @@
  */
 package org.gradle.api.file
 
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.api.Project
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.UsesNativeServices
+import org.junit.ClassRule
+import spock.lang.Shared
+import spock.lang.Specification
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.SYMLINKS)
-class FileCollectionSymlinkTest extends AbstractProjectBuilderSpec {
+@UsesNativeServices
+class FileCollectionSymlinkTest extends Specification {
+    @Shared Project project = new ProjectBuilder().build()
+    @Shared @ClassRule TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    @Shared TestFile baseDir = temporaryFolder.createDir('baseDir')
+    @Shared TestFile file = baseDir.file("file")
+    @Shared TestFile symlink = baseDir.file("symlink")
+    @Shared TestFile symlinked = baseDir.file("symlinked")
 
-    private static final String SYMLINKED = 'symlinked'
-    private static final String SYMLINK = 'symlink'
-    private static final String FILE = 'file'
-
-    TestFile baseDir
-    TestFile file
-    TestFile symlink
-    TestFile symlinked
-
-    def setup() {
-        baseDir = temporaryFolder.file('files')
-    }
-
-    private void createFiles(TestFile baseDir) {
-        file = baseDir.file(FILE)
-        file.text = 'regular file'
-        symlinked = baseDir.file(SYMLINKED)
+    def setupSpec() {
+        file.text = 'some contents'
         symlinked.text = 'target of symlink'
-        symlink = baseDir.file(SYMLINK)
         symlink.createLink(symlinked)
     }
 
     @Unroll
-    def "project.#method can handle symlinks"() {
-        def fileCollection = this."${method}"(baseDir, *arguments)
-        createFiles(baseDir)
-
+    def "#desc can handle symlinks"() {
         expect:
         fileCollection.contains(file)
         fileCollection.contains(symlink)
@@ -60,16 +51,8 @@ class FileCollectionSymlinkTest extends AbstractProjectBuilderSpec {
         (fileCollection - project.files(symlink)).files == [file, symlinked] as Set
 
         where:
-        method     | arguments
-        "files"    | [FILE, SYMLINK, SYMLINKED]
-        "fileTree" | []
-    }
-
-    def files(baseDir, String... fileNames) {
-        project.files(fileNames.collect { baseDir.file(it) })
-    }
-
-    def fileTree(baseDir) {
-        project.fileTree(baseDir)
+        desc                 | fileCollection
+        "project.files()"    | project.files(file, symlink, symlinked)
+        "project.fileTree()" | project.fileTree(baseDir)
     }
 }
