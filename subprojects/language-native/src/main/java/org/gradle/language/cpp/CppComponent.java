@@ -25,6 +25,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.provider.Property;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.BinaryCollection;
+import org.gradle.language.ComponentWithDependencies;
 
 /**
  * Configuration for a C++ component, such as a library or executable, defining the source files and private header directories that make up the component. Private headers are those that are visible only to the source files of the component.
@@ -36,7 +37,7 @@ import org.gradle.language.BinaryCollection;
  * @since 4.2
  */
 @Incubating
-public interface CppComponent extends ComponentWithBinaries {
+public interface CppComponent extends ComponentWithBinaries, ComponentWithDependencies {
     /**
      * Specifies the base name for this component. This name is used to calculate various output file names. The default value is calculated from the project name.
      */

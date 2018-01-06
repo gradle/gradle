@@ -17,63 +17,47 @@
 package org.gradle.language.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.NativeToolChain
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
+import javax.inject.Inject
 
 class DefaultNativeBinaryTest extends Specification {
-    ConfigurationContainer configurations = Mock(ConfigurationContainer)
-    DependencyHandler dependencyFactory = Mock(DependencyHandler)
-    Configuration implementation = Stub(Configuration)
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
+    Configuration implementation = Stub(ConfigurationInternal)
 
     def "has implementation dependencies"() {
-        def implDeps = Mock(Configuration)
-
-        when:
-        def binary = new TestBinary("binary", Stub(ProjectLayout), configurations, implementation)
-
-        then:
-        1 * configurations.create("binaryImplementation") >> implDeps
-        1 * implDeps.extendsFrom(implementation)
+        given:
+        def binary = new TestBinary("binary", project.objects, project.layout, implementation)
 
         expect:
-        binary.implementationDependencies == implDeps
+        binary.implementationDependencies == project.configurations.binaryImplementation
+        binary.implementationDependencies.extendsFrom == [implementation] as Set
     }
 
     def "can add implementation dependency"() {
-        def implDeps = Mock(Configuration)
-        def deps = Mock(DependencySet)
-        def dep = Stub(Dependency)
-
         given:
-        configurations.create("binaryImplementation") >> implDeps
-        implDeps.dependencies >> deps
+        def binary = new TestBinary("binary", project.objects, project.layout, implementation)
+        binary.dependencies.implementation("a:b:c:")
 
-        def binary = new TestBinary("binary", Stub(ProjectLayout), configurations, implementation)
-
-        when:
-        binary.dependencies.implementation("a:b:c")
-
-        then:
-        1 * dependencyFactory.create("a:b:c") >> dep
-        1 * deps.add(dep)
+        expect:
+        binary.implementationDependencies.dependencies.size() == 1
     }
 
     class TestBinary extends DefaultNativeBinary {
-        TestBinary(String name, ProjectLayout projectLayout, ConfigurationContainer configurations, Configuration componentImplementation) {
-            super(name, projectLayout, configurations, componentImplementation)
-        }
-
-        @Override
-        protected DependencyHandler getDependencyHandler() {
-            return dependencyFactory
+        @Inject
+        TestBinary(String name, ObjectFactory objectFactory, ProjectLayout projectLayout, Configuration componentImplementation) {
+            super(name, objectFactory, projectLayout, componentImplementation)
         }
 
         @Override

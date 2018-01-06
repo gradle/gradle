@@ -59,7 +59,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Property<CppCompile> compileTaskProperty;
 
     public DefaultCppBinary(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        super(name, projectLayout, configurations, componentImplementation);
+        super(name, objects, projectLayout, componentImplementation);
         this.baseName = baseName;
         this.debuggable = debuggable;
         this.optimized = optimized;

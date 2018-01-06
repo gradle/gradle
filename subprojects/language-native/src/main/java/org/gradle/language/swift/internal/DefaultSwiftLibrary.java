@@ -17,12 +17,15 @@
 package org.gradle.language.swift.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.language.LibraryDependencies;
+import org.gradle.language.internal.DefaultLibraryDependencies;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.SwiftPlatform;
@@ -35,15 +38,15 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 
 public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftLibrary {
-    private final Configuration api;
     private final ObjectFactory objectFactory;
     private final LockableSetProperty<Linkage> linkage;
     private final ConfigurationContainer configurations;
     private final Property<SwiftBinary> developmentBinary;
+    private final DefaultLibraryDependencies dependencies;
 
     @Inject
     public DefaultSwiftLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
-        super(name, fileOperations, objectFactory, configurations);
+        super(name, fileOperations, objectFactory);
         this.objectFactory = objectFactory;
         this.configurations = configurations;
         this.developmentBinary = objectFactory.property(SwiftBinary.class);
@@ -51,10 +54,21 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
         linkage = new LockableSetProperty<Linkage>(objectFactory.setProperty(Linkage.class));
         linkage.add(Linkage.SHARED);
 
-        api = configurations.create(getNames().withSuffix("api"));
-        api.setCanBeConsumed(false);
-        api.setCanBeResolved(false);
-        getImplementationDependencies().extendsFrom(api);
+        dependencies = objectFactory.newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));
+    }
+
+    @Override
+    public Configuration getImplementationDependencies() {
+        return dependencies.getImplementationDependencies();
+    }
+
+    @Override
+    public LibraryDependencies getDependencies() {
+        return dependencies;
+    }
+
+    public void dependencies(Action<? super LibraryDependencies> action) {
+        action.execute(dependencies);
     }
 
     public SwiftStaticLibrary addStaticLibrary(String nameSuffix, boolean debuggable, boolean optimized, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
@@ -71,7 +85,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
 
     @Override
     public Configuration getApiDependencies() {
-        return api;
+        return dependencies.getApiDependencies();
     }
 
     @Override

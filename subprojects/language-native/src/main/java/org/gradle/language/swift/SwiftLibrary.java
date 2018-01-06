@@ -19,6 +19,7 @@ package org.gradle.language.swift;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.language.LibraryDependencies;
 import org.gradle.nativeplatform.Linkage;
 
 /**
@@ -30,6 +31,14 @@ import org.gradle.nativeplatform.Linkage;
  */
 @Incubating
 public interface SwiftLibrary extends ProductionSwiftComponent {
+    /**
+     * Returns the dependencies of this library.
+     *
+     * @since 4.6
+     */
+    @Override
+    LibraryDependencies getDependencies();
+
     /**
      * Returns the API dependencies of this library.
      */

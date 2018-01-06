@@ -29,8 +29,15 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
 
+    def "has implementation dependencies"() {
+        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
+
+        expect:
+        testSuite.implementationDependencies == project.configurations.testImplementation
+    }
+
     def "can add a test executable"() {
-        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects, project.configurations)
+        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
 
         expect:
         def exe = testSuite.addExecutable("Executable", Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
@@ -38,7 +45,7 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     }
 
     def "can add a test bundle"() {
-        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects, project.configurations)
+        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
 
         expect:
         def exe = testSuite.addBundle("Executable", Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))

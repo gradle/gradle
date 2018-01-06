@@ -17,10 +17,13 @@
 package org.gradle.nativeplatform.test.xctest.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.language.ComponentDependencies;
+import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
@@ -40,13 +43,15 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
     private final ObjectFactory objectFactory;
     private final Property<SwiftXCTestBinary> testBinary;
     private final Property<SwiftComponent> testedComponent;
+    private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultSwiftXCTestSuite(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
-        super(name, fileOperations, objectFactory, configurations);
+    public DefaultSwiftXCTestSuite(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
+        super(name, fileOperations, objectFactory);
         this.testedComponent = objectFactory.property(SwiftComponent.class);
         this.objectFactory = objectFactory;
         this.testBinary = objectFactory.property(SwiftXCTestBinary.class);
+        this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
     }
 
     public SwiftXCTestExecutable addExecutable(String nameSuffix, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
@@ -59,6 +64,20 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
         SwiftXCTestBundle result = objectFactory.newInstance(DefaultSwiftXCTestBundle.class, getName() + StringUtils.capitalize(nameSuffix), getModule(), true, false, false, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
         getBinaries().add(result);
         return result;
+    }
+
+    @Override
+    public Configuration getImplementationDependencies() {
+        return dependencies.getImplementationDependencies();
+    }
+
+    @Override
+    public ComponentDependencies getDependencies() {
+        return dependencies;
+    }
+
+    public void dependencies(Action<? super ComponentDependencies> action) {
+        action.execute(dependencies);
     }
 
     public Property<SwiftComponent> getTestedComponent() {
