@@ -18,11 +18,10 @@ package org.gradle.language.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.ComponentDependencies;
 import org.gradle.language.ComponentWithDependencies;
@@ -30,24 +29,19 @@ import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.Names;
 
-import javax.inject.Inject;
-
 public abstract class DefaultNativeBinary implements ComponentWithNames, ComponentWithObjectFiles, ComponentWithDependencies {
     private final String name;
     private final Names names;
     private final DirectoryProperty objectsDir;
-    private final Configuration implementation;
+    private final DefaultComponentDependencies dependencies;
 
-    public DefaultNativeBinary(String name, ProjectLayout projectLayout, ConfigurationContainer configurations, Configuration componentImplementation) {
+    public DefaultNativeBinary(String name, ObjectFactory objectFactory, ProjectLayout projectLayout, Configuration componentImplementation) {
         this.name = name;
         this.names = Names.of(name);
 
         this.objectsDir = projectLayout.directoryProperty();
-
-        this.implementation = configurations.create(name + "Implementation");
-        implementation.setCanBeConsumed(false);
-        implementation.setCanBeResolved(false);
-        implementation.extendsFrom(componentImplementation);
+        dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, name + "Implementation");
+        dependencies.getImplementationDependencies().extendsFrom(componentImplementation);
     }
 
     @Override
@@ -71,26 +65,14 @@ public abstract class DefaultNativeBinary implements ComponentWithNames, Compone
 
     @Override
     public ComponentDependencies getDependencies() {
-        return new ComponentDependencies() {
-            @Override
-            public void implementation(Object notation) {
-                implementation.getDependencies().add(getDependencyHandler().create(notation));
-            }
-        };
+        return dependencies;
     }
 
-    @Override
     public void dependencies(Action<? super ComponentDependencies> action) {
         action.execute(getDependencies());
     }
 
-    @Inject
-    protected DependencyHandler getDependencyHandler() {
-        throw new UnsupportedOperationException();
-    }
-
     public Configuration getImplementationDependencies() {
-        return implementation;
+        return dependencies.getImplementationDependencies();
     }
-
 }

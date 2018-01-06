@@ -26,7 +26,26 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
         """
     }
 
-    def "can define implementation dependencies on binary"() {
+    def "can define implementation dependencies on component"() {
+        given:
+        settingsFile << 'include "lib"'
+        makeComponentWithLibrary()
+        buildFile << """
+            ${componentUnderTestDsl} { c ->
+                c.dependencies {
+                    implementation project(':lib')
+                }
+            }
+"""
+
+        when:
+        run(assembleDevBinaryTask)
+
+        then:
+        result.assertTasksExecuted(libDebugTasks, assembleDevBinaryTasks, assembleDevBinaryTask)
+    }
+
+    def "can define implementation dependencies on each binary"() {
         given:
         settingsFile << 'include "lib"'
         makeComponentWithLibrary()

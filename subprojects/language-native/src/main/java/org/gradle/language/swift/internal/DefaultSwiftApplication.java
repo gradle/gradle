@@ -17,10 +17,13 @@
 package org.gradle.language.swift.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.language.ComponentDependencies;
+import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftPlatform;
@@ -32,12 +35,28 @@ import javax.inject.Inject;
 public class DefaultSwiftApplication extends DefaultSwiftComponent implements SwiftApplication {
     private final ObjectFactory objectFactory;
     private final Property<SwiftExecutable> developmentBinary;
+    private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultSwiftApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
-        super(name, fileOperations, objectFactory, configurations);
+    public DefaultSwiftApplication(String name, ObjectFactory objectFactory, FileOperations fileOperations) {
+        super(name, fileOperations, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(SwiftExecutable.class);
+        this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
+    }
+
+    @Override
+    public Configuration getImplementationDependencies() {
+        return dependencies.getImplementationDependencies();
+    }
+
+    @Override
+    public ComponentDependencies getDependencies() {
+        return dependencies;
+    }
+
+    public void dependencies(Action<? super ComponentDependencies> action) {
+        action.execute(dependencies);
     }
 
     public SwiftExecutable addExecutable(String nameSuffix, boolean debuggable, boolean optimized, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {

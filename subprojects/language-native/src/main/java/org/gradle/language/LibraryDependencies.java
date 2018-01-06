@@ -17,17 +17,18 @@
 package org.gradle.language;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.component.SoftwareComponent;
 
 /**
- * Represents a component with implementation dependencies.
+ * Allows the API and implementation dependencies of a library to be specified.
  *
  * @since 4.6
  */
 @Incubating
-public interface ComponentWithDependencies extends SoftwareComponent {
+public interface LibraryDependencies extends ComponentDependencies {
     /**
-     * Returns the dependencies of this component.
+     * Adds an API dependency to this library.
+     *
+     * @param notation The dependency notation, as per {@link org.gradle.api.artifacts.dsl.DependencyHandler#create(Object)}.
      */
-    ComponentDependencies getDependencies();
+    void api(Object notation);
 }

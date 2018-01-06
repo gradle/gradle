@@ -16,8 +16,6 @@
 
 package org.gradle.language.swift.internal;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
@@ -38,18 +36,14 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     private final Property<String> module;
     private final String name;
     private final Names names;
-    private final Configuration implementation;
 
-    public DefaultSwiftComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
+    public DefaultSwiftComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
         super(fileOperations);
         this.name = name;
         swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
         module = objectFactory.property(String.class);
 
         names = Names.of(name);
-        implementation = configurations.create(names.withSuffix("implementation"));
-        implementation.setCanBeConsumed(false);
-        implementation.setCanBeResolved(false);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, SwiftBinary.class));
     }
 
@@ -71,11 +65,6 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     @Override
     public FileCollection getSwiftSource() {
         return swiftSource;
-    }
-
-    @Override
-    public Configuration getImplementationDependencies() {
-        return implementation;
     }
 
     @Override

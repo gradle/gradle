@@ -72,7 +72,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final Configuration importPathConfiguration;
 
     public DefaultSwiftBinary(String name, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        super(name, projectLayout, configurations, componentImplementation);
+        super(name, objectFactory, projectLayout, componentImplementation);
         this.module = module;
         this.debuggable = debuggable;
         this.optimized = optimized;
