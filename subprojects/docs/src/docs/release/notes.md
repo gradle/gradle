@@ -79,7 +79,7 @@ When generating grammar sources with ANTLR, now the task's outputs are stored an
 
 ### Documentation enhancements
 
-This release of Gradle adds more examples and use-case oriented documentation. In particular, notable improvements have been made to documentation for the [command-line interface](userguide/command_line_interface.html), [configuring the build environment](userguide/build_environment.html), [dependency management](userguide/dependency_management.html), [Gradle wrapper](userguide/gradle_wrapper.html), and [Provider API](userguide/lazy_configuration.html).
+This release of Gradle adds more examples and use-case oriented documentation. In particular, notable improvements have been made to documentation for the [command-line interface](userguide/command_line_interface.html), [configuring the build environment](userguide/build_environment.html), [dependency management](userguide/dependency_management.html), and [Gradle wrapper](userguide/gradle_wrapper.html).
 
 In addition, major improvements were made to discoverability of content through improved navigation in the user manual and DSL reference. docs.gradle.org now loads faster (especially in Asia), is more mobile-friendly, and gives you a much better sense of where you are.
 
@@ -117,9 +117,9 @@ See the user guide section on the [`init` plugin](userguide/build_init_plugin.ht
 
 ### New plugin APIs
 
-#### Provider API improvements
+#### Provider API - `SetProperty`
 
-A convenience for dealing with sets has been added. TBD - link to API
+A convenience for dealing with [sets](javadoc/org/gradle/api/provider/SetProperty.html) has been added to the [Provider API](userguide/lazy_configuration.html).
 
 #### Use of runtime types when declaring `@Nested` task inputs
 
@@ -258,7 +258,7 @@ For more on configuring the build cache for the root `buildSrc` build, please se
 
 ### Incubating `Depend` task removed
 
-TBD - removed `Depend` task, this capability has been merged into the compile tasks.
+The `Depend` task has been removed without a replacement. Its capability has been merged into the respective native compilation tasks.
 
 ### Gradle no longer tracks the canonical path of input file tree roots
 
@@ -266,17 +266,19 @@ Gradle was inconsistently handling symlinks when snapshotting inputs. For the ro
 it would only consider the normalized path instead. Gradle will now always use the normalized path. This means that a task will not rerun if a directory is replaced with a symlink to the exact same contents.
 If you have a use case that requires reacting to the canonical path of inputs, please open an issue and we'll consider an opt-in API that will canonicalize all inputs, not just tree roots.
 
-### Project.file() no longer normalizes case
+### `Project.file()` no longer normalizes case
 
 The `Project.file()` and related methods used to normalize the case on case-insensitive file systems. This means that the method would check whether any parts of the hierarchy of a given file already existed in a different case and would adjust the given file accordingly. This lead to lots of IO during configuration time without a strong benefit. 
 
 The `Project.file()` method will now ignore case and only normalize redundant segments like `/../`. It will not touch the file system.
 
-### ListProperty no longer extends Property
+### `ListProperty` no longer extends `Property`
 
-TBD - `ListProperty` now extends `HasMultipleValues` and `Provider` instead of `Property`. The `Property` interface represents a property whose incoming and outgoing types are the same. However, a `List` can be assembled from any `Iterable` rather than just any `List` and this new arrangement reflects this, allowing a `ListProperty<T>` to be set using any `Iterable<T>`. This also applies to the DSL, where the Groovy DSL will allow any `Iterable` to be used to set the value.
+`ListProperty` now extends `HasMultipleValues` and `Provider` instead of `Property`. The `Property` interface represents a property whose incoming and outgoing types are the same. A `List` can be assembled from any `Iterable` rather than just any `List`, so the new arrangement reflects this to allow a `ListProperty<T>` to be set using any `Iterable<T>`. 
 
-The new `SetProperty` type also follows this pattern.
+This also applies to the DSL. The Groovy DSL will allow any `Iterable` to be used to set the value of a `ListProperty`.
+
+The new `SetProperty` type follows this same pattern.
 
 ## External contributions
 
