@@ -84,22 +84,11 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
         return excludes;
     }
 
-    @Override
-    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved) {
+    public void addConfiguration(String name, Set<String> extendsFrom, boolean visible, boolean transitive) {
         List<String> sortedExtends = Lists.newArrayList(extendsFrom);
         Collections.sort(sortedExtends);
         Configuration configuration = new Configuration(name, transitive, visible, sortedExtends);
         configurations.put(name, configuration);
-    }
-
-    @Override
-    public void addExclude(String configuration, ExcludeMetadata exclude) {
-        excludes.add(Pair.of(exclude, configuration));
-    }
-
-    @Override
-    public void addDependency(LocalOriginDependencyMetadata dependency) {
-        dependencies.add(normalizeVersionForIvy(dependency));
     }
 
     /**
@@ -117,21 +106,6 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
             return dependency.withTarget(newSelector);
         }
         return dependency;
-    }
-
-    @Override
-    public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
-        for (PublishArtifact artifact : artifacts) {
-            DefaultIvyArtifactName ivyName = DefaultIvyArtifactName.forPublishArtifact(artifact);
-            DefaultIvyModuleArtifactPublishMetadata ivyArtifact = getOrCreate(ivyName);
-            ivyArtifact.setFile(artifact.getFile());
-            ivyArtifact.addConfiguration(configuration);
-        }
-    }
-
-    @Override
-    public void addVariant(String configuration, OutgoingVariant variant) {
-        // Ignore
     }
 
     public void addArtifact(IvyArtifactName artifact, File file) {
@@ -157,6 +131,41 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
 
     public Collection<IvyModuleArtifactPublishMetadata> getArtifacts() {
         return artifactsById.values();
+    }
+
+    public void addArtifact(String configuration, PublishArtifact artifact) {
+        DefaultIvyArtifactName ivyName = DefaultIvyArtifactName.forPublishArtifact(artifact);
+        DefaultIvyModuleArtifactPublishMetadata ivyArtifact = getOrCreate(ivyName);
+        ivyArtifact.setFile(artifact.getFile());
+        ivyArtifact.addConfiguration(configuration);
+    }
+
+    // BuildableLocalComponentMetadata
+    // TODO:DAZ Split the first 2 methods into a separate interface so we don't require the rest.
+
+    @Override
+    public void addExclude(String configuration, ExcludeMetadata exclude) {
+        excludes.add(Pair.of(exclude, configuration));
+    }
+
+    @Override
+    public void addDependency(LocalOriginDependencyMetadata dependency) {
+        dependencies.add(normalizeVersionForIvy(dependency));
+    }
+
+    @Override
+    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved) {
+        // Ignore
+    }
+
+    @Override
+    public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
+        // Ignore
+    }
+
+    @Override
+    public void addVariant(String configuration, OutgoingVariant variant) {
+        // Ignore
     }
 
     @Override

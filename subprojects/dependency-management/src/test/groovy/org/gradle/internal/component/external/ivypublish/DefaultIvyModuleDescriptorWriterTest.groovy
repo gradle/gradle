@@ -78,6 +78,6 @@ class DefaultIvyModuleDescriptorWriterTest extends Specification {
     }
 
     def addConfiguration(DefaultIvyModulePublishMetadata metadata, String configurationName, List extended = []) {
-        metadata.addConfiguration(configurationName, null, extended as Set, extended as Set, true, true, null, true, true)
+        metadata.addConfiguration(configurationName, extended as Set, true, true)
     }
 }
