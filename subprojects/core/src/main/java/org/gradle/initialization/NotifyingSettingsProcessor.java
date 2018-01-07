@@ -50,7 +50,7 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Evaluate settings").
-                    progressDisplayName("settings").
+                    progressDisplayName("Evaluating settings").
                     details(new Details(){
                         @Override
                         public String getSettingsDir() {
