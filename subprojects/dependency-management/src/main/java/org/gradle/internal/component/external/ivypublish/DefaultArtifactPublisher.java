@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.publisher;
+package org.gradle.internal.component.external.ivypublish;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishException;
@@ -25,29 +25,24 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.external.ivypublish.BuildableIvyModulePublishMetadata;
-import org.gradle.internal.component.external.ivypublish.DefaultIvyModulePublishMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
-import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
-public class IvyBackedArtifactPublisher implements ArtifactPublisher {
+public class DefaultArtifactPublisher implements ArtifactPublisher {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultArtifactPublisher.class);
+
     private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
-    private final IvyDependencyPublisher dependencyPublisher;
     private final IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
 
-    public IvyBackedArtifactPublisher(ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
-                                      IvyDependencyPublisher dependencyPublisher,
-                                      IvyModuleDescriptorWriter ivyModuleDescriptorWriter) {
+    public DefaultArtifactPublisher(ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
+                                    IvyModuleDescriptorWriter ivyModuleDescriptorWriter) {
         this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
-        this.dependencyPublisher = dependencyPublisher;
         this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
     }
 
@@ -55,27 +50,32 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         Set<ConfigurationInternal> allConfigurations = Cast.uncheckedCast(configuration.getAll());
         Set<ConfigurationInternal> configurationsToPublish = Cast.uncheckedCast(configuration.getHierarchy());
 
+        // Will create `ivy.xml` even for Maven publishing! (as long as `Upload.uploadDescriptor == true`)
         if (descriptor != null) {
             // Convert once, in order to write the Ivy descriptor with _all_ configurations
-            IvyModulePublishMetadata publishMetaData = toPublishMetaData(module, allConfigurations);
+            DefaultIvyModulePublishMetadata publishMetaData = toPublishMetaData(module, allConfigurations);
             validatePublishMetaData(publishMetaData);
             ivyModuleDescriptorWriter.write(publishMetaData, descriptor);
         }
 
         // Convert a second time with only the published configurations: this ensures that the correct artifacts are included
-        BuildableIvyModulePublishMetadata publishMetaData = toPublishMetaData(module, configurationsToPublish);
+        DefaultIvyModulePublishMetadata publishMetaData = toPublishMetaData(module, configurationsToPublish);
         if (descriptor != null) {
             IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
             publishMetaData.addArtifact(artifact, descriptor);
         }
 
-        List<ModuleVersionPublisher> publishResolvers = new ArrayList<ModuleVersionPublisher>();
-        for (PublicationAwareRepository repository : repositories) {
-            ModuleVersionPublisher publisher = repository.createPublisher();
-            publishResolvers.add(publisher);
+        // Make a copy of the publication and filter missing artifacts
+        DefaultIvyModulePublishMetadata publication = new DefaultIvyModulePublishMetadata(publishMetaData.getComponentId(), publishMetaData.getStatus());
+        for (IvyModuleArtifactPublishMetadata artifact : publishMetaData.getArtifacts()) {
+            addPublishedArtifact(artifact, publication);
         }
 
-        dependencyPublisher.publish(publishResolvers, publishMetaData);
+        for (PublicationAwareRepository repository : repositories) {
+            ModuleVersionPublisher publisher = repository.createPublisher();
+            LOGGER.info("Publishing to {}", publisher);
+            publisher.publish(publication);
+        }
     }
 
     private void validatePublishMetaData(IvyModulePublishMetadata publishMetaData) {
@@ -86,11 +86,33 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         }
     }
 
-    private BuildableIvyModulePublishMetadata toPublishMetaData(Module module, Set<? extends ConfigurationInternal> configurations) {
+    private DefaultIvyModulePublishMetadata toPublishMetaData(Module module, Set<? extends ConfigurationInternal> configurations) {
         ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(module.getGroup(), module.getName(), module.getVersion());
         DefaultIvyModulePublishMetadata publishMetaData = new DefaultIvyModulePublishMetadata(id, module.getStatus());
         configurationComponentMetaDataBuilder.addConfigurations(publishMetaData, configurations);
         return publishMetaData;
     }
+
+    private void addPublishedArtifact(IvyModuleArtifactPublishMetadata artifact, DefaultIvyModulePublishMetadata publication) {
+        if (checkArtifactFileExists(artifact)) {
+            publication.addArtifact(artifact);
+        }
+    }
+
+    private boolean checkArtifactFileExists(IvyModuleArtifactPublishMetadata artifact) {
+        File artifactFile = artifact.getFile();
+        if (artifactFile.exists()) {
+            return true;
+        }
+        if (!isSigningArtifact(artifact.getArtifactName())) {
+            throw new PublishException(String.format("Cannot publish artifact '%s' (%s) as it does not exist.", artifact.getId(), artifactFile));
+        }
+        return false;
+    }
+
+    private boolean isSigningArtifact(IvyArtifactName artifact) {
+        return artifact.getType().endsWith(".asc") || artifact.getType().endsWith(".sig");
+    }
+
 
 }

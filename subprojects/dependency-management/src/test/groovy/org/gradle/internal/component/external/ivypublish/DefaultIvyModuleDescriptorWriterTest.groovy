@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice
+package org.gradle.internal.component.external.ivypublish
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter
-import org.gradle.internal.component.external.ivypublish.BuildableIvyModulePublishMetadata
-import org.gradle.internal.component.external.ivypublish.DefaultIvyModuleArtifactPublishMetadata
-import org.gradle.internal.component.external.ivypublish.DefaultIvyModulePublishMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -34,12 +30,12 @@ import spock.lang.Specification
 
 import java.text.SimpleDateFormat
 
-class IvyXmlModuleDescriptorWriterTest extends Specification {
+class DefaultIvyModuleDescriptorWriterTest extends Specification {
 
     private @Rule TestNameTestDirectoryProvider temporaryFolder;
     ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId("org.test", "projectA", "1.0")
     ComponentSelectorConverter componentSelectorConverter = Mock(ComponentSelectorConverter)
-    def ivyXmlModuleDescriptorWriter = new IvyXmlModuleDescriptorWriter(componentSelectorConverter)
+    def ivyXmlModuleDescriptorWriter = new DefaultIvyModuleDescriptorWriter(componentSelectorConverter)
 
     def "can create ivy (unmodified) descriptor"() {
         when:
@@ -74,14 +70,14 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         format.parse(timestamp)
     }
 
-    def addDependencyDescriptor(BuildableIvyModulePublishMetadata metadata, String organisation = "org.test", String moduleName, String revision = "1.0") {
+    def addDependencyDescriptor(DefaultIvyModulePublishMetadata metadata, String organisation = "org.test", String moduleName, String revision = "1.0") {
         def dep = new LocalComponentDependencyMetadata(metadata.getComponentId(),
             DefaultModuleComponentSelector.newSelector(organisation, moduleName, new DefaultMutableVersionConstraint(revision)),
             "default", null, "default", [] as List, [], false, false, true, false)
         metadata.addDependency(dep)
     }
 
-    def addConfiguration(BuildableIvyModulePublishMetadata metadata, String configurationName, List extended = []) {
+    def addConfiguration(DefaultIvyModulePublishMetadata metadata, String configurationName, List extended = []) {
         metadata.addConfiguration(configurationName, null, extended as Set, extended as Set, true, true, null, true, true)
     }
 }

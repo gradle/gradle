@@ -51,9 +51,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.publisher.DefaultIvyDependencyPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyBackedArtifactPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
@@ -84,6 +81,8 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.component.external.ivypublish.DefaultIvyModuleDescriptorWriter;
+import org.gradle.internal.component.external.ivypublish.DefaultArtifactPublisher;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
@@ -217,16 +216,16 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
                                                   ProjectFinder projectFinder, DependencyConstraintHandler dependencyConstraintHandler, ComponentMetadataHandler componentMetadataHandler, ComponentModuleMetadataHandler componentModuleMetadataHandler, ArtifactResolutionQueryFactory resolutionQueryFactory, AttributesSchema attributesSchema, VariantTransformRegistry artifactTransformRegistrations, ArtifactTypeRegistry artifactTypeRegistry) {
             return instantiator.newInstance(DefaultDependencyHandler.class,
-                    configurationContainer,
-                    dependencyFactory,
-                    projectFinder,
-                    dependencyConstraintHandler,
-                    componentMetadataHandler,
-                    componentModuleMetadataHandler,
-                    resolutionQueryFactory,
-                    attributesSchema,
-                    artifactTransformRegistrations,
-                    artifactTypeRegistry);
+                configurationContainer,
+                dependencyFactory,
+                projectFinder,
+                dependencyConstraintHandler,
+                componentMetadataHandler,
+                componentModuleMetadataHandler,
+                resolutionQueryFactory,
+                attributesSchema,
+                artifactTransformRegistrations,
+                artifactTypeRegistry);
         }
 
         DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory) {
@@ -265,27 +264,27 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        VersionSelectorScheme versionSelectorScheme,
                                                        ComponentSelectorConverter componentSelectorConverter) {
             return new ErrorHandlingConfigurationResolver(
-                    new ShortCircuitEmptyConfigurationResolver(
-                        new DefaultConfigurationResolver(
-                            artifactDependencyResolver,
-                            repositories,
-                            metadataHandler,
-                            resolutionResultsStoreFactory,
-                            startParameter.isBuildProjectDependencies(),
-                            attributesSchema,
-                            new DefaultArtifactTransforms(
-                                new ConsumerProvidedVariantFinder(
-                                    variantTransforms,
-                                    attributesSchema,
-                                    attributesFactory),
-                                attributesSchema),
-                            moduleIdentifierFactory,
-                            buildOperationExecutor,
-                            artifactTypeRegistry,
-                            versionSelectorScheme,
-                            componentSelectorConverter),
-                        componentIdentifierFactory,
-                        moduleIdentifierFactory));
+                new ShortCircuitEmptyConfigurationResolver(
+                    new DefaultConfigurationResolver(
+                        artifactDependencyResolver,
+                        repositories,
+                        metadataHandler,
+                        resolutionResultsStoreFactory,
+                        startParameter.isBuildProjectDependencies(),
+                        attributesSchema,
+                        new DefaultArtifactTransforms(
+                            new ConsumerProvidedVariantFinder(
+                                variantTransforms,
+                                attributesSchema,
+                                attributesFactory),
+                            attributesSchema),
+                        moduleIdentifierFactory,
+                        buildOperationExecutor,
+                        artifactTypeRegistry,
+                        versionSelectorScheme,
+                        componentSelectorConverter),
+                    componentIdentifierFactory,
+                    moduleIdentifierFactory));
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {
@@ -304,9 +303,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
     }
+
     private static class DefaultDependencyResolutionServices implements DependencyResolutionServices {
 
         private final ServiceRegistry services;
+
         private DefaultDependencyResolutionServices(ServiceRegistry services) {
             this.services = services;
         }
@@ -324,9 +325,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
     }
+
     private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {
 
         private final ServiceRegistry services;
+
         public DefaultArtifactPublicationServices(ServiceRegistry services) {
             this.services = services;
         }
@@ -338,10 +341,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         public ArtifactPublisher createArtifactPublisher() {
-            IvyBackedArtifactPublisher publisher = new IvyBackedArtifactPublisher(
+            DefaultArtifactPublisher publisher = new DefaultArtifactPublisher(
                 services.get(ConfigurationComponentMetaDataBuilder.class),
-                new DefaultIvyDependencyPublisher(),
-                new IvyXmlModuleDescriptorWriter(services.get(ComponentSelectorConverter.class))
+                new DefaultIvyModuleDescriptorWriter(services.get(ComponentSelectorConverter.class))
             );
             return new IvyContextualArtifactPublisher(services.get(IvyContextManager.class), publisher);
         }

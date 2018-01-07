@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublishMetadata, BuildableLocalComponentMetadata {
+public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata, BuildableLocalComponentMetadata {
     private static final Transformer<String, String> VERSION_TRANSFORMER = new IvyVersionTransformer();
     private final ModuleComponentIdentifier id;
     private final String status;
@@ -58,11 +58,6 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, String status) {
         this.id = id;
         this.status = status;
-    }
-
-    public DefaultIvyModulePublishMetadata(IvyModulePublishMetadata metadata) {
-        this.id = metadata.getComponentId();
-        this.status = metadata.getStatus();
     }
 
     public ModuleComponentIdentifier getComponentId() {

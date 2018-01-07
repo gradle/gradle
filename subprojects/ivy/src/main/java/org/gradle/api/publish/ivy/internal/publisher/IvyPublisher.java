@@ -18,6 +18,9 @@ package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 
+/**
+ * Used by the `ivy-publish` plugin to publish Ivy modules.
+ */
 public interface IvyPublisher {
     void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository);
 }

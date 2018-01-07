@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.publisher;
+package org.gradle.internal.component.external.ivypublish;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.UncheckedIOException;
@@ -23,8 +23,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
-import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
@@ -41,12 +39,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
+public class DefaultIvyModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     public static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
 
     private final ComponentSelectorConverter componentSelectorConverter;
 
-    public IvyXmlModuleDescriptorWriter(ComponentSelectorConverter componentSelectorConverter) {
+    public DefaultIvyModuleDescriptorWriter(ComponentSelectorConverter componentSelectorConverter) {
         this.componentSelectorConverter = componentSelectorConverter;
     }
 
