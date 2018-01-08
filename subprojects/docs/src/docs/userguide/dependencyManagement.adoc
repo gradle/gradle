@@ -290,7 +290,7 @@ You may find that other dependencies will want to pull in the same transitive de
 
 [NOTE]
 ====
-As a build script author you often times know that you want to exclude a dependency for all configurations available in the project. The Groovy DSL uses meta programming capabilities to allow the use of the `all` keyword to define a global rule e.g. `configurations.all { ... }`.
+As a build script author you often times know that you want to exclude a dependency for all configurations available in the project. You can use the method api:org.gradle.api.DomainObjectCollection#all(org.gradle.api.Action)[] to define a global rule.
 ====
 
 You might encounter other use cases that don't quite fit the bill of an exclude rule. For example you want to automatically select a version for a dependency with a specific requested version or you want to select a different group for a requested dependency to react to a relocation. Those use cases are better solved by the api:org.gradle.api.artifacts.ResolutionStrategy[] API. Some of these use cases are covered in <<sec:finetuning_the_dependency_resolution_process>>.
