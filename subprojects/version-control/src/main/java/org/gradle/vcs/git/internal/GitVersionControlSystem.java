@@ -25,6 +25,7 @@ import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.GradleException;
 import org.gradle.vcs.VersionControlSpec;
@@ -49,7 +50,6 @@ public class GitVersionControlSystem implements VersionControlSystem {
         GitVersionControlSpec gitSpec = cast(spec);
         File workingDir = new File(versionDir, gitSpec.getRepoName());
 
-        // TODO: Assuming the default branch for the repository
         File dbDir = new File(workingDir, ".git");
         if (dbDir.exists() && dbDir.isDirectory()) {
             updateRepo(workingDir, gitSpec, ref);
@@ -84,7 +84,10 @@ public class GitVersionControlSystem implements VersionControlSystem {
     }
 
     private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
-        CloneCommand clone = Git.cloneRepository().setURI(gitSpec.getUrl().toString()).setDirectory(workingDir);
+        CloneCommand clone = Git.cloneRepository().
+            setURI(gitSpec.getUrl().toString()).
+            setDirectory(workingDir).
+            setCloneSubmodules(true);
         Git git = null;
         try {
             git = clone.call();
@@ -106,6 +109,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
             git = Git.open(workingDir);
             git.fetch().setRemote(getRemoteForUrl(git.getRepository(), gitSpec.getUrl())).call();
             git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
+            updateSubModules(git);
         } catch (IOException e) {
             throw wrapGitCommandException("update", gitSpec.getUrl(), workingDir, e);
         } catch (URISyntaxException e) {
@@ -118,6 +122,26 @@ public class GitVersionControlSystem implements VersionControlSystem {
             if (git != null) {
                 git.close();
             }
+        }
+    }
+
+    private static void updateSubModules(Git git) throws IOException, GitAPIException {
+        SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository());
+        try {
+            while (walker.next()) {
+                Repository submodule = walker.getRepository();
+                try {
+                    Git submoduleGit = Git.wrap(submodule);
+                    submoduleGit.fetch().call();
+                    git.submoduleUpdate().addPath(walker.getPath()).call();
+                    submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
+                    updateSubModules(submoduleGit);
+                } finally {
+                    submodule.close();
+                }
+            }
+        } finally {
+            walker.close();
         }
     }
 
