@@ -75,60 +75,6 @@ The following example demonstrates usage of various properties.
 </sample>
 ++++
 
-You can use link:https://scans.gradle.com[build scans] to see what the build environment was for a given build using `--scan`.
-
-image:img/build-scan-infrastructure.png[Build Environment in build scan]
-
-[[sec:configuring_jvm_memory]]
-=== Configuring JVM memory
-
-Gradle defaults to 1024 megabytes maximum heap per JVM process (`-Xmx1024m`), however, that may be too much or too little depending on the size of your project. There are many JVM options (this link:https://dzone.com/articles/java-performance-tuning[blog post on Java performance tuning] and link:http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html[this reference] may be helpful).
-
-You can adjust JVM options for Gradle in the following ways:
-
-The `JAVA_OPTS` environment variable is used for the Gradle client, but not forked JVMs.
-
-.Changing JVM settings for Gradle client JVM
-====
-[source,properties]
-----
-JAVA_OPTS="-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
-----
-====
-
-You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for the <<gradle_daemon, Gradle Daemon>>.
-
-.Changing JVM settings for forked Gradle JVMs
-====
-[source,properties]
-----
-org.gradle.jvmargs=-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
-----
-====
-
-[NOTE]
-====
-Many settings (like the Java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle must launch a separate JVM process to execute the build after parsing the various `gradle.properties` files.
-
-When running with the <<gradle_daemon, Gradle Daemon>>, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
-====
-
-Certain tasks in Gradle also fork additional JVM processes, like the `test` task when using api:org.gradle.api.tasks.testing.Test#setMaxParallelForks[] for JUnit or TestNG tests. You must configure these through the tasks themselves.
-
-.Set Java compile options for api:org.gradle.api.tasks.compile.JavaCompile[] tasks
-====
-[source,groovy]
-----
-apply plugin: "java"
-
-tasks.withType(JavaCompile) {
-    options.compilerArgs += ["-Xdoclint:none", "-Xlint:none", "-nowarn"]
-}
-----
-====
-
-See other examples in the api:org.gradle.api.tasks.testing.Test[] API documentation and <<sec:test_execution, test execution in the Java plugin reference>>.
-
 [[sec:gradle_system_properties]]
 === System properties
 
@@ -213,6 +159,60 @@ If a project property is referenced but does not exist, an exception will be thr
 
 You should check for existence of optional project properties before you access them using the api:org.gradle.api.Project#hasProperty(java.lang.String)[] method.
 ====
+
+[[sec:configuring_jvm_memory]]
+=== Configuring JVM memory
+
+Gradle defaults to 1024 megabytes maximum heap per JVM process (`-Xmx1024m`), however, that may be too much or too little depending on the size of your project. There are many JVM options (this link:https://dzone.com/articles/java-performance-tuning[blog post on Java performance tuning] and link:http://www.oracle.com/technetwork/java/javase/tech/vmoptions-jsp-140102.html[this reference] may be helpful).
+
+You can adjust JVM options for Gradle in the following ways:
+
+The `JAVA_OPTS` environment variable is used for the Gradle client, but not forked JVMs.
+
+.Changing JVM settings for Gradle client JVM
+====
+[source,properties]
+----
+JAVA_OPTS="-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+----
+====
+
+You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for the <<gradle_daemon, Gradle Daemon>>.
+
+.Changing JVM settings for forked Gradle JVMs
+====
+[source,properties]
+----
+org.gradle.jvmargs=-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+----
+====
+
+[NOTE]
+====
+Many settings (like the Java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle must launch a separate JVM process to execute the build after parsing the various `gradle.properties` files.
+
+When running with the <<gradle_daemon, Gradle Daemon>>, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
+====
+
+Certain tasks in Gradle also fork additional JVM processes, like the `test` task when using api:org.gradle.api.tasks.testing.Test#setMaxParallelForks[] for JUnit or TestNG tests. You must configure these through the tasks themselves.
+
+.Set Java compile options for api:org.gradle.api.tasks.compile.JavaCompile[] tasks
+====
+[source,groovy]
+----
+apply plugin: "java"
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ["-Xdoclint:none", "-Xlint:none", "-nowarn"]
+}
+----
+====
+
+See other examples in the api:org.gradle.api.tasks.testing.Test[] API documentation and <<sec:test_execution, test execution in the Java plugin reference>>.
+
+link:https://scans.gradle.com[Build scans] will tell you information about the JVM that executed the build when you use the `--scan` option.
+
+link:https://scans.gradle.com/s/sample/cpp-parallel/infrastructure[image:img/build-scan-infrastructure.png[Build Environment in build scan]]
 
 [[sec:configuring_task_using_project_properties]]
 === Configuring a task using project properties
