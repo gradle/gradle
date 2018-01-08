@@ -6,9 +6,9 @@ First and foremost, this release of Gradle features improvements to the build ca
  - The ANTLR plugin now [takes advantage of the build cache](#antlr-task-is-now-cacheable-by-default).
  - A couple of rough edges to build cache behavior have been polished, read [details below](#potential-breaking-changes).
 
-In addition to cacheability, incremental compilation for C/C++ is now able to understand most dependencies between source files and header files, which will result in fewer files compiled and a higher cache hit-rate. Read [details about C and C++ compilation improvements here](#c/c++-compilation-improvements).
+In addition to cacheability improvements for native development, incremental compilation for C/C++ does finer-grained analysis of dependencies between source files and header files, which will result in fewer files compiled and a higher cache hit-rate. Read [details about C and C++ compilation improvements here](#c/c++-compilation-improvements).
 
-Next up, performance improvements everyone can enjoy. Gradle 4.5 features much more memory-efficient incremental compilation; for you this means _less memory pressure_ and _faster builds_. Combined with less file canonicalization, faster task selection, and faster variant-aware dependency resolution, this results in up to 30% faster up-to-date task executions. The improvement will be especially pronounced for projects with a large number of constants, as is typical in Android projects. For example, here are 2 snapshots comparing cross-build caches:
+Now on to performance improvements everyone can enjoy: _less memory consumption_ and _faster up-to-date behavior_. Gradle 4.5 features much more memory-efficient incremental compilation. Combined with less file canonicalization, faster task selection, and faster variant-aware dependency resolution, this results in up to 30% faster up-to-date task executions. The improvement will be especially pronounced for projects with a large number of constants, as is typical in Android projects. For example, here are 2 snapshots comparing cross-build caches.
 
 The 1st one from Gradle 4.4 using 440MB:
 
