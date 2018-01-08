@@ -17,8 +17,6 @@
 package org.gradle.language.cpp.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -29,7 +27,8 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.internal.DefaultNativeBinaryContainer;
+import org.gradle.language.internal.DefaultBinaryCollection;
+import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
 
@@ -37,7 +36,7 @@ import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
-public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent {
+public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent, ComponentWithNames {
     private final FileCollection cppSource;
     private final String name;
     private final FileOperations fileOperations;
@@ -45,11 +44,10 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final FileCollection privateHeadersWithConvention;
     private final Property<String> baseName;
     private final Names names;
-    private final Configuration implementation;
-    private final DefaultNativeBinaryContainer<CppBinary> binaries;
+    private final DefaultBinaryCollection<CppBinary> binaries;
 
     @Inject
-    public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
+    public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
         super(fileOperations);
         this.name = name;
         this.fileOperations = fileOperations;
@@ -57,16 +55,12 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         privateHeaders = fileOperations.files();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
         baseName = objectFactory.property(String.class);
-
         names = Names.of(name);
-        implementation = configurations.maybeCreate(names.withSuffix("implementation"));
-        implementation.setCanBeConsumed(false);
-        implementation.setCanBeResolved(false);
-
-        binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultNativeBinaryContainer.class, CppBinary.class));
+        binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
     }
 
-    protected Names getNames() {
+    @Override
+    public Names getNames() {
         return names;
     }
 
@@ -113,11 +107,6 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     @Override
-    public Configuration getImplementationDependencies() {
-        return implementation;
-    }
-
-    @Override
     public FileTree getHeaderFiles() {
         return getAllHeaderDirs().getAsFileTree().matching(new PatternSet().include("**/*.h"));
     }
@@ -127,7 +116,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     @Override
-    public DefaultNativeBinaryContainer<CppBinary> getBinaries() {
+    public DefaultBinaryCollection<CppBinary> getBinaries() {
         return binaries;
     }
 }

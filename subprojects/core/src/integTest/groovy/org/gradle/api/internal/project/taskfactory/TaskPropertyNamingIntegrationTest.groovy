@@ -120,7 +120,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'Output: outputFiles$2 [output2.txt]'
     }
 
-    def "nested input and output properties are discovered"() {
+    def "nested properties are discovered"() {
         buildFile << classesForNestedProperties()
         buildFile << """
             task test(type: TaskWithNestedObjectProperty) {           
@@ -141,14 +141,48 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "test", "printMetadata"
-        output =~ /Input property 'input'/
-        output =~ /Input property 'bean\.class'/
+        output.contains "Input property 'input'"
+        output.contains "Input property 'bean.class'"
 
-        output =~ /Input property 'bean\.input'/
-        output =~ /Input property 'bean\.nestedBean.class'/
-        output =~ /Input file property 'bean\.inputDir'/
-        output =~ /Input file property 'bean\.nestedBean.inputFile'/
-        output =~ /Output file property 'bean\.outputDir'/
+        output.contains "Input property 'bean.input'"
+        output.contains "Input property 'bean.nestedBean.class'"
+        output.contains "Input file property 'bean.inputDir'"
+        output.contains "Input file property 'bean.nestedBean.inputFile'"
+        output.contains "Output file property 'bean.outputDir'"
+    }
+
+    def "nested iterable properties have names"() {
+        buildFile << printPropertiesTask()
+        buildFile << """ 
+            class TaskWithNestedBean extends DefaultTask {
+                @Nested
+                List<Object> beans
+            }
+
+            class NestedBean {
+                @Input
+                input
+            }
+            
+            class OtherNestedBean {
+                @Input
+                secondInput
+            }
+            
+            task test(type: TaskWithNestedBean) {           
+                beans = [new NestedBean(input: 'someString'), new OtherNestedBean(secondInput: 'otherString')]
+            }        
+            task printMetadata(type: PrintInputsAndOutputs) {
+                task = test
+            }            
+        """
+
+        expect:
+        succeeds 'test', 'printMetadata'
+        output.contains "Input property 'beans.\$0.class'"
+        output.contains "Input property 'beans.\$0.input'"
+        output.contains "Input property 'beans.\$1.class'"
+        output.contains "Input property 'beans.\$1.secondInput'"
     }
 
     def "nested destroyables are discovered"() {
@@ -177,7 +211,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "destroy", "printMetadata"
 
         then:
-        output =~ /Input property 'bean\.class'/
+        output.contains "Input property 'bean.class'"
         output =~ /Destroys: '.*destroyed'/
     }
 
@@ -207,7 +241,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "taskWithLocalState", "printMetadata"
 
         then:
-        output =~ /Input property 'bean\.class'/
+        output.contains "Input property 'bean.class'"
         output =~ /Local state: '.*localState'/
     }
 
@@ -233,12 +267,11 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test", "printMetadata"
 
         then:
-        output =~ /Input property 'input'/
-        output =~ /Input property 'bean\.input'/
+        output.contains "Input property 'input'"
+        output.contains "Input property 'bean.input'"
 
-        output =~ /Input property 'bean\.class'/
-        output =~ /Input property 'bean\.nestedBean\.class'/
-        output =~ /Input file property 'bean\.inputDir'/
+        output.contains "Input property 'bean.class'"
+        output.contains "Input file property 'bean.inputDir'"
     }
 
     String classesForNestedProperties() {
@@ -274,6 +307,12 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 File inputFile
             }     
             
+            ${printPropertiesTask()}
+        """
+    }
+
+    String printPropertiesTask() {
+        """
             import org.gradle.api.internal.tasks.*
             import org.gradle.api.internal.tasks.properties.*
 

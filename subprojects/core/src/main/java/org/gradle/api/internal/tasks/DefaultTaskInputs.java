@@ -64,7 +64,6 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasInputs() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputs.getHasInputs()", "Declare individual task properties to access input files.");
         HasInputsVisitor visitor = new HasInputsVisitor();
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         return visitor.hasInputs();
@@ -134,7 +133,6 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasSourceFiles() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputs.getHasSourceFiles()", "Declare individual task properties to access source files.");
         GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString());
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         return visitor.hasSourceFiles();
@@ -142,13 +140,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public FileCollection getSourceFiles() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputs.getSourceFiles()", "Declare individual task properties to access source files.");
         return allSourceFiles;
     }
 
     @Override
     public Map<String, Object> getProperties() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputs.getProperties()", "Use the property() and properties() methods to declare input properties instead.");
         GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor(task.getName());
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         //noinspection ConstantConditions

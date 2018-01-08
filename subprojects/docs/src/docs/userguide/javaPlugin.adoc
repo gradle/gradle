@@ -887,7 +887,7 @@ The TestNG framework has a quite similar concept. In TestNG you can specify diff
 
 TestNG allows explicit control of the execution order of tests.
 
-The `preserveOrder` property controls whether tests are executed in deterministic order. Preserving the order guarantees that the complete test (including `@BeforeXXX` and `@AfterXXX`) is run in a test thread before the next test is run. While preserving the order of tests is the default behavior when directly working with `testng.xml` files, the http://testng.org/javadocs/org/testng/TestNG.html[TestNG API], that is used for running tests programmatically, as well as Gradle's TestNG integration execute tests in unpredictable order by default.footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] Preserving the order of tests was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
+The `preserveOrder` property controls whether tests are executed in deterministic order. Preserving the order guarantees that the complete test (including `@BeforeXXX` and `@AfterXXX`) is run in a test thread before the next test is run. While preserving the order of tests is the default behavior when directly working with `testng.xml` files, the https://jitpack.io/com/github/cbeust/testng/master/javadoc/org/testng/TestNG.html[TestNG API], that is used for running tests programmatically, as well as Gradle's TestNG integration execute tests in unpredictable order by default.footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] Preserving the order of tests was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testngpreserveorder" dir="testing/testng/preserveorder" title="Preserving order of TestNG tests">
@@ -998,7 +998,7 @@ Manifests are merged in the order they are declared by the `from` statement. If 
 You can easily write a manifest to disk.
 
 ++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="manifest" dir="userguide/tutorial/manifest" title="Separate MANIFEST.MF for a particular archive">
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="manifest" dir="userguide/tutorial/manifest" title="Saving a MANIFEST.MF to disk">
                 <sourcefile file="build.gradle" snippet="write"/>
             </sample>
 ++++

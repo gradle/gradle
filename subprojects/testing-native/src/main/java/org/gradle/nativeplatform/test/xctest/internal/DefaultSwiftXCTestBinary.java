@@ -27,13 +27,10 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-
-import javax.inject.Inject;
 
 /**
  * Binary of a XCTest suite component.
@@ -41,25 +38,22 @@ import javax.inject.Inject;
  *
  * Either way, the installation provides a single entry point for executing this binary.
  */
-public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements SwiftXCTestBinary {
+public abstract class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements SwiftXCTestBinary {
     private final RegularFileProperty executableFile;
     private final DirectoryProperty installDirectory;
     private final RegularFileProperty runScriptFile;
-    private final Property<AbstractLinkTask> linkTaskProperty;
     private final Property<XCTest> runTaskProperty;
 
-    @Inject
     public DefaultSwiftXCTestBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.executableFile = projectLayout.fileProperty();
         this.installDirectory = projectLayout.directoryProperty();
         this.runScriptFile = projectLayout.fileProperty();
-        this.linkTaskProperty = objectFactory.property(AbstractLinkTask.class);
         this.runTaskProperty = objectFactory.property(XCTest.class);
     }
 
     @Override
-    public RegularFileProperty getExecutableTestFile() {
+    public RegularFileProperty getExecutableFile() {
         return executableFile;
     }
 
@@ -71,11 +65,6 @@ public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements Swif
     @Override
     public RegularFileProperty getRunScriptFile() {
         return runScriptFile;
-    }
-
-    @Override
-    public Property<AbstractLinkTask> getLinkTask() {
-        return linkTaskProperty;
     }
 
     @Override

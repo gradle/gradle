@@ -271,11 +271,6 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         }
 
         @Override
-        public VersionNumber getVersion() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public ImmutableList<File> getSystemIncludes() {
             throw new UnsupportedOperationException();
         }

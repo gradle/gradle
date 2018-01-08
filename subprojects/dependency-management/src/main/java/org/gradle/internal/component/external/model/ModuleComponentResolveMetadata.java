@@ -17,7 +17,6 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
@@ -65,5 +64,4 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
 
     ImmutableAttributesFactory getAttributesFactory();
 
-    AttributeContainer getAttributes();
 }

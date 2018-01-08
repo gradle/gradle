@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.plugins;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -24,7 +23,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -32,9 +30,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.publish.PublishingExtension;
-import org.gradle.api.publish.maven.MavenPublication;
-import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.language.cpp.CppLibrary;
@@ -42,6 +37,8 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
+import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
+import org.gradle.language.cpp.internal.DefaultCppStaticLibrary;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
 import org.gradle.language.internal.NativeComponentFactory;
@@ -52,9 +49,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Callable;
-
-import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
-import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
@@ -111,16 +105,12 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
 
                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
-                final Usage apiUsage = objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API);
                 final Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
                 final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
-                Configuration implementation = library.getImplementationDependencies();
+                final MainLibraryVariant mainVariant = library.getMainPublication();
 
-                final Configuration apiElements = configurations.maybeCreate("cppApiElements");
-                apiElements.extendsFrom(library.getApiDependencies());
-                apiElements.setCanBeResolved(false);
-                apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+                final Configuration apiElements = library.getApiElements();
                 // TODO - deal with more than one header dir, e.g. generated public headers
                 Provider<File> publicHeaders = providers.provider(new Callable<File>() {
                     @Override
@@ -134,95 +124,37 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                 });
                 apiElements.getOutgoing().artifact(publicHeaders);
 
-                // TODO - add lifecycle tasks
-                // TODO - extract some common code to setup the configurations
+                project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
+                    @Override
+                    public void execute(AppliedPlugin appliedPlugin) {
+                        final Zip headersZip = tasks.create("cppHeaders", Zip.class);
+                        headersZip.from(library.getPublicHeaderFiles());
+                        // TODO - should track changes to build directory
+                        headersZip.setDestinationDir(new File(project.getBuildDir(), "headers"));
+                        headersZip.setClassifier("cpp-api-headers");
+                        headersZip.setArchiveName("cpp-api-headers.zip");
+                        mainVariant.addArtifact(new ArchivePublishArtifact(headersZip));
+                    }
+                });
+
                 if (sharedLibs) {
                     String linkageNameSuffix = staticLibs ? "Shared" : "";
                     CppSharedLibrary debugSharedLibrary = library.addSharedLibrary("debug" + linkageNameSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                    CppSharedLibrary releaseSharedLibrary = library.addSharedLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    library.addSharedLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                     // Use the debug shared library as the development binary
                     library.getDevelopmentBinary().set(debugSharedLibrary);
 
-                    // Define the outgoing artifacts
-                    // TODO - move this to the base plugin
-                    final Configuration debugLinkElements = configurations.maybeCreate("debugLinkElements");
-                    debugLinkElements.extendsFrom(implementation);
-                    debugLinkElements.setCanBeResolved(false);
-                    debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
-                    debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debugSharedLibrary.isDebuggable());
-                    debugLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, debugSharedLibrary.isOptimized());
-                    debugLinkElements.getOutgoing().artifact(debugSharedLibrary.getLinkFile());
+                    // Define the outgoing publications
+                    // TODO - move this to a shared location
 
-                    final Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
-                    debugRuntimeElements.extendsFrom(implementation);
-                    debugRuntimeElements.setCanBeResolved(false);
-                    debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-                    debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debugSharedLibrary.isDebuggable());
-                    debugRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, debugSharedLibrary.isOptimized());
-                    debugRuntimeElements.getOutgoing().artifact(debugSharedLibrary.getRuntimeFile());
-
-                    final Configuration releaseLinkElements = configurations.maybeCreate("releaseLinkElements");
-                    releaseLinkElements.extendsFrom(implementation);
-                    releaseLinkElements.setCanBeResolved(false);
-                    releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
-                    releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, releaseSharedLibrary.isDebuggable());
-                    releaseLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, releaseSharedLibrary.isOptimized());
-                    releaseLinkElements.getOutgoing().artifact(releaseSharedLibrary.getLinkFile());
-
-                    final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
-                    releaseRuntimeElements.extendsFrom(implementation);
-                    releaseRuntimeElements.setCanBeResolved(false);
-                    releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-                    releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, releaseSharedLibrary.isDebuggable());
-                    releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, releaseSharedLibrary.isOptimized());
-                    releaseRuntimeElements.getOutgoing().artifact(releaseSharedLibrary.getRuntimeFile());
-
-                    project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
+                    library.getBinaries().whenElementKnown(DefaultCppSharedLibrary.class, new Action<DefaultCppSharedLibrary>() {
                         @Override
-                        public void execute(AppliedPlugin appliedPlugin) {
-                            final Zip headersZip = tasks.create("cppHeaders", Zip.class);
-                            headersZip.from(library.getPublicHeaderFiles());
-                            // TODO - should track changes to build directory
-                            headersZip.setDestinationDir(new File(project.getBuildDir(), "headers"));
-                            headersZip.setClassifier("cpp-api-headers");
-                            headersZip.setArchiveName("cpp-api-headers.zip");
-
-                            final MainLibraryVariant mainVariant = new MainLibraryVariant("api", apiUsage, ImmutableSet.of(new ArchivePublishArtifact(headersZip)), apiElements);
-                            NativeVariant debugVariant = new NativeVariant("debug", linkUsage, debugLinkElements, runtimeUsage, debugRuntimeElements);
-                            mainVariant.addVariant(debugVariant);
-                            NativeVariant releaseVariant = new NativeVariant("release", linkUsage, releaseLinkElements, runtimeUsage, releaseRuntimeElements);
-                            mainVariant.addVariant(releaseVariant);
-
-                            project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
-                                @Override
-                                public void execute(PublishingExtension extension) {
-                                    extension.getPublications().create("main", MavenPublication.class, new Action<MavenPublication>() {
-                                        @Override
-                                        public void execute(MavenPublication publication) {
-                                            // TODO - should track changes to these properties
-                                            publication.setGroupId(project.getGroup().toString());
-                                            publication.setArtifactId(library.getBaseName().get());
-                                            publication.setVersion(project.getVersion().toString());
-                                            publication.from(mainVariant);
-                                            ((MavenPublicationInternal) publication).publishWithOriginalFileName();
-                                        }
-                                    });
-                                    for (final SoftwareComponent child : mainVariant.getVariants()) {
-                                        extension.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
-                                            @Override
-                                            public void execute(MavenPublication publication) {
-                                                // TODO - should track changes to these properties
-                                                publication.setGroupId(project.getGroup().toString());
-                                                publication.setArtifactId(library.getBaseName().get() + "_" + child.getName());
-                                                publication.setVersion(project.getVersion().toString());
-                                                publication.from(child);
-                                                ((MavenPublicationInternal) publication).publishWithOriginalFileName();
-                                            }
-                                        });
-                                    }
-                                }
-                            });
+                        public void execute(DefaultCppSharedLibrary library) {
+                            Configuration linkElements = library.getLinkElements().get();
+                            Configuration runtimeElements = library.getRuntimeElements().get();
+                            NativeVariant variant = new NativeVariant(library.getNames(), linkUsage, linkElements, runtimeUsage, runtimeElements);
+                            mainVariant.addVariant(variant);
                         }
                     });
                 }
@@ -230,44 +162,25 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                 if (staticLibs) {
                     String linkageNameSuffix = sharedLibs ? "Static" : "";
                     CppStaticLibrary debugStaticLibrary = library.addStaticLibrary("debug" + linkageNameSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                    CppStaticLibrary releaseStaticLibrary = library.addStaticLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    library.addStaticLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                     if (!sharedLibs) {
                         // Use the debug static library as the development binary
                         library.getDevelopmentBinary().set(debugStaticLibrary);
-
-                        // Define the outgoing artifacts
-                        // TODO - move this to the base plugin
-                        final Configuration debugLinkElements = configurations.maybeCreate("debugStaticLinkElements");
-                        debugLinkElements.extendsFrom(implementation);
-                        debugLinkElements.setCanBeResolved(false);
-                        debugLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
-                        debugLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debugStaticLibrary.isDebuggable());
-                        debugLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, debugStaticLibrary.isOptimized());
-                        debugLinkElements.getOutgoing().artifact(debugStaticLibrary.getLinkFile());
-
-                        final Configuration debugRuntimeElements = configurations.maybeCreate("debugStaticRuntimeElements");
-                        debugRuntimeElements.extendsFrom(implementation);
-                        debugRuntimeElements.setCanBeResolved(false);
-                        debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-                        debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debugStaticLibrary.isDebuggable());
-                        debugRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, debugStaticLibrary.isOptimized());
-
-                        final Configuration releaseLinkElements = configurations.maybeCreate("releaseStaticLinkElements");
-                        releaseLinkElements.extendsFrom(implementation);
-                        releaseLinkElements.setCanBeResolved(false);
-                        releaseLinkElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
-                        releaseLinkElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, releaseStaticLibrary.isDebuggable());
-                        releaseLinkElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, releaseStaticLibrary.isOptimized());
-                        releaseLinkElements.getOutgoing().artifact(releaseStaticLibrary.getLinkFile());
-
-                        final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseStaticRuntimeElements");
-                        releaseRuntimeElements.extendsFrom(implementation);
-                        releaseRuntimeElements.setCanBeResolved(false);
-                        releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-                        releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, releaseStaticLibrary.isDebuggable());
-                        releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, releaseStaticLibrary.isOptimized());
                     }
+
+                    // Define the outgoing publications
+                    // TODO - move this to a shared location
+
+                    library.getBinaries().whenElementKnown(DefaultCppStaticLibrary.class, new Action<DefaultCppStaticLibrary>() {
+                        @Override
+                        public void execute(DefaultCppStaticLibrary library) {
+                            Configuration linkElements = library.getLinkElements().get();
+                            Configuration runtimeElements = library.getRuntimeElements().get();
+                            NativeVariant variant = new NativeVariant(library.getNames(), linkUsage, linkElements, runtimeUsage, runtimeElements);
+                            mainVariant.addVariant(variant);
+                        }
+                    });
                 }
 
                 library.getBinaries().realizeNow();

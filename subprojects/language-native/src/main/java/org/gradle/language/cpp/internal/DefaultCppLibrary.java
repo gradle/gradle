@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -28,26 +29,31 @@ import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.language.LibraryDependencies;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.internal.DefaultLibraryDependencies;
+import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary {
+public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary, PublicationAwareComponent {
     private final ObjectFactory objectFactory;
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
     private final LockableSetProperty<Linkage> linkage;
     private final Property<CppBinary> developmentBinary;
-    private final Configuration api;
+    private final Configuration apiElements;
+    private final MainLibraryVariant mainVariant;
+    private final DefaultLibraryDependencies dependencies;
 
     @Inject
     public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
-        super(name, fileOperations, objectFactory, configurations);
+        super(name, fileOperations, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(CppBinary.class);
         publicHeaders = fileOperations.files();
@@ -56,10 +62,16 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         linkage = new LockableSetProperty<Linkage>(objectFactory.setProperty(Linkage.class));
         linkage.add(Linkage.SHARED);
 
-        api = configurations.maybeCreate(getNames().withSuffix("api"));
-        api.setCanBeConsumed(false);
-        api.setCanBeResolved(false);
-        getImplementationDependencies().extendsFrom(api);
+        dependencies = objectFactory.newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));
+
+        Usage apiUsage = objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API);
+
+        apiElements = configurations.create(getNames().withSuffix("cppApiElements"));
+        apiElements.extendsFrom(dependencies.getApiDependencies());
+        apiElements.setCanBeResolved(false);
+        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+
+        mainVariant = new MainLibraryVariant("api", apiUsage, apiElements);
     }
 
     public DefaultCppSharedLibrary addSharedLibrary(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
@@ -75,8 +87,31 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     }
 
     @Override
+    public Configuration getImplementationDependencies() {
+        return dependencies.getImplementationDependencies();
+    }
+
+    @Override
     public Configuration getApiDependencies() {
-        return api;
+        return dependencies.getApiDependencies();
+    }
+
+    @Override
+    public LibraryDependencies getDependencies() {
+        return dependencies;
+    }
+
+    public void dependencies(Action<? super LibraryDependencies> action) {
+        action.execute(dependencies);
+    }
+
+    public Configuration getApiElements() {
+        return apiElements;
+    }
+
+    @Override
+    public MainLibraryVariant getMainPublication() {
+        return mainVariant;
     }
 
     @Override

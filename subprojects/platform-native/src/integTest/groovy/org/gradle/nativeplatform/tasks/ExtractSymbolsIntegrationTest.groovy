@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.tasks
 
-import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -27,7 +27,7 @@ import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
 @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
-class ExtractSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
+class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new IncrementalCppStaleCompileOutputApp()
 
     def setup() {

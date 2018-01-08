@@ -65,12 +65,15 @@ class AnnotationProcessorFixture {
             import javax.tools.JavaFileObject;
             import javax.annotation.processing.ProcessingEnvironment;
             import javax.annotation.processing.RoundEnvironment;
+            import javax.annotation.processing.SupportedOptions;
             import javax.tools.Diagnostic;
-            
+                                       
+            @SupportedOptions({ "message" })
             public class Processor extends AbstractProcessor {
                 private Elements elementUtils;
                 private Filer filer;
                 private Messager messager;
+                private String messageFromOptions;
     
                 @Override
                 public Set<String> getSupportedAnnotationTypes() {
@@ -87,6 +90,7 @@ class AnnotationProcessorFixture {
                     elementUtils = processingEnv.getElementUtils();
                     filer = processingEnv.getFiler();
                     messager = processingEnv.getMessager();
+                    messageFromOptions = processingEnv.getOptions().get("message");
                 }
     
                 @Override
@@ -101,7 +105,13 @@ class AnnotationProcessorFixture {
                                     Writer writer = sourceFile.openWriter();
                                     try {
                                         writer.write("class " + helperName + " {");
-                                        writer.write("    String getValue() { return \\"" + Util.getValue() + "${suffix}\\"; }");
+                                        writer.write("    String getValue() { return \\"");
+                                        if (messageFromOptions == null) {
+                                            writer.write(Util.getValue() + "${suffix}");
+                                        } else {
+                                            writer.write(messageFromOptions);
+                                        }
+                                        writer.write("\\"; }");
                                         writer.write("}");
                                     } finally {
                                         writer.close();

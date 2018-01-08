@@ -104,7 +104,7 @@ h3 {
 
 h4, h5, h6 {
     margin-top: 1rem;
-    font-size: 1rem;
+    font-size: 1.0625rem;
 }
 
 p {
@@ -412,6 +412,10 @@ p .right {
     padding-bottom: 0;
 }
 
+.citetitle {
+    font-style: normal;
+}
+
 table th.border-right {
     border-right: solid #d0d0d0 1px;
 }
@@ -629,6 +633,8 @@ h3.releaseinfo {
         top: 0;
         left: 0;
         right: 0;
+        -webkit-box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
+        -moz-box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
         box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
         z-index: 1;
     }
@@ -778,6 +784,7 @@ h3.releaseinfo {
 
 /* Fixed intra-chapter navigation for desktops */
 @media screen and (min-width: 75rem) {
+    .book .toc,
     .chapter .toc {
         position: fixed;
         left: calc(50% + 380px);
@@ -789,21 +796,26 @@ h3.releaseinfo {
     }
 
     /* Replace TOC header only on desktop */
+    .book .toc:before,
     .chapter .toc:before {
         content: "Contents";
         display: block;
         font-weight: 500;
         margin: 0.4rem 0 0.625rem 0;
     }
+
+    .book .toc p:first-of-type,
     .chapter .toc p:first-of-type {
         display: none;
     }
 
+    .book .toc a,
     .chapter .toc a {
         color: #02303A;
         opacity: 0.7;
     }
 
+    .book .toc a.active,
     .chapter .toc a.active {
         color: #1BA8C4;
         opacity: 1.0;
@@ -834,6 +846,7 @@ h3.releaseinfo {
 }
 
 @media screen and (min-width: 84.375rem) {
+    .book .toc,
     .chapter .toc {
         left: calc(50% + 26.25rem);
     }
@@ -845,6 +858,7 @@ h3.releaseinfo {
 }
 
 @media screen and (min-width: 93.75rem) {
+    .book .toc,
     .chapter .toc {
         left: calc(50% + 31.25rem);
     }
@@ -858,15 +872,19 @@ h3.releaseinfo {
 /*
  * Table of Contents
  */
+.book .toc p,
 .chapter .toc p {
     font-size: 1em;
 }
 
+.book .toc dl dt,
+.book .toc a,
 .chapter .toc dl dt,
 .chapter .toc a {
     line-height: 1.0;
 }
 
+.book .toc dl dt,
 .chapter .toc dl dt {
     padding-bottom: 0.625rem;
 }
@@ -882,26 +900,6 @@ h3.releaseinfo {
 
 .toc dl, .list-of-examples dl {
     margin-left: 0;
-}
-
-
-.book .toc > dl > dt {
-    margin-top: 0.6em;
-}
-
-.book .toc > dl > dt > .part {
-    display: inline-block;
-    font-size: 1.25em;
-    margin-top: 0.6em;
-    margin-bottom: 0.3em;
-}
-
-.book .toc > dl > dd {
-    margin-left: 0;
-}
-
-.book .toc, .book .list-of-examples {
-    margin-top: 1.5em;
 }
 
 .navheader, .navfooter, .navbar {
@@ -1112,27 +1110,30 @@ h3.releaseinfo {
     .site-footer__navigation {
         max-width: 90rem;
     }
+
+    .ui-logos .ui-logo {
+        box-shadow: 0 6px 15px 1px rgba(0, 0, 0, 0.56);
+    }
 }
 
 /* User Manual Home */
-.technology-logos {
+.technology-logos,
+.ui-logos {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-around;
 }
 
-.technology-logo {
+.technology-logo,
+.ui-logo {
     flex: 0 1 auto;
 }
 
-.legalnotice {
-    color: #666;
-}
-
-.legalnotice p:first-of-type:before {
-    content: "Copyright Notice: ";
-    font-weight: 500;
+.ui-logo {
+    width: 224px;
+    height: 135px;
+    margin: 12px;
 }
 
 .segmentedlist {
@@ -1304,13 +1305,6 @@ table .caution {
 .hl-annotation { color: #007; }
 
 .hl-directive { color: #555; }
-
-/**
- * TITLEPAGE
- */
-.home {
-
-}
 
 /*
  * Single page html

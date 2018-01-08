@@ -30,6 +30,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.GccPlatformToolChain
 import org.gradle.nativeplatform.toolchain.NativePlatformToolChain
+import org.gradle.nativeplatform.toolchain.internal.NativeLanguage
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata
@@ -74,15 +75,28 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
     def "is unavailable when platform is not known and is not the default platform"() {
         given:
-        platform.name >> 'unknown'
+        platform.displayName >> '<unknown>'
 
         expect:
-        def platformToolChain = toolChain.select(platform)
+        def platformToolChain = toolChain.select(language, platform)
         !platformToolChain.available
-        getMessage(platformToolChain) == "Don't know how to build for platform 'unknown'."
+        getMessage(platformToolChain) == "Don't know how to build for <unknown>."
+
+        where:
+        language << [NativeLanguage.ANY, NativeLanguage.CPP]
     }
 
-    def "is unavailable when no language tools can be found"() {
+    def "is unavailable when language is not known"() {
+        given:
+        platform.displayName >> '<unknown>'
+
+        expect:
+        def platformToolChain = toolChain.select(NativeLanguage.SWIFT, platform)
+        !platformToolChain.available
+        getMessage(platformToolChain) == "Don't know how to compile language Swift."
+    }
+
+    def "is unavailable when no language tools can be found and building any language"() {
         def compilerMissing = Stub(CommandLineToolSearchResult) {
             isAvailable() >> false
             explain(_) >> { TreeVisitor<String> visitor -> visitor.node("c compiler not found") }
@@ -99,9 +113,30 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolSearchPath.locate(ToolType.OBJECTIVECPP_COMPILER, "g++") >> missing
 
         expect:
-        def platformToolChain = toolChain.select(platform)
+        def platformToolChain = toolChain.select(NativeLanguage.ANY, platform)
         !platformToolChain.available
         getMessage(platformToolChain) == "c compiler not found"
+    }
+
+    def "is unavailable when no C++ compiler can be found and building C++"() {
+        def compilerMissing = Stub(CommandLineToolSearchResult) {
+            isAvailable() >> false
+            explain(_) >> { TreeVisitor<String> visitor -> visitor.node("c++ compiler not found") }
+        }
+
+        given:
+        platform.operatingSystem >> dummyOs
+        platform.architecture >> dummyArch
+
+        and:
+        toolSearchPath.locate(ToolType.CPP_COMPILER, "g++") >> compilerMissing
+        toolSearchPath.locate(_, _) >> tool
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
+
+        expect:
+        def platformToolChain = toolChain.select(NativeLanguage.CPP, platform)
+        !platformToolChain.available
+        getMessage(platformToolChain) == "c++ compiler not found"
     }
 
     def "is unavailable when a compiler is found with incorrect implementation"() {
@@ -119,9 +154,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         metaDataProvider.getCompilerMetaData(_, _) >> wrongCompiler
 
         expect:
-        def platformToolChain = toolChain.select(platform)
+        def platformToolChain = toolChain.select(language, platform)
         !platformToolChain.available
         getMessage(platformToolChain) == "c compiler is not gcc"
+
+        where:
+        language << [NativeLanguage.ANY, NativeLanguage.CPP]
     }
 
     def "is available when any language tool can be found and compiler has correct implementation"() {
@@ -130,11 +168,26 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.architecture >> dummyArch
 
         and:
-        toolSearchPath.locate(ToolType.C_COMPILER, "gcc") >> missing
-        toolSearchPath.locate(_, _) >> tool
+        toolSearchPath.locate(toolType, _) >> tool
+        toolSearchPath.locate(_, _) >> missing
         metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
 
+        expect:
+        toolChain.select(platform).available
+
+        where:
+        toolType << [ToolType.C_COMPILER, ToolType.CPP_COMPILER, ToolType.OBJECTIVEC_COMPILER, ToolType.OBJECTIVECPP_COMPILER]
+    }
+
+    def "is available when C++ compiler can be found and compiler has correct implementation when building C++"() {
+        given:
+        platform.operatingSystem >> dummyOs
+        platform.architecture >> dummyArch
+
         and:
+        toolSearchPath.locate(ToolType.CPP_COMPILER, _) >> tool
+        toolSearchPath.locate(_, _) >> missing
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
 
         expect:
         toolChain.select(platform).available

@@ -36,9 +36,24 @@ class DefaultCppLibraryTest extends Specification {
         library = new DefaultCppLibrary("main", project.objects, project, project.configurations)
     }
 
+    def "has implementation configuration"() {
+        expect:
+        library.implementationDependencies == project.configurations.implementation
+    }
+
     def "has api configuration"() {
         expect:
         library.apiDependencies == project.configurations.api
+    }
+
+    def "has api elements configuration"() {
+        expect:
+        library.apiElements == project.configurations.cppApiElements
+    }
+
+    def "has main publication"() {
+        expect:
+        library.mainPublication
     }
 
     def "uses convention for public headers when nothing specified"() {

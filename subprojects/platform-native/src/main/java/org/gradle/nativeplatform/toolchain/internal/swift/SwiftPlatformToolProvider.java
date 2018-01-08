@@ -43,6 +43,7 @@ import org.gradle.nativeplatform.toolchain.internal.gcc.ArStaticLibraryArchiver;
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.VersionNumber;
 
@@ -62,6 +63,23 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
         this.execActionFactory = execActionFactory;
         this.workerLeaseService = workerLeaseService;
         this.swiftcMetaData = swiftcMetaData;
+    }
+
+    @Override
+    public ToolSearchResult isToolAvailable(ToolType toolType) {
+        if (toolType == ToolType.SWIFT_COMPILER || toolType == ToolType.LINKER) {
+            return toolSearchPath.locate(toolType, "swiftc");
+        }
+        if (toolType == ToolType.STATIC_LIB_ARCHIVER) {
+            return toolSearchPath.locate(toolType, "ar");
+        }
+        if (toolType == ToolType.SYMBOL_EXTRACTOR) {
+            return toolSearchPath.locate(toolType, SymbolExtractorOsConfig.current().getExecutableName());
+        }
+        if (toolType == ToolType.STRIPPER) {
+            return toolSearchPath.locate(toolType, "strip");
+        }
+        throw new IllegalArgumentException();
     }
 
     @Override
@@ -112,5 +130,10 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
         MutableCommandLineToolContext baseInvocation = new DefaultMutableCommandLineToolContext();
         baseInvocation.setArgAction(toolConfiguration.getArgAction());
         return baseInvocation;
+    }
+
+    @Override
+    public SwiftcMetadata getCompilerMetadata() {
+        return swiftcMetaData;
     }
 }

@@ -38,7 +38,6 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -185,7 +184,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public boolean getHasOutput() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskOutputs.getHasOutput()", "Declare individual task properties to access output files.");
         if (!upToDateSpec.isEmpty()) {
             return true;
         }

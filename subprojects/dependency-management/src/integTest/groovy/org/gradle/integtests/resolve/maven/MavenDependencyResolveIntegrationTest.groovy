@@ -176,6 +176,23 @@ dependencies {
         }
     }
 
+    def "throws readable error if an artifact name is missing"() {
+        given:
+        buildFile << """
+dependencies {
+    conf ("org.gradle:test:1.45") {
+        artifact {
+            classifier = 'classifier'
+        }
+    }
+}
+"""
+
+        expect:
+        fails "checkDep"
+        failure.assertHasCause("Artifact name must not be null!")
+    }
+
     @RequiredFeatures(
         // only available with Maven metadata: Gradle metadata does not support "optional"
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")

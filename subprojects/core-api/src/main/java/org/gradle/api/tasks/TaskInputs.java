@@ -33,10 +33,7 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
      * Returns true if this task has declared the inputs that it consumes.
      *
      * @return true if this task has declared any inputs.
-     *
-     * @deprecated Declare individual task properties to access input files.
      */
-    @Deprecated
     boolean getHasInputs();
 
     /**
@@ -75,10 +72,7 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
      * Returns the set of input properties for this task.
      *
      * @return The properties.
-     *
-     * @deprecated Use {@link #property(String, Object)} and {@link #properties(Map)} to declare input properties.
      */
-    @Deprecated
     Map<String, Object> getProperties();
 
     /**
@@ -110,10 +104,7 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
      * Returns true if this task has declared that it accepts source files.
      *
      * @return true if this task has source files, false if not.
-     *
-     * @deprecated Declare individual task properties to access source files.
      */
-    @Deprecated
     boolean getHasSourceFiles();
 
     /**
@@ -121,9 +112,6 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
      * A task is skipped if it has declared it accepts source files, and this collection is empty.
      *
      * @return The set of source files for this task.
-     *
-     * @deprecated Declare individual task properties to access source files.
      */
-    @Deprecated
     FileCollection getSourceFiles();
 }

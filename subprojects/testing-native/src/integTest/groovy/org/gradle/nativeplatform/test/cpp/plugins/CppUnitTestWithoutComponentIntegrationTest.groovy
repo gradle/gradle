@@ -16,30 +16,14 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
-import org.junit.Assume
 
 class CppUnitTestWithoutComponentIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
-    def setup() {
-        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
-        Assume.assumeTrue(worksWithCppPlugin(toolChain))
-    }
-
-    static boolean worksWithCppPlugin(AvailableToolChains.ToolChainCandidate toolChain) {
-        toolChain.id != "mingw" && toolChain.id != "gcccygwin"
-    }
-
     @Override
     protected void makeSingleProject() {
         buildFile << """
             apply plugin: 'cpp-unit-test'
         """
-    }
-
-    @Override
-    protected String getMainComponentDsl() {
-        return "unitTest"
     }
 
     def "builds and runs test suite when no main component"() {

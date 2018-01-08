@@ -35,9 +35,9 @@ public interface SwiftXCTestBinary extends SwiftBinary, TestComponent {
     /**
      * Returns the executable test file for this binary.
      *
-     * @since 4.4
+     * @since 4.5
      */
-    Provider<RegularFile> getExecutableTestFile();
+    Provider<RegularFile> getExecutableFile();
 
     /**
      * Returns the installation directory for this binary.

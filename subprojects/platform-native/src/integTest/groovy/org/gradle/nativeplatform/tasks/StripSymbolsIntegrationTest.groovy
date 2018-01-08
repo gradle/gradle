@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.tasks
 
-import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -27,7 +27,7 @@ import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
 @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
-class StripSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
+class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new IncrementalCppStaleCompileOutputApp()
 
     def setup() {
@@ -56,8 +56,8 @@ class StripSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegrati
 
         then:
         executedAndNotSkipped":stripSymbolsDebug"
-        fixture("build/exe/main/debug/app").assertHasDebugSymbolsFor(withoutHeaders(app.original))
-        fixture("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
+        executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(withoutHeaders(app.original))
+        binary("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
     }
 
     def "strip is skipped when there are no changes"() {
@@ -72,7 +72,7 @@ class StripSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegrati
 
         then:
         skipped":stripSymbolsDebug"
-        fixture("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
+        binary("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
     }
 
     def "strip is re-executed when changes are made"() {
@@ -88,10 +88,10 @@ class StripSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegrati
 
         then:
         executedAndNotSkipped":stripSymbolsDebug"
-        fixture("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.alternate))
+        binary("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.alternate))
     }
 
-    NativeBinaryFixture fixture(String path) {
+    NativeBinaryFixture binary(String path) {
         return new NativeBinaryFixture(file(path), toolChain)
     }
 

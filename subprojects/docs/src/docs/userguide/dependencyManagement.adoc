@@ -55,7 +55,7 @@ Gradle builds can declare dependencies on external binaries, raw files and other
 [[sec:declaring_binary_dependency]]
 ==== Declaring a binary dependency
 
-Modern software projects rarely build code in isolation. Projects reference external libraries for the purpose of reusing existing and proven functionality, so-called _binary dependencies_. A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework]. Spring supports a variety of features, from dependency injection to web functionality. Upon resolution binary dependencies are downloaded from dedicated repositories and stored in a cache to avoid unnecessary network traffic.
+Modern software projects rarely build code in isolation. Projects reference external libraries for the purpose of reusing existing and proven functionality, so-called _binary dependencies_. Upon resolution binary dependencies are downloaded from dedicated repositories and stored in a cache to avoid unnecessary network traffic.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -68,7 +68,7 @@ Modern software projects rarely build code in isolation. Projects reference exte
 
 ===== Declaring a concrete version of a binary dependency
 
-The following code snippet declares a compile-time dependency on the Spring web module by its coordinates: `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the dependency including its transitive dependencies at runtime from the link:https://search.maven.org/[Maven Central repository] and uses it to compile Java source code. The version attribute of the dependency coordinates points to a _concrete version_ indicating that the underlying artifacts don't change over time. The use of concrete versions ensures reproducibility for the aspect of dependency resolution.
+A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework]. The following code snippet declares a compile-time dependency on the Spring web module by its coordinates: `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the dependency including its transitive dependencies from the link:https://search.maven.org/[Maven Central repository] and uses it to compile Java source code. The version attribute of the dependency coordinates points to a _concrete version_ indicating that the underlying artifacts don't change over time. The use of concrete versions ensures reproducibility for the aspect of dependency resolution.
 
 ++++
 <sample id="binary-dependencies-concrete-version" dir="userguide/dependencies/declaringBinaryDependenciesWithConcreteVersion" title="Declaring a binary dependencies with a concrete version">
@@ -76,7 +76,7 @@ The following code snippet declares a compile-time dependency on the Spring web 
 </sample>
 ++++
 
-A Gradle project can define other types of repositories hosting binary dependencies. You can learn more about the syntax and API in the section on <<sec:repositories,declaring repositories>>. Please refer to <<java_plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for binary dependencies declarations is <<sec:customizing_dependencies,highly customizable>>.
+A Gradle project can define other types of repositories hosting binary dependencies. You can learn more about the syntax and API in the section on <<sec:declaring_repositories,declaring repositories>>. Please refer to <<java_plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for binary dependencies declarations is <<sec:customizing_dependencies,highly customizable>>.
 
 ===== Declaring a dynamic version of a binary dependency
 
@@ -93,11 +93,22 @@ Using dynamic versions in a build bears the risk of potentially breaking it. As 
 </sample>
 ++++
 
+A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic dependency versions and their respective, selected versions.
+
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Dynamic dependencies in build scan</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-dynamic-dependency-build-scan.png" width="135mm" />
+    </imageobject>
+</figure>
++++++
+
 By default, Gradle caches dynamic versions of dependencies for 24 hours. The <<sec:controlling_caching,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
 
 ===== Declaring a changing version of a binary dependency
 
-A team might to decide to implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early and often is to release a so-called _changing version_. A changing version indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
+A team might decide to implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early and often is to release a so-called _changing version_. A changing version indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
 
 In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version[snapshot versions]. Snapshot versions contain the suffix `-SNAPSHOT`. The following example demonstrates how to declare a snapshot version on the Spring dependency.
 
@@ -114,7 +125,7 @@ Gradle is flexible enough to treat any version as changing version. All you need
 [[sec:declaring_file_dependency]]
 ==== Declaring a file dependency
 
-For historical reasons, projects sometimes do not rely on a binary repository product e.g. JFrog Artifactory or Sonatype Nexus for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_, the reason being that they represent a files without any metadata (like information about transitive dependencies, the origin or its author) attached to them.
+Projects sometimes do not rely on a binary repository product e.g. JFrog Artifactory or Sonatype Nexus for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_, the reason being that they represent a files without any metadata (like information about transitive dependencies, the origin or its author) attached to them.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -269,7 +280,7 @@ Other examples of dependency exclusions can be found in the reference for the ap
 [[sec:optional_attributes]]
 ==== Optional attributes
 
-All attributes for a dependency are optional, except the name. Which attributes are required for actually finding dependencies in the repository will depend on the repository type. See <<sec:repositories>>. For example, if you work with Maven repositories, you need to define the group, name and version. If you work with filesystem repositories you might only need the name or the name and the version.
+All attributes for a dependency are optional, except the name. Which attributes are required for actually finding dependencies in the repository will depend on the repository type. See <<sec:declaring_repositories>>. For example, if you work with Maven repositories, you need to define the group, name and version. If you work with filesystem repositories you might only need the name or the name and the version.
 
 ++++
 <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies" title="Optional attributes of dependencies">
@@ -288,13 +299,66 @@ You can also assign collections or arrays of dependency notations to a configura
 [[sec:inspecting_dependencies]]
 === Inspecting dependencies
 
-You can generate dependency reports from the command line (see <<sec:listing_dependencies>>). With the help of the Project report plugin (see <<project_report_plugin>>) such a report can be created by your build.
+Gradle provides sufficient tooling to navigate large dependency graphs and mitigate situations that can lead to link:https://en.wikipedia.org/wiki/Dependency_hell[dependency hell]. Users can chose to render the full graph of dependencies as well as identify the selection reason and origin for a dependency. The origin of a dependency can be a declared dependency in the build script or a transitive dependency in graph plus their corresponding configuration. Gradle offers both capabilities through visual representation via build scans and as command line tooling.
 
-Since Gradle 1.2 there is also a new programmatic API to access the resolved dependency information. The dependency reports (see the previous paragraph) are using this API under the covers. The API lets you walk the resolved dependency graph and provides information about the dependencies. In future releases the API will grow to provide more information about the resolution result. For more information about the API please refer to the Javadocs on api:org.gradle.api.artifacts.ResolvableDependencies#getResolutionResult[]. Potential usages of the api:org.gradle.api.artifacts.result.ResolutionResult[] API:
+[[sec:listing_dependencies]]
+==== Listing all dependencies in a project
 
-* Creation of advanced dependency reports tailored to your use case.
-* Enabling the build logic to make decisions based on the content of the dependency graph.
+A project can declare one or more dependencies. Gradle can visualize the whole dependency tree for every configuration available in the project with the help of the _dependency report_.
 
+Rendering the dependency tree is particularly useful if you'd like identify which dependencies have been resolved at runtime. It also provides you with information about any dependency conflict resolution that occurred in the process and clearly indicates the selected version. The dependency report always contains declared and transitive dependencies.
+
+Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<sub:scope_of_dependency_configurations,custom configuration>> so that it doesn't doesn't pollute other contexts like the compilation classpath for your production source code.
+
+A link:https://scans.gradle.com/[build scan] can visualize dependencies as a navigable, searchable tree. Additional context information can be rendered by clicking on a specific dependency in the graph.
+
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Dependency tree in a build scan</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-dependencies-report-build-scan.png" width="180mm" />
+    </imageobject>
+</figure>
++++++
+
+To render the dependencies graph from the command line execute the `dependencies` task for the corresponding configuration.
+
+++++
+<sample id="dependencyReport" dir="userguide/dependencies/dependenciesReport" title="Rendering the dependency report for a custom configuration">
+    <sourcefile file="build.gradle" snippet="dependency-declaration" />
+    <output args="-q dependencies --configuration scm"/>
+</sample>
+++++
+
+The dependencies report rendered as console output provides detailed information about the dependencies available in the graph. Any dependency that could not be resolved is marked with `FAILED` in red color. Dependencies with the same coordinates that can occur multiple times in the graph are omitted and indicated by an asterisk. Dependencies that had to undergo conflict resolution render the requested and selected version separated by a right arrow character.
+
+==== Identifying which dependency version was selected and why
+
+Large software projects inevitably deal with an increased number of dependencies either through direct or transitive dependencies. The <<sec:listing_dependencies,dependencies report>> provides you with the raw list of dependencies but does not explain _why_ they have been selected or _which_ dependency is responsible for pulling them into the graph.
+
+The _dependency insight report_ can answer both questions. Given a dependency in the dependency graph you can identify the selection reason and track down the origin of the dependency selection. You can think of the dependency insight report as the inverse representation of the dependency report for a given dependency.
+
+Let's have a look at a concrete example. A project may request two different versions of the same dependency either as direct or transitive dependency. Gradle applies version conflict resolution to ensure that only one version of the dependency exists in the dependency graph. The dependency insight report can tell you the selection reason (conflict resolution) and the origin(s) of the dependency in the graph up to the configuration.
+
+The dependency tree in a link:https://scans.gradle.com/[build scan] renders the selection reason as well as the origin of a dependency if you click on a dependency and select the "Required By" tab.
+
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Dependency insight capabilities in a build scan</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-dependency-insight-report-build-scan.png" />
+    </imageobject>
+</figure>
++++++
+
+The dependency insight report on the command line can be rendered by executing the `dependencyInsight` task. You have to provide the mandatory parameter `--dependency` to specify the coordinates of the dependency under inspection.
+
+++++
+<sample id="dependencyInsightReport" dir="userguide/dependencies/dependencyInsightReport" title="Using the dependency insight report for a given dependency">
+    <sourcefile file="build.gradle" snippet="dependency-declaration" />
+    <output args="-q dependencyInsight --dependency commons-codec --configuration scm"/>
+</sample>
+++++
 
 [[sec:working_with_dependencies]]
 === Working with dependencies
@@ -370,490 +434,67 @@ Once a configuration is resolved it is immutable. Changing its state or the stat
 
 To learn more about the API of the configuration class see the API documentation: api:org.gradle.api.artifacts.Configuration[].
 
-[[sec:repositories]]
-=== Repositories
+[[sec:declaring_repositories]]
+=== Declaring repositories
 
-Gradle repository management, based on Apache Ivy, gives you a lot of freedom regarding repository layout and retrieval policies. Additionally Gradle provides various convenience method to add pre-configured repositories.
+Gradle can resolve external dependencies from one or many repositories based on Maven, Ivy or flat directory directory formats. Please also check out the <<repository_types,full reference on all types of repositories>> for more information.
 
-You may configure any number of repositories, each of which is treated independently by Gradle. If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_. Although module meta-data and module artifacts must be located in the same repository, it is possible to compose a single repository of multiple URLs, giving multiple locations to search for meta-data files and jar files.
+[[sec:declaring_public_repository]]
+==== Declaring a publicly-available repository
 
-There are several different types of repositories you can declare:
+Organizations building software may want to leverage public binary repositories to download and consume open source dependencies. Popular public repositories include Maven Central, Bintray JCenter and the Google Android repository. Gradle provides built-in shortcut methods for the most widely-used repositories.
 
-.Repository types
-[cols="a,a", options="header"]
-|===
-| Type
-| Description
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Declaring a repository with the help of shortcut methods</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-shortcut-repositories.png" width="120mm" />
+    </imageobject>
+</figure>
++++++
 
-| <<sub:maven_central,Maven central repository>>
-| A pre-configured repository that looks for dependencies in Maven Central.
-
-| <<sub:maven_jcenter,Maven JCenter repository>>
-| A pre-configured repository that looks for dependencies in Bintray's JCenter.
-
-| <<sub:maven_google,Maven Google repository>>
-| A pre-configured repository that looks for dependencies in Google's Maven repository.
-
-| <<sub:maven_local,Maven local repository>>
-| A pre-configured repository that looks for dependencies in the local Maven repository.
-
-| <<sub:maven_repo,Maven repository>>
-| A Maven repository. Can be located on the local filesystem or at some remote location.
-
-| <<sec:ivy_repositories,Ivy repository>>
-| An Ivy repository. Can be located on the local filesystem or at some remote location.
-
-| <<sec:flat_dir_resolver,Flat directory repository>>
-| A simple repository on the local filesystem. Does not support any meta-data formats.
-|===
-
-
-[[sub:maven_central]]
-==== Maven central repository
-
-To add the central Maven 2 repository (https://repo.maven.apache.org/maven2[]) simply add this to your build script:
+To declare JCenter as repository, add this code to your build script:
 
 ++++
-<sample id="mavenCentral" dir="userguide/artifacts/defineRepository" title="Adding central Maven repository">
-                <sourcefile file="build.gradle" snippet="maven-central"/>
-            </sample>
-++++
-
-Now Gradle will look for your dependencies in this repository.
-
-[[sub:maven_jcenter]]
-==== Maven JCenter repository
-
-http://bintray.com[Bintray]'s JCenter is an up-to-date collection of all popular Maven OSS artifacts, including artifacts published directly to Bintray.
-
-To add the JCenter Maven repository (https://jcenter.bintray.com[]) simply add this to your build script:
-
-++++
-<sample id="mavenJcenter" dir="userguide/artifacts/defineRepository" title="Adding Bintray's JCenter Maven repository">
-                <sourcefile file="build.gradle" snippet="maven-jcenter"/>
-            </sample>
-++++
-
-Now Gradle will look for your dependencies in the JCenter repository. _jcenter()_ uses HTTPS to connect to the repository. If you want to use HTTP you can configure `jcenter()`:
-
-++++
-<sample id="mavenJcenter" dir="userguide/artifacts/defineRepository" title="Using Bintrays's JCenter with HTTP">
-                <sourcefile file="build.gradle" snippet="maven-jcenter-http"/>
-            </sample>
-++++
-
-[[sub:maven_google]]
-==== Maven Google repository
-
-The Google repository hosts Android-specific artifacts including the Android SDK. For usage examples please the [relevant documentation](https://developer.android.com/studio/build/dependencies.html#google-maven).
-
-To add the Google Maven repository (https://dl.google.com/dl/android/maven2/[]) simply add this to your build script:
-
-++++
-<sample id="mavenGoogleRepo" dir="userguide/artifacts/defineRepository" title="Adding Google Maven repository">
-    <sourcefile file="build.gradle" snippet="maven-google"/>
+<sample id="public-repository" dir="userguide/repositories/declaringPublicRepository" title="Declaring JCenter repository as source for resolving dependencies">
+    <sourcefile file="build.gradle" snippet="public-repository"/>
 </sample>
 ++++
 
-[[sub:maven_local]]
-==== Local Maven repository
+Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Alternatively, you can <<sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
 
-To use the local Maven cache as a repository you can do:
+[[sec:declaring_custom_repository]]
+==== Declaring a custom repository by URL
 
-++++
-<sample id="mavenLocalRepo" dir="userguide/artifacts/defineRepository" title="Adding the local Maven cache as a repository">
-                <sourcefile file="build.gradle" snippet="maven-local"/>
-            </sample>
-++++
+Most enterprise projects set up a binary repository available only within an intranet. In-house repositories enable teams to publish internal binaries, setup user management and security measure and ensure uptime and availability. Specifying a custom URL is also helpful if you want to declare a less popular, but publicly-available repository.
 
-Gradle uses the same logic as Maven to identify the location of your local Maven cache. If a local repository location is defined in a `settings.xml`, this location will be used. The `settings.xml` in `__USER_HOME__/.m2` takes precedence over the `settings.xml` in `__M2_HOME__/conf`. If no `settings.xml` is available, Gradle uses the default location `__USER_HOME__/.m2/repository`.
-
-[[sub:maven_repo]]
-==== Maven repositories
-
-For adding a custom Maven repository you can do:
+Add the following code to declare an in-house repository for your build reachable through a custom URL.
 
 ++++
-<sample id="mavenLikeRepo" dir="userguide/artifacts/defineRepository" title="Adding custom Maven repository">
-                <sourcefile file="build.gradle" snippet="maven-like-repo"/>
-            </sample>
+<sample id="custom-repository" dir="userguide/repositories/declaringCustomRepository" title="Declaring a custom repository by URL">
+    <sourcefile file="build.gradle" snippet="custom-repository"/>
+</sample>
 ++++
 
-Sometimes a repository will have the POMs published to one location, and the JARs and other artifacts published at another location. To define such a repository, you can do:
+Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage please check the <<sub:supported_transport_protocols,reference manual on supported transport protocols>>.
+
+[[sec:declaring_multiple_repositories]]
+==== Declaring multiple repositories
+
+You can define more than one repository for resolving dependencies. Declaring multiple repositories is helpful if some dependencies are only available in one repository but not the other. You can mix any type of repository described in the <<repository_types,reference section>>.
+
+This example demonstrates how to declare various shortcut and custom URL repositories for a project:
 
 ++++
-<sample id="mavenLikeRepoWithJarRepo" dir="userguide/artifacts/defineRepository" title="Adding additional Maven repositories for JAR files">
-                <sourcefile file="build.gradle" snippet="maven-like-repo-with-jar-repo"/>
-            </sample>
+<sample id="multiple-repositories" dir="userguide/repositories/declaringMultipleRepositories" title="Declaring multiple repositories">
+    <sourcefile file="build.gradle" snippet="multiple-repositories"/>
+</sample>
 ++++
-
-Gradle will look at the first URL for the POM and the JAR. If the JAR can't be found there, the artifact URLs are used to look for JARs.
-
-
-[[sec:accessing_password_protected_maven_repositories]]
-===== Accessing password protected Maven repositories
-
-To access a Maven repository which uses basic authentication, you specify the username and password to use when you define the repository:
-
-++++
-<sample id="mavenPasswordProtectedRepo" dir="userguide/artifacts/defineRepository" title="Accessing password protected Maven repository">
-                    <sourcefile file="build.gradle" snippet="authenticated-maven-repo"/>
-                </sample>
-++++
-
-It is advisable to keep your username and password in `gradle.properties` rather than directly in the build file.
-
-[[sec:flat_dir_resolver]]
-==== Flat directory repository
-
-If you want to use a (flat) filesystem directory as a repository, simply type:
-
-++++
-<sample id="flatDirMulti" dir="userguide/artifacts/defineRepository" title="Flat repository resolver">
-                <sourcefile file="build.gradle" snippet="flat-dir-multi"/>
-            </sample>
-++++
-
-This adds repositories which look into one or more directories for finding dependencies. Note that this type of repository does not support any meta-data formats like Ivy XML or Maven POM files. Instead, Gradle will dynamically generate a module descriptor (without any dependency information) based on the presence of artifacts. However, as Gradle prefers to use modules whose descriptor has been created from real meta-data rather than being generated, flat directory repositories cannot be used to override artifacts with real meta-data from other repositories. So, for example, if Gradle finds only `jmxri-1.2.1.jar` in a flat directory repository, but `jmxri-1.2.1.pom` in another repository that supports meta-data, it will use the second repository to provide the module. For the use case of overriding remote artifacts with local ones consider using an Ivy or Maven repository instead whose URL points to a local directory. If you only work with flat directory repositories you don't need to set all attributes of a dependency. See <<sec:optional_attributes>>.
-
-[[sec:ivy_repositories]]
-==== Ivy repositories
-
-
-[[sec:defining_an_ivy_repository_with_a_standard_layout]]
-===== Defining an Ivy repository with a standard layout
-
-
-++++
-<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
-                    <sourcefile file="build.gradle" snippet="ivy-repo"/>
-                </sample>
-++++
-
-
-[[sec:defining_a_named_layout_for_an_ivy_repository]]
-===== Defining a named layout for an Ivy repository
-
-You can specify that your repository conforms to the Ivy or Maven default layout by using a named layout.
-
-++++
-<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with named layout">
-                    <sourcefile file="build.gradle" snippet="ivy-repo-with-maven-layout"/>
-                </sample>
-++++
-
-Valid named layout values are `'gradle'` (the default), `'maven'`, `'ivy'` and `'pattern'`. See api:org.gradle.api.artifacts.repositories.IvyArtifactRepository#layout(java.lang.String,groovy.lang.Closure)[] in the API documentation for details of these named layouts.
-
-[[sec:defining_custom_pattern_layout_for_an_ivy_repository]]
-===== Defining custom pattern layout for an Ivy repository
-
-To define an Ivy repository with a non-standard layout, you can define a 'pattern' layout for the repository:
-
-++++
-<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with pattern layout">
-                    <sourcefile file="build.gradle" snippet="ivy-repo-with-pattern-layout"/>
-                </sample>
-++++
-
-To define an Ivy repository which fetches Ivy files and artifacts from different locations, you can define separate patterns to use to locate the Ivy files and artifacts:
-
-Each `artifact` or `ivy` specified for a repository adds an _additional_ pattern to use. The patterns are used in the order that they are defined.
-
-++++
-<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with multiple custom patterns">
-                    <sourcefile file="build.gradle" snippet="ivy-repo-with-custom-pattern"/>
-                </sample>
-++++
-
-Optionally, a repository with pattern layout can have its 'organisation' part laid out in Maven style, with forward slashes replacing dots as separators. For example, the organisation `my.company` would then be represented as `my/company`.
-
-++++
-<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository with Maven compatible layout">
-                    <sourcefile file="build.gradle" snippet="ivy-repo-with-m2compatible-layout"/>
-                </sample>
-++++
-
-
-[[sec:accessing_password_protected_ivy_repositories]]
-===== Accessing password protected Ivy repositories
-
-To access an Ivy repository which uses basic authentication, you specify the username and password to use when you define the repository:
-
-++++
-<sample id="ivyRepository" dir="userguide/artifacts/defineRepository" title="Ivy repository">
-                    <sourcefile file="build.gradle" snippet="authenticated-ivy-repo"/>
-                </sample>
-++++
-
-
-[[sub:supported_transport_protocols]]
-==== Supported repository transport protocols
-
-Maven and Ivy repositories support the use of various transport protocols. At the moment the following protocols are supported:
-
-.Repository transport protocols
-[cols="a,a", options="header"]
-|===
-| Type
-| Credential types
-
-| `file`
-| none
-
-| `http`
-| username/password
-
-| `https`
-| username/password
-
-| `sftp`
-| username/password
-
-| `s3`
-| access key/secret key/session token or Environment variables
-
-| `gcs`
-| https://developers.google.com/identity/protocols/application-default-credentials[default application credentials] sourced from well known files, Environment variables etc.
-|===
-
-To define a repository use the `repositories` configuration block. Within the `repositories` closure, a Maven repository is declared with `maven`. An Ivy repository is declared with `ivy`. The transport protocol is part of the URL definition for a repository. The following build script demonstrates how to create a HTTP-based Maven and Ivy repository:
-
-++++
-<sample id="mavenIvyRepositoriesNoAuth" dir="userguide/artifacts/defineRepository" title="Declaring a Maven and Ivy repository">
-                <sourcefile file="build.gradle" snippet="maven-ivy-repository-no-auth"/>
-            </sample>
-++++
-
-If authentication is required for a repository, the relevant credentials can be provided. The following example shows how to provide username/password-based authentication for SFTP repositories:
-
-++++
-<sample id="mavenIvyRepositoriesAuth" dir="userguide/artifacts/defineRepository" title="Providing credentials to a Maven and Ivy repository">
-                <sourcefile file="build.gradle" snippet="maven-ivy-repository-auth"/>
-            </sample>
-++++
-
-When using an AWS S3 backed repository you need to authenticate using api:org.gradle.api.credentials.AwsCredentials[], providing access-key and a private-key. The following example shows how to declare a S3 backed repository and providing AWS credentials:
-
-++++
-<sample id="mavenIvyS3RepositoriesAuth" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository">
-                <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository"/>
-            </sample>
-++++
-
-You can also delegate all credentials to the AWS sdk by using the AwsImAuthentication. The following example shows how:
-
-++++
-<sample id="mavenIvyS3RepositoriesAuthWithIam" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository using IAM">
-                <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository-with-iam"/>
-            </sample>
-++++
-
-When using a Google Cloud Storage backed repository default application credentials will be used with no further configuration required:
-
-++++
-<sample id="mavenIvyGCSRepositoriesAuthDefault" dir="userguide/artifacts/defineRepository" title="Declaring a Google Cloud Storage backed Maven and Ivy repository using default application credentials">
-                <sourcefile file="build.gradle" snippet="maven-ivy-gcs-repository"/>
-            </sample>
-++++
-
-[[sub:s3_configuration_properties]]
-===== S3 configuration properties
-
-The following system properties can be used to configure the interactions with s3 repositories:
-
-.S3 Configuration Properties
-[cols="a,a", options="header"]
-|===
-| Property
-| Description
-
-| org.gradle.s3.endpoint
-| Used to override the AWS S3 endpoint when using a non AWS, S3 API compatible, storage service.
-
-| org.gradle.s3.maxErrorRetry
-| Specifies the maximum number of times to retry a request in the event that the S3 server responds with a HTTP 5xx status code. When not specified a default value of 3 is used.
-
-|===
-
-
-[[sub:s3_url_formats]]
-===== S3 URL formats
-
-S3 URL's are 'virtual-hosted-style' and must be in the following format `s3://&lt;bucketName&gt;[.&lt;regionSpecificEndpoint&gt;]/&lt;s3Key&gt;`
-
-e.g. `s3://myBucket.s3.eu-central-1.amazonaws.com/maven/release`
-
-* `myBucket` is the AWS S3 bucket name.
-* `s3.eu-central-1.amazonaws.com` is the _optional_ http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region[region specific endpoint].
-* `/maven/release` is the AWS S3 key (unique identifier for an object within a bucket)
-
-
-[[sub:s3_proxy_settings]]
-===== S3 proxy settings
-
-A proxy for S3 can be configured using the following system properties:
-
-* `https.proxyHost`
-* `https.proxyPort`
-* `https.proxyUser`
-* `https.proxyPassword`
-* `http.nonProxyHosts`
-
-If the 'org.gradle.s3.endpoint' property has been specified with a http (not https) URI the following system proxy settings can be used:
-
-* `http.proxyHost`
-* `http.proxyPort`
-* `http.proxyUser`
-* `http.proxyPassword`
-* `http.nonProxyHosts`
-
-
-[[s3_v4_signatures]]
-===== AWS S3 V4 Signatures (AWS4-HMAC-SHA256)
-
-Some of the AWS S3 regions (eu-central-1 - Frankfurt) require that all HTTP requests are signed in accordance with AWS's http://docs.aws.amazon.com/general/latest/gr/signature-version-4.html[signature version 4]. It is recommended to specify S3 URL's containing the region specific endpoint when using buckets that require V4 signatures. e.g. `s3://somebucket.s3.eu-central-1.amazonaws.com/maven/release`
 
 [NOTE]
 ====
-_NOTE:_ When a region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle will use the default AWS region (us-east-1) and the
-following warning will appear on the console:
-
-Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, please use region-specific endpoint to access buckets located in regions that require V4 signing.
-
-Failing to specify the region-specific endpoint for buckets requiring V4 signatures means:
-
-* `3 round-trips to AWS, as opposed to one, for every file upload and download.`
-* `Depending on location - increased network latencies and slower builds.`
-* `Increased likelihood of transmission failures.`
-
+The order of declaration determines how Gradle will check for dependencies at runtime. If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_. You can learn more about <<sec:dependency_resolution,Gradle's resolution mechanism>> below.
 ====
-
-[[sub:gcs_configuration_properties]]
-===== Google Cloud Storage configuration properties
-
-The following system properties can be used to configure the interactions with Google Cloud Storage repositories:
-
-.Google Cloud Storage Configuration Properties
-[cols="a,a", options="header"]
-|===
-| Property
-| Description
-
-| org.gradle.gcs.endpoint
-| Used to override the Google Cloud Storage endpoint when using a non-Google Cloud Platform, Google Cloud Storage API compatible, storage service.
-
-| org.gradle.gcs.servicePath
-| Used to override the Google Cloud Storage root service path which the Google Cloud Storage client builds requests from, defaults to `/`.
-
-|===
-
-
-[[sub:gcs_url_formats]]
-===== Google Cloud Storage URL formats
-
-Google Cloud Storage URL's are 'virtual-hosted-style' and must be in the following format `gcs://&lt;bucketName&gt;/&lt;objectKey&gt;`
-
-e.g. `gcs://myBucket/maven/release`
-
-* `myBucket` is the Google Cloud Storage bucket name.
-* `/maven/release` is the Google Cloud Storage key (unique identifier for an object within a bucket)
-
-
-[[sub:authentication_schemes]]
-===== Configuring HTTP authentication schemes
-
-When configuring a repository using HTTP or HTTPS transport protocols, multiple authentication schemes are available. By default, Gradle will attempt to use all schemes that are supported by the Apache HttpClient library, http://hc.apache.org/httpcomponents-client-ga/tutorial/html/authentication.html#d5e625[documented here]. In some cases, it may be preferable to explicitly specify which authentication schemes should be used when exchanging credentials with a remote server. When explicitly declared, only those schemes are used when authenticating to a remote repository. The following example show how to configure a repository to use only digest authentication:
-
-++++
-<sample id="digestAuthentication" dir="userguide/artifacts/defineRepository" title="Configure repository to use only digest authentication">
-                    <sourcefile file="build.gradle" snippet="digest-authentication"/>
-                </sample>
-++++
-
-Currently supported authentication schemes are:
-
-.Authentication schemes
-[cols="a,a", options="header"]
-|===
-| Type
-| Description
-
-| api:org.gradle.authentication.http.BasicAuthentication[]
-| Basic access authentication over HTTP. When using this scheme, credentials are sent preemptively.
-
-| api:org.gradle.authentication.http.DigestAuthentication[]
-| Digest access authentication over HTTP.
-
-|===
-
-
-[[sub:preemptive_authentication]]
-===== Using preemptive authentication
-
-Gradle's default behavior is to only submit credentials when a server responds with an authentication challenge in the form of a HTTP 401 response. In some cases, the server will respond with a different code (ex. for repositories hosted on GitHub a 404 is returned) causing dependency resolution to fail. To get around this behavior, credentials may be sent to the server preemptively. To enable preemptive authentication simply configure your repository to explicitly use the api:org.gradle.authentication.http.BasicAuthentication[] scheme:
-
-++++
-<sample id="preemptiveAuthentication" dir="userguide/artifacts/defineRepository" title="Configure repository to use preemptive authentication">
-                    <sourcefile file="build.gradle" snippet="preemptive-authentication"/>
-                </sample>
-++++
-
-
-[[sec:working_with_repositories]]
-==== Working with repositories
-
-To access a repository:
-
-++++
-<sample id="defineRepository" dir="userguide/artifacts/defineRepository" title="Accessing a repository">
-                <sourcefile file="build.gradle" snippet="lookup-resolver"/>
-            </sample>
-++++
-
-To configure a repository:
-
-++++
-<sample id="defineRepository" dir="userguide/artifacts/defineRepository" title="Configuration of a repository">
-                <sourcefile file="build.gradle" snippet="configure-resolver"/>
-            </sample>
-++++
-
-
-[[sub:more_about_ivy_resolvers]]
-==== More about Ivy resolvers
-
-Gradle is extremely flexible regarding repositories:
-
-* There are many options for the protocol to communicate with the repository (e.g. filesystem, http, ssh, sftp ...)
-* The protocol sftp currently only supports username/password-based authentication.
-* Each repository can have its own layout.
-
-Let's say, you declare a dependency on the `junit:junit:3.8.2` library. Now how does Gradle find it in the repositories? Somehow the dependency information has to be mapped to a path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern that defines what the path will look like. Here are some examples:footnote:[At http://ant.apache.org/ivy/history/latest-milestone/concept.html[] you can learn more about ivy patterns.]
-
-[source]
-----
-
-// Maven2 layout (if a repository is marked as Maven2 compatible, the organization (group) is split into subfolders according to the dots.)
-someroot/[organisation]/[module]/[revision]/[module]-[revision].[ext]
-
-// Typical layout for an Ivy repository (the organization is not split into subfolder)
-someroot/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]
-
-// Simple layout (the organization is not used, no nested folders.)
-someroot/[artifact]-[revision].[ext]
-
-----
-
-
-To add any kind of repository (you can pretty easy write your own ones) you can do:
-
-++++
-<sample id="fileSystemResolver" dir="userguide/artifacts/excludesAndClassifiers" title="Definition of a custom repository">
-                <sourcefile file="build.gradle" snippet="file-system-resolver"/>
-            </sample>
-++++
-
-An overview of which Resolvers are offered by Ivy and thus also by Gradle can be found http://ant.apache.org/ivy/history/latest-milestone/settings/resolvers.html[here]. With Gradle you just don't configure them via XML but directly via their API.
 
 [[sec:dependency_resolution]]
 === How dependency resolution works
@@ -970,9 +611,7 @@ At times a completely different module can serve as a replacement for a requeste
 
 Dependency substitution rules work similarly to dependency resolve rules. In fact, many capabilities of dependency resolve rules can be implemented with dependency substitution rules. They allow project and module dependencies to be transparently substituted with specified replacements. Unlike dependency resolve rules, dependency substitution rules allow project and module dependencies to be substituted interchangeably.
 
-[NOTE]
-====
-_NOTE: Adding a dependency substitution rule to a configuration changes the timing of when that configuration is resolved._ Instead of being resolved on first use, the configuration is instead resolved when the task graph is being constructed. This can have unexpected consequences if the configuration is being further modified during task execution, or if the configuration relies on modules that are published during execution of another task.
+_Adding a dependency substitution rule to a configuration changes the timing of when that configuration is resolved._ Instead of being resolved on first use, the configuration is instead resolved when the task graph is being constructed. This can have unexpected consequences if the configuration is being further modified during task execution, or if the configuration relies on modules that are published during execution of another task.
 
 To explain:
 
@@ -981,9 +620,7 @@ To explain:
 * In order to determine the project dependencies that are inputs to a task, Gradle needs to resolve the `Configuration` inputs.
 * Because the Gradle task graph is fixed once task execution has commenced, Gradle needs to perform this resolution prior to executing any tasks.
 
-
 In the absence of dependency substitution rules, Gradle knows that an external module dependency will never transitively reference a project dependency. This makes it easy to determine the full set of project dependencies for a configuration through simple graph traversal. With this functionality, Gradle can no longer make this assumption, and must perform a full resolve in order to determine the project dependencies.
-====
 
 
 [[sec:module_to_project_substitution]]
@@ -1240,7 +877,7 @@ As well as considering artifacts downloaded from a different repository, Gradle 
 [[sub:cache_checksum_storage]]
 ===== Checksum based storage
 
-It is possible for different repositories to provide a different binary artifact in response to the same artifact identifier. This is often the case with Maven SNAPSHOT artifacts, but can also be true for any artifact which is republished without changing it's identifier. By caching artifacts based on their SHA1 checksum, Gradle is able to maintain multiple versions of the same artifact. This means that when resolving against one repository Gradle will never overwrite the cached artifact file from a different repository. This is done without requiring a separate artifact file store per repository.
+It is possible for different repositories to provide a different binary artifact in response to the same artifact identifier. This is often the case with Maven SNAPSHOT artifacts, but can also be true for any artifact which is republished without changing its identifier. By caching artifacts based on their SHA1 checksum, Gradle is able to maintain multiple versions of the same artifact. This means that when resolving against one repository Gradle will never overwrite the cached artifact file from a different repository. This is done without requiring a separate artifact file store per repository.
 
 [[sub:cache_locking]]
 ===== Cache Locking

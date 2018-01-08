@@ -52,6 +52,9 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
     private List<ModuleDependencyMetadata> calculatedDependencies;
 
+    // Could be precomputed, but we avoid doing so if attributes are never requested
+    private ImmutableAttributes computedAttributes;
+
     protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                            ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
                                            VariantMetadataRules componentMetadataRules,
@@ -109,7 +112,10 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
 
     @Override
     public ImmutableAttributes getAttributes() {
-        return componentMetadataRules.applyVariantAttributeRules(this, attributes);
+        if (computedAttributes == null) {
+            computedAttributes = componentMetadataRules.applyVariantAttributeRules(this, attributes);
+        }
+        return computedAttributes;
     }
 
     @Override

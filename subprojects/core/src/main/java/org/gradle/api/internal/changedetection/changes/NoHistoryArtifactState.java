@@ -47,6 +47,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
         null,
         null,
         null,
+        null,
         null
     );
 

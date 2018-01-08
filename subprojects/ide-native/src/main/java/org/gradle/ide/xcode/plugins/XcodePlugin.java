@@ -242,9 +242,9 @@ public class XcodePlugin extends IdePlugin {
                         } else if (swiftBinary instanceof SwiftExecutable && swiftBinary.isDebuggable() && swiftBinary.isOptimized()) {
                             target.setRelease(((SwiftExecutable) swiftBinary).getDebuggerExecutableFile(), PBXTarget.ProductType.TOOL);
                         } else if (swiftBinary instanceof SwiftSharedLibrary && swiftBinary.isDebuggable() && !swiftBinary.isOptimized()) {
-                            target.setDebug(((SwiftSharedLibrary) swiftBinary).getLinkTask().get().getBinaryFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
+                            target.setDebug(((SwiftSharedLibrary) swiftBinary).getRuntimeFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
                         } else if (swiftBinary instanceof SwiftSharedLibrary && swiftBinary.isDebuggable() && swiftBinary.isOptimized()) {
-                            target.setRelease(((SwiftSharedLibrary) swiftBinary).getLinkTask().get().getBinaryFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
+                            target.setRelease(((SwiftSharedLibrary) swiftBinary).getRuntimeFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
                         } else if (swiftBinary instanceof SwiftStaticLibrary && swiftBinary.isDebuggable() && !swiftBinary.isOptimized()) {
                             target.setDebug(((SwiftStaticLibrary) swiftBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
                         } else if (swiftBinary instanceof SwiftStaticLibrary && swiftBinary.isDebuggable() && swiftBinary.isOptimized()) {
@@ -297,13 +297,13 @@ public class XcodePlugin extends IdePlugin {
                     @Override
                     public void execute(CppBinary cppBinary) {
                         if (cppBinary instanceof CppExecutable && cppBinary.isDebuggable() && !cppBinary.isOptimized()) {
-                            target.setDebug(((CppExecutable) cppBinary).getLinkTask().get().getBinaryFile(), PBXTarget.ProductType.TOOL);
+                            target.setDebug(((CppExecutable) cppBinary).getDebuggerExecutableFile(), PBXTarget.ProductType.TOOL);
                         } else if (cppBinary instanceof CppExecutable && cppBinary.isDebuggable() && cppBinary.isOptimized()) {
-                            target.setRelease(((CppExecutable) cppBinary).getLinkTask().get().getBinaryFile(), PBXTarget.ProductType.TOOL);
+                            target.setRelease(((CppExecutable) cppBinary).getDebuggerExecutableFile(), PBXTarget.ProductType.TOOL);
                         } else if (cppBinary instanceof CppSharedLibrary && cppBinary.isDebuggable() && !cppBinary.isOptimized()) {
-                            target.setDebug(((CppSharedLibrary) cppBinary).getLinkTask().get().getBinaryFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
+                            target.setDebug(((CppSharedLibrary) cppBinary).getRuntimeFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
                         } else if (cppBinary instanceof CppSharedLibrary && cppBinary.isDebuggable() && cppBinary.isOptimized()) {
-                            target.setRelease(((CppSharedLibrary) cppBinary).getLinkTask().get().getBinaryFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
+                            target.setRelease(((CppSharedLibrary) cppBinary).getRuntimeFile(), PBXTarget.ProductType.DYNAMIC_LIBRARY);
                         } else if (cppBinary instanceof CppStaticLibrary && cppBinary.isDebuggable() && !cppBinary.isOptimized()) {
                             target.setDebug(((CppStaticLibrary) cppBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
                         } else if (cppBinary instanceof CppStaticLibrary && cppBinary.isDebuggable() && cppBinary.isOptimized()) {

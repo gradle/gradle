@@ -26,14 +26,14 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.internal.NativeComponentFactory;
+import org.gradle.language.nativeplatform.internal.ComponentWithNames;
+import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
-import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
@@ -83,35 +83,32 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(Project project) {
-                TaskContainer tasks = project.getTasks();
-                ObjectFactory objectFactory = project.getObjects();
+                final ObjectFactory objectFactory = project.getObjects();
 
                 ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
 
                 SwiftExecutable debugExecutable = application.addExecutable("debug", true, false, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                SwiftExecutable releaseExecutable = application.addExecutable("release", true, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                application.addExecutable("release", true, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                 // Add outgoing APIs
-                SwiftCompile compileDebug = debugExecutable.getCompileTask().get();
-                SwiftCompile compileRelease = releaseExecutable.getCompileTask().get();
+                // TODO - remove this
 
-                Configuration implementation = application.getImplementationDependencies();
+                final Configuration implementation = application.getImplementationDependencies();
+                final Usage apiUsage = objectFactory.named(Usage.class, Usage.SWIFT_API);
 
-                Configuration debugApiElements = configurations.maybeCreate("debugSwiftApiElements");
-                debugApiElements.extendsFrom(implementation);
-                debugApiElements.setCanBeResolved(false);
-                debugApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-                debugApiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, debugExecutable.isDebuggable());
-                debugApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, debugExecutable.isOptimized());
-                debugApiElements.getOutgoing().artifact(compileDebug.getModuleFile());
-
-                Configuration releaseApiElements = configurations.maybeCreate("releaseSwiftApiElements");
-                releaseApiElements.extendsFrom(implementation);
-                releaseApiElements.setCanBeResolved(false);
-                releaseApiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-                releaseApiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, releaseExecutable.isDebuggable());
-                releaseApiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, releaseExecutable.isOptimized());
-                releaseApiElements.getOutgoing().artifact(compileRelease.getModuleFile());
+                application.getBinaries().whenElementKnown(SwiftExecutable.class, new Action<SwiftExecutable>() {
+                    @Override
+                    public void execute(SwiftExecutable executable) {
+                        Names names = ((ComponentWithNames) executable).getNames();
+                        Configuration apiElements = configurations.create(names.withSuffix("SwiftApiElements"));
+                        apiElements.extendsFrom(implementation);
+                        apiElements.setCanBeResolved(false);
+                        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+                        apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, executable.isDebuggable());
+                        apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, executable.isOptimized());
+                        apiElements.getOutgoing().artifact(executable.getModuleFile());
+                    }
+                });
 
                 // Use the debug variant as the development variant
                 application.getDevelopmentBinary().set(debugExecutable);

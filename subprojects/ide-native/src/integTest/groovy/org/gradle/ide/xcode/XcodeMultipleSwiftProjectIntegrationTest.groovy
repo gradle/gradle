@@ -158,7 +158,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease',
+        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease', ':hello:stripSymbolsRelease',
             ':log:stripSymbolsRelease', ':log:compileReleaseSwift', ':log:linkRelease',
             ':hello:_xcode___Hello_Release')
     }
@@ -237,7 +237,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease',
+        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease', ':hello:stripSymbolsRelease',
             ":cppGreeter:compileReleaseCpp", ":cppGreeter:linkRelease", ":cppGreeter:stripSymbolsRelease",
             ':hello:_xcode___Hello_Release')
     }
@@ -320,7 +320,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease',
+        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease', ':hello:stripSymbolsRelease',
             ":cppGreeter:compileReleaseCpp", ":cppGreeter:createRelease",
             ':hello:_xcode___Hello_Release')
     }
@@ -448,7 +448,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultReleaseGreeter.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':_xcode___Greeter_Release')
+        resultReleaseGreeter.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':_xcode___Greeter_Release')
     }
 
     def "can run tests for Swift library within multi-project from xcode"() {

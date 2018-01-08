@@ -50,10 +50,12 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHC
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProvider;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolRegistry;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
@@ -87,6 +89,11 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
         this.execActionFactory = execActionFactory;
         this.workerLeaseService = workerLeaseService;
         this.metadataProvider = metadataProvider;
+    }
+
+    @Override
+    public ToolSearchResult isToolAvailable(ToolType toolType) {
+        return toolSearchPath.locate(toolType, toolRegistry.getTool(toolType).getExecutable());
     }
 
     @Override
@@ -231,5 +238,10 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
             return gccMetadata.getSystemIncludes();
         }
         return ImmutableList.of();
+    }
+
+    @Override
+    public CompilerMetadata getCompilerMetadata() {
+        return getGccMetadata(ToolType.C_COMPILER);
     }
 }

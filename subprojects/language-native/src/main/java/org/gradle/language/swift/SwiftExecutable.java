@@ -19,9 +19,9 @@ package org.gradle.language.swift;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.ComponentWithInstallation;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
+import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.nativeplatform.ComponentWithExecutable;
+import org.gradle.language.nativeplatform.ComponentWithInstallation;
 
 /**
  * An executable built from Swift source.
@@ -29,35 +29,7 @@ import org.gradle.nativeplatform.tasks.LinkExecutable;
  * @since 4.2
  */
 @Incubating
-public interface SwiftExecutable extends SwiftBinary, ComponentWithInstallation {
-    /**
-     * Returns the executable file for this binary.
-     *
-     * @since 4.4
-     */
-    Provider<RegularFile> getExecutableFile();
-
-    /**
-     * Returns the script for running this binary.
-     *
-     * @since 4.4
-     */
-    Provider<RegularFile> getRunScriptFile();
-
-    /**
-     * Returns the link task for this binary.
-     *
-     * @since 4.5
-     */
-    Provider<LinkExecutable> getLinkTask();
-
-    /**
-     * Returns the install task for this binary.
-     *
-     * @since 4.5
-     */
-    Provider<InstallExecutable> getInstallTask();
-
+public interface SwiftExecutable extends SwiftBinary, ComponentWithExecutable, ComponentWithInstallation, ComponentWithOutputs {
     /**
      * Returns the executable file to use with a debugger for this binary.
      *

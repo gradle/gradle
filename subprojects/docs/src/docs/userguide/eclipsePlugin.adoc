@@ -293,7 +293,7 @@ The resulting `.classpath` file will only contain Gradle-generated dependency en
 
 The `whenMerged` hook allows to manipulate the fully populated domain objects. Often this is the preferred way to customize Eclipse files. Here is how you would export all the dependencies of an Eclipse project:
 ++++
-<sample id="exportDependencies" dir="eclipse" title="Export Dependencies">
+<sample id="exportDependencies" dir="eclipse" title="Export Classpath Entries">
                         <sourcefile file="build.gradle" snippet="module-when-merged"/>
                     </sample>
 ++++

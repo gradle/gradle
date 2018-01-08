@@ -25,10 +25,16 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "allows optional @#annotation.simpleName to have null value"() {
         buildFile << """
+            import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
+            import org.gradle.api.internal.tasks.TaskPropertyUtils
+            import org.gradle.api.internal.tasks.properties.PropertyWalker
+
             class CustomTask extends DefaultTask {
                 @Optional @$annotation.simpleName input
                 @TaskAction void doSomething() {
-                    assert inputs.files.empty
+                    def visitor = new GetInputFilesVisitor(this.toString())
+                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), this, visitor)
+                    assert visitor.files.empty
                 }
             }
 
@@ -101,42 +107,5 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         run "bar"
         then:
         executed ":foo"
-    }
-
-    @Unroll
-    def "TaskInputs.#method shows deprecation warning"() {
-        buildFile << """
-            task test {
-                inputs.$method()
-            }
-        """
-
-        expect:
-        executer.expectDeprecationWarning()
-        succeeds "test"
-
-        output.contains warning
-
-        where:
-        method              | warning
-        "getHasInputs"      | "The TaskInputs.getHasInputs() method has been deprecated and is scheduled to be removed in Gradle 5.0. Declare individual task properties to access input files."
-        "getHasSourceFiles" | "The TaskInputs.getHasSourceFiles() method has been deprecated and is scheduled to be removed in Gradle 5.0. Declare individual task properties to access source files."
-        "getSourceFiles"    | "The TaskInputs.getSourceFiles() method has been deprecated and is scheduled to be removed in Gradle 5.0. Declare individual task properties to access source files."
-        "getProperties"     | "The TaskInputs.getProperties() method has been deprecated and is scheduled to be removed in Gradle 5.0. Use the property() and properties() methods to declare input properties instead."
-    }
-
-    @Unroll
-    def "TaskOutputs.getHasOutput() shows deprecation warning"() {
-        buildFile << """
-            task test {
-                outputs.hasOutput
-            }
-        """
-
-        expect:
-        executer.expectDeprecationWarning()
-        succeeds "test"
-
-        output.contains "The TaskOutputs.getHasOutput() method has been deprecated and is scheduled to be removed in Gradle 5.0. Declare individual task properties to access output files."
     }
 }

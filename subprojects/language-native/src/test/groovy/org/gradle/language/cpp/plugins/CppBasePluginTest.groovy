@@ -16,18 +16,22 @@
 
 package org.gradle.language.cpp.plugins
 
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.language.cpp.internal.DefaultCppBinary
 import org.gradle.language.cpp.internal.DefaultCppExecutable
 import org.gradle.language.cpp.internal.DefaultCppSharedLibrary
 import org.gradle.language.cpp.tasks.CppCompile
+import org.gradle.language.nativeplatform.internal.Names
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider
+import org.gradle.nativeplatform.toolchain.internal.ToolType
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
@@ -42,6 +46,7 @@ class CppBasePluginTest extends Specification {
     def "adds compile task for binary"() {
         def binary = Stub(DefaultCppBinary)
         binary.name >> name
+        binary.names >> Names.of(name)
         binary.targetPlatform >> Stub(CppPlatformInternal)
 
         when:
@@ -67,10 +72,12 @@ class CppBasePluginTest extends Specification {
         def executable = Stub(DefaultCppExecutable)
         def executableFile = project.layout.fileProperty()
         executable.name >> name
+        executable.names >> Names.of(name)
         executable.baseName >> baseName
         executable.getExecutableFile() >> executableFile
         executable.targetPlatform >> Stub(CppPlatformInternal)
         executable.platformToolProvider >> new TestPlatformToolProvider()
+        executable.implementationDependencies >> Stub(ConfigurationInternal)
 
         when:
         project.pluginManager.apply(CppBasePlugin)
@@ -98,9 +105,11 @@ class CppBasePluginTest extends Specification {
         baseName.set("test_lib")
         def library = Stub(DefaultCppSharedLibrary)
         library.name >> name
+        library.names >> Names.of(name)
         library.baseName >> baseName
         library.targetPlatform >> Stub(CppPlatformInternal)
         library.platformToolProvider >> new TestPlatformToolProvider()
+        library.implementationDependencies >> Stub(ConfigurationInternal)
 
         when:
         project.pluginManager.apply(CppBasePlugin)
@@ -124,6 +133,11 @@ class CppBasePluginTest extends Specification {
     class TestPlatformToolProvider extends AbstractPlatformToolProvider {
         TestPlatformToolProvider() {
             super(null, new DefaultOperatingSystem("current", OperatingSystem.current()))
+        }
+
+        @Override
+        ToolSearchResult isToolAvailable(ToolType toolType) {
+            throw new UnsupportedOperationException()
         }
     }
 }

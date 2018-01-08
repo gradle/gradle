@@ -24,6 +24,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.List;
@@ -96,6 +97,11 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
 
         @Override
         public String getVendor() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public VersionNumber getVersion() {
             throw new UnsupportedOperationException();
         }
     }

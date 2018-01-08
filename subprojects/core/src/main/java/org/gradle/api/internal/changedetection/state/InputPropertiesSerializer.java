@@ -45,7 +45,8 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
     private static final int MAP_SNAPSHOT = 14;
     private static final int PROVIDER_SNAPSHOT = 15;
     private static final int MANAGED_NAMED_SNAPSHOT = 16;
-    private static final int DEFAULT_SNAPSHOT = 17;
+    private static final int IMPLEMENTATION_SNAPSHOT = 17;
+    private static final int DEFAULT_SNAPSHOT = 18;
 
     private final HashCodeSerializer serializer = new HashCodeSerializer();
 
@@ -124,6 +125,8 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
                 return new ProviderSnapshot(readSnapshot(decoder));
             case MANAGED_NAMED_SNAPSHOT:
                 return new ManagedNamedTypeSnapshot(decoder.readString(), decoder.readString());
+            case IMPLEMENTATION_SNAPSHOT:
+                return new ImplementationSnapshot(decoder.readString(), decoder.readBoolean() ? null : serializer.read(decoder));
             case DEFAULT_SNAPSHOT:
                 return new SerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder) : null, decoder.readBinary());
             default:
@@ -188,6 +191,14 @@ class InputPropertiesSerializer implements Serializer<ImmutableMap<String, Value
             encoder.writeSmallInt(setSnapshot.getElements().size());
             for (ValueSnapshot valueSnapshot : setSnapshot.getElements()) {
                 writeEntry(encoder, valueSnapshot);
+            }
+        } else if (snapshot instanceof ImplementationSnapshot) {
+            ImplementationSnapshot implementationSnapshot = (ImplementationSnapshot) snapshot;
+            encoder.writeSmallInt(IMPLEMENTATION_SNAPSHOT);
+            encoder.writeString(implementationSnapshot.getTypeName());
+            encoder.writeBoolean(implementationSnapshot.hasUnknownClassLoader());
+            if (!implementationSnapshot.hasUnknownClassLoader()) {
+                serializer.write(encoder, implementationSnapshot.getClassLoaderHash());
             }
         } else if (snapshot instanceof SerializedValueSnapshot) {
             SerializedValueSnapshot valueSnapshot = (SerializedValueSnapshot) snapshot;

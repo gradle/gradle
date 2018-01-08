@@ -562,13 +562,14 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         inputProperties(task)[prop] == expected
 
         where:
-        type                                      | prop         | value                    | expected
-        TaskWithNestedBean                        | "bean.class" | [null] as Object[]       | Bean.class.getName()
-        TaskWithNestedBeanWithPrivateClass        | "bean.class" | [null, null] as Object[] | Bean2.class.getName()
-        TaskWithOptionalNestedBean                | "bean.class" | null                     | null
-        TaskWithOptionalNestedBeanWithPrivateType | "bean.class" | null                     | null
-        TaskWithInput                             | "inputValue" | "value"                  | "value"
-        TaskWithBooleanInput                      | "inputValue" | true                     | true           // https://issues.gradle.org/Browse/GRADLE-2815
+        type                                      | prop              | value                    | expected
+        TaskWithNestedBean                        | "bean.class"      | [null] as Object[]       | Bean.class
+        TaskWithNestedIterable                    | "beans.\$0.class" | [null] as Object[]       | Bean.class
+        TaskWithNestedBeanWithPrivateClass        | "bean.class"      | [null, null] as Object[] | Bean2.class
+        TaskWithOptionalNestedBean                | "bean.class"      | null                     | null
+        TaskWithOptionalNestedBeanWithPrivateType | "bean.class"      | null                     | null
+        TaskWithInput                             | "inputValue"      | "value"                  | "value"
+        TaskWithBooleanInput                      | "inputValue"      | true                     | true           // https://issues.gradle.org/Browse/GRADLE-2815
     }
 
     @Unroll

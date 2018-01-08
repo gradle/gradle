@@ -17,10 +17,10 @@
 package org.gradle.language.swift.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
+import org.gradle.language.ComponentDependencies
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -31,18 +31,10 @@ class DefaultSwiftComponentTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
     def objectFactory = TestUtil.objectFactory()
-    def implementation = Stub(Configuration)
-    def configurations = Stub(ConfigurationContainer)
     DefaultSwiftComponent component
 
     def setup() {
-        _ * configurations.maybeCreate("implementation") >> implementation
-        component = new TestComponent("main", fileOperations, objectFactory, configurations)
-    }
-
-    def "has an implementation configuration"() {
-        expect:
-        component.implementationDependencies == implementation
+        component = new TestComponent("main", fileOperations, objectFactory)
     }
 
     def "has no source files by default"() {
@@ -90,8 +82,8 @@ class DefaultSwiftComponentTest extends Specification {
     def "uses component name to determine source directory"() {
         def f1 = tmpDir.createFile("src/a/swift/a.swift")
         def f2 = tmpDir.createFile("src/b/swift/b.swift")
-        def c1 = new TestComponent("a", fileOperations, objectFactory, configurations)
-        def c2 = new TestComponent("b", fileOperations, objectFactory, configurations)
+        def c1 = new TestComponent("a", fileOperations, objectFactory)
+        def c2 = new TestComponent("b", fileOperations, objectFactory)
 
         expect:
         c1.swiftSource.files == [f1] as Set
@@ -99,8 +91,18 @@ class DefaultSwiftComponentTest extends Specification {
     }
 
     class TestComponent extends DefaultSwiftComponent {
-        TestComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
-            super(name, fileOperations, objectFactory, configurations)
+        TestComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
+            super(name, fileOperations, objectFactory)
+        }
+
+        @Override
+        Configuration getImplementationDependencies() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ComponentDependencies getDependencies() {
+            throw new UnsupportedOperationException()
         }
     }
 }

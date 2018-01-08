@@ -18,35 +18,53 @@ package org.gradle.language.cpp.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
+import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable {
+public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage {
     private final RegularFileProperty executableFile;
     private final DirectoryProperty installationDirectory;
     private final Property<InstallExecutable> installTaskProperty;
-    private final Property<AbstractLinkTask> linkTaskProperty;
+    private final Property<LinkExecutable> linkTaskProperty;
+    private final Property<Configuration> runtimeElementsProperty;
+    private final ConfigurableFileCollection outputs;
+    private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultCppExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+    public DefaultCppExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name, projectLayout, objectFactory, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.executableFile = projectLayout.fileProperty();
+        this.debuggerExecutableFile = projectLayout.fileProperty();
         this.installationDirectory = projectLayout.directoryProperty();
-        this.linkTaskProperty = objectFactory.property(AbstractLinkTask.class);
+        this.linkTaskProperty = objectFactory.property(LinkExecutable.class);
         this.installTaskProperty = objectFactory.property(InstallExecutable.class);
+        this.runtimeElementsProperty = objectFactory.property(Configuration.class);
+        this.outputs = fileOperations.files();
+    }
+
+    @Override
+    public ConfigurableFileCollection getOutputs() {
+        return outputs;
     }
 
     @Override
@@ -65,7 +83,33 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     }
 
     @Override
-    public Property<AbstractLinkTask> getLinkTask() {
+    public Property<LinkExecutable> getLinkTask() {
         return linkTaskProperty;
+    }
+
+    @Override
+    public RegularFileProperty getDebuggerExecutableFile() {
+        return debuggerExecutableFile;
+    }
+
+    @Override
+    public Property<Configuration> getRuntimeElements() {
+        return runtimeElementsProperty;
+    }
+
+    @Override
+    public Provider<RegularFile> getRuntimeFile() {
+        return executableFile;
+    }
+
+    @Nullable
+    @Override
+    public Linkage getLinkage() {
+        return null;
+    }
+
+    @Override
+    public boolean hasRuntimeFile() {
+        return true;
     }
 }

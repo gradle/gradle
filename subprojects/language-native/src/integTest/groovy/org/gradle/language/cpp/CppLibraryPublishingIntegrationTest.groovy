@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
@@ -24,7 +25,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matchers
 
-class CppLibraryPublishingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
     def "can publish the binaries and headers of a library to a Maven repository"() {
         def lib = new CppLib()
@@ -623,7 +624,11 @@ dependencies { implementation 'some.group:greeter:1.2' }
         run("installDebug")
 
         then:
-        installation(consumer.file("build/install/main/debug")).exec().out == app.withFeatureDisabled().expectedOutput
+        def debugInstall = installation(consumer.file("build/install/main/debug"))
+        debugInstall.exec().out == app.withFeatureDisabled().expectedOutput
+        debugInstall.assertIncludesLibraries("greeting")
+        def debugLib = sharedLibrary(producer.file("build/lib/main/debug/greeting"))
+        sharedLibrary(consumer.file("build/install/main/debug/lib/greeting")).file.assertIsCopyOf(debugLib.file)
 
         when:
         executer.inDirectory(consumer)
@@ -631,6 +636,11 @@ dependencies { implementation 'some.group:greeter:1.2' }
 
         then:
         installation(consumer.file("build/install/main/release")).exec().out == app.withFeatureEnabled().expectedOutput
+        def releaseInstall = installation(consumer.file("build/install/main/release"))
+        releaseInstall.exec().out == app.withFeatureEnabled().expectedOutput
+        releaseInstall.assertIncludesLibraries("greeting")
+        def releaseLib = sharedLibrary(producer.file("build/lib/main/release/greeting"))
+        sharedLibrary(consumer.file("build/install/main/release/lib/greeting")).file.assertIsCopyOf(releaseLib.strippedRuntimeFile)
     }
 
 }

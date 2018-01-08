@@ -17,10 +17,10 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Provider;
-import org.gradle.language.ComponentWithLinkFile;
-import org.gradle.language.ComponentWithRuntimeFile;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.nativeplatform.ComponentWithLinkUsage;
+import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
+import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
 
 /**
  * A shared library built from C++ source.
@@ -28,11 +28,5 @@ import org.gradle.nativeplatform.tasks.AbstractLinkTask;
  * @since 4.2
  */
 @Incubating
-public interface CppSharedLibrary extends CppBinary, ComponentWithLinkFile, ComponentWithRuntimeFile {
-    /**
-     * Returns the link task for this binary.
-     *
-     * @since 4.5
-     */
-    Provider<? extends AbstractLinkTask> getLinkTask();
+public interface CppSharedLibrary extends CppBinary, ComponentWithSharedLibrary, ComponentWithLinkUsage, ComponentWithRuntimeUsage, ComponentWithOutputs {
 }

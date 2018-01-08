@@ -18,17 +18,19 @@ package org.gradle.nativeplatform.test.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppBinary;
+import org.gradle.language.nativeplatform.ComponentWithExecutable;
+import org.gradle.language.nativeplatform.ComponentWithInstallation;
 import org.gradle.nativeplatform.test.TestComponent;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 
 /**
- * A test executable implemented with C++.
+ * A test executable with tests implemented in C++.
  *
  * @since 4.5
  */
 @Incubating
-public interface CppTestExecutable extends CppExecutable, TestComponent {
+public interface CppTestExecutable extends CppBinary, ComponentWithExecutable, ComponentWithInstallation, TestComponent {
     /**
      * {@inheritDoc}
      */

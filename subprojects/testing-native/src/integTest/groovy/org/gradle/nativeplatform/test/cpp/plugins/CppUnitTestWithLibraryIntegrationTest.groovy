@@ -16,33 +16,17 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
-import org.junit.Assume
 import spock.lang.Unroll
 
 class CppUnitTestWithLibraryIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
-    def setup() {
-        // TODO - currently the customizations to the tool chains are ignored by the plugins, so skip these tests until this is fixed
-        Assume.assumeTrue(worksWithCppPlugin(toolChain))
-    }
-
-    static boolean worksWithCppPlugin(AvailableToolChains.ToolChainCandidate toolChain) {
-        toolChain.id != "mingw" && toolChain.id != "gcccygwin"
-    }
-
     @Override
     protected void makeSingleProject() {
         buildFile << """
             apply plugin: 'cpp-unit-test'
             apply plugin: 'cpp-library'
         """
-    }
-
-    @Override
-    protected String getMainComponentDsl() {
-        return "unitTest"
     }
 
     @Unroll

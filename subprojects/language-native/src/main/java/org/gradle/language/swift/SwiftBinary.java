@@ -17,35 +17,24 @@
 package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithDependencies;
+import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.nativeplatform.toolchain.NativeToolChain;
 
 /**
- * A binary built from Swift source.
+ * A binary built from Swift source and linked from the resulting object files.
  *
  * @since 4.2
  */
 @Incubating
-public interface SwiftBinary extends SoftwareComponent {
+public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDependencies {
     /**
      * Returns the name of the Swift module that this binary defines.
      */
     Provider<String> getModule();
-
-    /**
-     * Returns true if this binary has debugging enabled.
-     */
-    boolean isDebuggable();
-
-    /**
-     * Returns true if this binary is optimized.
-     *
-     * @since 4.5
-     */
-    boolean isOptimized();
 
     /**
      * Returns true if this binary has testing enabled.
@@ -77,13 +66,6 @@ public interface SwiftBinary extends SoftwareComponent {
     FileCollection getRuntimeLibraries();
 
     /**
-     * Returns the object files created for this binary.
-     *
-     * @since 4.4
-     */
-    FileCollection getObjects();
-
-    /**
      * Returns the compile task for this binary.
      *
      * @since 4.5
@@ -91,16 +73,23 @@ public interface SwiftBinary extends SoftwareComponent {
     Provider<SwiftCompile> getCompileTask();
 
     /**
-     * Returns the target platform for this binary.
+     * Returns the module file for this binary.
+     *
+     * @since 4.6
+     */
+    Provider<RegularFile> getModuleFile();
+
+    /**
+     * {@inheritDoc}
      *
      * @since 4.5
      */
     SwiftPlatform getTargetPlatform();
 
     /**
-     * Returns the tool chain for this binary.
+     * Returns the Swift language version of this component.
      *
      * @since 4.5
      */
-    NativeToolChain getToolChain();
+    SwiftLanguageVersion getSwiftLanguageVersion();
 }

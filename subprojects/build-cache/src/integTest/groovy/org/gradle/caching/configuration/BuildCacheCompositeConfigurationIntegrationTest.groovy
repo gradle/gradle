@@ -19,13 +19,12 @@ package org.gradle.caching.configuration
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.operations.trace.BuildOperationTrace
-
 /**
  * Tests build cache configuration within composite builds and buildSrc.
  */
-class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
@@ -34,23 +33,22 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     }
 
     def "can configure with settings.gradle"() {
-        def buildSrcCacheDir = temporaryFolder.file("buildSrc-cache").createDir().absoluteFile
-        def i1CacheDir = temporaryFolder.file("i1-cache").createDir().absoluteFile
-        def i1BuildSrcCacheDir = temporaryFolder.file("i1-buildSrc-cache").createDir().absoluteFile
-        def i2CacheDir = temporaryFolder.file("i2-cache").createDir().absoluteFile
-        def i3CacheDir = temporaryFolder.file("i3-cache").createDir().absoluteFile
+        def mainCache = new TestBuildCache(file("main-cache"))
+        def buildSrcCache = new TestBuildCache(file("buildSrc-cache"))
+        def i1Cache = new TestBuildCache(file("i1-cache"))
+        def i1BuildSrcCache = new TestBuildCache(file("i1-buildSrc-cache"))
+        def i2Cache = new TestBuildCache(file("i2-cache"))
+        def i3Cache = new TestBuildCache(file("i3-cache"))
 
-        settingsFile << """
-            ${useLocalCache(cacheDir)}
-            
+        settingsFile << mainCache.localCacheConfiguration() << """
             includeBuild "i1"
             includeBuild "i2"
         """
 
-        file("buildSrc/settings.gradle") << useLocalCache(buildSrcCacheDir)
-        file("i1/settings.gradle") << useLocalCache(i1CacheDir)
-        file("i1/buildSrc/settings.gradle") << useLocalCache(i1BuildSrcCacheDir)
-        file("i2/settings.gradle") << useLocalCache(i2CacheDir)
+        file("buildSrc/settings.gradle") << buildSrcCache.localCacheConfiguration()
+        file("i1/settings.gradle") << i1Cache.localCacheConfiguration()
+        file("i1/buildSrc/settings.gradle") << i1BuildSrcCache.localCacheConfiguration()
+        file("i2/settings.gradle") << i2Cache.localCacheConfiguration()
 
         buildFile << customTaskCode("root")
         file("buildSrc/build.gradle") << customTaskCode("buildSrc") << """
@@ -72,7 +70,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
             
             customTask.dependsOn gradleBuild
         """
-        file("i3/settings.gradle") << useLocalCache(i3CacheDir)
+        file("i3/settings.gradle") << i3Cache.localCacheConfiguration()
         file("i3/build.gradle") << customTaskCode("i3")
 
         buildFile << """
@@ -83,18 +81,18 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         succeeds "all", "-i"
 
         and:
-        listCacheFiles().size() == 4 // root, i1, i1BuildSrc, i2
-        i1CacheDir.listFiles().size() == 0
-        i1BuildSrcCacheDir.listFiles().size() == 0
-        i2CacheDir.listFiles().size() == 0
+        mainCache.listCacheFiles().size() == 4 // root, i1, i1BuildSrc, i2
+        i1Cache.assertEmpty()
+        i1BuildSrcCache.assertEmpty()
+        i2Cache.assertEmpty()
 
-        listCacheFiles(buildSrcCacheDir).size() == 1
-        listCacheFiles(i3CacheDir).size() == 1
+        buildSrcCache.listCacheFiles().size() == 1
+        i3Cache.listCacheFiles().size() == 1
 
         and:
-        result.assertOutputContains "Using local directory build cache for build ':buildSrc' (location = ${buildSrcCacheDir}, targetSize = 5 GB)."
-        result.assertOutputContains "Using local directory build cache for build ':i2:i3' (location = ${i3CacheDir}, targetSize = 5 GB)."
-        result.assertOutputContains "Using local directory build cache for the root build (location = ${cacheDir}, targetSize = 5 GB)."
+        result.assertOutputContains "Using local directory build cache for build ':buildSrc' (location = ${buildSrcCache.cacheDir}, targetSize = 5 GB)."
+        result.assertOutputContains "Using local directory build cache for build ':i2:i3' (location = ${i3Cache.cacheDir}, targetSize = 5 GB)."
+        result.assertOutputContains "Using local directory build cache for the root build (location = ${mainCache.cacheDir}, targetSize = 5 GB)."
 
         and:
         def finalizeOps = operations.all(FinalizeBuildCacheConfigurationBuildOperationType)
@@ -107,8 +105,8 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         } as Map<String, File>
 
         pathToCacheDirMap == [
-            ":": cacheDir,
-            ":buildSrc": buildSrcCacheDir
+            ":": mainCache.cacheDir,
+            ":buildSrc": buildSrcCache.cacheDir
         ]
     }
 
@@ -129,16 +127,6 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
             }
 
             task customTask(type: CustomTask) { val = "$val" }
-        """
-    }
-
-    private static String useLocalCache(File dir) {
-        """
-            buildCache {
-                local(DirectoryBuildCache) {
-                    directory = '${dir.toURI().toString()}'
-                }
-            }
         """
     }
 }

@@ -28,10 +28,19 @@ class DefaultCppApplicationTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
+    def application = new DefaultCppApplication("main", project.objects, project)
+
+    def "has implementation dependencies"() {
+        expect:
+        application.implementationDependencies == project.configurations['implementation']
+    }
+
+    def "has a main publication"() {
+        expect:
+        application.mainPublication
+    }
 
     def "can add an executable"() {
-        def application = new DefaultCppApplication("main", project.objects, project, project.configurations)
-
         expect:
         def exe = application.addExecutable("debug", true, false, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         exe.name == 'mainDebug'

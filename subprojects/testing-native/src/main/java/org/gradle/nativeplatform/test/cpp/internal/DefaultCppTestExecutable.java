@@ -18,15 +18,23 @@ package org.gradle.nativeplatform.test.cpp.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.internal.DefaultCppComponent;
-import org.gradle.language.cpp.internal.DefaultCppExecutable;
+import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
+import org.gradle.nativeplatform.tasks.InstallExecutable;
+import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -35,15 +43,57 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
-public class DefaultCppTestExecutable extends DefaultCppExecutable implements CppTestExecutable {
+public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTestExecutable, ConfigurableComponentWithExecutable {
     private final Provider<CppComponent> testedComponent;
+    private final RegularFileProperty executableFile;
+    private final DirectoryProperty installationDirectory;
+    private final Property<InstallExecutable> installTaskProperty;
+    private final Property<LinkExecutable> linkTaskProperty;
     private final Property<RunTestExecutable> runTask;
+    private final ConfigurableFileCollection outputs;
+    private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultCppTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objects, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+    public DefaultCppTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objects, FileOperations fileOperations, Provider<String> baseName, boolean debuggable, boolean optimized, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
         super(name, projectLayout, objects, baseName, debuggable, optimized, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.testedComponent = testedComponent;
+        this.executableFile = projectLayout.fileProperty();
+        this.debuggerExecutableFile = projectLayout.fileProperty();
+        this.installationDirectory = projectLayout.directoryProperty();
+        this.linkTaskProperty = objects.property(LinkExecutable.class);
+        this.installTaskProperty = objects.property(InstallExecutable.class);
+        this.outputs = fileOperations.files();
         runTask = objects.property(RunTestExecutable.class);
+    }
+
+    @Override
+    public ConfigurableFileCollection getOutputs() {
+        return outputs;
+    }
+
+    @Override
+    public RegularFileProperty getExecutableFile() {
+        return executableFile;
+    }
+
+    @Override
+    public Property<RegularFile> getDebuggerExecutableFile() {
+        return debuggerExecutableFile;
+    }
+
+    @Override
+    public DirectoryProperty getInstallDirectory() {
+        return installationDirectory;
+    }
+
+    @Override
+    public Property<InstallExecutable> getInstallTask() {
+        return installTaskProperty;
+    }
+
+    @Override
+    public Property<LinkExecutable> getLinkTask() {
+        return linkTaskProperty;
     }
 
     @Override
@@ -61,7 +111,7 @@ public class DefaultCppTestExecutable extends DefaultCppExecutable implements Cp
                 if (tested == null) {
                     return getFileOperations().files();
                 }
-                return ((DefaultCppComponent)tested).getAllHeaderDirs();
+                return ((DefaultCppComponent) tested).getAllHeaderDirs();
             }
         }));
     }

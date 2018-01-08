@@ -142,7 +142,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         where:
         bomSupportProvider                    | directBomDependency | reason1          | reason2          | reason3          | bomDeclaration                                        | dependencyManagementPlugin
         "gradle"                              | true                | "requested"      | "requested"      | "requested"      | "dependencies { implementation $bom }"                | ""
-        "nebula recommender plugin"           | false               | "selectedByRule" | "requested"      | "requested"      | "dependencyRecommendations { mavenBom module: $bom }" | "id 'nebula.dependency-recommender' version '5.0.0'"
-        "spring dependency management plugin" | false               | "selectedByRule" | "selectedByRule" | "selectedByRule" | "dependencyManagement { imports { mavenBom $bom } }"  | "id 'io.spring.dependency-management' version '1.0.3.RELEASE'"
+        "nebula recommender plugin"           | false               | "selectedByRule" | "requested"      | "requested"      | "dependencyRecommendations { mavenBom module: $bom }" | "id 'nebula.dependency-recommender' version '5.1.0'"
+        "spring dependency management plugin" | false               | "selectedByRule" | "selectedByRule" | "selectedByRule" | "dependencyManagement { imports { mavenBom $bom } }"  | "id 'io.spring.dependency-management' version '1.0.4.RELEASE'"
     }
 }

@@ -19,15 +19,12 @@ package org.gradle.nativeplatform.toolchain.internal.gcc.metadata;
 import com.google.common.collect.ImmutableList;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
-import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
 public interface GccMetadata extends CompilerMetadata {
 
     ArchitectureInternal getDefaultArchitecture();
-
-    VersionNumber getVersion();
 
     ImmutableList<File> getSystemIncludes();
 

@@ -53,7 +53,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
         throw new RuntimeException("dumpbin.exe not found")
     }
 
-    private String getDumpbinHeaders() {
+    protected String getDumpbinHeaders() {
         def dumpbin = findExe("dumpbin.exe")
         def process = [dumpbin.absolutePath, '/HEADERS', binaryFile.absolutePath].execute(["PATH=$vcPath"], null)
         return process.inputStream.text

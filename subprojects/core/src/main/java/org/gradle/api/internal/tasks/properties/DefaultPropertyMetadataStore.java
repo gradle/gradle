@@ -44,7 +44,6 @@ import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnn
 import org.gradle.api.internal.tasks.properties.annotations.InputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.LocalStatePropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.NestedBeanPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoriesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoryPropertyAnnotationHandler;
@@ -55,6 +54,7 @@ import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHa
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -96,7 +96,8 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         new InputPropertyAnnotationHandler(),
         new DestroysPropertyAnnotationHandler(),
         new LocalStatePropertyAnnotationHandler(),
-        new NestedBeanPropertyAnnotationHandler(),
+        // Nested is handled as part of the PropertyWalker
+        new NoOpPropertyAnnotationHandler(Nested.class),
         new NoOpPropertyAnnotationHandler(Inject.class),
         new NoOpPropertyAnnotationHandler(Console.class),
         new NoOpPropertyAnnotationHandler(Internal.class),
@@ -106,11 +107,11 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
     private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
     private final Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides;
     private final Set<Class<? extends Annotation>> relevantAnnotationTypes;
-    private final LoadingCache<Class<?>, Set<PropertyMetadata>> cache = CacheBuilder.newBuilder()
+    private final LoadingCache<Class<?>, TypeMetadata> cache = CacheBuilder.newBuilder()
         .weakKeys()
-        .build(new CacheLoader<Class<?>, Set<PropertyMetadata>>() {
+        .build(new CacheLoader<Class<?>, TypeMetadata>() {
             @Override
-            public Set<PropertyMetadata> load(@Nonnull Class<?> type) throws Exception {
+            public TypeMetadata load(@Nonnull Class<?> type) throws Exception {
                 return createTypeMetadata(type);
             }
         });
@@ -148,11 +149,11 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
     }
 
     @Override
-    public <T> Set<PropertyMetadata> getTypeMetadata(Class<T> type) {
+    public <T> TypeMetadata getTypeMetadata(Class<T> type) {
         return cache.getUnchecked(type);
     }
 
-    private <T> Set<PropertyMetadata> createTypeMetadata(Class<T> type) {
+    private <T> TypeMetadata createTypeMetadata(Class<T> type) {
         final Set<Class<? extends Annotation>> propertyTypeAnnotations = annotationHandlers.keySet();
         final Map<String, DefaultPropertyMetadata> propertyContexts = Maps.newLinkedHashMap();
         Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {
@@ -192,7 +193,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
                 }
             }
         });
-        return ImmutableSet.<PropertyMetadata>builder().addAll(propertyContexts.values()).build();
+        return new DefaultTypeMetadata(ImmutableSet.<PropertyMetadata>builder().addAll(propertyContexts.values()).build());
     }
 
     private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, DefaultPropertyMetadata propertyContext) {
@@ -327,7 +328,31 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         }
     }
 
-    public class DefaultPropertyMetadata implements PropertyMetadata {
+    private class DefaultTypeMetadata implements TypeMetadata {
+
+        private final Set<PropertyMetadata> propertiesMetadata;
+
+        public DefaultTypeMetadata(ImmutableSet<PropertyMetadata> propertiesMetadata) {
+            this.propertiesMetadata = propertiesMetadata;
+        }
+
+        @Override
+        public Set<PropertyMetadata> getPropertiesMetadata() {
+            return propertiesMetadata;
+        }
+
+        @Override
+        public boolean isAnnotated() {
+            for (PropertyMetadata metadata : propertiesMetadata) {
+                if (metadata.getPropertyType() != null) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    private class DefaultPropertyMetadata implements PropertyMetadata {
         private final Set<Class<? extends Annotation>> propertyTypeAnnotations;
         private final String fieldName;
         private final Method method;

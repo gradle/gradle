@@ -16,9 +16,12 @@
 
 package org.gradle.plugins.javascript.base
 
+import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import spock.lang.Unroll
 
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGoogleRepoScript
+import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGradlePublicJsRepoScript
 
 class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -31,8 +34,12 @@ class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         applyPlugin()
     }
 
-    def "can download from googles repo"() {
+    @Unroll
+    def "can download from googles repo (experimental=#experimental)"() {
         given:
+        if (experimental) {
+            ExperimentalFeaturesFixture.enable(settingsFile)
+        }
         addGoogleRepoScript(buildFile)
 
         when:
@@ -57,6 +64,46 @@ class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         jquery.exists()
         jquery.text.contains("jQuery v1.7.2")
 
+        where:
+        experimental | _
+        true         | _
+        false        | _
+    }
+
+    @Unroll
+    def "can download from gradleJs repo (experimental=#experimental)"() {
+        given:
+        if (experimental) {
+            ExperimentalFeaturesFixture.enable(settingsFile)
+        }
+        addGradlePublicJsRepoScript(buildFile)
+
+        when:
+        buildFile << """
+            configurations {
+                jshint
+            }
+            dependencies {
+                jshint "com.jshint:jshint:r07@js"
+            }
+            task resolve(type: Copy) {
+                from configurations.jshint
+                into "jshint"
+            }
+        """
+
+        then:
+        succeeds "resolve"
+
+        and:
+        def jshint = file("jshint/jshint-r07.js")
+        jshint.exists()
+        jshint.text.contains("JSHint")
+
+        where:
+        experimental | _
+        true         | _
+        false        | _
     }
 
 }

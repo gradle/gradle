@@ -146,7 +146,7 @@ You can also have repositories on the local file system. This works for both Mav
 
 A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
 
-To find out more about defining and working with repositories, have a look at <<sec:repositories>>.
+To find out more about defining and working with repositories, have a look at <<sec:declaring_repositories>>.
 
 [[sec:publishing_artifacts_tutorial]]
 === Publishing artifacts

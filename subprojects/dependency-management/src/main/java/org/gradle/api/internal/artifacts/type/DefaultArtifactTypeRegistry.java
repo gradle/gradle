@@ -97,6 +97,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
                 attributes = attributesFactory.concat(attributes.asImmutable(), ArtifactAttributes.ARTIFACT_FORMAT, format);
             }
         }
+
         return attributes;
     }
 

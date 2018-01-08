@@ -162,7 +162,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         then:
         resultReleaseHello.assertTasksExecuted(':shuffle:compileReleaseCpp', ':shuffle:linkRelease', ':shuffle:stripSymbolsRelease',
             ':card:compileReleaseCpp', ':card:linkRelease', ':card:stripSymbolsRelease',
-            ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:_xcode___Deck_Release')
+            ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:stripSymbolsRelease', ':deck:_xcode___Deck_Release')
     }
 
     def "can create xcode project for C++ executable inside composite build"() {
@@ -223,6 +223,6 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultReleaseGreeter.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':_xcode___Greeter_Release')
+        resultReleaseGreeter.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':_xcode___Greeter_Release')
     }
 }

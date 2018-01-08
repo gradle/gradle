@@ -128,7 +128,7 @@ Many objects in Gradle have properties which accept a set of input files. For ex
 Usually, there is a method with the same name as the property, which appends to the set of files. Again, this method accepts any of the types supported by the <<sec:file_collections,files()>> method.
 
 ++++
-<sample id="inputFiles" dir="userguide/files/inputFiles" title="Specifying a set of files">
+<sample id="inputFiles" dir="userguide/files/inputFiles" title="Appending a set of files">
     <sourcefile file="build.gradle" snippet="add-input-files"/>
 </sample>
 ++++

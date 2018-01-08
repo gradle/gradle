@@ -443,6 +443,10 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 """
     }
 
+    enum SomeEnum {
+        VALUE_1, VALUE_2
+    }
+
     def "writes file for component with variants with attributes"() {
         def writer = new StringWriter()
         def component = Stub(TestComponent)
@@ -452,7 +456,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
-        v1.attributes >> attributes(usage: "compile", debuggable: true, platform: platform)
+        v1.attributes >> attributes(usage: "compile", debuggable: true, platform: platform, linkage: SomeEnum.VALUE_1)
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
         v2.attributes >> attributes()
@@ -482,6 +486,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
       "name": "v1",
       "attributes": {
         "debuggable": true,
+        "linkage": "VALUE_1",
         "platform": "windows",
         "usage": "compile"
       }
