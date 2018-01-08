@@ -37,7 +37,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         compileIsNotCached()
 
         when:
-        withBuildCache().succeeds 'clean', 'run'
+        withBuildCache().succeeds 'clean', compilationTask
 
         then:
         compileIsCached()
