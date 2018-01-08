@@ -209,7 +209,7 @@ Whenever Gradle tries to resolve a dependency from a Maven or Ivy repository, it
 
 Gradle is a polyglot build tool and not limited to just resolving Java libraries. Let's assume you wanted to build a web application using JavaScript as the client technology. Most projects check in external JavaScript libraries into version control. An external JavaScript library is no different than a reusable Java library so why not download it from a repository instead?
 
-link:https://developers.google.com/speed/libraries/[Google Hosted Libraries] is a distribution platform for popular, open-source JavaScript libraries. With the help of the artifact-only notation you can download a JavaScript library file e.g. JQuery. The `@` character separates the dependency's coordinates from the artifact's file extension. The api:org.gradle.api.artifacts.dsl.DependencyHandler[] also allows for declaring the `extension` attribute as map notation.
+link:https://developers.google.com/speed/libraries/[Google Hosted Libraries] is a distribution platform for popular, open-source JavaScript libraries. With the help of the artifact-only notation you can download a JavaScript library file e.g. JQuery. The `@` character separates the dependency's coordinates from the artifact's file extension.
 
 ++++
 <sample id="artifact-only-dependency-declaration" dir="userguide/dependencies/resolvingArtifactOnly" title="Resolving a JavaScript artifact for a declared dependency">
@@ -221,7 +221,7 @@ Some dependencies ship different "flavors" of the same artifact or they publish 
 
 In JavaScript, a library may exist as uncompressed or minified artifact. In Gradle, a specific artifact identifier is called _classifier_, a term generally used in Maven and Ivy dependency management.
 
-Let's say we wanted to download the minified artifact of the JQuery library instead of the uncompressed file. You can provide the classifier `min` as part of the dependency declaration. The api:org.gradle.api.artifacts.dsl.DependencyHandler[] also allows for declaring the `classifier` attribute as map notation.
+Let's say we wanted to download the minified artifact of the JQuery library instead of the uncompressed file. You can provide the classifier `min` as part of the dependency declaration.
 
 ++++
 <sample id="artifact-only-dependency-declaration-with-classifier" dir="userguide/dependencies/resolvingArtifactOnlyWithClassifier" title="Resolving a JavaScript artifact with classifier for a declared dependency">
