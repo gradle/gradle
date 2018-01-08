@@ -30,18 +30,18 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 import javax.annotation.Nullable;
 
-public class DefaultDependenciesToModuleDescriptorConverter implements DependenciesToModuleDescriptorConverter {
+public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurationMetadataBuilder {
     private DependencyDescriptorFactory dependencyDescriptorFactory;
     private ExcludeRuleConverter excludeRuleConverter;
 
-    public DefaultDependenciesToModuleDescriptorConverter(DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                          ExcludeRuleConverter excludeRuleConverter) {
+    public DefaultLocalConfigurationMetadataBuilder(DependencyDescriptorFactory dependencyDescriptorFactory,
+                                                    ExcludeRuleConverter excludeRuleConverter) {
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
     @Override
-    public void addDependencyDescriptors(BuildableLocalConfigurationMetadata metaData, ConfigurationInternal configuration) {
+    public void addDependenciesAndExcludes(BuildableLocalConfigurationMetadata metaData, ConfigurationInternal configuration) {
         // Run any actions to add/modify dependencies
         configuration.runDependencyActions();
 

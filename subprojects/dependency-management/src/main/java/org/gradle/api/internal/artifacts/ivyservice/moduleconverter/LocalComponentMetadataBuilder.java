@@ -20,6 +20,6 @@ import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
 
 import java.util.Collection;
 
-public interface ConfigurationComponentMetaDataBuilder {
+public interface LocalComponentMetadataBuilder {
     void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends ConfigurationInternal> configurations);
 }

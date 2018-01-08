@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -42,10 +42,10 @@ import java.util.Set;
 public class DefaultArtifactPublisher implements ArtifactPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultArtifactPublisher.class);
 
-    private final DependenciesToModuleDescriptorConverter dependenciesConverter;
+    private final LocalConfigurationMetadataBuilder dependenciesConverter;
     private final IvyModuleDescriptorWriter ivyModuleDescriptorWriter;
 
-    public DefaultArtifactPublisher(DependenciesToModuleDescriptorConverter dependenciesConverter,
+    public DefaultArtifactPublisher(LocalConfigurationMetadataBuilder dependenciesConverter,
                                     IvyModuleDescriptorWriter ivyModuleDescriptorWriter) {
         this.dependenciesConverter = dependenciesConverter;
         this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
@@ -95,7 +95,7 @@ public class DefaultArtifactPublisher implements ArtifactPublisher {
     private void addConfigurations(DefaultIvyModulePublishMetadata metaData, Collection<? extends ConfigurationInternal> configurations, boolean artifactsMustExist) {
         for (ConfigurationInternal configuration : configurations) {
             BuildableLocalConfigurationMetadata configurationMetadata = addConfiguration(metaData, configuration);
-            dependenciesConverter.addDependencyDescriptors(configurationMetadata, configuration);
+            dependenciesConverter.addDependenciesAndExcludes(configurationMetadata, configuration);
 
             OutgoingVariant outgoingVariant = configuration.convertToOutgoingVariant();
             for (PublishArtifact publishArtifact : outgoingVariant.getArtifacts()) {

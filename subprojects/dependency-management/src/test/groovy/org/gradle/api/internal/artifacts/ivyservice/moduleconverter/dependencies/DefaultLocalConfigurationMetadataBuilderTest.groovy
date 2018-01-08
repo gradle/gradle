@@ -28,10 +28,10 @@ import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import spock.lang.Specification
 
-class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
+class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
     def dependencyDescriptorFactory = Mock(DependencyDescriptorFactory)
     def excludeRuleConverter = Mock(ExcludeRuleConverter)
-    def converter = new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter)
+    def converter = new DefaultLocalConfigurationMetadataBuilder(dependencyDescriptorFactory, excludeRuleConverter)
 
     def descriptor = Mock(DefaultModuleDescriptor)
     def metaData = Mock(BuildableLocalConfigurationMetadata)
@@ -40,7 +40,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
 
     def "ignores configuration with no dependencies or exclude rules"() {
         when:
-        converter.addDependencyDescriptors(metaData, configuration)
+        converter.addDependenciesAndExcludes(metaData, configuration)
 
         then:
         1 * configuration.runDependencyActions()
@@ -59,7 +59,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         def dependency2 = Mock(ModuleDependency)
 
         when:
-        converter.addDependencyDescriptors(metaData, configuration)
+        converter.addDependenciesAndExcludes(metaData, configuration)
 
         then:
         _ * metaData.getComponentId() >> componentId
@@ -81,7 +81,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         def dependency2 = Mock(FileCollectionDependency)
 
         when:
-        converter.addDependencyDescriptors(metaData, configuration)
+        converter.addDependenciesAndExcludes(metaData, configuration)
 
         then:
         1 * configuration.runDependencyActions()
@@ -100,7 +100,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         def ivyExcludeRule = Mock(Exclude)
 
         when:
-        converter.addDependencyDescriptors(metaData, configuration)
+        converter.addDependenciesAndExcludes(metaData, configuration)
 
         then:
         1 * configuration.runDependencyActions()

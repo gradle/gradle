@@ -20,14 +20,14 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
 import spock.lang.Specification
 
-class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
-    def dependenciesConverter = Mock(DependenciesToModuleDescriptorConverter)
-    def converter = new DefaultConfigurationComponentMetaDataBuilder(dependenciesConverter)
+class DefaultLocalComponentMetadataBuilderTest extends Specification {
+    def configurationMetadataBuilder = Mock(LocalConfigurationMetadataBuilder)
+    def converter = new DefaultLocalComponentMetadataBuilder(configurationMetadataBuilder)
 
     def componentId = DefaultModuleComponentIdentifier.newId("org", "name", "rev");
 

@@ -34,7 +34,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ProjectFinder projectFinder;
-    private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
+    private final LocalComponentMetadataBuilder localComponentMetadataBuilder;
     private final ConfigurationsProvider configurationsProvider;
     private final MetadataHolder holder;
 
@@ -42,13 +42,13 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                                                ComponentIdentifierFactory componentIdentifierFactory,
                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                ProjectFinder projectFinder,
-                                               ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
+                                               LocalComponentMetadataBuilder localComponentMetadataBuilder,
                                                ConfigurationsProvider configurationsProvider) {
         this.metaDataProvider = metaDataProvider;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.projectFinder = projectFinder;
-        this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
+        this.localComponentMetadataBuilder = localComponentMetadataBuilder;
         this.configurationsProvider = configurationsProvider;
         this.holder = new MetadataHolder();
     }
@@ -65,14 +65,14 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ProjectInternal project = projectFinder.findProject(module.getProjectPath());
         AttributesSchemaInternal schema = project == null ? null : (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
         metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema);
-        configurationComponentMetaDataBuilder.addConfigurations(metaData, configurationsProvider.getAll());
+        localComponentMetadataBuilder.addConfigurations(metaData, configurationsProvider.getAll());
         holder.cachedValue = metaData;
         return metaData;
     }
 
     public RootComponentMetadataBuilder withConfigurationsProvider(ConfigurationsProvider alternateProvider) {
         return new DefaultRootComponentMetadataBuilder(
-            metaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, configurationComponentMetaDataBuilder, alternateProvider
+            metaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, localComponentMetadataBuilder, alternateProvider
         );
     }
 

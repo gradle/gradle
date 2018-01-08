@@ -18,6 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 
-public interface DependenciesToModuleDescriptorConverter {
-    void addDependencyDescriptors(BuildableLocalConfigurationMetadata metaData, ConfigurationInternal configuration);
+public interface LocalConfigurationMetadataBuilder {
+    void addDependenciesAndExcludes(BuildableLocalConfigurationMetadata metaData, ConfigurationInternal configuration);
 }

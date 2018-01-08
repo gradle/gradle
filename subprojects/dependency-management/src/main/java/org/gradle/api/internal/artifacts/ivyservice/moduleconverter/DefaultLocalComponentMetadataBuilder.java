@@ -18,24 +18,24 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 
 import java.util.Collection;
 import java.util.Set;
 
-public class DefaultConfigurationComponentMetaDataBuilder implements ConfigurationComponentMetaDataBuilder {
-    private final DependenciesToModuleDescriptorConverter dependenciesConverter;
+public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetadataBuilder {
+    private final LocalConfigurationMetadataBuilder configurationMetadataBuilder;
 
-    public DefaultConfigurationComponentMetaDataBuilder(DependenciesToModuleDescriptorConverter dependenciesConverter) {
-        this.dependenciesConverter = dependenciesConverter;
+    public DefaultLocalComponentMetadataBuilder(LocalConfigurationMetadataBuilder configurationMetadataBuilder) {
+        this.configurationMetadataBuilder = configurationMetadataBuilder;
     }
 
     public void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends ConfigurationInternal> configurations) {
         for (ConfigurationInternal configuration : configurations) {
             BuildableLocalConfigurationMetadata configurationMetadata = addConfiguration(metaData, configuration);
-            dependenciesConverter.addDependencyDescriptors(configurationMetadata, configuration);
+            configurationMetadataBuilder.addDependenciesAndExcludes(configurationMetadata, configuration);
 
             OutgoingVariant outgoingVariant = configuration.convertToOutgoingVariant();
             metaData.addArtifacts(configuration.getName(), outgoingVariant.getArtifacts());
