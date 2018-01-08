@@ -25,13 +25,13 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.progress.BuildOperationCategory
 import spock.lang.Specification
 
-class NotifyingSettingsProcessorTest extends Specification {
+class BuildOperationSettingsProcessorTest extends Specification {
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def settingsProcessor = Mock(SettingsProcessor)
     def gradleInternal = Mock(GradleInternal)
     def settingsLocation = Mock(SettingsLocation)
-    def buildOperationScriptPlugin = new NotifyingSettingsProcessor(settingsProcessor, buildOperationExecutor)
+    def buildOperationScriptPlugin = new BuildOperationSettingsProcessor(settingsProcessor, buildOperationExecutor)
     def classLoaderScope = Mock(ClassLoaderScope)
     def startParameter = Mock(StartParameter)
     def settingsInternal = Mock(SettingsInternal)

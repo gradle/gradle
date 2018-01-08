@@ -17,10 +17,12 @@
 package org.gradle.caching.configuration
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestBuildCache
 import spock.lang.Unroll
 
 class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     String cacheDir = temporaryFolder.file("cache-dir").createDir().absoluteFile.toURI().toString()
+    def localBuildCache = new TestBuildCache(new File(new URI(cacheDir).path))
 
     def setup() {
         buildFile << """
@@ -40,12 +42,18 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
+        buildFile << customTaskCode()
+
         expect:
-        succeeds("assertLocalCacheConfigured")
+        executer.withBuildCacheEnabled()
+        succeeds("customTask")
+        assertCacheNotEmpty()
     }
 
     def "can configure with init script"() {
         def initScript = file("initBuildCache.gradle") << """
+            println "1"
             gradle.settingsEvaluated { settings ->
                 settings.buildCache {
                     local(DirectoryBuildCache) {
@@ -54,9 +62,15 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        buildFile << customTaskCode()
+        settingsFile << """
+println "2"
+    """
+
         expect:
-        executer.usingInitScript(initScript)
-        succeeds("assertLocalCacheConfigured")
+        executer.withBuildCacheEnabled().usingInitScript(initScript)
+        succeeds("customTask")
+        assertCacheNotEmpty()
     }
 
     def "configuration in init script wins over settings.gradle"() {
@@ -243,4 +257,10 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             task customTask(type: CustomTask)
         """
     }
+
+    void assertCacheNotEmpty() {
+        def cacheFiles = localBuildCache.listCacheFiles()
+        assert !cacheFiles.empty
+    }
+
 }
