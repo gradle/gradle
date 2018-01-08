@@ -5,10 +5,8 @@ repositories {
 }
 
 //START SNIPPET transitive-per-configuration
-configurations {
-    all {
-        transitive = false
-    }
+configurations.all {
+    transitive = false
 }
 
 dependencies {
