@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -42,9 +43,9 @@ class DefaultIvyModuleDescriptorWriterTest extends Specification {
         def metadata = new DefaultIvyModulePublishMetadata(id, "integration")
         addConfiguration(metadata, "archives")
         addConfiguration(metadata, "compile")
-        addConfiguration(metadata, "runtime", ["compile"])
-        addDependencyDescriptor(metadata, "Dep1")
-        addDependencyDescriptor(metadata, "Dep2")
+        def conf = addConfiguration(metadata, "runtime", ["compile"])
+        addDependencyDescriptor(conf, "Dep1")
+        addDependencyDescriptor(conf, "Dep2")
         metadata.addArtifact(new DefaultIvyModuleArtifactPublishMetadata(id, new DefaultIvyArtifactName("testartifact", "jar", "jar"), ["archives", "runtime"] as Set))
 
         1 * componentSelectorConverter.getSelector(_) >> DefaultModuleVersionSelector.newSelector("org.test", "Dep1", "1.0")
@@ -70,10 +71,10 @@ class DefaultIvyModuleDescriptorWriterTest extends Specification {
         format.parse(timestamp)
     }
 
-    def addDependencyDescriptor(DefaultIvyModulePublishMetadata metadata, String organisation = "org.test", String moduleName, String revision = "1.0") {
+    def addDependencyDescriptor(BuildableLocalConfigurationMetadata metadata, String organisation = "org.test", String moduleName, String revision = "1.0") {
         def dep = new LocalComponentDependencyMetadata(metadata.getComponentId(),
             DefaultModuleComponentSelector.newSelector(organisation, moduleName, new DefaultMutableVersionConstraint(revision)),
-            "default", null, "default", [] as List, [], false, false, true, false)
+            "runtime", null, "default", [] as List, [], false, false, true, false)
         metadata.addDependency(dep)
     }
 

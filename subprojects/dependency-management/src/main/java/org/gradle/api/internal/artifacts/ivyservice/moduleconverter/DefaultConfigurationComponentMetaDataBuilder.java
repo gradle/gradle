@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
+import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 
 import java.util.Collection;
 import java.util.Set;
@@ -33,8 +34,9 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
 
     public void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends ConfigurationInternal> configurations) {
         for (ConfigurationInternal configuration : configurations) {
-            addConfiguration(metaData, configuration);
-            dependenciesConverter.addDependencyDescriptors(metaData, configuration);
+            BuildableLocalConfigurationMetadata configurationMetadata = addConfiguration(metaData, configuration);
+            dependenciesConverter.addDependencyDescriptors(configurationMetadata, configuration);
+
             OutgoingVariant outgoingVariant = configuration.convertToOutgoingVariant();
             metaData.addArtifacts(configuration.getName(), outgoingVariant.getArtifacts());
             for (OutgoingVariant variant : outgoingVariant.getChildren()) {
@@ -43,13 +45,13 @@ public class DefaultConfigurationComponentMetaDataBuilder implements Configurati
         }
     }
 
-    private void addConfiguration(BuildableLocalComponentMetadata metaData, ConfigurationInternal configuration) {
+    private BuildableLocalConfigurationMetadata addConfiguration(BuildableLocalComponentMetadata metaData, ConfigurationInternal configuration) {
         configuration.preventFromFurtherMutation();
         configuration.runDependencyActions();
 
         Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
-        metaData.addConfiguration(configuration.getName(),
+        return metaData.addConfiguration(configuration.getName(),
             configuration.getDescription(),
             extendsFrom,
             hierarchy,

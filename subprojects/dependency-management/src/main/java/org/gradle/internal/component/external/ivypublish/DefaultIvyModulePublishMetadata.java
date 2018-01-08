@@ -20,16 +20,15 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
+import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -46,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata, BuildableLocalComponentMetadata {
+public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata {
     private static final Transformer<String, String> VERSION_TRANSFORMER = new IvyVersionTransformer();
     private final ModuleComponentIdentifier id;
     private final String status;
@@ -84,11 +83,12 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
         return excludes;
     }
 
-    public void addConfiguration(String name, Set<String> extendsFrom, boolean visible, boolean transitive) {
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, Set<String> extendsFrom, boolean visible, boolean transitive) {
         List<String> sortedExtends = Lists.newArrayList(extendsFrom);
         Collections.sort(sortedExtends);
         Configuration configuration = new Configuration(name, transitive, visible, sortedExtends);
         configurations.put(name, configuration);
+        return new ConfigurationMetadata(name);
     }
 
     /**
@@ -140,37 +140,33 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
         ivyArtifact.addConfiguration(configuration);
     }
 
-    // BuildableLocalComponentMetadata
-    // TODO:DAZ Split the first 2 methods into a separate interface so we don't require the rest.
+    private class ConfigurationMetadata implements BuildableLocalConfigurationMetadata {
+        private final String configurationName;
 
-    @Override
-    public void addExclude(String configuration, ExcludeMetadata exclude) {
-        excludes.add(Pair.of(exclude, configuration));
-    }
+        private ConfigurationMetadata(String configurationName) {
+            this.configurationName = configurationName;
+        }
 
-    @Override
-    public void addDependency(LocalOriginDependencyMetadata dependency) {
-        dependencies.add(normalizeVersionForIvy(dependency));
-    }
+        @Override
+        public ComponentIdentifier getComponentId() {
+            return id;
+        }
 
-    @Override
-    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved) {
-        // Ignore
-    }
+        @Override
+        public void addDependency(LocalOriginDependencyMetadata dependency) {
+            assert dependency.getModuleConfiguration().equals(configurationName);
+            dependencies.add(normalizeVersionForIvy(dependency));
+        }
 
-    @Override
-    public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
-        // Ignore
-    }
+        @Override
+        public void addExclude(ExcludeMetadata exclude) {
+            excludes.add(Pair.of(exclude, configurationName));
+        }
 
-    @Override
-    public void addVariant(String configuration, OutgoingVariant variant) {
-        // Ignore
-    }
-
-    @Override
-    public void addFiles(String configuration, LocalFileDependencyMetadata files) {
-        // Ignore
+        @Override
+        public void addFiles(LocalFileDependencyMetadata files) {
+            // Ignore files
+        }
     }
 
     private static class IvyVersionTransformer implements Transformer<String, String> {

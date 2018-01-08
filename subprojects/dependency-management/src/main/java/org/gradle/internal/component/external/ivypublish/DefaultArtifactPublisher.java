@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.slf4j.Logger;
@@ -93,11 +94,10 @@ public class DefaultArtifactPublisher implements ArtifactPublisher {
 
     private void addConfigurations(DefaultIvyModulePublishMetadata metaData, Collection<? extends ConfigurationInternal> configurations, boolean artifactsMustExist) {
         for (ConfigurationInternal configuration : configurations) {
-            addConfiguration(metaData, configuration);
-            dependenciesConverter.addDependencyDescriptors(metaData, configuration);
+            BuildableLocalConfigurationMetadata configurationMetadata = addConfiguration(metaData, configuration);
+            dependenciesConverter.addDependencyDescriptors(configurationMetadata, configuration);
 
             OutgoingVariant outgoingVariant = configuration.convertToOutgoingVariant();
-            metaData.addArtifacts(configuration.getName(), outgoingVariant.getArtifacts());
             for (PublishArtifact publishArtifact : outgoingVariant.getArtifacts()) {
                 if (!artifactsMustExist || checkArtifactFileExists(publishArtifact)) {
                     metaData.addArtifact(configuration.getName(), publishArtifact);
@@ -106,10 +106,10 @@ public class DefaultArtifactPublisher implements ArtifactPublisher {
         }
     }
 
-    private void addConfiguration(DefaultIvyModulePublishMetadata metaData, ConfigurationInternal configuration) {
+    private BuildableLocalConfigurationMetadata addConfiguration(DefaultIvyModulePublishMetadata metaData, ConfigurationInternal configuration) {
         configuration.preventFromFurtherMutation();
         configuration.runDependencyActions();
-        metaData.addConfiguration(configuration.getName(), Configurations.getNames(configuration.getExtendsFrom()), configuration.isVisible(), configuration.isTransitive());
+        return metaData.addConfiguration(configuration.getName(), Configurations.getNames(configuration.getExtendsFrom()), configuration.isVisible(), configuration.isTransitive());
     }
 
     private boolean checkArtifactFileExists(PublishArtifact artifact) {
