@@ -806,7 +806,9 @@ h3.releaseinfo {
 
 /* Fixed intra-chapter navigation for desktops */
 @media screen and (min-width: 75rem) {
-    .toc {
+    .appendix .toc,
+    .book .home .toc,
+    .chapter .toc {
         position: fixed;
         left: calc(50% + 380px);
         top: 50px;
@@ -817,23 +819,31 @@ h3.releaseinfo {
     }
 
     /* Replace TOC header only on desktop */
-    .toc:before {
+    .appendix .toc:before,
+    .book .home .toc:before,
+    .chapter .toc:before {
         content: "Contents";
         display: block;
         font-weight: 500;
         margin: 0.4rem 0 0.625rem 0;
     }
 
-    .toc p:first-of-type {
+    .appendix .toc p:first-of-type,
+    .book .home .toc p:first-of-type,
+    .chapter .toc p:first-of-type {
         display: none;
     }
 
-    .toc a {
+    .appendix .toc a,
+    .book .home .toc a,
+    .chapter .toc a {
         color: #02303A;
         opacity: 0.7;
     }
 
-    .toc a.active {
+    .appendix .toc a.active,
+    .book .home .toc a.active,
+    .chapter .toc a.active {
         color: #1BA8C4;
         opacity: 1.0;
     }
@@ -863,7 +873,9 @@ h3.releaseinfo {
 }
 
 @media screen and (min-width: 84.375rem) {
-    .toc {
+    .appendix .toc,
+    .book .home .toc,
+    .chapter .toc {
         left: calc(50% + 26.25rem);
     }
 
@@ -874,7 +886,9 @@ h3.releaseinfo {
 }
 
 @media screen and (min-width: 93.75rem) {
-    .toc {
+    .appendix .toc,
+    .book .home .toc,
+    .chapter .toc {
         left: calc(50% + 31.25rem);
     }
 
