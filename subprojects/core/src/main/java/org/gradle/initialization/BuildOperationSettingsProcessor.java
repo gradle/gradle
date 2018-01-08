@@ -28,11 +28,14 @@ import org.gradle.internal.progress.BuildOperationDescriptor;
 import static org.gradle.initialization.EvaluateSettingsBuildOperationType.Details;
 import static org.gradle.initialization.EvaluateSettingsBuildOperationType.Result;
 
-public class NotifyingSettingsProcessor implements SettingsProcessor {
+public class BuildOperationSettingsProcessor implements SettingsProcessor {
+    private static final Result RESULT = new Result() {
+    };
+
     private final SettingsProcessor settingsProcessor;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public NotifyingSettingsProcessor(SettingsProcessor settingsProcessor, BuildOperationExecutor buildOperationExecutor) {
+    public BuildOperationSettingsProcessor(SettingsProcessor settingsProcessor, BuildOperationExecutor buildOperationExecutor) {
         this.settingsProcessor = settingsProcessor;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -43,7 +46,7 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
             @Override
             public SettingsInternal call(BuildOperationContext context) {
                 SettingsInternal settingsInternal = settingsProcessor.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
-                context.setResult(new Result(){});
+                context.setResult(RESULT);
                 return settingsInternal;
             }
 
@@ -51,7 +54,7 @@ public class NotifyingSettingsProcessor implements SettingsProcessor {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Evaluate settings").
                     progressDisplayName("Evaluating settings").
-                    details(new Details(){
+                    details(new Details() {
                         @Override
                         public String getSettingsDir() {
                             return settingsLocation.getSettingsDir().getAbsolutePath();

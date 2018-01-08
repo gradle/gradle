@@ -52,9 +52,6 @@ public class BuildProgressFilter implements RootBuildLifecycleListener, BuildLis
 
     @Override
     public void settingsEvaluated(Settings settings) {
-        if (settings.getGradle() == rootGradle) {
-            logger.settingsEvaluated();
-        }
     }
 
     @Override

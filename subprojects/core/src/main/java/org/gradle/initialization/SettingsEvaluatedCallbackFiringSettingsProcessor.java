@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,22 @@
 
 package org.gradle.initialization;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 
-public class NotifyingSettingsLoader implements SettingsLoader {
-    private final SettingsLoader settingsLoader;
+public class SettingsEvaluatedCallbackFiringSettingsProcessor implements SettingsProcessor {
 
-    public NotifyingSettingsLoader(SettingsLoader settingsLoader) {
-        this.settingsLoader = settingsLoader;
+    private final SettingsProcessor delegate;
+
+    public SettingsEvaluatedCallbackFiringSettingsProcessor(SettingsProcessor delegate) {
+        this.delegate = delegate;
     }
 
     @Override
-    public SettingsInternal findAndLoadSettings(final GradleInternal gradle) {
-        final SettingsInternal settings = settingsLoader.findAndLoadSettings(gradle);
+    public SettingsInternal process(GradleInternal gradle, SettingsLocation settingsLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameter startParameter) {
+        SettingsInternal settings = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
         gradle.getBuildListenerBroadcaster().settingsEvaluated(settings);
         return settings;
     }
