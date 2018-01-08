@@ -270,7 +270,9 @@ Could not resolve all files for configuration ':compileClasspath'.
       https://repo.maven.apache.org/maven2/com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar
 ```
 
-The situation can be fixed by excluding the dependencies that do not exist in the declared repositories for the particular dependency declaration. Exclusions need to spelled out as a key/value pair via the attributes `group` and/or `module`. For more information, refer to api:org.gradle.api.artifacts.ModuleDependency#exclude(java.util.Map)[].
+The situation can be fixed by adding a repository containing those dependencies. In the given example project, the source code does not actually use any of Log4J's functionality that require the JMS (e.g. link:https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/net/JMSAppender.html[`JMSAppender`]) or JMX libraries. It's safe to exclude them from the dependency declaration.
+
+Exclusions need to spelled out as a key/value pair via the attributes `group` and/or `module`. For more information, refer to api:org.gradle.api.artifacts.ModuleDependency#exclude(java.util.Map)[].
 
 ++++
 <sample id="exclude-transitive-for-dependency" dir="userguide/dependencies/excludingTransitiveDependenciesForDependency" title="Excluding transitive dependency for a particular dependency declaration">
