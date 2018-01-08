@@ -76,7 +76,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
 
     public void reportSuppressedDeprecations() {
         if (warningMode == WarningMode.Summary && !messages.isEmpty()) {
-            LOGGER.warn("\nThere're {} deprecation warnings, which may break the build in Gradle {}. Please run with --warning-mode=all to see them.",
+            LOGGER.warn("\nThere are {} deprecation warnings, which may break the build in Gradle {}. Please run with --warning-mode=all to see them.",
                 messages.size(),
                 GradleVersion.current().getNextMajor().getVersion());
         }

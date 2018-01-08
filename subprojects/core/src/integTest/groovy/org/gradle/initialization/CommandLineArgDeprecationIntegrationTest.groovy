@@ -60,7 +60,7 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         warningCountInConsole == stdOut.toString().count(message)
-        warningCountInSummary == stdOut.toString().count("There're ${incrementWarningCountIfJava7(warningCountInSummary)} deprecation warnings")
+        warningCountInSummary == stdOut.toString().count("There are ${incrementWarningCountIfJava7(warningCountInSummary)} deprecation warnings")
 
         where:
         issue                                          | deprecatedArgs        | warningsType     | warningCountInConsole | warningCountInSummary | message
