@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
+import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import spock.lang.Specification
@@ -34,7 +34,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
     def converter = new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter)
 
     def descriptor = Mock(DefaultModuleDescriptor)
-    def metaData = Mock(BuildableLocalComponentMetadata)
+    def metaData = Mock(BuildableLocalConfigurationMetadata)
     def configuration = Mock(ConfigurationInternal)
     def dependencySet = Mock(DependencySet)
 
@@ -43,6 +43,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         converter.addDependencyDescriptors(metaData, configuration)
 
         then:
+        1 * configuration.runDependencyActions()
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.iterator() >> [].iterator()
         1 * configuration.excludeRules >> ([] as Set)
@@ -62,6 +63,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
 
         then:
         _ * metaData.getComponentId() >> componentId
+        1 * configuration.runDependencyActions()
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
         _ * configuration.name >> "config"
@@ -82,6 +84,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         converter.addDependencyDescriptors(metaData, configuration)
 
         then:
+        1 * configuration.runDependencyActions()
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
         _ * configuration.name >> "config"
@@ -100,6 +103,7 @@ class DefaultDependenciesToModuleDescriptorConverterTest extends Specification {
         converter.addDependencyDescriptors(metaData, configuration)
 
         then:
+        1 * configuration.runDependencyActions()
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.iterator() >> [].iterator()
 

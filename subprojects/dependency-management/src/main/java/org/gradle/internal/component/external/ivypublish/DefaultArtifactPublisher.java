@@ -108,7 +108,6 @@ public class DefaultArtifactPublisher implements ArtifactPublisher {
 
     private BuildableLocalConfigurationMetadata addConfiguration(DefaultIvyModulePublishMetadata metaData, ConfigurationInternal configuration) {
         configuration.preventFromFurtherMutation();
-        configuration.runDependencyActions();
         return metaData.addConfiguration(configuration.getName(), Configurations.getNames(configuration.getExtendsFrom()), configuration.isVisible(), configuration.isTransitive());
     }
 

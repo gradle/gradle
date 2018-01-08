@@ -42,6 +42,9 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
 
     @Override
     public void addDependencyDescriptors(BuildableLocalConfigurationMetadata metaData, ConfigurationInternal configuration) {
+        // Run any actions to add/modify dependencies
+        configuration.runDependencyActions();
+
         addDependencies(metaData, configuration);
         addExcludeRules(metaData, configuration);
     }
