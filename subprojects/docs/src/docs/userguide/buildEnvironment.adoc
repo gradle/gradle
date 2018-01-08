@@ -55,7 +55,7 @@ When set to `true`, Gradle will run the build with remote debugging enabled, lis
 `org.gradle.java.home=(path to JDK home)`::
 Specifies the Java home for the Gradle build process. The value can be set to either a `jdk` or `jre` location, however, depending on what your build does, using a JDK is safer. A reasonable default is used if the setting is unspecified.
 `org.gradle.jvmargs=(JVM arguments)`::
-Specifies the JVM arguments used for the forked processes like the Gradle Daemon and workers. The setting is particularly useful for <<sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance.
+Specifies the JVM arguments used for the Gradle Daemon. The setting is particularly useful for <<sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance.
 `org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. The `lifecycle` level is the default. See <<sec:choosing_a_log_level>>.
 `org.gradle.parallel=(true,false)`::
@@ -96,7 +96,7 @@ JAVA_OPTS="-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.en
 ----
 ====
 
-You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for forked JVM processes, including the Gradle Daemon and worker processes executed through api:org.gradle.workers.WorkerExecutor[].
+You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for the <<gradle_daemon, Gradle Daemon>>.
 
 .Changing JVM settings for forked Gradle JVMs
 ====
@@ -110,10 +110,24 @@ org.gradle.jvmargs=-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -
 ====
 Many settings (like the Java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle must launch a separate JVM process to execute the build after parsing the various `gradle.properties` files.
 
-When running with the daemon, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
+When running with the <<gradle_daemon, Gradle Daemon>>, a JVM with the correct parameters is started once and reused for each daemon build execution. When Gradle is executed without the daemon, then a new JVM must be launched for every build execution, unless the JVM launched by the Gradle start script happens to have the same parameters.
 ====
 
-When using api:org.gradle.api.tasks.testing.Test#setMaxParallelForks[] for JUnit or TestNG tests, Gradle will fork test worker JVMs that you can configure through the `test` task. See examples in the api:org.gradle.api.tasks.testing.Test[] API documentation and <<sec:test_execution, test execution in the Java plugin reference>>.
+Certain tasks in Gradle also fork additional JVM processes, like the `test` task when using api:org.gradle.api.tasks.testing.Test#setMaxParallelForks[] for JUnit or TestNG tests. You must configure these through the tasks themselves.
+
+.Set Java compile options for api:org.gradle.api.tasks.compile.JavaCompile[] tasks
+====
+[source,groovy]
+----
+apply plugin: "java"
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ["-Xdoclint:none", "-Xlint:none", "-nowarn"]
+}
+----
+====
+
+See other examples in the api:org.gradle.api.tasks.testing.Test[] API documentation and <<sec:test_execution, test execution in the Java plugin reference>>.
 
 [[sec:gradle_system_properties]]
 === System properties
