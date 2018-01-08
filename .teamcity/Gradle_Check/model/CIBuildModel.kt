@@ -4,6 +4,7 @@ import configurations.BuildDistributions
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
+import configurations.DependenciesCheck
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 data class CIBuildModel (
@@ -29,7 +30,8 @@ data class CIBuildModel (
                     specificBuilds = listOf(
                             SpecificBuild.BuildDistributions,
                             SpecificBuild.Gradleception,
-                            SpecificBuild.SmokeTests),
+                            SpecificBuild.SmokeTests,
+                            SpecificBuild.DependenciesCheck),
                     functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
@@ -239,6 +241,11 @@ enum class SpecificBuild {
     SmokeTests {
         override fun create(model: CIBuildModel): BuildType {
             return SmokeTests(model)
+        }
+    },
+    DependenciesCheck {
+        override fun create(model: CIBuildModel): BuildType {
+            return DependenciesCheck(model)
         }
     };
 
