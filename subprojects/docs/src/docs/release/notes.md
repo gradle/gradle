@@ -22,7 +22,7 @@ Next up, you can finally [sign artifacts using gnupg-agent](#signing-artifacts-w
 
 Documentation has been upgraded in this release, with use-case oriented examples for several highly trafficked pages, improved navigation, and a more pleasant experience in many ways. Read [details about the improvements](#documentation-enhancements), or just start with the new [docs home page](userguide/userguide.html).
 
-Individual deprecation warnings are no longer displayed in console output by default, as many users often cannot take action on deprecation warnings from third party plugins. You can now [control the verbosity of logging deprecation warnings](#default-deprecation-warning-logging-reduced).
+Individual deprecation warnings are no longer displayed in console output by default, as many users often cannot take action on deprecation warnings from third party plugins. You can now [control the verbosity of logging deprecation warnings](#reduced-deprecation-logging-in-console).
 
 Last but not least, 2 Kotlin DSL updates:
   
