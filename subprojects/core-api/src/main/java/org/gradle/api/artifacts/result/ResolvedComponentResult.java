@@ -92,7 +92,7 @@ public interface ResolvedComponentResult {
      *
      * @return the resolved variant for this component
      *
-     * @since 4.5
+     * @since 4.6
      */
     ResolvedVariantResult getVariant();
 }

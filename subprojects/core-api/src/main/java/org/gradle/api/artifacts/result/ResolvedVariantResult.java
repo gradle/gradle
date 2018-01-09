@@ -34,7 +34,7 @@ public interface ResolvedVariantResult {
     /**
      * The display name of this variant, for diagnostics.
      *
-     * @since 4.5
+     * @since 4.6
      */
     String getDisplayName();
 }
