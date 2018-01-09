@@ -41,7 +41,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleArt
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
@@ -334,7 +334,7 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    ProjectLocalComponentProvider createProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    ProjectLocalComponentProvider createProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         return new DefaultProjectLocalComponentProvider(projectRegistry, metaDataBuilder, moduleIdentifierFactory);
     }
 

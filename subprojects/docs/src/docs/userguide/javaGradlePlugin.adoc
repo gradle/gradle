@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[java_gradle_plugin]]
-== The Java Gradle Plugin Development Plugin
+== Gradle Plugin Development Plugin
 
 
 [NOTE]

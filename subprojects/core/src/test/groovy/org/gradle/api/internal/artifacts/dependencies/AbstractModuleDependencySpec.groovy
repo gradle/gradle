@@ -59,6 +59,18 @@ abstract class AbstractModuleDependencySpec extends Specification {
         e.message == "Name must not be null!"
     }
 
+    def "cannot request artifact with null name"() {
+        when:
+        def dep = createDependency("group", "name", "version")
+        dep.artifact {
+            classifier = 'test'
+        }
+
+        then:
+        def e = thrown InvalidUserDataException
+        e.message == "Artifact name must not be null!"
+    }
+
     void "can exclude dependencies"() {
         def excludeArgs1 = WrapUtil.toMap("group", "aGroup")
         def excludeArgs2 = WrapUtil.toMap("module", "aModule")

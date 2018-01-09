@@ -50,7 +50,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitInputProperty({ it.propertyName == 'myProperty' && it.value == 'myValue' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFile' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFiles' })
-        1 * visitor.visitInputProperty({ it.propertyName == 'bean.class' && it.value == NestedBean.name })
+        1 * visitor.visitInputProperty({ it.propertyName == 'bean.class' && it.value == NestedBean })
         1 * visitor.visitInputProperty({ it.propertyName == 'bean.nestedInput' && it.value == 'nested' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'bean.inputDir' })
 
@@ -108,7 +108,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
-        1 * visitor.visitInputProperty({ it.propertyName == 'bean.class' && it.value == null })
+        1 * visitor.visitInputProperty({ it.propertyName == 'bean' && it.value == null })
     }
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {

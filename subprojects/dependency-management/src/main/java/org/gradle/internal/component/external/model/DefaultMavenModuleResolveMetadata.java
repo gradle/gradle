@@ -140,15 +140,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
                 && dependencyScope != MavenScope.System;
         }
 
-        if (dependency.isOptional() && ignoreOptionalDependencies()) {
-            return false;
-        }
-
         return hierarchy.contains(dependencyScope.name().toLowerCase());
-    }
-
-    private boolean ignoreOptionalDependencies() {
-        return !experimentalFeatures.isEnabled();
     }
 
     @Override

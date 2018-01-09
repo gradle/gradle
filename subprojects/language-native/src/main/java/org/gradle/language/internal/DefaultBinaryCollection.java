@@ -89,9 +89,6 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
             throw new IllegalStateException("Cannot add actions to this collection as it has already been realized.");
         }
         knownActions = knownActions.add(action);
-        for (T element : elements) {
-            action.execute(element);
-        }
     }
 
     @Override
@@ -133,14 +130,20 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
             throw new IllegalStateException("Cannot add an element to this collection as it has already been realized.");
         }
         elements.add(element);
-        knownActions.execute(element);
     }
 
+    /**
+     * Realizes the contents of this collection, running configuration actions and firing notifications. No further elements can be added.
+     */
     public void realizeNow() {
         if (state != State.Collecting) {
             throw new IllegalStateException("Cannot realize this collection as it has already been realized.");
         }
         state = State.Realizing;
+
+        for (T element : elements) {
+            knownActions.execute(element);
+        }
         knownActions = ImmutableActionSet.empty();
 
         for (SingleElementProvider<?> provider : pending) {
@@ -157,7 +160,6 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
             finalizeActions.execute(element);
         }
         finalizeActions = ImmutableActionSet.empty();
-
     }
 
     @Override
@@ -207,6 +209,18 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
         @Override
         public void configure(final Action<? super S> action) {
             configureEach(new Action<T>() {
+                @Override
+                public void execute(T t) {
+                    if (match == t) {
+                        action.execute(match);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void whenFinalized(final Action<? super S> action) {
+            whenElementFinalized(new Action<T>() {
                 @Override
                 public void execute(T t) {
                     if (match == t) {

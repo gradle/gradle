@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner;
 
-import org.gradle.api.Incubating;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import java.io.File;
@@ -50,7 +49,6 @@ import java.util.List;
  *
  * @since 2.6
  */
-@Incubating
 public abstract class GradleRunner {
 
     /**

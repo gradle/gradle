@@ -45,7 +45,7 @@ public class NotifyingBuildLoader implements BuildLoader {
                 @Override
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Load projects").
-                        progressDisplayName("loading").
+                        progressDisplayName("Loading projects").
                         details(new BuildStructureOperationDetails());
                 }
 

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[more_about_tasks]]
-== More about Tasks
+== Authoring Tasks
 
 In the introductory tutorial (<<tutorial_using_tasks>>) you learned how to create simple tasks. You also learned how to add additional behavior to these tasks later on, and you learned how to create dependencies between tasks. This was all about simple tasks, but Gradle takes the concept of tasks further. Gradle supports _enhanced tasks_, which are tasks that have their own properties and methods. This is really different from what you are used to with Ant targets. Such enhanced tasks are either provided by you or built into Gradle.
 
@@ -579,6 +579,49 @@ Runtime classpaths are marked with `@api:org.gradle.api.tasks.Classpath[]`, and 
 Input properties annotated with `@api:org.gradle.api.tasks.CompileClasspath[]` are considered Java compile classpaths.
 Additionally to the aforementioned general classpath rules, compile classpaths ignore changes to everything but class files. Gradle uses the same class analysis described in <<sec:java_compile_avoidance>> to further filter changes that don't affect the class' ABIs.
 This means that changes which only touch the implementation of classes do not make the task out of date.
+
+[[sec:task_input_nested_inputs]]
+====== Nested inputs
+
+When analyzing `@api:org.gradle.api.tasks.Nested[]` task properties for declared input and output sub-properties Gradle uses the type of the actual value.
+Hence it can discover all sub-properties declared by a runtime sub-type.
+
+When adding `@api:org.gradle.api.tasks.Nested[]` to an iterable, each element is treated as a separate nested input.
+
+This allows richer modeling and extensibility for tasks, as e.g. shown by `api:org.gradle.api.tasks.compile.CompileOptions#getCompilerArgumentProviders[]`.
+
+For example, to declare annotation processor arguments, it is possible to do the following:
+
+[source,groovy]
+----
+class MyAnnotationProcessor implements CompilerArgumentProvider {
+    @InputFile
+    @PathSensitivite(NONE)
+    File inputFile
+
+    @OutputFile
+    File outputFile
+
+    MyAnnotationProcessor(File inputFile, File outputFile) {
+        this.inputFile = inputFile
+        this.outputFile = outputFile
+    }
+
+    @Override
+    List<String> asArguments() {
+        [
+            "-AinputFile=${inputFile.absolutePath}",
+            "-AoutputFile=${outputFile.absolutePath}"
+        ]
+    }
+}
+
+compileJava.options.compilerArgumentProviders << new MyAnnotationProcessor(inputFile, outputFile)
+----
+
+This models an annotation processor which requires an input file and generates an output file.
+
+The approach works for Java compiler arguments, since `api:org.gradle.api.tasks.compile.CompileOptions#getCompilerArgumentProviders[]` is an `Iterable` annotated with `@api:org.gradle.api.tasks.Nested[]`. In the same way, this kind of modelling is available to custom tasks.
 
 [[sec:task_input_output_runtime_api]]
 ===== Runtime API

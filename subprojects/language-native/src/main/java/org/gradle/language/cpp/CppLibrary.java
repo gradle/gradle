@@ -23,6 +23,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.language.LibraryDependencies;
 import org.gradle.nativeplatform.Linkage;
 
 /**
@@ -57,6 +58,14 @@ public interface CppLibrary extends ProductionCppComponent {
      * @since 4.3
      */
     FileTree getPublicHeaderFiles();
+
+    /**
+     * Returns the dependencies of this library.
+     *
+     * @since 4.6
+     */
+    @Override
+    LibraryDependencies getDependencies();
 
     /**
      * Returns the API dependencies of this library.

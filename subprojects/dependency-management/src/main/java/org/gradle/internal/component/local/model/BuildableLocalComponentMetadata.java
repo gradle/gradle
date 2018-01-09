@@ -20,9 +20,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.Exclude;
-import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.Set;
 
@@ -47,22 +44,6 @@ public interface BuildableLocalComponentMetadata {
      * @param hierarchy Must include name
      * @param attributes the attributes of the configuration.
      */
-    void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved);
-
-    /**
-     * Adds a dependency to this component. Dependencies are attached to the configuration specified by {@link LocalOriginDependencyMetadata#getModuleConfiguration()} and each of its children.
-     */
-    void addDependency(LocalOriginDependencyMetadata dependency);
-
-    /**
-     * Adds an exclude rule to this component. Exclude rules are attached to the configurations specified by {@link Exclude#getConfigurations()} and each of their children.
-     */
-    void addExclude(String configuration, ExcludeMetadata exclude);
-
-    /**
-     * Adds some files to this component.  The files are attached to the given configuration and each of its children.
-     *
-     * These files should be treated as dependencies of this component, however they are currently treated separately as a migration step.
-     */
-    void addFiles(String configuration, LocalFileDependencyMetadata files);
+    // TODO:DAZ Perhaps return `BuildableLocalConfigurationMetadata`
+    BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved);
 }

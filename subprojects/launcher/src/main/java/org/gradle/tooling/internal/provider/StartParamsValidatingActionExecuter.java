@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
@@ -60,10 +59,6 @@ public class StartParamsValidatingActionExecuter implements BuildExecuter {
                 }
                 throw new IllegalArgumentException(String.format("The specified settings file '%s' is not a file.", startParameter.getSettingsFile()));
             }
-        }
-
-        if (startParameter instanceof StartParameterInternal) {
-            StartParameterInternal.class.cast(startParameter).checkDeprecation();
         }
 
         return delegate.execute(action, requestContext, actionParameters, contextServices);

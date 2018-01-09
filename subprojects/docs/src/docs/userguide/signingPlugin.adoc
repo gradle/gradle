@@ -39,7 +39,7 @@ In order to create OpenPGP signatures, you will need a key pair (instructions on
 * The absolute path to the secret key ring file containing your private key.
 * The passphrase used to protect your private key.
 
-These items must be supplied as the values of properties `signing.keyId`, `signing.secretKeyRingFile`, and `signing.password` respectively. Given the personal and private nature of these values, a good practice is to store them in the user `gradle.properties` file (described in <<sec:gradle_properties_and_system_properties>>).
+These items must be supplied as the values of properties `signing.keyId`, `signing.secretKeyRingFile`, and `signing.password` respectively. Given the personal and private nature of these values, a good practice is to store them in the user `gradle.properties` file (described in <<sec:gradle_system_properties>>).
 
 [source,properties]
 ----
@@ -87,7 +87,7 @@ The signing plugin supports OpenPGP subkeys out of the box. Just specify a subke
 [[sec:using_gpg_agent]]
 === Using gpg-agent
 
-By default the signing plugin uses a Java-based implementation of PGP for signing. This implementation cannot use the gpg-agent program for managing private keys, though. If you want to use the gpg-agent, you can change the signatory implementation used by the signing plugin to api:org.gradle.plugins.signing.signatory.gnupg.GnupgSignatory[].
+By default the signing plugin uses a Java-based implementation of PGP for signing. This implementation cannot use the gpg-agent program for managing private keys, though. If you want to use the gpg-agent, you can change the signatory implementation used by the signing plugin:
 
 ++++
 <sample id="useGnupg" dir="signing/gnupg-signatory" title="Sign with GnuPG">
@@ -95,7 +95,7 @@ By default the signing plugin uses a Java-based implementation of PGP for signin
 </sample>
 ++++
 
-This tells the signing plugin to use the `GnupgSignatory` instead of the default api:org.gradle.plugins.signing.signatory.pgp.PgpSignatory[]. The `GnupgSignatory` relies on the gpg2 progam to sign the artifacts. Of course, this requires that GnuPG is installed.
+This tells the signing plugin to use the `GnupgSignatory` instead of the default api:org.gradle.plugins.signing.signatory.pgp.PgpSignatory[]. The `GnupgSignatory` relies on the gpg2 program to sign the artifacts. Of course, this requires that GnuPG is installed.
 
 Without any further configuration the `gpg2` (on Windows: `gpg2.exe`) executable found on the `PATH` will be used. The password is supplied by the `gpg-agent` and the default key is used for signing.
 

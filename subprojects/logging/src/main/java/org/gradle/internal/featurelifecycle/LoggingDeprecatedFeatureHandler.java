@@ -16,7 +16,9 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
+import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     private static boolean traceLoggingEnabled;
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
+    private WarningMode warningMode;
 
     public LoggingDeprecatedFeatureHandler() {
         this(new UsageLocationReporter() {
@@ -46,8 +49,13 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         this.locationReporter = locationReporter;
     }
 
-    public void setLocationReporter(UsageLocationReporter locationReporter) {
-        this.locationReporter = locationReporter;
+    public void init(UsageLocationReporter reporter, WarningMode warningMode) {
+        this.locationReporter = reporter;
+        this.warningMode = warningMode;
+    }
+
+    public void reset() {
+        messages.clear();
     }
 
     public void deprecatedFeatureUsed(DeprecatedFeatureUsage usage) {
@@ -60,7 +68,17 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             }
             message.append(usage.getMessage());
             logTraceIfNecessary(usage.getStack(), message);
-            LOGGER.warn(message.toString());
+            if (warningMode == WarningMode.All) {
+                LOGGER.warn(message.toString());
+            }
+        }
+    }
+
+    public void reportSuppressedDeprecations() {
+        if (warningMode == WarningMode.Summary && !messages.isEmpty()) {
+            LOGGER.warn("\nThere are {} deprecation warnings, which may break the build in Gradle {}. Please run with --warning-mode=all to see them.",
+                messages.size(),
+                GradleVersion.current().getNextMajor().getVersion());
         }
     }
 
@@ -124,7 +142,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
 
     static boolean isTraceLoggingEnabled() {
         String value = System.getProperty(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
-        if(value == null) {
+        if (value == null) {
             return traceLoggingEnabled;
         }
         return Boolean.parseBoolean(value);

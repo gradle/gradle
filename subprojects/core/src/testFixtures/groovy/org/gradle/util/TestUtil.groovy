@@ -83,12 +83,8 @@ class TestUtil {
         return NamedObjectInstantiator.INSTANCE
     }
 
-    static ExperimentalFeatures experimentalFeatures(boolean enabled = false) {
-        def experimentalFeatures = new ExperimentalFeatures()
-        if (enabled) {
-            experimentalFeatures.enable()
-        }
-        return experimentalFeatures
+    static ExperimentalFeatures experimentalFeatures() {
+        return new ExperimentalFeatures()
     }
 
     static TestUtil create(File rootDir) {

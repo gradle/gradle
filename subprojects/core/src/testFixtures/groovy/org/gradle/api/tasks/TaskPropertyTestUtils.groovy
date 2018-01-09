@@ -16,9 +16,11 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskPropertyUtils
+import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 
@@ -28,9 +30,16 @@ class TaskPropertyTestUtils {
     }
 
     static Map<String, Object> getProperties(TaskInternal task, PropertyWalker propertyWalker) {
-        GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor(task.getName());
-        TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
+        GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor(task.getName())
+        TaskPropertyUtils.visitProperties(propertyWalker, task, visitor)
         //noinspection ConstantConditions
-        return visitor.getPropertyValuesFactory().create();
+        return visitor.getPropertyValuesFactory().create()
+    }
+
+    static FileCollection getInputFiles(AbstractTask task) {
+        GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString())
+        def walker = task.getServices().get(PropertyWalker)
+        TaskPropertyUtils.visitProperties(walker, task, visitor)
+        return visitor.files
     }
 }

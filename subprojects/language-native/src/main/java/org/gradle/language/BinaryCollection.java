@@ -40,7 +40,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
      * <p>Querying the return value will fail when there is not exactly one matching binary.
      *
      * @param type type to match
-     * @param spec specification to satisfy. The spec is applied to each binary prior to configuration.
+     * @param spec specification to satisfy. The spec is applied to each binary <em>prior</em> to configuration.
      * @param <S> type of the binary to return
      * @return a binary from the collection in a finalized state
      */
@@ -74,7 +74,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
     void whenElementKnown(Action<? super T> action);
 
     /**
-     * Registers an action to execute when an element of the given type becomes known. The action is only executed for those elements that are required. Fails if any element has already been finalized.
+     * Registers an action to execute when an element of the given type becomes known. The action is only executed for those elements that are required. Fails if any matching element has already been finalized.
      *
      * @param type The type of element to select.
      * @param action The action to execute for each element becomes known.
@@ -89,7 +89,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
     void whenElementFinalized(Action<? super T> action);
 
     /**
-     * Registers an action to execute when an element of the given type is finalized. The action is only executed for those elements that are required. Fails if any element has already been finalized.
+     * Registers an action to execute when an element of the given type is finalized. The action is only executed for those elements that are required. Fails if any matching element has already been finalized.
      *
      * @param type The type of element to select.
      * @param action The action to execute for each element when finalized.
@@ -104,7 +104,7 @@ public interface BinaryCollection<T extends SoftwareComponent> {
     void configureEach(Action<? super T> action);
 
     /**
-     * Registers an action to execute to configure each element of the given type in the collection. The action is only executed for those elements that are required. Fails if any element has already been finalized.
+     * Registers an action to execute to configure each element of the given type in the collection. The action is only executed for those elements that are required. Fails if any matching element has already been finalized.
      *
      * @param type The type of element to select.
      * @param action The action to execute on each element for configuration.

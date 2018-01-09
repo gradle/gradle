@@ -126,7 +126,12 @@ public class DependencyGraphBuilder {
         final List<EdgeState> dependenciesMissingLocalMetadata = Lists.newArrayList();
         final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMap();
 
-        final PendingDependenciesHandler pendingDependenciesHandler = new DefaultPendingDependenciesHandler(componentSelectorConverter, dependencySubstitutionApplicator);
+        final PendingDependenciesHandler pendingDependenciesHandler;
+        if (experimentalFeatures.isEnabled()) {
+            pendingDependenciesHandler = new DefaultPendingDependenciesHandler(componentSelectorConverter, dependencySubstitutionApplicator);
+        } else {
+            pendingDependenciesHandler = PendingDependenciesHandler.IGNORE;
+        }
 
         while (resolveState.peek() != null || conflictHandler.hasConflicts()) {
             if (resolveState.peek() != null) {

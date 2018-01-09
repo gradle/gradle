@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -875,6 +876,13 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
     private TestFile cleanBuildDir() {
         file("build").assertIsDir().deleteDir()
+    }
+
+    private void cleanLocalBuildCache() {
+        listCacheFiles().each { file ->
+            println "Deleting cache entry: $file"
+            FileUtils.forceDelete(file)
+        }
     }
 
     void taskIsNotCached(String task) {

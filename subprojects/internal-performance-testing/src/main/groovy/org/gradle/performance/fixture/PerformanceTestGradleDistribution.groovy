@@ -17,10 +17,10 @@
 package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GFileUtils
@@ -53,7 +53,7 @@ class PerformanceTestGradleDistribution implements GradleDistribution {
     }
 
     GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
-        return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext);
+        return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext).withWarningMode(null)
     }
 
 }

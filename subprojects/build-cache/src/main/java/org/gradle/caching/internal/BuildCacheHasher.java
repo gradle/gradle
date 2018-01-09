@@ -18,6 +18,9 @@ package org.gradle.caching.internal;
 
 import org.gradle.internal.hash.HashCode;
 
+/**
+ * Hasher used for building hashes for build cache keys.
+ */
 public interface BuildCacheHasher {
     BuildCacheHasher putByte(byte b);
     BuildCacheHasher putBytes(byte[] bytes);
@@ -29,5 +32,21 @@ public interface BuildCacheHasher {
     BuildCacheHasher putBoolean(boolean b);
     BuildCacheHasher putString(CharSequence charSequence);
     BuildCacheHasher putNull();
+
+    /**
+     * Marks this build cache hash as invalid.
+     */
+    void markAsInvalid();
+
+    /**
+     * Whether the build cache hash is valid.
+     */
+    boolean isValid();
+
+    /**
+     * Returns the combined hash.
+     *
+     * If the build cache hash is invalid, an exception is thrown.
+     */
     HashCode hash();
 }

@@ -17,8 +17,6 @@
 package org.gradle.language.cpp.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -46,11 +44,10 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final FileCollection privateHeadersWithConvention;
     private final Property<String> baseName;
     private final Names names;
-    private final Configuration implementation;
     private final DefaultBinaryCollection<CppBinary> binaries;
 
     @Inject
-    public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory, ConfigurationContainer configurations) {
+    public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
         super(fileOperations);
         this.name = name;
         this.fileOperations = fileOperations;
@@ -58,12 +55,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
         privateHeaders = fileOperations.files();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
         baseName = objectFactory.property(String.class);
-
         names = Names.of(name);
-        implementation = configurations.create(names.withSuffix("implementation"));
-        implementation.setCanBeConsumed(false);
-        implementation.setCanBeResolved(false);
-
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
     }
 
@@ -112,11 +104,6 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     @Override
     public FileCollection getPrivateHeaderDirs() {
         return privateHeadersWithConvention;
-    }
-
-    @Override
-    public Configuration getImplementationDependencies() {
-        return implementation;
     }
 
     @Override

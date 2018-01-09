@@ -82,7 +82,7 @@ public class BuildSourceBuilder {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Build buildSrc").
-                    progressDisplayName("buildSrc").
+                    progressDisplayName("Building buildSrc").
                     details(BUILD_BUILDSRC_DETAILS);
             }
         });

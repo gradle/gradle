@@ -58,7 +58,7 @@ public class InitScriptHandler {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Run init scripts").progressDisplayName("init scripts");
+                return BuildOperationDescriptor.displayName("Run init scripts").progressDisplayName("Running init scripts");
             }
         });
     }

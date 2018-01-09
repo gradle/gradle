@@ -37,6 +37,8 @@ import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
+import org.gradle.language.cpp.internal.DefaultCppSharedLibrary;
+import org.gradle.language.cpp.internal.DefaultCppStaticLibrary;
 import org.gradle.language.cpp.internal.MainLibraryVariant;
 import org.gradle.language.cpp.internal.NativeVariant;
 import org.gradle.language.internal.NativeComponentFactory;
@@ -138,43 +140,47 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                 if (sharedLibs) {
                     String linkageNameSuffix = staticLibs ? "Shared" : "";
                     CppSharedLibrary debugSharedLibrary = library.addSharedLibrary("debug" + linkageNameSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                    CppSharedLibrary releaseSharedLibrary = library.addSharedLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    library.addSharedLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                     // Use the debug shared library as the development binary
                     library.getDevelopmentBinary().set(debugSharedLibrary);
 
-                    // Define the outgoing artifacts
-                    final Configuration debugLinkElements = debugSharedLibrary.getLinkElements().get();
-                    final Configuration debugRuntimeElements = debugSharedLibrary.getRuntimeElements().get();
-                    final Configuration releaseLinkElements = releaseSharedLibrary.getLinkElements().get();
-                    final Configuration releaseRuntimeElements = releaseSharedLibrary.getRuntimeElements().get();
+                    // Define the outgoing publications
+                    // TODO - move this to a shared location
 
-                    NativeVariant debugVariant = new NativeVariant("debug" + linkageNameSuffix, linkUsage, debugLinkElements, runtimeUsage, debugRuntimeElements);
-                    mainVariant.addVariant(debugVariant);
-                    NativeVariant releaseVariant = new NativeVariant("release" + linkageNameSuffix, linkUsage, releaseLinkElements, runtimeUsage, releaseRuntimeElements);
-                    mainVariant.addVariant(releaseVariant);
+                    library.getBinaries().whenElementKnown(DefaultCppSharedLibrary.class, new Action<DefaultCppSharedLibrary>() {
+                        @Override
+                        public void execute(DefaultCppSharedLibrary library) {
+                            Configuration linkElements = library.getLinkElements().get();
+                            Configuration runtimeElements = library.getRuntimeElements().get();
+                            NativeVariant variant = new NativeVariant(library.getNames(), linkUsage, linkElements, runtimeUsage, runtimeElements);
+                            mainVariant.addVariant(variant);
+                        }
+                    });
                 }
 
                 if (staticLibs) {
                     String linkageNameSuffix = sharedLibs ? "Static" : "";
                     CppStaticLibrary debugStaticLibrary = library.addStaticLibrary("debug" + linkageNameSuffix, true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                    CppStaticLibrary releaseStaticLibrary = library.addStaticLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    library.addStaticLibrary("release" + linkageNameSuffix, true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                     if (!sharedLibs) {
                         // Use the debug static library as the development binary
                         library.getDevelopmentBinary().set(debugStaticLibrary);
                     }
 
-                    // Define the outgoing artifacts
-                    final Configuration debugLinkElements = debugStaticLibrary.getLinkElements().get();
-                    final Configuration debugRuntimeElements = debugStaticLibrary.getRuntimeElements().get();
-                    final Configuration releaseLinkElements = releaseStaticLibrary.getLinkElements().get();
-                    final Configuration releaseRuntimeElements = releaseStaticLibrary.getRuntimeElements().get();
+                    // Define the outgoing publications
+                    // TODO - move this to a shared location
 
-                    NativeVariant debugVariant = new NativeVariant("debug" + linkageNameSuffix, linkUsage, debugLinkElements, runtimeUsage, debugRuntimeElements);
-                    mainVariant.addVariant(debugVariant);
-                    NativeVariant releaseVariant = new NativeVariant("release" + linkageNameSuffix, linkUsage, releaseLinkElements, runtimeUsage, releaseRuntimeElements);
-                    mainVariant.addVariant(releaseVariant);
+                    library.getBinaries().whenElementKnown(DefaultCppStaticLibrary.class, new Action<DefaultCppStaticLibrary>() {
+                        @Override
+                        public void execute(DefaultCppStaticLibrary library) {
+                            Configuration linkElements = library.getLinkElements().get();
+                            Configuration runtimeElements = library.getRuntimeElements().get();
+                            NativeVariant variant = new NativeVariant(library.getNames(), linkUsage, linkElements, runtimeUsage, runtimeElements);
+                            mainVariant.addVariant(variant);
+                        }
+                    });
                 }
 
                 library.getBinaries().realizeNow();

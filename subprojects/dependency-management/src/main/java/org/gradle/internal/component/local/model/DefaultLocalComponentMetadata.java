@@ -34,7 +34,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -43,6 +42,7 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -154,25 +154,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public void addFiles(String configuration, LocalFileDependencyMetadata files) {
-        allFiles.put(configuration, files);
-    }
-
-    @Override
-    public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved) {
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved) {
         assert hierarchy.contains(name);
         DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved);
         allConfigurations.put(name, conf);
-    }
-
-    @Override
-    public void addDependency(LocalOriginDependencyMetadata dependency) {
-        allDependencies.add(dependency);
-    }
-
-    @Override
-    public void addExclude(String config, ExcludeMetadata exclude) {
-        allExcludes.put(config, exclude);
+        return conf;
     }
 
     @Override
@@ -239,7 +225,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public LocalConfigurationMetadata getConfiguration(final String name) {
+    public DefaultLocalConfigurationMetadata getConfiguration(final String name) {
         return allConfigurations.get(name);
     }
 
@@ -255,7 +241,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         return ImmutableAttributes.EMPTY;
     }
 
-    private class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata {
+    protected class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata, BuildableLocalConfigurationMetadata {
         private final String name;
         private final String description;
         private final boolean transitive;
@@ -289,6 +275,25 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             this.attributes = attributes;
             this.canBeConsumed = canBeConsumed;
             this.canBeResolved = canBeResolved;
+        }
+
+        @Override
+        public ComponentIdentifier getComponentId() {
+            return componentIdentifier;
+        }
+
+        public void addDependency(LocalOriginDependencyMetadata dependency) {
+            allDependencies.add(dependency);
+        }
+
+        @Override
+        public void addExclude(ExcludeMetadata exclude) {
+            allExcludes.put(name, exclude);
+        }
+
+        @Override
+        public void addFiles(LocalFileDependencyMetadata files) {
+            allFiles.put(name, files);
         }
 
         @Override

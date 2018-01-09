@@ -28,7 +28,12 @@ class DefaultCppApplicationTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
-    def application = new DefaultCppApplication("main", project.objects, project, project.configurations)
+    def application = new DefaultCppApplication("main", project.objects, project)
+
+    def "has implementation dependencies"() {
+        expect:
+        application.implementationDependencies == project.configurations['implementation']
+    }
 
     def "has a main publication"() {
         expect:

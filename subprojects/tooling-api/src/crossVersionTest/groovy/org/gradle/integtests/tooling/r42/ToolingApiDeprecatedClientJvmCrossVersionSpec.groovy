@@ -26,7 +26,6 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException
 import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 
-
 class ToolingApiDeprecatedClientJvmCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -43,22 +42,28 @@ repositories {
         url '${buildContext.libsRepo.toURI()}'
     }
 }
-
 ${mavenCentralRepository()}
-
 dependencies {
     compile "org.gradle:gradle-tooling-api:${GradleVersion.current().version}"
     runtime 'org.slf4j:slf4j-simple:1.7.10'
 }
-
 mainClassName = 'TestClient'
 """
         file('src/main/java/TestClient.java') << """
 import org.gradle.tooling.GradleConnector;
-
+import java.io.File;
 public class TestClient {
-    public static void main(String[] args) {
-        GradleConnector.newConnector();
+    public static void main(String[] args) throws Exception {
+        GradleConnector.newConnector().forProjectDirectory(new File("."))
+            .useDistribution(new java.net.URI("${dist.binDistribution.toURI()}"))
+            .useGradleUserHomeDir(new File("${temporaryFolder.file("userHome").toString().replace(File.separator,"/")}"))
+            .connect()
+            .newBuild()
+            .withArguments("--warning-mode=all")
+            .forTasks("help")
+            .setStandardOutput(System.out)
+            .setStandardError(System.out)
+            .run();
         System.exit(0);
     }
 }
@@ -94,6 +99,7 @@ public class TestClient {
         executer.environment(JAVA_HOME: javaHome)
         executer.workingDir(projectDir)
         executer.errorOutput = outStr // simple slf4j writes warnings to stderr
+        executer.standardOutput = outStr
         executer.commandLine("build/install/test/bin/test")
         executer.run().assertNormalExitValue()
 

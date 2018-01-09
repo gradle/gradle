@@ -26,6 +26,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents any module (Ivy or Maven) to be published via the legacy publishing mechanism.
+ */
 public interface IvyModulePublishMetadata {
     String IVY_MAVEN_NAMESPACE = "http://ant.apache.org/ivy/maven";
     String IVY_MAVEN_NAMESPACE_PREFIX = "m";

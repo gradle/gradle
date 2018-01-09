@@ -22,6 +22,9 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.io.File;
 import java.util.List;
 
+/**
+ * Represents any module artifact (Ivy or Maven) to be published via the legacy publishing mechanism.
+ */
 public interface IvyModuleArtifactPublishMetadata {
     ModuleComponentArtifactIdentifier getId();
 

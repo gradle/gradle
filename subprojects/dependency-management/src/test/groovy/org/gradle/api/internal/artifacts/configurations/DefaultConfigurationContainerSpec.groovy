@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.initialization.ProjectAccessListener
@@ -47,7 +47,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DependencyMetaDataProvider metaDataProvider = Mock()
     private ProjectAccessListener projectAccessListener = Mock()
     private ProjectFinder projectFinder = Mock()
-    private ConfigurationComponentMetaDataBuilder metaDataBuilder = Mock()
+    private LocalComponentMetadataBuilder metaDataBuilder = Mock()
     private FileCollectionFactory fileCollectionFactory = Mock()
     private ComponentIdentifierFactory componentIdentifierFactory = Mock()
     private DependencySubstitutionRules globalSubstitutionRules = Mock()

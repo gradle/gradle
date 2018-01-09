@@ -21,6 +21,10 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### TestKit becomes public feature
+
+TestKit was first introduced in Gradle 2.6 to support developers with writing and executing functional tests for plugins. In the course of the Gradle 2.x releases, a lot of new functionality was added. This version of Gradle removes the incubating status and makes TestKit a public feature.
+
 ## Fixed issues
 
 ## Deprecations

@@ -28,6 +28,7 @@ import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
+import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.cpp.internal.NativeVariant;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
@@ -74,24 +75,25 @@ public class CppApplicationPlugin implements Plugin<ProjectInternal> {
                 ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
                 CppExecutable debugExecutable = application.addExecutable("debug", true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                CppExecutable releaseExecutable = application.addExecutable("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                application.addExecutable("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                 // Use the debug variant as the development binary
                 application.getDevelopmentBinary().set(debugExecutable);
 
-                // Add publications
-
-                final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
-
-                Configuration debugRuntimeElements = debugExecutable.getRuntimeElements().get();
-                Configuration releaseRuntimeElements = releaseExecutable.getRuntimeElements().get();
-
-                NativeVariant debugVariant = new NativeVariant("debug", runtimeUsage, debugRuntimeElements.getAllArtifacts(), debugRuntimeElements);
-                application.getMainPublication().addVariant(debugVariant);
-                NativeVariant releaseVariant = new NativeVariant("release", runtimeUsage, releaseRuntimeElements.getAllArtifacts(), releaseRuntimeElements);
-                application.getMainPublication().addVariant(releaseVariant);
-
                 application.getBinaries().realizeNow();
+            }
+        });
+
+        // Define publications
+        // TODO - move this to a shared location
+
+        final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
+        application.getBinaries().whenElementKnown(DefaultCppExecutable.class, new Action<DefaultCppExecutable>() {
+            @Override
+            public void execute(DefaultCppExecutable executable) {
+                Configuration runtimeElements = executable.getRuntimeElements().get();
+                NativeVariant variant = new NativeVariant(executable.getNames(), runtimeUsage, runtimeElements.getAllArtifacts(), runtimeElements);
+                application.getMainPublication().addVariant(variant);
             }
         });
     }
