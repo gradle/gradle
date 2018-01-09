@@ -21,7 +21,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'org.owasp:dependency-check-gradle:3.0.2'
+        classpath 'org.owasp:dependency-check-gradle:3.1.0'
     }
 }
 
