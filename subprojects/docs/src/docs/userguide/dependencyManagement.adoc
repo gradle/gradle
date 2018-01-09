@@ -313,7 +313,7 @@ Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga
 </sample>
 ++++
 
-If the project requires a specific version of a dependency on a configuration-level then it can be achieved by calling the method api:org.gradle.api.artifacts.ResolutionStrategy#force(java.lang.Object...)[]. Forced dependencies on the configuration-level only work if the configuration is resolvable; that is api:org.gradle.api.artifacts.Configuration#isCanBeResolved()[] returns `true`.
+If the project requires a specific version of a dependency on a configuration-level then it can be achieved by calling the method api:org.gradle.api.artifacts.ResolutionStrategy#force(java.lang.Object...)[].
 
 ++++
 <sample id="force-per-configuration" dir="userguide/dependencies/forcingDependencyVersionPerConfiguration" title="Enforcing a dependency version on the configuration-level">
@@ -337,7 +337,7 @@ By default Gradle resolves all transitive dependencies specified by the dependen
 Disabling transitive dependency resolution will likely require you to declare the necessary runtime dependencies in your build script which otherwise would have been resolved automatically. Not doing so might lead to runtime classpath issues.
 ====
 
-A project can decide to disable transitive dependency resolution completely. You either don't want to rely on the metadata published to the consumed repositories or you want to gain full control over the dependencies in your graph. Transitive dependency resolution can be disabled on a configuration-level for any configuration returning `true` for api:org.gradle.api.artifacts.Configuration#isCanBeResolved()[]. For more information, see api:org.gradle.api.artifacts.Configuration#setTransitive(boolean)[].
+A project can decide to disable transitive dependency resolution completely. You either don't want to rely on the metadata published to the consumed repositories or you want to gain full control over the dependencies in your graph. For more information, see api:org.gradle.api.artifacts.Configuration#setTransitive(boolean)[].
 
 ++++
 <sample id="disabling-transitive-dependency-resolution-for-configuration" dir="userguide/dependencies/disablingTransitiveDependencyResolutionForConfiguration" title="Disabling transitive dependency resolution on the configuration-level">
