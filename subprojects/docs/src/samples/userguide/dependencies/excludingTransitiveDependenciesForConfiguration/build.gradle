@@ -6,7 +6,7 @@ repositories {
 
 //START SNIPPET exclude-transitive-dependencies
 configurations {
-    compile {
+    implementation {
         exclude group: 'javax.jms', module: 'jms'
         exclude group: 'com.sun.jdmk', module: 'jmxtools'
         exclude group: 'com.sun.jmx', module: 'jmxri'

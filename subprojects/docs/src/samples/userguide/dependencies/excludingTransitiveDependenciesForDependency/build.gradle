@@ -6,7 +6,7 @@ repositories {
 
 //START SNIPPET exclude-transitive-dependencies
 dependencies {
-    compile('log4j:log4j:1.2.15') {
+    implementation('log4j:log4j:1.2.15') {
         exclude group: 'javax.jms', module: 'jms'
         exclude group: 'com.sun.jdmk', module: 'jmxtools'
         exclude group: 'com.sun.jmx', module: 'jmxri'

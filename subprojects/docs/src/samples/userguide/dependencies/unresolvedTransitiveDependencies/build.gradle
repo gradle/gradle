@@ -6,6 +6,6 @@ repositories {
 }
 
 dependencies {
-    compile 'log4j:log4j:1.2.15'
+    implementation 'log4j:log4j:1.2.15'
 }
 //END SNIPPET unresolved-transitive-dependencies
