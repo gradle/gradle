@@ -215,8 +215,7 @@ class KotlinBuildScriptCompiler(
             scriptTemplate,
             scriptPath,
             script.linePreservingSubstring(buildscriptRange),
-            buildscriptBlockCompilationClassPath,
-            baseScope.exportClassLoader)
+            buildscriptBlockCompilationClassPath)
 
     private
     fun compilePluginsBlock(pluginsRange: IntRange, scriptTemplate: KClass<*>) =
@@ -224,8 +223,7 @@ class KotlinBuildScriptCompiler(
             scriptTemplate,
             scriptPath,
             script.linePreservingSubstring_(pluginsRange),
-            pluginsBlockCompilationClassPath,
-            baseScope.exportClassLoader)
+            pluginsBlockCompilationClassPath)
 
     private
     fun compileScriptFileFor(classPath: ClassPath) =
@@ -233,8 +231,7 @@ class KotlinBuildScriptCompiler(
             scriptTarget.scriptTemplate,
             scriptPath,
             script,
-            classPath,
-            targetScope.exportClassLoader)
+            classPath)
 
     private
     fun classFrom(compiledScript: CachingKotlinCompiler.CompiledScript, scope: ClassLoaderScope): Class<*> =

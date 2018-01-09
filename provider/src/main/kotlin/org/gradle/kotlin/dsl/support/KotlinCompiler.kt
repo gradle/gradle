@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.cli.common.messages.MessageUtil
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileBunchOfSources
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileScript
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 
 import org.jetbrains.kotlin.codegen.CompilationException
@@ -35,14 +34,11 @@ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
 
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.CompilerConfigurationKey
-import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.*
-import org.jetbrains.kotlin.config.addKotlinSourceRoots
 
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor.Companion.registerExtension
+import org.jetbrains.kotlin.name.NameUtils
 
 import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
 
@@ -61,16 +57,16 @@ fun compileKotlinScriptToDirectory(
     scriptFile: File,
     scriptDef: KotlinScriptDefinition,
     classPath: List<File>,
-    classLoader: ClassLoader,
-    messageCollector: MessageCollector): Class<*> {
+    messageCollector: MessageCollector): String =
 
     withRootDisposable { rootDisposable ->
 
         withCompilationExceptionHandler(messageCollector) {
 
-            val sourceFiles = listOf(scriptFile)
-            val configuration = compilerConfigurationFor(messageCollector, sourceFiles).apply {
-                put(RETAIN_OUTPUT_IN_MEMORY, true)
+            val canonicalScriptPath = scriptFile.canonicalPath
+            val configuration = compilerConfigurationFor(messageCollector).apply {
+                addKotlinSourceRoot(canonicalScriptPath)
+                put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName("buildscript")
                 addScriptDefinition(scriptDef)
@@ -79,11 +75,12 @@ fun compileKotlinScriptToDirectory(
             val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable).apply {
                 HasImplicitReceiverCompilerPlugin.apply(project)
             }
-            return compileScript(environment, classLoader)
-                ?: throw IllegalStateException("Internal error: unable to compile script, see log for details")
+            compileBunchOfSources(environment)
+                || throw IllegalStateException("Internal error: unable to compile script, see log for details")
+
+            NameUtils.getScriptNameForFile(canonicalScriptPath).asString()
         }
     }
-}
 
 
 private
@@ -129,7 +126,8 @@ fun compileTo(
 
     withRootDisposable { disposable ->
         withMessageCollectorFor(logger) { messageCollector ->
-            val configuration = compilerConfigurationFor(messageCollector, sourceFiles).apply {
+            val configuration = compilerConfigurationFor(messageCollector).apply {
+                addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
                 put(outputConfigurationKey, output)
                 setModuleName(output.nameWithoutExtension)
                 classPath.forEach { addJvmClasspathRoot(it) }
@@ -183,10 +181,9 @@ fun <T> withCompilationExceptionHandler(messageCollector: MessageCollector, acti
 
 
 private
-fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFiles: Iterable<File>): CompilerConfiguration =
+fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfiguration =
     CompilerConfiguration().apply {
-        addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
-        put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+        put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }
 
 
