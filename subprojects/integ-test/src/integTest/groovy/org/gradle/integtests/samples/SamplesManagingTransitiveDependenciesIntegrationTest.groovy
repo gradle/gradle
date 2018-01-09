@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
-class SamplesCustomizingDependenciesIntegrationTest extends AbstractIntegrationSpec {
+class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String COPY_LIBS_TASK_NAME = 'copyLibs'
 
