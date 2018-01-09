@@ -170,7 +170,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             if (resolveResult.getFailure() != null) {
                 artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, resolveResult.getFailure()));
             } else {
-                artifacts.addArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, type, resolveResult.getResult()));
+                artifacts.addArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, component.getComponentId().getDisplayName(), type, resolveResult.getResult()));
             }
         }
     }

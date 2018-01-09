@@ -51,11 +51,11 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
             return new ArtifactBackedResolvedVariant(displayName, attributes, EMPTY);
         }
         if (artifacts.size() == 1) {
-            return new ArtifactBackedResolvedVariant(displayName, attributes, new SingleArtifactSet(attributes, artifacts.iterator().next()));
+            return new ArtifactBackedResolvedVariant(displayName, attributes, new SingleArtifactSet(displayName, attributes, artifacts.iterator().next()));
         }
         List<SingleArtifactSet> artifactSets = new ArrayList<SingleArtifactSet>();
         for (ResolvableArtifact artifact : artifacts) {
-            artifactSets.add(new SingleArtifactSet(attributes, artifact));
+            artifactSets.add(new SingleArtifactSet(displayName, attributes, artifact));
         }
         return new ArtifactBackedResolvedVariant(displayName, attributes, CompositeResolvedArtifactSet.of(artifactSets));
     }
@@ -87,11 +87,13 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
     }
 
     private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Completion {
+        private final DisplayName variantName;
         private final AttributeContainer variantAttributes;
         private final ResolvableArtifact artifact;
         private volatile Throwable failure;
 
-        SingleArtifactSet(AttributeContainer variantAttributes, ResolvableArtifact artifact) {
+        SingleArtifactSet(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
+            this.variantName = variantName;
             this.variantAttributes = variantAttributes;
             this.artifact = artifact;
         }
@@ -119,7 +121,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
             if (failure != null) {
                 visitor.visitFailure(failure);
             } else {
-                visitor.visitArtifact(variantAttributes, artifact);
+                visitor.visitArtifact(variantName.getDisplayName(), variantAttributes, artifact);
             }
         }
 

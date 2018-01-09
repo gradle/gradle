@@ -31,7 +31,7 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     private final Set<Throwable> failures = Sets.newLinkedHashSet();
 
     @Override
-    public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
+    public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
         try {
             File file = artifact.getFile(); // triggering file resolve
             this.files.add(file);
@@ -56,7 +56,7 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
         this.files.add(file);
     }
 

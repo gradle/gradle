@@ -32,16 +32,23 @@ import java.io.File;
 import java.util.Collection;
 
 public class TestArtifactSet implements ResolvedArtifactSet {
+    public static final String DEFAULT_TEST_VARIANT = "test variant";
+    private final String variantName;
     private final AttributeContainer variant;
     private final ImmutableSet<ResolvedArtifact> artifacts;
 
-    private TestArtifactSet(AttributeContainer variant, Collection<? extends ResolvedArtifact> artifacts) {
+    private TestArtifactSet(String variantName, AttributeContainer variant, Collection<? extends ResolvedArtifact> artifacts) {
+        this.variantName = variantName;
         this.variant = variant;
         this.artifacts = ImmutableSet.copyOf(artifacts);
     }
 
+    public static ResolvedArtifactSet create(String variantName, AttributeContainer variantAttributes, Collection<? extends ResolvedArtifact> artifacts) {
+        return new TestArtifactSet(variantName, variantAttributes, artifacts);
+    }
+
     public static ResolvedArtifactSet create(AttributeContainer variantAttributes, Collection<? extends ResolvedArtifact> artifacts) {
-        return new TestArtifactSet(variantAttributes, artifacts);
+        return new TestArtifactSet(DEFAULT_TEST_VARIANT, variantAttributes, artifacts);
     }
 
     @Override
@@ -50,7 +57,7 @@ public class TestArtifactSet implements ResolvedArtifactSet {
             @Override
             public void visit(ArtifactVisitor visitor) {
                 for (final ResolvedArtifact artifact : artifacts) {
-                    visitor.visitArtifact(variant, new Adapter(artifact));
+                    visitor.visitArtifact(variantName, variant, new Adapter(artifact));
                 }
             }
         };

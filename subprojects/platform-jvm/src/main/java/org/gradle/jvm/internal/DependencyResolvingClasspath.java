@@ -105,7 +105,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         ParallelResolveArtifactSet artifacts = ParallelResolveArtifactSet.wrap(resolveResult.artifactsResults.getArtifacts(), buildOperationExecutor);
         artifacts.visit(new ArtifactVisitor() {
             @Override
-            public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
+            public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
                 result.add(artifact.getFile());
             }
 
@@ -125,7 +125,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             }
 
             @Override
-            public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+            public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
                 result.add(file);
             }
         });

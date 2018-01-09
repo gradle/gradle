@@ -82,7 +82,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             }
 
             AttributeContainerInternal variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
-            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, variantAttributes, dependencyMetadata);
+            SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, "local file", variantAttributes, dependencyMetadata);
             selectedArtifacts.add(selector.select(variant));
         }
 
@@ -97,12 +97,14 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
         private final File file;
         private final ComponentArtifactIdentifier artifactIdentifier;
+        private final String variantName;
         private final AttributeContainerInternal variantAttributes;
         private final LocalFileDependencyMetadata dependencyMetadata;
 
-        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, AttributeContainerInternal variantAttributes, LocalFileDependencyMetadata dependencyMetadata) {
+        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainerInternal variantAttributes, LocalFileDependencyMetadata dependencyMetadata) {
             this.file = file;
             this.artifactIdentifier = artifactIdentifier;
+            this.variantName = variantName;
             this.variantAttributes = variantAttributes;
             this.dependencyMetadata = dependencyMetadata;
         }
@@ -143,7 +145,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            visitor.visitFile(artifactIdentifier, variantAttributes, file);
+            visitor.visitFile(artifactIdentifier, variantName, variantAttributes, file);
         }
 
         @Override
