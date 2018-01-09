@@ -34,8 +34,9 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
 
     public void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends ConfigurationInternal> configurations) {
         for (ConfigurationInternal configuration : configurations) {
-            BuildableLocalConfigurationMetadata configurationMetadata = addConfiguration(metaData, configuration);
-            configurationMetadataBuilder.addDependenciesAndExcludes(configurationMetadata, configuration);
+            addConfiguration(metaData, configuration);
+
+            metaData.addDependenciesAndExcludesForConfiguration(configuration, configurationMetadataBuilder);
 
             OutgoingVariant outgoingVariant = configuration.convertToOutgoingVariant();
             metaData.addArtifacts(configuration.getName(), outgoingVariant.getArtifacts());
