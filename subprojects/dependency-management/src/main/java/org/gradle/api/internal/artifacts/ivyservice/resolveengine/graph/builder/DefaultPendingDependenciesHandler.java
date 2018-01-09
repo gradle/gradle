@@ -31,9 +31,10 @@ import java.util.List;
  * optional dependencies, then the optional configuration becomes effectively empty. To avoid this, we ignore the state of optional dependencies if they belong to the "optional" configuration.
  */
 public class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
-    private final PendingDependenciesState pendingDependencies = new PendingDependenciesState();
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
     private final ComponentSelectorConverter componentSelectorConverter;
+    // Create on demand
+    private PendingDependenciesState pendingDependencyTracker;
 
     public DefaultPendingDependenciesHandler(ComponentSelectorConverter componentSelectorConverter,
                                              DependencySubstitutionApplicator dependencySubstitutionApplicator) {
@@ -56,13 +57,20 @@ public class DefaultPendingDependenciesHandler implements PendingDependenciesHan
         }
 
         public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
+            if (pendingDependencyTracker == null) {
+                if (!dependencyState.getDependencyMetadata().isPending()) {
+                    return false;
+                }
+                pendingDependencyTracker = new PendingDependenciesState();
+            }
+
             ModuleIdentifier key = lookupModuleIdentifier(dependencyState);
-            PendingDependencies pendingDependencies = DefaultPendingDependenciesHandler.this.pendingDependencies.getPendingDependencies(key);
+            PendingDependencies pendingDependencies = pendingDependencyTracker.getPendingDependencies(key);
             boolean pending = pendingDependencies.isPending();
 
             if (dependencyState.getDependencyMetadata().isPending() && !isOptionalConfiguration && pending) {
-                    pendingDependencies.addNode(node);
-                    return true;
+                pendingDependencies.addNode(node);
+                return true;
             }
             if (pending) {
                 if (noLongerPending == null) {
@@ -70,7 +78,7 @@ public class DefaultPendingDependenciesHandler implements PendingDependenciesHan
                 }
                 noLongerPending.add(pendingDependencies);
             }
-            DefaultPendingDependenciesHandler.this.pendingDependencies.notPending(key);
+            pendingDependencyTracker.notPending(key);
             return false;
         }
 
