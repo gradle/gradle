@@ -47,7 +47,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
+    public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
         TransformArtifactOperation operation = artifactResults.get(artifact);
         if (operation.getFailure() != null) {
             visitor.visitFailure(operation.getFailure());
@@ -62,7 +62,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
             IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(output, sourceArtifact.getClassifier());
             ComponentArtifactIdentifier newId = new ComponentFileArtifactIdentifier(sourceArtifact.getId().getComponentIdentifier(), artifactName);
             DefaultResolvedArtifact resolvedArtifact = new DefaultResolvedArtifact(sourceArtifact.getModuleVersion().getId(), artifactName, newId, buildDependencies, output);
-            visitor.visitArtifact(target, resolvedArtifact);
+            visitor.visitArtifact(variantName, target, resolvedArtifact);
         }
     }
 
@@ -82,7 +82,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
         TransformFileOperation operation = fileResults.get(file);
         if (operation.getFailure() != null) {
             visitor.visitFailure(operation.getFailure());
@@ -91,7 +91,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
 
         List<File> result = operation.getResult();
         for (File outputFile : result) {
-            visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), target, outputFile);
+            visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), variantName, target, outputFile);
         }
     }
 }
