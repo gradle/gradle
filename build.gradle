@@ -264,6 +264,8 @@ configurations {
     }
 }
 
+ext.allTestRuntimeDependencies = configurations.testRuntime.allDependencies
+
 def patchedExternalModulesDir = new File(buildDir, "external/files")
 def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).files.sort() })
 patchedExternalModules.builtBy 'patchExternalModules'

@@ -21,6 +21,9 @@ performanceReport {
 }
 
 dependencies {
+    // so that all Gradle features are available
+    performanceTestRuntime allTestRuntimeDependencies
+
     testFixturesCompile project(':internalPerformanceTesting')
 }
 
