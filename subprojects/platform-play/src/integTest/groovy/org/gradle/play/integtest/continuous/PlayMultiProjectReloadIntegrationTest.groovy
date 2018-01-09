@@ -15,10 +15,11 @@
  */
 
 package org.gradle.play.integtest.continuous
+
 import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayReloadIntegrationTest
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
-import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.PlayApp
+import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.test.fixtures.file.TestFile
 
@@ -34,7 +35,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
         }
     }
 
-    def "can modify play app while app is running in continuous build"() {
+    def "can modify play app while app is running in continuous build and server restarts"() {
         when:
         succeeds(":primary:runPlayBinary")
 
@@ -43,10 +44,12 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
 
         when:
         addHelloWorld()
+        succeeds()
+        def page = runningApp.playUrl('hello').text
+        serverRestart()
 
         then:
-        succeeds()
-        runningApp.playUrl('hello').text == 'Hello world'
+        page == 'Hello world'
     }
 
     private void addHelloWorld() {
@@ -61,7 +64,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
         }
     }
 
-    def "can modify sub module in multi-project play app while app is running in continuous build"() {
+    def "can modify sub module in multi-project play app while app is running in continuous build and server restarts"() {
         when:
         succeeds(":primary:runPlayBinary")
 
@@ -70,10 +73,12 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
 
         when:
         addSubmoduleHelloWorld()
+        succeeds()
+        def page = runningApp.playUrl('subhello').text
+        serverRestart()
 
         then:
-        succeeds()
-        runningApp.playUrl('subhello').text == 'Hello world'
+        page == 'Hello world'
     }
 
     private void addSubmoduleHelloWorld() {
@@ -88,7 +93,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
         }
     }
 
-    def "can modify java sub module in multi-project play app while app is running in continuous build"() {
+    def "can modify java sub module in multi-project play app while app is running in continuous build and server restarts"() {
         when:
         succeeds(":primary:runPlayBinary")
 
@@ -97,10 +102,12 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
 
         when:
         addSubmoduleHelloWorldFromJavaClass()
+        succeeds()
+        def page = runningApp.playUrl('subhello').text
+        serverRestart()
 
         then:
-        succeeds()
-        runningApp.playUrl('subhello').text == 'Hello from Java!'
+        page == 'Hello from Java!'
     }
 
     private void addSubmoduleHelloWorldFromJavaClass() {
@@ -131,7 +138,7 @@ dependencies {
 '''
     }
 
-    def "can add javascript file to primary project"() {
+    def "can add javascript file to primary project and server does not restart"() {
         when:
         succeeds(":primary:runPlayBinary")
 
@@ -142,13 +149,15 @@ dependencies {
         file("primary/public/helloworld.js") << '''
 var message = "Hello JS";
 '''
+        succeeds()
+        def js = runningApp.playUrl('assets/helloworld.js').text
+        serverNotRestart()
 
         then:
-        succeeds()
-        runningApp.playUrl('assets/helloworld.js').text.contains('Hello JS')
+        js.contains('Hello JS')
     }
 
-    def "should reload with exception when modify java in submodule"() {
+    def "should reload with exception when modify java in submodule and server restarts"() {
         when:
         succeeds(":primary:runPlayBinary")
         then:
@@ -161,12 +170,16 @@ var message = "Hello JS";
         fails()
         !executedTasks.contains(':primary:runPlayBinary')
         errorPageHasTaskFailure(":submodule:compilePlayBinaryScala")
+        serverStartCount() == 1
 
         when:
         fixBadScala("submodule/app")
+
         then:
         succeeds()
         appIsRunningAndDeployed()
+        runningApp.playUrl().text
+        serverStartCount() > 1
     }
 
     def addBadScala(path) {
@@ -183,7 +196,7 @@ object NewType {
 """
     }
 
-    def "can add javascript file to sub module"() {
+    def "can add javascript file to sub module and server restarts"() {
         when:
         succeeds(":primary:runPlayBinary")
 
@@ -194,10 +207,12 @@ object NewType {
         file("submodule/public/helloworld.js") << '''
 var message = "Hello from submodule";
 '''
+        succeeds()
+        def js = runningApp.playUrl('assets/helloworld.js').text
+        serverRestart()
 
         then:
-        succeeds()
-        runningApp.playUrl('assets/helloworld.js').text.contains('Hello from submodule')
+        js.contains('Hello from submodule')
     }
 
     private errorPageHasTaskFailure(task) {
