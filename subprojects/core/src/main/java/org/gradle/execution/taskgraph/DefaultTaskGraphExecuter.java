@@ -19,6 +19,7 @@ package org.gradle.execution.taskgraph;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
@@ -59,6 +60,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+@NonNullApi
 public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskGraphExecuter.class);
 
@@ -206,6 +208,12 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     public List<Task> getAllTasks() {
         ensurePopulated();
         return taskExecutionPlan.getTasks();
+    }
+
+    @Override
+    public Set<Task> getDependencies(Task task) {
+        ensurePopulated();
+        return taskExecutionPlan.getDependencies(task);
     }
 
     private void ensurePopulated() {

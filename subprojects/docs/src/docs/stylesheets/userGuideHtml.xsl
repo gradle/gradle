@@ -26,6 +26,7 @@
     <xsl:param name="generate.toc">
         part toc,title
         chapter toc,title
+        appendix toc,title
     </xsl:param>
 
     <!--
@@ -69,7 +70,7 @@
                             <li><a href="/userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
                             <li><a href="https://docs.gradle.com/build-scan-plugin">Build Scans</a></li>
                             <li><a href="/userguide/build_environment.html">Build Environment</a></li>
-                            <li><a href="/userguide/init_scripts.html">Init Scripts</a></li>
+                            <li><a href="/userguide/init_scripts.html">Initialization Scripts</a></li>
                             <li><a href="/userguide/intro_multi_project_builds.html">Multi-Project Builds</a></li>
                             <li><a href="/userguide/build_cache.html">Build Cache</a></li>
                             <li><a href="/userguide/composite_builds.html">Composite Builds</a></li>
@@ -161,7 +162,7 @@
                                     <li><a href="/userguide/more_about_tasks.html">Authoring Tasks</a></li>
                                     <li><a href="/userguide/logging.html">Logging</a></li>
                                     <li><a href="/userguide/test_kit.html">Testing with TestKit</a></li>
-                                    <li><a href="/userguide/multi_project_builds.html">Configuring Multi-Project Builds</a></li>
+                                    <li><a href="/userguide/multi_project_builds.html">Authoring Multi-Project Builds</a></li>
                                     <li><a href="/userguide/standard_plugins.html">Standard Gradle Plugins</a></li>
                                     <li><a href="/userguide/plugins.html">Using Gradle Plugins</a></li>
                                     <li><a href="/userguide/writing_build_scripts.html">Writing Build Scripts</a></li>
@@ -171,7 +172,9 @@
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#managing-dependencies" aria-expanded="false" aria-controls="managing-dependencies">Managing Dependencies</a>
                                 <ul id="managing-dependencies">
                                     <li><a href="/userguide/artifact_dependencies_tutorial.html">Dependency Management Basics</a></li>
-                                    <li><a href="/userguide/dependency_management.html">Advanced Dependency Management</a></li></ul></li>
+                                    <li><a href="/userguide/dependency_management.html">Advanced Dependency Management</a></li>
+                                    <li><a href="/userguide/dependency_types.html">Dependency Types</a></li>
+                                    <li><a href="/userguide/repository_types.html">Repository Types</a></li></ul></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing-artifacts" aria-expanded="false" aria-controls="publishing-artifacts">Publishing Artifacts</a>
                                 <ul id="publishing-artifacts">
                                     <li><a href="/userguide/artifact_management.html">Publishing Artifacts Overview</a></li>
@@ -292,10 +295,21 @@
 
     <!-- BOOK TITLEPAGE -->
     <xsl:template name="book.titlepage">
+        <a name="introduction"/>
         <main class="home">
             <header>
                 <xsl:apply-templates mode="book.titlepage.recto.auto.mode" select="bookinfo/title"/>
             </header>
+
+            <div class="toc">
+                <p><b>Table of Contents</b></p>
+                <dl>
+                    <dt><span class="section"><a href="userguide.html#introduction">Introduction</a></span></dt>
+                    <dt><span class="section"><a href="userguide.html#new-projects">New projects with Gradle</a></span></dt><dt><span class="section"><a href="userguide.html#existing-projects">Using existing Gradle builds</a></span></dt>
+                    <dt><span class="section"><a href="userguide.html#getting-help">Getting help</a></span></dt>
+                    <dt><span class="section"><a href="userguide.html#licenses">Licenses</a></span></dt>
+                </dl>
+            </div>
 
             <p class="lead">Gradle is an open-source build automation tool focused on flexibility and performance. Gradle build scripts are written using a <a href="http://groovy-lang.org/">Groovy</a> or <a href="https://kotlinlang.org/">Kotlin</a> DSL.</p>
 
@@ -317,13 +331,13 @@
 
             <p>Read about <a href="https://gradle.org/features/">Gradle features</a> to learn what is possible with Gradle.</p>
 
-            <h2>New projects with Gradle</h2>
+            <h2 id="new-projects">New projects with Gradle</h2>
 
             <p>Getting started with Gradle is easy! First, follow our guide to <a href="https://gradle.org/install/">download and install Gradle</a>, then check out Gradle <a href="https://gradle.org/guides/#getting-started">getting started guides</a> to create your first build.</p>
 
             <p>If you're currently using Maven, see a visual <a href="https://gradle.org/maven-vs-gradle/">Gradle vs Maven comparison</a> and follow the guide for <a href="https://guides.gradle.org/migrating-from-maven/">migrating from Maven to Gradle</a>.</p>
 
-            <h2>Using existing Gradle builds</h2>
+            <h2 id="existing-projects">Using existing Gradle builds</h2>
 
             <p>Gradle supports many major IDEs, including Android Studio, Eclipse, IntelliJ IDEA, Visual Studio 2017, and XCode.</p>
 
@@ -338,7 +352,7 @@
 
             <p><a href="https://scans.gradle.com/" title="Get started with build scans">Gradle build scans</a> help you understand build results, improve build performance, and collaborate to fix problems faster.</p>
 
-            <h2>Getting help</h2>
+            <h2 id="getting-help">Getting help</h2>
 
             <p>If you ever run into trouble, there are a number of ways to get help:</p>
 
@@ -350,7 +364,7 @@
 
             <p>We hope you build happiness with Gradle!</p>
 
-            <h2>Licenses</h2>
+            <h2 id="licenses">Licenses</h2>
 
             <p>Gradle build tool source code is open and licensed under the <a href="https://github.com/gradle/gradle/blob/master/LICENSE">Apache License 2.0</a>.</p>
 

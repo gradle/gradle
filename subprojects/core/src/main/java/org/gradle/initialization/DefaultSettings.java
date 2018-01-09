@@ -222,7 +222,13 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), getResourceLoader(), this);
+        return new DefaultObjectConfigurationAction(
+            getFileResolver(),
+            getScriptPluginFactory(),
+            getScriptHandlerFactory(),
+            getRootClassLoaderScope(),
+            getResourceLoader(),
+            this);
     }
 
     public ClassLoaderScope getRootClassLoaderScope() {

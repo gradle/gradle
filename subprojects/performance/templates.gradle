@@ -22,6 +22,21 @@ import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGen
 import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
+
+// === Gradle Build ===
+task gradleBuildCurrent(type: RemoteProject) {
+    dependsOn rootProject.determineCommitId
+    remoteUri = rootDir.absolutePath
+    ref = provider { rootProject.determineCommitId.commitId }
+}
+
+task gradleBuildBaseline(type: RemoteProject) {
+    remoteUri = rootDir.absolutePath
+    // Remember to update accordingly when rebasing/squashing
+    // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
+    ref = '3c30656'
+}
+
 // === Java ===
 ['largeMonolithicJavaProject', 'largeJavaMultiProject',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',

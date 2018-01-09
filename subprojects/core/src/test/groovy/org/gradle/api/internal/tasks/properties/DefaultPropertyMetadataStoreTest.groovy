@@ -112,7 +112,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([annotationHandler])
 
         when:
-        def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
+        def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation).propertiesMetadata
 
         then:
         typeMetadata.size() == 1
@@ -138,9 +138,9 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([])
 
         expect:
-        isOfType(metadataStore.getTypeMetadata(TaskWithInputFile).first(), InputFile)
-        isIgnored(metadataStore.getTypeMetadata(TaskWithInternal).first())
-        isOfType(metadataStore.getTypeMetadata(TaskWithOutputFile).first(), OutputFile)
+        isOfType(metadataStore.getTypeMetadata(TaskWithInputFile).propertiesMetadata.first(), InputFile)
+        isIgnored(metadataStore.getTypeMetadata(TaskWithInternal).propertiesMetadata.first())
+        isOfType(metadataStore.getTypeMetadata(TaskWithOutputFile).propertiesMetadata.first(), OutputFile)
     }
 
     @Unroll
@@ -159,8 +159,8 @@ class DefaultPropertyMetadataStoreTest extends Specification {
 
         def metadataStore = new DefaultPropertyMetadataStore([])
 
-        def parentMetadata = metadataStore.getTypeMetadata(parentTask).first()
-        def childMetadata = metadataStore.getTypeMetadata(childTask).first()
+        def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
+        def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
 
         expect:
         isOfType(parentMetadata, parentAnnotation)
@@ -188,8 +188,8 @@ class DefaultPropertyMetadataStoreTest extends Specification {
 
         def metadataStore = new DefaultPropertyMetadataStore([])
 
-        def parentMetadata = metadataStore.getTypeMetadata(parentTask).first()
-        def childMetadata = metadataStore.getTypeMetadata(childTask).first()
+        def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
+        def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
 
         expect:
         isOfType(parentMetadata, processedAnnotation)
@@ -217,8 +217,8 @@ class DefaultPropertyMetadataStoreTest extends Specification {
 
         def metadataStore = new DefaultPropertyMetadataStore([])
 
-        def parentMetadata = metadataStore.getTypeMetadata(parentTask).first()
-        def childMetadata = metadataStore.getTypeMetadata(childTask).first()
+        def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
+        def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
 
         expect:
         isIgnored(parentMetadata)
@@ -242,7 +242,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
 
         when:
-        def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask)
+        def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask).propertiesMetadata
 
         then:
         typeMetadata*.fieldName as List == ["inputFiles1", "inputFiles2"]
@@ -274,7 +274,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
 
         when:
-        def typeMetadata = metadataStore.getTypeMetadata(OverridingClasspathPropertyTask)
+        def typeMetadata = metadataStore.getTypeMetadata(OverridingClasspathPropertyTask).propertiesMetadata
 
         then:
         typeMetadata*.fieldName as List == ["overriddenClasspath", "overriddenInputFiles"]
@@ -295,7 +295,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
 
         when:
-        def metadata = metadataStore.getTypeMetadata(TaskWithBothFieldAndGetterAnnotation).first()
+        def metadata = metadataStore.getTypeMetadata(TaskWithBothFieldAndGetterAnnotation).propertiesMetadata.first()
 
         then:
         metadata.validationMessages == ["has both a getter and field declared with annotation @InputFiles"]
@@ -314,7 +314,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
 
         when:
-        def metadata = metadataStore.getTypeMetadata(TaskWithBothFieldAndGetterAnnotationButIrrelevant).first()
+        def metadata = metadataStore.getTypeMetadata(TaskWithBothFieldAndGetterAnnotationButIrrelevant).propertiesMetadata.first()
 
         then:
         metadata.validationMessages.empty
@@ -340,7 +340,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
 
         when:
-        def metadata = metadataStore.getTypeMetadata(TaskWithAnnotationsOnPrivateProperties)
+        def metadata = metadataStore.getTypeMetadata(TaskWithAnnotationsOnPrivateProperties).propertiesMetadata
 
         then:
         metadata*.validationMessages.flatten() as List == [
@@ -363,7 +363,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
 
         when:
-        def metadata = metadataStore.getTypeMetadata(TaskWithConflictingPropertyTypes)
+        def metadata = metadataStore.getTypeMetadata(TaskWithConflictingPropertyTypes).propertiesMetadata
 
         then:
         metadata*.validationMessages.flatten() as List == [
@@ -382,7 +382,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([new ClasspathPropertyAnnotationHandler()])
 
         when:
-        def metadata = metadataStore.getTypeMetadata(TaskWithNonConflictingPropertyTypes)
+        def metadata = metadataStore.getTypeMetadata(TaskWithNonConflictingPropertyTypes).propertiesMetadata
 
         then:
         metadata*.validationMessages.flatten().empty
@@ -407,7 +407,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([])
 
         when:
-        def typeMetadata = metadataStore.getTypeMetadata(SimpleTask)
+        def typeMetadata = metadataStore.getTypeMetadata(SimpleTask).propertiesMetadata
 
         then:
         nonIgnoredProperties(typeMetadata) == ["inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles"]
@@ -441,7 +441,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([])
 
         when:
-        def typeMetadata = metadataStore.getTypeMetadata(OverridingTask)
+        def typeMetadata = metadataStore.getTypeMetadata(OverridingTask).propertiesMetadata
 
         then:
         nonIgnoredProperties(typeMetadata) == ["baseValue", "nonAnnotatedBaseValue", "superclassValue", "superclassValueWithDuplicateAnnotation"]
@@ -463,7 +463,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([])
 
         when:
-        def typeMetadata = metadataStore.getTypeMetadata(InterfaceImplementingTask)
+        def typeMetadata = metadataStore.getTypeMetadata(InterfaceImplementingTask).propertiesMetadata
 
         then:
         nonIgnoredProperties(typeMetadata) == ["interfaceValue"]
@@ -494,7 +494,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
         def metadataStore = new DefaultPropertyMetadataStore([])
 
         when:
-        def typeMetadata = metadataStore.getTypeMetadata(IsGetterTask)
+        def typeMetadata = metadataStore.getTypeMetadata(IsGetterTask).propertiesMetadata
 
         then:
         nonIgnoredProperties(typeMetadata) == ["feature1"]

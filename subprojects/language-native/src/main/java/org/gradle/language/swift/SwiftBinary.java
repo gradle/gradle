@@ -18,7 +18,9 @@ package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithDependencies;
 import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
 import org.gradle.language.swift.tasks.SwiftCompile;
 
@@ -28,7 +30,7 @@ import org.gradle.language.swift.tasks.SwiftCompile;
  * @since 4.2
  */
 @Incubating
-public interface SwiftBinary extends ComponentWithObjectFiles {
+public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDependencies {
     /**
      * Returns the name of the Swift module that this binary defines.
      */
@@ -69,6 +71,13 @@ public interface SwiftBinary extends ComponentWithObjectFiles {
      * @since 4.5
      */
     Provider<SwiftCompile> getCompileTask();
+
+    /**
+     * Returns the module file for this binary.
+     *
+     * @since 4.6
+     */
+    Provider<RegularFile> getModuleFile();
 
     /**
      * {@inheritDoc}

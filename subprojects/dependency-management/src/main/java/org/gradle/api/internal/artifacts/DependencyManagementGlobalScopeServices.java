@@ -22,12 +22,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultConfigurationComponentMetaDataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultLocalComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleIvyDependencyDescriptorFactory;
@@ -75,13 +75,13 @@ class DependencyManagementGlobalScopeServices {
             descriptorFactory);
     }
 
-    DependenciesToModuleDescriptorConverter createDependenciesToModuleDescriptorConverter(DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                                                          ExcludeRuleConverter excludeRuleConverter) {
-        return new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter);
+    LocalConfigurationMetadataBuilder createLocalConfigurationMetadataBuilder(DependencyDescriptorFactory dependencyDescriptorFactory,
+                                                                              ExcludeRuleConverter excludeRuleConverter) {
+        return new DefaultLocalConfigurationMetadataBuilder(dependencyDescriptorFactory, excludeRuleConverter);
     }
 
-    ConfigurationComponentMetaDataBuilder createConfigurationComponentMetaDataBuilder(DependenciesToModuleDescriptorConverter dependenciesConverter) {
-        return new DefaultConfigurationComponentMetaDataBuilder(dependenciesConverter);
+    LocalComponentMetadataBuilder createLocalComponentMetaDataBuilder(LocalConfigurationMetadataBuilder localConfigurationMetadataBuilder) {
+        return new DefaultLocalComponentMetadataBuilder(localConfigurationMetadataBuilder);
     }
 
     ResourceConnectorFactory createFileConnectorFactory() {

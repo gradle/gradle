@@ -17,6 +17,9 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 
+/**
+ * Used by `maven-publish` plugin to publish Maven modules.
+ */
 public interface MavenPublisher {
     void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository);
 }

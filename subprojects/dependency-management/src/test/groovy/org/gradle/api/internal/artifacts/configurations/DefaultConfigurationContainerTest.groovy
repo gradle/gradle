@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
@@ -45,7 +45,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
     private ProjectAccessListener projectAccessListener = Mock(ProjectAccessListener.class)
     private ProjectFinder projectFinder = Mock(ProjectFinder)
-    private ConfigurationComponentMetaDataBuilder metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
+    private LocalComponentMetadataBuilder metaDataBuilder = Mock(LocalComponentMetadataBuilder)
     private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
     private VcsMappingsStore vcsMappingsInternal = Mock(VcsMappingsStore)

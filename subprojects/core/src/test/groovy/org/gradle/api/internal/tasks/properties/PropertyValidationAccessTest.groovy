@@ -23,6 +23,8 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputFile
 import spock.lang.Specification
 
@@ -81,6 +83,78 @@ class PropertyValidationAccessTest extends Specification {
             "property 'inputFile' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE",
             "property 'inputFiles' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE"
         ])
+    }
+
+    static class TaskWithIterableNested extends DefaultTask {
+        @Nested
+        Iterable<NestedBean> beans
+
+        @Nested
+        List<NestedBean> beanList
+    }
+
+    static class NestedBean {
+        @Input
+        String input
+
+        String nonAnnotated
+    }
+
+    def "analyzes type arguments of Iterables"() {
+        def propertyValidationAccess = new PropertyValidationAccess()
+        def problems = new HashMap<String, Boolean>()
+        when:
+        propertyValidationAccess.collectTaskValidationProblems(TaskWithIterableNested, problems)
+
+        then:
+        problems.keySet() == validationProblems(TaskWithIterableNested, [
+                "property 'beans*.nonAnnotated' is not annotated with an input or output annotation",
+                "property 'beanList*.nonAnnotated' is not annotated with an input or output annotation"
+        ])
+    }
+
+    static class TaskWithIterableInIterable extends DefaultTask {
+        @Nested
+        List<Set<NestedBean>> beans
+    }
+
+    def "for Iterables of Iterables the right type is selected"() {
+        def propertyValidationAccess = new PropertyValidationAccess()
+        def problems = new HashMap<String, Boolean>()
+        when:
+        propertyValidationAccess.collectTaskValidationProblems(TaskWithIterableInIterable, problems)
+
+        then:
+        problems.keySet() == validationProblems(TaskWithIterableInIterable, [
+                "property 'beans**.nonAnnotated' is not annotated with an input or output annotation",
+        ])
+    }
+
+    static class AnnotatedIterable extends ArrayList<NestedBean> {
+        @Input
+        String someProperty = "annotated"
+
+        @Override
+        @Internal
+        boolean isEmpty() {
+            return super.isEmpty()
+        }
+    }
+
+    static class TaskWithNestedAnnotatedIterable extends DefaultTask {
+        @Nested
+        AnnotatedIterable annotatedIterable
+    }
+
+    def "does not look at the type parameter of annotated iterable subclasses"() {
+        def propertyValidationAccess = new PropertyValidationAccess()
+        def problems = new HashMap<String, Boolean>()
+        when:
+        propertyValidationAccess.collectTaskValidationProblems(TaskWithNestedAnnotatedIterable, problems)
+
+        then:
+        problems.keySet().empty
+
     }
 
     static class TaskWithNonAnnotatedProperty extends DefaultTask {

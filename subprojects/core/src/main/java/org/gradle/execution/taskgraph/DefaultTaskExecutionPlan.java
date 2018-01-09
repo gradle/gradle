@@ -31,11 +31,15 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.execution.DefaultTaskProperties;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.execution.MultipleBuildFailures;
@@ -43,6 +47,7 @@ import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
@@ -52,6 +57,7 @@ import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
@@ -170,7 +176,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // task in the queue
                 // Make sure it has been configured
                 ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
-                Set<? extends Task> dependsOnTasks = context.getDependencies(task);
+                Set<? extends Task> dependsOnTasks = context.getDependencies(task, task.getTaskDependencies());
                 for (Task dependsOnTask : dependsOnTasks) {
                     TaskInfo targetNode = nodeFactory.createNode(dependsOnTask);
                     node.addDependencySuccessor(targetNode);
@@ -178,18 +184,18 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         queue.add(0, targetNode);
                     }
                 }
-                for (Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
+                for (Task finalizerTask : context.getDependencies(task, task.getFinalizedBy())) {
                     TaskInfo targetNode = nodeFactory.createNode(finalizerTask);
                     addFinalizerNode(node, targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
                 }
-                for (Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
+                for (Task mustRunAfter : context.getDependencies(task, task.getMustRunAfter())) {
                     TaskInfo targetNode = nodeFactory.createNode(mustRunAfter);
                     node.addMustSuccessor(targetNode);
                 }
-                for (Task shouldRunAfter : task.getShouldRunAfter().getDependencies(task)) {
+                for (Task shouldRunAfter : context.getDependencies(task, task.getShouldRunAfter())) {
                     TaskInfo targetNode = nodeFactory.createNode(shouldRunAfter);
                     node.addShouldSuccessor(targetNode);
                 }
@@ -354,6 +360,19 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         executionQueue.clear();
         executionQueue.addAll(executionPlan.values());
 
+    }
+
+    @Override
+    public Set<Task> getDependencies(Task task) {
+        TaskInfo node = executionPlan.get(task);
+        if (node == null) {
+            throw new IllegalStateException("Task is not part of the execution plan, no dependency information is available.");
+        }
+        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
+        for (TaskInfo taskInfo : node.getDependencySuccessors()) {
+            builder.add(taskInfo.getTask());
+        }
+        return builder.build();
     }
 
     private TaskMutationInfo getOrCreateMutationsOf(TaskInfo taskInfo) {
@@ -589,8 +608,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     @Override
                     public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                         ResourceLock projectLock = getProjectLock(taskInfo);
+                        TaskMutationInfo taskMutationInfo = getResolvedTaskMutationInfo(taskInfo);
+
                         // TODO: convert output file checks to a resource lock
-                        if (!projectLock.tryLock() || !workerLease.tryLock() || !canRunWithCurrentlyExecutedTasks(taskInfo)) {
+                        if (!projectLock.tryLock() || !workerLease.tryLock() || !canRunWithCurrentlyExecutedTasks(taskInfo, taskMutationInfo)) {
                             return FAILED;
                         }
 
@@ -612,6 +633,25 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         }
         return selected.get();
+    }
+
+    private TaskMutationInfo getResolvedTaskMutationInfo(TaskInfo taskInfo) {
+        TaskInternal task = taskInfo.getTask();
+        TaskMutationInfo taskMutationInfo = taskMutations.get(taskInfo);
+        if (!taskMutationInfo.resolved) {
+            ProjectInternal project = (ProjectInternal) task.getProject();
+            ServiceRegistry serviceRegistry = project.getServices();
+            PathToFileResolver resolver = serviceRegistry.get(PathToFileResolver.class);
+            PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
+            TaskProperties taskProperties = DefaultTaskProperties.resolve(propertyWalker, resolver, task);
+            taskMutationInfo.outputPaths.addAll(getOutputPaths(canonicalizedFileCache, taskInfo, taskProperties.getOutputFiles(), taskProperties.getLocalStateFiles()));
+            taskMutationInfo.destroyablePaths.addAll(getDestroyablePaths(canonicalizedFileCache, taskInfo, taskProperties.getDestroyableFiles()));
+            taskMutationInfo.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
+            taskMutationInfo.hasOutputs = taskProperties.hasDeclaredOutputs();
+            taskMutationInfo.hasLocalState = !taskProperties.getLocalStateFiles().isEmpty();
+            taskMutationInfo.resolved = true;
+        }
+        return taskMutationInfo;
     }
 
     private void execute(TaskInfo selectedTask, WorkerLease workerLease, Action<TaskInfo> taskExecution) {
@@ -659,23 +699,23 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return workerLeaseService.getProjectLock(gradlePath, projectPath);
     }
 
-    private boolean canRunWithCurrentlyExecutedTasks(TaskInfo taskInfo) {
-        Set<String> candidateTaskDestroyables = getDestroyablePaths(taskInfo);
+    private boolean canRunWithCurrentlyExecutedTasks(TaskInfo taskInfo, TaskMutationInfo taskMutationInfo) {
+        Set<String> candidateTaskDestroyables = taskMutationInfo.destroyablePaths;
 
         if (!candidateTaskDestroyables.isEmpty()) {
-            if (taskInfo.hasOutputs()) {
+            if (taskMutationInfo.hasOutputs) {
                 throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
             }
-            if (taskInfo.hasFileInputs()) {
+            if (taskMutationInfo.hasFileInputs) {
                 throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
             }
-            if (!taskInfo.getLocalState().isEmpty()) {
+            if (taskMutationInfo.hasLocalState) {
                 throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
             }
         }
 
         if (!runningTasks.isEmpty()) {
-            Set<String> candidateTaskOutputs = getOutputPaths(taskInfo);
+            Set<String> candidateTaskOutputs = taskMutationInfo.outputPaths;
             Set<String> candidateTaskMutations = !candidateTaskOutputs.isEmpty() ? candidateTaskOutputs : candidateTaskDestroyables;
             Pair<TaskInfo, String> overlap = firstRunningTaskWithOverlappingMutations(candidateTaskMutations);
             if (overlap != null) {
@@ -781,17 +821,17 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return null;
     }
 
-    private Set<String> getOutputPaths(TaskInfo task) {
+    private static Set<String> getOutputPaths(Map<File, String> canonicalizedFileCache, TaskInfo task, FileCollection outputFiles, FileCollection localStateFiles) {
         try {
-            return canonicalizedPaths(canonicalizedFileCache, Iterables.concat(task.getOutputs(), task.getLocalState()));
+            return canonicalizedPaths(canonicalizedFileCache, Iterables.concat(outputFiles, localStateFiles));
         } catch (ResourceDeadlockException e) {
             throw new IllegalStateException(deadlockMessage(task, "an output or local state", "outputs"), e);
         }
     }
 
-    private Set<String> getDestroyablePaths(TaskInfo task) {
+    private static Set<String> getDestroyablePaths(Map<File, String> canonicalizedFileCache, TaskInfo task, FileCollection destroyableFiles) {
         try {
-            return canonicalizedPaths(canonicalizedFileCache, task.getDestroyables());
+            return canonicalizedPaths(canonicalizedFileCache, destroyableFiles);
         } catch (ResourceDeadlockException e) {
             throw new IllegalStateException(deadlockMessage(task, "a destroyable", "destroyables"), e);
         }
@@ -829,9 +869,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private void recordTaskStarted(TaskInfo taskInfo) {
         runningTasks.add(taskInfo);
-        TaskMutationInfo taskMutationInfo = taskMutations.get(taskInfo);
-        taskMutationInfo.outputPaths.addAll(getOutputPaths(taskInfo));
-        taskMutationInfo.destroyablePaths.addAll(getDestroyablePaths(taskInfo));
     }
 
     private void recordTaskCompleted(TaskInfo taskInfo) {
@@ -849,7 +886,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private boolean canRemoveTaskMutation(TaskMutationInfo taskMutationInfo) {
+    private static boolean canRemoveTaskMutation(TaskMutationInfo taskMutationInfo) {
         return taskMutationInfo != null && taskMutationInfo.task.isComplete() && taskMutationInfo.consumingTasks.isEmpty();
     }
 
@@ -869,7 +906,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         });
     }
 
-    private void enforceFinalizerTasks(TaskInfo taskInfo) {
+    private static void enforceFinalizerTasks(TaskInfo taskInfo) {
         for (TaskInfo finalizerNode : taskInfo.getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
                 enforceWithDependencies(finalizerNode, Sets.<TaskInfo>newHashSet());
@@ -877,7 +914,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void enforceWithDependencies(TaskInfo nodeInfo, Set<TaskInfo> enforcedTasks) {
+    private static void enforceWithDependencies(TaskInfo nodeInfo, Set<TaskInfo> enforcedTasks) {
         Deque<TaskInfo> candidateNodes = new ArrayDeque<TaskInfo>();
         candidateNodes.add(nodeInfo);
 
@@ -1021,6 +1058,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         final Set<TaskInfo> consumesOutputOf = Sets.newHashSet();
         final Set<String> outputPaths = Sets.newHashSet();
         final Set<String> destroyablePaths = Sets.newHashSet();
+        boolean hasFileInputs;
+        boolean hasOutputs;
+        boolean hasLocalState;
+        boolean resolved;
 
         TaskMutationInfo(TaskInfo task) {
             this.task = task;

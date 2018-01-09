@@ -35,10 +35,11 @@ class BuildProgressLoggerTest extends Specification {
         0 * _
 
         when:
-        buildProgressLogger.settingsEvaluated()
+        buildProgressLogger.projectsLoaded(1)
 
         then:
         1 * buildProgress.completed()
+        1 * provider.start(BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, _, 1) >> buildProgress
         0 * _
     }
 
@@ -61,10 +62,11 @@ class BuildProgressLoggerTest extends Specification {
         0 * _
 
         when:
-        buildProgressLogger.settingsEvaluated()
+        buildProgressLogger.projectsLoaded(1)
 
         then:
         1 * buildProgress.completed()
+        1 * provider.start(BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, _, 1) >> buildProgress
         0 * _
 
         when:
@@ -77,7 +79,6 @@ class BuildProgressLoggerTest extends Specification {
     def "logs configuration phase"() {
         when:
         buildProgressLogger.buildStarted()
-        buildProgressLogger.settingsEvaluated()
 
         then:
         1 * provider.start(BuildProgressLogger.INITIALIZATION_PHASE_DESCRIPTION, _, 0) >> buildProgress
@@ -86,6 +87,7 @@ class BuildProgressLoggerTest extends Specification {
         buildProgressLogger.projectsLoaded(16)
 
         then:
+        1 * buildProgress.completed()
         1 * provider.start(BuildProgressLogger.CONFIGURATION_PHASE_DESCRIPTION, _, 16) >> buildProgress
         0 * _
 
@@ -137,7 +139,6 @@ class BuildProgressLoggerTest extends Specification {
         //currently this can happen, see the ConfigurationOnDemandIntegrationTest
         when:
         buildProgressLogger.buildStarted()
-        buildProgressLogger.settingsEvaluated()
         buildProgressLogger.projectsLoaded(16)
         buildProgressLogger.graphPopulated(10)
 
@@ -157,7 +158,6 @@ class BuildProgressLoggerTest extends Specification {
     def "build finished cleans up configuration logger"() {
         when:
         buildProgressLogger.buildStarted()
-        buildProgressLogger.settingsEvaluated()
         buildProgressLogger.projectsLoaded(16)
 
         then:

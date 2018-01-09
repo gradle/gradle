@@ -104,7 +104,7 @@ h3 {
 
 h4, h5, h6 {
     margin-top: 1rem;
-    font-size: 1rem;
+    font-size: 1.0625rem;
 }
 
 p {
@@ -226,7 +226,7 @@ blockquote p:last-child {
 }
 
 /* layout */
-.container, .book, .chapter, .footer {
+.container, .appendix, .book, .chapter, .footer {
     background-color: white;
     border-radius: 5px;
     max-width: 45rem;
@@ -265,7 +265,7 @@ blockquote p:last-child {
     .sidebar {
         display: none;
     }
-    .container, .book, .chapter {
+    .container, .appendix, .book, .chapter {
         margin-top: 0;
         margin-bottom: 0;
     }
@@ -776,14 +776,38 @@ h3.releaseinfo {
         width: 13.75rem;
     }
 
-    .chapter, .book {
+    .appendix, .chapter, .book {
         flex: 0 0 45rem;
         margin: 0 20px;
     }
 }
 
+/* Table of Contents */
+.toc p {
+    font-size: 1em;
+}
+.toc dl dt,
+.toc a {
+    line-height: 1.0;
+}
+.toc dl dt {
+    padding-bottom: 0.625rem;
+}
+.toc a {
+    color: #1DA2BD;
+}
+.toc p {
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
+}
+.toc dl, .list-of-examples dl {
+    margin-left: 0;
+}
+
 /* Fixed intra-chapter navigation for desktops */
 @media screen and (min-width: 75rem) {
+    .appendix .toc,
+    .book .home .toc,
     .chapter .toc {
         position: fixed;
         left: calc(50% + 380px);
@@ -795,21 +819,30 @@ h3.releaseinfo {
     }
 
     /* Replace TOC header only on desktop */
+    .appendix .toc:before,
+    .book .home .toc:before,
     .chapter .toc:before {
         content: "Contents";
         display: block;
         font-weight: 500;
         margin: 0.4rem 0 0.625rem 0;
     }
+
+    .appendix .toc p:first-of-type,
+    .book .home .toc p:first-of-type,
     .chapter .toc p:first-of-type {
         display: none;
     }
 
+    .appendix .toc a,
+    .book .home .toc a,
     .chapter .toc a {
         color: #02303A;
         opacity: 0.7;
     }
 
+    .appendix .toc a.active,
+    .book .home .toc a.active,
     .chapter .toc a.active {
         color: #1BA8C4;
         opacity: 1.0;
@@ -840,74 +873,29 @@ h3.releaseinfo {
 }
 
 @media screen and (min-width: 84.375rem) {
+    .appendix .toc,
+    .book .home .toc,
     .chapter .toc {
         left: calc(50% + 26.25rem);
     }
 
-    .chapter, .book {
+    .appendix, .book, .chapter {
         flex-basis: 50rem;
         max-width: 50rem;
     }
 }
 
 @media screen and (min-width: 93.75rem) {
+    .appendix .toc,
+    .book .home .toc,
     .chapter .toc {
         left: calc(50% + 31.25rem);
     }
 
-    .chapter, .book {
+    .appendix, .book, .chapter {
         flex-basis: 60rem;
         max-width: 60rem;
     }
-}
-
-/*
- * Table of Contents
- */
-.chapter .toc p {
-    font-size: 1em;
-}
-
-.chapter .toc dl dt,
-.chapter .toc a {
-    line-height: 1.0;
-}
-
-.chapter .toc dl dt {
-    padding-bottom: 0.625rem;
-}
-
-.toc a {
-    color: #1DA2BD;
-}
-
-.toc p {
-    font-size: 1.5em;
-    margin-bottom: 0.5em;
-}
-
-.toc dl, .list-of-examples dl {
-    margin-left: 0;
-}
-
-
-.book .toc > dl > dt {
-    margin-top: 0.6em;
-}
-
-.book .toc > dl > dt > .part {
-    display: inline-block;
-    font-size: 1.25em;
-    margin-top: 0.6em;
-    margin-bottom: 0.3em;
-}
-
-.book .toc > dl > dd {
-    margin-left: 0;
-}
-
-.book .toc, .book .list-of-examples {
-    margin-top: 1.5em;
 }
 
 .navheader, .navfooter, .navbar {

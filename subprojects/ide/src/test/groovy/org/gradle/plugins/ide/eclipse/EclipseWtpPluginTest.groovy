@@ -306,7 +306,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         def eclipseWtpFacet = project.eclipseWtpFacet
         assert eclipseWtpFacet instanceof GenerateEclipseWtpFacet
         assert eclipseWtpFacet.facet == wtp
-        assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseWtpFacet)
+        assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipseWtp).contains(eclipseWtpFacet)
         assert eclipseWtpFacet.inputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtpFacet.outputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert wtp.facets.sort() == expectedFacets.sort()

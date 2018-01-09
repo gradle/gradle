@@ -15,14 +15,15 @@
  */
 
 /**
- * Types used for legacy publishing to Ivy, using `UploadArchives` task.
+ * Types used for legacy publishing to both Ivy and Maven, using `UploadArchives` task.
  * We first convert a `Configuration` into these types, and then use the
- * {@link org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter}
+ * {@link org.gradle.internal.component.external.ivypublish.DefaultIvyModuleDescriptorWriter}
  * to generate the Ivy module descriptor.
- * The {@link org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver#publish(org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata)}
- * method is then used to upload the actual files.
+ * The {@link org.gradle.api.internal.artifacts.ModuleVersionPublisher#publish(org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata)}
+ * methods are then used to upload the actual files.
  *
- * Note that this is all slated for replacement by the `ivy-publish` plugin.
+ * Note that this is all slated for replacement by the `ivy-publish` and `maven-publish` plugins.
+ * Many of the types in this package are misnamed, since they apply equally to both Maven and Ivy legacy publishing.
  */
 package org.gradle.internal.component.external.ivypublish;
 

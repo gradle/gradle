@@ -16,16 +16,32 @@
 
 package org.gradle.language.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.language.ComponentDependencies;
+import org.gradle.language.ComponentWithDependencies;
+import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.Names;
 
-public class DefaultNativeBinary implements ComponentWithNames {
+public abstract class DefaultNativeBinary implements ComponentWithNames, ComponentWithObjectFiles, ComponentWithDependencies {
     private final String name;
     private final Names names;
+    private final DirectoryProperty objectsDir;
+    private final DefaultComponentDependencies dependencies;
 
-    public DefaultNativeBinary(String name) {
+    public DefaultNativeBinary(String name, ObjectFactory objectFactory, ProjectLayout projectLayout, Configuration componentImplementation) {
         this.name = name;
         this.names = Names.of(name);
+
+        this.objectsDir = projectLayout.directoryProperty();
+        dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, name + "Implementation");
+        dependencies.getImplementationDependencies().extendsFrom(componentImplementation);
     }
 
     @Override
@@ -36,5 +52,27 @@ public class DefaultNativeBinary implements ComponentWithNames {
     @Override
     public Names getNames() {
         return names;
+    }
+
+    public DirectoryProperty getObjectsDir() {
+        return objectsDir;
+    }
+
+    @Override
+    public FileCollection getObjects() {
+        return objectsDir.getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o"));
+    }
+
+    @Override
+    public ComponentDependencies getDependencies() {
+        return dependencies;
+    }
+
+    public void dependencies(Action<? super ComponentDependencies> action) {
+        action.execute(getDependencies());
+    }
+
+    public Configuration getImplementationDependencies() {
+        return dependencies.getImplementationDependencies();
     }
 }

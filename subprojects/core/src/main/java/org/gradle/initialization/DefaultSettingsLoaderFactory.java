@@ -38,12 +38,12 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
 
     @Override
     public SettingsLoader forTopLevelBuild() {
-        return notifyingSettingsLoader(compositeBuildSettingsLoader());
+        return compositeBuildSettingsLoader();
     }
 
     @Override
     public SettingsLoader forNestedBuild() {
-        return notifyingSettingsLoader(defaultSettingsLoader());
+        return defaultSettingsLoader();
     }
 
     private SettingsLoader compositeBuildSettingsLoader() {
@@ -59,11 +59,6 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
             settingsProcessor,
             buildSourceBuilder
         );
-    }
-
-
-    private SettingsLoader notifyingSettingsLoader(SettingsLoader settingsLoader) {
-        return new NotifyingSettingsLoader(settingsLoader);
     }
 
 }

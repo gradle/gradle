@@ -26,6 +26,8 @@ import java.lang.annotation.Target;
  *
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>
+ *
+ * <p>This annotation supports iterable values by treating each element as a separate nested input.</p>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

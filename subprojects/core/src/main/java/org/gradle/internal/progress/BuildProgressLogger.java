@@ -46,12 +46,9 @@ public class BuildProgressLogger implements LoggerProvider {
         buildProgress = loggerProvider.start(INITIALIZATION_PHASE_DESCRIPTION, INITIALIZATION_PHASE_SHORT_DESCRIPTION, 0);
     }
 
-    public void settingsEvaluated() {
-        buildProgress.completed();
-        rootBuildInitComplete = true;
-    }
-
     public void projectsLoaded(int totalProjects) {
+        rootBuildInitComplete = true;
+        buildProgress.completed(); // end init
         buildProgress = loggerProvider.start(CONFIGURATION_PHASE_DESCRIPTION, CONFIGURATION_PHASE_SHORT_DESCRIPTION, totalProjects);
     }
 

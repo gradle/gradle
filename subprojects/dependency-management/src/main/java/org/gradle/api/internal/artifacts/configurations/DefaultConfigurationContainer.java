@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -70,7 +70,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public DefaultConfigurationContainer(ConfigurationResolver resolver,
                                          final Instantiator instantiator, DomainObjectContext context, ListenerManager listenerManager,
                                          DependencyMetaDataProvider dependencyMetaDataProvider, ProjectAccessListener projectAccessListener,
-                                         ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
+                                         ProjectFinder projectFinder, LocalComponentMetadataBuilder localComponentMetadataBuilder,
                                          FileCollectionFactory fileCollectionFactory,
                                          final DependencySubstitutionRules globalDependencySubstitutionRules,
                                          final VcsMappingsStore vcsMappingsStore,
@@ -98,7 +98,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                 return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsStore, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter);
             }
         };
-        this.rootComponentMetadataBuilder = new DefaultRootComponentMetadataBuilder(dependencyMetaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, configurationComponentMetaDataBuilder, this);
+        this.rootComponentMetadataBuilder = new DefaultRootComponentMetadataBuilder(dependencyMetaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, localComponentMetadataBuilder, this);
     }
 
     @Override

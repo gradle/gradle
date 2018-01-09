@@ -3,14 +3,14 @@ dependencies {
     integTestCompile libraries.ant
     integTestCompile libraries.jsoup
 
-    integTestRuntime rootProject.configurations.testRuntime.allDependencies
+    integTestRuntime allTestRuntimeDependencies
 
     crossVersionTestCompile project(':scala')
     crossVersionTestCompile project(':ide')
     crossVersionTestCompile project(':codeQuality')
     crossVersionTestCompile project(':signing')
 
-    crossVersionTestRuntime rootProject.configurations.testRuntime.allDependencies
+    crossVersionTestRuntime allTestRuntimeDependencies
 }
 useTestFixtures(sourceSet: 'integTest', project: ':diagnostics')
 useTestFixtures(sourceSet: 'integTest', project: ':platformNative')

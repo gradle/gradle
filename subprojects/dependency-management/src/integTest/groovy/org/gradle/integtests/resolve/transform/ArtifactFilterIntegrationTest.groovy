@@ -110,14 +110,14 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             task checkFiltered {
                 inputs.files(filteredView)
                 doLast {
-                    assert inputs.files.collect { it.name } == ['libInclude.jar']
+                    assert filteredView.collect { it.name } == ['libInclude.jar']
                 }
             }
 
             task checkUnfiltered {
                 inputs.files(unfilteredView)
                 doLast {
-                    assert inputs.files.collect { it.name } == ['libInclude.jar', 'libExclude.jar']
+                    assert unfilteredView.collect { it.name } == ['libInclude.jar', 'libExclude.jar']
                 }
             }
         """
@@ -151,7 +151,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             task checkFiltered {
                 inputs.files(filteredView)
                 doLast {
-                    assert inputs.files.collect { it.name } == ['included-1.3.jar', 'excluded-2.3.jar']
+                    assert filteredView.collect { it.name } == ['included-1.3.jar', 'excluded-2.3.jar']
                 }
             }
         """
@@ -179,7 +179,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             task checkFiltered {
                 inputs.files(filteredView)
                 doLast {
-                    assert inputs.files.collect { it.name } == ['libInclude.jar', 'libExclude.jar']
+                    assert filteredView.collect { it.name } == ['libInclude.jar', 'libExclude.jar']
                 }
             }
         """
@@ -208,7 +208,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
             task checkFiltered {
                 inputs.files(filteredView)
                 doLast {
-                    assert inputs.files.collect { it.name } == []
+                    assert filteredView.collect { it.name } == []
                 }
             }
         """
