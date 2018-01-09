@@ -47,6 +47,79 @@ It is ironic that in a language known for its rich library of open source compon
 
 Both tools rely on descriptor XML files, which contain information about the dependencies of a particular jar. Both also use repositories where the actual jars are placed together with their descriptor files, and both offer resolution for conflicting jar versions in one form or the other. Both have emerged as standards for solving dependency conflicts, and while Gradle originally used Ivy under the hood for its dependency management. Gradle has replaced this direct dependency on Ivy with a native Gradle dependency resolution engine which supports a range of approaches to dependency resolution including both POM and Ivy descriptor files.
 
+[[sec:dependency_resolution]]
+==== How dependency resolution works
+
+Gradle takes your dependency declarations and repository definitions and attempts to download all of your dependencies by a process called _dependency resolution_. Below is a brief outline of how this process works.
+
+* Given a required dependency, Gradle first attempts to resolve the _module_ for that dependency. Each repository is inspected in order, searching first for a _module descriptor_ file (POM or Ivy file) that indicates the presence of that module. If no module descriptor is found, Gradle will search for the presence of the primary _module artifact_ file indicating that the module exists in the repository.
+
+** If the dependency is declared as a dynamic version (like `1.+`), Gradle will resolve this to the newest available static version (like `1.2`) in the repository. For Maven repositories, this is done using the `maven-metadata.xml` file, while for Ivy repositories this is done by directory listing.
+
+** If the module descriptor is a POM file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the POM.
+
+* Once each repository has been inspected for the module, Gradle will choose the 'best' one to use. This is done using the following criteria:
+
+** For a dynamic version, a 'higher' static version is preferred over a 'lower' version.
+
+** Modules declared by a module descriptor file (Ivy or POM file) are preferred over modules that have an artifact file only.
+
+** Modules from earlier repositories are preferred over modules in later repositories.
+
+** When the dependency is declared by a static version and a module descriptor file is found in a repository, there is no need to continue searching later repositories and the remainder of the process is short-circuited.
+
+* All of the artifacts for the module are then requested from the _same repository_ that was chosen in the process above.
+
+[[sec:dependency_cache]]
+==== The dependency cache
+
+Gradle contains a highly sophisticated dependency caching mechanism, which seeks to minimise the number of remote requests made in dependency resolution, while striving to guarantee that the results of dependency resolution are correct and reproducible.
+
+The Gradle dependency cache consists of 2 key types of storage:
+
+* A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like POM files and Ivy files. The storage path for a downloaded artifact includes the SHA1 checksum, meaning that 2 artifacts with the same name but different content can easily be cached.
+* A binary store of resolved module meta-data, including the results of resolving dynamic versions, module descriptors, and artifacts.
+
+Separating the storage of downloaded artifacts from the cache metadata permits us to do some very powerful things with our cache that would be difficult with a transparent, file-only cache layout.
+
+The Gradle cache does not allow the local cache to hide problems and create other mysterious and difficult to debug behavior that has been a challenge with many build tools. This new behavior is implemented in a bandwidth and storage efficient way. In doing so, Gradle enables reliable and reproducible enterprise builds.
+
+[[sub:cache_metadata]]
+===== Separate metadata cache
+
+Gradle keeps a record of various aspects of dependency resolution in binary format in the metadata cache. The information stored in the metadata cache includes:
+
+* The result of resolving a dynamic version (e.g. `1.+`) to a concrete version (e.g. `1.2`).
+* The resolved module metadata for a particular module, including module artifacts and module dependencies.
+* The resolved artifact metadata for a particular artifact, including a pointer to the downloaded artifact file.
+* The _absence_ of a particular module or artifact in a particular repository, eliminating repeated attempts to access a resource that does not exist.
+
+Every entry in the metadata cache includes a record of the repository that provided the information as well as a timestamp that can be used for cache expiry.
+
+[[sub:cache_repository_independence]]
+===== Repository caches are independent
+
+As described above, for each repository there is a separate metadata cache. A repository is identified by its URL, type and layout. If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository. This will always involve a remote lookup on the repository, however in many cases no download will be required (see <<sub:cache_artifact_reuse>>, below).
+
+Dependency resolution will fail if the required artifacts are not available in any repository specified by the build, even if the local cache has a copy of this artifact which was retrieved from a different repository. Repository independence allows builds to be isolated from each other in an advanced way that no build tool has done before. This is a key feature to create builds that are reliable and reproducible in any environment.
+
+[[sub:cache_artifact_reuse]]
+===== Artifact reuse
+
+Before downloading an artifact, Gradle tries to determine the checksum of the required artifact by downloading the sha file associated with that artifact. If the checksum can be retrieved, an artifact is not downloaded if an artifact already exists with the same id and checksum. If the checksum cannot be retrieved from the remote server, the artifact will be downloaded (and ignored if it matches an existing artifact).
+
+As well as considering artifacts downloaded from a different repository, Gradle will also attempt to reuse artifacts found in the local Maven Repository. If a candidate artifact has been downloaded by Maven, Gradle will use this artifact if it can be verified to match the checksum declared by the remote server.
+
+[[sub:cache_checksum_storage]]
+===== Checksum based storage
+
+It is possible for different repositories to provide a different binary artifact in response to the same artifact identifier. This is often the case with Maven SNAPSHOT artifacts, but can also be true for any artifact which is republished without changing its identifier. By caching artifacts based on their SHA1 checksum, Gradle is able to maintain multiple versions of the same artifact. This means that when resolving against one repository Gradle will never overwrite the cached artifact file from a different repository. This is done without requiring a separate artifact file store per repository.
+
+[[sub:cache_locking]]
+===== Cache Locking
+
+The Gradle dependency cache uses file-based locking to ensure that it can safely be used by multiple Gradle processes concurrently. The lock is held whenever the binary meta-data store is being read or written, but is released for slow operations such as downloading remote artifacts.
+
 [[sec:declaring_dependencies]]
 === Declaring dependencies
 
@@ -229,121 +302,67 @@ Let's say we wanted to download the minified artifact of the JQuery library inst
 </sample>
 ++++
 
-[[sec:managing_transitive_dependencies]]
-=== Managing transitive dependencies
+[[sec:declaring_repositories]]
+=== Declaring repositories
 
-Resolution behavior for transitive dependencies can be customized to a high degree to meet enterprise requirements.
+Gradle can resolve external dependencies from one or many repositories based on Maven, Ivy or flat directory directory formats. Check out the <<repository_types,full reference on all types of repositories>> for more information.
 
-[[sec:excluding_transitive_module_dependencies]]
-==== Excluding transitive module dependencies
+[[sec:declaring_public_repository]]
+==== Declaring a publicly-available repository
 
-Declared dependencies in a build script can pull in a lot of transitive dependencies. You might decide that you do not want a particular transitive dependency as part of the dependency graph for a good reason.
+Organizations building software may want to leverage public binary repositories to download and consume open source dependencies. Popular public repositories include Maven Central, Bintray JCenter and the Google Android repository. Gradle provides built-in shortcut methods for the most widely-used repositories.
 
-- The dependency is undesired due to licensing constraints.
-- The dependency is not available in any of the declared repositories.
-- The metadata for the dependency exists but the artifact does not.
-- The metadata provides incorrect coordinates for a transitive dependency.
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Declaring a repository with the help of shortcut methods</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-shortcut-repositories.png" width="120mm" />
+    </imageobject>
+</figure>
++++++
 
-Transitive dependencies can be excluded on the level of a declared dependency or a configuration. Let's demonstrate both use cases. In the following two examples the build script declares a dependency on Log4J, a popular logging framework in the Java world. The metadata of the particular version of Log4J also defines transitive dependencies.
+To declare JCenter as repository, add this code to your build script:
 
 ++++
-<sample id="unresolvedTransitiveDependencies" dir="userguide/dependencies/unresolvedTransitiveDependencies" title="Unresolved artifacts for transitive dependencies">
-    <sourcefile file="build.gradle" snippet="unresolved-transitive-dependencies"/>
+<sample id="public-repository" dir="userguide/repositories/declaringPublicRepository" title="Declaring JCenter repository as source for resolving dependencies">
+    <sourcefile file="build.gradle" snippet="public-repository"/>
 </sample>
 ++++
 
-If resolved from Maven Central some of the transitive dependencies provide metadata but not the corresponding binary artifact. As a result any task requiring the binary files will fail e.g. a compilation task.
+Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Alternatively, you can <<sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
 
-```
-> gradle -q compileJava
+[[sec:declaring_custom_repository]]
+==== Declaring a custom repository by URL
 
-* What went wrong:
-Could not resolve all files for configuration ':compileClasspath'.
-> Could not find jms.jar (javax.jms:jms:1.1).
-  Searched in the following locations:
-      https://repo.maven.apache.org/maven2/javax/jms/jms/1.1/jms-1.1.jar
-> Could not find jmxtools.jar (com.sun.jdmk:jmxtools:1.2.1).
-  Searched in the following locations:
-      https://repo.maven.apache.org/maven2/com/sun/jdmk/jmxtools/1.2.1/jmxtools-1.2.1.jar
-> Could not find jmxri.jar (com.sun.jmx:jmxri:1.2.1).
-  Searched in the following locations:
-      https://repo.maven.apache.org/maven2/com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar
-```
+Most enterprise projects set up a binary repository available only within an intranet. In-house repositories enable teams to publish internal binaries, setup user management and security measure and ensure uptime and availability. Specifying a custom URL is also helpful if you want to declare a less popular, but publicly-available repository.
 
-The situation can be fixed by adding a repository containing those dependencies. In the given example project, the source code does not actually use any of Log4J's functionality that require the JMS (e.g. link:https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/net/JMSAppender.html[`JMSAppender`]) or JMX libraries. It's safe to exclude them from the dependency declaration.
-
-Exclusions need to spelled out as a key/value pair via the attributes `group` and/or `module`. For more information, refer to api:org.gradle.api.artifacts.ModuleDependency#exclude(java.util.Map)[].
+Add the following code to declare an in-house repository for your build reachable through a custom URL.
 
 ++++
-<sample id="exclude-transitive-for-dependency" dir="userguide/dependencies/excludingTransitiveDependenciesForDependency" title="Excluding transitive dependency for a particular dependency declaration">
-    <sourcefile file="build.gradle" snippet="exclude-transitive-dependencies"/>
+<sample id="custom-repository" dir="userguide/repositories/declaringCustomRepository" title="Declaring a custom repository by URL">
+    <sourcefile file="build.gradle" snippet="custom-repository"/>
 </sample>
 ++++
 
-You may find that other dependencies will want to pull in the same transitive dependency that misses the artifacts. Alternatively, you can exclude the transitive dependencies for a particular configuration by calling the method api:org.gradle.api.artifacts.Configuration#exclude(java.util.Map)[].
+Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage see the <<sub:supported_transport_protocols,reference manual on supported transport protocols>>.
+
+[[sec:declaring_multiple_repositories]]
+==== Declaring multiple repositories
+
+You can define more than one repository for resolving dependencies. Declaring multiple repositories is helpful if some dependencies are only available in one repository but not the other. You can mix any type of repository described in the <<repository_types,reference section>>.
+
+This example demonstrates how to declare various shortcut and custom URL repositories for a project:
 
 ++++
-<sample id="exclude-transitive-for-configuration" dir="userguide/dependencies/excludingTransitiveDependenciesForConfiguration" title="Excluding transitive dependency for a particular configuration">
-    <sourcefile file="build.gradle" snippet="exclude-transitive-dependencies"/>
-</sample>
-++++
-
-[NOTE]
-====
-As a build script author you often times know that you want to exclude a dependency for all configurations available in the project. You can use the method api:org.gradle.api.DomainObjectCollection#all(org.gradle.api.Action)[] to define a global rule.
-====
-
-You might encounter other use cases that don't quite fit the bill of an exclude rule. For example you want to automatically select a version for a dependency with a specific requested version or you want to select a different group for a requested dependency to react to a relocation. Those use cases are better solved by the api:org.gradle.api.artifacts.ResolutionStrategy[] API. Some of these use cases are covered in <<sec:finetuning_the_dependency_resolution_process>>.
-
-[[sec:enforcing_dependency_version]]
-==== Enforcing a particular dependency version
-
-Gradle resolves any dependency version conflicts by selecting the latest version found in the dependency graph. Some projects might need to divert from the default behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
-
-[NOTE]
-====
-Enforcing a version of a dependency requires a conscious decision. Changing the version of a transitive dependency might lead to runtime errors if external libraries do not properly function without them. Consider upgrading your source code to use a newer version of the library as an alternative approach.
-====
-
-Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10. However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore. A dependency version can be enforced by declaring it in the build script and setting api:org.gradle.api.artifacts.ExternalDependency#setForce(boolean)[] to `true`.
-
-++++
-<sample id="force-per-dependency" dir="userguide/dependencies/forcingDependencyVersion" title="Enforcing a dependency version">
-    <sourcefile file="build.gradle" snippet="force-per-dependency"/>
-</sample>
-++++
-
-If the project requires a specific version of a dependency on a configuration-level then it can be achieved by calling the method api:org.gradle.api.artifacts.ResolutionStrategy#force(java.lang.Object...)[].
-
-++++
-<sample id="force-per-configuration" dir="userguide/dependencies/forcingDependencyVersionPerConfiguration" title="Enforcing a dependency version on the configuration-level">
-    <sourcefile file="build.gradle" snippet="force-per-configuration"/>
-</sample>
-++++
-
-[[sub:disabling_resolution_transitive_dependencies]]
-==== Disabling resolution of transitive dependencies
-
-By default Gradle resolves all transitive dependencies specified by the dependency metadata. Sometimes this behavior may not be desirable e.g. if the metadata is incorrect or defines a large graph of transitive dependencies. You can tell Gradle to disable transitive dependency management for a dependency by setting api:org.gradle.api.artifacts.ModuleDependency#setTransitive(boolean)[] to `true`. As a result only the main artifact will be resolved for the declared dependency.
-
-++++
-<sample id="disabling-transitive-dependency-resolution" dir="userguide/dependencies/disablingTransitiveDependencyResolution" title="Disabling transitive dependency resolution for a declared dependency">
-    <sourcefile file="build.gradle" snippet="transitive-per-dependency"/>
+<sample id="multiple-repositories" dir="userguide/repositories/declaringMultipleRepositories" title="Declaring multiple repositories">
+    <sourcefile file="build.gradle" snippet="multiple-repositories"/>
 </sample>
 ++++
 
 [NOTE]
 ====
-Disabling transitive dependency resolution will likely require you to declare the necessary runtime dependencies in your build script which otherwise would have been resolved automatically. Not doing so might lead to runtime classpath issues.
+The order of declaration determines how Gradle will check for dependencies at runtime. If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_. You can learn more about <<sec:dependency_resolution,Gradle's resolution mechanism>> in the dedicated section.
 ====
-
-A project can decide to disable transitive dependency resolution completely. You either don't want to rely on the metadata published to the consumed repositories or you want to gain full control over the dependencies in your graph. For more information, see api:org.gradle.api.artifacts.Configuration#setTransitive(boolean)[].
-
-++++
-<sample id="disabling-transitive-dependency-resolution-for-configuration" dir="userguide/dependencies/disablingTransitiveDependencyResolutionForConfiguration" title="Disabling transitive dependency resolution on the configuration-level">
-    <sourcefile file="build.gradle" snippet="transitive-per-configuration"/>
-</sample>
-++++
 
 [[sec:inspecting_dependencies]]
 === Inspecting dependencies
@@ -414,6 +433,122 @@ Every Gradle project provides the task `dependencyInsight` to render the so-call
 ++++
 <sample id="dependencyInsightReport" dir="userguide/dependencies/dependencyInsightReport" title="Using the dependency insight report for a given dependency">
     <output args="-q dependencyInsight --dependency commons-codec --configuration scm"/>
+</sample>
+++++
+
+[[sec:managing_transitive_dependencies]]
+=== Managing transitive dependencies
+
+Resolution behavior for transitive dependencies can be customized to a high degree to meet enterprise requirements.
+
+[[sec:excluding_transitive_module_dependencies]]
+==== Excluding transitive module dependencies
+
+Declared dependencies in a build script can pull in a lot of transitive dependencies. You might decide that you do not want a particular transitive dependency as part of the dependency graph for a good reason.
+
+- The dependency is undesired due to licensing constraints.
+- The dependency is not available in any of the declared repositories.
+- The metadata for the dependency exists but the artifact does not.
+- The metadata provides incorrect coordinates for a transitive dependency.
+
+Transitive dependencies can be excluded on the level of a declared dependency or a configuration. Let's demonstrate both use cases. In the following two examples the build script declares a dependency on Log4J, a popular logging framework in the Java world. The metadata of the particular version of Log4J also defines transitive dependencies.
+
+++++
+<sample id="unresolvedTransitiveDependencies" dir="userguide/dependencies/unresolvedTransitiveDependencies" title="Unresolved artifacts for transitive dependencies">
+    <sourcefile file="build.gradle" snippet="unresolved-transitive-dependencies"/>
+</sample>
+++++
+
+If resolved from Maven Central some of the transitive dependencies provide metadata but not the corresponding binary artifact. As a result any task requiring the binary files will fail e.g. a compilation task.
+
+```
+> gradle -q compileJava
+
+* What went wrong:
+Could not resolve all files for configuration ':compileClasspath'.
+> Could not find jms.jar (javax.jms:jms:1.1).
+  Searched in the following locations:
+      https://repo.maven.apache.org/maven2/javax/jms/jms/1.1/jms-1.1.jar
+> Could not find jmxtools.jar (com.sun.jdmk:jmxtools:1.2.1).
+  Searched in the following locations:
+      https://repo.maven.apache.org/maven2/com/sun/jdmk/jmxtools/1.2.1/jmxtools-1.2.1.jar
+> Could not find jmxri.jar (com.sun.jmx:jmxri:1.2.1).
+  Searched in the following locations:
+      https://repo.maven.apache.org/maven2/com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar
+```
+
+The situation can be fixed by adding a repository containing those dependencies. In the given example project, the source code does not actually use any of Log4J's functionality that require the JMS (e.g. link:https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/net/JMSAppender.html[`JMSAppender`]) or JMX libraries. It's safe to exclude them from the dependency declaration.
+
+Exclusions need to spelled out as a key/value pair via the attributes `group` and/or `module`. For more information, refer to api:org.gradle.api.artifacts.ModuleDependency#exclude(java.util.Map)[].
+
+++++
+<sample id="exclude-transitive-for-dependency" dir="userguide/dependencies/excludingTransitiveDependenciesForDependency" title="Excluding transitive dependency for a particular dependency declaration">
+    <sourcefile file="build.gradle" snippet="exclude-transitive-dependencies"/>
+</sample>
+++++
+
+You may find that other dependencies will want to pull in the same transitive dependency that misses the artifacts. Alternatively, you can exclude the transitive dependencies for a particular configuration by calling the method api:org.gradle.api.artifacts.Configuration#exclude(java.util.Map)[].
+
+++++
+<sample id="exclude-transitive-for-configuration" dir="userguide/dependencies/excludingTransitiveDependenciesForConfiguration" title="Excluding transitive dependency for a particular configuration">
+    <sourcefile file="build.gradle" snippet="exclude-transitive-dependencies"/>
+</sample>
+++++
+
+[NOTE]
+====
+As a build script author you often times know that you want to exclude a dependency for all configurations available in the project. You can use the method api:org.gradle.api.DomainObjectCollection#all(org.gradle.api.Action)[] to define a global rule.
+====
+
+You might encounter other use cases that don't quite fit the bill of an exclude rule. For example you want to automatically select a version for a dependency with a specific requested version or you want to select a different group for a requested dependency to react to a relocation. Those use cases are better solved by the api:org.gradle.api.artifacts.ResolutionStrategy[] API. Some of these use cases are covered in <<sec:customizing_dependency_resolution_behavior>>.
+
+[[sec:enforcing_dependency_version]]
+==== Enforcing a particular dependency version
+
+Gradle resolves any dependency version conflicts by selecting the latest version found in the dependency graph. Some projects might need to divert from the default behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
+
+[NOTE]
+====
+Enforcing a version of a dependency requires a conscious decision. Changing the version of a transitive dependency might lead to runtime errors if external libraries do not properly function without them. Consider upgrading your source code to use a newer version of the library as an alternative approach.
+====
+
+Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10. However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore. A dependency version can be enforced by declaring it in the build script and setting api:org.gradle.api.artifacts.ExternalDependency#setForce(boolean)[] to `true`.
+
+++++
+<sample id="force-per-dependency" dir="userguide/dependencies/forcingDependencyVersion" title="Enforcing a dependency version">
+    <sourcefile file="build.gradle" snippet="force-per-dependency"/>
+</sample>
+++++
+
+If the project requires a specific version of a dependency on a configuration-level then it can be achieved by calling the method api:org.gradle.api.artifacts.ResolutionStrategy#force(java.lang.Object...)[].
+
+++++
+<sample id="force-per-configuration" dir="userguide/dependencies/forcingDependencyVersionPerConfiguration" title="Enforcing a dependency version on the configuration-level">
+    <sourcefile file="build.gradle" snippet="force-per-configuration"/>
+</sample>
+++++
+
+[[sub:disabling_resolution_transitive_dependencies]]
+==== Disabling resolution of transitive dependencies
+
+By default Gradle resolves all transitive dependencies specified by the dependency metadata. Sometimes this behavior may not be desirable e.g. if the metadata is incorrect or defines a large graph of transitive dependencies. You can tell Gradle to disable transitive dependency management for a dependency by setting api:org.gradle.api.artifacts.ModuleDependency#setTransitive(boolean)[] to `true`. As a result only the main artifact will be resolved for the declared dependency.
+
+++++
+<sample id="disabling-transitive-dependency-resolution" dir="userguide/dependencies/disablingTransitiveDependencyResolution" title="Disabling transitive dependency resolution for a declared dependency">
+    <sourcefile file="build.gradle" snippet="transitive-per-dependency"/>
+</sample>
+++++
+
+[NOTE]
+====
+Disabling transitive dependency resolution will likely require you to declare the necessary runtime dependencies in your build script which otherwise would have been resolved automatically. Not doing so might lead to runtime classpath issues.
+====
+
+A project can decide to disable transitive dependency resolution completely. You either don't want to rely on the metadata published to the consumed repositories or you want to gain full control over the dependencies in your graph. For more information, see api:org.gradle.api.artifacts.Configuration#setTransitive(boolean)[].
+
+++++
+<sample id="disabling-transitive-dependency-resolution-for-configuration" dir="userguide/dependencies/disablingTransitiveDependencyResolutionForConfiguration" title="Disabling transitive dependency resolution on the configuration-level">
+    <sourcefile file="build.gradle" snippet="transitive-per-configuration"/>
 </sample>
 ++++
 
@@ -491,111 +626,12 @@ Once a configuration is resolved it is immutable. Changing its state or the stat
 
 To learn more about the API of the configuration class see the API documentation: api:org.gradle.api.artifacts.Configuration[].
 
-[[sec:declaring_repositories]]
-=== Declaring repositories
-
-Gradle can resolve external dependencies from one or many repositories based on Maven, Ivy or flat directory directory formats. Check out the <<repository_types,full reference on all types of repositories>> for more information.
-
-[[sec:declaring_public_repository]]
-==== Declaring a publicly-available repository
-
-Organizations building software may want to leverage public binary repositories to download and consume open source dependencies. Popular public repositories include Maven Central, Bintray JCenter and the Google Android repository. Gradle provides built-in shortcut methods for the most widely-used repositories.
-
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Declaring a repository with the help of shortcut methods</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-shortcut-repositories.png" width="120mm" />
-    </imageobject>
-</figure>
-+++++
-
-To declare JCenter as repository, add this code to your build script:
-
-++++
-<sample id="public-repository" dir="userguide/repositories/declaringPublicRepository" title="Declaring JCenter repository as source for resolving dependencies">
-    <sourcefile file="build.gradle" snippet="public-repository"/>
-</sample>
-++++
-
-Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Alternatively, you can <<sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
-
-[[sec:declaring_custom_repository]]
-==== Declaring a custom repository by URL
-
-Most enterprise projects set up a binary repository available only within an intranet. In-house repositories enable teams to publish internal binaries, setup user management and security measure and ensure uptime and availability. Specifying a custom URL is also helpful if you want to declare a less popular, but publicly-available repository.
-
-Add the following code to declare an in-house repository for your build reachable through a custom URL.
-
-++++
-<sample id="custom-repository" dir="userguide/repositories/declaringCustomRepository" title="Declaring a custom repository by URL">
-    <sourcefile file="build.gradle" snippet="custom-repository"/>
-</sample>
-++++
-
-Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage see the <<sub:supported_transport_protocols,reference manual on supported transport protocols>>.
-
-[[sec:declaring_multiple_repositories]]
-==== Declaring multiple repositories
-
-You can define more than one repository for resolving dependencies. Declaring multiple repositories is helpful if some dependencies are only available in one repository but not the other. You can mix any type of repository described in the <<repository_types,reference section>>.
-
-This example demonstrates how to declare various shortcut and custom URL repositories for a project:
-
-++++
-<sample id="multiple-repositories" dir="userguide/repositories/declaringMultipleRepositories" title="Declaring multiple repositories">
-    <sourcefile file="build.gradle" snippet="multiple-repositories"/>
-</sample>
-++++
-
-[NOTE]
-====
-The order of declaration determines how Gradle will check for dependencies at runtime. If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_. You can learn more about <<sec:dependency_resolution,Gradle's resolution mechanism>> below.
-====
-
-[[sec:dependency_resolution]]
-=== How dependency resolution works
-
-Gradle takes your dependency declarations and repository definitions and attempts to download all of your dependencies by a process called _dependency resolution_. Below is a brief outline of how this process works.
-
-* Given a required dependency, Gradle first attempts to resolve the _module_ for that dependency. Each repository is inspected in order, searching first for a _module descriptor_ file (POM or Ivy file) that indicates the presence of that module. If no module descriptor is found, Gradle will search for the presence of the primary _module artifact_ file indicating that the module exists in the repository.
-
-** If the dependency is declared as a dynamic version (like `1.+`), Gradle will resolve this to the newest available static version (like `1.2`) in the repository. For Maven repositories, this is done using the `maven-metadata.xml` file, while for Ivy repositories this is done by directory listing.
-
-** If the module descriptor is a POM file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the POM.
-
-* Once each repository has been inspected for the module, Gradle will choose the 'best' one to use. This is done using the following criteria:
-
-** For a dynamic version, a 'higher' static version is preferred over a 'lower' version.
-
-** Modules declared by a module descriptor file (Ivy or POM file) are preferred over modules that have an artifact file only.
-
-** Modules from earlier repositories are preferred over modules in later repositories.
-
-** When the dependency is declared by a static version and a module descriptor file is found in a repository, there is no need to continue searching later repositories and the remainder of the process is short-circuited.
-
-* All of the artifacts for the module are then requested from the _same repository_ that was chosen in the process above.
-
-
-[[sec:finetuning_the_dependency_resolution_process]]
-=== Fine-tuning the dependency resolution process
+[[sec:customizing_dependency_resolution_behavior]]
+=== Customizing the dependency resolution behavior
 
 In most cases, Gradle's default dependency management will resolve the dependencies that you want in your build. In some cases, however, it can be necessary to tweak dependency resolution to ensure that your build receives exactly the right dependencies.
 
 There are a number of ways that you can influence how Gradle resolves dependencies.
-
-
-[[sec:forcing_modules]]
-==== Forcing a particular module version
-
-Forcing a module version tells Gradle to always use a specific version for given dependency (transitive or not), overriding any version specified in a published module descriptor. This can be very useful when tackling version conflicts - for more information see <<sub:version_conflicts>>.
-
-Force versions can also be used to deal with rogue metadata of transitive dependencies. If a transitive dependency has poor quality metadata that leads to problems at dependency resolution time, you can force Gradle to use a newer, fixed version of this dependency. For an example, see the api:org.gradle.api.artifacts.ResolutionStrategy[] class in the API documentation. Note that 'dependency resolve rules' (outlined below) provide a more powerful mechanism for replacing a broken module dependency. See <<sec:blacklisting_version>>.
-
-[[sec:prefer_project_modules]]
-==== Preferring modules that are part of the build
-
-Preferring project modules tells Gradle to use the version of a module that is part of the build itself (as part of <<multi_project_builds>> or as includes in <<composite_builds>>). This allows the easy inclusion of an individual fork (e.g. containing a bugfix) of a module - for more information see <<sub:version_conflicts>>.
 
 [[sec:dependency_resolve_rules]]
 ==== Using dependency resolve rules
@@ -603,7 +639,6 @@ Preferring project modules tells Gradle to use the version of a module that is p
 A dependency resolve rule is executed for each resolved dependency, and offers a powerful api for manipulating a requested dependency prior to that dependency being resolved. This feature is <<feature_lifecycle,incubating>>, but currently offers the ability to change the group, name and/or version of a requested dependency, allowing a dependency to be substituted with a completely different module during resolution.
 
 Dependency resolve rules provide a very powerful way to control the dependency resolution process, and can be used to implement all sorts of advanced patterns in dependency management. Some of these patterns are outlined below. For more information and code samples see the api:org.gradle.api.artifacts.ResolutionStrategy[] class in the API documentation.
-
 
 [[sec:releasable_unit]]
 ===== Modelling releasable units
@@ -625,7 +660,7 @@ Dependency resolve rules give you the power to enforce releasable units in your 
 ++++
 
 [[sec:custom_versioning_scheme]]
-===== Implement a custom versioning scheme
+===== Implementing a custom versioning scheme
 
 In some corporate environments, the list of module versions that can be declared in Gradle builds is maintained and audited externally. Dependency resolve rules provide a neat implementation of this pattern:
 
@@ -886,110 +921,15 @@ What happens when we declare that "google-collections" are replaced by "guava"? 
 
 Currently it is not possible to declare that certain modules is replaced by a set of modules. However, it is possible to declare that multiple modules are replaced by a single module.
 
-[[sec:dependency_cache]]
-=== The dependency cache
-
-Gradle contains a highly sophisticated dependency caching mechanism, which seeks to minimise the number of remote requests made in dependency resolution, while striving to guarantee that the results of dependency resolution are correct and reproducible.
-
-The Gradle dependency cache consists of 2 key types of storage:
-
-* A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like POM files and Ivy files. The storage path for a downloaded artifact includes the SHA1 checksum, meaning that 2 artifacts with the same name but different content can easily be cached.
-* A binary store of resolved module meta-data, including the results of resolving dynamic versions, module descriptors, and artifacts.
-
-Separating the storage of downloaded artifacts from the cache metadata permits us to do some very powerful things with our cache that would be difficult with a transparent, file-only cache layout.
-
-The Gradle cache does not allow the local cache to hide problems and create other mysterious and difficult to debug behavior that has been a challenge with many build tools. This new behavior is implemented in a bandwidth and storage efficient way. In doing so, Gradle enables reliable and reproducible enterprise builds.
-
-
-[[sec:cache_features]]
-==== Key features of the Gradle dependency cache
-
-
-[[sub:cache_metadata]]
-===== Separate metadata cache
-
-Gradle keeps a record of various aspects of dependency resolution in binary format in the metadata cache. The information stored in the metadata cache includes:
-
-* The result of resolving a dynamic version (e.g. `1.+`) to a concrete version (e.g. `1.2`).
-* The resolved module metadata for a particular module, including module artifacts and module dependencies.
-* The resolved artifact metadata for a particular artifact, including a pointer to the downloaded artifact file.
-* The _absence_ of a particular module or artifact in a particular repository, eliminating repeated attempts to access a resource that does not exist.
-
-Every entry in the metadata cache includes a record of the repository that provided the information as well as a timestamp that can be used for cache expiry.
-
-[[sub:cache_repository_independence]]
-===== Repository caches are independent
-
-As described above, for each repository there is a separate metadata cache. A repository is identified by its URL, type and layout. If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository. This will always involve a remote lookup on the repository, however in many cases no download will be required (see <<sub:cache_artifact_reuse>>, below).
-
-Dependency resolution will fail if the required artifacts are not available in any repository specified by the build, even if the local cache has a copy of this artifact which was retrieved from a different repository. Repository independence allows builds to be isolated from each other in an advanced way that no build tool has done before. This is a key feature to create builds that are reliable and reproducible in any environment.
-
-[[sub:cache_artifact_reuse]]
-===== Artifact reuse
-
-Before downloading an artifact, Gradle tries to determine the checksum of the required artifact by downloading the sha file associated with that artifact. If the checksum can be retrieved, an artifact is not downloaded if an artifact already exists with the same id and checksum. If the checksum cannot be retrieved from the remote server, the artifact will be downloaded (and ignored if it matches an existing artifact).
-
-As well as considering artifacts downloaded from a different repository, Gradle will also attempt to reuse artifacts found in the local Maven Repository. If a candidate artifact has been downloaded by Maven, Gradle will use this artifact if it can be verified to match the checksum declared by the remote server.
-
-[[sub:cache_checksum_storage]]
-===== Checksum based storage
-
-It is possible for different repositories to provide a different binary artifact in response to the same artifact identifier. This is often the case with Maven SNAPSHOT artifacts, but can also be true for any artifact which is republished without changing its identifier. By caching artifacts based on their SHA1 checksum, Gradle is able to maintain multiple versions of the same artifact. This means that when resolving against one repository Gradle will never overwrite the cached artifact file from a different repository. This is done without requiring a separate artifact file store per repository.
-
-[[sub:cache_locking]]
-===== Cache Locking
-
-The Gradle dependency cache uses file-based locking to ensure that it can safely be used by multiple Gradle processes concurrently. The lock is held whenever the binary meta-data store is being read or written, but is released for slow operations such as downloading remote artifacts.
-
-[[sec:cache_command_line_options]]
-==== Command line options to override caching
-
-
-[[sub:cache_offline]]
-===== Offline
-
-The `--offline` command line switch tells Gradle to always use dependency modules from the cache, regardless if they are due to be checked again. When running with offline, Gradle will never attempt to access the network to perform dependency resolution. If required modules are not present in the dependency cache, build execution will fail.
-
-[[sub:cache_refresh]]
-===== Refresh
-
-At times, the Gradle Dependency Cache can be out of sync with the actual state of the configured repositories. Perhaps a repository was initially misconfigured, or perhaps a “non-changing” module was published incorrectly. To refresh all dependencies in the dependency cache, use the `--refresh-dependencies` option on the command line.
-
-The `--refresh-dependencies` option tells Gradle to ignore all cached entries for resolved modules and artifacts. A fresh resolve will be performed against all configured repositories, with dynamic versions recalculated, modules refreshed, and artifacts downloaded. However, where possible Gradle will check if the previously downloaded artifacts are valid before downloading again. This is done by comparing published SHA1 values in the repository with the SHA1 values for existing downloaded artifacts.
-
-[[sec:controlling_caching]]
-==== Fine-tuned control over dependency caching
-
-You can fine-tune certain aspects of caching using the `ResolutionStrategy` for a configuration.
-
-By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version for a dynamic version, use:
-
-++++
-<sample id="dynamic-version-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Dynamic version cache control">
-                <sourcefile file="build.gradle" snippet="dynamic-version-cache-control"/>
-            </sample>
-++++
-
-By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
-
-++++
-<sample id="changing-module-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Changing module cache control">
-                <sourcefile file="build.gradle" snippet="changing-module-cache-control"/>
-            </sample>
-++++
-
-For more details, take a look at the API documentation for api:org.gradle.api.artifacts.ResolutionStrategy[].
-
-[[sec:dependency_management_overview]]
-=== Dependency management best practices
+[[sec:troubleshooting_dependency_resolution]]
+=== Troubleshooting dependency resolution
 
 While Gradle has strong opinions on dependency management, the tool gives you a choice between two options: follow recommended best practices or support any kind of pattern you can think of. This section outlines the Gradle project's recommended best practices for managing dependencies.
 
 No matter what the language, proper dependency management is important for every project. From a complex enterprise application written in Java depending on hundreds of open source libraries to the simplest Clojure application depending on a handful of libraries, approaches to dependency management vary widely and can depend on the target technology, the method of application deployment, and the nature of the project. Projects bundled as reusable libraries may have different requirements than enterprise applications integrated into much larger systems of software and infrastructure. Despite this wide variation of requirements, the Gradle project recommends that all projects follow this set of core rules:
 
-
 [[sub:versioning_the_jar_name]]
-==== Put the Version in the Filename (Version the jar)
+==== Putting the version in the filename (version the jar)
 
 The version of a library must be part of the filename. While the version of a jar is usually in the Manifest file, it isn't readily apparent when you are inspecting a project. If someone asks you to look at a collection of 20 jar files, which would you prefer? A collection of files with names like `commons-beanutils-1.3.jar` or a collection of files with names like `spring.jar`? If dependencies have file names with version numbers you can quickly identify the versions of your dependencies.
 
@@ -997,24 +937,8 @@ If versions are unclear you can introduce subtle bugs which are very hard to fin
 
 Versions in jar names increase the expressiveness of your project and make them easier to maintain. This practice also reduces the potential for error.
 
-[[sub:transitive_dependency_management]]
-==== Manage transitive dependencies
-
-Transitive dependency management is a technique that enables your project to depend on libraries which, in turn, depend on other libraries. This recursive pattern of transitive dependencies results in a tree of dependencies including your project's first-level dependencies, second-level dependencies, and so on. If you don't model your dependencies as a hierarchical tree of first-level and second-level dependencies it is very easy to quickly lose control over an assembled mess of unstructured dependencies. Consider the Gradle project itself, while Gradle only has a few direct, first-level dependencies, when Gradle is compiled it needs more than one hundred dependencies on the classpath. On a far larger scale, Enterprise projects using Spring, Hibernate, and other libraries, alongside hundreds or thousands of internal projects, can result in very large dependency trees.
-
-When these large dependency trees need to change, you'll often have to solve some dependency version conflicts. Say one open source library needs one version of a logging library and a another uses an alternative version. Gradle and other build tools all have the ability to resolve conflicts, but what differentiates Gradle is the control it gives you over transitive dependencies and conflict resolution.
-
-While you could try to manage this problem manually, you will quickly find that this approach doesn't scale. If you want to get rid of a first level dependency you really can't be sure which other jars you should remove. A dependency of a first level dependency might also be a first level dependency itself, or it might be a transitive dependency of yet another first level dependency. If you try to manage transitive dependencies yourself, the end of the story is that your build becomes brittle: no one dares to change your dependencies because the risk of breaking the build is too high. The project classpath becomes a complete mess, and, if a classpath problem arises, hell on earth invites you for a ride.
-
-[NOTE]
-====
-_NOTE:_ In one project, we found a mystery LDAP related jar in the classpath. No code referenced this jar and there was no connection to the project. No one could figure out what the jar was for, until it was removed from the build and the application suffered massive performance problems whenever it attempted to authenticate to LDAP. This mystery jar was a necessary transitive, fourth-level dependency that was easy to miss because no one had bothered to use managed transitive dependencies.
-====
-
-Gradle offers you different ways to express first-level and transitive dependencies. With Gradle you can mix and match approaches; for example, you could store your jars in an SCM without XML descriptor files and still use transitive dependency management.
-
 [[sub:version_conflicts]]
-==== Resolve version conflicts
+==== Resolving version conflicts
 
 Conflicting versions of the same jar should be detected and either resolved or cause an exception. If you don't use transitive dependency management, version conflicts are undetected and the often accidental order of the classpath will determine what version of a dependency will win. On a large project with many developers changing dependencies, successful builds will be few and far between as the order of dependencies may directly affect whether a build succeeds or fails (or whether a bug appears or disappears in production).
 
@@ -1037,7 +961,7 @@ While the strategies introduced above are usually enough to solve most conflicts
 To deal with problems due to version conflicts, reports with dependency graphs are also very helpful. Such reports are another feature of dependency management.
 
 [[sub:dynamic_versions_and_changing_modules]]
-==== Use Dynamic Versions and Changing Modules
+==== Using dynamic versions and changing modules
 
 There are many situations when you want to use the latest version of a particular dependency, or the latest in a range of versions. This can be a requirement during development, or you may be developing a library that is designed to work with a range of dependency versions. You can easily depend on these constantly changing dependencies by using a _dynamic version_. A dynamic version can be either a version range (e.g. `2.+`) or it can be a placeholder for the latest version available (e.g. `latest.integration`).
 
@@ -1047,33 +971,40 @@ The main difference between a _dynamic version_ and a _changing module_ is that 
 
 By default, Gradle caches dynamic versions and changing modules for 24 hours. You can override the default cache modes using <<sec:cache_command_line_options,command line options>>. You can change the cache expiry times in your build using the resolution strategy (see <<sec:controlling_caching>>).
 
-[[sec:strategies_of_transitive_dependency_management]]
-=== Strategies for transitive dependency management
+[[sec:controlling_caching]]
+==== Controlling dependency caching programmatically
 
-Many projects rely on the https://repo.maven.apache.org/maven2[Maven Central repository]. This is not without problems.
+You can fine-tune certain aspects of caching using the `ResolutionStrategy` for a configuration.
 
-* The Maven Central repository can be down or can be slow to respond.
-* The POM files of many popular projects specify dependencies or other configuration that are just plain wrong (for instance, the POM file of the “`commons-httpclient-3.0`” module declares JUnit as a runtime dependency).
-* For many projects there is not one right set of dependencies (as more or less imposed by the POM format).
+By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version for a dynamic version, use:
 
-If your project relies on the Maven Central repository you are likely to need an additional custom repository, because:
+++++
+<sample id="dynamic-version-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Dynamic version cache control">
+                <sourcefile file="build.gradle" snippet="dynamic-version-cache-control"/>
+            </sample>
+++++
 
-* You might need dependencies that are not uploaded to Maven Central yet.
-* You want to deal properly with invalid metadata in a Maven Central POM file.
-* You don't want to expose people to the downtimes or slow response of Maven Central, if they just want to build your project.
+By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
 
-It is not a big deal to set-up a custom repository,footnote:[If you want to shield your project from the downtimes of Maven Central things get more complicated. You probably want to set-up a repository proxy for this. In an enterprise environment this is rather common. For an open source project it looks like overkill.] but it can be tedious to keep it up to date. For a new version, you always have to create the new XML descriptor and the directories. Your custom repository is another infrastructure element which might have downtimes and needs to be updated. To enable historical builds, you need to keep all the past libraries, not to mention a backup of these. It is another layer of indirection. Another source of information you have to lookup. All this is not really a big deal but in its sum it has an impact. Repository managers like Artifactory or Nexus make this easier, but most open source projects don't usually have a host for those products. This is changing with new services like http://bintray.com[Bintray] that let developers host and distribute their release binaries using a self-service repository platform. Bintray also supports sharing approved artifacts though the http://jcenter.bintray.com[JCenter] public repository to provide a single resolution address for all popular OSS Java artifacts (see <<sub:maven_jcenter>>).
+++++
+<sample id="changing-module-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Changing module cache control">
+                <sourcefile file="build.gradle" snippet="changing-module-cache-control"/>
+            </sample>
+++++
 
-This is a common reason why many projects prefer to store their libraries in their version control system. This approach is fully supported by Gradle. The libraries can be stored in a flat directory without any XML module descriptor files. Yet Gradle offers complete transitive dependency management. You can use either client module dependencies to express the dependency relations, or artifact dependencies in case a first level dependency has no transitive dependencies. People can check out such a project from your source code control system and have everything necessary to build it.
+For more details, take a look at the API documentation for api:org.gradle.api.artifacts.ResolutionStrategy[].
 
-If you are working with a distributed version control system like Git you probably don't want to use the version control system to store libraries as people check out the whole history. But even here the flexibility of Gradle can make your life easier. For example, you can use a shared flat directory without XML descriptors and yet you can have full transitive dependency management, as described above.
+[[sec:cache_command_line_options]]
+==== Controlling dependency caching from the command line
 
-You could also have a mixed strategy. If your main concern is bad metadata in the POM file and maintaining custom XML descriptors, then _Client Modules_ offer an alternative. However, you can still use a Maven2 repo or your custom repository as a repository for _jars only_ and still enjoy _transitive_ dependency management. Or you can only provide client modules for POMs with bad metadata. For the jars and the correct POMs you still use the remote repository.
+[[sub:cache_offline]]
+===== Offline
 
+The `--offline` command line switch tells Gradle to always use dependency modules from the cache, regardless if they are due to be checked again. When running with offline, Gradle will never attempt to access the network to perform dependency resolution. If required modules are not present in the dependency cache, build execution will fail.
 
-[[sub:implicit_transitive_dependencies]]
-==== Implicit transitive dependencies
+[[sub:cache_refresh]]
+===== Refresh
 
-There is another way to deal with transitive dependencies _without_ XML descriptor files. You can do this with Gradle, but we don't recommend it. We mention it for the sake of completeness and comparison with other build tools.
+At times, the Gradle Dependency Cache can be out of sync with the actual state of the configured repositories. Perhaps a repository was initially misconfigured, or perhaps a “non-changing” module was published incorrectly. To refresh all dependencies in the dependency cache, use the `--refresh-dependencies` option on the command line.
 
-The trick is to use only artifact dependencies and group them in lists. This will directly express your first level dependencies and your transitive dependencies (see <<sec:optional_attributes>>). The problem with this is that Gradle dependency management will see this as specifying all dependencies as first level dependencies. The dependency reports won't show your real dependency graph and the `compile` task uses all dependencies, not just the first level dependencies. All in all, your build is less maintainable and reliable than it could be when using client modules, and you don't gain anything.
+The `--refresh-dependencies` option tells Gradle to ignore all cached entries for resolved modules and artifacts. A fresh resolve will be performed against all configured repositories, with dynamic versions recalculated, modules refreshed, and artifacts downloaded. However, where possible Gradle will check if the previously downloaded artifacts are valid before downloading again. This is done by comparing published SHA1 values in the repository with the SHA1 values for existing downloaded artifacts.
