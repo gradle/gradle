@@ -16,12 +16,12 @@
 
 package org.gradle.language.swift
 
-import org.gradle.language.AbstractNativeProductionComponentDependenciesIntegrationTest
+import org.gradle.language.AbstractNativeLibraryDependenciesIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
-class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeProductionComponentDependenciesIntegrationTest {
+class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDependenciesIntegrationTest {
     @Override
     protected void makeComponentWithLibrary() {
         buildFile << """
@@ -29,16 +29,35 @@ class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeProductionCo
             project(':lib') {
                 apply plugin: 'swift-library'
             }
-"""
+        """
 
-        file("src/main/swift/Lib.swift") << """
+        file("src/main/swift/Lib.swift") << librarySource
+        file("lib/src/main/swift/Lib.swift") << librarySource
+    }
+
+    @Override
+    protected void makeComponentWithIncludedBuildLibrary() {
+        buildFile << """
+            apply plugin: 'swift-library'
+        """
+
+        file('lib/build.gradle') << """
+            apply plugin: 'swift-library'
+            
+            group = 'org.gradle.test'
+            version = '1.0'
+        """
+        file('lib/settings.gradle').createFile()
+
+        file("src/main/swift/Lib.swift") << librarySource
+        file("lib/src/main/swift/Lib.swift") << librarySource
+    }
+
+    private static String getLibrarySource() {
+        return """
             class Lib {
             }
-"""
-        file("lib/src/main/swift/Lib.swift") << """
-            class Lib {
-            }
-"""
+        """
     }
 
     @Override

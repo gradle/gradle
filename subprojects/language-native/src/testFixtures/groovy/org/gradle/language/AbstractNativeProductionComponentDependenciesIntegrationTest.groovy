@@ -29,7 +29,33 @@ abstract class AbstractNativeProductionComponentDependenciesIntegrationTest exte
                     }
                 }
             }
-"""
+        """
+
+        when:
+        run(':assembleDebug')
+
+        then:
+        result.assertTasksExecuted(libDebugTasks, assembleDebugTasks, ':assembleDebug')
+
+        when:
+        run(':assembleRelease')
+
+        then:
+        result.assertTasksExecuted(assembleReleaseTasks, ':assembleRelease')
+    }
+
+    def "can define an included build implementation dependency on a binary"() {
+        settingsFile << 'includeBuild "lib"'
+        makeComponentWithIncludedBuildLibrary()
+        buildFile << """
+            ${componentUnderTestDsl} {
+                binaries.getByName('mainDebug').configure {                
+                    dependencies {
+                        implementation 'org.gradle.test:lib:1.0'
+                    }
+                }
+            }
+        """
 
         when:
         run(':assembleDebug')
@@ -57,4 +83,6 @@ abstract class AbstractNativeProductionComponentDependenciesIntegrationTest exte
     protected abstract List<String> getAssembleDebugTasks()
 
     protected abstract List<String> getAssembleReleaseTasks()
+
+    protected abstract void makeComponentWithIncludedBuildLibrary()
 }
