@@ -117,28 +117,6 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         !libs.any { it.name == 'commons-codec-1.10.jar' }
     }
 
-    @UsesSample("userguide/dependencies/resolvingArtifactOnly")
-    def "can resolve dependency with artifact-only declaration"() {
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds(COPY_LIBS_TASK_NAME)
-
-        then:
-        assertSingleLib('jquery-3.2.1.js')
-    }
-
-    @UsesSample("userguide/dependencies/resolvingArtifactOnlyWithClassifier")
-    def "can resolve dependency with artifact-only declaration with classifier"() {
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds(COPY_LIBS_TASK_NAME)
-
-        then:
-        assertSingleLib('jquery-3.2.1-min.js')
-    }
-
     @UsesSample("userguide/dependencies/disablingTransitiveDependencyResolution")
     def "can disable transitive dependency resolution for dependency"() {
         executer.inDirectory(sample.dir)
