@@ -16,9 +16,9 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.language.AbstractNativeProductionComponentDependenciesIntegrationTest
+import org.gradle.language.AbstractNativeLibraryDependenciesIntegrationTest
 
-class CppLibraryDependenciesIntegrationTest extends AbstractNativeProductionComponentDependenciesIntegrationTest implements CppTaskNames {
+class CppLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDependenciesIntegrationTest implements CppTaskNames {
     @Override
     protected void makeComponentWithLibrary() {
         buildFile << """
@@ -26,8 +26,31 @@ class CppLibraryDependenciesIntegrationTest extends AbstractNativeProductionComp
             project(':lib') {
                 apply plugin: 'cpp-library'
             }
-"""
-        file("lib/src/main/cpp/lib.cpp") << """
+        """
+        file("lib/src/main/cpp/lib.cpp") << librarySource
+        file("src/main/cpp/lib.cpp") << mainLibrarySource
+    }
+
+    @Override
+    protected void makeComponentWithIncludedBuildLibrary() {
+        buildFile << """
+            apply plugin: 'cpp-library'
+        """
+
+        file('lib/build.gradle') << """
+            apply plugin: 'cpp-library'
+            
+            group = 'org.gradle.test'
+            version = '1.0'
+        """
+        file('lib/settings.gradle').createFile()
+
+        file("lib/src/main/cpp/lib.cpp") << librarySource
+        file("src/main/cpp/lib.cpp") << mainLibrarySource
+    }
+
+    private static getLibrarySource() {
+        return """
             #ifdef _WIN32
             #define EXPORT_FUNC __declspec(dllexport)
             #else
@@ -35,12 +58,15 @@ class CppLibraryDependenciesIntegrationTest extends AbstractNativeProductionComp
             #endif
             
             void EXPORT_FUNC lib_func() { }
-"""
-        file("src/main/cpp/lib.cpp") << """
+        """
+    }
+
+    private static getMainLibrarySource() {
+        return """
             int main_func() {
                 return 0;
             }
-"""
+        """
     }
 
     @Override

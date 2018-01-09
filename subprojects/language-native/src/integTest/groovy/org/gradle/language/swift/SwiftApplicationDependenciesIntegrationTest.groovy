@@ -29,14 +29,39 @@ class SwiftApplicationDependenciesIntegrationTest extends AbstractNativeProducti
             project(':lib') {
                 apply plugin: 'swift-library'
             }
-"""
+        """
 
-        file("src/main/swift/main.swift") << """
-"""
-        file("lib/src/main/swift/Lib.swift") << """
+        file("src/main/swift/main.swift") << applicationSource
+        file("lib/src/main/swift/Lib.swift") << librarySource
+    }
+
+    @Override
+    protected void makeComponentWithIncludedBuildLibrary() {
+        buildFile << """
+            apply plugin: 'swift-application'
+        """
+
+        file('lib/build.gradle') << """
+            apply plugin: 'swift-library'
+            
+            group = 'org.gradle.test'
+            version = '1.0'
+        """
+        file('lib/settings.gradle').createFile()
+
+        file("src/main/swift/main.swift") << applicationSource
+        file("lib/src/main/swift/Lib.swift") << librarySource
+    }
+
+    private static String getLibrarySource() {
+        return """
             class Lib {
             }
-"""
+        """
+    }
+
+    private static String getApplicationSource() {
+        return ""
     }
 
     @Override

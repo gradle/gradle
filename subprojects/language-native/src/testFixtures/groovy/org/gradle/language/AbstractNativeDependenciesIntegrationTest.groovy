@@ -36,7 +36,7 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
                     implementation project(':lib')
                 }
             }
-"""
+        """
 
         when:
         run(assembleDevBinaryTask)
@@ -57,7 +57,7 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
                     }
                 }
             }
-"""
+        """
 
         when:
         run(assembleDevBinaryTask)

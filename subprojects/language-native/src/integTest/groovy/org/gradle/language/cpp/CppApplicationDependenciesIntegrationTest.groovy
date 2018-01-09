@@ -26,8 +26,32 @@ class CppApplicationDependenciesIntegrationTest extends AbstractNativeProduction
             project(':lib') {
                 apply plugin: 'cpp-library'
             }
-"""
-        file("lib/src/main/cpp/lib.cpp") << """
+        """
+
+        file("lib/src/main/cpp/lib.cpp") << librarySource
+        file("src/main/cpp/app.cpp") << applicationSource
+    }
+
+    @Override
+    protected void makeComponentWithIncludedBuildLibrary() {
+        buildFile << """
+            apply plugin: 'cpp-application'
+        """
+
+        file('lib/build.gradle') << """
+            apply plugin: 'cpp-library'
+            
+            group = 'org.gradle.test'
+            version = '1.0'
+        """
+        file('lib/settings.gradle').createFile()
+
+        file("lib/src/main/cpp/lib.cpp") << librarySource
+        file("src/main/cpp/app.cpp") << applicationSource
+    }
+
+    private static String getLibrarySource() {
+        return """
             #ifdef _WIN32
             #define EXPORT_FUNC __declspec(dllexport)
             #else
@@ -35,12 +59,15 @@ class CppApplicationDependenciesIntegrationTest extends AbstractNativeProduction
             #endif
             
             void EXPORT_FUNC lib_func() { }
-"""
-        file("src/main/cpp/app.cpp") << """
+        """
+    }
+
+    private static String getApplicationSource() {
+        return """
             int main() {
                 return 0;
             }
-"""
+        """
     }
 
     @Override
