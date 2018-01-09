@@ -83,7 +83,7 @@
 
     <xsl:template match="book" mode="sidebar">
         <li><a href="/userguide/userguide.html">User Manual</a></li>
-        <li><a href="/dsl/" class="active">DSL Reference Home</a></li>
+        <li><a href="/dsl/" class="active">DSL Reference</a></li>
         <li><a href="/release-notes.html">Release Notes</a></li>
         <ul class="sections">
             <xsl:apply-templates select="section" mode="sidebar.link"/>
@@ -92,7 +92,7 @@
 
     <xsl:template match="chapter" mode="sidebar">
         <li><a href="/userguide/userguide.html">User Manual</a></li>
-        <li><a href="/dsl/">DSL Reference Home</a></li>
+        <li><a href="/dsl/">DSL Reference</a></li>
         <li><a href="/release-notes.html">Release Notes</a></li>
         <ul class="sections">
             <xsl:apply-templates select="section[table]" mode="sidebar.link"/>

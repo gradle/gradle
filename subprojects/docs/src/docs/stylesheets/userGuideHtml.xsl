@@ -26,6 +26,7 @@
     <xsl:param name="generate.toc">
         part toc,title
         chapter toc,title
+        appendix toc,title
     </xsl:param>
 
     <!--
@@ -69,7 +70,7 @@
                             <li><a href="/userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
                             <li><a href="https://docs.gradle.com/build-scan-plugin">Build Scans</a></li>
                             <li><a href="/userguide/build_environment.html">Build Environment</a></li>
-                            <li><a href="/userguide/init_scripts.html">Init Scripts</a></li>
+                            <li><a href="/userguide/init_scripts.html">Initialization Scripts</a></li>
                             <li><a href="/userguide/intro_multi_project_builds.html">Multi-Project Builds</a></li>
                             <li><a href="/userguide/build_cache.html">Build Cache</a></li>
                             <li><a href="/userguide/composite_builds.html">Composite Builds</a></li>
@@ -161,7 +162,7 @@
                                     <li><a href="/userguide/more_about_tasks.html">Authoring Tasks</a></li>
                                     <li><a href="/userguide/logging.html">Logging</a></li>
                                     <li><a href="/userguide/test_kit.html">Testing with TestKit</a></li>
-                                    <li><a href="/userguide/multi_project_builds.html">Configuring Multi-Project Builds</a></li>
+                                    <li><a href="/userguide/multi_project_builds.html">Authoring Multi-Project Builds</a></li>
                                     <li><a href="/userguide/standard_plugins.html">Standard Gradle Plugins</a></li>
                                     <li><a href="/userguide/plugins.html">Using Gradle Plugins</a></li>
                                     <li><a href="/userguide/writing_build_scripts.html">Writing Build Scripts</a></li>
@@ -171,7 +172,9 @@
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#managing-dependencies" aria-expanded="false" aria-controls="managing-dependencies">Managing Dependencies</a>
                                 <ul id="managing-dependencies">
                                     <li><a href="/userguide/artifact_dependencies_tutorial.html">Dependency Management Basics</a></li>
-                                    <li><a href="/userguide/dependency_management.html">Advanced Dependency Management</a></li></ul></li>
+                                    <li><a href="/userguide/dependency_management.html">Advanced Dependency Management</a></li>
+                                    <li><a href="/userguide/dependency_types.html">Dependency Types</a></li>
+                                    <li><a href="/userguide/repository_types.html">Repository Types</a></li></ul></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing-artifacts" aria-expanded="false" aria-controls="publishing-artifacts">Publishing Artifacts</a>
                                 <ul id="publishing-artifacts">
                                     <li><a href="/userguide/artifact_management.html">Publishing Artifacts Overview</a></li>

@@ -60,7 +60,6 @@ class BuildProgressFilterTest extends Specification {
         f.buildFinished(result)
 
         then: 1 * logger.buildStarted()
-        then: 1 * logger.settingsEvaluated()
         then: 1 * logger.projectsLoaded(2)
         then: 1 * logger.beforeEvaluate(":foo:bar")
         then: 1 * logger.afterEvaluate(":foo:bar")

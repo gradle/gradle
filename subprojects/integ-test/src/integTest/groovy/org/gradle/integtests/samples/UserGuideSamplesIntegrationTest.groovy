@@ -23,7 +23,7 @@ class UserGuideSamplesIntegrationTest {
     /*
     Important info:
 
-     If you're working in samples area there're gradle tasks that you should know of:
+     If you're working in samples area There are gradle tasks that you should know of:
      - gradle intTestImage makes sure that the samples' resources are copied to the right place
      - gradle docs:extractSamples makes sure that samples' info is extracted from XMLs
      - the 'expected' content of the asserting mechanism lives under docs/src/samples/userguideOutput
