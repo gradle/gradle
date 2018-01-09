@@ -29,9 +29,12 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstra
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
+import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
+import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.TestUtil
@@ -49,17 +52,18 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     @Shared componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
     @Shared attributes = TestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
     @Shared schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
-    @Shared mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.experimentalFeatures())
+    @Shared mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.experimentalFeatures(true))
     @Shared ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
     @Shared defaultVariant
 
     protected static <T> VariantMetadataRules.VariantAction<T> variantAction(String variantName, Action<? super T> action) {
-        new VariantMetadataRules.VariantAction<T>({ it.name == variantName }, action)
+        Spec<VariantResolveMetadata> spec = variantName ? { it.name == variantName } as Spec<VariantResolveMetadata> : Specs.satisfyAll()
+        new VariantMetadataRules.VariantAction<T>(spec, action)
     }
 
     abstract boolean addAllDependenciesAsConstraints()
 
-    abstract void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName, Action<? super DependenciesMetadata> action)
+    abstract void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName = null, Action<? super DependenciesMetadata> action)
 
     boolean supportedInMetadata(String metadata) {
         !addAllDependenciesAsConstraints() || metadata != "ivy" //ivy does not support dependency constraints or optional dependencies
@@ -102,7 +106,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def rule = Mock(Action)
 
         when:
-        doAddDependencyMetadataRule(metadataImplementation, "default", rule)
+        doAddDependencyMetadataRule(metadataImplementation, rule)
         def metadata = metadataImplementation.asImmutable()
 
         then:
@@ -223,7 +227,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         }
 
         when:
-        doAddDependencyMetadataRule(metadataImplementation, "default", rule)
+        doAddDependencyMetadataRule(metadataImplementation, rule)
         def dependencies = selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
@@ -245,7 +249,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         }
 
         when:
-        doAddDependencyMetadataRule(metadataImplementation, "default", rule)
+        doAddDependencyMetadataRule(metadataImplementation, rule)
         def dependencies = selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
