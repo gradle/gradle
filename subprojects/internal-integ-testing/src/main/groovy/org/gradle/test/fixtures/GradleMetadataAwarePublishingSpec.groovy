@@ -32,7 +32,7 @@ trait GradleMetadataAwarePublishingSpec {
     void prepare() {
         executer.beforeExecute {
             if (publishModuleMetadata) {
-                withArgument("--gradle-metadata")
+                withArgument("-Dorg.gradle.gradlemetadata=true")
             }
         }
     }

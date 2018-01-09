@@ -5,8 +5,7 @@
 These improvements can change the resolution result for certain Gradle configurations. Thus we consider them to be _potentially breaking changes_. As such, these improvements are opt-in for the Gradle 4.x stream of releases, but are scheduled to become the default in Gradle 5.0.
 
 [NOTE]
-Activate this feature in Gradle 4.6+ by setting `org.gralde.advancedpomsupport=true` in _gradle.properties_ or calling Gradle with
-`--advanced-pom-support`
+Activate this feature in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
 
 ### Maven `optional` dependencies
 
@@ -46,8 +45,7 @@ The new metadata format is still under active development. The latest version of
 - An additional request is required for Maven and Ivy repositories to check for the new metadata file.
 
 [NOTE]
-Activate this feature in Gradle 4.6+ by setting `org.gralde.gradlemetadata=true` in _gradle.properties_ or calling Gradle with
-`--gradle-metadata`
+Activate this feature in Gradle 4.6+ by setting `org.gralde.gradlemetadata=true` in _gradle.properties_.
 
 ### Publishing `.module` metadata files
 

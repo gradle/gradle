@@ -299,7 +299,7 @@ public class StartParameterBuildOptions {
         public static final String GRADLE_PROPERTY = "org.gradle.advancedpomsupport";
 
         public AdvancedPomSupportOption() {
-            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("advanced-pom-support", "Enables support for optional dependencies, compile/runtime scope separation and BOMs.", "Disables support for optional dependencies, compile/runtime scope separation and BOMs").incubating());
+            super(GRADLE_PROPERTY);
         }
 
         @Override
@@ -312,7 +312,7 @@ public class StartParameterBuildOptions {
         public static final String GRADLE_PROPERTY = "org.gradle.gradlemetadata";
 
         public GradleMetadataOption() {
-            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("gradle-metadata", "Enables the gradle metadata format for resolving and publishing dependencies.", "Disables the gradle metadata format for resolving and publishing dependencies.").incubating());
+            super(GRADLE_PROPERTY);
         }
 
         @Override

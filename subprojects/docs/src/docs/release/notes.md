@@ -6,14 +6,13 @@ Here are the new features introduced in this Gradle release.
 
 Gradle now supports [additional features for modules with POM metadata](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc). This includes support for _optional dependencies_, _BOM import_ and _compile/runtime scope separation_. 
 
-_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gralde.advancedpomsupport=true` in _gradle.properties_ or calling Gradle with `--advanced-pom-support`.
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
 
 ### New Gradle `.module` metadata format (preview)
 
 In order to provide rich support for variant-aware dependency management and dependency constraints, Gradle 5.0 will define a [new module metadata format](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc), that can be used in conjunction with Ivy descriptor and Maven POM files in existing repositories.
 
-The new metadata format is still under active development, but it can already be used in its current state in Gradle 4.6+ by setting `org.gralde.gradlemetadata=true` in _gradle.properties_ or calling Gradle with
-`--gradle-metadata`.
+The new metadata format is still under active development, but it can already be used in its current state in Gradle 4.6+ by setting `org.gralde.gradlemetadata=true` in _gradle.properties_.
 
 <!--
 ### Example new and noteworthy
