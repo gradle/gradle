@@ -63,9 +63,8 @@ fun compileKotlinScriptToDirectory(
 
         withCompilationExceptionHandler(messageCollector) {
 
-            val canonicalScriptPath = scriptFile.canonicalPath
             val configuration = compilerConfigurationFor(messageCollector).apply {
-                addKotlinSourceRoot(canonicalScriptPath)
+                addKotlinSourceRoot(scriptFile.canonicalPath)
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName("buildscript")
@@ -78,7 +77,7 @@ fun compileKotlinScriptToDirectory(
             compileBunchOfSources(environment)
                 || throw IllegalStateException("Internal error: unable to compile script, see log for details")
 
-            NameUtils.getScriptNameForFile(canonicalScriptPath).asString()
+            NameUtils.getScriptNameForFile(scriptFile.name).asString()
         }
     }
 
