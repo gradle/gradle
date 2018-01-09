@@ -10,6 +10,10 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Default JaCoCo version upgraded to 0.8.0
+
+[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.0](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
