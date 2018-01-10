@@ -22,7 +22,7 @@ import spock.lang.Ignore
 class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpec {
 
     final String someConfigurableTaskType = """
-    import org.gradle.api.internal.tasks.options.Option
+    import org.gradle.api.tasks.options.Option
 
     class SomeTask extends DefaultTask {
         boolean first
@@ -58,6 +58,34 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         enum TestEnum {
             valid1, valid2, valid3
         }
+    }
+
+
+    """
+
+    final String configurableTaskTypeWithDeprecatedAnnotations = """
+    import org.gradle.api.internal.tasks.options.Option
+    import org.gradle.api.internal.tasks.options.OptionValues
+
+    class SomeTask extends DefaultTask {
+    
+        String string
+
+        @Option(option = "string", description = "configures 'string' field")
+        void setString(String string) {
+            this.string = string
+        }
+        
+        @OptionValues("string")
+        List<String> stringOptions() {
+            return ['foo', 'bar']
+        }
+        
+        @TaskAction
+        void renderFields() {
+            println "string=" + string
+        }
+
     }
 
 
@@ -295,4 +323,21 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         then:
         "should fail in a consistent way as with '--refresh-dependenciess'"
     }
+
+    def "logs deprecation warnings when internal @Option and @OptionValues are used"() {
+        given:
+        executer.expectDeprecationWarnings(2)
+        file("build.gradle") << """
+            task someTask(type: SomeTask)
+            $configurableTaskTypeWithDeprecatedAnnotations
+"""
+        when:
+        run 'someTask', '--string=foo'
+
+        then:
+        outputContains('string=foo')
+        outputContains("org.gradle.api.internal.tasks.options.OptionValues has been deprecated and is scheduled to be removed in Gradle 5.0. Use org.gradle.api.tasks.options.OptionValues instead.")
+        outputContains("org.gradle.api.internal.tasks.options.Option has been deprecated and is scheduled to be removed in Gradle 5.0. Use org.gradle.api.tasks.options.Option instead.")
+    }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import java.lang.reflect.Method;
@@ -26,6 +27,13 @@ public class MethodOptionElement extends AbstractOptionElement {
     private final Method method;
 
     MethodOptionElement(Option option, Method method, Class<?> optionType, NotationParser<CharSequence, ?> notationParser) {
+        super(option.option(), option, optionType, method.getDeclaringClass(), notationParser);
+        this.method = method;
+        assertMethodTypeSupported(getOptionName(), method);
+        assertValidOptionName();
+    }
+
+    MethodOptionElement(org.gradle.api.internal.tasks.options.Option option, Method method, Class<?> optionType, NotationParser<CharSequence, ?> notationParser) {
         super(option.option(), option, optionType, method.getDeclaringClass(), notationParser);
         this.method = method;
         assertMethodTypeSupported(getOptionName(), method);
@@ -57,6 +65,12 @@ public class MethodOptionElement extends AbstractOptionElement {
     }
 
     public static MethodOptionElement create(Option option, Method method, OptionValueNotationParserFactory optionValueNotationParserFactory){
+        Class<?> optionType = calculateOptionType(method);
+        NotationParser<CharSequence, ?> notationParser = createNotationParserOrFail(optionValueNotationParserFactory, option.option(), optionType, method.getDeclaringClass());
+        return new MethodOptionElement(option, method, optionType, notationParser);
+    }
+
+    public static MethodOptionElement create(org.gradle.api.internal.tasks.options.Option option, Method method, OptionValueNotationParserFactory optionValueNotationParserFactory){
         Class<?> optionType = calculateOptionType(method);
         NotationParser<CharSequence, ?> notationParser = createNotationParserOrFail(optionValueNotationParserFactory, option.option(), optionType, method.getDeclaringClass());
         return new MethodOptionElement(option, method, optionType, notationParser);
