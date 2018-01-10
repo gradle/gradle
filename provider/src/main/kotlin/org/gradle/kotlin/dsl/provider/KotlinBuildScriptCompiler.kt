@@ -111,10 +111,6 @@ class KotlinBuildScriptCompiler(
         scriptTarget.accessorsClassPathFor(compilationClassPath).bin
 
     private
-    fun scriptClassLoaderScopeWith(accessorsClassPath: ClassPath) =
-        targetScope.createChild("script").apply { local(accessorsClassPath) }
-
-    private
     fun executeBuildscriptBlock() {
         scriptTarget.buildscriptBlockTemplate?.let { template ->
             setupEmbeddedKotlinForBuildscript()
@@ -129,10 +125,6 @@ class KotlinBuildScriptCompiler(
         val compiledScript = compileBuildscriptBlock(buildscriptRange, scriptTemplate)
         executeCompiledScript(compiledScript, buildscriptBlockClassLoaderScope())
     }
-
-    private
-    fun buildscriptBlockClassLoaderScope() =
-        baseScope.createChild("buildscript")
 
     private
     fun setupEmbeddedKotlinForBuildscript() {
@@ -188,7 +180,7 @@ class KotlinBuildScriptCompiler(
         compiledPluginsBlock: CachingKotlinCompiler.CompiledPluginsBlock) {
 
         val (lineNumber, compiledScript) = compiledPluginsBlock
-        val pluginsBlockClass = classFrom(compiledScript, baseScope.createChild("plugins"))
+        val pluginsBlockClass = classFrom(compiledScript, pluginsBlockClassLoaderScope())
         val pluginDependenciesSpec = pluginRequestCollector.createSpec(lineNumber)
         withContextClassLoader(pluginsBlockClass.classLoader) {
             try {
@@ -237,6 +229,18 @@ class KotlinBuildScriptCompiler(
     fun classFrom(compiledScript: CachingKotlinCompiler.CompiledScript, scope: ClassLoaderScope): Class<*> =
         classLoaderFor(compiledScript.location, scope)
             .loadClass(compiledScript.className)
+
+    private
+    fun scriptClassLoaderScopeWith(accessorsClassPath: ClassPath) =
+        targetScope.createChild("script").apply { local(accessorsClassPath) }
+
+    private
+    fun pluginsBlockClassLoaderScope() =
+        baseScope.createChild("plugins")
+
+    private
+    fun buildscriptBlockClassLoaderScope() =
+        baseScope.createChild("buildscript")
 
     private
     fun classLoaderFor(location: File, scope: ClassLoaderScope) =
