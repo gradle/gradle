@@ -188,7 +188,7 @@ data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVers
 }
 
 enum class OS(val agentRequirement: String, val subset: List<String> = emptyList()) {
-    linux("Linux"), windows("Windows"), macos("Mac")
+    linux("Linux"), windows("Windows"), macos("Mac", listOf("languageNative", "platformNative", "testingNative", "ideNative"))
 }
 
 enum class JvmVersion {
