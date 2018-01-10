@@ -35,7 +35,7 @@ import java.lang.annotation.*;
  * <li>{@code String}</li>
  * </ul>
  *
- * @since 4.3
+ * @since 4.6
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

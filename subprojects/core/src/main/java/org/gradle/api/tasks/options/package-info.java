@@ -16,5 +16,8 @@
 
 /**
  * Annotations for exposing task properties as command line options.
+ *
+ * @since 4.6
  */
+@org.gradle.api.Incubating
 package org.gradle.api.tasks.options;

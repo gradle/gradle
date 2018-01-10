@@ -28,7 +28,7 @@ import java.lang.annotation.*;
  * possible values. The entries in the collection may be of any type. If necessary, they are transformed
  * into {@link String Strings} by calling {@code toString()}.</p>
  *
- * @since 4.3
+ * @since 4.6
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
