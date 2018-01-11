@@ -158,6 +158,16 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         return null;
     }
 
+    protected <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
+        if (key.equals(attribute)) {
+            return Cast.uncheckedCast(value);
+        }
+        if (parent != null) {
+            return parent.getIsolatableAttribute(key);
+        }
+        return null;
+    }
+
     /**
      * Locates the entry for the given attribute. Returns a 'missing' value when not present.
      */
