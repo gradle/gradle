@@ -35,6 +35,8 @@ import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftLibrary;
+import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
+import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.util.GUtil;
 
@@ -102,20 +104,21 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                     // TODO - extract some common code to setup the configurations
                     // TODO - extract common code with C++ plugins
 
-                    final Configuration api = library.getApiDependencies();
-
                     library.getBinaries().whenElementKnown(SwiftSharedLibrary.class, new Action<SwiftSharedLibrary>() {
                         @Override
-                        public void execute(SwiftSharedLibrary library) {
-                            Names names = ((ComponentWithNames) library).getNames();
+                        public void execute(SwiftSharedLibrary sharedLibrary) {
+                            Names names = ((ComponentWithNames) sharedLibrary).getNames();
                             Configuration apiElements = configurations.create(names.withSuffix("SwiftApiElements"));
-                            apiElements.extendsFrom(api);
+                            // TODO This should actually extend from the api dependencies, but since Swift currently
+                            // requires all dependencies to be treated like api dependencies (with transitivity) we just
+                            // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
+                            apiElements.extendsFrom(((DefaultSwiftSharedLibrary)sharedLibrary).getImportPathConfiguration());
                             apiElements.setCanBeResolved(false);
                             apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
                             apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
-                            apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.isDebuggable());
-                            apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.isOptimized());
-                            apiElements.getOutgoing().artifact(library.getModuleFile());
+                            apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, sharedLibrary.isDebuggable());
+                            apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, sharedLibrary.isOptimized());
+                            apiElements.getOutgoing().artifact(sharedLibrary.getModuleFile());
                         }
                     });
                 }
@@ -132,20 +135,21 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
 
                     // Add outgoing API
 
-                    final Configuration api = library.getApiDependencies();
-
                     library.getBinaries().whenElementKnown(SwiftStaticLibrary.class, new Action<SwiftStaticLibrary>() {
                         @Override
-                        public void execute(SwiftStaticLibrary library) {
-                            Names names = ((ComponentWithNames) library).getNames();
+                        public void execute(SwiftStaticLibrary staticLibrary) {
+                            Names names = ((ComponentWithNames) staticLibrary).getNames();
                             Configuration apiElements = configurations.create(names.withSuffix("SwiftApiElements"));
-                            apiElements.extendsFrom(api);
+                            // TODO This should actually extend from the api dependencies, but since Swift currently
+                            // requires all dependencies to be treated like api dependencies (with transitivity) we just
+                            // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
+                            apiElements.extendsFrom(((DefaultSwiftStaticLibrary)staticLibrary).getImportPathConfiguration());
                             apiElements.setCanBeResolved(false);
                             apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
                             apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
-                            apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, library.isDebuggable());
-                            apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, library.isOptimized());
-                            apiElements.getOutgoing().artifact(library.getModuleFile());
+                            apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, staticLibrary.isDebuggable());
+                            apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, staticLibrary.isOptimized());
+                            apiElements.getOutgoing().artifact(staticLibrary.getModuleFile());
                         }
                     });
                 }
