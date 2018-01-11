@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -36,7 +35,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
 
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
-    private final ExperimentalFeatures experimentalFeatures;
+    private final boolean advancedPomSupportEnabled;
 
     private String packaging = "jar";
     private boolean relocated;
@@ -45,17 +44,17 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
 
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<MavenDependencyDescriptor> dependencies,
                                                     ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator,
-                                                    ExperimentalFeatures experimentalFeatures) {
+                                                    boolean advancedPomSupportEnabled) {
         super(attributesFactory, id, componentIdentifier);
         this.dependencies = ImmutableList.copyOf(dependencies);
         this.attributesFactory = attributesFactory;
         this.objectInstantiator = objectInstantiator;
-        this.experimentalFeatures = experimentalFeatures;
+        this.advancedPomSupportEnabled = advancedPomSupportEnabled;
     }
 
     DefaultMutableMavenModuleResolveMetadata(MavenModuleResolveMetadata metadata,
                                              ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator,
-                                             ExperimentalFeatures experimentalFeatures) {
+                                             boolean advancedPomSupportEnabled) {
         super(metadata);
         this.packaging = metadata.getPackaging();
         this.relocated = metadata.isRelocated();
@@ -63,12 +62,12 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         this.dependencies = metadata.getDependencies();
         this.attributesFactory = attributesFactory;
         this.objectInstantiator = objectInstantiator;
-        this.experimentalFeatures = experimentalFeatures;
+        this.advancedPomSupportEnabled = advancedPomSupportEnabled;
     }
 
     @Override
     public MavenModuleResolveMetadata asImmutable() {
-        return new DefaultMavenModuleResolveMetadata(this, attributesFactory, objectInstantiator, experimentalFeatures);
+        return new DefaultMavenModuleResolveMetadata(this, attributesFactory, objectInstantiator, advancedPomSupportEnabled);
     }
 
     @Override

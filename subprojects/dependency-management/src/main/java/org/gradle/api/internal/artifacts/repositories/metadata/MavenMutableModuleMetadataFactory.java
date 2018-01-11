@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -33,21 +33,21 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
-    private final ExperimentalFeatures experimentalFeatures;
+    private final FeaturePreviews featurePreviews;
 
     public MavenMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                              ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator,
-                                             ExperimentalFeatures experimentalFeatures) {
+                                             FeaturePreviews featurePreviews) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributesFactory = attributesFactory;
         this.objectInstantiator = objectInstantiator;
-        this.experimentalFeatures = experimentalFeatures;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
     public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, Collections.<MavenDependencyDescriptor>emptyList(), attributesFactory, objectInstantiator, experimentalFeatures);
+        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, Collections.<MavenDependencyDescriptor>emptyList(), attributesFactory, objectInstantiator, featurePreviews.isAdvancedPomSupportEnabled());
     }
 
     private ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
@@ -63,6 +63,6 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
 
     public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from, List<MavenDependencyDescriptor> dependencies) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, dependencies, attributesFactory, objectInstantiator, experimentalFeatures);
+        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, dependencies, attributesFactory, objectInstantiator, featurePreviews.isAdvancedPomSupportEnabled());
     }
 }

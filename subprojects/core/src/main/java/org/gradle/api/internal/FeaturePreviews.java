@@ -15,19 +15,20 @@
  */
 package org.gradle.api.internal;
 
-public class ExperimentalFeatures {
-    private static final String ENABLE_EXPERIMENTAL_FEATURES = "org.gradle.internal.experimentalFeatures";
-    private boolean enabled;
+import org.gradle.StartParameter;
 
-    public ExperimentalFeatures() {
-        enabled = System.getProperty(ENABLE_EXPERIMENTAL_FEATURES) != null;
+public class FeaturePreviews {
+    private StartParameter startParameter;
+
+    public FeaturePreviews(StartParameter startParameter) {
+        this.startParameter = startParameter;
     }
 
-    public void enable() {
-        enabled = true;
+    public boolean isAdvancedPomSupportEnabled() {
+        return startParameter.isAdvancedPomSupport();
     }
 
-    public boolean isEnabled() {
-        return enabled;
+    public boolean isGradleMetadataEnabled() {
+        return startParameter.isGradleMetadata();
     }
 }

@@ -16,10 +16,17 @@
 
 package org.gradle.integtests.fixtures
 
-class ExperimentalFeaturesFixture {
-    static void enable(File file) {
+class FeaturePreviewsFixture {
+
+    static void enableGradleMetadata(File file) {
         file << """
-            gradle.experimentalFeatures.enable()
+org.gradle.gradlemetadata=true
+"""
+    }
+
+    static void enableAdvancedPomSupport(File file) {
+        file << """
+org.gradle.advancedpomsupport=true
 """
     }
 }

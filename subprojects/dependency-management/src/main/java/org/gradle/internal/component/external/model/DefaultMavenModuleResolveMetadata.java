@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.ExperimentalFeatures;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -45,9 +44,9 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
     private static final Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
 
+    private final boolean advancedPomSupportEnabled;
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
-    private final ExperimentalFeatures experimentalFeatures;
 
     private final ImmutableList<MavenDependencyDescriptor> dependencies;
     private final String packaging;
@@ -56,9 +55,9 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     private ImmutableList<? extends ConfigurationMetadata> derivedVariants;
 
-    DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator, ExperimentalFeatures experimentalFeatures) {
+    DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator, boolean advancedPomSupportEnabled) {
         super(metadata);
-        this.experimentalFeatures = experimentalFeatures;
+        this.advancedPomSupportEnabled = advancedPomSupportEnabled;
         this.attributesFactory = attributesFactory;
         this.objectInstantiator = objectInstantiator;
         packaging = metadata.getPackaging();
@@ -69,7 +68,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
-        this.experimentalFeatures = metadata.experimentalFeatures;
+        this.advancedPomSupportEnabled = metadata.advancedPomSupportEnabled;
         this.attributesFactory = metadata.attributesFactory;
         this.objectInstantiator = metadata.objectInstantiator;
         packaging = metadata.packaging;
@@ -148,7 +147,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     private boolean ignoreOptionalDependencies() {
-        return !experimentalFeatures.isEnabled();
+        return !advancedPomSupportEnabled;
     }
 
     @Override
@@ -158,7 +157,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     @Override
     public MutableMavenModuleResolveMetadata asMutable() {
-        return new DefaultMutableMavenModuleResolveMetadata(this, attributesFactory, objectInstantiator, experimentalFeatures);
+        return new DefaultMutableMavenModuleResolveMetadata(this, attributesFactory, objectInstantiator, advancedPomSupportEnabled);
     }
 
     public String getPackaging() {
@@ -178,7 +177,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     private boolean isJavaLibrary() {
-        return experimentalFeatures.isEnabled() && (isKnownJarPackaging() || isPomPackaging());
+        return advancedPomSupportEnabled && (isKnownJarPackaging() || isPomPackaging());
     }
 
     @Nullable
