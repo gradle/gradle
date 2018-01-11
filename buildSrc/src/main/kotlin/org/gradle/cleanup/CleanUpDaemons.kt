@@ -1,0 +1,83 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.cleanup
+
+import org.gradle.api.Action
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.testing.TestDescriptor
+import org.gradle.api.tasks.testing.TestListener
+import org.gradle.api.tasks.testing.TestResult
+
+import org.gradle.process.ProcessInfo
+import org.gradle.process.forEachLeakingJavaProcess
+import org.gradle.process.pkill
+
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentHashMap.newKeySet
+
+open class CleanUpDaemons : DefaultTask() {
+
+    private
+    val suspiciousDaemons = ConcurrentHashMap<String, MutableSet<String>>()
+
+    private
+    val daemonPids = newKeySet<String>()
+
+    @TaskAction
+    fun cleanUpDaemons(): Unit = project.run {
+
+        val alreadyKilled = mutableSetOf<String>()
+        forEachJavaProcess { pid, process ->
+            suspiciousDaemons.forEach { (suite, pids) ->
+                if (pid in pids && pid !in alreadyKilled) {
+                    logger.warn("A process was created in $suite but wasn't shutdown properly. Killing PID $pid (Command line: $process)")
+                    pkill(pid)
+                }
+            }
+        }
+    }
+
+    fun newDaemonListener() =
+
+        object : TestListener {
+            override fun beforeTest(test: TestDescriptor) = Unit
+            override fun afterTest(test: TestDescriptor, result: TestResult) = Unit
+            override fun beforeSuite(suite: TestDescriptor) {
+                forEachJavaProcess { pid, _ ->
+                    // processes that exist before the test suite execution should
+                    // not trigger a warning
+                    daemonPids += pid
+                }
+            }
+
+            override fun afterSuite(suite: TestDescriptor, result: TestResult) {
+                forEachJavaProcess { pid, _ ->
+                    if (daemonPids.add(pid)) {
+                        suspiciousDaemons.getOrPut("$suite", ::newKeySet) += pid
+                    }
+                }
+            }
+        }
+
+    private
+    fun forEachJavaProcess(action: (String, String) -> Unit) =
+        // KTS: Need to explicitly type the argument as `Action<ProcessInfo>` due to
+        // https://github.com/gradle/kotlin-dsl/issues/522
+        project.forEachLeakingJavaProcess(Action<ProcessInfo> { action(pid, process) })
+
+}

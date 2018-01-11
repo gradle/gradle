@@ -4,6 +4,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskContainer
 
 
@@ -40,3 +41,12 @@ fun <reified T : Any> TaskContainer.getByName(name: String) =
             ?: throw IllegalStateException(
             "Element '$name' of type '${it::class.java.name}' from container '$this' cannot be cast to '${T::class.qualifiedName}'.")
     }
+
+
+/**
+ * Enables function invocation syntax on [Spec] instances.
+ *
+ * @see Spec.isSatisfiedBy
+ */
+operator fun <T> Spec<T>.invoke(arg: T): Boolean =
+    isSatisfiedBy(arg)

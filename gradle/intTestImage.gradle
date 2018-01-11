@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+import org.gradle.testing.DistributionTest
+
 task intTestImage(type: Sync) {
     group = "Verification"
     into file("$buildDir/integ test")
 }
 
-distributionTestTasks.all {
+tasks.withType(DistributionTest) {
     dependsOn intTestImage
 }
 
