@@ -159,8 +159,8 @@ class DependencyManagementBuildScopeServices {
             projectDependencyFactory);
     }
 
-    RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory, directoryFileTreeFactory);
+    RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, DirectoryFileTreeFactory directoryFileTreeFactory, BuildOperationExecutor buildOperationExecutor) {
+        return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory, buildOperationExecutor, directoryFileTreeFactory);
     }
 
     BuildCommencedTimeProvider createBuildTimeProvider() {

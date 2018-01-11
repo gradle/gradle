@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
+import org.gradle.api.internal.artifacts.dependencies.GeneratedSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -26,6 +27,7 @@ import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.SingletonFileSet;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -34,6 +36,7 @@ import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -75,12 +78,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     public void convert(DependencyFactory.ClassPathNotation notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
-            internCacheWriteLock.lock();
-            try {
-                dependency = maybeCreateUnderLock(notation);
-            } finally {
-                internCacheWriteLock.unlock();
-            }
+            dependency = maybeCreateUnderLock(notation);
         }
 
         result.converted(dependency);
@@ -89,17 +87,42 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private SelfResolvingDependency maybeCreateUnderLock(DependencyFactory.ClassPathNotation notation) {
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
-            Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
+            final Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
             boolean runningFromInstallation = currentGradleInstallation.getInstallation() != null;
-            FileCollectionInternal files;
+            Factory<FileCollectionInternal> filesFactory;
             if (runningFromInstallation && notation.equals(GRADLE_API)) {
-                files = gradleApiFileCollection(classpath);
+                filesFactory = new Factory<FileCollectionInternal>() {
+                    @Nullable
+                    @Override
+                    public FileCollectionInternal create() {
+                        try {
+                            internCacheWriteLock.lock();
+                            return gradleApiFileCollection(classpath);
+                        } finally {
+                            internCacheWriteLock.unlock();
+                        }
+                    }
+                };
+                dependency = instantiator.newInstance(GeneratedSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), filesFactory);
+
             } else if (runningFromInstallation && notation.equals(GRADLE_TEST_KIT)) {
-                files = gradleTestKitFileCollection(classpath);
+                filesFactory = new Factory<FileCollectionInternal>() {
+                    @Nullable
+                    @Override
+                    public FileCollectionInternal create() {
+                        try {
+                            internCacheWriteLock.lock();
+                            return gradleTestKitFileCollection(classpath);
+                        } finally {
+                            internCacheWriteLock.unlock();
+                        }
+                    }
+                };
+                dependency = instantiator.newInstance(GeneratedSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), filesFactory);
+
             } else {
-                files = fileResolver.resolveFiles(classpath);
+                dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), fileResolver.resolveFiles(classpath));
             }
-            dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), files);
             internCache.put(notation, dependency);
         }
         return dependency;
@@ -118,9 +141,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     }
 
     /**
-     * Gradle script kotlin should not be part of the public Gradle API
-     * We remove this in a very hacky way for 3.0. Going forward, there
-     * will be a cleaner solution
+     * Gradle script kotlin should not be part of the public Gradle API We remove this in a very hacky way for 3.0. Going forward, there will be a cleaner solution
      */
     private void removeGradleScriptKotlin(Collection<File> apiClasspath) {
         for (File file : new ArrayList<File>(apiClasspath)) {
