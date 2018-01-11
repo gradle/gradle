@@ -17,7 +17,7 @@ package org.gradle.api.internal.notations
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.artifacts.dependencies.GeneratedSelfResolvingDependency
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory
@@ -73,7 +73,7 @@ class DependencyClassPathNotationConverterTest extends Specification {
         def out = parse(GRADLE_API)
 
         then:
-        out instanceof GeneratedSelfResolvingDependency
+        out instanceof DefaultSelfResolvingDependency
         out.files as List == [shadedApiJar] + localGroovyFiles + installationBeaconFiles
     }
 
@@ -82,7 +82,7 @@ class DependencyClassPathNotationConverterTest extends Specification {
         def out = parse(GRADLE_API)
 
         then:
-        out instanceof GeneratedSelfResolvingDependency
+        out instanceof DefaultSelfResolvingDependency
 
         when: // same instance is reused
         def out2 = parse(GRADLE_API)

@@ -17,13 +17,16 @@ package org.gradle.api.internal.notations;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
-import org.gradle.api.internal.artifacts.dependencies.GeneratedSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.SingletonFileSet;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType;
@@ -36,7 +39,6 @@ import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,17 +86,17 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         result.converted(dependency);
     }
 
-    private SelfResolvingDependency maybeCreateUnderLock(DependencyFactory.ClassPathNotation notation) {
+    private SelfResolvingDependency maybeCreateUnderLock(final DependencyFactory.ClassPathNotation notation) {
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
             final Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
             boolean runningFromInstallation = currentGradleInstallation.getInstallation() != null;
+            FileCollectionInternal fileCollectionInternal;
             Factory<FileCollectionInternal> filesFactory;
             if (runningFromInstallation && notation.equals(GRADLE_API)) {
-                filesFactory = new Factory<FileCollectionInternal>() {
-                    @Nullable
+                fileCollectionInternal = new GeneratedFileCollection(notation.displayName) {
                     @Override
-                    public FileCollectionInternal create() {
+                    FileCollection generateFileCollection() {
                         try {
                             internCacheWriteLock.lock();
                             return gradleApiFileCollection(classpath);
@@ -103,13 +105,10 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
                         }
                     }
                 };
-                dependency = instantiator.newInstance(GeneratedSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), filesFactory);
-
             } else if (runningFromInstallation && notation.equals(GRADLE_TEST_KIT)) {
-                filesFactory = new Factory<FileCollectionInternal>() {
-                    @Nullable
+                fileCollectionInternal = new GeneratedFileCollection(notation.displayName) {
                     @Override
-                    public FileCollectionInternal create() {
+                    FileCollection generateFileCollection() {
                         try {
                             internCacheWriteLock.lock();
                             return gradleTestKitFileCollection(classpath);
@@ -118,15 +117,15 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
                         }
                     }
                 };
-                dependency = instantiator.newInstance(GeneratedSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), filesFactory);
-
             } else {
-                dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), fileResolver.resolveFiles(classpath));
+                fileCollectionInternal = fileResolver.resolveFiles(classpath);
             }
+            dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), fileCollectionInternal);
             internCache.put(notation, dependency);
         }
         return dependency;
     }
+
 
     private FileCollectionInternal gradleApiFileCollection(Collection<File> apiClasspath) {
         // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
@@ -163,5 +162,30 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private FileCollectionInternal relocatedDepsJar(Collection<File> classpath, String displayName, RuntimeShadedJarType runtimeShadedJarType) {
         File gradleImplDepsJar = runtimeShadedJarFactory.get(runtimeShadedJarType, classpath);
         return new FileCollectionAdapter(new SingletonFileSet(gradleImplDepsJar, displayName));
+    }
+
+    abstract class GeneratedFileCollection extends CompositeFileCollection {
+
+        private final String displayName;
+
+        public GeneratedFileCollection(String notation) {
+            this.displayName = notation + " files";
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public void visitContents(FileCollectionResolveContext context) {
+            // we assume generated file collections have no build dependencies
+            if (context instanceof BuildDependenciesOnlyFileCollectionResolveContext) {
+                return;
+            }
+            context.add(generateFileCollection());
+        }
+
+        abstract FileCollection generateFileCollection();
     }
 }
