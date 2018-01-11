@@ -170,8 +170,6 @@ The Groovy library doesn't necessarily have to come from a remote repository. It
         </sample>
 ++++
 
-The “`module`” reference may be new to you. See <<dependency_management>> for more information about this and other information about dependency management.
-
 [[sec:automatic_configuration_of_groovyclasspath]]
 === Automatic configuration of groovyClasspath
 

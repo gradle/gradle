@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[artifact_dependencies_tutorial]]
-== Dependency Management Basics
+== Dependency Management for Java Projects
 
 This chapter introduces some of the basics of dependency management in Gradle.
 
@@ -72,7 +72,7 @@ apiElements::
 The dependencies which are part of this project's externally consumable API as well as the classes which are defined in this project which should be consumable by other projects. This configuration is an example of Exposing Artifacts for Consumption.
 
 
-Various plugins add further standard configurations. You can also define your own custom configurations to use in your build. Please see <<sub:configurations>> for the details of defining and customizing dependency configurations.
+Various plugins add further standard configurations. You can also define your own custom configurations to use in your build. Please see <<sub:scope_of_dependency_configurations>> for the details of defining and customizing dependency configurations.
 
 [[sec:external_dependencies_tutorial]]
 === External dependencies
@@ -97,7 +97,7 @@ The shortcut form for declaring external dependencies looks like “`__group__:_
         </sample>
 ++++
 
-To find out more about defining and working with dependencies, have a look at <<sec:declaring_dependencies>>.
+To find out more about defining dependencies, have a look at <<declaring_dependencies>>.
 
 [[sec:repositories_tutorial]]
 === Repositories
@@ -146,7 +146,7 @@ You can also have repositories on the local file system. This works for both Mav
 
 A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
 
-To find out more about defining and working with repositories, have a look at <<sec:declaring_repositories>>.
+To find out more about defining repositories, have a look at <<declaring_repositories>>.
 
 [[sec:publishing_artifacts_tutorial]]
 === Publishing artifacts
@@ -176,7 +176,7 @@ To find out more about publication, have a look at <<artifact_management>>.
 [[sec:artifacts_tutorial_where_to_next]]
 === Where to next?
 
-For all the details of dependency resolution, see <<dependency_management>>, and for artifact publication see <<artifact_management>>.
+For all the details of dependency resolution, see <<dependency_management_introduction>>, and for artifact publication see <<artifact_management>>.
 
 If you are interested in the DSL elements mentioned here, have a look at api:org.gradle.api.Project#configurations[], api:org.gradle.api.Project#repositories[] and api:org.gradle.api.Project#dependencies[].
 
