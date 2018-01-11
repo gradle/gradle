@@ -29,7 +29,7 @@ fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boo
     // TODO: Hacky. We should really be running all the subprojects on macOS
     // But we're restricting this to just a subset of projects for now
     // since we only have a small pool of macOS agents
-    return testConfig.os.subset.isNotEmpty() && !testConfig.os.subset.contains(subProject.name)
+    return testConfig.os.ignoredSubprojects.contains(subProject.name)
 }
 
 val gradleParameters: List<String> = asList(

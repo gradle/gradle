@@ -1,10 +1,6 @@
 package model
 
-import configurations.BuildDistributions
-import configurations.Gradleception
-import configurations.SanityCheck
-import configurations.SmokeTests
-import configurations.DependenciesCheck
+import configurations.*
 import jetbrains.buildServer.configs.kotlin.v10.BuildType
 
 data class CIBuildModel (
@@ -186,8 +182,8 @@ data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVers
     }
 }
 
-enum class OS(val agentRequirement: String, val subset: List<String> = emptyList()) {
-    linux("Linux"), windows("Windows"), macos("Mac", listOf("languageNative", "platformNative", "testingNative", "ideNative"))
+enum class OS(val agentRequirement: String, val ignoredSubprojects: List<String> = emptyList()) {
+    linux("Linux"), windows("Windows"), macos("Mac", listOf("integTest", "native", "plugins", "resources", "scala", "workers", "wrapper"))
 }
 
 enum class JvmVersion {
