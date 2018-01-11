@@ -924,9 +924,7 @@ Currently it is not possible to declare that certain modules is replaced by a se
 [[sec:troubleshooting_dependency_resolution]]
 === Troubleshooting dependency resolution
 
-While Gradle has strong opinions on dependency management, the tool gives you a choice between two options: follow recommended best practices or support any kind of pattern you can think of. This section outlines the Gradle project's recommended best practices for managing dependencies.
-
-No matter what the language, proper dependency management is important for every project. From a complex enterprise application written in Java depending on hundreds of open source libraries to the simplest Clojure application depending on a handful of libraries, approaches to dependency management vary widely and can depend on the target technology, the method of application deployment, and the nature of the project. Projects bundled as reusable libraries may have different requirements than enterprise applications integrated into much larger systems of software and infrastructure. Despite this wide variation of requirements, the Gradle project recommends that all projects follow this set of core rules:
+Managing large dependency graphs can be challenging. This section describes techniques for troubleshooting issues you might encounter in your project.
 
 [[sub:versioning_the_jar_name]]
 ==== Putting the version in the filename (version the jar)
