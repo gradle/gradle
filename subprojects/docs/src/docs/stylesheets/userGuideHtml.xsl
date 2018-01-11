@@ -176,7 +176,7 @@
                                             <li><a href="/userguide/artifact_dependencies_tutorial.html">Dependency Management for Java Projects</a></li>
                                         </ul>
                                     </li>
-                                    <li><a href="/userguide/dependency_management_introduction.html">Introduction to Dependency Management</a></li>
+                                    <li><a href="/userguide/introduction_dependency_management.html">Introduction to Dependency Management</a></li>
                                     <li><a href="/userguide/declaring_dependencies.html">Declaring Dependencies</a></li>
                                     <li><a href="/userguide/declaring_repositories.html">Declaring Repositories</a></li>
                                     <li><a href="/userguide/inspecting_dependencies.html">Inspecting Dependencies</a></li>

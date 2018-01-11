@@ -73,14 +73,14 @@
     </part>
     <part>
         <title>Dependency management</title>
-        <xi:include href='../../../build/asciidoc/userguide/dependencyManagementIntroduction.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/dependencyManagementDeclaringDependencies.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/dependencyManagementDeclaringRepositories.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/dependencyManagementInspectingDependencies.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/dependencyManagementManagingTransitiveDependencies.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/dependencyManagementWorkingWithDependencies.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/dependencyManagementCustomizingDependencyResolutionBehavior.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/dependencyManagementTroubleshootingDependencyResolution.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/introductionDependencyManagement.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/declaringDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/declaringRepositories.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/inspectingDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/managingTransitiveDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/workingWithDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/customizingDependencyResolutionBehavior.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/troubleshootingDependencyResolution.xml'/>
     </part>
     <part>
         <title>Extending the build</title>

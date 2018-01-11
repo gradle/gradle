@@ -176,7 +176,7 @@ To find out more about publication, have a look at <<artifact_management>>.
 [[sec:artifacts_tutorial_where_to_next]]
 === Where to next?
 
-For all the details of dependency resolution, see <<dependency_management_introduction>>, and for artifact publication see <<artifact_management>>.
+For all the details of dependency resolution, see <<introduction_dependency_management>>, and for artifact publication see <<artifact_management>>.
 
 If you are interested in the DSL elements mentioned here, have a look at api:org.gradle.api.Project#configurations[], api:org.gradle.api.Project#repositories[] and api:org.gradle.api.Project#dependencies[].
 
