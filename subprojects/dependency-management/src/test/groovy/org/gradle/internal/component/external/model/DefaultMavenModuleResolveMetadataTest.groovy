@@ -79,7 +79,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
 
         then:
         runtime.variants.size() == 1
-        runtime.variants.first().attributes.empty
+        runtime.variants.first().attributes.keySet().size() == 1 //org.gradle.status
         runtime.variants.first().artifacts == runtime.artifacts
     }
 
@@ -145,8 +145,8 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
         def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal()
 
         then:
-        compileConf.attributes.empty
-        runtimeConf.attributes.empty
+        compileConf.attributes.keySet().size() == 1 //org.gradle.status
+        runtimeConf.attributes.keySet().size() == 1 //org.gradle.status
         isJavaLibrary ? variantsForGraphTraversal.size() == 2 : variantsForGraphTraversal.empty
 
         if (isJavaLibrary) {

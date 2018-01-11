@@ -124,7 +124,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         ImmutableList<String> hierarchy = constructHierarchy(descriptorConfiguration);
         boolean transitive = descriptorConfiguration.isTransitive();
         boolean visible = descriptorConfiguration.isVisible();
-        populated = createConfiguration(componentIdentifier, name, transitive, visible, hierarchy, variantMetadataRules);
+        populated = createConfiguration(componentIdentifier, name, transitive, visible, hierarchy, variantMetadataRules, attributes);
         configurations.put(name, populated);
         return populated;
     }
@@ -149,7 +149,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     /**
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
-    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, VariantMetadataRules componentMetadataRules);
+    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy,
+                                                                        VariantMetadataRules componentMetadataRules, ImmutableAttributes componentLevelAttributes);
 
     /**
      * If there are no variants defined in the metadata, but the implementation knows how to provide variants it can do that here.

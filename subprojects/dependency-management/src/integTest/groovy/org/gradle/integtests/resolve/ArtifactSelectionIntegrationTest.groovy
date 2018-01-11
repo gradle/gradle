@@ -586,7 +586,7 @@ task show {
         then:
         outputContains("files: [test-lib.jar, transformed-a1.jar, transformed-b2.jar, test-1.0.jar]")
         outputContains("components: [test-lib.jar, project :lib, project :ui, org:test:1.0]")
-        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar}]")
+        outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, org.gradle.status=integration}]")
     }
 
     def "can query the content of view before task graph is calculated"() {
@@ -887,6 +887,7 @@ task show {
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes: test:test:1.2 configuration default:
   - Required artifactType 'dll' and found incompatible value 'jar'.
+  - Found org.gradle.status 'integration' but wasn't required.
   - Required usage 'api' but no value provided.""")
 
         failure.assertHasCause("""No variants of thing.jar match the consumer attributes: thing.jar:
