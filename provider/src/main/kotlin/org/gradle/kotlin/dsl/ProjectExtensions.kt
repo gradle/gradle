@@ -63,18 +63,6 @@ fun Project.defaultTasks(vararg tasks: Task) {
 
 
 /**
- * Applies zero or more plugins or scripts.
- *
- * @param block code to configure an [ObjectConfigurationAction] before executing it
- *
- * @see [Project.apply]
- */
-inline
-fun Project.apply(crossinline block: ObjectConfigurationAction.() -> Unit) =
-    apply({ it.block() })
-
-
-/**
  * Applies the given plugin. Does nothing if the plugin has already been applied.
  *
  * The given class should implement the [Plugin] interface, and be parameterized for a
