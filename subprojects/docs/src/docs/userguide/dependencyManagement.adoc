@@ -967,7 +967,7 @@ Alternatively, sometimes the module you request can change over time, even for t
 
 The main difference between a _dynamic version_ and a _changing module_ is that when you resolve a _dynamic version_, you'll get the real, static version as the module name. When you resolve a _changing module_, the artifacts are named using the version you requested, but the underlying artifacts may change over time.
 
-By default, Gradle caches dynamic versions and changing modules for 24 hours. You can override the default cache modes using <<sec:cache_command_line_options,command line options>>. You can change the cache expiry times in your build using the resolution strategy (see <<sec:controlling_caching>>).
+By default, Gradle caches dynamic versions and changing modules for 24 hours. You can override the default cache modes using <<sec:controlling_dependency_caching_command_line,command line options>>. You can also <<sec:controlling_dependency_caching_programmatically,change the cache expiry times in your build programmatically>> using the resolution strategy.
 
 [[sec:controlling_dependency_caching_programmatically]]
 ==== Controlling dependency caching programmatically
