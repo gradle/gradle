@@ -19,15 +19,18 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.Collection;
 import java.util.List;
@@ -58,8 +61,9 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
     protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                            ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
                                            VariantMetadataRules componentMetadataRules,
-                                           ImmutableList<ExcludeMetadata> excludes) {
-        this(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, ImmutableAttributes.EMPTY, null);
+                                           ImmutableList<ExcludeMetadata> excludes,
+                                           ImmutableAttributes attributes) {
+        this(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, attributes, null);
     }
 
     private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
@@ -161,8 +165,9 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
         return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
     }
 
-    protected DefaultConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
-        return new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, attributes, configDependencies);
+    protected  <T> ConfigurationMetadata withAdditionalAttribute(ImmutableAttributesFactory attributesFactory, Attribute<T> attribute, Isolatable<T> value) {
+        return new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes,
+            attributesFactory.concat(attributes, attribute, value), configDependencies);
     }
 
 }

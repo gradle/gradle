@@ -138,16 +138,16 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         run 'show'
 
         then:
-        output.contains("test-jar-1.2.jar {artifactType=jar}")
-        output.contains("test-aar-1.2.aar {artifactType=aar}")
-        output.contains("test-thing-1.2.thing {artifactType=thing}")
-        output.contains("test-1.2.jar {artifactType=jar}")
+        output.contains("test-jar-1.2.jar {artifactType=jar, org.gradle.status=integration}")
+        output.contains("test-aar-1.2.aar {artifactType=aar, org.gradle.status=integration}")
+        output.contains("test-thing-1.2.thing {artifactType=thing, org.gradle.status=integration}")
+        output.contains("test-1.2.jar {artifactType=jar, org.gradle.status=integration}")
         output.contains("test-1.2.aar {artifactType=aar}")
         output.contains("test-1.2.thing {artifactType=thing}")
         output.contains("test-1.2-util.jar {artifactType=jar}")
         output.contains("test-1.2-util.aar {artifactType=aar}")
-        output.contains("test-api-1.2.jar {artifactType=custom}")
-        output.contains("test-api-1.2 {artifactType=}")
+        output.contains("test-api-1.2.jar {artifactType=custom, org.gradle.status=integration}")
+        output.contains("test-api-1.2 {artifactType=, org.gradle.status=integration}")
     }
 
     def "artifacts in a file dependency have standard attributes defined based on their extension"() {
@@ -340,9 +340,9 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         run 'show'
 
         then:
-        output.contains("test-jar-1.2.jar {artifactType=jar, javaVersion=1.8, usage=java-runtime}")
-        output.contains("test-aar-1.2.aar {androidType=library-archive, artifactType=aar}")
-        output.contains("test-thing-1.2.thing {artifactType=widget, usage=unknown}")
+        output.contains("test-jar-1.2.jar {artifactType=jar, javaVersion=1.8, org.gradle.status=integration, usage=java-runtime}")
+        output.contains("test-aar-1.2.aar {androidType=library-archive, artifactType=aar, org.gradle.status=integration}")
+        output.contains("test-thing-1.2.thing {artifactType=widget, org.gradle.status=integration, usage=unknown}")
     }
 
     def "can attach attributes to an artifact provided by a file dependency"() {
