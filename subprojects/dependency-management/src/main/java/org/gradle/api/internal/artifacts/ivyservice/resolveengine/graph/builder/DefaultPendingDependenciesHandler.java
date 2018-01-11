@@ -26,9 +26,6 @@ import java.util.List;
 /**
  * This class is responsible for maintaining the state of pending dependencies. In other words, when such a dependency (e.g. a dependency constraints or a maven optional dependency), is added to the
  * graph, it is "pending" until a hard dependency for the same module is seen. As soon as a hard dependency is found, nodes that referred to the pending dependency are restarted.
- *
- * This class also makes a special case of the "optional" configuration, for backwards compatibility: the optional configuration used to store maven optional dependencies. But if we no longer resolve
- * optional dependencies, then the optional configuration becomes effectively empty. To avoid this, we ignore the state of optional dependencies if they belong to the "optional" configuration.
  */
 public class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
     private final PendingDependenciesState pendingDependencies = new PendingDependenciesState();
@@ -43,24 +40,19 @@ public class DefaultPendingDependenciesHandler implements PendingDependenciesHan
     }
 
     @Override
-    public Visitor start(boolean isOptionalConfiguration) {
-        return new DefaultVisitor(isOptionalConfiguration);
+    public Visitor start() {
+        return new DefaultVisitor();
     }
 
     public class DefaultVisitor implements Visitor {
-        private final boolean isOptionalConfiguration;
         private List<PendingDependencies> noLongerPending;
-
-        public DefaultVisitor(boolean isOptionalConfiguration) {
-            this.isOptionalConfiguration = isOptionalConfiguration;
-        }
 
         public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
             ModuleIdentifier key = lookupModuleIdentifier(dependencyState);
             PendingDependencies pendingDependencies = DefaultPendingDependenciesHandler.this.pendingDependencies.getPendingDependencies(key);
             boolean pending = pendingDependencies.isPending();
 
-            if (dependencyState.getDependencyMetadata().isPending() && !isOptionalConfiguration && pending) {
+            if (dependencyState.getDependencyMetadata().isPending() && pending) {
                     pendingDependencies.addNode(node);
                     return true;
             }

@@ -170,8 +170,7 @@ class NodeState implements DependencyGraphNode {
     }
 
     protected void visitDependencies(ModuleExclusion resolutionFilter, PendingDependenciesHandler pendingDependenciesHandler, Collection<EdgeState> resultingOutgoingEdges) {
-        boolean isOptionalConfiguration = "optional".equals(metaData.getName());
-        PendingDependenciesHandler.Visitor pendingDepsVisitor =  pendingDependenciesHandler.start(isOptionalConfiguration);
+        PendingDependenciesHandler.Visitor pendingDepsVisitor =  pendingDependenciesHandler.start();
         try {
             for (DependencyMetadata dependency : metaData.getDependencies()) {
                 DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());

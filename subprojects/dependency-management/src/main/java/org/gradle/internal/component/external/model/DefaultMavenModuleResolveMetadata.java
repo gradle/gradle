@@ -30,11 +30,13 @@ import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
 
@@ -117,8 +119,12 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
+        boolean isOptionalConfiguration = "optional".equals(config.getName());
+
         for (MavenDependencyDescriptor dependency : dependencies) {
-            if (include(dependency, config.getName(), config.getHierarchy())) {
+            if (isOptionalConfiguration && includeInOptionalConfiguration(dependency)) {
+                filteredDependencies.add(new OptionalConfigurationDependencyMetadata(config, getComponentId(), dependency));
+            } else if (include(dependency, config.getHierarchy())) {
                 filteredDependencies.add(contextualize(config, getComponentId(), dependency));
             }
         }
@@ -129,20 +135,19 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
         return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
     }
 
-    private boolean include(MavenDependencyDescriptor dependency, String configName, Collection<String> hierarchy) {
+    private boolean includeInOptionalConfiguration(MavenDependencyDescriptor dependency) {
         MavenScope dependencyScope = dependency.getScope();
+        // Include all 'optional' dependencies in "optional" configuration
+        return dependency.isOptional()
+            && dependencyScope != MavenScope.Test
+            && dependencyScope != MavenScope.System;
+    }
 
-        if ("optional".equals(configName)) {
-            // Include all 'optional' dependencies in "optional" configuration
-            return dependency.isOptional()
-                && dependencyScope != MavenScope.Test
-                && dependencyScope != MavenScope.System;
-        }
-
+    private boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy) {
+        MavenScope dependencyScope = dependency.getScope();
         if (dependency.isOptional() && ignoreOptionalDependencies()) {
             return false;
         }
-
         return hierarchy.contains(dependencyScope.name().toLowerCase());
     }
 
@@ -222,5 +227,39 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
             packaging,
             relocated,
             snapshotTimestamp);
+    }
+
+    /**
+     * Adapts a MavenDependencyDescriptor to `DependencyMetadata` for the magic "optional" configuration.
+     *
+     * This configuration has special semantics:
+     *  - Dependencies in the "optional" configuration are _never_ themselves optional (ie not 'pending')
+     *  - Dependencies in the "optional" configuration can have dependency artifacts, even if the dependency is flagged as 'optional'.
+     *    (For a standard configuration, any dependency flagged as 'optional' will have no dependency artifacts).
+     */
+    private static class OptionalConfigurationDependencyMetadata extends ConfigurationDependencyMetadataWrapper {
+        private final MavenDependencyDescriptor dependencyDescriptor;
+
+        public OptionalConfigurationDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, MavenDependencyDescriptor delegate) {
+            super(configuration, componentId, delegate);
+            this.dependencyDescriptor = delegate;
+        }
+
+        /**
+         * Dependencies markes as optional/pending in the "optional" configuration _can_ have dependency artifacts.
+         */
+        @Override
+        public List<IvyArtifactName> getArtifacts() {
+            IvyArtifactName dependencyArtifact = dependencyDescriptor.getDependencyArtifact();
+            return dependencyArtifact == null ? ImmutableList.<IvyArtifactName>of() : ImmutableList.of(dependencyArtifact);
+        }
+
+        /**
+         * Dependencies in the "optional" configuration are never 'pending'.
+         */
+        @Override
+        public boolean isPending() {
+            return false;
+        }
     }
 }
