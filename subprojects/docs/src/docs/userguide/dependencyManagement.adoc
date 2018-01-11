@@ -969,7 +969,7 @@ The main difference between a _dynamic version_ and a _changing module_ is that 
 
 By default, Gradle caches dynamic versions and changing modules for 24 hours. You can override the default cache modes using <<sec:cache_command_line_options,command line options>>. You can change the cache expiry times in your build using the resolution strategy (see <<sec:controlling_caching>>).
 
-[[sec:controlling_caching]]
+[[sec:controlling_dependency_caching_programmatically]]
 ==== Controlling dependency caching programmatically
 
 You can fine-tune certain aspects of caching using the `ResolutionStrategy` for a configuration.
@@ -992,16 +992,14 @@ By default, Gradle caches changing modules for 24 hours. To change how long Grad
 
 For more details, take a look at the API documentation for api:org.gradle.api.artifacts.ResolutionStrategy[].
 
-[[sec:cache_command_line_options]]
+[[sec:controlling_dependency_caching_command_line]]
 ==== Controlling dependency caching from the command line
 
-[[sub:cache_offline]]
-===== Offline
+===== Avoiding network access with offline mode
 
 The `--offline` command line switch tells Gradle to always use dependency modules from the cache, regardless if they are due to be checked again. When running with offline, Gradle will never attempt to access the network to perform dependency resolution. If required modules are not present in the dependency cache, build execution will fail.
 
-[[sub:cache_refresh]]
-===== Refresh
+===== Forcing all dependencies to be re-resolved
 
 At times, the Gradle Dependency Cache can be out of sync with the actual state of the configured repositories. Perhaps a repository was initially misconfigured, or perhaps a “non-changing” module was published incorrectly. To refresh all dependencies in the dependency cache, use the `--refresh-dependencies` option on the command line.
 
