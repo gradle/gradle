@@ -49,21 +49,32 @@ public class DefaultPendingDependenciesHandler implements PendingDependenciesHan
 
         public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
             ModuleIdentifier key = lookupModuleIdentifier(dependencyState);
+
+            boolean isOptionalDependency = dependencyState.getDependencyMetadata().isPending();
+            if (!isOptionalDependency) {
+                // Mark as not pending. If we saw pending dependencies before, mark them as no longer pending
+                PendingDependencies priorPendingDependencies = pendingDependencies.notPending(key);
+                if (priorPendingDependencies != null) {
+                    if (noLongerPending == null) {
+                        noLongerPending = Lists.newLinkedList();
+                    }
+                    noLongerPending.add(priorPendingDependencies);
+                }
+                return false;
+            }
+
+            // Adding an optional dependency: see if we already have a hard dependency on the same module
             PendingDependencies pendingDependencies = DefaultPendingDependenciesHandler.this.pendingDependencies.getPendingDependencies(key);
             boolean pending = pendingDependencies.isPending();
 
-            if (dependencyState.getDependencyMetadata().isPending() && pending) {
-                    pendingDependencies.addNode(node);
-                    return true;
+            // Already have a hard dependency, this optional dependency is not pending.
+            if (!pending) {
+                return false;
             }
-            if (pending) {
-                if (noLongerPending == null) {
-                    noLongerPending = Lists.newLinkedList();
-                }
-                noLongerPending.add(pendingDependencies);
-            }
-            DefaultPendingDependenciesHandler.this.pendingDependencies.notPending(key);
-            return false;
+
+            // No hard dependency, queue up pending dependency in case we see a hard dependency later.
+            pendingDependencies.addNode(node);
+            return true;
         }
 
         private ModuleIdentifier lookupModuleIdentifier(DependencyState dependencyState) {
