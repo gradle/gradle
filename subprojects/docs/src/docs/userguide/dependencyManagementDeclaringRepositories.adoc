@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[declaring_repositories]]
-== Declaring repositories
+== Declaring Repositories
 
 Gradle can resolve external dependencies from one or many repositories based on Maven, Ivy or flat directory directory formats. Check out the <<repository_types,full reference on all types of repositories>> for more information.
 

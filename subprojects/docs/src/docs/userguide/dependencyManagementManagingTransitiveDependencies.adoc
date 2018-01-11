@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[managing_transitive_dependencies]]
-== Managing transitive dependencies
+== Managing Transitive Dependencies
 
 Resolution behavior for transitive dependencies can be customized to a high degree to meet enterprise requirements.
 

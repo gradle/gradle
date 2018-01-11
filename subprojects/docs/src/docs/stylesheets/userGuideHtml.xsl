@@ -181,7 +181,7 @@
                                     <li><a href="/userguide/declaring_repositories.html">Declaring Repositories</a></li>
                                     <li><a href="/userguide/inspecting_dependencies.html">Inspecting Dependencies</a></li>
                                     <li><a href="/userguide/managing_transitive_dependencies.html">Managing Transitive Dependencies</a></li>
-                                    <li><a href="/userguide/working_with_dependencies.html">Working with dependencies</a></li>
+                                    <li><a href="/userguide/working_with_dependencies.html">Working with Dependencies</a></li>
                                     <li><a href="/userguide/customizing_dependency_resolution_behavior.html">Customizing Dependency Resolution Behavior</a></li>
                                     <li><a href="/userguide/troubleshooting_dependency_resolution.html">Troubleshooting Dependency Resolution</a></li>
                                     <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-management-glossary" aria-expanded="false" aria-controls="dependency-management-glossary">Glossary</a>

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[working_with_dependencies]]
-== Working with dependencies
+== Working with Dependencies
 
 For the examples below we have the following dependencies setup:
 

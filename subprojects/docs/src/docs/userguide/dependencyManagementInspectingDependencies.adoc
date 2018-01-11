@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[inspecting_dependencies]]
-== Inspecting dependencies
+== Inspecting Dependencies
 
 Gradle provides sufficient tooling to navigate large dependency graphs and mitigate situations that can lead to link:https://en.wikipedia.org/wiki/Dependency_hell[dependency hell]. Users can chose to render the full graph of dependencies as well as identify the selection reason and origin for a dependency. The origin of a dependency can be a declared dependency in the build script or a transitive dependency in graph plus their corresponding configuration. Gradle offers both capabilities through visual representation via build scans and as command line tooling.
 

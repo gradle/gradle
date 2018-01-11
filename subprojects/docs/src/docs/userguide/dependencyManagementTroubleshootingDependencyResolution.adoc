@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[troubleshooting_dependency_resolution]]
-== Troubleshooting dependency resolution
+== Troubleshooting Dependency Resolution
 
 Managing large dependency graphs can be challenging. This section describes techniques for troubleshooting issues you might encounter in your project.
 
