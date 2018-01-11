@@ -22,7 +22,7 @@ import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDependenciesIntegrationTest {
-    def "implementation dependencies are visible to downstream consumers"() {
+    def "can compile against a library with implementation dependencies"() {
         settingsFile << """
             include ":lib1", ":lib2"
         """
@@ -66,7 +66,7 @@ class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDepen
         result.assertTasksExecuted([":lib1:compileDebugSwift", ":lib1:linkDebug", ":lib2:compileDebugSwift", ":lib2:linkDebug"], assembleDevBinaryTasks, assembleDevBinaryTask)
     }
 
-    def "binary-specific implementation dependencies are visible to downstream consumers"() {
+    def "can compile against a library with binary-specific implementation dependencies"() {
         settingsFile << """
             include ":lib1", ":lib2"
         """
