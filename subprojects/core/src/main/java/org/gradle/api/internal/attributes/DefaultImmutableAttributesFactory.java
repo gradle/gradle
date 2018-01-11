@@ -58,11 +58,15 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value) {
-        return concat(node, key, isolatableFactory.isolate(value));
+        return doConcatIsolatable(node, key, isolatableFactory.isolate(value));
     }
 
     @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
+        return doConcatIsolatable(node, key, value);
+    }
+
+    private <T> ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
         synchronized (this) {
             List<DefaultImmutableAttributes> nodeChildren = children.get(node);
             if (nodeChildren == null) {
@@ -89,7 +93,11 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         ImmutableAttributes current = attributes2;
         for (Attribute attribute : attributes1.keySet()) {
             if (!current.contains(attribute)) {
-                current = concat(current, attribute, attributes1.getAttribute(attribute));
+                if (attributes1 instanceof DefaultImmutableAttributes) {
+                    current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributes) attributes1).getIsolatableAttribute(attribute));
+                } else {
+                    current = concat(current, attribute, attributes1.getAttribute(attribute));
+                }
             }
         }
         return current;
