@@ -30,8 +30,7 @@ data class CIBuildModel (
                     specificBuilds = listOf(
                             SpecificBuild.BuildDistributions,
                             SpecificBuild.Gradleception,
-                            SpecificBuild.SmokeTests,
-                            SpecificBuild.DependenciesCheck),
+                            SpecificBuild.SmokeTests),
                     functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
