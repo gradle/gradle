@@ -24,6 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
@@ -31,7 +32,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
-import org.gradle.internal.Factory;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.concurrent.Stoppable;
@@ -49,8 +50,8 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
 public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);
 
-    private final File projectDir;
-    private final Factory<GradleLauncher> gradleLauncherFactory;
+    private final BuildDefinition buildDefinition;
+    private final NestedBuildFactory gradleLauncherFactory;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
 
@@ -60,14 +61,14 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
     private String name;
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
-    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
-        this.projectDir = projectDir;
+    public DefaultIncludedBuild(BuildDefinition buildDefinition, NestedBuildFactory launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
+        this.buildDefinition = buildDefinition;
         this.gradleLauncherFactory = launcherFactory;
         this.parentLease = parentLease;
     }
 
     public File getProjectDir() {
-        return projectDir;
+        return buildDefinition.getProjectDir();
     }
 
     @Override
@@ -146,7 +147,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
-            gradleLauncher = gradleLauncherFactory.create();
+            gradleLauncher = gradleLauncherFactory.nestedInstance(buildDefinition);
         }
         return gradleLauncher;
     }
@@ -176,7 +177,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     @Override
     public String toString() {
-        return String.format("includedBuild[%s]", projectDir.getName());
+        return String.format("includedBuild[%s]", getProjectDir());
     }
 
     @Override

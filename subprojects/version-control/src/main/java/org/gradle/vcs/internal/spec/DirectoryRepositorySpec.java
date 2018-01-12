@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal.spec;
 
+import org.gradle.StartParameter;
 import org.gradle.vcs.VersionControlSpec;
 
 import java.io.File;
@@ -23,6 +24,10 @@ import java.io.File;
 // TODO: Remove this when we have a real Vcs (like Git)
 public class DirectoryRepositorySpec extends AbstractVersionControlSpec implements VersionControlSpec {
     private File sourceDir;
+
+    public DirectoryRepositorySpec(StartParameter rootBuildStartParameter) {
+        super(rootBuildStartParameter);
+    }
 
     @Override
     public String getDisplayName() {

@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.git.internal;
 
+import org.gradle.StartParameter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
@@ -25,6 +26,10 @@ import java.net.URISyntaxException;
 
 public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec implements GitVersionControlSpec {
     private URI url;
+
+    public DefaultGitVersionControlSpec(StartParameter rootBuildStartParameter) {
+        super(rootBuildStartParameter);
+    }
 
     @Override
     public URI getUrl() {

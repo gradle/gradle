@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.composite.CompositeBuildContext;
@@ -31,16 +32,14 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.NestedBuildFactory;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -50,16 +49,14 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
     private final IncludedBuildFactory includedBuildFactory;
     private final DefaultProjectPathRegistry projectRegistry;
     private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;
-    private final BuildLayoutFactory buildLayoutFactory;
 
     // TODO: Locking around this
-    private final Map<File, IncludedBuildInternal> includedBuilds = Maps.newLinkedHashMap();
+    private final Map<BuildDefinition, IncludedBuildInternal> includedBuilds = Maps.newLinkedHashMap();
 
-    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, DefaultProjectPathRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, CompositeBuildContext compositeBuildContext, BuildLayoutFactory buildLayoutFactory) {
+    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, DefaultProjectPathRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, CompositeBuildContext compositeBuildContext) {
         this.includedBuildFactory = includedBuildFactory;
         this.projectRegistry = projectRegistry;
         this.dependencySubstitutionsBuilder = dependencySubstitutionsBuilder;
-        this.buildLayoutFactory = buildLayoutFactory;
         compositeBuildContext.setIncludedBuildRegistry(this);
     }
 
@@ -69,13 +66,13 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
     }
 
     @Override
-    public Map<File, IncludedBuild> getIncludedBuilds() {
-        return Collections.<File, IncludedBuild>unmodifiableMap(includedBuilds);
+    public Collection<IncludedBuild> getIncludedBuilds() {
+        return Cast.uncheckedCast(includedBuilds.values());
     }
 
     @Override
-    public IncludedBuildInternal addExplicitBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
-        return registerBuild(buildDirectory, nestedBuildFactory);
+    public IncludedBuildInternal addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+        return registerBuild(buildDefinition, nestedBuildFactory);
     }
 
     @Override
@@ -98,7 +95,7 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
         validateIncludedBuilds(settings);
 
         registerRootBuildProjects(settings);
-        Collection<IncludedBuild> includedBuilds = getIncludedBuilds().values();
+        Collection<IncludedBuild> includedBuilds = getIncludedBuilds();
         // Set the only visible included builds from the root build
         settings.getGradle().setIncludedBuilds(includedBuilds);
         registerProjects(includedBuilds, false);
@@ -128,29 +125,21 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
     }
 
     @Override
-    public ConfigurableIncludedBuild addImplicitBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
-        ConfigurableIncludedBuild includedBuild = includedBuilds.get(buildDirectory);
+    public ConfigurableIncludedBuild addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+        ConfigurableIncludedBuild includedBuild = includedBuilds.get(buildDefinition);
         if (includedBuild == null) {
-            File settingsFile = buildLayoutFactory.findExistingSettingsFileIn(buildDirectory);
-            if (settingsFile == null) {
-                throw new GradleException(
-                    String.format(
-                        "Included build from '%s' must contain a settings file.",
-                        buildDirectory));
-            }
-
-            includedBuild = registerBuild(buildDirectory, nestedBuildFactory);
+            includedBuild = registerBuild(buildDefinition, nestedBuildFactory);
             registerProjects(Collections.<IncludedBuild>singletonList(includedBuild), true);
         }
         return includedBuild;
     }
 
-    private IncludedBuildInternal registerBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
+    private IncludedBuildInternal registerBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
         // TODO: synchronization
-        IncludedBuildInternal includedBuild = includedBuilds.get(buildDirectory);
+        IncludedBuildInternal includedBuild = includedBuilds.get(buildDefinition);
         if (includedBuild == null) {
-            includedBuild = includedBuildFactory.createBuild(buildDirectory, DefaultPluginRequests.EMPTY, nestedBuildFactory);
-            includedBuilds.put(buildDirectory, includedBuild);
+            includedBuild = includedBuildFactory.createBuild(buildDefinition, nestedBuildFactory);
+            includedBuilds.put(buildDefinition, includedBuild);
         }
         return includedBuild;
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal;
 
+import org.gradle.StartParameter;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.vcs.VersionControlSpec;
@@ -27,17 +28,19 @@ import javax.annotation.Nullable;
 
 public class VersionControlSpecFactory {
     private final Instantiator instantiator;
+    private final StartParameter rootBuildStartParameter;
 
-    public VersionControlSpecFactory(Instantiator instantiator) {
+    public VersionControlSpecFactory(Instantiator instantiator, StartParameter rootBuildStartParameter) {
         this.instantiator = instantiator;
+        this.rootBuildStartParameter = rootBuildStartParameter;
     }
 
     @Nullable
     public <T extends VersionControlSpec> T create(Class<T> specType) {
         if (GitVersionControlSpec.class.isAssignableFrom(specType)) {
-            return Cast.uncheckedCast(instantiator.newInstance(DefaultGitVersionControlSpec.class));
+            return Cast.uncheckedCast(instantiator.newInstance(DefaultGitVersionControlSpec.class, rootBuildStartParameter));
         } else if (DirectoryRepositorySpec.class.isAssignableFrom(specType)) {
-            return Cast.uncheckedCast(instantiator.newInstance(DirectoryRepositorySpec.class));
+            return Cast.uncheckedCast(instantiator.newInstance(DirectoryRepositorySpec.class, rootBuildStartParameter));
         }
         return null;
     }

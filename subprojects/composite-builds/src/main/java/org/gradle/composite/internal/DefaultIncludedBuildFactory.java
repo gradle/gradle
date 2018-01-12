@@ -16,32 +16,21 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.SettingsInternal;
-import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
-import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.io.File;
 
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final Instantiator instantiator;
-    private final StartParameter rootBuildStartParameter;
     private final WorkerLeaseService workerLeaseService;
-    private final BuildLayoutFactory buildLayoutFactory;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter rootBuildStartParameter, WorkerLeaseService workerLeaseService, BuildLayoutFactory buildLayoutFactory) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, WorkerLeaseService workerLeaseService) {
         this.instantiator = instantiator;
-        this.rootBuildStartParameter = rootBuildStartParameter;
         this.workerLeaseService = workerLeaseService;
-        this.buildLayoutFactory = buildLayoutFactory;
     }
 
     private void validateBuildDirectory(File dir) {
@@ -53,49 +42,9 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
         }
     }
 
-    private void validateIncludedBuild(IncludedBuild includedBuild, SettingsInternal settings) {
-        File settingsFile = buildLayoutFactory.findExistingSettingsFileIn(settings.getSettingsDir());
-        if (settingsFile == null) {
-            throw new InvalidUserDataException(String.format("Included build '%s' must have a settings file.", includedBuild.getName()));
-        }
-    }
-
     @Override
-    public IncludedBuildInternal createBuild(File buildDirectory, PluginRequests pluginRequests, NestedBuildFactory nestedBuildFactory) {
-        validateBuildDirectory(buildDirectory);
-        Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, pluginRequests, nestedBuildFactory);
-        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, workerLeaseService.getCurrentWorkerLease());
-
-        SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
-        validateIncludedBuild(includedBuild, settingsInternal);
-        return includedBuild;
-    }
-
-    private class ContextualGradleLauncherFactory implements Factory<GradleLauncher> {
-        private final File buildDirectory;
-        private final PluginRequests pluginRequests;
-        private final NestedBuildFactory nestedBuildFactory;
-
-        public ContextualGradleLauncherFactory(File buildDirectory, PluginRequests pluginRequests, NestedBuildFactory nestedBuildFactory) {
-            this.buildDirectory = buildDirectory;
-            this.pluginRequests = pluginRequests;
-            this.nestedBuildFactory = nestedBuildFactory;
-        }
-
-        @Override
-        public GradleLauncher create() {
-            BuildDefinition includedBuildDefinition = createBuildDefinition();
-            GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(includedBuildDefinition);
-            return gradleLauncher;
-        }
-
-        private BuildDefinition createBuildDefinition() {
-            StartParameter includedBuildStartParam = rootBuildStartParameter.newBuild();
-            includedBuildStartParam.setProjectDir(buildDirectory);
-            includedBuildStartParam.setSearchUpwards(false);
-            includedBuildStartParam.setConfigureOnDemand(false);
-            includedBuildStartParam.setInitScripts(rootBuildStartParameter.getInitScripts());
-            return new BuildDefinition(includedBuildStartParam, pluginRequests);
-        }
+    public IncludedBuildInternal createBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+        validateBuildDirectory(buildDefinition.getProjectDir());
+        return instantiator.newInstance(DefaultIncludedBuild.class, buildDefinition, nestedBuildFactory, workerLeaseService.getCurrentWorkerLease());
     }
 }

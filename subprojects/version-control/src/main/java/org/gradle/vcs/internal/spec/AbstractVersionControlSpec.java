@@ -17,10 +17,23 @@
 package org.gradle.vcs.internal.spec;
 
 import com.google.common.base.Preconditions;
+import org.gradle.StartParameter;
+import org.gradle.api.Action;
+import org.gradle.api.initialization.definition.InjectedPluginDependencies;
+import org.gradle.api.internal.BuildDefinition;
+import org.gradle.initialization.definition.DefaultInjectedPluginDependencies;
 import org.gradle.vcs.VersionControlSpec;
+
+import java.io.File;
 
 public abstract class AbstractVersionControlSpec implements VersionControlSpec {
     private String rootDir = "";
+    private final StartParameter rootBuildStartParameter;
+    private final DefaultInjectedPluginDependencies pluginDependencies = new DefaultInjectedPluginDependencies();
+
+    protected AbstractVersionControlSpec(StartParameter rootBuildStartParameter) {
+        this.rootBuildStartParameter = rootBuildStartParameter;
+    }
 
     @Override
     public String getRootDir() {
@@ -31,5 +44,14 @@ public abstract class AbstractVersionControlSpec implements VersionControlSpec {
     public void setRootDir(String rootDir) {
         Preconditions.checkNotNull(rootDir, "rootDir should be non-null for '%s'.", getDisplayName());
         this.rootDir = rootDir;
+    }
+
+    @Override
+    public void plugins(Action<? super InjectedPluginDependencies> configuration) {
+        configuration.execute(pluginDependencies);
+    }
+
+    public BuildDefinition getBuildDefinition(File buildDirectory) {
+        return BuildDefinition.fromStartParameterForBuild(rootBuildStartParameter, buildDirectory, pluginDependencies.getRequests());
     }
 }

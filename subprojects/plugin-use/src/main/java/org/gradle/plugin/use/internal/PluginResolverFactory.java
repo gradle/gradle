@@ -26,6 +26,7 @@ import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.internal.SelfResolvingRequestPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
 
 import java.util.LinkedList;
@@ -71,6 +72,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
      * <p>
      * <ol>
      *     <li>{@link NoopPluginResolver} - Only used in tests.</li>
+     *     <li>{@link SelfResolvingRequestPluginResolver} - resolves "self resolving" plugins (injected from another build)</li>
      *     <li>{@link CorePluginResolver} - distributed with Gradle</li>
      *     <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
      *     <li>Resolvers based on the entries of the `pluginRepositories` block</li>
@@ -82,6 +84,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
      */
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
+        resolvers.add(new SelfResolvingRequestPluginResolver());
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
 
         if (!injectedClasspathPluginResolver.isClasspathEmpty()) {

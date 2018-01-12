@@ -43,9 +43,9 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
 
     private static class CompositeBuildTreeScopeServices {
         public IncludedBuildRegistry createIncludedBuildRegistry(CompositeBuildContext context, DefaultProjectPathRegistry projectRegistry, Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildLayoutFactory buildLayoutFactory) {
-            IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, startParameter, workerLeaseService, buildLayoutFactory);
+            IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService);
             IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory);
-            return new DefaultIncludedBuildRegistry(includedBuildFactory, projectRegistry, dependencySubstitutionsBuilder, context, buildLayoutFactory);
+            return new DefaultIncludedBuildRegistry(includedBuildFactory, projectRegistry, dependencySubstitutionsBuilder, context);
         }
 
         public DefaultProjectPathRegistry createProjectPathRegistry() {
