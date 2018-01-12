@@ -25,8 +25,8 @@ class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def "different tasks match name but only one accepts the option"() {
         given:
-        file("settings.gradle") << "include 'other'"
-        file("build.gradle") << """
+        settingsFile << "include 'other'"
+        buildFile << """
             task someTask(type: SomeTask)
             project(":other") {
               task someTask
@@ -45,7 +45,7 @@ class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def "using an unknown option yields decent error message"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             task foo
             task someTask(type: SomeTask)
             task someTask2(type: SomeTask)
@@ -95,7 +95,7 @@ class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
     //more work & design decisions needed
     def "single dash error is detected in the subsequent option"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             task someTask(type: SomeTask)
 
             ${taskWithMultipleOptions()}
@@ -110,7 +110,7 @@ class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def "decent error for invalid enum value"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             task someTask(type: SomeTask)
 
             ${taskWithMultipleOptions()}

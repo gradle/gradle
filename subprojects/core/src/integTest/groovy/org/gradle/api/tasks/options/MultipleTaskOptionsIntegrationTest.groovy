@@ -24,8 +24,8 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
 
     def "can configure tasks from command line in multiple projects"() {
         given:
-        file("settings.gradle") << "include 'project2'"
-        file("build.gradle") << """
+        settingsFile << "include 'project2'"
+        buildFile << """
             allprojects {
                 task someTask(type: SomeTask)
             }
@@ -51,8 +51,8 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
 
     def "tasks can be configured with different options"() {
         given:
-        file("settings.gradle") << "include 'project2'"
-        file("build.gradle") << """
+        settingsFile << "include 'project2'"
+        buildFile << """
             allprojects {
                 task someTask(type: SomeTask)
             }
@@ -71,8 +71,8 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
 
     def "tasks are configured exclusively with their options"() {
         given:
-        file("settings.gradle") << "include 'project2'"
-        file("build.gradle") << """
+        settingsFile << "include 'project2'"
+        buildFile << """
             allprojects {
                 task someTask(type: SomeTask)
             }
@@ -91,7 +91,7 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
 
     def "multiple different tasks configured at single command line"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             task foo
             task someTask(type: SomeTask)
 
@@ -108,7 +108,7 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
 
     def "task name that matches command value is not included in execution"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             task foo
             task someTask(type: SomeTask)
 
