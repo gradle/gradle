@@ -167,16 +167,16 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                             expectedAttributes = [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy()?'integration':'release']
                         } else {
                             if (GradleMetadataResolveRunner.useIvy()) {
-                                // Ivy doesn't derive any variant
-                                expectedTargetVariant = 'runtime'
-                                expectedAttributes = [:]
+                                // In plain Ivy, each configuration can be treated as variant: instead of overriding, the attribute is added
+                                expectedTargetVariant = 'customVariant'
+                                expectedAttributes = [format: 'custom', 'org.gradle.status': 'integration']
                             } else {
                                 // for Maven, we derive variants for compile/runtime. Variants are then used during selection, and are subject
                                 // to metadata rules. In this case, we have multiple variants (default, runtime, compile), but only the "compile"
                                 // one is target of the rule (see #getVariantToTest())
                                 expectedTargetVariant = 'compile'
                                 // the format attribute is added by the rule
-                                expectedAttributes = [format: 'custom']
+                                expectedAttributes = ['org.gradle.status': 'release', format: 'custom']
                                 if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
                                     // when experimental resolve is on, the "compile" configuration is mapped to the "java-api" usage
                                     expectedAttributes['org.gradle.usage'] = 'java-api'
@@ -274,6 +274,9 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                                 if (++cpt == 2) {
                                     throw new IllegalStateException("rule should only be applied once")
                                 }
+                                //add an attribute - otherwise the test cases without gradle metadata fail with 'Cannot choose between the following configurations'
+                                //This is, because adding an attribute rule is an opt-in to attribute matching, which is ambigous if we do not actually add any attributes
+                                attributes.attribute(formatAttribute, 'custom')
                             }
                         }
                     }

@@ -173,7 +173,7 @@ project(":b") {
                 project(":a", 'test:a:') {
                     variant('runtime')
                     module('org.other:externalA:1.2') {
-                        variant('default')
+                        variant('default', ['org.gradle.status': 'release'])
                     }
                 }
             }

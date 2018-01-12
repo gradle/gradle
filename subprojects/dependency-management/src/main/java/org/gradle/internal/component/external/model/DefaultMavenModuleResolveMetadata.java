@@ -55,8 +55,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private final boolean relocated;
     private final String snapshotTimestamp;
 
-    private ImmutableList<? extends ConfigurationMetadata> derivedVariants;
-
     DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator, boolean advancedPomSupportEnabled) {
         super(metadata);
         this.advancedPomSupportEnabled = advancedPomSupportEnabled;
@@ -82,29 +80,33 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     @Override
+    public boolean useAttributeMatching() {
+        return isJavaLibrary() || super.useAttributeMatching();
+    }
+
+    @Override
     protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> parents, VariantMetadataRules componentMetadataRules, ImmutableAttributes componentLevelAttributes) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(name);
-        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.<ExcludeMetadata>of(), componentLevelAttributes);
+        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.<ExcludeMetadata>of(), getAttributesForConfiguration(name, componentLevelAttributes));
         configuration.setDependencies(filterDependencies(configuration));
         return configuration;
     }
 
-    @Override
-    protected ImmutableList<? extends ConfigurationMetadata> maybeDeriveVariants() {
-        return isJavaLibrary() ? getDerivedVariants() : ImmutableList.<ConfigurationMetadata>of();
-    }
-
-    private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
-        if (derivedVariants == null) {
-            derivedVariants = ImmutableList.of(
-                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("compile"), Usage.JAVA_API, attributesFactory),
-                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("runtime"), Usage.JAVA_RUNTIME, attributesFactory));
+    private ImmutableAttributes getAttributesForConfiguration(String conf, ImmutableAttributes componentLevelAttributes) {
+        if (!isJavaLibrary()) {
+            return componentLevelAttributes;
         }
-        return derivedVariants;
+        if ("compile".equals(conf)) {
+            return addAttribute(componentLevelAttributes, Usage.JAVA_API);
+        }
+        if ("runtime".equals(conf)) {
+            return addAttribute(componentLevelAttributes, Usage.JAVA_RUNTIME);
+        }
+        return componentLevelAttributes;
     }
 
-    private ConfigurationMetadata withUsageAttribute(DefaultConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory) {
-        return conf.withAdditionalAttribute(attributesFactory, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
+    private ImmutableAttributes addAttribute(ImmutableAttributes componentLevelAttributes, String usage) {
+        return attributesFactory.concat(componentLevelAttributes, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
     }
 
     private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {

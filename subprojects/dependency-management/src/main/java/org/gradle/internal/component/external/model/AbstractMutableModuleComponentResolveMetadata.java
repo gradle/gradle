@@ -60,6 +60,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private ModuleSource moduleSource;
     private HashValue contentHash = EMPTY_CONTENT;
     private /*Mutable*/AttributeContainerInternal componentLevelAttributes;
+    private boolean requiresAttributeMatching;
 
     private final VariantMetadataRules variantMetadataRules = new VariantMetadataRules();
 
@@ -84,6 +85,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.variants = metadata.getVariants();
         this.attributesFactory = metadata.getAttributesFactory();
         this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) metadata.getAttributes());
+        this.requiresAttributeMatching = metadata.isRequiresAttributeMatching();
     }
 
     private static AttributeContainerInternal defaultAttributes(ImmutableAttributesFactory attributesFactory) {
@@ -181,6 +183,14 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     @Override
     public AttributeContainer getAttributes() {
         return componentLevelAttributes;
+    }
+
+    public boolean isRequiresAttributeMatching() {
+        return requiresAttributeMatching;
+    }
+
+    public void setRequiresAttributeMatching(boolean requiresAttributeMatching) {
+        this.requiresAttributeMatching = requiresAttributeMatching;
     }
 
     @Override

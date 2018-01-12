@@ -83,11 +83,12 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         exclusions.is(moduleExclusions.excludeAny(dep.allExcludes))
     }
 
-    def "selects target configuration using attribute matching when target has variants to select from"() {
+    def "selects target configuration using attribute matching when target indicates that it requires attribute matching"() {
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentResolveMetadata)
         def fromCompile = Stub(ConfigurationMetadata)
         def toMaster = Stub(ConfigurationMetadata)
+        toComponent.useAttributeMatching() >> true
         toComponent.variantsForGraphTraversal >> ImmutableList.of(toMaster)
         toMaster.artifacts >> [Stub(ComponentArtifactMetadata)]
         def attrs = TestUtil.attributesFactory().of(Attribute.of(String), "value").asImmutable()

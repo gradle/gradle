@@ -30,9 +30,12 @@ public abstract class AttributeConfigurationSelector implements DependencyMetada
         List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getVariantsForGraphTraversal();
         AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
         AttributeMatcher attributeMatcher = consumerSchema.withProducer(producerAttributeSchema);
-        ConfigurationMetadata fallbackConfiguration = targetComponent.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
-        if (fallbackConfiguration != null && !fallbackConfiguration.isCanBeConsumed()) {
-            fallbackConfiguration = null;
+        ConfigurationMetadata fallbackConfiguration = null;
+        if (!targetComponent.useAttributeMatching()) {
+            fallbackConfiguration = targetComponent.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
+            if (fallbackConfiguration != null && !fallbackConfiguration.isCanBeConsumed()) {
+                fallbackConfiguration = null;
+            }
         }
         List<ConfigurationMetadata> matches = attributeMatcher.matches(consumableConfigurations, consumerAttributes, fallbackConfiguration);
         if (matches.size() == 1) {

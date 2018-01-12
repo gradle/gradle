@@ -148,6 +148,16 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
+        public boolean isRequiresAttributeMatching() {
+            return false;
+        }
+
+        @Override
+        public boolean useAttributeMatching() {
+            return false;
+        }
+
+        @Override
         public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
             return ImmutableList.of();
         }

@@ -64,7 +64,7 @@ class PreferJavaRuntimeVariant extends EmptySchema {
 
                 public void execute(MultipleCandidatesResult<String> details) {
                     if (details.getConsumerValue() == null) {
-                        if (details.getCandidateValues().equals(DEFAULT_JAVA_USAGES)) {
+                        if (details.getCandidateValues().containsAll(DEFAULT_JAVA_USAGES)) {
                             details.closestMatch(Usage.JAVA_RUNTIME);
                         }
                     }

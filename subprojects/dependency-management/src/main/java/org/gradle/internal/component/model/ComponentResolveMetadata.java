@@ -76,6 +76,16 @@ public interface ComponentResolveMetadata extends HasAttributes {
     ConfigurationMetadata getConfiguration(String name);
 
     /**
+     * Returns true if the use of attribute matching was requested (e.g. by using metadata rules that added attributes).
+     */
+    boolean isRequiresAttributeMatching();
+
+    /**
+     * Returns true if the variant/configuration selection should always be done by attribute matching during consumption of this component.
+     */
+    boolean useAttributeMatching();
+
+    /**
      * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes. May be empty, in which case selection falls back to the legacy configurations available via {@link #getConfiguration(String)}. The component should provide a configuration called {@value Dependency#DEFAULT_CONFIGURATION}.
      *
      * <p>Note: currently, {@link ConfigurationMetadata} is used to represent these variants. This is to help with migration. The set of objects returned by this method may or may not be the same as those returned by {@link #getConfigurationNames()}.</p>

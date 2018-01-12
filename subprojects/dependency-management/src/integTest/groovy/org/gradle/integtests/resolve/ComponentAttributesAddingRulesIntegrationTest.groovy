@@ -17,10 +17,6 @@ package org.gradle.integtests.resolve
 
 class ComponentAttributesAddingRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    private usesAttributeMatching() {
-        isGradleMetadataEnabled() || (useMaven() && isExperimentalEnabled())
-    }
-
     def "component attributes added in component metadata rules are honored"() {
         given:
         repository {
@@ -58,10 +54,6 @@ class ComponentAttributesAddingRulesIntegrationTest extends AbstractModuleDepend
         then:
         fails ':checkDeps'
         failure.assertHasCause("Unable to find a matching configuration of org.test:module:1.0:")
-        if (usesAttributeMatching()) {
-            failure.assertThatCause(containsNormalizedString("Required quality 'qa' and found incompatible value 'canary'"))
-        } else {
-            failure.assertThatCause(containsNormalizedString("None of the consumable configurations have attributes."))
-        }
+        failure.assertThatCause(containsNormalizedString("Required quality 'qa' and found incompatible value 'canary'"))
     }
 }
