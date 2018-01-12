@@ -36,7 +36,7 @@ class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def failure = runAndFail 'someTask', '--first'
+        runAndFail 'someTask', '--first'
 
         then:
         failure.assertHasDescription("Problem configuring task :other:someTask from command line.")
@@ -139,5 +139,19 @@ class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         "should fail in a consistent way as with '--refresh-dependenciess'"
+    }
+
+    def "cannot declare option for task dependency of another task"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+        """
+
+        when:
+        runAndFail 'check', '--tests', 'abc'
+
+        then:
+        failure.assertHasDescription('Problem configuring task :check from command line.')
+        failure.assertHasCause("Unknown command-line option '--tests'")
     }
 }
