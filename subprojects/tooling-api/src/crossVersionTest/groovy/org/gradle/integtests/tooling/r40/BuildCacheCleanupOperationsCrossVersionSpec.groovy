@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit
 @TargetGradleVersion(">=4.0")
 class BuildCacheCleanupOperationsCrossVersionSpec extends ToolingApiSpecification {
     def cacheDir = file("task-output-cache")
-    private boolean sizeBasedCleanup
 
     def setup() {
         buildFile << """
@@ -54,8 +53,7 @@ class BuildCacheCleanupOperationsCrossVersionSpec extends ToolingApiSpecificatio
         """
 
         def cacheLimit
-        sizeBasedCleanup = targetVersion < GradleVersion.version("4.6")
-        if (!sizeBasedCleanup) {
+        if (targetVersion.baseVersion >= GradleVersion.version("4.6")) {
             cacheLimit = "removeUnusedEntriesAfterDays = 1"
         } else {
             cacheLimit = "targetSizeInMB = 2"
