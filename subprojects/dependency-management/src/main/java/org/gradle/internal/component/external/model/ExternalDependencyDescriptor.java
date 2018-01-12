@@ -47,7 +47,7 @@ public abstract class ExternalDependencyDescriptor {
     protected abstract ExternalDependencyDescriptor withRequested(ModuleComponentSelector newRequested);
 
     public List<ConfigurationMetadata> getMetadataForConfigurations(ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema, ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
-        if (!targetComponent.getVariantsForGraphTraversal().isEmpty()) {
+        if (targetComponent.useAttributeMatching()) {
             // This condition shouldn't be here, and attribute matching should always be applied when the target has variants
             // however, the schemas and metadata implementations are not yet set up for this, so skip this unless:
             // - the consumer has asked for something specific (by providing attributes), as the other metadata types are broken for the 'use defaults' case

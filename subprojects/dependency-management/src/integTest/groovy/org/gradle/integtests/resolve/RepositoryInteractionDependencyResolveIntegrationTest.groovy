@@ -330,22 +330,38 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
                 conf group: 'org', name: 'maven', version: '1.0', configuration: '$conf'
             }
         """
-        expectChainInteractions(modules, modules)
+        if (broken) {
+            repositoryInteractions('maven') {
+                "org:maven:1.0" {
+                    expectGetMetadata()
+                }
+            }
+        } else {
+            expectChainInteractions(modules, modules)
+        }
 
         then:
-        succeeds 'checkDep'
-        resolve.expectGraph {
-            root(':', ':test:') {
-                module("org:maven:1.0:$conf") {
-                    module "org:maven-api-dependency:1.0"
-                    module "org:maven-runtime-dependency:1.0"
-                    module("org:mavenCompile1:1.0") {
-                        //form here on, attribute matching is used
-                        module "org:mavenCompile1-api-dependency:1.0"
-                        module("org:maven-gradle:1.0") {
-                            module "org:maven-gradle-api-dependency:1.0"
-                            module("org:mavenCompile2:1.0") {
-                                module "org:mavenCompile2-api-dependency:1.0"
+        if (broken) {
+            fails 'checkDep'
+            failure.assertHasCause """Configuration 'runtime' in org:maven:1.0 does not match the consumer attributes
+Configuration '$conf':
+  - Found org.gradle.status 'release' but wasn't required.
+  - Required org.gradle.usage 'java-api' and found incompatible value 'java-runtime'."""
+        } else {
+            succeeds 'checkDep'
+            resolve.expectGraph {
+                root(':', ':test:') {
+                    module("org:maven:1.0:$conf") {
+                        module "org:maven-api-dependency:1.0"
+                        module "org:maven-runtime-dependency:1.0"
+                        module("org:mavenCompile1:1.0") {
+                            //form here on, attribute matching is used
+                            module "org:mavenCompile1-api-dependency:1.0"
+                            module("org:maven-gradle:1.0") {
+                                module "org:maven-gradle-api-dependency:1.0"
+                                module("org:mavenCompile2:1.0") {
+                                    module "org:mavenCompile2-api-dependency:1.0"
+                                }
                             }
                         }
                     }
@@ -354,9 +370,10 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
 
         where:
-        conf      | _
-        'runtime' | _
-        'test'    | _
+        conf      | broken
+        'default' | false
+        'test'    | false
+        'runtime' | true
     }
 
     @Unroll

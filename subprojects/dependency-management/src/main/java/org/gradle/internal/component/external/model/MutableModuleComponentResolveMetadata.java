@@ -84,6 +84,10 @@ public interface MutableModuleComponentResolveMetadata {
 
     void setAttributes(AttributeContainer attributes);
 
+    boolean isRequiresAttributeMatching();
+
+    void setRequiresAttributeMatching(boolean requiresAttributeMatching);
+
     /**
      * Creates an artifact for this module. Does not mutate this metadata.
      */

@@ -62,6 +62,9 @@ public class ComponentAttributeMatcher {
 
     /**
      * Selects the candidates from the given set that are compatible with the requested criteria, according to the given schema.
+     *
+     * If a fallback is provided, it is used in case no candidates are provided OR multiple candidates match.
+     * And only if the fallback itself matches.
      */
     public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback) {
         if (candidates.size() == 0) {
@@ -97,6 +100,14 @@ public class ComponentAttributeMatcher {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Selected matches {} from candidates {} for {}", matches, candidates, requested);
         }
+
+        if (fallback != null && isMatching(schema, (AttributeContainerInternal) fallback.getAttributes(), requested)) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Multiple candidates for {}, selected matching fallback {}", requested, fallback);
+            }
+            return ImmutableList.of(fallback);
+        }
+
         return matches;
     }
 
