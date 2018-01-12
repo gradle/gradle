@@ -232,15 +232,21 @@ class KotlinBuildScriptCompiler(
 
     private
     fun scriptClassLoaderScopeWith(accessorsClassPath: ClassPath) =
-        targetScope.createChild("script").apply { local(accessorsClassPath) }
+        targetScope.createChild("target-scope:$scriptPath").apply {
+            local(accessorsClassPath)
+        }
 
     private
     fun pluginsBlockClassLoaderScope() =
-        baseScope.createChild("plugins")
+        baseScopeFor("plugins")
 
     private
     fun buildscriptBlockClassLoaderScope() =
-        baseScope.createChild("buildscript")
+        baseScopeFor("buildscript")
+
+    private
+    fun baseScopeFor(stage: String) =
+        baseScope.createChild("$stage-scope:$scriptPath")
 
     private
     fun classLoaderFor(location: File, scope: ClassLoaderScope) =
