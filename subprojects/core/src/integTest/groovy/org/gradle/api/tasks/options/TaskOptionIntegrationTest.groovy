@@ -34,17 +34,19 @@ class TaskOptionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Value of myProp: $optionValue")
 
         where:
-        optionType     | options                      | optionValue | description
-        'String'       | ['--myProp=test']            | 'test'      | 'provided'
-        'String'       | []                           | 'null '     | 'not provided'
-        'Boolean'      | ['--myProp']                 | 'true'      | 'provided'
-        'Boolean'      | []                           | 'null '     | 'not provided'
-        'boolean'      | ['--myProp']                 | 'true'      | 'provided'
-        'boolean'      | []                           | 'false'     | 'not provided'
-        'TestEnum'     | ['--myProp=OPT_2']           | 'OPT_2'     | 'provided'
-        'TestEnum'     | []                           | 'null'      | 'not provided'
-        'List<String>' | ['--myProp=a', '--myProp=b'] | '[a, b]'    | 'provided'
-        'List<String>' | []                           | 'null '     | 'not provided'
+        optionType       | options                              | optionValue      | description
+        'String'         | ['--myProp=test']                    | 'test'           | 'provided'
+        'String'         | []                                   | 'null '          | 'not provided'
+        'Boolean'        | ['--myProp']                         | 'true'           | 'provided'
+        'Boolean'        | []                                   | 'null '          | 'not provided'
+        'boolean'        | ['--myProp']                         | 'true'           | 'provided'
+        'boolean'        | []                                   | 'false'          | 'not provided'
+        'TestEnum'       | ['--myProp=OPT_2']                   | 'OPT_2'          | 'provided'
+        'TestEnum'       | []                                   | 'null'           | 'not provided'
+        'List<String>'   | ['--myProp=a', '--myProp=b']         | '[a, b]'         | 'provided'
+        'List<String>'   | []                                   | 'null '          | 'not provided'
+        'List<TestEnum>' | ['--myProp=OPT_2', '--myProp=OPT_3'] | '[OPT_2, OPT_3]' | 'provided'
+        'List<TestEnum>' | []                                   | 'null '          | 'not provided'
     }
 
     def "can render option with help task"() {
