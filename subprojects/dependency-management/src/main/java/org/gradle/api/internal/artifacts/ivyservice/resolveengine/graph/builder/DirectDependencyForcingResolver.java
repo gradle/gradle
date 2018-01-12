@@ -41,7 +41,7 @@ class DirectDependencyForcingResolver implements ModuleConflictResolver {
                 DependencyMetadata dependencyMetadata = outgoingEdge.getDependencyMetadata();
                 assert dependencyMetadata instanceof LocalOriginDependencyMetadata; // Will always be true because we are looking at direct dependencies only
                 if (((LocalOriginDependencyMetadata) dependencyMetadata).isForce() && candidates.contains(targetComponent)) {
-                    targetComponent.setSelectionReason(VersionSelectionReasons.FORCED);
+                    targetComponent.addCause(VersionSelectionReasons.FORCED);
                     details.select(Cast.<T>uncheckedCast(targetComponent));
                     return;
                 }

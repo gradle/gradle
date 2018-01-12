@@ -31,7 +31,7 @@ public class VersionSelectionReasonResolver implements ModuleConflictResolver {
         delegate.select(details);
         if (!details.hasFailure()) {
             T selected = details.getSelected();
-            selected.setSelectionReason(VersionSelectionReasons.withConflictResolution(selected.getSelectionReason()));
+            selected.addCause(VersionSelectionReasons.CONFLICT_RESOLUTION);
         }
     }
 }

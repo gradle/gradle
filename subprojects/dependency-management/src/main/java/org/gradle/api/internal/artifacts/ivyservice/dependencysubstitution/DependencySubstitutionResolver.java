@@ -40,7 +40,7 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
         if (details.isUpdated()) {
             DependencyMetadata target = dependency.withTarget(details.getTarget());
             resolver.resolve(target, result);
-            result.setSelectionReason(details.getSelectionReason());
+            result.setSelectionDescription(details.getSelectionDescription());
             return;
         }
         resolver.resolve(dependency, result);

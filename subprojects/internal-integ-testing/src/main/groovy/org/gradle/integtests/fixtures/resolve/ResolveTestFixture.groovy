@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
@@ -525,7 +524,7 @@ allprojects {
          * Marks that this node was selected due to conflict resolution.
          */
         NodeBuilder byConflictResolution() {
-            reasons << 'conflict'
+            reasons << 'conflict resolution'
             this
         }
 
@@ -533,7 +532,7 @@ allprojects {
          * Marks that this node was selected by a rule.
          */
         NodeBuilder selectedByRule() {
-            reasons << 'selectedByRule'
+            reasons << 'selected by rule'
             this
         }
 
@@ -549,7 +548,7 @@ allprojects {
          * Marks that this node was substituted in a composite.
          */
         NodeBuilder compositeSubstitute() {
-            reasons << 'compositeSubstitution'
+            reasons << 'composite build substitution'
             this
         }
 
@@ -685,27 +684,21 @@ class GenerateGraphTask extends DefaultTask {
 
     def formatReason(ComponentSelectionReason reason) {
         def reasons = []
-        if (reason in [VersionSelectionReasons.COMPOSITE_BUILD,
-                       VersionSelectionReasons.CONFLICT_RESOLUTION,
-                       VersionSelectionReasons.FORCED,
-                       VersionSelectionReasons.REQUESTED,
-                       VersionSelectionReasons.ROOT,
-                       VersionSelectionReasons.CONFLICT_RESOLUTION_BY_RULE,
-                       VersionSelectionReasons.SELECTED_BY_RULE
-        ]) {
+        if (!reason.hasCustomDescriptions()) {
             if (reason.conflictResolution) {
-                reasons << "conflict"
+                reasons << "conflict resolution"
             }
             if (reason.forced) {
                 reasons << "forced"
             }
             if (reason.selectedByRule) {
-                reasons << "selectedByRule"
+                reasons << "selected by rule"
             }
             if (reason.compositeSubstitution) {
-                reasons << "compositeSubstitution"
+                reasons << "composite build substitution"
             }
         }
+
         return reasons.empty ? reason.description : reasons.join(',')
     }
 }

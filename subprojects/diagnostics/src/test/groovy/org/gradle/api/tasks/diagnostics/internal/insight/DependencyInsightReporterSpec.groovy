@@ -63,7 +63,7 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     def "adds header dependency if the selected version does not exist in the graph"() {
-        def dependencies = [dep("a", "x", "1.0", "2.0", FORCED), dep("a", "x", "1.5", "2.0", FORCED), dep("b", "a", "5.0")]
+        def dependencies = [dep("a", "x", "1.0", "2.0", forced()), dep("a", "x", "1.5", "2.0", forced()), dep("b", "a", "5.0")]
 
         when:
         def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator);
@@ -85,7 +85,7 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     def "annotates only first dependency in the group"() {
-        def dependencies = [dep("a", "x", "1.0", "2.0", CONFLICT_RESOLUTION), dep("a", "x", "2.0", "2.0", CONFLICT_RESOLUTION), dep("b", "a", "5.0", "5.0", FORCED)]
+        def dependencies = [dep("a", "x", "1.0", "2.0", conflict()), dep("a", "x", "2.0", "2.0", conflict()), dep("b", "a", "5.0", "5.0", forced())]
 
         when:
         def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator);
@@ -103,10 +103,18 @@ class DependencyInsightReporterSpec extends Specification {
         sorted[2].description == 'forced'
     }
 
-    private dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
+    private dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.requested()) {
         def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(group, name, selected), new DefaultResolvedVariantResult("default", ImmutableAttributes.EMPTY))
         new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(group, name, new DefaultMutableVersionConstraint(requested)),
                 selectedModule,
-                new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.REQUESTED, new DefaultModuleComponentIdentifier(group, name, selected), new DefaultResolvedVariantResult("default", ImmutableAttributes.EMPTY)))
+                new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.requested(), new DefaultModuleComponentIdentifier(group, name, selected), new DefaultResolvedVariantResult("default", ImmutableAttributes.EMPTY)))
+    }
+
+    private static ComponentSelectionReason forced() {
+        VersionSelectionReasons.of([FORCED])
+    }
+
+    private static ComponentSelectionReason conflict() {
+        VersionSelectionReasons.of([CONFLICT_RESOLUTION])
     }
 }

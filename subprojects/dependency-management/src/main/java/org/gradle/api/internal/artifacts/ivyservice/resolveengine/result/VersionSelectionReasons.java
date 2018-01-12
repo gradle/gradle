@@ -17,83 +17,124 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.result.ComponentSelectionCause;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
-public class VersionSelectionReasons {
-    public static final ComponentSelectionReasonInternal REQUESTED = new DefaultComponentSelectionReason(false, false, false, true, false, "requested");
-    public static final ComponentSelectionReasonInternal ROOT = new DefaultComponentSelectionReason(false, false, false, true, false, "root");
-    public static final ComponentSelectionReasonInternal FORCED = new DefaultComponentSelectionReason(true, false, false, false, false, "forced");
-    public static final ComponentSelectionReasonInternal CONFLICT_RESOLUTION = new DefaultComponentSelectionReason(false, true, false, false, false, "conflict resolution");
-    public static final ComponentSelectionReasonInternal SELECTED_BY_RULE = new DefaultComponentSelectionReason(false, false, true, false, false, "selected by rule");
-    public static final ComponentSelectionReasonInternal CONFLICT_RESOLUTION_BY_RULE = new DefaultComponentSelectionReason(false, true, true, false, false, "selected by rule and conflict resolution");
-    public static final ComponentSelectionReasonInternal COMPOSITE_BUILD = new DefaultComponentSelectionReason(false, false, false, false, true, "composite build substitution");
+import java.util.List;
+import java.util.Set;
 
-    public static ComponentSelectionReason withConflictResolution(ComponentSelectionReason reason) {
-        if (reason.isConflictResolution()) {
-            return reason;
-        } else if (reason == SELECTED_BY_RULE) {
-            return CONFLICT_RESOLUTION_BY_RULE;
-        } else if (reason == REQUESTED) {
-            return CONFLICT_RESOLUTION;
-        } else if (reason == FORCED) {
-            return CONFLICT_RESOLUTION;
-        } else if (reason == ROOT) {
-            return reason;
-        }
-        throw new IllegalArgumentException("Cannot create conflict resolution selection reason for input: " + reason);
+public class VersionSelectionReasons {
+    public static final ComponentSelectionDescriptorInternal REQUESTED = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REQUESTED);
+    public static final ComponentSelectionDescriptorInternal ROOT = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.ROOT);
+    public static final ComponentSelectionDescriptorInternal FORCED = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.FORCED);
+    public static final ComponentSelectionDescriptorInternal CONFLICT_RESOLUTION = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONFLICT_RESOLUTION);
+    public static final ComponentSelectionDescriptorInternal SELECTED_BY_RULE = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.SELECTED_BY_RULE);
+    public static final ComponentSelectionDescriptorInternal COMPOSITE_BUILD = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.COMPOSITE_BUILD);
+
+    public static ComponentSelectionReasonInternal requested() {
+        return new DefaultComponentSelectionReason(REQUESTED);
+    }
+
+
+    public static ComponentSelectionReason root() {
+        return new DefaultComponentSelectionReason(ROOT);
+    }
+
+    public static ComponentSelectionReasonInternal of(List<ComponentSelectionDescriptor> descriptions) {
+        return new DefaultComponentSelectionReason(descriptions);
     }
 
     private static class DefaultComponentSelectionReason implements ComponentSelectionReasonInternal {
 
-        private final boolean forced;
-        private final boolean conflictResolution;
-        private final boolean selectedByRule;
-        private final boolean expected;
-        private final boolean compositeParticipant;
-        private final String description;
+        // Use a set to de-duplicate same descriptions
+        private final Set<ComponentSelectionDescriptor> descriptions;
 
-        private DefaultComponentSelectionReason(boolean forced, boolean conflictResolution, boolean selectedByRule, boolean expected, boolean compositeBuild, String description) {
-            this.forced = forced;
-            this.conflictResolution = conflictResolution;
-            this.selectedByRule = selectedByRule;
-            this.expected = expected;
-            this.compositeParticipant = compositeBuild;
-            assert description != null;
-            this.description = description;
+        private DefaultComponentSelectionReason(ComponentSelectionDescriptor description) {
+            descriptions = Sets.newLinkedHashSet();
+            descriptions.add(description);
+        }
+
+        public DefaultComponentSelectionReason(List<ComponentSelectionDescriptor> descriptions) {
+            this.descriptions = Sets.newLinkedHashSet(descriptions);
         }
 
 
         public boolean isForced() {
-            return forced;
+            return hasCause(ComponentSelectionCause.FORCED);
+        }
+
+        private boolean hasCause(ComponentSelectionCause cause) {
+            for (ComponentSelectionDescriptor description : descriptions) {
+                if (description.getCause() == cause) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public boolean isConflictResolution() {
-            return conflictResolution;
+            return hasCause(ComponentSelectionCause.CONFLICT_RESOLUTION);
         }
 
         public boolean isSelectedByRule() {
-            return selectedByRule;
+            return hasCause(ComponentSelectionCause.SELECTED_BY_RULE);
         }
 
         public boolean isExpected() {
-            return expected;
+            ComponentSelectionCause cause = Iterables.getLast(descriptions).getCause();
+            return cause == ComponentSelectionCause.ROOT || cause == ComponentSelectionCause.REQUESTED;
         }
 
         public boolean isCompositeSubstitution() {
-            return compositeParticipant;
+            return hasCause(ComponentSelectionCause.COMPOSITE_BUILD);
         }
 
         public String getDescription() {
-            return description;
+            // for backwards compatibility, we use the last added description
+            return Iterables.getLast(descriptions).toString();
         }
 
         public String toString() {
-            return description;
+            return getDescription();
         }
 
         @Override
-        public ComponentSelectionReasonInternal withReason(String description) {
-            return new DefaultComponentSelectionReason(forced, conflictResolution, selectedByRule, expected, compositeParticipant, description);
+        public ComponentSelectionReasonInternal addCause(ComponentSelectionCause cause, String description) {
+            descriptions.add(new DefaultComponentSelectionDescriptor(cause, description));
+            return this;
+        }
+
+
+        @Override
+        public ComponentSelectionReasonInternal setCause(ComponentSelectionDescriptor description) {
+            descriptions.clear();
+            descriptions.add(description);
+            return this;
+        }
+
+        @Override
+        public ComponentSelectionReasonInternal addCause(ComponentSelectionDescriptor description) {
+            descriptions.add(description);
+            return this;
+        }
+
+        @Override
+        public List<ComponentSelectionDescriptor> getDescriptions() {
+            return ImmutableList.copyOf(descriptions);
+        }
+
+        @Override
+        public boolean hasCustomDescriptions() {
+            for (ComponentSelectionDescriptor description : descriptions) {
+                if (description.hasCustomDescription()) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
@@ -105,17 +146,12 @@ public class VersionSelectionReasons {
                 return false;
             }
             DefaultComponentSelectionReason that = (DefaultComponentSelectionReason) o;
-            return forced == that.forced
-                && conflictResolution == that.conflictResolution
-                && selectedByRule == that.selectedByRule
-                && expected == that.expected
-                && compositeParticipant == that.compositeParticipant
-                && Objects.equal(description, that.description);
+            return Objects.equal(descriptions, that.descriptions);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(forced, conflictResolution, selectedByRule, expected, compositeParticipant, description);
+            return Objects.hashCode(descriptions);
         }
     }
 }
