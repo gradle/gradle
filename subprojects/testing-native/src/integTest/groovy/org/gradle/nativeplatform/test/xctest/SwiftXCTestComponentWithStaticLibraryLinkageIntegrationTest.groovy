@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-class SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest {
+class SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest extends AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest {
     @Override
     protected void makeSingleProject() {
         buildFile << """
@@ -29,5 +29,10 @@ class SwiftXCTestComponentWithStaticLibraryLinkageIntegrationTest extends Abstra
     @Override
     List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
         return [":compileDebugSwift"] + super.getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
+    }
+
+    @Override
+    String getTestedComponentDsl() {
+        return "library"
     }
 }
