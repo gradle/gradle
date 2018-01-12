@@ -39,7 +39,7 @@ class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTes
 
     @Override
     String getTaskNameToCompileDevelopmentBinary() {
-        return ":compileDebugSharedSwift"
+        return "compileDebugSharedSwift"
     }
 
     @Override
