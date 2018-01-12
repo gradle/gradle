@@ -18,61 +18,73 @@ import org.gradle.testing.DistributionTest
 
 tasks.withType(DistributionTest) { DistributionTest task ->
 
-    dependsOn ':toolingApi:toolingApiShadedJar'
-    dependsOn ':cleanUpCaches'
-    finalizedBy ':cleanUpDaemons'
-    shouldRunAfter 'test'
+    dependsOn(":toolingApi:toolingApiShadedJar")
+    dependsOn(":cleanUpCaches")
+    finalizedBy(":cleanUpDaemons")
+    shouldRunAfter("test")
 
-    jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
+    jvmArgs("-Xmx512m", "-XX:+HeapDumpOnOutOfMemoryError")
     if (!javaVersion.java8Compatible) {
-        jvmArgs '-XX:MaxPermSize=768m'
+        jvmArgs("-XX:MaxPermSize=768m")
 
     }
 
-    reports.junitXml.destination = new File(project.testResultsDir, name)
+    def javaConvention = project.convention.getPlugin(JavaPluginConvention)
+    reports.junitXml.destination = new File(javaConvention.testResultsDir, name)
 
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
-    if (project.hasProperty('testVersions')) {
-        systemProperties['org.gradle.integtest.versions'] = project.testVersions
+    if (project.hasProperty("testVersions")) {
+        systemProperties["org.gradle.integtest.versions"] = project.testVersions
     }
-    if (!systemProperties['org.gradle.integtest.versions']) {
-        systemProperties['org.gradle.integtest.versions'] = 'latest'
+    if (!systemProperties["org.gradle.integtest.versions"]) {
+        systemProperties["org.gradle.integtest.versions"] = "latest"
     }
 
-    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") && project.testAllPlatforms ? 'all' : 'default'
+    systemProperties["org.gradle.integtest.cpp.toolChains"] =
+        project.hasProperty("testAllPlatforms") && project.testAllPlatforms ? "all" : "default"
 
-    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
+    systemProperties["org.gradle.integtest.multiversion"] =
+        project.hasProperty("testAllVersions") && project.testAllVersions ? "all" : "default"
 
     def mirrorUrls = collectMirrorUrls()
-    def mirrors = ['mavencentral', 'jcenter', 'lightbendmaven', 'ligthbendivy', 'google']
+    def mirrors = ["mavencentral", "jcenter", "lightbendmaven", "ligthbendivy", "google"]
     mirrors.each { mirror ->
-        systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ''
+        systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ""
     }
 
     dependsOn project.task("configure${task.name.capitalize()}") {
         doLast {
             configure(task) {
-                reports.html.destination = file("${project.reporting.baseDir}/$name")
+
+                ReportingExtension reporting = project.reporting
+                reports.html.destination = file("${reporting.baseDir}/$name")
+
+                Sync intTestImage = project.intTestImage
                 gradleHomeDir = intTestImage.destinationDir
-                gradleUserHomeDir = rootProject.file('intTestHomeDir')
-                toolingApiShadedJarDir = rootProject.project(':toolingApi').toolingApiShadedJar.destinationDir
+
+                gradleUserHomeDir = rootProject.file("intTestHomeDir")
+
+                Zip toolingApiShadedJar = rootProject.project(":toolingApi").toolingApiShadedJar
+                toolingApiShadedJarDir = toolingApiShadedJar.destinationDir
 
                 if (requiresLibsRepo) {
-                    libsRepo = rootProject.file('build/repo')
+                    libsRepo = rootProject.file("build/repo")
                 }
                 if (requiresDists) {
-                    distsDir = rootProject.distsDir
-                    systemProperties['integTest.distZipVersion'] = version
+                    def base = rootProject.convention.getPlugin(BasePluginConvention)
+                    distsDir = base.distsDir
+                    systemProperties["integTest.distZipVersion"] = version
                 }
                 if (requiresBinZip) {
-                    binZip = project(':distributions').binZip.archivePath
+                    Zip binZipDistribution = project(":distributions").binZip
+                    binZip = binZipDistribution.archivePath
                 }
                 daemonRegistry = file("$rootProject.buildDir/daemon")
             }
         }
     }
 
-    ext.daemonListener = null
+    def daemonListener = null
 
     doFirst {
         daemonListener = rootProject.cleanUpDaemons.newDaemonListener()
@@ -84,28 +96,14 @@ tasks.withType(DistributionTest) { DistributionTest task ->
     }
 }
 
-def collectMirrorUrls() {
-    // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
-    System.getenv('REPO_MIRROR_URLS')?.split(',')?.collectEntries { nameToUrl ->
-        def index = nameToUrl.indexOf(':')
-        [(nameToUrl.substring(0, index)) : nameToUrl.substring(index + 1)]
-    } ?: [:]
-}
-
 project(":") {
-    if (tasks.findByName('cleanUpCaches')) {
+
+    if (tasks.findByName("cleanUpCaches")) {
         return
     }
 
     task cleanUpCaches(type: org.gradle.cleanup.CleanUpCaches) {
-        dependsOn ':createBuildReceipt'
-    }
-}
-
-project(":") {
-
-    if (tasks.findByName('cleanUpDaemons')) {
-        return
+        dependsOn(":createBuildReceipt")
     }
 
     task cleanUpDaemons(type: org.gradle.cleanup.CleanUpDaemons)
@@ -113,7 +111,7 @@ project(":") {
     task killExistingProcessesStartedByGradle(type: org.gradle.process.KillLeakingJavaProcesses)
 
     if (isCiServer) {
-        clean.dependsOn killExistingProcessesStartedByGradle
+        clean.dependsOn(killExistingProcessesStartedByGradle)
         subprojects {
             tasks.all {
                 mustRunAfter(killExistingProcessesStartedByGradle)
@@ -121,3 +119,12 @@ project(":") {
         }
     }
 }
+
+def collectMirrorUrls() {
+    // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
+    System.getenv("REPO_MIRROR_URLS")?.split(",")?.collectEntries { nameToUrl ->
+        def index = nameToUrl.indexOf(":")
+        [(nameToUrl.substring(0, index)) : nameToUrl.substring(index + 1)]
+    } ?: [:]
+}
+
