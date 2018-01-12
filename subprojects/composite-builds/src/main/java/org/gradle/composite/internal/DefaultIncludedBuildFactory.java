@@ -19,6 +19,7 @@ package org.gradle.composite.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
@@ -26,18 +27,19 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.io.File;
 
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final Instantiator instantiator;
-    private final StartParameter startParameter;
+    private final StartParameter rootBuildStartParameter;
     private final WorkerLeaseService workerLeaseService;
     private final BuildLayoutFactory buildLayoutFactory;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService, BuildLayoutFactory buildLayoutFactory) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter rootBuildStartParameter, WorkerLeaseService workerLeaseService, BuildLayoutFactory buildLayoutFactory) {
         this.instantiator = instantiator;
-        this.startParameter = startParameter;
+        this.rootBuildStartParameter = rootBuildStartParameter;
         this.workerLeaseService = workerLeaseService;
         this.buildLayoutFactory = buildLayoutFactory;
     }
@@ -59,9 +61,9 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     }
 
     @Override
-    public IncludedBuildInternal createBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
+    public IncludedBuildInternal createBuild(File buildDirectory, PluginRequests pluginRequests, NestedBuildFactory nestedBuildFactory) {
         validateBuildDirectory(buildDirectory);
-        Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, nestedBuildFactory, startParameter);
+        Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, pluginRequests, nestedBuildFactory);
         DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, workerLeaseService.getCurrentWorkerLease());
 
         SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
@@ -71,29 +73,29 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
 
     private class ContextualGradleLauncherFactory implements Factory<GradleLauncher> {
         private final File buildDirectory;
+        private final PluginRequests pluginRequests;
         private final NestedBuildFactory nestedBuildFactory;
-        private final StartParameter buildStartParam;
 
-        public ContextualGradleLauncherFactory(File buildDirectory, NestedBuildFactory nestedBuildFactory, StartParameter buildStartParam) {
+        public ContextualGradleLauncherFactory(File buildDirectory, PluginRequests pluginRequests, NestedBuildFactory nestedBuildFactory) {
             this.buildDirectory = buildDirectory;
+            this.pluginRequests = pluginRequests;
             this.nestedBuildFactory = nestedBuildFactory;
-            this.buildStartParam = buildStartParam;
         }
 
         @Override
         public GradleLauncher create() {
-            StartParameter participantStartParam = createStartParameter(buildDirectory);
-            GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(participantStartParam);
+            BuildDefinition includedBuildDefinition = createBuildDefinition();
+            GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(includedBuildDefinition);
             return gradleLauncher;
         }
 
-        private StartParameter createStartParameter(File buildDirectory) {
-            StartParameter includedBuildStartParam = buildStartParam.newBuild();
+        private BuildDefinition createBuildDefinition() {
+            StartParameter includedBuildStartParam = rootBuildStartParameter.newBuild();
             includedBuildStartParam.setProjectDir(buildDirectory);
             includedBuildStartParam.setSearchUpwards(false);
             includedBuildStartParam.setConfigureOnDemand(false);
-            includedBuildStartParam.setInitScripts(buildStartParam.getInitScripts());
-            return includedBuildStartParam;
+            includedBuildStartParam.setInitScripts(rootBuildStartParameter.getInitScripts());
+            return new BuildDefinition(includedBuildStartParam, pluginRequests);
         }
     }
 }

@@ -36,6 +36,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
@@ -148,7 +149,7 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
         // TODO: synchronization
         IncludedBuildInternal includedBuild = includedBuilds.get(buildDirectory);
         if (includedBuild == null) {
-            includedBuild = includedBuildFactory.createBuild(buildDirectory, nestedBuildFactory);
+            includedBuild = includedBuildFactory.createBuild(buildDirectory, DefaultPluginRequests.EMPTY, nestedBuildFactory);
             includedBuilds.put(buildDirectory, includedBuild);
         }
         return includedBuild;
