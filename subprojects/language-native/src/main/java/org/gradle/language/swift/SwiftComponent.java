@@ -74,7 +74,7 @@ public interface SwiftComponent extends ComponentWithBinaries, ComponentWithDepe
     /**
      * Returns the Swift language version supported of this component.
      *
-     * @since 4.5
+     * @since 4.6
      */
-    Property<SwiftLanguageVersion> getSwiftLanguageVersionSupport();
+    Property<SwiftSourceCompatibility> getSourceCompatibility();
 }

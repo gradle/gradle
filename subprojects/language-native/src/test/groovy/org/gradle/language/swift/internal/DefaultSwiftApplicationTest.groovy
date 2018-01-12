@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift.internal
 
-import org.gradle.language.swift.SwiftLanguageVersion
 import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
@@ -42,7 +41,7 @@ class DefaultSwiftApplicationTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = app.addExecutable("debug", true, false, true, targetPlatform, toolChain, platformToolProvider, SwiftLanguageVersion.SWIFT4)
+        def binary = app.addExecutable("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
         binary.name == "mainDebug"
         binary.debuggable
         !binary.optimized
@@ -50,7 +49,6 @@ class DefaultSwiftApplicationTest extends Specification {
         binary.targetPlatform == targetPlatform
         binary.toolChain == toolChain
         binary.platformToolProvider == platformToolProvider
-        binary.swiftLanguageVersion == SwiftLanguageVersion.SWIFT4
 
         app.binaries.realizeNow()
         app.binaries.get() == [binary] as Set

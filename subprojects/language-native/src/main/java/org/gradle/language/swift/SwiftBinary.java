@@ -89,7 +89,7 @@ public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDepe
     /**
      * Returns the Swift language version of this component.
      *
-     * @since 4.5
+     * @since 4.6
      */
-    Provider<SwiftLanguageVersion> getSwiftLanguageVersion();
+    Provider<SwiftSourceCompatibility> getSourceCompatibility();
 }

@@ -17,6 +17,7 @@
 package org.gradle.language.swift.plugins
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.provider.LockableProperty
 import org.gradle.api.internal.provider.Providers
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.nativeplatform.internal.Names
@@ -50,6 +51,7 @@ class SwiftBasePluginTest extends Specification {
         binary.names >> Names.of(name)
         binary.module >> project.objects.property(String)
         binary.targetPlatform >> Stub(SwiftPlatformInternal)
+        binary.sourceCompatibility >> Stub(LockableProperty) { getType() >> null }
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)
@@ -77,6 +79,7 @@ class SwiftBasePluginTest extends Specification {
         executable.baseName >> Providers.of("test_app")
         executable.executableFile >> executableFile
         executable.targetPlatform >> Stub(SwiftPlatformInternal)
+        executable.sourceCompatibility >> Stub(LockableProperty) { getType() >> null }
         executable.platformToolProvider >> new TestPlatformToolProvider()
 
         when:
@@ -107,6 +110,7 @@ class SwiftBasePluginTest extends Specification {
         library.module >> Providers.of("TestLib")
         library.baseName >> Providers.of("test_lib")
         library.targetPlatform >> Stub(SwiftPlatformInternal)
+        library.sourceCompatibility >> Stub(LockableProperty) { getType() >> null }
         library.platformToolProvider >> new TestPlatformToolProvider()
         library.implementationDependencies >> Stub(ConfigurationInternal)
 

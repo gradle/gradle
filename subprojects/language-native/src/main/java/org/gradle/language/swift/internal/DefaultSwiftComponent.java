@@ -28,7 +28,7 @@ import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.SwiftLanguageVersion;
+import org.gradle.language.swift.SwiftSourceCompatibility;
 
 import java.util.Collections;
 
@@ -38,14 +38,14 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     private final Property<String> module;
     private final String name;
     private final Names names;
-    private final LockableProperty<SwiftLanguageVersion> swiftLanguageVersionSupport;
+    private final LockableProperty<SwiftSourceCompatibility> sourceCompatibility;
 
     public DefaultSwiftComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
         super(fileOperations);
         this.name = name;
         swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
         module = objectFactory.property(String.class);
-        swiftLanguageVersionSupport = new LockableProperty<SwiftLanguageVersion>(objectFactory.property(SwiftLanguageVersion.class));
+        sourceCompatibility = new LockableProperty<SwiftSourceCompatibility>(objectFactory.property(SwiftSourceCompatibility.class));
 
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, SwiftBinary.class));
@@ -77,7 +77,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     }
 
     @Override
-    public LockableProperty<SwiftLanguageVersion> getSwiftLanguageVersionSupport() {
-        return swiftLanguageVersionSupport;
+    public LockableProperty<SwiftSourceCompatibility> getSourceCompatibility() {
+        return sourceCompatibility;
     }
 }

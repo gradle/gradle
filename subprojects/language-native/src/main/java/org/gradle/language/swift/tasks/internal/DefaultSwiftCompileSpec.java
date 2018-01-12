@@ -17,7 +17,7 @@
 package org.gradle.language.swift.tasks.internal;
 
 import org.gradle.language.nativeplatform.internal.AbstractNativeCompileSpec;
-import org.gradle.language.swift.SwiftLanguageVersion;
+import org.gradle.language.swift.SwiftSourceCompatibility;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 
 import java.io.File;
@@ -25,7 +25,7 @@ import java.io.File;
 public class DefaultSwiftCompileSpec extends AbstractNativeCompileSpec implements SwiftCompileSpec {
     private String moduleName;
     private File moduleFile;
-    private SwiftLanguageVersion swiftLanguageVersionSupport;
+    private SwiftSourceCompatibility swiftSourceCompatibilitySupport;
 
     @Override
     public String getModuleName() {
@@ -48,12 +48,12 @@ public class DefaultSwiftCompileSpec extends AbstractNativeCompileSpec implement
     }
 
     @Override
-    public SwiftLanguageVersion getSwiftLanguageVersionSupport() {
-        return swiftLanguageVersionSupport;
+    public SwiftSourceCompatibility getSwiftSourceCompatibilitySupport() {
+        return swiftSourceCompatibilitySupport;
     }
 
     @Override
-    public void setSwiftLanguageVersionSupport(SwiftLanguageVersion swiftLanguageVersionSupport) {
-        this.swiftLanguageVersionSupport = swiftLanguageVersionSupport;
+    public void setSwiftSourceCompatibilitySupport(SwiftSourceCompatibility swiftSourceCompatibilitySupport) {
+        this.swiftSourceCompatibilitySupport = swiftSourceCompatibilitySupport;
     }
 }

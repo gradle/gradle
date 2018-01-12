@@ -30,7 +30,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
-import org.gradle.language.swift.SwiftLanguageVersion;
+import org.gradle.language.swift.SwiftSourceCompatibility;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
@@ -84,7 +84,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         return "modules/" + names.getDirName() + binary.getModule().get() + ".swiftmodule";
                     }
                 })));
-                compile.getSwiftLanguageVersionSupport().set(binary.getSwiftLanguageVersion());
+                compile.getSourceCompatibility().set(binary.getSourceCompatibility());
                 binary.getModuleFile().set(compile.getModuleFile());
 
                 NativePlatform currentPlatform = binary.getTargetPlatform();
@@ -119,24 +119,24 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 project.afterEvaluate(new Action<Project>() {
                     @Override
                     public void execute(Project project) {
-                        component.getSwiftLanguageVersionSupport().lockNow();
+                        component.getSourceCompatibility().lockNow();
                     }
                 });
                 component.getBinaries().whenElementKnown(DefaultSwiftBinary.class, new Action<DefaultSwiftBinary>() {
                     @Override
                     public void execute(final DefaultSwiftBinary binary) {
-                        Provider<SwiftLanguageVersion> swiftLanguageVersionProvider = project.provider(new Callable<SwiftLanguageVersion>() {
+                        Provider<SwiftSourceCompatibility> swiftLanguageVersionProvider = project.provider(new Callable<SwiftSourceCompatibility>() {
                             @Override
-                            public SwiftLanguageVersion call() throws Exception {
-                                SwiftLanguageVersion swiftLanguageVersion = component.getSwiftLanguageVersionSupport().getOrNull();
-                                if (swiftLanguageVersion == null) {
-                                    return SwiftLanguageVersion.of(binary.getPlatformToolProvider().getCompilerMetadata().getVersion());
+                            public SwiftSourceCompatibility call() throws Exception {
+                                SwiftSourceCompatibility swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
+                                if (swiftSourceCompatibility == null) {
+                                    return SwiftSourceCompatibility.of(binary.getPlatformToolProvider().getCompilerMetadata().getVersion());
                                 }
-                                return swiftLanguageVersion;
+                                return swiftSourceCompatibility;
                             }
                         });
 
-                        binary.getSwiftLanguageVersion().set(swiftLanguageVersionProvider);
+                        binary.getSourceCompatibility().set(swiftLanguageVersionProvider);
                     }
                 });
             }

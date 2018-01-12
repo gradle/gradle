@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
 import org.gradle.language.ComponentDependencies
-import org.gradle.language.swift.SwiftLanguageVersion
+import org.gradle.language.swift.SwiftSourceCompatibility
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -91,16 +91,16 @@ class DefaultSwiftComponentTest extends Specification {
         c2.swiftSource.files == [f2] as Set
     }
 
-    def "can modify Swift language support"() {
-        component.swiftLanguageVersionSupport = SwiftLanguageVersion.SWIFT4
+    def "can modify Swift source compatibility"() {
+        component.sourceCompatibility.set SwiftSourceCompatibility.SWIFT4
 
         expect:
-        component.swiftLanguageVersionSupport.get() == SwiftLanguageVersion.SWIFT4
+        component.sourceCompatibility.get() == SwiftSourceCompatibility.SWIFT4
     }
 
-    def "defaults to null when Swift language support isn't configured"() {
+    def "defaults to null when Swift source compatibility isn't configured"() {
         expect:
-        component.swiftLanguageVersionSupport.get() == null
+        component.sourceCompatibility.getOrNull() == null
     }
 
     class TestComponent extends DefaultSwiftComponent {

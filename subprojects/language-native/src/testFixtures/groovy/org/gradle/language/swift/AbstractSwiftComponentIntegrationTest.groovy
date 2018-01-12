@@ -33,7 +33,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.swiftLanguageVersion.get() == SwiftLanguageVersion.of(${
+                        assert it.sourceCompatibility.get() == SwiftSourceCompatibility.of(${
             VersionNumber.canonicalName}.parse('${AbstractNativeLanguageComponentIntegrationTest.toolChain.version}'))
                     }
                 }
@@ -44,18 +44,18 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         succeeds "verifyBinariesSwiftVersion"
     }
 
-    def "throws exception when modifying Swift component language support after the binaries are known"() {
+    def "throws exception when modifying Swift component source compatibility after the binaries are known"() {
         Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(4))
 
         given:
         makeSingleProject()
         buildFile << """
             ${componentUnderTestDsl} {
-                swiftLanguageVersionSupport = SwiftLanguageVersion.SWIFT3
+                sourceCompatibility = SwiftSourceCompatibility.SWIFT3
             }
 
             ${componentUnderTestDsl}.binaries.whenElementKnown {
-                ${componentUnderTestDsl}.swiftLanguageVersionSupport = SwiftLanguageVersion.SWIFT4
+                ${componentUnderTestDsl}.sourceCompatibility = SwiftSourceCompatibility.SWIFT4
             }
 
             task verifyBinariesSwiftVersion {}
@@ -76,13 +76,13 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         swift3Component.writeToProject(testDirectory)
         buildFile << """
             ${componentUnderTestDsl} {
-                swiftLanguageVersionSupport = SwiftLanguageVersion.SWIFT3
+                sourceCompatibility = SwiftSourceCompatibility.SWIFT3
             }
 
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.swiftLanguageVersion.get() == SwiftLanguageVersion.SWIFT3
+                        assert it.sourceCompatibility.get() == SwiftSourceCompatibility.SWIFT3
                     }
                 }
             }
@@ -105,13 +105,13 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         swift4Component.writeToProject(testDirectory)
         buildFile << """
             ${componentUnderTestDsl} {
-                swiftLanguageVersionSupport = SwiftLanguageVersion.SWIFT4
+                sourceCompatibility = SwiftSourceCompatibility.SWIFT4
             }
 
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.swiftLanguageVersion.get() == SwiftLanguageVersion.SWIFT4
+                        assert it.sourceCompatibility.get() == SwiftSourceCompatibility.SWIFT4
                     }
                 }
             }
@@ -124,7 +124,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
 
         then:
         failure.assertHasDescription("Execution failed for task ':$taskNameToCompileDevelopmentBinary'.")
-        failure.assertHasCause("swiftc compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftLanguageVersion.SWIFT4.version}'")
+        failure.assertHasCause("swiftc compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftSourceCompatibility.SWIFT4.version}'")
     }
 
     abstract String getTaskNameToCompileDevelopmentBinary()
