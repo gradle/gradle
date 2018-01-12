@@ -31,13 +31,13 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
 
     def 'compilation can be cached'() {
         when:
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         compileIsNotCached()
 
         when:
-        withBuildCache().succeeds 'clean', 'run'
+        withBuildCache().run 'clean', 'run'
 
         then:
         compileIsCached()
@@ -50,7 +50,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
 
         when:
         executer.inDirectory(remoteProjectDir)
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
         then:
         compileIsNotCached()
         remoteProjectDir.file(getCompiledFile()).exists()
@@ -61,7 +61,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         when:
         // Move the dependencies around by using a new Gradle user home
         executer.requireOwnGradleUserHomeDir()
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
         then:
         compileIsCached()
     }
@@ -79,7 +79,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         def remoteProjectDir = file("remote-project")
         setupProjectInDirectory(remoteProjectDir)
         executer.inDirectory(remoteProjectDir)
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
         compileIsNotCached()
         // Remove the project completely
         remoteProjectDir.deleteDir()

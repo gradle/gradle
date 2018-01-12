@@ -157,6 +157,11 @@ class AbstractIntegrationSpec extends Specification {
         executer
     }
 
+    AbstractIntegrationSpec withBuildCache() {
+        executer.withBuildCacheEnabled()
+        this
+    }
+
     /**
      * Synonym for succeeds()
      */

@@ -87,14 +87,14 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         def compiledScalaClass = scalaClassFile('UsesJava.class')
 
         when:
-        withBuildCache().succeeds ':compileJava', compilationTask
+        withBuildCache().run ':compileJava', compilationTask
 
         then:
         compiledJavaClass.exists()
         compiledScalaClass.exists()
 
         when:
-        withBuildCache().succeeds ':clean', ':compileJava'
+        withBuildCache().run ':clean', ':compileJava'
 
         then:
         skipped ':compileJava'
@@ -105,7 +105,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         // compileScala from the cache the compiled java
         // classes are replaced and recorded as changed
         compiledJavaClass.makeOlder()
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         skipped compilationTask
@@ -128,7 +128,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
             }
         """
 
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         compiledJavaClass.exists()
@@ -146,7 +146,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
         when:
         executer.inDirectory(warmupDir)
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         classes.all*.compiledClass*.exists().every()
@@ -157,7 +157,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         setupProjectInDirectory(testDirectory)
         classes = new ScalaCompilationFixture(testDirectory)
         classes.baseline()
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         executedAndNotSkipped compilationTask
@@ -165,7 +165,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
         when:
         classes.classDependingOnBasicClassSource.change()
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         skipped compilationTask
@@ -174,7 +174,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         skipped compilationTask
@@ -185,7 +185,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         // Make sure we notice when classes are recompiled
         classes.all*.compiledClass*.makeOlder()
         classes.independentClassSource.change()
-        withBuildCache().succeeds compilationTask
+        withBuildCache().run compilationTask
 
         then:
         executedAndNotSkipped compilationTask

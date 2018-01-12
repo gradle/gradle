@@ -130,7 +130,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
         executer.beforeExecute {
             inDirectory(newLocation)
         }
-        withBuildCache().succeeds upstreamCompileTasks
+        withBuildCache().run upstreamCompileTasks
 
         then:
         skipped upstreamCompileTasks

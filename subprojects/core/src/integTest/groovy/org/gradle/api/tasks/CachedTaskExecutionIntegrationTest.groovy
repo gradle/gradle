@@ -72,15 +72,15 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
     def "no task is re-executed when inputs are unchanged"() {
         when:
-        withBuildCache().succeeds "jar"
+        withBuildCache().run "jar"
         then:
         skippedTasks.empty
 
         expect:
-        withBuildCache().succeeds "clean"
+        withBuildCache().run "clean"
 
         when:
-        withBuildCache().succeeds "jar"
+        withBuildCache().run "jar"
         then:
         skippedTasks.containsAll ":compileJava"
     }
@@ -90,7 +90,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         cacheDir.listFiles() as List == []
 
         when:
-        withBuildCache().succeeds "jar"
+        withBuildCache().run "jar"
         def originalCacheContents = listCacheFiles()
         def originalModificationTimes = originalCacheContents.collect { file -> TestFile.makeOlder(file); file.lastModified() }
         then:
@@ -98,10 +98,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         originalCacheContents.size() > 0
 
         expect:
-        withBuildCache().succeeds "clean"
+        withBuildCache().run "clean"
 
         when:
-        withBuildCache().succeeds "jar", "--rerun-tasks"
+        withBuildCache().run "jar", "--rerun-tasks"
         def updatedCacheContents = listCacheFiles()
         def updatedModificationTimes = updatedCacheContents*.lastModified()
         then:
@@ -122,15 +122,15 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         """
 
         when:
-        withBuildCache().succeeds "jar"
+        withBuildCache().run "jar"
         then:
         skippedTasks.empty
 
         expect:
-        withBuildCache().succeeds "clean"
+        withBuildCache().run "clean"
 
         when:
-        withBuildCache().succeeds "jar"
+        withBuildCache().run "jar"
         then:
         nonSkippedTasks.containsAll ":compileJava", ":jar"
     }
@@ -143,39 +143,39 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().run "run"
         withBuildCache().run "clean"
         expect:
-        withBuildCache().succeeds "run"
+        withBuildCache().run "run"
     }
 
     def "tasks get cached when source code changes without changing the compiled output"() {
         when:
-        withBuildCache().succeeds "assemble"
+        withBuildCache().run "assemble"
         then:
         skippedTasks.empty
 
         file("src/main/java/Hello.java") << """
             // Change to source file without compiled result change
         """
-        withBuildCache().succeeds "clean"
+        withBuildCache().run "clean"
 
         when:
-        withBuildCache().succeeds "assemble"
+        withBuildCache().run "assemble"
         then:
         nonSkippedTasks.contains ":compileJava"
     }
 
     def "tasks get cached when source code changes back to previous state"() {
         expect:
-        withBuildCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
+        withBuildCache().run "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
         when:
         file("src/main/java/Hello.java").text = CHANGED_HELLO_WORLD
         then:
-        withBuildCache().succeeds "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
+        withBuildCache().run "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
         when:
         file("src/main/java/Hello.java").text = ORIGINAL_HELLO_WORLD
         then:
-        withBuildCache().succeeds "jar"
+        withBuildCache().run "jar"
         result.assertTaskSkipped ":compileJava"
     }
 
@@ -184,7 +184,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().run "clean"
         withBuildCache().run "assemble"
         when:
-        withBuildCache().succeeds "clean"
+        withBuildCache().run "clean"
         then:
         nonSkippedTasks.contains ":clean"
     }
@@ -203,7 +203,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
                 }
             }
         """
-        withBuildCache().succeeds "compileJava"
+        withBuildCache().run "compileJava"
         then:
         skippedTasks.empty
         remoteProjectDir.file("build/classes/java/main/Hello.class").exists()
@@ -212,7 +212,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         remoteProjectDir.deleteDir()
 
         when:
-        withBuildCache().succeeds "compileJava"
+        withBuildCache().run "compileJava"
         then:
         skippedTasks.containsAll ":compileJava"
         javaClassFile("Hello.class").exists()
@@ -231,7 +231,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
                 }
             }
         """
-        withBuildCache().succeeds "compileJava"
+        withBuildCache().run "compileJava"
         then:
         skippedTasks.empty
         remoteProjectDir.file("build/classes/java/main/Hello.class").exists()
@@ -239,7 +239,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         remoteProjectDir.deleteDir()
 
         when:
-        withBuildCache().succeeds "compileJava"
+        withBuildCache().run "compileJava"
         then:
         skippedTasks.containsAll ":compileJava"
         javaClassFile("Hello.class").exists()
@@ -320,7 +320,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         def taskPath = ':createOutput'
-        withBuildCache().succeeds taskPath
+        withBuildCache().run taskPath
 
         then:
         nonSkippedTasks.contains taskPath
@@ -328,7 +328,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         when:
         succeeds 'clean'
-        withBuildCache().succeeds taskPath
+        withBuildCache().run taskPath
 
         then:
         skippedTasks.contains taskPath
@@ -361,34 +361,34 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
             }
         """
         when:
-        withBuildCache().succeeds "jar"
+        withBuildCache().run "jar"
         then:
         skippedTasks.empty
 
         expect:
-        withBuildCache().succeeds "clean"
+        withBuildCache().run "clean"
 
         when:
-        withBuildCache().succeeds "jar"
+        withBuildCache().run "jar"
         then:
         skippedTasks.empty
     }
 
     def "task with custom actions gets logged"() {
         when:
-        withBuildCache().succeeds "compileJava", "--info"
+        withBuildCache().run "compileJava", "--info"
         then:
         skippedTasks.empty
         !output.contains("Custom actions are attached to task ':compileJava'.")
 
         expect:
-        withBuildCache().succeeds "clean"
+        withBuildCache().run "clean"
 
         when:
         buildFile << """
             compileJava.doFirst { println "Custom action" }
         """
-        withBuildCache().succeeds "compileJava", "--info"
+        withBuildCache().run "compileJava", "--info"
         then:
         skippedTasks.empty
         output.contains("Custom actions are attached to task ':compileJava'.")
@@ -399,7 +399,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         buildFile << """
             compileJava.doFirst { }
         """.stripIndent()
-        withBuildCache().succeeds "compileJava", "--info"
+        withBuildCache().run "compileJava", "--info"
 
         then:
         skippedTasks.empty
@@ -423,7 +423,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         """
 
         when:
-        withBuildCache().succeeds "compileJava", "--info"
+        withBuildCache().run "compileJava", "--info"
         then:
         skippedTasks.empty
         output.contains "Caching disabled for task ':compileJava': 'Forking compiler via ForkOptions.executable' satisfied"
@@ -432,7 +432,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         succeeds "clean"
 
         when:
-        withBuildCache().succeeds "compileJava"
+        withBuildCache().run "compileJava"
         then:
         skippedTasks.empty
     }
@@ -469,7 +469,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         succeeds("cacheable")
         make("B")
         // populate the cache
-        withBuildCache().succeeds("cacheable")
+        withBuildCache().run("cacheable")
 
         when:
         gradleUserHome.deleteDir() // nuke the file snapshot cache
@@ -481,7 +481,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         make("B")
         succeeds("cacheable")
         make("A")
-        withBuildCache().succeeds("cacheable")
+        withBuildCache().run("cacheable")
         then:
         result.assertTaskSkipped(":cacheable")
     }
