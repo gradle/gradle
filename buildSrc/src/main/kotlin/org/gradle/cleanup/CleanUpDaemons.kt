@@ -16,7 +16,6 @@
 
 package org.gradle.cleanup
 
-import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.TestDescriptor
@@ -42,7 +41,7 @@ open class CleanUpDaemons : DefaultTask() {
     fun cleanUpDaemons(): Unit = project.run {
 
         val alreadyKilled = mutableSetOf<String>()
-        forEachJavaProcess { pid, process ->
+        forEachJavaProcess {
             suspiciousDaemons.forEach { (suite, pids) ->
                 if (pid in pids && pid !in alreadyKilled) {
                     logger.warn("A process was created in $suite but wasn't shutdown properly. Killing PID $pid (Command line: $process)")
@@ -58,7 +57,7 @@ open class CleanUpDaemons : DefaultTask() {
             override fun beforeTest(test: TestDescriptor) = Unit
             override fun afterTest(test: TestDescriptor, result: TestResult) = Unit
             override fun beforeSuite(suite: TestDescriptor) {
-                forEachJavaProcess { pid, _ ->
+                forEachJavaProcess {
                     // processes that exist before the test suite execution should
                     // not trigger a warning
                     daemonPids += pid
@@ -66,7 +65,7 @@ open class CleanUpDaemons : DefaultTask() {
             }
 
             override fun afterSuite(suite: TestDescriptor, result: TestResult) {
-                forEachJavaProcess { pid, _ ->
+                forEachJavaProcess {
                     if (daemonPids.add(pid)) {
                         suspiciousDaemons.getOrPut("$suite", ::newKeySet) += pid
                     }
@@ -75,9 +74,6 @@ open class CleanUpDaemons : DefaultTask() {
         }
 
     private
-    fun forEachJavaProcess(action: (String, String) -> Unit) =
-        // KTS: Need to explicitly type the argument as `Action<ProcessInfo>` due to
-        // https://github.com/gradle/kotlin-dsl/issues/522
-        project.forEachLeakingJavaProcess(Action<ProcessInfo> { action(pid, process) })
-
+    fun forEachJavaProcess(action: ProcessInfo.() -> Unit) =
+        project.forEachLeakingJavaProcess(action)
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.process
 
-import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
@@ -29,11 +28,11 @@ open class KillLeakingJavaProcesses : DefaultTask() {
 
         // KTS: Need to explicitly type the argument as `Action<ProcessInfo>` due to
         // https://github.com/gradle/kotlin-dsl/issues/522
-        forEachLeakingJavaProcess(Action<ProcessInfo> {
+        forEachLeakingJavaProcess {
             logger.warn("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid (Command line: $process)")
             pkill(pid)
             didKill = true
-        })
+        }
 
         if (didKill) {
             //it might take a moment until file handles are released
