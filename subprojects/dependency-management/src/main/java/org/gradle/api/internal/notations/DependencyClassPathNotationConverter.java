@@ -140,7 +140,9 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     }
 
     /**
-     * Gradle script kotlin should not be part of the public Gradle API We remove this in a very hacky way for 3.0. Going forward, there will be a cleaner solution
+     * Gradle script kotlin should not be part of the public Gradle API
+     * We remove this in a very hacky way for 3.0. Going forward, there
+     * will be a cleaner solution
      */
     private void removeGradleScriptKotlin(Collection<File> apiClasspath) {
         for (File file : new ArrayList<File>(apiClasspath)) {
