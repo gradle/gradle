@@ -38,6 +38,11 @@ class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTes
     }
 
     @Override
+    String getTaskNameToCompileDevelopmentBinary() {
+        return ":compileDebugSharedSwift"
+    }
+
+    @Override
     protected String getComponentUnderTestDsl() {
         return "library"
     }
