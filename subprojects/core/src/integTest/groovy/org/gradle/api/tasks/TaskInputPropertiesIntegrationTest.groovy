@@ -19,13 +19,12 @@ package org.gradle.api.tasks
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BuildCacheFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.Actions
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec implements BuildCacheFixture {
+class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     def "reports which properties are not serializable"() {
         buildFile << """

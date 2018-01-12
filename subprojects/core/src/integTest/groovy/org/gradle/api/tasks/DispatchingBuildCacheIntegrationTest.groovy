@@ -17,13 +17,12 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BuildCacheFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 @Unroll
-class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec implements BuildCacheFixture {
+class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
     private TestBuildCache localCache = new TestBuildCache(file('local-cache'))
     private TestBuildCache remoteCache = new TestBuildCache(file('remote-cache'))
@@ -69,7 +68,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
         pushToLocal()
 
         when:
-        withBuildCache().succeeds cacheableTask
+        withBuildCache().run cacheableTask
 
         then:
         executedAndNotSkipped(cacheableTask)
@@ -78,7 +77,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
 
         when:
         pullOnly()
-        withBuildCache().succeeds 'clean', cacheableTask
+        withBuildCache().run 'clean', cacheableTask
 
         then:
         skippedTasks.contains(cacheableTask)
@@ -91,7 +90,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
         pushToRemote()
 
         when:
-        withBuildCache().succeeds cacheableTask
+        withBuildCache().run cacheableTask
 
         then:
         executedAndNotSkipped(cacheableTask)
@@ -100,7 +99,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
 
         when:
         pullOnly()
-        withBuildCache().succeeds 'clean', cacheableTask
+        withBuildCache().run 'clean', cacheableTask
 
         then:
         skippedTasks.contains(cacheableTask)
@@ -114,7 +113,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
         hiddenInputFile.text = 'remote'
 
         when:
-        withBuildCache().succeeds cacheableTask
+        withBuildCache().run cacheableTask
 
         then:
         executedAndNotSkipped(cacheableTask)
@@ -124,7 +123,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
         when:
         settingsFile.text = localCache.localCacheConfiguration()
         hiddenInputFile.text = 'local'
-        withBuildCache().succeeds 'clean', cacheableTask
+        withBuildCache().run 'clean', cacheableTask
 
         then:
         executedAndNotSkipped(cacheableTask)
@@ -134,7 +133,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
         when:
         pullOnly()
         hiddenInputFile.text = 'remote'
-        withBuildCache().succeeds 'clean', cacheableTask
+        withBuildCache().run 'clean', cacheableTask
 
         then:
         populatedCache(localCache)
@@ -155,7 +154,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
         """.stripIndent()
 
         when:
-        withBuildCache().succeeds cacheableTask
+        withBuildCache().run cacheableTask
 
         then:
         populatedCache(localCache)
@@ -166,7 +165,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec imple
         pushToBoth()
 
         when:
-        withBuildCache().succeeds cacheableTask
+        withBuildCache().run cacheableTask
 
         then:
         populatedCache(localCache)

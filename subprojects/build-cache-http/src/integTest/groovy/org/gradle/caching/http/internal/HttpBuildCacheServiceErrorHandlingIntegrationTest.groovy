@@ -61,7 +61,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
         when:
         executer.withStackTraceChecksDisabled()
         executer.withStacktraceDisabled()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
 
         then:
         output =~ /Could not store entry .* for task ':customTask' in remote build cache/
@@ -75,7 +75,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
         when:
         executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
         executer.withStacktraceDisabled()
-        withBuildCache().succeeds("customTask")
+        withBuildCache().run("customTask")
 
         then:
         output =~ /Could not load entry .* for task ':customTask' from remote build cache/

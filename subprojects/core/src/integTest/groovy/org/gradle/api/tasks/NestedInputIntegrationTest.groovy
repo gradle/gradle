@@ -19,12 +19,11 @@ package org.gradle.api.tasks
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BuildCacheFixture
 import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Unroll
 
-class NestedInputIntegrationTest extends AbstractIntegrationSpec implements BuildCacheFixture {
+class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "nested #type.simpleName input adds a task dependency"() {
