@@ -102,14 +102,6 @@ project(":") {
     }
 }
 
-def forEachJavaProcess(Closure action) {
-    org.gradle.process.Process.forEachLeakingJavaProcess(project, { action.call(it.pid, it.process) } as Action)
-}
-
-def pkill(pid) {
-    org.gradle.process.Process.pkill(project, pid)
-}
-
 project(":") {
 
     if (tasks.findByName('cleanUpDaemons')) {
@@ -118,20 +110,7 @@ project(":") {
 
     task cleanUpDaemons(type: org.gradle.cleanup.CleanUpDaemons)
 
-    task killExistingProcessesStartedByGradle {
-        doLast {
-            def didKill = false
-            forEachJavaProcess { pid, process ->
-                logger.warn("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid (Command line: $process)")
-                pkill(pid)
-                didKill = true
-            }
-            if (didKill) {
-                //it might take a moment until file handles are released
-                Thread.sleep(5000)
-            }
-        }
-    }
+    task killExistingProcessesStartedByGradle(type: org.gradle.process.KillLeakingJavaProcesses)
 
     if (isCiServer) {
         clean.dependsOn killExistingProcessesStartedByGradle
