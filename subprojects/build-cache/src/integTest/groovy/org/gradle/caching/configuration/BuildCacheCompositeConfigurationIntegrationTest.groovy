@@ -90,9 +90,9 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         i3Cache.listCacheFiles().size() == 1
 
         and:
-        result.assertOutputContains "Using local directory build cache for build ':buildSrc' (location = ${buildSrcCache.cacheDir}, targetSize = 5 GB)."
-        result.assertOutputContains "Using local directory build cache for build ':i2:i3' (location = ${i3Cache.cacheDir}, targetSize = 5 GB)."
-        result.assertOutputContains "Using local directory build cache for the root build (location = ${mainCache.cacheDir}, targetSize = 5 GB)."
+        result.assertOutputContains "Using local directory build cache for build ':buildSrc' (location = ${buildSrcCache.cacheDir}, removeUnusedEntriesAfter = 7 days)."
+        result.assertOutputContains "Using local directory build cache for build ':i2:i3' (location = ${i3Cache.cacheDir}, removeUnusedEntriesAfter = 7 days)."
+        result.assertOutputContains "Using local directory build cache for the root build (location = ${mainCache.cacheDir}, removeUnusedEntriesAfter = 7 days)."
 
         and:
         def finalizeOps = operations.all(FinalizeBuildCacheConfigurationBuildOperationType)

@@ -27,6 +27,7 @@ import org.gradle.internal.operations.trace.BuildOperationTree
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.regex.Pattern
 
 class BuildOperationsFixture {
 
@@ -80,7 +81,38 @@ class BuildOperationsFixture {
     }
 
     BuildOperationRecord first(String displayName) {
-        operations.records.values().find { it.displayName == displayName }
+        first(Pattern.compile(Pattern.quote(displayName)))
+    }
+
+    BuildOperationRecord first(Pattern displayName) {
+        operations.records.values().find { it.displayName ==~ displayName }
+    }
+
+    List<BuildOperationRecord> all(String displayName) {
+        all(Pattern.compile(Pattern.quote(displayName)))
+    }
+
+    List<BuildOperationRecord> all(Pattern displayName) {
+        operations.records.values().findAll { it.displayName ==~ displayName }
+    }
+
+    BuildOperationRecord only(String displayName) {
+        only(Pattern.compile(Pattern.quote(displayName)))
+    }
+
+    BuildOperationRecord only(Pattern displayName) {
+        def records = all(displayName)
+        assert records.size() == 1
+        records.first()
+    }
+
+    void none(String displayName) {
+        none(Pattern.compile(Pattern.quote(displayName)))
+    }
+
+    void none(Pattern displayName) {
+        def records = all(displayName)
+        assert records.size() == 0
     }
 
     Map<String, ?> result(String displayName) {

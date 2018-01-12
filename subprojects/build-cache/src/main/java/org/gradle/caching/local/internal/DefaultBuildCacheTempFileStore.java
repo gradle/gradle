@@ -39,7 +39,7 @@ public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
         File tempFile = null;
         try {
             try {
-                tempFile = File.createTempFile(hashCode, PARTIAL_FILE_SUFFIX, dir);
+                tempFile = File.createTempFile(hashCode + "-", PARTIAL_FILE_SUFFIX, dir);
             } catch (IOException ex) {
                 throw new UncheckedIOException(ex);
             }

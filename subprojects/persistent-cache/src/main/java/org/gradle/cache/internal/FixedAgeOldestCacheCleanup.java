@@ -38,10 +38,11 @@ public class FixedAgeOldestCacheCleanup extends AbstractCacheCleanup {
         this.minimumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(ageInDays));
     }
 
+    @Override
     protected List<File> findFilesToDelete(final PersistentCache persistentCache, File[] filesEligibleForCleanup) {
         LOGGER.info("{} remove files older than {}.", persistentCache, new Date(minimumTimestamp));
 
-        final List<File> filesForDeletion = Lists.newArrayList();
+        List<File> filesForDeletion = Lists.newArrayListWithCapacity(filesEligibleForCleanup.length);
 
         for (File file : filesEligibleForCleanup) {
             if (file.lastModified() < minimumTimestamp) {

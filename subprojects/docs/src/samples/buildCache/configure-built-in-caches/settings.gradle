@@ -20,7 +20,7 @@ import org.gradle.caching.local.DirectoryBuildCache
 buildCache {
     local(DirectoryBuildCache) {
         directory = new File(rootDir, 'build-cache')
-        targetSizeInMB = 1024
+        removeUnusedEntriesAfterDays = 30
     }
 }
 // END SNIPPET configure-directory-build-cache

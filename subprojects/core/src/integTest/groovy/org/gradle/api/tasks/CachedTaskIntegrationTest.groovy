@@ -32,7 +32,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         buildFile << defineCacheableTask()
         withBuildCache().succeeds "cacheable", "--info"
         expect:
-        result.assertOutputContains "Using local directory build cache for the root build (location = ${cacheDir}, targetSize = 5 GB)."
+        result.assertOutputContains "Using local directory build cache for the root build (location = ${cacheDir}, removeUnusedEntriesAfter = 7 days)."
     }
 
     def "cache entry contains expected contents"() {
