@@ -66,8 +66,8 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
     @Override
     public WorkResult execute(SwiftCompileSpec spec) {
-        if (swiftCompilerVersion.getMajor() < spec.getSwiftSourceCompatibilitySupport().getVersion()) {
-            throw new IllegalArgumentException(String.format("swiftc compiler version '%s' doesn't support Swift language version '%d'", swiftCompilerVersion.toString(), spec.getSwiftSourceCompatibilitySupport().getVersion()));
+        if (swiftCompilerVersion.getMajor() < spec.getSourceCompatibility().getVersion()) {
+            throw new IllegalArgumentException(String.format("swiftc compiler version '%s' doesn't support Swift language version '%d'", swiftCompilerVersion.toString(), spec.getSourceCompatibility().getVersion()));
         }
 
         return super.execute(spec);
@@ -134,7 +134,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 }
 
                 genericArgs.add("-swift-version");
-                genericArgs.add(String.valueOf(spec.getSwiftSourceCompatibilitySupport().getVersion()));
+                genericArgs.add(String.valueOf(spec.getSourceCompatibility().getVersion()));
 
                 CommandLineToolInvocation perFileInvocation =
                     newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs, importRootArgs), spec.getOperationLogger());

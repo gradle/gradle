@@ -28,6 +28,6 @@ public interface SwiftCompileSpec extends NativeCompileSpec {
     File getModuleFile();
     void setModuleFile(File file);
 
-    SwiftSourceCompatibility getSwiftSourceCompatibilitySupport();
-    void setSwiftSourceCompatibilitySupport(SwiftSourceCompatibility swiftSourceCompatibilitySupport);
+    SwiftSourceCompatibility getSourceCompatibility();
+    void setSourceCompatibility(SwiftSourceCompatibility sourceCompatibility);
 }

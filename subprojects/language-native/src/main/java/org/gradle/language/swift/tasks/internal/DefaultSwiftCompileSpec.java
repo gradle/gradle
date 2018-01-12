@@ -25,7 +25,7 @@ import java.io.File;
 public class DefaultSwiftCompileSpec extends AbstractNativeCompileSpec implements SwiftCompileSpec {
     private String moduleName;
     private File moduleFile;
-    private SwiftSourceCompatibility swiftSourceCompatibilitySupport;
+    private SwiftSourceCompatibility sourceCompatibility;
 
     @Override
     public String getModuleName() {
@@ -48,12 +48,12 @@ public class DefaultSwiftCompileSpec extends AbstractNativeCompileSpec implement
     }
 
     @Override
-    public SwiftSourceCompatibility getSwiftSourceCompatibilitySupport() {
-        return swiftSourceCompatibilitySupport;
+    public SwiftSourceCompatibility getSourceCompatibility() {
+        return sourceCompatibility;
     }
 
     @Override
-    public void setSwiftSourceCompatibilitySupport(SwiftSourceCompatibility swiftSourceCompatibilitySupport) {
-        this.swiftSourceCompatibilitySupport = swiftSourceCompatibilitySupport;
+    public void setSourceCompatibility(SwiftSourceCompatibility sourceCompatibility) {
+        this.sourceCompatibility = sourceCompatibility;
     }
 }

@@ -72,7 +72,7 @@ public interface SwiftComponent extends ComponentWithBinaries, ComponentWithDepe
     Configuration getImplementationDependencies();
 
     /**
-     * Returns the Swift language version supported of this component.
+     * Returns the Swift language level to use to compile the source files.
      *
      * @since 4.6
      */

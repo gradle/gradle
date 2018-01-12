@@ -244,7 +244,7 @@ public class SwiftCompile extends DefaultTask {
     }
 
     /**
-     * The Swift language version support for compiling the source.
+     * Returns the Swift language level to use to compile the source files.
      *
      * @since 4.6
      */
@@ -301,7 +301,7 @@ public class SwiftCompile extends DefaultTask {
         spec.setOptimized(isOptimized());
         spec.setIncrementalCompile(false);
         spec.setOperationLogger(operationLogger);
-        spec.setSwiftSourceCompatibilitySupport(sourceCompatibility.get());
+        spec.setSourceCompatibility(sourceCompatibility.get());
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
         Compiler<SwiftCompileSpec> baseCompiler = platformToolProvider.newCompiler(SwiftCompileSpec.class);
