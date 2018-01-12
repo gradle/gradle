@@ -19,13 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -49,10 +50,10 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     private final List<NodeState> nodes = Lists.newLinkedList();
     private final Long resultId;
     private final ModuleResolveState module;
+    private final ComponentSelectionReasonInternal selectionReason = VersionSelectionReasons.requested();
     private volatile ComponentResolveMetadata metaData;
 
     private ModuleState state = ModuleState.Selectable;
-    private ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
     private ModuleVersionResolveException failure;
     private SelectorState selectedBy;
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
@@ -194,13 +195,18 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     }
 
     @Override
-    public ComponentSelectionReason getSelectionReason() {
+    public ComponentSelectionReasonInternal getSelectionReason() {
         return selectionReason;
     }
 
     @Override
-    public void setSelectionReason(ComponentSelectionReason reason) {
-        this.selectionReason = reason;
+    public void addCause(ComponentSelectionDescriptorInternal reason) {
+        selectionReason.addCause(reason);
+    }
+
+
+    public void setRoot() {
+        selectionReason.setCause(VersionSelectionReasons.ROOT);
     }
 
     @Override
@@ -298,4 +304,5 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     void makeSelectable() {
         state = ModuleState.Selectable;
     }
+
 }

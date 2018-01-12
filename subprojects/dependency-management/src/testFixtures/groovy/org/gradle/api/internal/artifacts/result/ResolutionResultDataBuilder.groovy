@@ -38,11 +38,11 @@ class ResolutionResultDataBuilder {
 
     static DefaultUnresolvedDependencyResult newUnresolvedDependency(String group='x', String module='x', String version='1', String selectedVersion='1') {
         def requested = DefaultModuleComponentSelector.newSelector(group, module, new DefaultMutableVersionConstraint(version))
-        new DefaultUnresolvedDependencyResult(requested, VersionSelectionReasons.REQUESTED, newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(group, module, new DefaultMutableVersionConstraint(version)), "broken"))
+        new DefaultUnresolvedDependencyResult(requested, VersionSelectionReasons.requested(), newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(group, module, new DefaultMutableVersionConstraint(version)), "broken"))
     }
 
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1',
-                                                        ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED, ResolvedVariantResult variant = newVariant()) {
+                                                        ComponentSelectionReason selectionReason = VersionSelectionReasons.requested(), ResolvedVariantResult variant = newVariant()) {
         new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(group, module, version), variant)
     }
 

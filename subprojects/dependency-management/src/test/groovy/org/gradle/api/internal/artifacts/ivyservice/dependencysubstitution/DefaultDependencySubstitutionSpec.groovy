@@ -43,7 +43,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target.module == "foo"
         details.target.version == "3.0"
         details.updated
-        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
+        details.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE
     }
 
     def "does not allow null target"() {
@@ -68,7 +68,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ModuleComponentSelector
         details.target.toString() == 'org:bar:2.0'
         details.updated
-        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
+        details.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE
     }
 
     def "can specify custom selection reason"() {
@@ -79,7 +79,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ModuleComponentSelector
         details.target.toString() == 'org:bar:2.0'
         details.updated
-        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE.withReason('with custom reason')
+        details.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE.withReason('with custom reason')
     }
 
     def "can specify target project"() {
@@ -96,6 +96,6 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ProjectComponentSelector
         details.target.projectPath == ":bar"
         details.updated
-        details.selectionReason == VersionSelectionReasons.SELECTED_BY_RULE
+        details.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE
     }
 }
