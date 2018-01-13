@@ -39,6 +39,7 @@ import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
+import org.gradle.util.VersionNumber;
 
 import java.util.concurrent.Callable;
 
@@ -130,7 +131,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                             public SwiftVersion call() throws Exception {
                                 SwiftVersion swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
                                 if (swiftSourceCompatibility == null) {
-                                    return SwiftVersion.of(binary.getPlatformToolProvider().getCompilerMetadata().getVersion());
+                                    return toSwiftVersion(binary.getPlatformToolProvider().getCompilerMetadata().getVersion());
                                 }
                                 return swiftSourceCompatibility;
                             }
@@ -150,6 +151,16 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
                 details.compatible();
             }
+        }
+    }
+
+    static SwiftVersion toSwiftVersion(VersionNumber swiftCompilerVersion) {
+        if (swiftCompilerVersion.getMajor() == 3) {
+            return SwiftVersion.SWIFT3;
+        } else if (swiftCompilerVersion.getMajor() == 4) {
+            return SwiftVersion.SWIFT4;
+        } else {
+            throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified Swift compiler version (%s)", swiftCompilerVersion.toString()));
         }
     }
 }

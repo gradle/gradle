@@ -20,7 +20,6 @@ import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.SourceFileElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.VersionNumber
 import org.hamcrest.Matchers
 import org.junit.Assume
 
@@ -29,12 +28,12 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     def "binaries have the right Swift version"() {
         given:
         makeSingleProject()
+        def expectedVersion = AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major
         buildFile << """
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftVersion.of(${
-            VersionNumber.canonicalName}.parse('${AbstractNativeLanguageComponentIntegrationTest.toolChain.version}'))
+                        assert it.sourceCompatibility.get().version == ${expectedVersion}
                     }
                 }
             }
