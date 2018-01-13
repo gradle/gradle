@@ -51,7 +51,7 @@ public class UrlProcess extends DefaultTask {
     }
 
     @Input
-    public String getOutputType() {
+    public OutputType getOutputType() {
         return outputType;
     }
 
