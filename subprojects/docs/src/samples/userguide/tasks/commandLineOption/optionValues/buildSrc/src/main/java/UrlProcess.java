@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
@@ -53,7 +57,7 @@ public class UrlProcess extends DefaultTask {
 
     @TaskAction
     public void process() {
-        logger.quiet("Writing out the URL reponse from '{}' to '{}'", url, outputType);
+        getLogger().quiet("Writing out the URL reponse from '{}' to '{}'", url, outputType);
 
         // retrieve content from URL and write to output
     }

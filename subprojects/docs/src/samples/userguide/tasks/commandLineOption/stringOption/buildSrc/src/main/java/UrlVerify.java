@@ -36,7 +36,7 @@ public class UrlVerify extends DefaultTask {
 
     @TaskAction
     public void verify() {
-        logger.quiet("Verifying URL '{}'", url);
+        getLogger().quiet("Verifying URL '{}'", url);
 
         // verify URL by making a HTTP call
     }
