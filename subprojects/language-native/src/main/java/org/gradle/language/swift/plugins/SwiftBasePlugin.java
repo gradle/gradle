@@ -19,18 +19,22 @@ package org.gradle.language.swift.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
+import org.gradle.language.swift.SwiftSourceCompatibility;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
+import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -46,7 +50,7 @@ import java.util.concurrent.Callable;
 @Incubating
 public class SwiftBasePlugin implements Plugin<ProjectInternal> {
     @Override
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(NativeBasePlugin.class);
         project.getPluginManager().apply(SwiftCompilerPlugin.class);
 
@@ -80,6 +84,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         return "modules/" + names.getDirName() + binary.getModule().get() + ".swiftmodule";
                     }
                 })));
+                compile.getSourceCompatibility().set(binary.getSourceCompatibility());
                 binary.getModuleFile().set(compile.getModuleFile());
 
                 NativePlatform currentPlatform = binary.getTargetPlatform();
@@ -105,6 +110,35 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
             public void execute(SwiftStaticLibrary library) {
                 // Specific compiler arguments
                 library.getCompileTask().get().getCompilerArgs().add("-parse-as-library");
+            }
+        });
+
+        project.getComponents().withType(DefaultSwiftComponent.class, new Action<DefaultSwiftComponent>() {
+            @Override
+            public void execute(final DefaultSwiftComponent component) {
+                project.afterEvaluate(new Action<Project>() {
+                    @Override
+                    public void execute(Project project) {
+                        component.getSourceCompatibility().lockNow();
+                    }
+                });
+                component.getBinaries().whenElementKnown(DefaultSwiftBinary.class, new Action<DefaultSwiftBinary>() {
+                    @Override
+                    public void execute(final DefaultSwiftBinary binary) {
+                        Provider<SwiftSourceCompatibility> swiftLanguageVersionProvider = project.provider(new Callable<SwiftSourceCompatibility>() {
+                            @Override
+                            public SwiftSourceCompatibility call() throws Exception {
+                                SwiftSourceCompatibility swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
+                                if (swiftSourceCompatibility == null) {
+                                    return SwiftSourceCompatibility.of(binary.getPlatformToolProvider().getCompilerMetadata().getVersion());
+                                }
+                                return swiftSourceCompatibility;
+                            }
+                        });
+
+                        binary.getSourceCompatibility().set(swiftLanguageVersionProvider);
+                    }
+                });
             }
         });
     }

@@ -380,10 +380,10 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         library.writeToProject(testDirectory)
 
         when:
-        def result = fails('assemble')
+        fails('assemble')
 
         then:
-        result.assertHasCause('A linkage needs to be specified for the library.')
+        failure.assertHasCause('A linkage needs to be specified for the library.')
     }
 
     private static void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {

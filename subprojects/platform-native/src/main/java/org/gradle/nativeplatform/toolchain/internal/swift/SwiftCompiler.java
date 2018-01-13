@@ -24,6 +24,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -36,6 +37,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -49,15 +51,26 @@ import java.util.Map;
 class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final String objectFileExtension;
+    private final VersionNumber swiftCompilerVersion;
 
-    SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, WorkerLeaseService workerLeaseService) {
+    SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, WorkerLeaseService workerLeaseService, VersionNumber swiftCompilerVersion) {
         super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), false, workerLeaseService);
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.objectFileExtension = objectFileExtension;
+        this.swiftCompilerVersion = swiftCompilerVersion;
     }
 
     @Override
     protected void addOptionsFileArgs(List<String> args, File tempDir) {
+    }
+
+    @Override
+    public WorkResult execute(SwiftCompileSpec spec) {
+        if (swiftCompilerVersion.getMajor() < spec.getSourceCompatibility().getVersion()) {
+            throw new IllegalArgumentException(String.format("swiftc compiler version '%s' doesn't support Swift language version '%d'", swiftCompilerVersion.toString(), spec.getSourceCompatibility().getVersion()));
+        }
+
+        return super.execute(spec);
     }
 
     protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {
@@ -119,6 +132,9 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 if (spec.isOptimized()) {
                     genericArgs.add("-O");
                 }
+
+                genericArgs.add("-swift-version");
+                genericArgs.add(String.valueOf(spec.getSourceCompatibility().getVersion()));
 
                 CommandLineToolInvocation perFileInvocation =
                     newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs, importRootArgs), spec.getOperationLogger());

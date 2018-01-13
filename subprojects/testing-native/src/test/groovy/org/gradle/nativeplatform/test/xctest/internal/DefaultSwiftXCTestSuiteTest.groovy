@@ -37,11 +37,17 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     }
 
     def "can add a test executable"() {
+        def targetPlatform = Stub(SwiftPlatform)
+        def toolChain = Stub(NativeToolChainInternal)
+        def platformToolProvider = Stub(PlatformToolProvider)
         def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
 
         expect:
-        def exe = testSuite.addExecutable("Executable", Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        def exe = testSuite.addExecutable("Executable", targetPlatform, toolChain, platformToolProvider)
         exe.name == 'testExecutable'
+        exe.targetPlatform == targetPlatform
+        exe.toolChain == toolChain
+        exe.platformToolProvider == platformToolProvider
     }
 
     def "can add a test bundle"() {

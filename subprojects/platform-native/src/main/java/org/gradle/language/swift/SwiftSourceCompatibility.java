@@ -20,18 +20,29 @@ import org.gradle.api.Incubating;
 import org.gradle.util.VersionNumber;
 
 /**
- * Swift language version.
+ * Swift source compatibility.
  *
- * @since 4.5
+ * @since 4.6
  */
 @Incubating
-public enum SwiftLanguageVersion {
-    SWIFT2, SWIFT3, SWIFT4;
+public enum SwiftSourceCompatibility {
+    SWIFT3(3), SWIFT4(4);
 
-    public static SwiftLanguageVersion of(VersionNumber swiftCompilerVersion) {
-        if (swiftCompilerVersion.getMajor() == 2) {
-            return SWIFT2;
-        } else if (swiftCompilerVersion.getMajor() == 3) {
+    private final int version;
+
+    SwiftSourceCompatibility(int version) {
+        this.version = version;
+    }
+
+    /**
+     * Returns the Swift language version in numerical value
+     */
+    public int getVersion() {
+        return version;
+    }
+
+    public static SwiftSourceCompatibility of(VersionNumber swiftCompilerVersion) {
+        if (swiftCompilerVersion.getMajor() == 3) {
             return SWIFT3;
         } else if (swiftCompilerVersion.getMajor() == 4) {
             return SWIFT4;
