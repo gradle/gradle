@@ -41,7 +41,7 @@ import org.gradle.language.base.compile.CompilerVersion;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
-import org.gradle.language.swift.SwiftSourceCompatibility;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.tasks.internal.DefaultSwiftCompileSpec;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -73,7 +73,7 @@ public class SwiftCompile extends DefaultTask {
     private final ListProperty<String> compilerArgs;
     private final DirectoryProperty objectFileDir;
     private final ConfigurableFileCollection source;
-    private final Property<SwiftSourceCompatibility> sourceCompatibility;
+    private final Property<SwiftVersion> sourceCompatibility;
     private final Map<String, String> macros = new LinkedHashMap<String, String>();
 
     public SwiftCompile() {
@@ -83,7 +83,7 @@ public class SwiftCompile extends DefaultTask {
         moduleName = getProject().getObjects().property(String.class);
         moduleFile = newOutputFile();
         modules = getProject().files();
-        sourceCompatibility = getProject().getObjects().property(SwiftSourceCompatibility.class);
+        sourceCompatibility = getProject().getObjects().property(SwiftVersion.class);
     }
 
     /**
@@ -249,7 +249,7 @@ public class SwiftCompile extends DefaultTask {
      * @since 4.6
      */
     @Input
-    public Property<SwiftSourceCompatibility> getSourceCompatibility() {
+    public Property<SwiftVersion> getSourceCompatibility() {
         return sourceCompatibility;
     }
 

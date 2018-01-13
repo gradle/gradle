@@ -76,5 +76,5 @@ public interface SwiftComponent extends ComponentWithBinaries, ComponentWithDepe
      *
      * @since 4.6
      */
-    Property<SwiftSourceCompatibility> getSourceCompatibility();
+    Property<SwiftVersion> getSourceCompatibility();
 }

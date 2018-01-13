@@ -24,7 +24,7 @@ import org.hamcrest.Matchers
 import org.junit.Assume
 
 abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest {
-    def "take switf source compatibility from tested component"() {
+    def "take swift source compatibility from tested component"() {
         Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(4))
 
         given:
@@ -32,13 +32,13 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         swift3Component.writeToProject(testDirectory)
         buildFile << """
             ${testedComponentDsl} {
-                sourceCompatibility = SwiftSourceCompatibility.SWIFT3
+                sourceCompatibility = SwiftVersion.SWIFT3
             }
 
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftSourceCompatibility.SWIFT3
+                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT3
                     }
                 }
             }

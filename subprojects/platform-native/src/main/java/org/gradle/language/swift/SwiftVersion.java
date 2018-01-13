@@ -20,17 +20,17 @@ import org.gradle.api.Incubating;
 import org.gradle.util.VersionNumber;
 
 /**
- * Swift source compatibility.
+ * Swift version.
  *
  * @since 4.6
  */
 @Incubating
-public enum SwiftSourceCompatibility {
+public enum SwiftVersion {
     SWIFT3(3), SWIFT4(4);
 
     private final int version;
 
-    SwiftSourceCompatibility(int version) {
+    SwiftVersion(int version) {
         this.version = version;
     }
 
@@ -41,7 +41,7 @@ public enum SwiftSourceCompatibility {
         return version;
     }
 
-    public static SwiftSourceCompatibility of(VersionNumber swiftCompilerVersion) {
+    public static SwiftVersion of(VersionNumber swiftCompilerVersion) {
         if (swiftCompilerVersion.getMajor() == 3) {
             return SWIFT3;
         } else if (swiftCompilerVersion.getMajor() == 4) {

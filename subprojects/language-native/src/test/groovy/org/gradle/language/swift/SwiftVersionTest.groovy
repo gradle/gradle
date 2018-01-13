@@ -21,14 +21,14 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static SwiftSourceCompatibility.*
+import static SwiftVersion.*
 
-@Subject(SwiftSourceCompatibility)
-class SwiftSourceCompatibilityTest extends Specification {
+@Subject(SwiftVersion)
+class SwiftVersionTest extends Specification {
     @Unroll
     def "can associate the compiler version #compilerVersion to #languageVersion language version"() {
         expect:
-        SwiftSourceCompatibility.of(VersionNumber.parse(compilerVersion)) == languageVersion
+        SwiftVersion.of(VersionNumber.parse(compilerVersion)) == languageVersion
 
         where:
         // See https://swift.org/download
@@ -45,7 +45,7 @@ class SwiftSourceCompatibilityTest extends Specification {
 
     def "throws exception when Swift language is unknown for specified compiler version"() {
         when:
-        SwiftSourceCompatibility.of(VersionNumber.parse("99.0.1"))
+        SwiftVersion.of(VersionNumber.parse("99.0.1"))
 
         then:
         def ex = thrown(IllegalArgumentException)

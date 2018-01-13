@@ -30,7 +30,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
-import org.gradle.language.swift.SwiftSourceCompatibility;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
@@ -125,12 +125,12 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 component.getBinaries().whenElementKnown(DefaultSwiftBinary.class, new Action<DefaultSwiftBinary>() {
                     @Override
                     public void execute(final DefaultSwiftBinary binary) {
-                        Provider<SwiftSourceCompatibility> swiftLanguageVersionProvider = project.provider(new Callable<SwiftSourceCompatibility>() {
+                        Provider<SwiftVersion> swiftLanguageVersionProvider = project.provider(new Callable<SwiftVersion>() {
                             @Override
-                            public SwiftSourceCompatibility call() throws Exception {
-                                SwiftSourceCompatibility swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
+                            public SwiftVersion call() throws Exception {
+                                SwiftVersion swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
                                 if (swiftSourceCompatibility == null) {
-                                    return SwiftSourceCompatibility.of(binary.getPlatformToolProvider().getCompilerMetadata().getVersion());
+                                    return SwiftVersion.of(binary.getPlatformToolProvider().getCompilerMetadata().getVersion());
                                 }
                                 return swiftSourceCompatibility;
                             }

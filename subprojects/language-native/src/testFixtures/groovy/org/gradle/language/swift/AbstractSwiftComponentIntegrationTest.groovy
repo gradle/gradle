@@ -33,7 +33,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftSourceCompatibility.of(${
+                        assert it.sourceCompatibility.get() == SwiftVersion.of(${
             VersionNumber.canonicalName}.parse('${AbstractNativeLanguageComponentIntegrationTest.toolChain.version}'))
                     }
                 }
@@ -51,11 +51,11 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         makeSingleProject()
         buildFile << """
             ${componentUnderTestDsl} {
-                sourceCompatibility = SwiftSourceCompatibility.SWIFT3
+                sourceCompatibility = SwiftVersion.SWIFT3
             }
 
             ${componentUnderTestDsl}.binaries.whenElementKnown {
-                ${componentUnderTestDsl}.sourceCompatibility = SwiftSourceCompatibility.SWIFT4
+                ${componentUnderTestDsl}.sourceCompatibility = SwiftVersion.SWIFT4
             }
 
             task verifyBinariesSwiftVersion {}
@@ -76,13 +76,13 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         swift3Component.writeToProject(testDirectory)
         buildFile << """
             ${componentUnderTestDsl} {
-                sourceCompatibility = SwiftSourceCompatibility.SWIFT3
+                sourceCompatibility = SwiftVersion.SWIFT3
             }
 
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftSourceCompatibility.SWIFT3
+                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT3
                     }
                 }
             }
@@ -105,13 +105,13 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         swift4Component.writeToProject(testDirectory)
         buildFile << """
             ${componentUnderTestDsl} {
-                sourceCompatibility = SwiftSourceCompatibility.SWIFT4
+                sourceCompatibility = SwiftVersion.SWIFT4
             }
 
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftSourceCompatibility.SWIFT4
+                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT4
                     }
                 }
             }
@@ -124,7 +124,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
 
         then:
         failure.assertHasDescription("Execution failed for task ':$taskNameToCompileDevelopmentBinary'.")
-        failure.assertHasCause("swiftc compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftSourceCompatibility.SWIFT4.version}'")
+        failure.assertHasCause("swiftc compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT4.version}'")
     }
 
     abstract String getTaskNameToCompileDevelopmentBinary()

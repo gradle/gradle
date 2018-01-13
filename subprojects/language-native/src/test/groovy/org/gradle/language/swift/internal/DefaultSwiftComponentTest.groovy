@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
 import org.gradle.language.ComponentDependencies
-import org.gradle.language.swift.SwiftSourceCompatibility
+import org.gradle.language.swift.SwiftVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -92,10 +92,10 @@ class DefaultSwiftComponentTest extends Specification {
     }
 
     def "can modify Swift source compatibility"() {
-        component.sourceCompatibility.set SwiftSourceCompatibility.SWIFT4
+        component.sourceCompatibility.set SwiftVersion.SWIFT4
 
         expect:
-        component.sourceCompatibility.get() == SwiftSourceCompatibility.SWIFT4
+        component.sourceCompatibility.get() == SwiftVersion.SWIFT4
     }
 
     def "defaults to null when Swift source compatibility isn't configured"() {

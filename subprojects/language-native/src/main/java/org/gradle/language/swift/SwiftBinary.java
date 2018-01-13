@@ -91,5 +91,5 @@ public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDepe
      *
      * @since 4.6
      */
-    Provider<SwiftSourceCompatibility> getSourceCompatibility();
+    Provider<SwiftVersion> getSourceCompatibility();
 }
