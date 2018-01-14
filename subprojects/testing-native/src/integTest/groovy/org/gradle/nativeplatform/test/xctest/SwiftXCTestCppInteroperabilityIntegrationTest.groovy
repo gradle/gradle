@@ -16,8 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.language.swift.AbstractSwiftMixedLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
@@ -25,7 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDepXCTest
 import spock.lang.Unroll
 
-class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
+class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest implements XCTestExecutionResult {
     def setup() {
         buildFile << """
             apply plugin: 'xctest'
@@ -115,9 +113,5 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":greeter:compileDebugSwift", ":greeter:linkDebug",
             ":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-    }
-
-    TestExecutionResult getTestExecutionResult() {
-        return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
     }
 }

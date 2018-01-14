@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,18 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-class Swift4Test extends XCTestSourceFileElement {
-    Swift4Test() {
-        super("Swift4Test")
-    }
+class Swift4WithXCTest extends MainWithXCTestSourceElement {
+    final Swift4 main
+    final XCTestSourceElement test
 
-    @Override
-    List<XCTestCaseElement> getTestCases() {
-        return [testCase("testMultiLineStringContainsSpecificString",
-            '''XCTAssertNotNil(getLongMessage().range(of: """
-                                Multi-line strings also let you write "quote marks"
-                                freely inside your strings, which is great!
-                                """))''')]
+    Swift4WithXCTest(String projectName) {
+        super(projectName)
+        this.main = new Swift4(projectName)
+        this.test = new XCTestSourceElement(projectName) {
+            @Override
+            List<XCTestSourceFileElement> getTestSuites() {
+                return [new Swift4Test().withImport(main.moduleName)]
+            }
+        }
     }
 }

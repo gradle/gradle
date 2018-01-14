@@ -16,8 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestAddDiscoveryBundle
@@ -39,7 +37,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires([TestPrecondition.SWIFT_SUPPORT])
-class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements XCTestExecutionResult {
     def setup() {
         buildFile << """
 apply plugin: 'xctest'
@@ -545,9 +543,5 @@ apply plugin: 'swift-library'
 
     private static void assertMainSymbolIsAbsent(NativeBinaryFixture binary) {
         assert binary.binaryInfo.listSymbols().every { it.name != '_main' }
-    }
-
-    TestExecutionResult getTestExecutionResult() {
-        return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
     }
 }

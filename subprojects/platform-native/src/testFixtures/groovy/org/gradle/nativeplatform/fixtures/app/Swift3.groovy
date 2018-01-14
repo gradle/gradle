@@ -18,18 +18,27 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class Swift3 extends SourceFileElement {
+class Swift3 extends SwiftSourceElement {
+    Swift3(String projectName) {
+        super(projectName)
+    }
+
     @Override
-    SourceFile getSourceFile() {
-        sourceFile("swift", "swift3-code.swift", """
-            public func someFunc() {
-                typealias Name = (firstName: String, lastName: String)
-                let names: [Name] = [("Bart", "den Hollander")]
-                
-                names.forEach({ first, last in
-                    print(last)  // "den Hollander"
-                })
+    List<SourceFile> getFiles() {
+        return [sourceFile("swift", "swift3-code.swift", """
+            public typealias Name = (firstName: String, lastName: String)
+
+            public func getNames() -> [Name] {
+                return [("Bart", "den Hollander")]
             }
-        """)
+
+            public func getLastNameOfFirstEntry(names: [Name]) -> String {
+                var result: String = ""
+                names.forEach({ first, last in
+                    result = last  // "den Hollander"
+                })
+                return result
+            }
+        """)]
     }
 }

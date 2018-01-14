@@ -17,13 +17,13 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
-import org.gradle.nativeplatform.fixtures.app.SourceFileElement
-import org.gradle.nativeplatform.fixtures.app.Swift3Test
-import org.gradle.nativeplatform.fixtures.app.Swift4Test
+import org.gradle.nativeplatform.fixtures.app.Swift3WithXCTest
+import org.gradle.nativeplatform.fixtures.app.Swift4WithXCTest
+import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.hamcrest.Matchers
 import org.junit.Assume
 
-abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest {
+abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest implements XCTestExecutionResult {
     def "take swift source compatibility from tested component"() {
         Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(4))
 
@@ -43,7 +43,7 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
                 }
             }
         """
-        settingsFile << "rootProject.name = 'project'"
+        settingsFile << "rootProject.name = '$swift3Component.projectName'"
 
         when:
         succeeds "verifyBinariesSwiftVersion"
@@ -51,6 +51,7 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
 
         then:
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+        swift3Component.assertTestCasesRan(testExecutionResult)
     }
 
     abstract String getTestedComponentDsl()
@@ -61,23 +62,18 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
     }
 
     @Override
-    SourceFileElement getSwift3Component() {
-        return new Swift3Test()
+    XCTestSourceElement getSwift3Component() {
+        return new Swift3WithXCTest('project')
     }
 
     @Override
-    SourceFileElement getSwift4Component() {
-        return new Swift4Test()
+    XCTestSourceElement getSwift4Component() {
+        return new Swift4WithXCTest('project')
     }
 
     @Override
     String getTaskNameToAssembleDevelopmentBinary() {
         return "test"
-    }
-
-    @Override
-    String getTaskNameToCompileDevelopmentBinary() {
-        return "compileTestSwift"
     }
 
     @Override

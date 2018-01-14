@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,26 @@
 
 package org.gradle.nativeplatform.fixtures.app
 
-class Swift3Test extends XCTestSourceFileElement {
-    Swift3Test() {
-        super("Swift3Test")
+class Swift3XCTest extends XCTestSourceElement {
+    Swift3XCTest(String projectName) {
+        super(projectName)
     }
 
     @Override
-    List<XCTestCaseElement> getTestCases() {
-        return [testCase("testOnlyOneEntryWithSpecificFirstAndLastName",
-            """// Assume only one entry
-                getNames().forEach({ first, last in
+    List<XCTestSourceFileElement> getTestSuites() {
+        return [new XCTestSourceFileElement("Swift3Test") {
+            @Override
+            List<XCTestCaseElement> getTestCases() {
+                return [testCase("testOnlyOneEntryWithSpecificFirstAndLastName",
+                    """typealias Name = (firstName: String, lastName: String)
+                let names: [Name] = [("Bart", "den Hollander")]
+
+                // Assume only one entry
+                names.forEach({ first, last in
                     XCTAssertEqual(first, "Bart")
                     XCTAssertEqual(last, "den Hollander")
                 })""")]
+            }
+        }]
     }
 }

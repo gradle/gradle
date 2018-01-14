@@ -17,7 +17,7 @@
 package org.gradle.language.swift
 
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
-import org.gradle.nativeplatform.fixtures.app.SourceFileElement
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
@@ -86,7 +86,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
                 }
             }
         """
-        settingsFile << "rootProject.name = 'project'"
+        settingsFile << "rootProject.name = '${swift3Component.projectName}'"
 
         when:
         succeeds "verifyBinariesSwiftVersion"
@@ -115,22 +115,72 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
                 }
             }
         """
-        settingsFile << "rootProject.name = 'project'"
+        settingsFile << "rootProject.name = '${swift4Component.projectName}'"
 
         when:
         succeeds "verifyBinariesSwiftVersion"
         fails taskNameToAssembleDevelopmentBinary
 
         then:
-        failure.assertHasDescription("Execution failed for task ':$taskNameToCompileDevelopmentBinary'.")
+        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
         failure.assertHasCause("swiftc compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT4.version}'")
     }
 
-    abstract String getTaskNameToCompileDevelopmentBinary()
+    def "can compile Swift 3 component on Swift 3 compiler"() {
+        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(3))
 
-    abstract SourceFileElement getSwift3Component()
+        given:
+        makeSingleProject()
+        swift3Component.writeToProject(testDirectory)
+        buildFile << """
+            task verifyBinariesSwiftVersion {
+                doLast {
+                    ${componentUnderTestDsl}.binaries.get().each {
+                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT3
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = '${swift3Component.projectName}'"
 
-    abstract SourceFileElement getSwift4Component()
+        when:
+        succeeds "verifyBinariesSwiftVersion"
+        succeeds taskNameToAssembleDevelopmentBinary
+
+        then:
+        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+    }
+
+    def "can compile Swift 4 component on Swift 4 compiler"() {
+        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(4))
+
+        given:
+        makeSingleProject()
+        swift4Component.writeToProject(testDirectory)
+        buildFile << """
+            task verifyBinariesSwiftVersion {
+                doLast {
+                    ${componentUnderTestDsl}.binaries.get().each {
+                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT4
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = '${swift4Component.projectName}'"
+
+        when:
+        succeeds "verifyBinariesSwiftVersion"
+        succeeds taskNameToAssembleDevelopmentBinary
+
+        then:
+        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+    }
+
+    abstract String getDevelopmentBinaryCompileTask()
+
+    abstract SourceElement getSwift3Component()
+
+    abstract SourceElement getSwift4Component()
 
     abstract String getTaskNameToAssembleDevelopmentBinary()
 

@@ -16,8 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
 import org.gradle.util.Requires
@@ -25,11 +23,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires([TestPrecondition.SWIFT_SUPPORT])
-abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
-    TestExecutionResult getTestExecutionResult() {
-        return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
-    }
-
+abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTestIntegrationTest implements XCTestExecutionResult {
     @Unroll
     def "runs tests when #task lifecycle task executes"() {
         given:
