@@ -17,6 +17,11 @@
 import org.gradle.build.Install
 import org.gradle.build.DefaultJavaInstallation
 import org.gradle.cleanup.EmptyDirectoryCheck
+buildscript {
+    dependencies {
+        classpath files("${rootProject.projectDir.absolutePath}/gradle-idea-ext.jar")
+    }
+}
 
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 
