@@ -24,4 +24,9 @@ class XcodeSwiftApplicationWithXCTestProjectIntegrationTest extends AbstractXcod
             apply plugin: 'xctest'
         """
     }
+
+    @Override
+    String getTestedComponentDsl() {
+        return "application"
+    }
 }

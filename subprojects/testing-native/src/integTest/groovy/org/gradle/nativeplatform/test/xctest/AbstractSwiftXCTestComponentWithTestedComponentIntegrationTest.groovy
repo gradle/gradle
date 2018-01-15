@@ -16,15 +16,16 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
-import org.gradle.nativeplatform.fixtures.app.Swift3XCTest
-import org.hamcrest.Matchers
-import org.junit.Assume
+import org.gradle.language.swift.SwiftVersion
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.fixtures.app.Swift3WithSwift4XCTest
+import org.gradle.nativeplatform.fixtures.app.Swift4WithSwift3XCTest
+import spock.lang.Unroll
 
 abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest implements XCTestExecutionResult {
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT4)
     def "take swift source compatibility from tested component"() {
-        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(4))
-
         given:
         makeSingleProject()
         swift3Component.writeToProject(testDirectory)
@@ -52,29 +53,23 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         swift3Component.assertTestCasesRan(testExecutionResult)
     }
 
-    def "ignores swift source compatibility from tested component when set on test component"() {
-        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(4))
-
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT4)
+    @Unroll
+    def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:
         makeSingleProject()
-        def fixture = new Swift3XCTest('project')
         fixture.writeToProject(testDirectory)
         buildFile << """
-            ${testedComponentDsl} {
-                sourceCompatibility = SwiftVersion.SWIFT4
-            }
-
-            ${componentUnderTestDsl} {
-                sourceCompatibility = SwiftVersion.SWIFT3
-            }
+            ${testedComponentDsl}.sourceCompatibility = SwiftVersion.${componentSourceCompatibility.name()}
+            ${componentUnderTestDsl}.sourceCompatibility = SwiftVersion.${xctestSourceCompatibility.name()}
 
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${testedComponentDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT4
+                        assert it.sourceCompatibility.get() == SwiftVersion.${componentSourceCompatibility.name()}
                     }
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT3
+                        assert it.sourceCompatibility.get() == SwiftVersion.${xctestSourceCompatibility.name()}
                     }
                 }
             }
@@ -88,6 +83,11 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         then:
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
         fixture.assertTestCasesRan(testExecutionResult)
+
+        where:
+        fixture                                           | componentSourceCompatibility | xctestSourceCompatibility
+        new Swift3WithSwift4XCTest('project') | SwiftVersion.SWIFT3          | SwiftVersion.SWIFT4
+        new Swift4WithSwift3XCTest('project') | SwiftVersion.SWIFT4          | SwiftVersion.SWIFT3
     }
 
     abstract String getTestedComponentDsl()

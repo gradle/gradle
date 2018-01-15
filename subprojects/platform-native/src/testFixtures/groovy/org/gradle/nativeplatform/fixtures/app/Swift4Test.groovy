@@ -23,7 +23,14 @@ class Swift4Test extends XCTestSourceFileElement {
 
     @Override
     List<XCTestCaseElement> getTestCases() {
-        return [testCase("testMultiLineStringContainsSpecificString",
+        return [
+            testCase("testOnlyOneEntryWithSpecificFirstAndLastName",
+            """// Assume only one entry
+                getNames().forEach({ name in
+                    XCTAssertEqual(name.firstName, "Bart")
+                    XCTAssertEqual(name.lastName, "den Hollander")
+                })"""),
+            testCase("testMultiLineStringContainsSpecificString",
             '''XCTAssertNotNil(getLongMessage().range(of: """
                                 Multi-line strings also let you write "quote marks"
                                 freely inside your strings, which is great!

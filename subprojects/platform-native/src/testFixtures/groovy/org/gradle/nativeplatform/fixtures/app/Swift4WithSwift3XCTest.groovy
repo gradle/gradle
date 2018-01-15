@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.xcode
+package org.gradle.nativeplatform.fixtures.app
 
-class XcodeSwiftSharedLibraryLinkageWithXCTestProjectIntegrationTest extends AbstractXcodeSwiftWithXCTestProjectIntegrationTest {
-    @Override
-    void makeSingleProject() {
-        buildFile << """
-            apply plugin: 'swift-library'
-            apply plugin: 'xctest'
-        """
-    }
+class Swift4WithSwift3XCTest extends MainWithXCTestSourceElement {
+    final Swift4 main
+    final XCTestSourceElement test
 
-    @Override
-    String getTestedComponentDsl() {
-        return "library"
+    Swift4WithSwift3XCTest(String projectName) {
+        super(projectName)
+        this.main = new Swift4(projectName)
+        this.test = new XCTestSourceElement(projectName) {
+            @Override
+            List<XCTestSourceFileElement> getTestSuites() {
+                return [new Swift3Test().withImport(main.moduleName)]
+            }
+        }
     }
 }

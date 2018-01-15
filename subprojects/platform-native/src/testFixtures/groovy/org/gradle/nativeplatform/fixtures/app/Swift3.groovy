@@ -25,7 +25,7 @@ class Swift3 extends SwiftSourceElement {
 
     @Override
     List<SourceFile> getFiles() {
-        return [sourceFile("swift", "swift3-code.swift", """
+        return [sourceFile("swift", "swift3-code.swift", '''
             public typealias Name = (firstName: String, lastName: String)
 
             public func getNames() -> [Name] {
@@ -39,6 +39,10 @@ class Swift3 extends SwiftSourceElement {
                 })
                 return result
             }
-        """)]
+
+            public func getLongMessage() -> String {
+                return "When you write a string that spans multiple\\nlines make sure you start its content on a\\nline all of its own, and end it with three\\nquotes also on a line of their own.\\nMulti-line strings also let you write \\"quote marks\\"\\nfreely inside your strings, which is great!"
+            }
+        ''')]
     }
 }

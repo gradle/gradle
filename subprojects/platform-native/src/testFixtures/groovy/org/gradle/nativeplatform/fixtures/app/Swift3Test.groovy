@@ -23,11 +23,14 @@ class Swift3Test extends XCTestSourceFileElement {
 
     @Override
     List<XCTestCaseElement> getTestCases() {
-        return [testCase("testOnlyOneEntryWithSpecificFirstAndLastName",
-            """// Assume only one entry
+        return [
+            testCase("testOnlyOneEntryWithSpecificFirstAndLastName",
+                """// Assume only one entry
                 getNames().forEach({ first, last in
                     XCTAssertEqual(first, "Bart")
                     XCTAssertEqual(last, "den Hollander")
-                })""")]
+                })"""),
+            testCase("testMultiLineStringContainsSpecificString",
+                '''XCTAssertNotNil(getLongMessage().range(of: "Multi-line strings also let you write \\"quote marks\\"\\nfreely inside your strings, which is great!"))''')]
     }
 }

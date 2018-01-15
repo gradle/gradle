@@ -25,4 +25,9 @@ class XcodeSwiftBothLibraryLinkageWithXCTestProjectIntegrationTest extends Abstr
             library.linkage = [Linkage.STATIC, Linkage.SHARED]
         """
     }
+
+    @Override
+    String getTestedComponentDsl() {
+        return "library"
+    }
 }
