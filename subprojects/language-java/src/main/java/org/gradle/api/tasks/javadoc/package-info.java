@@ -17,4 +17,7 @@
 /**
  * The documentation generation {@link org.gradle.api.Task} implementations.
  */
+@NonNullApi
 package org.gradle.api.tasks.javadoc;
+
+import org.gradle.api.NonNullApi;
