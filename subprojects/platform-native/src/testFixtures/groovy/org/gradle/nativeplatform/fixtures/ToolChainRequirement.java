@@ -41,6 +41,10 @@ public enum ToolChainRequirement {
     GCC_COMPATIBLE,
     // Any available Clang
     CLANG,
-    // Any Swift Compiler
-    SWIFT
+    // Any Swift compiler
+    SWIFT,
+    // Any Swift 3.x compiler
+    SWIFT3,
+    // Any Swift 4.x compiler
+    SWIFT4
 }

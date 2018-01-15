@@ -520,7 +520,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.SWIFT || requirement == ToolChainRequirement.AVAILABLE;
+            return requirement == ToolChainRequirement.SWIFT || requirement == ToolChainRequirement.AVAILABLE || (requirement == ToolChainRequirement.SWIFT3 && getVersion().getMajor() == 3) || (requirement == ToolChainRequirement.SWIFT4 && getVersion().getMajor() == 4);
         }
 
         public VersionNumber getVersion() {

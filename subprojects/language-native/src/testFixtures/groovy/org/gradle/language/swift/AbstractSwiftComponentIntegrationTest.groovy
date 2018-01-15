@@ -17,11 +17,11 @@
 package org.gradle.language.swift
 
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.hamcrest.Matchers
-import org.junit.Assume
 
 @Requires(TestPrecondition.SWIFT_SUPPORT)
 abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
@@ -43,9 +43,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         succeeds "verifyBinariesSwiftVersion"
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT4)
     def "throws exception when modifying Swift component source compatibility after the binaries are known"() {
-        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(4))
-
         given:
         makeSingleProject()
         buildFile << """
@@ -67,9 +66,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         failure.assertHasCause("This property is locked and cannot be changed.")
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT4)
     def "can build Swift 3 source code on Swift 4 compiler"() {
-        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(4))
-
         given:
         makeSingleProject()
         swift3Component.writeToProject(testDirectory)
@@ -96,9 +94,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT3)
     def "throws exception with meaningful message when building Swift 4 source code on Swift 3 compiler"() {
-        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(3))
-
         given:
         makeSingleProject()
         swift4Component.writeToProject(testDirectory)
@@ -126,9 +123,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         failure.assertHasCause("swiftc compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT4.version}'")
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT3)
     def "can compile Swift 3 component on Swift 3 compiler"() {
-        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(3))
-
         given:
         makeSingleProject()
         swift3Component.writeToProject(testDirectory)
@@ -151,9 +147,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT4)
     def "can compile Swift 4 component on Swift 4 compiler"() {
-        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(4))
-
         given:
         makeSingleProject()
         swift4Component.writeToProject(testDirectory)

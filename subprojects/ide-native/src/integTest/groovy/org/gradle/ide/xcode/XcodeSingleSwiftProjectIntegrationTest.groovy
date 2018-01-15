@@ -17,7 +17,6 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.ide.xcode.fixtures.SwiftToolChainTestingSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.internal.os.OperatingSystem
@@ -28,7 +27,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec implements SwiftToolChainTestingSpec {
+class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
 
     def "can create xcode project for Swift application"() {
         requireSwiftToolChain()

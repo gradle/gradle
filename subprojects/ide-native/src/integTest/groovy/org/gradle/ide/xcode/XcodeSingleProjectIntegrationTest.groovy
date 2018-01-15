@@ -17,9 +17,8 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.ide.xcode.fixtures.SwiftToolChainTestingSpec
 
-class XcodeSingleProjectIntegrationTest extends AbstractXcodeIntegrationSpec implements SwiftToolChainTestingSpec {
+class XcodeSingleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def "create empty xcode project when no language plugins are applied"() {
         when:
         succeeds("xcode")

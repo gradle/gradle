@@ -24,10 +24,14 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.test.fixtures.file.TestFile
+import org.hamcrest.Matchers
 
+import static org.junit.Assume.assumeThat
 import static org.junit.Assume.assumeTrue
 
 class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec {
+    def toolChain = null
+
     def setup() {
         buildFile << """
 allprojects {
@@ -148,8 +152,9 @@ Actual: ${actual[key]}
         '''
     }
 
-    void useSwiftCompiler() {
-        def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFT)
+    // TODO: Use AbstractInstalledToolChainIntegrationSpec instead once Xcode test are sorted out
+    void requireSwiftToolChain() {
+        toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFT)
         assumeTrue(toolChain != null && toolChain.isAvailable())
 
         File initScript = file("init.gradle") << """
@@ -166,6 +171,12 @@ Actual: ${actual[key]}
         executer.beforeExecute({
             usingInitScript(initScript)
         })
+    }
+
+    // TODO: Use @RequiresInstalledToolChain instead once Xcode test are sorted out
+    void assumeSwiftCompilerVersion(int major) {
+        assert toolChain != null, "You need to specify Swift tool chain requirement with 'requireSwiftToolChain()'"
+        assumeThat(toolChain.version.major, Matchers.equalTo(major))
     }
 
     void assertTargetIsUnitTest(ProjectFile.PBXTarget target, String expectedProductName) {
