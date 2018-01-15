@@ -35,8 +35,8 @@ To use the Signing plugin, include the following in your build script:
 
 In order to create OpenPGP signatures, you will need a key pair (instructions on creating a key pair using the https://www.gnupg.org/[GnuPG tools] can be found in the https://www.gnupg.org/documentation/howtos.html[GnuPG HOWTOs]). You need to provide the signing plugin with your key information, which means three things:
 
-* The public key ID (the last 8 symbols of the keyId. Use gpg -K to find it out).
-* The absolute path to the secret key ring file containing your private key. (Since gpg 2.1 you need to export the keys with command gpg --keyring secring.gpg --export-secret-keys  > ~/.gnupg/secring.gpg).
+* The public key ID (The last 8 symbols of the keyId. You can use `gpg -K` to get it).
+* The absolute path to the secret key ring file containing your private key. (Since gpg 2.1, you need to export the keys with command `gpg --keyring secring.gpg --export-secret-keys > ~/.gnupg/secring.gpg`).
 * The passphrase used to protect your private key.
 
 These items must be supplied as the values of properties `signing.keyId`, `signing.secretKeyRingFile`, and `signing.password` respectively. Given the personal and private nature of these values, a good practice is to store them in the user `gradle.properties` file (described in <<sec:gradle_system_properties>>).

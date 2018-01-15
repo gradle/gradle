@@ -80,6 +80,8 @@ We would like to thank the following community members for making contributions 
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
 
+ - [Sergei Dryganets](https://github.com/dryganets) - Improved gpg instructions in signing plugin documentation (gradle/gradle#4023)
+
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
 ## Known issues
