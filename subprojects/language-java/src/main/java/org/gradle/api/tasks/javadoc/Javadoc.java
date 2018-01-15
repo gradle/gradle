@@ -43,6 +43,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -94,7 +95,7 @@ public class Javadoc extends SourceTask {
 
     private String maxMemory;
 
-    private StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
+    private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
 
     private FileCollection classpath = getProject().files();
 
@@ -178,7 +179,7 @@ public class Javadoc extends SourceTask {
      * Sets the tool chain to use to generate the Javadoc.
      */
     @Incubating
-    public void setToolChain(JavaToolChain toolChain) {
+    public void setToolChain(@SuppressWarnings("unused") JavaToolChain toolChain) {
         // Implementation is generated
         throw new UnsupportedOperationException();
     }
@@ -193,6 +194,7 @@ public class Javadoc extends SourceTask {
      * @return The directory.
      */
     @Internal
+    @Nullable
     public File getDestinationDir() {
         return destinationDir;
     }
@@ -217,6 +219,7 @@ public class Javadoc extends SourceTask {
      * Returns the amount of memory allocated to this task.
      */
     @Internal
+    @Nullable
     public String getMaxMemory() {
         return maxMemory;
     }
