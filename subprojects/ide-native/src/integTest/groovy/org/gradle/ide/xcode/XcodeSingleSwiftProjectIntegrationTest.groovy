@@ -651,6 +651,8 @@ library {
     }
 
     def "honors changes to executable output file locations"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-application'
@@ -680,6 +682,8 @@ application.module = 'TestApp'
     }
 
     def "honors changes to library output file locations"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-library'
