@@ -16,19 +16,29 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.util.TestUtil
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 class ComponentResultSerializerTest extends SerializerSpec {
 
-    def serializer = new ComponentResultSerializer(new DefaultImmutableModuleIdentifierFactory())
+    def serializer = new ComponentResultSerializer(new DefaultImmutableModuleIdentifierFactory(), new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     def "serializes"() {
         def componentIdentifier = new DefaultModuleComponentIdentifier('group', 'module', 'version')
-        def selection = new DefaultComponentResult(12L, newId("org", "foo", "2.0"), VersionSelectionReasons.REQUESTED, componentIdentifier)
+        def attributes = TestUtil.attributesFactory().mutable()
+        attributes.attribute(Attribute.of('type', String), 'custom')
+        attributes.attribute(Attribute.of('format', String), 'jar')
+        def selection = new DefaultComponentResult(12L,
+            newId("org", "foo", "2.0"),
+            VersionSelectionReasons.REQUESTED,
+            componentIdentifier, 'default',
+            attributes)
 
         when:
         def result = serialize(selection, serializer)
@@ -38,5 +48,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
         result.selectionReason == VersionSelectionReasons.REQUESTED
         result.moduleVersion == newId("org", "foo", "2.0")
         result.componentId == componentIdentifier
+        result.variantName == 'default'
+        result.variantAttributes == attributes.asImmutable()
     }
 }

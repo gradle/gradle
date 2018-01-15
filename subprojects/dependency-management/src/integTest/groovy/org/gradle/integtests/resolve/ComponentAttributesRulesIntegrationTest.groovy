@@ -255,4 +255,51 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         where:
         fixApplied << [false, true]
     }
+
+    def "can add attributes to variants with existing usage attribute"() {
+        given:
+        repository {
+            'org.test:module:1.0'()
+        }
+        buildFile << """
+            def quality = Attribute.of("quality", String)
+            
+            configurations {
+                conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
+                conf.attributes.attribute(quality, 'qa')
+            }
+            
+            dependencies {
+                attributesSchema {
+                    attribute(quality)
+                }
+                components {
+                    withModule('org.test:module') {
+                       allVariants {
+                           attributes {
+                              attribute quality, 'qa'
+                           }
+                       }
+                    }
+                }
+                conf 'org.test:module:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org.test:module:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+
+        then:
+        run ':checkDeps'
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.test:module:1.0:api')
+            }
+        }
+    }
 }

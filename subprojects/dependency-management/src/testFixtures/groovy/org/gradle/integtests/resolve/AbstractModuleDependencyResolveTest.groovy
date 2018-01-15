@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -126,7 +126,8 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         resolve.expectDefaultConfiguration(usesJavaLibraryVariants() ? "runtime" : "default")
         settingsFile << "rootProject.name = '$rootProjectName'"
         if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-            ExperimentalFeaturesFixture.enable(settingsFile)
+            FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
+            FeaturePreviewsFixture.enableGradleMetadata(propertiesFile)
         }
         resolve.prepare()
         buildFile << """

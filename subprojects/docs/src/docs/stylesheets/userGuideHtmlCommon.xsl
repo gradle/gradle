@@ -178,10 +178,10 @@
                     <div class="site-footer__link-group">
                         <header><strong>Docs</strong></header>
                         <ul class="site-footer__links-list">
-                            <li itemprop="name"><a href="https://docs.gradle.org/userguide/userguide.html" itemprop="url">User Manual</a></li>
-                            <li itemprop="name"><a href="https://docs.gradle.org/current/dsl/" itemprop="url">DSL Reference</a></li>
-                            <li itemprop="name"><a href="https://docs.gradle.org/current/release-notes.html" itemprop="url">Release Notes</a></li>
-                            <li itemprop="name"><a href="https://docs.gradle.org/current/javadoc/" itemprop="url">Javadoc</a></li>
+                            <li itemprop="name"><a href="/userguide/userguide.html" itemprop="url">User Manual</a></li>
+                            <li itemprop="name"><a href="/dsl/" itemprop="url">DSL Reference</a></li>
+                            <li itemprop="name"><a href="/release-notes.html" itemprop="url">Release Notes</a></li>
+                            <li itemprop="name"><a href="/javadoc/" itemprop="url">Javadoc</a></li>
                         </ul>
                     </div>
                     <div class="site-footer__link-group">

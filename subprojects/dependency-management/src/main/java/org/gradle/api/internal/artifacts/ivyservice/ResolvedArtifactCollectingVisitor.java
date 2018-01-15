@@ -40,12 +40,12 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
+    public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
         try {
             if (seenArtifacts.add(artifact.getId())) {
                 // Trigger download of file, if required
                 File file = artifact.getFile();
-                this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), variant, Artifact.class, file));
+                this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), variantAttributes, variantName, Artifact.class, file));
             }
         } catch (Throwable t) {
             failures.add(t);
@@ -63,9 +63,9 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
         if (seenArtifacts.add(artifactIdentifier)) {
-            artifacts.add(new DefaultResolvedArtifactResult(artifactIdentifier, variant, Artifact.class, file));
+            artifacts.add(new DefaultResolvedArtifactResult(artifactIdentifier, variantAttributes, variantName, Artifact.class, file));
         }
     }
 

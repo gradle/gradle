@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -66,10 +66,10 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final ModuleExclusions moduleExclusions;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ComponentSelectorConverter componentSelectorConverter;
-    private final ExperimentalFeatures experimentalFeatures;
+    private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory attributesFactory;
 
-    public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor, List<ResolverProviderFactory> resolverFactories, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory, VersionComparator versionComparator, ModuleExclusions moduleExclusions, ComponentSelectorConverter componentSelectorConverter, ExperimentalFeatures experimentalFeatures, ImmutableAttributesFactory attributesFactory) {
+    public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor, List<ResolverProviderFactory> resolverFactories, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory, VersionComparator versionComparator, ModuleExclusions moduleExclusions, ComponentSelectorConverter componentSelectorConverter, FeaturePreviews featurePreviews, ImmutableAttributesFactory attributesFactory) {
         this.resolverFactories = resolverFactories;
         this.ivyFactory = ivyFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
@@ -77,7 +77,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.moduleExclusions = moduleExclusions;
         this.buildOperationExecutor = buildOperationExecutor;
         this.componentSelectorConverter = componentSelectorConverter;
-        this.experimentalFeatures = experimentalFeatures;
+        this.featurePreviews = featurePreviews;
         this.attributesFactory = attributesFactory;
     }
 
@@ -103,7 +103,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         ResolveContextToComponentResolver requestResolver = createResolveContextConverter();
         ConflictHandler conflictHandler = createConflictHandler(resolutionStrategy, globalRules);
 
-        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, globalRules.getModuleMetadataProcessor().getModuleReplacements(), applicator, componentSelectorConverter, experimentalFeatures, attributesFactory);
+        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, globalRules.getModuleMetadataProcessor().getModuleReplacements(), applicator, componentSelectorConverter, featurePreviews, attributesFactory);
     }
 
     private ComponentResolversChain createResolvers(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ArtifactTypeRegistry artifactTypeRegistry) {

@@ -96,6 +96,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildScan;
     private boolean noBuildScan;
     private boolean interactive;
+    private boolean advancedPomSupport;
+    private boolean gradleMetadata;
 
     /**
      * {@inheritDoc}
@@ -868,5 +870,45 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public void setInteractive(boolean interactive) {
         this.interactive = interactive;
+    }
+
+    /**
+     * Returns true if optional dependencies, compile/runtime scope separation and BOMs are included in dependency resolution.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public boolean isAdvancedPomSupport() {
+        return advancedPomSupport;
+    }
+
+    /**
+     * Specifies if optional dependencies, compile/runtime scope separation and BOMs are to be included in dependency resolution.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public void setAdvancedPomSupport(boolean advancedPomSupport) {
+        this.advancedPomSupport = advancedPomSupport;
+    }
+
+    /**
+     * Returns true if gradle metadata should be use as preferred format for resolving and publishing dependencies.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public boolean isGradleMetadata() {
+        return gradleMetadata;
+    }
+
+    /**
+     * Specifies if gradle metadata should be use as preferred format for resolving and publishing dependencies.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public void setGradleMetadata(boolean gradleMetadata) {
+        this.gradleMetadata = gradleMetadata;
     }
 }

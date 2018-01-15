@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
@@ -53,6 +53,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalCo
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
@@ -187,19 +188,23 @@ class DependencyManagementBuildScopeServices {
 
     MavenMutableModuleMetadataFactory createMutableMavenMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                                         ImmutableAttributesFactory attributesFactory,
-                                                                        ExperimentalFeatures experimentalFeatures) {
-        return new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory, NamedObjectInstantiator.INSTANCE, experimentalFeatures);
+                                                                        FeaturePreviews featurePreviews) {
+        return new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory, NamedObjectInstantiator.INSTANCE, featurePreviews);
     }
 
     IvyMutableModuleMetadataFactory createMutableIvyMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
         return new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, attributesFactory);
     }
 
+    AttributeContainerSerializer createAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory) {
+        return new AttributeContainerSerializer(attributesFactory, NamedObjectInstantiator.INSTANCE);
+    }
+
     ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider,
                                                     CacheLockingManager cacheLockingManager,
                                                     ArtifactCacheMetaData artifactCacheMetaData,
                                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                    ImmutableAttributesFactory attributesFactory,
+                                                    AttributeContainerSerializer attributeContainerSerializer,
                                                     MavenMutableModuleMetadataFactory mavenMetadataFactory,
                                                     IvyMutableModuleMetadataFactory ivyMetadataFactory) {
         return new DefaultModuleMetaDataCache(
@@ -207,8 +212,7 @@ class DependencyManagementBuildScopeServices {
             cacheLockingManager,
             artifactCacheMetaData,
             moduleIdentifierFactory,
-            attributesFactory,
-            NamedObjectInstantiator.INSTANCE,
+            attributeContainerSerializer,
             mavenMetadataFactory,
             ivyMetadataFactory);
     }
@@ -316,7 +320,7 @@ class DependencyManagementBuildScopeServices {
                                                                 ModuleExclusions moduleExclusions,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ComponentSelectorConverter componentSelectorConverter,
-                                                                ExperimentalFeatures experimentalFeatures,
+                                                                FeaturePreviews featurePreviews,
                                                                 ImmutableAttributesFactory attributesFactory) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
@@ -326,7 +330,7 @@ class DependencyManagementBuildScopeServices {
             versionComparator,
             moduleExclusions,
             componentSelectorConverter,
-            experimentalFeatures,
+            featurePreviews,
             attributesFactory);
     }
 

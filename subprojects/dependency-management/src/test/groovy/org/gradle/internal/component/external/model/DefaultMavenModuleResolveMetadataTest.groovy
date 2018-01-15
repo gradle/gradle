@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.ExperimentalFeatures
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
@@ -35,7 +34,7 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 
 class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
 
-    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.experimentalFeatures())
+    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
     @Override
     ModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List dependencies) {
@@ -133,12 +132,10 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
     }
 
     @Unroll
-    def "recognises java library for packaging=#packaging and experimental=#experimental"() {
+    def "recognises java library for packaging=#packaging and advancedPomSupport=#advancedPomSupport"() {
         given:
         def stringUsageAttribute = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class)
-        def experimentalFeatures = Mock(ExperimentalFeatures)
-        experimentalFeatures.enabled >> experimental
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], TestUtil.attributesFactory(), TestUtil.objectInstantiator(), experimentalFeatures)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], TestUtil.attributesFactory(), TestUtil.objectInstantiator(), advancedPomSupport)
         metadata.packaging = packaging
 
         when:
@@ -160,15 +157,15 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
         }
 
         where:
-        packaging      | experimental | isJavaLibrary
-        "pom"          | false        | false
-        "jar"          | false        | false
-        "maven-plugin" | false        | false
-        "war"          | false        | false
-        "pom"          | true         | true
-        "jar"          | true         | true
-        "maven-plugin" | true         | true
-        "war"          | true         | false
+        packaging      | advancedPomSupport | isJavaLibrary
+        "pom"          | false              | false
+        "jar"          | false              | false
+        "maven-plugin" | false              | false
+        "war"          | false              | false
+        "pom"          | true               | true
+        "jar"          | true               | true
+        "maven-plugin" | true               | true
+        "war"          | true               | false
     }
 
     def dependency(String org, String module, String version, String scope) {

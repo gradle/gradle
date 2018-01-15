@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 public interface PendingDependenciesHandler {
-    Visitor start(boolean isOptionalConfiguration);
+    Visitor start();
 
     interface Visitor {
         boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState);

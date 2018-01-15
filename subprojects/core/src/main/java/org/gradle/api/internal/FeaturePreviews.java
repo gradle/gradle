@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal;
 
-package org.gradle.integtests.fixtures
+import org.gradle.StartParameter;
 
-import groovy.transform.SelfType
-import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+public class FeaturePreviews {
+    private StartParameter startParameter;
 
-@SelfType(AbstractIntegrationSpec)
-trait BuildCacheFixture {
-    abstract TestNameTestDirectoryProvider getTemporaryFolder()
-    abstract GradleExecuter getExecuter()
-
-    AbstractIntegrationSpec withBuildCache() {
-        executer.withBuildCacheEnabled()
-        this
+    public FeaturePreviews(StartParameter startParameter) {
+        this.startParameter = startParameter;
     }
 
+    public boolean isAdvancedPomSupportEnabled() {
+        return startParameter.isAdvancedPomSupport();
+    }
+
+    public boolean isGradleMetadataEnabled() {
+        return startParameter.isGradleMetadata();
+    }
 }

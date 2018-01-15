@@ -2,9 +2,17 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
-Add-->
+### Advanced POM support (preview)
+
+Gradle now supports [additional features for modules with POM metadata](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc). This includes support for _optional dependencies_, _BOM import_ and _compile/runtime scope separation_. 
+
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
+
+### New Gradle `.module` metadata format (preview)
+
+In order to provide rich support for variant-aware dependency management and dependency constraints, Gradle 5.0 will define a [new module metadata format](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc), that can be used in conjunction with Ivy descriptor and Maven POM files in existing repositories.
+
+The new metadata format is still under active development, but it can already be used in its current state in Gradle 4.6+ by setting `org.gralde.gradlemetadata=true` in _gradle.properties_.
 
 <!--
 ### Example new and noteworthy
@@ -42,6 +50,22 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Local build cache directory cleanup is now time-based
+
+Previously, Gradle would clean up the [local build cache directory](userguide/build_cache.html#sec:build_cache_configure_local) only if the size of its contents reached 5 GB, or whatever was configured in `targetSizeInMB`.
+From now on Gradle will instead clean up everything older than 7 days, regardless of the size of the cache directory.
+As a consequence `targetSizeInMB` is now deprecated, and changing its value has no effect.
+
+The minimum age for entries to be cleaned up can now be configured in `settings.gradle` via the [`removeUnusedEntriesAfterDays`](dsl/org.gradle.caching.local.DirectoryBuildCache.html#org.gradle.caching.local.DirectoryBuildCache:removeUnusedEntriesAfterDays) property:
+
+```
+buildCache {
+    local {
+        removeUnusedEntriesAfterDays = 30
+    }
+}
+```
+
 ## Potential breaking changes
 
 <!--
@@ -55,6 +79,8 @@ We would like to thank the following community members for making contributions 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
+
+ - [Sergei Dryganets](https://github.com/dryganets) - Improved gpg instructions in signing plugin documentation (gradle/gradle#4023)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

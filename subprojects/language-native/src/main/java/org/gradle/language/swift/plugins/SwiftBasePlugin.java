@@ -19,22 +19,27 @@ package org.gradle.language.swift.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.plugins.NativeBasePlugin;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
+import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
+import org.gradle.util.VersionNumber;
 
 import java.util.concurrent.Callable;
 
@@ -46,7 +51,7 @@ import java.util.concurrent.Callable;
 @Incubating
 public class SwiftBasePlugin implements Plugin<ProjectInternal> {
     @Override
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(NativeBasePlugin.class);
         project.getPluginManager().apply(SwiftCompilerPlugin.class);
 
@@ -80,6 +85,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         return "modules/" + names.getDirName() + binary.getModule().get() + ".swiftmodule";
                     }
                 })));
+                compile.getSourceCompatibility().set(binary.getSourceCompatibility());
                 binary.getModuleFile().set(compile.getModuleFile());
 
                 NativePlatform currentPlatform = binary.getTargetPlatform();
@@ -107,6 +113,35 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 library.getCompileTask().get().getCompilerArgs().add("-parse-as-library");
             }
         });
+
+        project.getComponents().withType(DefaultSwiftComponent.class, new Action<DefaultSwiftComponent>() {
+            @Override
+            public void execute(final DefaultSwiftComponent component) {
+                project.afterEvaluate(new Action<Project>() {
+                    @Override
+                    public void execute(Project project) {
+                        component.getSourceCompatibility().lockNow();
+                    }
+                });
+                component.getBinaries().whenElementKnown(DefaultSwiftBinary.class, new Action<DefaultSwiftBinary>() {
+                    @Override
+                    public void execute(final DefaultSwiftBinary binary) {
+                        Provider<SwiftVersion> swiftLanguageVersionProvider = project.provider(new Callable<SwiftVersion>() {
+                            @Override
+                            public SwiftVersion call() throws Exception {
+                                SwiftVersion swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
+                                if (swiftSourceCompatibility == null) {
+                                    return toSwiftVersion(binary.getPlatformToolProvider().getCompilerMetadata().getVersion());
+                                }
+                                return swiftSourceCompatibility;
+                            }
+                        });
+
+                        binary.getSourceCompatibility().set(swiftLanguageVersionProvider);
+                    }
+                });
+            }
+        });
     }
 
     static class SwiftCppUsageCompatibilityRule implements AttributeCompatibilityRule<Usage> {
@@ -116,6 +151,16 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
                 details.compatible();
             }
+        }
+    }
+
+    static SwiftVersion toSwiftVersion(VersionNumber swiftCompilerVersion) {
+        if (swiftCompilerVersion.getMajor() == 3) {
+            return SwiftVersion.SWIFT3;
+        } else if (swiftCompilerVersion.getMajor() == 4) {
+            return SwiftVersion.SWIFT4;
+        } else {
+            throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified Swift compiler version (%s)", swiftCompilerVersion.toString()));
         }
     }
 }

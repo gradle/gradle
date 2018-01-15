@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
 
-public class ExperimentalFeatures {
-    private static final String ENABLE_EXPERIMENTAL_FEATURES = "org.gradle.internal.experimentalFeatures";
-    private boolean enabled;
+package org.gradle.integtests.fixtures
 
-    public ExperimentalFeatures() {
-        enabled = System.getProperty(ENABLE_EXPERIMENTAL_FEATURES) != null;
+class FeaturePreviewsFixture {
+
+    static void enableGradleMetadata(File file) {
+        file << """
+org.gradle.gradlemetadata=true
+"""
     }
 
-    public void enable() {
-        enabled = true;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
+    static void enableAdvancedPomSupport(File file) {
+        file << """
+org.gradle.advancedpomsupport=true
+"""
     }
 }

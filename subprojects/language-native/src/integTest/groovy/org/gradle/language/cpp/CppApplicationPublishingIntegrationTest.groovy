@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
@@ -28,7 +28,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
 
     def setup() {
         when:
-        ExperimentalFeaturesFixture.enable(consumer.file("settings.gradle"))
+        FeaturePreviewsFixture.enableGradleMetadata(consumer.file("gradle.properties"))
         consumer.file("build.gradle") << """
             repositories {
                 maven { 

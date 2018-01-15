@@ -236,7 +236,7 @@ println "2"
         executer.withBuildCacheEnabled()
         succeeds("customTask", "--info")
         then:
-        result.assertOutputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}, targetSize = 5 GB).")
+        result.assertOutputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}, removeUnusedEntriesAfter = 7 days).")
         and:
         !file("local-cache").listFiles().any { it.name ==~ /\p{XDigit}{32}/ }
     }

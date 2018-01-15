@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.StartParameter
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.initialization.DefaultBuildRequestMetaData
 import org.gradle.initialization.GradleLauncherFactory
@@ -89,7 +89,7 @@ class ToolingApiDistributionResolver {
                 .parent(NativeServicesTestFixture.getInstance())
                 .provider(new GlobalScopeServices(false))
                 .build()
-        def startParameter = new StartParameter()
+        def startParameter = new StartParameterInternal()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         def userHomeScopeServiceRegistry = globalRegistry.get(GradleUserHomeScopeServiceRegistry)
         def gradleUserHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.gradleUserHomeDir)

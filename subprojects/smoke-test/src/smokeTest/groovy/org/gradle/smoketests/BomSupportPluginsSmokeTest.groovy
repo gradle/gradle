@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -33,7 +33,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         settingsFile << """
             rootProject.name = 'springbootproject'
         """
-        ExperimentalFeaturesFixture.enable(settingsFile)
+        FeaturePreviewsFixture.enableAdvancedPomSupport(testProjectDir.newFile('gradle.properties'))
         def buildScript = """
             plugins {
                 id "java"

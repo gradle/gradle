@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.javascript.base
 
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import spock.lang.Unroll
 
@@ -35,10 +35,10 @@ class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Unroll
-    def "can download from googles repo (experimental=#experimental)"() {
+    def "can download from googles repo (gradleMetadata=#gradleMetadata)"() {
         given:
-        if (experimental) {
-            ExperimentalFeaturesFixture.enable(settingsFile)
+        if (gradleMetadata) {
+            FeaturePreviewsFixture.enableGradleMetadata(propertiesFile)
         }
         addGoogleRepoScript(buildFile)
 
@@ -65,16 +65,16 @@ class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         jquery.text.contains("jQuery v1.7.2")
 
         where:
-        experimental | _
-        true         | _
-        false        | _
+        gradleMetadata | _
+        true           | _
+        false          | _
     }
 
     @Unroll
-    def "can download from gradleJs repo (experimental=#experimental)"() {
+    def "can download from gradleJs repo (gradleMetadata=#gradleMetadata)"() {
         given:
-        if (experimental) {
-            ExperimentalFeaturesFixture.enable(settingsFile)
+        if (gradleMetadata) {
+            FeaturePreviewsFixture.enableGradleMetadata(propertiesFile)
         }
         addGradlePublicJsRepoScript(buildFile)
 
@@ -101,9 +101,9 @@ class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         jshint.text.contains("JSHint")
 
         where:
-        experimental | _
-        true         | _
-        false        | _
+        gradleMetadata | _
+        true           | _
+        false          | _
     }
 
 }

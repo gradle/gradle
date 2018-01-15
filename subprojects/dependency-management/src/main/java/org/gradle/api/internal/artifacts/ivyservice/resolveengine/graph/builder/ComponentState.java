@@ -20,11 +20,16 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -33,6 +38,7 @@ import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Resolution state for a given component
@@ -200,6 +206,53 @@ public class ComponentState implements ComponentResolutionState, ComponentResult
     @Override
     public ComponentIdentifier getComponentId() {
         return getMetaData().getComponentId();
+    }
+
+    @Override
+    public String getVariantName() {
+        NodeState selected = getSelectedNode();
+        return selected == null ? "unknown" : selected.getMetadata().getName();
+    }
+
+    private NodeState getSelectedNode() {
+        for (NodeState node : nodes) {
+            if (node.isSelected()) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public AttributeContainer getVariantAttributes() {
+        NodeState selected = getSelectedNode();
+        return selected == null ? ImmutableAttributes.EMPTY : desugarAttributes(selected);
+    }
+
+    /**
+     * Desugars attributes so that what we're going to serialize consists only of String or Boolean attributes,
+     * and not their original types.
+     * @param selected the selected component
+     * @return desugared attributes
+     */
+    private ImmutableAttributes desugarAttributes(NodeState selected) {
+        ImmutableAttributes attributes = selected.getMetadata().getAttributes();
+        if (attributes.isEmpty()) {
+            return attributes;
+        }
+        AttributeContainerInternal mutable = selected.getAttributesFactory().mutable();
+        Set<Attribute<?>> keySet = attributes.keySet();
+        for (Attribute<?> attribute : keySet) {
+            Object value = attributes.getAttribute(attribute);
+            Attribute<Object> desugared = Cast.uncheckedCast(attribute);
+            if (attribute.getType() == Boolean.class || attribute.getType() == String.class) {
+                mutable.attribute(desugared, value);
+            } else {
+                desugared = Cast.uncheckedCast(Attribute.of(attribute.getName(), String.class));
+                mutable.attribute(desugared, value.toString());
+            }
+        }
+        return mutable.asImmutable();
     }
 
     @Override

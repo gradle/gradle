@@ -38,10 +38,11 @@ import java.lang.reflect.InvocationTargetException
  */
 class BuildOperationNotificationsFixture {
 
+    public static final String FIXTURE_SCRIPT_NAME = "injectBuildOpFixture.gradle"
     private final File initScript
 
     BuildOperationNotificationsFixture(GradleExecuter executer, TestDirectoryProvider projectDir) {
-        this.initScript = projectDir.testDirectory.file("injectBuildOpFixture.gradle")
+        this.initScript = projectDir.testDirectory.file(FIXTURE_SCRIPT_NAME)
         this.initScript.text = injectNotificationListenerBuildLogic()
         executer.beforeExecute {
             it.usingInitScript(this.initScript)

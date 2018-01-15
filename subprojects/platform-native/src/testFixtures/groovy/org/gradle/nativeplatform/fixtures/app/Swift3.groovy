@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.nativeplatform.fixtures.app
 
-class ExperimentalFeaturesFixture {
-    static void enable(File file) {
-        file << """
-            gradle.experimentalFeatures.enable()
-"""
+import org.gradle.integtests.fixtures.SourceFile
+
+class Swift3 extends SourceFileElement {
+    @Override
+    SourceFile getSourceFile() {
+        sourceFile("swift", "swift3-code.swift", """
+            public func someFunc() {
+                typealias Name = (firstName: String, lastName: String)
+                let names: [Name] = [("Bart", "den Hollander")]
+                
+                names.forEach({ first, last in
+                    print(last)  // "den Hollander"
+                })
+            }
+        """)
     }
 }

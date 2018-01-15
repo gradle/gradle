@@ -26,9 +26,6 @@ import java.util.List;
 /**
  * This class is responsible for maintaining the state of pending dependencies. In other words, when such a dependency (e.g. a dependency constraints or a maven optional dependency), is added to the
  * graph, it is "pending" until a hard dependency for the same module is seen. As soon as a hard dependency is found, nodes that referred to the pending dependency are restarted.
- *
- * This class also makes a special case of the "optional" configuration, for backwards compatibility: the optional configuration used to store maven optional dependencies. But if we no longer resolve
- * optional dependencies, then the optional configuration becomes effectively empty. To avoid this, we ignore the state of optional dependencies if they belong to the "optional" configuration.
  */
 public class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
     private final PendingDependenciesState pendingDependencies = new PendingDependenciesState();
@@ -43,35 +40,41 @@ public class DefaultPendingDependenciesHandler implements PendingDependenciesHan
     }
 
     @Override
-    public Visitor start(boolean isOptionalConfiguration) {
-        return new DefaultVisitor(isOptionalConfiguration);
+    public Visitor start() {
+        return new DefaultVisitor();
     }
 
     public class DefaultVisitor implements Visitor {
-        private final boolean isOptionalConfiguration;
         private List<PendingDependencies> noLongerPending;
-
-        public DefaultVisitor(boolean isOptionalConfiguration) {
-            this.isOptionalConfiguration = isOptionalConfiguration;
-        }
 
         public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
             ModuleIdentifier key = lookupModuleIdentifier(dependencyState);
+
+            boolean isOptionalDependency = dependencyState.getDependencyMetadata().isPending();
+            if (!isOptionalDependency) {
+                // Mark as not pending. If we saw pending dependencies before, mark them as no longer pending
+                PendingDependencies priorPendingDependencies = pendingDependencies.notPending(key);
+                if (priorPendingDependencies != null) {
+                    if (noLongerPending == null) {
+                        noLongerPending = Lists.newLinkedList();
+                    }
+                    noLongerPending.add(priorPendingDependencies);
+                }
+                return false;
+            }
+
+            // Adding an optional dependency: see if we already have a hard dependency on the same module
             PendingDependencies pendingDependencies = DefaultPendingDependenciesHandler.this.pendingDependencies.getPendingDependencies(key);
             boolean pending = pendingDependencies.isPending();
 
-            if (dependencyState.getDependencyMetadata().isPending() && !isOptionalConfiguration && pending) {
-                    pendingDependencies.addNode(node);
-                    return true;
+            // Already have a hard dependency, this optional dependency is not pending.
+            if (!pending) {
+                return false;
             }
-            if (pending) {
-                if (noLongerPending == null) {
-                    noLongerPending = Lists.newLinkedList();
-                }
-                noLongerPending.add(pendingDependencies);
-            }
-            DefaultPendingDependenciesHandler.this.pendingDependencies.notPending(key);
-            return false;
+
+            // No hard dependency, queue up pending dependency in case we see a hard dependency later.
+            pendingDependencies.addNode(node);
+            return true;
         }
 
         private ModuleIdentifier lookupModuleIdentifier(DependencyState dependencyState) {

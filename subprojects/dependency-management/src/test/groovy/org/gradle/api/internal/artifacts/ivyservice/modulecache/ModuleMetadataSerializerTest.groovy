@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.file.TestFiles
@@ -48,7 +49,7 @@ import spock.lang.Unroll
 class ModuleMetadataSerializerTest extends Specification {
 
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    private final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.experimentalFeatures())
+    private final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
     private final IvyMutableModuleMetadataFactory ivyMetadataFactory = new IvyMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory())
     private final ModuleMetadataSerializer serializer = moduleMetadataSerializer()
     private GradlePomModuleDescriptorParser pomModuleDescriptorParser = pomParser()
@@ -145,8 +146,7 @@ class ModuleMetadataSerializerTest extends Specification {
 
     private ModuleMetadataSerializer moduleMetadataSerializer() {
         new ModuleMetadataSerializer(
-            TestUtil.attributesFactory(),
-            NamedObjectInstantiator.INSTANCE,
+            new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE),
             mavenMetadataFactory,
             ivyMetadataFactory
         )

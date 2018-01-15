@@ -134,7 +134,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
     public ImmutableList<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
         // Special handling for artifacts declared for optional dependencies
         if (isOptional()) {
-            return getArtifactsForOptionalDependency(fromConfiguration);
+            return getArtifactsForOptionalDependency();
         }
         return getDependencyArtifacts();
     }
@@ -144,15 +144,10 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
      * dependency will update the version of any dependency with matching GAV.
      * (Same goes for <type> on optional dependencies: they are effectively ignored).
      *
-     * The exception to the optional case is when the magic "optional" configuration is being resolved.
-     *
      * Note that this doesn't really match with Maven, where an optional dependency with classifier will
      * provide a version for any other dependency with matching GAV + classifier.
      */
-    private ImmutableList<IvyArtifactName> getArtifactsForOptionalDependency(ConfigurationMetadata fromConfiguration) {
-        if ("optional".equals(fromConfiguration.getName())) {
-            return getDependencyArtifacts();
-        }
+    private ImmutableList<IvyArtifactName> getArtifactsForOptionalDependency() {
         return ImmutableList.of();
     }
 

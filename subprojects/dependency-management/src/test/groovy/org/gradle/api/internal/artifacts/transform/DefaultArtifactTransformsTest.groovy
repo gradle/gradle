@@ -144,8 +144,8 @@ class DefaultArtifactTransformsTest extends Specification {
             return new ResolvedArtifactSet.Completion() {
                 @Override
                 void visit(ArtifactVisitor v) {
-                    v.visitArtifact(targetAttributes, sourceArtifact)
-                    v.visitFile(new ComponentFileArtifactIdentifier(id, sourceFile.name), targetAttributes, sourceFile)
+                    v.visitArtifact('variant1', targetAttributes, sourceArtifact)
+                    v.visitFile(new ComponentFileArtifactIdentifier(id, sourceFile.name), 'variant1', targetAttributes, sourceFile)
                 }
             }
         }
@@ -153,10 +153,10 @@ class DefaultArtifactTransformsTest extends Specification {
         _ * transformer.getDisplayName() >> "transform"
         1 * transformer.transform(sourceArtifactFile) >> [outFile1, outFile2]
         1 * transformer.transform(sourceFile) >> [outFile3, outFile4]
-        1 * visitor.visitArtifact(targetAttributes, {it.file == outFile1})
-        1 * visitor.visitArtifact(targetAttributes, {it.file == outFile2})
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile3.name), targetAttributes, outFile3)
-        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile4.name), targetAttributes, outFile4)
+        1 * visitor.visitArtifact('variant1', targetAttributes, {it.file == outFile1})
+        1 * visitor.visitArtifact('variant1', targetAttributes, {it.file == outFile2})
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile3.name), 'variant1', targetAttributes, outFile3)
+        1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile4.name), 'variant1', targetAttributes, outFile4)
         0 * visitor._
         0 * transformer._
     }

@@ -24,7 +24,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -76,19 +76,19 @@ public class MavenPublishPlugin implements Plugin<Project> {
     private final FileResolver fileResolver;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final FileCollectionFactory fileCollectionFactory;
-    private final ExperimentalFeatures experimentalFeatures;
+    private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
 
     @Inject
     public MavenPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver,
                               ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-                              ExperimentalFeatures experimentalFeatures, ImmutableAttributesFactory immutableAttributesFactory) {
+                              FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory) {
         this.instantiator = instantiator;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.projectDependencyResolver = projectDependencyResolver;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.experimentalFeatures = experimentalFeatures;
+        this.featurePreviews = featurePreviews;
         this.immutableAttributesFactory = immutableAttributesFactory;
     }
 
@@ -220,7 +220,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
             return instantiator.newInstance(
                     DefaultMavenPublication.class,
-                    name, projectIdentity, artifactNotationParser, instantiator, projectDependencyResolver, fileCollectionFactory, experimentalFeatures, immutableAttributesFactory
+                    name, projectIdentity, artifactNotationParser, instantiator, projectDependencyResolver, fileCollectionFactory, featurePreviews, immutableAttributesFactory
             );
         }
     }

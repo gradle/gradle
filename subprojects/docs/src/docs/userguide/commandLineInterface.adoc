@@ -456,10 +456,10 @@ The following options affect how builds are executed, by changing what is built 
 Run the build as a composite, including the specified build. See <<composite_builds, Composite Builds>>.
 
 `--offline`::
-Specifies that the build should operate without accessing network resources. Learn more about <<cache_command_line_options,options to override dependency caching>>.
+Specifies that the build should operate without accessing network resources. Learn more about <<sec:controlling_dependency_caching_command_line,options to override dependency caching>>.
 
 `--refresh-dependencies`::
-Refresh the state of dependencies. Learn more about how to use this in the dependency management docs.<<cache_command_line_options, dependency management docs>>.
+Refresh the state of dependencies. Learn more about how to use this in the <<sec:controlling_dependency_caching_command_line,dependency management docs>>.
 
 `--dry-run`::
 Run Gradle with all task actions disabled. Use this to show which task would have executed.

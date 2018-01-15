@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations.notify
 
-import groovy.json.JsonOutput
+import groovy.json.JsonBuilder
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
@@ -43,6 +43,27 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     String listenerClass(){
         """
             def listener = new $BuildOperationNotificationListener.name() {
+
+                static def toJson(Object o) {                
+                    def builder = new groovy.json.JsonBuilder()
+                    toJson(o, builder)
+                    builder
+                }
+    
+                static void toJson(Object o, groovy.json.JsonBuilder builder) {
+                    o.properties.each { p ->
+                        if (!(p.key in ['class', 'metaClass'])) {
+                           builder { "\${p.key}"("\${p.value}") }
+                        }
+                    }
+                }
+    
+                static void toJson(Map m, groovy.json.JsonBuilder builder) {
+                    m.each { p ->
+                        builder { "\${p.key}"("\${p.value}") }
+                    }
+                }
+
                 void started($BuildOperationStartedNotification.name notification) {
                     def details = notification.notificationOperationDetails
                     if (details instanceof $ExecuteTaskBuildOperationType.Details.name) {
@@ -50,11 +71,11 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
                     } else  if (details instanceof $ApplyPluginBuildOperationType.Details.name) {
                         details = [pluginId: details.pluginId, pluginClass: details.pluginClass.name, targetType: details.targetType, targetPath: details.targetPath, buildPath: details.buildPath]
                     }
-                    println "STARTED: \${notification.details.class.interfaces.first().name} - \${${JsonOutput.name}.toJson(details)} - \$notification.notificationOperationId - \$notification.notificationOperationParentId"   
+                    println "STARTED: \${notification.details.class.interfaces.first().name} - \${toJson(details)} - \$notification.notificationOperationId - \$notification.notificationOperationParentId"   
                 }
 
                 void finished($BuildOperationFinishedNotification.name notification) {
-                    println "FINISHED: \${notification.result?.class?.interfaces?.first()?.name} - \${${JsonOutput.name}.toJson(notification.notificationOperationResult)} - \$notification.notificationOperationId - \$notification.notificationOperationParentId"
+                    println "FINISHED: \${notification.result?.class?.interfaces?.first()?.name} - \${toJson(notification.notificationOperationResult)} - \$notification.notificationOperationId - \$notification.notificationOperationParentId"
                 }
             }
             def registrar = services.get($BuildOperationNotificationListenerRegistrar.name)            
@@ -240,8 +261,28 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     String notificationLogLine(boolean started, Class<?> type, Map<String, ?> payload) {
         def line = "${started ? "STARTED" : "FINISHED"}: $type.name"
         if (payload != null) {
-            line += " - " + JsonOutput.toJson(payload)
+            line += " - " + toJson(payload)
         }
         return line
+    }
+
+    def toJson(Object o) {
+        JsonBuilder builder = new JsonBuilder()
+        toJson(o, builder)
+        builder
+    }
+
+    void toJson(Object o, JsonBuilder builder) {
+        o.properties.each { p ->
+            if (!(p.key in ['class', 'metaClass'])) {
+                builder { "${p.key}"("${p.value}") }
+            }
+        }
+    }
+
+    void toJson(Map m, JsonBuilder builder) {
+        m.each { p ->
+            builder { "${p.key}"("${p.value}") }
+        }
     }
 }

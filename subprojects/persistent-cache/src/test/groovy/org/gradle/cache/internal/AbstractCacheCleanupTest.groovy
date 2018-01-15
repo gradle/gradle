@@ -25,13 +25,6 @@ class AbstractCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def persistentCache = Mock(PersistentCache)
-    def cleanupAction = new AbstractCacheCleanup() {
-        @Override
-        protected List<File> findFilesToDelete(PersistentCache persistentCache, File[] filesEligibleForCleanup) {
-            // pass through everything
-            return Arrays.asList(filesEligibleForCleanup)
-        }
-    }
 
     def setup() {
         persistentCache.getBaseDir() >> cacheDir
@@ -40,13 +33,13 @@ class AbstractCacheCleanupTest extends Specification {
 
     def "filters for cache entry files"() {
         expect:
-        cleanupAction.isReserved(persistentCache, cacheDir.file("cache.properties").touch())
-        cleanupAction.isReserved(persistentCache, cacheDir.file("gc.properties").touch())
-        cleanupAction.isReserved(persistentCache, cacheDir.file("cache.lock").touch())
+        AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("cache.properties").touch())
+        AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("gc.properties").touch())
+        AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("cache.lock").touch())
 
-        !cleanupAction.isReserved(persistentCache, cacheDir.file("0"*32).touch())
-        !cleanupAction.isReserved(persistentCache, cacheDir.file("ABCDEFABCDEFABCDEFABCDEFABCDEF00").touch())
-        !cleanupAction.isReserved(persistentCache, cacheDir.file("abcdefabcdefabcdefabcdefabcdef00").touch())
+        !AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("0"*32).touch())
+        !AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("ABCDEFABCDEFABCDEFABCDEFABCDEF00").touch())
+        !AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("abcdefabcdefabcdefabcdefabcdef00").touch())
     }
 
     def "deletes files"() {
@@ -56,7 +49,7 @@ class AbstractCacheCleanupTest extends Specification {
             createCacheEntry(),
         ]
         when:
-        cleanupAction.cleanupFiles(persistentCache, cacheEntries)
+        AbstractCacheCleanup.cleanupFiles(persistentCache, cacheEntries)
         then:
         cacheEntries.each {
             it.assertDoesNotExist()
@@ -67,7 +60,7 @@ class AbstractCacheCleanupTest extends Specification {
         def cacheEntry = cacheDir.file(String.format("%032x", r.nextInt())).file("subdir/somefile")
         cacheEntry.text = "delete me"
         when:
-        cleanupAction.cleanupFiles(persistentCache, [cacheEntry])
+        AbstractCacheCleanup.cleanupFiles(persistentCache, [cacheEntry])
         then:
         cacheEntry.assertDoesNotExist()
     }

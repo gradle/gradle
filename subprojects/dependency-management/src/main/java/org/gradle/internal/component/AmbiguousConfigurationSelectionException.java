@@ -86,7 +86,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
             AttributeValue<Object> consumerValue = immmutableConsumer.findEntry(untyped);
             AttributeValue<?> producerValue = immutableProducer.findEntry(attribute.getName());
             if (consumerValue.isPresent() && producerValue.isPresent()) {
-                if (attributeMatcher.isMatching(untyped, producerValue.get(), consumerValue.get())) {
+                if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
                     formatter.node("Required " + attributeName + " '" + consumerValue.get() + "' and found compatible value '" + producerValue.get() + "'.");
                 } else {
                     formatter.node("Required " + attributeName + " '" + consumerValue.get() + "' and found incompatible value '" + producerValue.get() + "'.");

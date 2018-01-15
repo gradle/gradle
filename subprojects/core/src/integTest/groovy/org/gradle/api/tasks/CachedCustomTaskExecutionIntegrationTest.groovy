@@ -41,7 +41,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
         assert listCacheFiles().size() == 0
         when:
-        withBuildCache().succeeds "tasks"
+        withBuildCache().run "tasks"
         then:
         skippedTasks.empty
         listCacheFiles().size() == 1 // compileGroovy
@@ -50,7 +50,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/build").assertIsDir().deleteDir()
 
         when:
-        withBuildCache().succeeds "tasks"
+        withBuildCache().run "tasks"
         then:
         output.contains ":buildSrc:compileGroovy FROM-CACHE"
     }
@@ -66,7 +66,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.empty
 
@@ -75,7 +75,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/.gradle").deleteDir()
         cleanBuildDir()
 
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
     }
@@ -92,7 +92,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.empty
         file("build/output.txt").text == "input"
@@ -101,7 +101,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         taskSourceFile.text = customGroovyTask(" modified")
 
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "input modified"
@@ -153,7 +153,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
 
@@ -166,7 +166,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withBuildCache().run "customTask"
         cleanBuildDir()
 
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
 
         then:
         nonSkippedTasks.contains ":customTask"
@@ -186,7 +186,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask", "--info"
+        withBuildCache().run "customTask", "--info"
         then:
         nonSkippedTasks.contains ":customTask"
         output.contains "Caching disabled for task ':customTask': Declares multiple output files for the single output property '\$1' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
@@ -218,7 +218,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
     }
@@ -285,7 +285,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -294,7 +294,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -306,7 +306,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         buildFile << """
             customTask.secondaryOutputFile = null
         """
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -314,7 +314,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -350,7 +350,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output-1.txt").text == "one"
@@ -365,7 +365,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 two: file("build/output-b.txt")
             ]
         """
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
         file("build/output-a.txt").text == "one"
@@ -380,7 +380,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 second: file("build/output-b.txt")
             ]
         """
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output-a.txt").text == "first"
@@ -407,7 +407,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -416,7 +416,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -451,7 +451,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         // creates the directory, but not the output file
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -460,7 +460,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
         file("build/output.txt").text == "data"
@@ -484,14 +484,14 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/empty").assertIsEmptyDir()
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
         file("build/empty").assertIsEmptyDir()
@@ -519,7 +519,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         executer.withStackTraceChecksDisabled()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         def expectedMessage = message.replace("PATH", file("build/output").path)
         output.contains "Could not pack property 'output': $expectedMessage"
@@ -554,7 +554,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask", "--info"
+        withBuildCache().run "customTask", "--info"
         then:
         output.contains "Not caching task ':customTask' because no valid cache key was generated"
     }
@@ -596,7 +596,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "customTask", "--info"
+        withBuildCache().run "customTask", "--info"
         then:
         output.contains "Not caching task ':customTask' because no valid cache key was generated"
     }
@@ -605,16 +605,16 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("input.txt").text = "input"
         buildFile << defineProducerTask()
 
-        withBuildCache().succeeds "producer"
+        withBuildCache().run "producer"
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "producer"
+        withBuildCache().run "producer"
         then:
         skippedTasks as List == [":producer"]
 
         when:
-        withBuildCache().succeeds "producer", "--info"
+        withBuildCache().run "producer", "--info"
         !output.contains("Caching disabled for task ':producer'")
         then:
         skippedTasks as List == [":producer"]
@@ -625,23 +625,23 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         buildFile << defineProducerTask()
 
         // Store in local cache
-        withBuildCache().succeeds "producer"
+        withBuildCache().run "producer"
 
         // Load from local cache
         cleanBuildDir()
-        withBuildCache().succeeds "producer"
+        withBuildCache().run "producer"
 
         // Store to local cache again
         when:
         cleanLocalBuildCache()
-        withBuildCache().succeeds "producer", "--info", "--rerun-tasks"
+        withBuildCache().run "producer", "--info", "--rerun-tasks"
         then:
         !output.contains("Caching disabled for task ':producer'")
 
         when:
         // Can load from local cache again
         cleanBuildDir()
-        withBuildCache().succeeds "producer"
+        withBuildCache().run "producer"
         then:
         skippedTasks as List == [":producer"]
     }
@@ -651,11 +651,11 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         buildFile << defineProducerTask()
 
         // Store in local cache
-        withBuildCache().succeeds "producer"
+        withBuildCache().run "producer"
 
         // Shouldn't load from cache
         when:
-        withBuildCache().succeeds "producer", "--rerun-tasks"
+        withBuildCache().run "producer", "--rerun-tasks"
         then:
         executed ":producer"
     }
@@ -666,10 +666,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         buildFile << defineProducerTask()
 
         // Store in local cache
-        withBuildCache().succeeds "producer", "--rerun-tasks"
+        withBuildCache().run "producer", "--rerun-tasks"
 
         when:
-        withBuildCache().succeeds "producer"
+        withBuildCache().run "producer"
         then:
         skipped ":producer"
     }
@@ -679,11 +679,11 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         buildFile << defineProducerTask()
         buildFile << defineConsumerTask()
 
-        withBuildCache().succeeds "consumer"
+        withBuildCache().run "consumer"
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "consumer"
+        withBuildCache().run "consumer"
         then:
         skippedTasks.sort() == [":consumer", ":producer"]
     }
@@ -704,14 +704,14 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().succeeds "weirdOutput"
+        withBuildCache().run "weirdOutput"
         then:
         executedAndNotSkipped ":weirdOutput"
         expectedOutput.file
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "weirdOutput"
+        withBuildCache().run "weirdOutput"
         then:
         skipped ":weirdOutput"
         expectedOutput.file
@@ -723,14 +723,14 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         buildFile << defineTaskWithLocalState(useRuntimeApi)
 
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         executedAndNotSkipped ":customTask"
         localStateFile.assertIsFile()
 
         when:
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skipped ":customTask"
         localStateFile.assertDoesNotExist()
@@ -803,7 +803,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         args "--parallel", "--max-workers=100"
-        withBuildCache().succeeds "test"
+        withBuildCache().run "test"
         then:
         noExceptionThrown()
     }

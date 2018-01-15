@@ -20,14 +20,21 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 
 public class DefaultResolvedVariantResult implements ResolvedVariantResult {
+    private final String displayName;
     private final AttributeContainer attributes;
 
-    public DefaultResolvedVariantResult(AttributeContainer attributes) {
+    public DefaultResolvedVariantResult(String displayName, AttributeContainer attributes) {
+        this.displayName = displayName;
         this.attributes = attributes;
     }
 
     @Override
     public AttributeContainer getAttributes() {
         return attributes;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
     }
 }

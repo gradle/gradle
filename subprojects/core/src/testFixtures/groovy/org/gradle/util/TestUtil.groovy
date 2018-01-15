@@ -19,8 +19,9 @@ import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.Task
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.DefaultInstantiatorFactory
-import org.gradle.api.internal.ExperimentalFeatures
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.InstantiatorFactory
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
@@ -83,12 +84,11 @@ class TestUtil {
         return NamedObjectInstantiator.INSTANCE
     }
 
-    static ExperimentalFeatures experimentalFeatures(boolean enabled = false) {
-        def experimentalFeatures = new ExperimentalFeatures()
-        if (enabled) {
-            experimentalFeatures.enable()
-        }
-        return experimentalFeatures
+    static FeaturePreviews featurePreviews(boolean advancedPomSupportEnabled = false, boolean gradleMetadataEnabled = false) {
+        def startParameter = new StartParameterInternal()
+        startParameter.advancedPomSupport = advancedPomSupportEnabled
+        startParameter.gradleMetadata = gradleMetadataEnabled
+        return new FeaturePreviews(startParameter)
     }
 
     static TestUtil create(File rootDir) {
