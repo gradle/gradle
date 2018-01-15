@@ -163,6 +163,81 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':hello:_xcode___Hello_Release')
     }
 
+    def "can create xcode project for Swift application with binary-specific dependencies"() {
+        def app = new SwiftAppWithLibraries()
+
+        given:
+        settingsFile.text =  """
+            include 'app', 'log', 'hello'
+            rootProject.name = "${rootProjectName}"
+        """
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                application {
+                    binaries.configureEach {
+                        dependencies {
+                            if (targetPlatform.operatingSystem.macOsX) {
+                                implementation project(':hello')
+                            }
+                        }
+                    }
+                }
+            }
+            project(':hello') {
+                apply plugin: 'swift-library'
+                dependencies {
+                    api project(':log')
+                }
+            }
+            project(':log') {
+                apply plugin: 'swift-library'
+            }
+        """
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
+        app.application.writeToProject(file("app"))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+            ":log:xcodeProject", ":log:xcodeProjectWorkspaceSettings", ":log:xcodeScheme", ":log:xcode",
+            ":hello:xcodeProject", ":hello:xcodeProjectWorkspaceSettings", ":hello:xcodeScheme", ":hello:xcode",
+            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'log/log.xcodeproj', 'hello/hello.xcodeproj')
+
+        def appProject = xcodeProject("app/app.xcodeproj").projectFile
+        appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("hello/build/modules/main/debug"), file("log/build/modules/main/debug"))
+        def helloProject = xcodeProject("hello/hello.xcodeproj").projectFile
+        helloProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("log/build/modules/main/debug"))
+
+        when:
+        def resultDebugApp = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('App')
+            .succeeds()
+
+        then:
+        resultDebugApp.assertTasksExecuted(':log:compileDebugSwift', ':log:linkDebug',
+            ':hello:compileDebugSwift', ':hello:linkDebug',
+            ':app:compileDebugSwift', ':app:linkDebug', ':app:_xcode___App_Debug')
+
+        when:
+        def resultReleaseHello = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('Hello')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
+            .succeeds()
+
+        then:
+        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease', ':hello:stripSymbolsRelease',
+            ':log:stripSymbolsRelease', ':log:compileReleaseSwift', ':log:linkRelease',
+            ':hello:_xcode___Hello_Release')
+    }
+
     def "can create xcode project for Swift application with dependency on c++ library"() {
         def cppGreeter = new CppGreeterFunction()
         def swiftGreeter = new SwiftGreeterUsingCppFunction(cppGreeter)
