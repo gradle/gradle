@@ -112,7 +112,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                             // TODO This should actually extend from the api dependencies, but since Swift currently
                             // requires all dependencies to be treated like api dependencies (with transitivity) we just
                             // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
-                            apiElements.extendsFrom(((DefaultSwiftSharedLibrary)sharedLibrary).getImportPathConfiguration());
+                            apiElements.extendsFrom(((DefaultSwiftSharedLibrary)sharedLibrary).getImplementationDependencies());
                             apiElements.setCanBeResolved(false);
                             apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
                             apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
@@ -143,7 +143,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                             // TODO This should actually extend from the api dependencies, but since Swift currently
                             // requires all dependencies to be treated like api dependencies (with transitivity) we just
                             // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
-                            apiElements.extendsFrom(((DefaultSwiftStaticLibrary)staticLibrary).getImportPathConfiguration());
+                            apiElements.extendsFrom(((DefaultSwiftStaticLibrary)staticLibrary).getImplementationDependencies());
                             apiElements.setCanBeResolved(false);
                             apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
                             apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
