@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.ide.xcode.fixtures.SwiftToolChainTestingSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.internal.os.OperatingSystem
@@ -27,8 +28,11 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
+class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec implements SwiftToolChainTestingSpec {
+
     def "can create xcode project for Swift application"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-application'
@@ -60,6 +64,8 @@ apply plugin: 'swift-application'
     }
 
     def "can create xcode project for Swift library"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-library'
@@ -90,6 +96,8 @@ apply plugin: 'swift-library'
     }
 
     def "can create xcode project for Swift static library"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
             apply plugin: 'swift-library'
@@ -163,6 +171,8 @@ apply plugin: 'swift-library'
     }
 
     def "can create xcode project for Swift application with xctest"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-application'
@@ -197,6 +207,8 @@ apply plugin: 'xctest'
     }
 
     def "can create xcode project for Swift library and xctest"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-library'
@@ -544,6 +556,8 @@ apply plugin: 'swift-library'
     }
 
     def "adds new source files in the project"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-application'
@@ -567,6 +581,8 @@ apply plugin: 'swift-application'
     }
 
     def "removes deleted source files from the project"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-application'
@@ -591,6 +607,8 @@ apply plugin: 'swift-application'
     }
 
     def "includes source files in a non-default location in Swift application project"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-application'
@@ -611,6 +629,8 @@ application {
     }
 
     def "includes source files in a non-default location in Swift library project"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-library'

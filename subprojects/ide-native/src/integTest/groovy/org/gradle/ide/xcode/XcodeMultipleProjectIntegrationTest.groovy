@@ -17,13 +17,15 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.ide.xcode.fixtures.SwiftToolChainTestingSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 
-class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
+class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec implements SwiftToolChainTestingSpec {
     def setup() {
         settingsFile << """
             include 'app', 'greeter'
         """
+        requireSwiftToolChain()
     }
 
     def "Gradle project with added xcode plugin are included in the workspace"() {

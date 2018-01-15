@@ -17,43 +17,21 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.ide.xcode.fixtures.SwiftToolChainTestingSpec
 import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.nativeplatform.fixtures.app.Swift4
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
-import org.hamcrest.Matchers
 import spock.lang.Unroll
 
-import static org.junit.Assume.assumeThat
-import static org.junit.Assume.assumeTrue
+abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec implements SwiftToolChainTestingSpec {
 
-abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
-
-    void useSwiftCompilerVersion(int major) {
-        def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFT)
-        assumeTrue(toolChain != null && toolChain.isAvailable())
-        assumeThat(toolChain.version.major, Matchers.equalTo(major))
-
-        File initScript = file("init.gradle") << """
-            allprojects { p ->
-                apply plugin: ${toolChain.pluginClass}
-
-                model {
-                      toolChains {
-                        ${toolChain.buildScriptConfig}
-                      }
-                }
-            }
-        """
-        executer.beforeExecute({
-            usingInitScript(initScript)
-        })
+    def setup() {
+        requireSwiftToolChain()
     }
 
     @Unroll
     def "detect Swift source compatibility from selected Swift #swiftcMajorVersion compiler"() {
-        useSwiftCompilerVersion(swiftcMajorVersion)
+        assumeSwiftCompilerVersion(swiftcMajorVersion)
 
         given:
         settingsFile << "rootProject.name = '${fixture.projectName}'"
