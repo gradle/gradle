@@ -18,6 +18,7 @@ package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppLogger
@@ -138,7 +139,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
 
         then:
         def executable = executable("consumer/install/test")
-        executable.file.setExecutable(true)
         executable.exec().out == app.expectedOutput
     }
 
@@ -219,7 +219,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
 
         then:
         def executable = executable("consumer/install/app")
-        executable.file.setExecutable(true)
         executable.exec().out == app.expectedOutput
     }
 
@@ -280,7 +279,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
         def appDebugMetadata = appDebugModule.parsedModuleMetadata
         def appDebugRuntime = appDebugMetadata.variant("debug-runtime")
         appDebugRuntime.dependencies.size() == 2
-        appDebugRuntime.dependencies.collect { it.coords }.sort() == [ 'some.group:greeter:1.2', 'some.group:logger:1.2' ]
+        appDebugRuntime.dependencies.collect { it.coords } == [ 'some.group:logger:1.2', 'some.group:greeter:1.2' ]
 
         def appReleaseModule = repo.module('some.group', 'app_release', '1.2')
         appReleaseModule.assertPublished()
@@ -313,7 +312,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
 
         then:
         def executable = executable("consumer/install/app")
-        executable.file.setExecutable(true)
         executable.exec().out == app.expectedOutput
     }
 
@@ -392,8 +390,15 @@ class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChain
 
         then:
         def executable = executable("consumer/install/testApp")
-        executable.file.setExecutable(true)
         executable.exec().out == app.expectedOutput
+    }
+
+    @Override
+    ExecutableFixture executable(Object path) {
+        ExecutableFixture executable = super.executable(path)
+        // Executables synced from a binary repo lose their executable bit
+        executable.file.setExecutable(true)
+        executable
     }
 
 }
