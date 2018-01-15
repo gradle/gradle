@@ -23,6 +23,21 @@ import static org.gradle.api.tasks.options.TaskOptionFixture.taskWithMultipleOpt
 
 class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
 
+    def "annotation cannot be assigned to a setter method multiple times"() {
+        given:
+        buildFile << """
+            task sample(type: SampleTask)
+            
+            ${taskWithMultipleOptionsForSingleProperty('String', 'hello', 'Some description')}
+        """
+
+        when:
+        runAndFail 'sample, --hello', 'test'
+
+        then:
+        failure.error.contains('Cannot specify duplicate annotation on the same member : org.gradle.api.tasks.options.Option')
+    }
+
     def "different tasks match name but only one accepts the option"() {
         given:
         settingsFile << "include 'other'"
@@ -153,5 +168,34 @@ class TaskOptionFailureIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription('Problem configuring task :check from command line.')
         failure.assertHasCause("Unknown command-line option '--tests'")
+    }
+
+    static String taskWithMultipleOptionsForSingleProperty(String optionType, String optionName, String optionDescription) {
+        """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.api.tasks.options.Option;
+
+            import java.util.List;
+            
+            public class SampleTask extends DefaultTask {
+                private $optionType myProp;
+                
+                @Option(option = "$optionName", description = "$optionDescription")
+                @Option(option = "myProp", description = "Configures command line option 'myProp'.")
+                public void setMyProp($optionType myProp) {
+                    this.myProp = myProp;
+                }
+                
+                @TaskAction
+                public void renderOptionValue() {
+                    System.out.println("Value of myProp: " + myProp);
+                }
+                
+                private static enum TestEnum {
+                    OPT_1, OPT_2, OPT_3
+                }
+            }
+        """
     }
 }
