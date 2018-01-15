@@ -17,9 +17,7 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
-import org.gradle.nativeplatform.fixtures.app.Swift3WithXCTest
-import org.gradle.nativeplatform.fixtures.app.Swift4WithXCTest
-import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
+import org.gradle.nativeplatform.fixtures.app.Swift3XCTest
 import org.hamcrest.Matchers
 import org.junit.Assume
 
@@ -54,21 +52,49 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         swift3Component.assertTestCasesRan(testExecutionResult)
     }
 
+    def "ignores swift source compatibility from tested component when set on test component"() {
+        Assume.assumeThat(AbstractNativeLanguageComponentIntegrationTest.toolChain.version.major, Matchers.equalTo(4))
+
+        given:
+        makeSingleProject()
+        def fixture = new Swift3XCTest('project')
+        fixture.writeToProject(testDirectory)
+        buildFile << """
+            ${testedComponentDsl} {
+                sourceCompatibility = SwiftVersion.SWIFT4
+            }
+
+            ${componentUnderTestDsl} {
+                sourceCompatibility = SwiftVersion.SWIFT3
+            }
+
+            task verifyBinariesSwiftVersion {
+                doLast {
+                    ${testedComponentDsl}.binaries.get().each {
+                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT4
+                    }
+                    ${componentUnderTestDsl}.binaries.get().each {
+                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT3
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = '$fixture.projectName'"
+
+        when:
+        succeeds "verifyBinariesSwiftVersion"
+        succeeds taskNameToAssembleDevelopmentBinary
+
+        then:
+        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+        fixture.assertTestCasesRan(testExecutionResult)
+    }
+
     abstract String getTestedComponentDsl()
 
     @Override
     protected String getComponentUnderTestDsl() {
         return "xctest"
-    }
-
-    @Override
-    XCTestSourceElement getSwift3Component() {
-        return new Swift3WithXCTest('project')
-    }
-
-    @Override
-    XCTestSourceElement getSwift4Component() {
-        return new Swift4WithXCTest('project')
     }
 
     @Override
