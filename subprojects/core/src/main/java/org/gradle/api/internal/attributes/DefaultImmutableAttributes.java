@@ -148,6 +148,11 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     }
 
     @Override
+    public AttributeContainer attribute(String name, String value) {
+        throw new UnsupportedOperationException("Mutation of attributes is not allowed");
+    }
+
+    @Override
     public <T> T getAttribute(Attribute<T> key) {
         if (key.equals(attribute)) {
             return Cast.uncheckedCast(value.isolate());
