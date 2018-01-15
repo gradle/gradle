@@ -208,11 +208,17 @@ public class XcodePlugin extends IdePlugin {
                 xcode.getProject().getGroups().getTests().from(sources);
 
                 String targetName = component.getModule().get();
-                XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
+                final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
                 target.setDebug(component.getTestBinary().get().getInstallDirectory(), PBXTarget.ProductType.UNIT_TEST);
                 target.setRelease(component.getTestBinary().get().getInstallDirectory(), PBXTarget.ProductType.UNIT_TEST);
                 target.getCompileModules().from(component.getTestBinary().get().getCompileModules());
                 target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getTestBinary().get()).getImportPathConfiguration()).getBuildDependencies());
+                component.getBinaries().whenElementFinalized(new Action<SwiftBinary>() {
+                    @Override
+                    public void execute(SwiftBinary swiftBinary) {
+                        target.getSwiftSourceCompatibility().set(swiftBinary.getSourceCompatibility());
+                    }
+                });
                 xcode.getProject().addTarget(target);
             }
         });
@@ -250,6 +256,7 @@ public class XcodePlugin extends IdePlugin {
                         } else if (swiftBinary instanceof SwiftStaticLibrary && swiftBinary.isDebuggable() && swiftBinary.isOptimized()) {
                             target.setRelease(((SwiftStaticLibrary) swiftBinary).getLinkFile(), PBXTarget.ProductType.STATIC_LIBRARY);
                         }
+                        target.getSwiftSourceCompatibility().set(swiftBinary.getSourceCompatibility());
                     }
                 });
 
