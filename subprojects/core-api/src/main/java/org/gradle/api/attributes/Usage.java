@@ -27,7 +27,8 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface Usage extends Named {
-    Attribute<Usage> USAGE_ATTRIBUTE = Attribute.of("org.gradle.usage", Usage.class);
+    String NAME = "org.gradle.usage";
+    Attribute<Usage> USAGE_ATTRIBUTE = Attribute.of(NAME, Usage.class);
 
     /**
      * The Java API of a library, packaged as class path elements, either a JAR or a classes directory.

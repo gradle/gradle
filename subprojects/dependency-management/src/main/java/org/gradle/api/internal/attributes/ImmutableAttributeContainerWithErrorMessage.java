@@ -51,6 +51,11 @@ public class ImmutableAttributeContainerWithErrorMessage implements AttributeCon
         throw new IllegalArgumentException(String.format("Cannot change attributes of %s after it has been resolved", owner.getDisplayName()));
     }
 
+    @Override
+    public AttributeContainer attribute(String name, String value) {
+        throw new IllegalArgumentException(String.format("Cannot change attributes of %s after it has been resolved", owner.getDisplayName()));
+    }
+
     @Nullable
     @Override
     public <T> T getAttribute(Attribute<T> key) {
