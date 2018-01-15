@@ -31,8 +31,10 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
                 implementation 'io.reactivex:rxnetty:0.4.4'
             }
             task checkForRxJavaDependency {
-                assert configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.find { it.requested.displayName == 'io.reactivex:rxjava:1.0.1' }
-                assert !configurations.compileClasspath.incoming.resolutionResult.allDependencies.find { it.requested.displayName == 'io.reactivex:rxjava:1.0.1' }
+                doLast {
+                    assert configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.find { it.requested.displayName == 'io.reactivex:rxjava:1.0.1' }
+                    assert !configurations.compileClasspath.incoming.resolutionResult.allDependencies.find { it.requested.displayName == 'io.reactivex:rxjava:1.0.1' }
+                }
             }
         """
 
@@ -44,5 +46,52 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
         fails 'checkForRxJavaDependency', 'build'
         failure.assertHasCause('Compilation failed; see the compiler error output for details.')
         failure.error.contains('error: package rx.observers does not exist')
+    }
+
+    def "can use component metadata rules to turn an ivy module into a Java library"() {
+        given:
+        ivyRepo.module('api').publish()
+        ivyRepo.module('rt').publish()
+        ivyRepo.module('main').
+            dependsOn(conf: 'runtime->runtime', organisation: 'org.gradle.test', module:'rt', revision:'1.0').
+            dependsOn(conf: 'compile->compile;runtime->runtime', organisation: 'org.gradle.test', module:'api', revision:'1.0').publish()
+
+        buildFile << """
+            apply plugin: 'java-library'
+            repositories {
+                ivy { url = '${ivyRepo.uri}' }
+            }
+            dependencies {
+                implementation 'org.gradle.test:main:1.0'
+                components {
+                    withModule('org.gradle.test:main') {
+                        withVariant('compile') {
+                            attributes {
+                               attribute(Usage.NAME, Usage.JAVA_API)
+                            }
+                        }
+                        withVariant('runtime') {
+                            attributes {
+                                attribute(Usage.NAME, Usage.JAVA_RUNTIME)
+                            }
+                        }
+                    }
+                }
+            }
+            task checkDependencies {
+                doLast {
+                    assert configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.collect { it.toString() } == 
+                        ['org.gradle.test:main:1.0', 'org.gradle.test:rt:1.0', 'org.gradle.test:api:1.0']
+                    assert configurations.compileClasspath.incoming.resolutionResult.allDependencies.collect { it.toString() } == 
+                        ['org.gradle.test:main:1.0', 'org.gradle.test:api:1.0'] 
+                }
+            }
+        """
+
+        when:
+        succeeds 'checkDependencies'
+
+        then:
+        true
     }
 }
