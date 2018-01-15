@@ -1,5 +1,8 @@
+
+
 allprojects {
     apply plugin: "idea"
+    apply plugin: "org.jetbrains.gradle.plugin.idea-ext"
 
     idea {
         module {
@@ -54,6 +57,36 @@ idea {
         excludeDirs += file('buildSrc/.gradle')
     }
 
+    project.settings {
+        compiler {
+	        processHeapSize = 2042
+	    }
+
+        copyright {
+            useDefault = "ASL2"
+            profiles {
+                ASL2 {
+                    notice =
+"""Copyright \${today.year} the original author or authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License."""
+                    keyword = "Copyright"
+                }
+            }
+        }
+
+    }
+
     project {
         wildcards += ['?*.gradle']
 
@@ -61,46 +94,10 @@ idea {
         ipr {
             withXml { provider ->
                 def node = provider.asNode()
-                def compilerConfig = node.component.find { it.'@name' == 'CompilerConfiguration' }
-                def exclude = compilerConfig.excludeFromCompile
-                if (exclude) {
-                    compilerConfig.remove(exclude)
-                }
-                exclude = compilerConfig.appendNode('excludeFromCompile')
-
-                // exclude java version specific classes from compilation when not compilable with current java version
-                def excludeSource = { version, sourceFolder ->
-                    if (sourceFolder.exists()) {
-                        sourceFolder.eachDirRecurse { packageFolder ->
-                            if (packageFolder.name == version) {
-                                exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(packageFolder)}", includeSubdirectories: true])
-                            }
-                        }
-                    }
-                }
 
                 // Set gradle home
                 def gradleSettings = node.appendNode('component', [name: 'GradleSettings'])
                 gradleSettings.appendNode('option', [name: 'SDK_HOME', value: gradle.gradleHomeDir.absolutePath])
-
-                // set compiler heap space
-                compilerConfig.appendNode('option', [name: 'BUILD_PROCESS_HEAP_SIZE', value: '2048'])
-
-                // license header
-                def copyrightManager = node.component.find { it.'@name' == 'CopyrightManager' }
-                copyrightManager.@default = "ASL2"
-                def aslCopyright = copyrightManager.copyright.find { it.option.find { it.@name == "myName" }?.@value == "ASL2" }
-                if (aslCopyright == null) {
-                  copyrightManager.append(new XmlParser().parseText("""
-                      <copyright>
-                          <option name="notice" value="Copyright \${today.year} the original author or authors.&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);&#10;you may not use this file except in compliance with the License.&#10;You may obtain a copy of the License at&#10;&#10;     http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS,&#10;WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;See the License for the specific language governing permissions and&#10;limitations under the License." />
-                          <option name="keyword" value="Copyright" />
-                          <option name="allowReplaceKeyword" value="" />
-                          <option name="myName" value="ASL2" />
-                          <option name="myLocal" value="true" />
-                      </copyright>
-                """))
-                }
 
                 // Code formatting options
                 def codeFormatSettings = new XmlParser().parseText('''
