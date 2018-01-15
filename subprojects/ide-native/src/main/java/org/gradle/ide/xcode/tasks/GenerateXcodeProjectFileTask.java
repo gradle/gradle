@@ -261,7 +261,10 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
     }
 
     private static String toXcodeSwiftVersion(Provider<SwiftVersion> swiftVersion) {
-        return  String.format("%d.0", swiftVersion.get().getVersion());
+        if (swiftVersion.isPresent()) {
+            return String.format("%d.0", swiftVersion.get().getVersion());
+        }
+        return null;
     }
 
     private static Iterable<File> parentDirs(Iterable<File> files) {
