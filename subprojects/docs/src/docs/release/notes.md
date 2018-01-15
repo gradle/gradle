@@ -22,6 +22,37 @@ The new metadata format is still under active development, but it can already be
 
 [The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.0](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
 
+### Public API for defining command line options for tasks
+
+A custom task implementation exposes properties to make the runtime behavior configurable. Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. That's particular helpful if the property value changes more frequently. With this version of Gradle, the task API now supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime. All you need to do is to annotate a setter method of a property with [Option](dsl/org.gradle.api.tasks.options.Option.html).
+
+The following examples exposes a command line parameter `--url` for the custom task type `UrlVerify`. Let's assume you wanted to pass a URL to a task of this type named `verifyUrl`. The invocation looks as such: `gradle verifyUrl --url=https://gradle.org/`. You can find more information about this feature in the [user guide](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options).
+
+```
+import org.gradle.api.tasks.options.Option;
+
+public class UrlVerify extends DefaultTask {
+    private String url;
+
+    @Option(option = "url", description = "Configures the URL to be verified.")
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    @Input
+    public String getUrl() {
+        return url;
+    }
+
+    @TaskAction
+    public void verify() {
+        getLogger().quiet("Verifying URL '{}'", url);
+
+        // verify URL by making a HTTP call
+    }
+}
+```
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
