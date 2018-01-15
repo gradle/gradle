@@ -34,6 +34,16 @@ class Swift4Test extends XCTestSourceFileElement {
             '''XCTAssertNotNil(getLongMessage().range(of: """
                                 Multi-line strings also let you write "quote marks"
                                 freely inside your strings, which is great!
-                                """))''')]
+                                """))'''),
+            testCase("testCodeWasCompiledWithSwift4Compiler",
+                """#if swift(>=5.0)
+                        XCTFail("Compilation unit compiled with Swift 5+ instead of Swift 4.x");
+                    #elseif swift(>=4.0)
+                        // Do nothing
+                    #else
+                        XCTFail("Compilation unit compiled with Swift 3- instead of Swift 4.x");
+                    #endif
+                """)
+        ]
     }
 }
