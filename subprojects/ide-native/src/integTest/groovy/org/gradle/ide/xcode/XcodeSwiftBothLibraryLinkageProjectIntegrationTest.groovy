@@ -16,9 +16,6 @@
 
 package org.gradle.ide.xcode
 
-import org.gradle.nativeplatform.fixtures.app.SwiftLib
-import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
-
 class XcodeSwiftBothLibraryLinkageProjectIntegrationTest extends AbstractXcodeSwiftProjectIntegrationTest {
     @Override
     void makeSingleProject() {
