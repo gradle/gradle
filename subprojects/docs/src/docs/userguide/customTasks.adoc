@@ -334,7 +334,7 @@ This example demonstrates the use of multiple options for a single task. The tas
 Command line options using the annotations api:org.gradle.api.tasks.options.Option[] and api:org.gradle.api.tasks.options.OptionValues[] are self-documenting. You will see <<sec:declaring_task_option,declared options>> and their <<sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task.
 
 ++++
-<sample id="helpTaskOptions" dir="userguide/tasks/commandLineOption/optionValues/buildSrc/src/main/java" title="Listing available values for option">
+<sample id="helpTaskOptions" dir="userguide/tasks/commandLineOption/optionValues" title="Listing available values for option">
     <output args="-q help --task processUrl"/>
 </sample>
 ++++
