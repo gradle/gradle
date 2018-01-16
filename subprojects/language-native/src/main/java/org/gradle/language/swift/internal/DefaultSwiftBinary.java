@@ -69,7 +69,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final SwiftPlatform targetPlatform;
     private final NativeToolChainInternal toolChain;
     private final PlatformToolProvider platformToolProvider;
-    private final Property<SwiftVersion> swiftLanguageVersion;
+    private final Property<SwiftVersion> sourceCompatibility;
     private final Configuration importPathConfiguration;
 
     public DefaultSwiftBinary(String name, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
@@ -84,7 +84,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
-        this.swiftLanguageVersion = objectFactory.property(SwiftVersion.class);
+        this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
 
         Names names = getNames();
 
@@ -189,7 +189,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
 
     @Override
     public Property<SwiftVersion> getSourceCompatibility() {
-        return swiftLanguageVersion;
+        return sourceCompatibility;
     }
 
     @Inject

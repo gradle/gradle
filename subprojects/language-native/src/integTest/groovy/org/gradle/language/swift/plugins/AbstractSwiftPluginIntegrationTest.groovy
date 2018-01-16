@@ -21,15 +21,18 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.junit.Assume.assumeTrue
+
 // JDK8_OR_EARLIER: Since InstalledToolChain#initialiseEnvironment() modify the process's environment variables,
 // the tests won't work properly on JDK 9. By refactoring the tests, it would be possible to work around this
 // limitation.
-@Requires([TestPrecondition.SWIFT_SUPPORT, TestPrecondition.JDK8_OR_EARLIER])
+@Requires(TestPrecondition.JDK8_OR_EARLIER)
 abstract class AbstractSwiftPluginIntegrationTest extends WellBehavedPluginTest {
-    AvailableToolChains.InstalledToolChain toolChain
+    AvailableToolChains.ToolChainCandidate toolChain
 
     def setup() {
         toolChain = AvailableToolChains.findSwiftc()
+        assumeTrue(toolChain != null && toolChain.isAvailable())
         if (toolChain.isAvailable()) {
             toolChain.initialiseEnvironment()
         }

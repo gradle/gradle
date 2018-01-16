@@ -18,15 +18,15 @@ package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLib
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.Matchers.containsText
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
 class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "skip compile and link tasks when no source"() {
         given:

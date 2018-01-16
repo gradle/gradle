@@ -23,12 +23,24 @@ class Swift3Test extends XCTestSourceFileElement {
 
     @Override
     List<XCTestCaseElement> getTestCases() {
-        return [testCase("testSwift3OnlyCode",
-            """typealias Name = (firstName: String, lastName: String)
-                let names: [Name] = [("Bart", "den Hollander")]
-                
-                names.forEach({ first, last in
-                    print(last)  // "den Hollander"
-                })""")]
+        return [
+            testCase("testOnlyOneEntryWithSpecificFirstAndLastName",
+                """// Assume only one entry
+                getNames().forEach({ first, last in
+                    XCTAssertEqual(first, "Bart")
+                    XCTAssertEqual(last, "den Hollander")
+                })"""),
+            testCase("testMultiLineStringContainsSpecificString",
+                '''XCTAssertNotNil(getLongMessage().range(of: "Multi-line strings also let you write \\"quote marks\\"\\nfreely inside your strings, which is great!"))'''),
+            testCase("testCodeWasCompiledWithSwift3Compiler",
+                """#if swift(>=4.0)
+                        XCTFail("Compilation unit compiled with Swift 4+ instead of Swift 3.x");
+                    #elseif swift(>=3.0)
+                        // Do nothing
+                    #else
+                        XCTFail("Compilation unit compiled with Swift 2- instead of Swift 3.x");
+                    #endif
+                """)
+        ]
     }
 }

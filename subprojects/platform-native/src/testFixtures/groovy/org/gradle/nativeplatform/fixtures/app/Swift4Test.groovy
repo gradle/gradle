@@ -23,15 +23,27 @@ class Swift4Test extends XCTestSourceFileElement {
 
     @Override
     List<XCTestCaseElement> getTestCases() {
-        return [testCase("testSwift4OnlyCode",
-            '''let longString = """
-                                When you write a string that spans multiple
-                                lines make sure you start its content on a
-                                line all of its own, and end it with three
-                                quotes also on a line of their own.
+        return [
+            testCase("testOnlyOneEntryWithSpecificFirstAndLastName",
+            """// Assume only one entry
+                getNames().forEach({ name in
+                    XCTAssertEqual(name.firstName, "Bart")
+                    XCTAssertEqual(name.lastName, "den Hollander")
+                })"""),
+            testCase("testMultiLineStringContainsSpecificString",
+            '''XCTAssertNotNil(getLongMessage().range(of: """
                                 Multi-line strings also let you write "quote marks"
                                 freely inside your strings, which is great!
-                                """
-                print(longString)''')]
+                                """))'''),
+            testCase("testCodeWasCompiledWithSwift4Compiler",
+                """#if swift(>=5.0)
+                        XCTFail("Compilation unit compiled with Swift 5+ instead of Swift 4.x");
+                    #elseif swift(>=4.0)
+                        // Do nothing
+                    #else
+                        XCTFail("Compilation unit compiled with Swift 3- instead of Swift 4.x");
+                    #endif
+                """)
+        ]
     }
 }

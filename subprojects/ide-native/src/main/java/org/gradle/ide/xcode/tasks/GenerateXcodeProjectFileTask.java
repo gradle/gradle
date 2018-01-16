@@ -23,6 +23,7 @@ import com.google.common.base.Optional;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Internal;
 import org.gradle.ide.xcode.XcodeProject;
 import org.gradle.ide.xcode.internal.DefaultXcodeProject;
@@ -41,6 +42,7 @@ import org.gradle.ide.xcode.internal.xcodeproj.PBXSourcesBuildPhase;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 import org.gradle.ide.xcode.internal.xcodeproj.XcodeprojSerializer;
 import org.gradle.ide.xcode.tasks.internal.XcodeProjectFile;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.plugins.ide.api.PropertyListGeneratorTask;
 
 import javax.inject.Inject;
@@ -155,10 +157,12 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         File debugOutputFile = xcodeTarget.getDebugOutputFile().get().getAsFile();
         debugSettings.put("CONFIGURATION_BUILD_DIR", new NSString(debugOutputFile.getParentFile().getAbsolutePath()));
         debugSettings.put("PRODUCT_NAME", target.getProductName());
+        debugSettings.put("SWIFT_VERSION", toXcodeSwiftVersion(xcodeTarget.getSwiftSourceCompatibility()));
 
         File releaseOutputFile = xcodeTarget.getReleaseOutputFile().get().getAsFile();
         releaseSettings.put("CONFIGURATION_BUILD_DIR", new NSString(releaseOutputFile.getParentFile().getAbsolutePath()));
         releaseSettings.put("PRODUCT_NAME", target.getProductName());
+        releaseSettings.put("SWIFT_VERSION", toXcodeSwiftVersion(xcodeTarget.getSwiftSourceCompatibility()));
 
         return target;
     }
@@ -211,7 +215,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
             testRunnerSettings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(parentDirs(xcodeTarget.getCompileModules())));
         }
 
-        testRunnerSettings.put("SWIFT_VERSION", "3.0");  // TODO - Choose the right version for swift
+        testRunnerSettings.put("SWIFT_VERSION", toXcodeSwiftVersion(xcodeTarget.getSwiftSourceCompatibility()));
         testRunnerSettings.put("PRODUCT_NAME", target.getProductName());
         testRunnerSettings.put("OTHER_LDFLAGS", "-help");
         testRunnerSettings.put("OTHER_CFLAGS", "-help");
@@ -220,10 +224,10 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         testRunnerSettings.put("SWIFT_OBJC_INTERFACE_HEADER_NAME", "$(PRODUCT_NAME).h");
 
         debugSettings.put("PRODUCT_NAME", target.getProductName());
-        debugSettings.put("SWIFT_VERSION", "3.0");  // TODO - Choose the right version for swift
+        debugSettings.put("SWIFT_VERSION", toXcodeSwiftVersion(xcodeTarget.getSwiftSourceCompatibility()));
 
         releaseSettings.put("PRODUCT_NAME", target.getProductName());
-        releaseSettings.put("SWIFT_VERSION", "3.0");  // TODO - Choose the right version for swift
+        releaseSettings.put("SWIFT_VERSION", toXcodeSwiftVersion(xcodeTarget.getSwiftSourceCompatibility()));
 
         return target;
     }
@@ -239,7 +243,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         target.setProductName(xcodeTarget.getProductName());
 
         NSDictionary buildSettings = new NSDictionary();
-        buildSettings.put("SWIFT_VERSION", "3.0");  // TODO - Choose the right version for swift
+        buildSettings.put("SWIFT_VERSION", toXcodeSwiftVersion(xcodeTarget.getSwiftSourceCompatibility()));
         buildSettings.put("PRODUCT_NAME", xcodeTarget.getProductName());  // Mandatory
 
         if (!xcodeTarget.getHeaderSearchPaths().isEmpty()) {
@@ -254,6 +258,13 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         target.getBuildPhases().add(buildPhase);
 
         return target;
+    }
+
+    private static String toXcodeSwiftVersion(Provider<SwiftVersion> swiftVersion) {
+        if (swiftVersion.isPresent()) {
+            return String.format("%d.0", swiftVersion.get().getVersion());
+        }
+        return null;
     }
 
     private static Iterable<File> parentDirs(Iterable<File> files) {

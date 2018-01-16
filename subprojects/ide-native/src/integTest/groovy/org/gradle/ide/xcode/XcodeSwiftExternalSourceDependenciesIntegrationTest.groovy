@@ -31,7 +31,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
     GitRepository repo = new GitRepository('greeter', temporaryFolder.getTestDirectory())
 
     def setup() {
-        useSwiftCompiler()
+        requireSwiftToolChain()
     }
 
     def "adds source dependencies Swift module of main component to Xcode indexer search path"() {

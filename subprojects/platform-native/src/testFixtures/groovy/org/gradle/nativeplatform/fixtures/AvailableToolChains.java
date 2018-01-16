@@ -407,7 +407,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.GCC || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE;
+            return requirement == ToolChainRequirement.GCC || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE || (!(this instanceof InstalledWindowsGcc) && requirement == ToolChainRequirement.OBJECTIVE_C_SUPPORT);
         }
 
         @Override
@@ -520,7 +520,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.SWIFT || requirement == ToolChainRequirement.AVAILABLE;
+            return requirement == ToolChainRequirement.SWIFT || requirement == ToolChainRequirement.AVAILABLE || (requirement == ToolChainRequirement.SWIFT3 && getVersion().getMajor() == 3) || (requirement == ToolChainRequirement.SWIFT4 && getVersion().getMajor() == 4);
         }
 
         public VersionNumber getVersion() {
@@ -629,7 +629,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.CLANG || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE;
+            return requirement == ToolChainRequirement.CLANG || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE || requirement == ToolChainRequirement.OBJECTIVE_C_SUPPORT;
         }
 
         @Override

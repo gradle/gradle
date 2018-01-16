@@ -24,6 +24,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         settingsFile << """
             include 'app', 'greeter'
         """
+        requireSwiftToolChain()
     }
 
     def "Gradle project with added xcode plugin are included in the workspace"() {

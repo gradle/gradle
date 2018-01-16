@@ -18,6 +18,8 @@ package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputAppWithLib
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleCompileOutputApp
@@ -28,10 +30,8 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftStaleLinkOutputLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
 class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "rebuilds application when a single source file changes"() {
         settingsFile << "rootProject.name = 'app'"

@@ -16,10 +16,10 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestAddDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestRemoveDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftAppTest
@@ -34,12 +34,10 @@ import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLibWithSingleXCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-@Requires([TestPrecondition.SWIFT_SUPPORT])
-class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
+class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements XCTestExecutionResult {
     def setup() {
         buildFile << """
 apply plugin: 'xctest'
@@ -545,9 +543,5 @@ apply plugin: 'swift-library'
 
     private static void assertMainSymbolIsAbsent(NativeBinaryFixture binary) {
         assert binary.binaryInfo.listSymbols().every { it.name != '_main' }
-    }
-
-    TestExecutionResult getTestExecutionResult() {
-        return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
     }
 }

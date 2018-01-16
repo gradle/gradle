@@ -16,15 +16,16 @@
 
 package org.gradle.language.swift
 
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithOptionalFeature
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.nativeplatform.fixtures.app.SwiftCompilerDetectingApp
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
 class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
     @Override
     protected List<String> getTasksToAssembleDevelopmentBinary() {
@@ -39,7 +40,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
     }
 
     @Override
-    protected String getDevelopmentBinaryCompileTask() {
+    String getDevelopmentBinaryCompileTask() {
         return ':compileDebugSwift'
     }
 
@@ -922,5 +923,20 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
         installation("build/install/main/debug").exec().out == app.expectedOutput
         sharedLibrary("build/install/main/debug/lib/Hello").file.assertExists()
         sharedLibrary("build/install/main/debug/lib/Log").file.assertExists()
+    }
+
+    def "can detect Swift compiler version"() {
+        def app = new SwiftCompilerDetectingApp()
+
+        given:
+        buildFile << """
+            apply plugin: 'swift-application'
+        """
+        app.writeToProject(testDirectory)
+
+        expect:
+        succeeds ":assemble"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        installation("build/install/main/debug").exec().out == app.expectedOutput.replace('{version}', "Swift ${toolChain.version.major}.x")
     }
 }

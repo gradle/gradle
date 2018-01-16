@@ -465,7 +465,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
     }
 
     def "can create xcode project for Swift application inside composite build"() {
-        useSwiftCompiler()
+        requireSwiftToolChain()
 
         given:
         settingsFile.text = """

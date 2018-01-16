@@ -21,10 +21,13 @@ import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.xcode.internal.xcodeproj.FileTypes;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
+import org.gradle.language.swift.SwiftVersion;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -47,14 +50,16 @@ public class XcodeTarget implements Named {
     private PBXTarget.ProductType productType;
     private String productName;
     private String outputFileType;
+    private Property<SwiftVersion> swiftSourceCompatibility;
 
     @Inject
-    public XcodeTarget(String name, String id, FileOperations fileOperations) {
+    public XcodeTarget(String name, String id, FileOperations fileOperations, ObjectFactory objectFactory) {
         this.name = name;
         this.id = id;
         this.sources = fileOperations.files();
         this.headerSearchPaths = fileOperations.files();
         this.compileModules = fileOperations.files();
+        this.swiftSourceCompatibility = objectFactory.property(SwiftVersion.class);
     }
 
     public String getId() {
@@ -164,5 +169,9 @@ public class XcodeTarget implements Named {
         } else {
             return "compiled";
         }
+    }
+
+    public Property<SwiftVersion> getSwiftSourceCompatibility() {
+        return swiftSourceCompatibility;
     }
 }

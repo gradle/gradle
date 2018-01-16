@@ -18,12 +18,30 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class Swift4 extends SourceFileElement {
+class Swift4 extends SwiftSourceElement {
+    Swift4(String projectName) {
+        super(projectName)
+    }
+
     @Override
-    SourceFile getSourceFile() {
-        sourceFile("swift", "swift4-code.swift", '''
-            public func someFunc() {
-                let longString = """
+    List<SourceFile> getFiles() {
+        return [sourceFile("swift", "swift4-code.swift", '''
+            public typealias Name = (firstName: String, lastName: String)
+
+            public func getNames() -> [Name] {
+                return [("Bart", "den Hollander")]
+            }
+
+            public func getLastNameOfFirstEntry(names: [Name]) -> String {
+                var result: String = ""
+                names.forEach({ name in
+                    result = name.lastName  // "den Hollander"
+                })
+                return result
+            }
+
+            public func getLongMessage() -> String {
+                return """
                         When you write a string that spans multiple
                         lines make sure you start its content on a
                         line all of its own, and end it with three
@@ -31,8 +49,7 @@ class Swift4 extends SourceFileElement {
                         Multi-line strings also let you write "quote marks"
                         freely inside your strings, which is great!
                         """
-                print(longString)
             }
-        ''')
+        ''')]
     }
 }

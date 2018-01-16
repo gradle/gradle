@@ -17,12 +17,11 @@
 package org.gradle.nativeplatform.fixtures;
 
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
-import org.gradle.util.Requires;
-import org.gradle.util.TestPrecondition;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.*;
 
 public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
     private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.cpp.toolChains";
@@ -56,19 +55,11 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
     }
 
     private boolean isRespectingSwiftConstraint(AvailableToolChains.ToolChainCandidate toolChain) {
-        return getRequirements(target).contains(TestPrecondition.SWIFT_SUPPORT) == toolChain instanceof AvailableToolChains.InstalledSwiftc;
-    }
-
-    private static EnumSet<TestPrecondition> getRequirements(Class<?> target) {
-        return toTestPrecondition(target.getAnnotation(Requires.class));
-    }
-
-    private static EnumSet<TestPrecondition> toTestPrecondition(Requires requirements) {
-        if (requirements == null) {
-            return EnumSet.of(TestPrecondition.NULL_REQUIREMENT);
+        RequiresInstalledToolChain toolChainRequirement = target.getAnnotation(RequiresInstalledToolChain.class);
+        if (toolChainRequirement == null) {
+            return true;
         }
-
-        return EnumSet.copyOf(Arrays.asList(requirements.value()));
+        return EnumSet.of(SWIFT, SWIFT3, SWIFT4).contains(toolChainRequirement.value()) == toolChain instanceof AvailableToolChains.InstalledSwiftc;
     }
 
     private static class ToolChainExecution extends Execution {

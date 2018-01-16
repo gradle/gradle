@@ -32,6 +32,8 @@ class XcodeSingleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     }
 
     def "cleanXcode remove all XCode generated project files"() {
+        requireSwiftToolChain()
+
         given:
         buildFile << """
 apply plugin: 'swift-application'

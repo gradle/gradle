@@ -17,12 +17,12 @@
 package org.gradle.language.objectivecpp
 
 import org.gradle.language.AbstractNativeSoftwareModelParallelIntegrationTest
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCppHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.OBJECTIVE_C_SUPPORT)
 class ObjectiveCppLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelParallelIntegrationTest {
     HelloWorldApp app = new ObjectiveCppHelloWorldApp()
 }

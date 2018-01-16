@@ -18,18 +18,31 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class Swift3 extends SourceFileElement {
+class Swift3 extends SwiftSourceElement {
+    Swift3(String projectName) {
+        super(projectName)
+    }
+
     @Override
-    SourceFile getSourceFile() {
-        sourceFile("swift", "swift3-code.swift", """
-            public func someFunc() {
-                typealias Name = (firstName: String, lastName: String)
-                let names: [Name] = [("Bart", "den Hollander")]
-                
-                names.forEach({ first, last in
-                    print(last)  // "den Hollander"
-                })
+    List<SourceFile> getFiles() {
+        return [sourceFile("swift", "swift3-code.swift", '''
+            public typealias Name = (firstName: String, lastName: String)
+
+            public func getNames() -> [Name] {
+                return [("Bart", "den Hollander")]
             }
-        """)
+
+            public func getLastNameOfFirstEntry(names: [Name]) -> String {
+                var result: String = ""
+                names.forEach({ first, last in
+                    result = last  // "den Hollander"
+                })
+                return result
+            }
+
+            public func getLongMessage() -> String {
+                return "When you write a string that spans multiple\\nlines make sure you start its content on a\\nline all of its own, and end it with three\\nquotes also on a line of their own.\\nMulti-line strings also let you write \\"quote marks\\"\\nfreely inside your strings, which is great!"
+            }
+        ''')]
     }
 }

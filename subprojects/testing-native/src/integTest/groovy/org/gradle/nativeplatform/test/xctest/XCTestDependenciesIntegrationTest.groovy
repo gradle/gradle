@@ -17,10 +17,10 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.language.AbstractNativeDependenciesIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
 class XCTestDependenciesIntegrationTest extends AbstractNativeDependenciesIntegrationTest {
     @Override
     protected void makeComponentWithLibrary() {
