@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[customizing_dependency_resolution_behavior]]
-== Customizing the Dependency Resolution Behavior
+== Customizing Dependency Resolution Behavior
 
 In most cases, Gradle's default dependency management will resolve the dependencies that you want in your build. In some cases, however, it can be necessary to tweak dependency resolution to ensure that your build receives exactly the right dependencies.
 
