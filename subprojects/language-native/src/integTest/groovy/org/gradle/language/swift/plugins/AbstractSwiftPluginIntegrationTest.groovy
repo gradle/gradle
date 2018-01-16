@@ -28,7 +28,7 @@ import static org.junit.Assume.assumeTrue
 // limitation.
 @Requires(TestPrecondition.JDK8_OR_EARLIER)
 abstract class AbstractSwiftPluginIntegrationTest extends WellBehavedPluginTest {
-    AvailableToolChains.InstalledToolChain toolChain
+    AvailableToolChains.ToolChainCandidate toolChain
 
     def setup() {
         toolChain = AvailableToolChains.findSwiftc()
