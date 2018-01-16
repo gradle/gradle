@@ -18,7 +18,10 @@ package org.gradle.nativeplatform.fixtures;
 
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
 
+import java.util.EnumSet;
 import java.util.List;
+
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.*;
 
 public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
     private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.cpp.toolChains";
@@ -36,12 +39,12 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
                 if (!toolChain.isAvailable()) {
                     throw new RuntimeException(String.format("Tool chain %s is not available.", toolChain.getDisplayName()));
                 }
-                add(new ToolChainExecution(toolChain, toolChain.meets(getToolChainRequirement(target))));
+                add(new ToolChainExecution(toolChain, isRespectingSwiftConstraint(toolChain)));
             }
         } else {
             boolean hasEnabled = false;
             for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-                if (!hasEnabled && toolChain.meets(getToolChainRequirement(target))) {
+                if (!hasEnabled && toolChain.isAvailable() && isRespectingSwiftConstraint(toolChain)) {
                     add(new ToolChainExecution(toolChain, true));
                     hasEnabled = true;
                 } else {
@@ -51,12 +54,12 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         }
     }
 
-    private static ToolChainRequirement getToolChainRequirement(Class<?> target) {
-        RequiresInstalledToolChain requirements = target.getAnnotation(RequiresInstalledToolChain.class);
-        if (requirements == null) {
-            return ToolChainRequirement.AVAILABLE;
+    private boolean isRespectingSwiftConstraint(AvailableToolChains.ToolChainCandidate toolChain) {
+        RequiresInstalledToolChain toolChainRequirement = target.getAnnotation(RequiresInstalledToolChain.class);
+        if (toolChainRequirement == null) {
+            return true;
         }
-        return requirements.value();
+        return EnumSet.of(SWIFT, SWIFT3, SWIFT4).contains(toolChainRequirement.value()) == toolChain instanceof AvailableToolChains.InstalledSwiftc;
     }
 
     private static class ToolChainExecution extends Execution {
