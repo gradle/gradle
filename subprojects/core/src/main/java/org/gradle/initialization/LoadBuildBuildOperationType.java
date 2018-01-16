@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.gradle.initialization;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-public class EvaluateSettingsBuildOperationType implements BuildOperationType<EvaluateSettingsBuildOperationType.Details, EvaluateSettingsBuildOperationType.Result> {
+public final class LoadBuildBuildOperationType implements BuildOperationType<LoadBuildBuildOperationType.Details, LoadBuildBuildOperationType.Result> {
     @UsedByScanPlugin
     public interface Details {
         /**
@@ -30,16 +30,6 @@ public class EvaluateSettingsBuildOperationType implements BuildOperationType<Ev
          * @see org.gradle.api.internal.GradleInternal#getIdentityPath()
          */
         String getBuildPath();
-
-        /**
-         * The absolute path to the settings directory.
-         */
-        String getSettingsDir();
-
-        /**
-         * The absolute path to the settings file.
-         */
-        String getSettingsFile();
     }
 
     public interface Result {

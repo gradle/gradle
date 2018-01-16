@@ -21,6 +21,7 @@ import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.initialization.EvaluateSettingsBuildOperationType
+import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
@@ -51,16 +52,20 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
                 }
     
                 static void toJson(Object o, groovy.json.JsonBuilder builder) {
-                    o.properties.each { p ->
-                        if (!(p.key in ['class', 'metaClass'])) {
-                           builder { "\${p.key}"("\${p.value}") }
+                    builder { 
+                        o.properties.each { p ->
+                            if (!(p.key in ['class', 'metaClass'])) {
+                                "\${p.key}"("\${p.value}") 
+                            }
                         }
                     }
                 }
     
                 static void toJson(Map m, groovy.json.JsonBuilder builder) {
-                    m.each { p ->
-                        builder { "\${p.key}"("\${p.value}") }
+                    builder {
+                        m.each { p ->
+                            "\${p.key}"("\${p.value}") 
+                        }
                     }
                 }
 
@@ -112,9 +117,10 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         succeeds "t", "-S"
 
         then:
-        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: testDirectory.absolutePath, settingsFile: settingsFile.absolutePath])
+        started(LoadBuildBuildOperationType.Details, [buildPath:":"])
+        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: testDirectory.absolutePath, settingsFile: settingsFile.absolutePath, buildPath:":"])
         finished(EvaluateSettingsBuildOperationType.Result, [:])
-        started(LoadProjectsBuildOperationType.Details, [:])
+        started(LoadProjectsBuildOperationType.Details, [buildPath:":"])
         finished(LoadProjectsBuildOperationType.Result)
         started(ConfigureProjectBuildOperationType.Details, [buildPath: ':', projectPath: ':'])
         started(ApplyPluginBuildOperationType.Details, [pluginId: "org.gradle.help-tasks", pluginClass: "org.gradle.api.plugins.HelpTasksPlugin", targetType: "project", targetPath: ":", buildPath: ":"])
@@ -168,10 +174,17 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         succeeds "t"
 
         then:
-        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('buildSrc').absolutePath, settingsFile: file('buildSrc/settings.gradle').absolutePath])
-        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a').absolutePath, settingsFile: file('a/settings.gradle').absolutePath])
-        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a/buildSrc').absolutePath, settingsFile: file('a/buildSrc/settings.gradle').absolutePath])
-        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('.').absolutePath, settingsFile: file('settings.gradle').absolutePath])
+        started(LoadBuildBuildOperationType.Details, [buildPath:":"])
+
+        started(LoadBuildBuildOperationType.Details, [buildPath:":"])
+        started(LoadBuildBuildOperationType.Details, [buildPath:":buildSrc"])
+        started(LoadBuildBuildOperationType.Details, [buildPath:":a"])
+        started(LoadBuildBuildOperationType.Details, [buildPath:":a:buildSrc"])
+
+        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('buildSrc').absolutePath, settingsFile: file('buildSrc/settings.gradle').absolutePath, buildPath:":buildSrc"])
+        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a').absolutePath, settingsFile: file('a/settings.gradle').absolutePath, buildPath:":a"])
+        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a/buildSrc').absolutePath, settingsFile: file('a/buildSrc/settings.gradle').absolutePath, buildPath:":a:buildSrc"])
+        started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('.').absolutePath, settingsFile: file('settings.gradle').absolutePath, buildPath:":"])
 
         started(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"])
         started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"])
@@ -273,16 +286,22 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
     }
 
     void toJson(Object o, JsonBuilder builder) {
-        o.properties.each { p ->
-            if (!(p.key in ['class', 'metaClass'])) {
-                builder { "${p.key}"("${p.value}") }
+        def confClosure = {
+            o.properties.each { p ->
+                if (!(p.key in ['class', 'metaClass'])) {
+                    "${p.key}"("${p.value}")
+                }
             }
         }
+        confClosure.call(builder)
+        builder
     }
 
     void toJson(Map m, JsonBuilder builder) {
-        m.each { p ->
-            builder { "${p.key}"("${p.value}") }
+        builder {
+            m.each { p ->
+                delegate.delegate."${p.key}"("${p.value}")
+            }
         }
     }
 }

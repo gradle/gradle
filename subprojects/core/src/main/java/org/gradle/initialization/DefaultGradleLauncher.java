@@ -49,6 +49,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
         Load, LoadBuild, Configure, TaskGraph, Build, Finished
     }
 
+    private static final LoadBuildBuildOperationType.Result RESULT = new LoadBuildBuildOperationType.Result() {
+    };
+
     private final InitScriptHandler initScriptHandler;
     private final SettingsLoader settingsLoader;
     private final BuildLoader buildLoader;
@@ -228,17 +231,28 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private class LoadBuild implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext context) {
-            // Evaluate init scripts
-            initScriptHandler.executeScripts(gradle);
+            try {
+                // Evaluate init scripts
+                initScriptHandler.executeScripts(gradle);
 
-            // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
-            settings = settingsLoader.findAndLoadSettings(gradle);
+                // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
+                settings = settingsLoader.findAndLoadSettings(gradle);
+
+            } finally {
+                context.setResult(RESULT);
+            }
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(contextualize("Load build")).
-                parent(getGradle().getBuildOperation());
+            return BuildOperationDescriptor.displayName(contextualize("Load build"))
+                .details(new LoadBuildBuildOperationType.Details(){
+                    @Override
+                    public String getBuildPath() {
+                        return gradle.getIdentityPath().toString();
+                    }
+                })
+                .parent(getGradle().getBuildOperation());
         }
     }
 
