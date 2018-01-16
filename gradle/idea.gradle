@@ -1,8 +1,14 @@
+import org.jetbrains.gradle.ext.runConfigurations.*
 
+buildscript {
+    dependencies {
+        classpath files("${rootProject.projectDir.absolutePath}/gradle-idea-ext.jar")
+    }
+}
 
 allprojects {
     apply plugin: "idea"
-    apply plugin: "org.jetbrains.gradle.plugin.idea-ext"
+    apply plugin: org.jetbrains.gradle.ext.IdeaExtPlugin
 
     idea {
         module {
@@ -50,6 +56,8 @@ allprojects {
     }
 }
 
+// import org.jetbrains.gradle.ext.runConfigurations.Application
+
 idea {
     module {
         excludeDirs += file('intTestHomeDir')
@@ -82,6 +90,41 @@ See the License for the specific language governing permissions and
 limitations under the License."""
                     keyword = "Copyright"
                 }
+            }
+        }
+
+        runConfigurations {
+            "Gradle"(Application) {
+                mainClass = 'org.gradle.debug.GradleRunConfiguration'
+                workingDirectory = rootProject.projectDir.absolutePath
+                moduleName = 'integTest'
+            }
+
+            def gradleRunners = [
+                "Regenerate IDEA metadata": "idea",
+                "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives"
+            ]
+
+            gradleRunners.each { runnerName, commandLine ->
+                create(runnerName, Application) {
+                    mainClass = "org.gradle.testing.internal.util.GradlewRunner"
+                    programParameters = commandLine
+                    workingDirectory = rootProject.projectDir.absolutePath
+                    moduleName = "internalTesting"
+                    envs = ["TERM": "xterm"]
+                    beforeRun {
+                        make(Make) {
+                            enabled = false
+                        }
+                    }
+                }
+            }
+
+            "Remote debug port 5005"(Remote) {
+                mode = Remote.RemoteMode.ATTACH
+                transport = Remote.RemoteTransport.SOCKET
+                host = "localhost"
+                port = 5005
             }
         }
 
@@ -215,90 +258,6 @@ limitations under the License."""
         envVars.children.each { child -> envVars.remove(child) }
         envVars.appendNode('env', [name: 'LANG', value: lang])
 
-        // Add an application configuration
-        runManagerConfig.'@selected' = 'Application.Gradle'
-        def appConfig =
-
-        runManagerConfig.append(new XmlParser().parseText('''
-            <configuration default="false" name="Gradle" type="Application" factoryName="Application">
-              <extension name="coverage" enabled="false" merge="false" />
-              <option name="MAIN_CLASS_NAME" value="org.gradle.debug.GradleRunConfiguration" />
-              <option name="VM_PARAMETERS" value="" />
-              <option name="PROGRAM_PARAMETERS" value="" />
-              <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
-              <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-              <option name="ALTERNATIVE_JRE_PATH" value="" />
-              <option name="ENABLE_SWING_INSPECTOR" value="false" />
-              <option name="ENV_VARIABLES" />
-              <option name="PASS_PARENT_ENVS" value="true" />
-              <module name="integTest" />
-              <envs />
-              <RunnerSettings RunnerId="Debug">
-                <option name="DEBUG_PORT" value="63810" />
-                <option name="TRANSPORT" value="0" />
-                <option name="LOCAL" value="true" />
-              </RunnerSettings>
-              <RunnerSettings RunnerId="Run" />
-              <ConfigurationWrapper RunnerId="Debug" />
-              <ConfigurationWrapper RunnerId="Run" />
-              <method />
-            </configuration>
-        '''))
-
-        def gradleRunners = [
-                "Regenerate IDEA metadata": "idea",
-                "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives"
-        ]
-
-        def runnerClass = "org.gradle.testing.internal.util.GradlewRunner"
-        def runnerClassModule = "internalTesting"
-
-        def listItems = []
-        gradleRunners.each { runnerName, commandLine ->
-            runManagerConfig.append(new XmlParser().parseText("""
-                <configuration default='false' name='${runnerName}' type='Application' factoryName='Application'>
-                  <extension name='coverage' enabled='false' merge='false' />
-                  <option name='MAIN_CLASS_NAME' value='${runnerClass}' />
-                  <option name='VM_PARAMETERS' value='' />
-                  <option name='PROGRAM_PARAMETERS' value='${commandLine}' />
-                  <option name='WORKING_DIRECTORY' value='file://\$PROJECT_DIR\$' />
-                  <option name='ALTERNATIVE_JRE_PATH_ENABLED' value='false' />
-                  <option name='ALTERNATIVE_JRE_PATH' value='' />
-                  <option name='ENABLE_SWING_INSPECTOR' value='false' />
-                  <option name='ENV_VARIABLES' />
-                  <option name='PASS_PARENT_ENVS' value='true' />
-                  <module name='${runnerClassModule}' />
-                  <envs>
-                    <env name="TERM" value="xterm" />
-                  </envs>
-                  <method>
-                    <option name="Make" enabled="false" />
-                  </method>
-                </configuration>
-            """))
-
-            listItems << "<item index='${listItems.size() + 1}' class='java.lang.String' itemvalue='Application.${runnerName}' />"
-        }
-
-        // Add remote debugger configuration
-        runManagerConfig.append(new XmlParser().parseText("""
-            <configuration default="false" name="Remote debug port 5005" type="Remote" factoryName="Remote">
-              <option name="USE_SOCKET_TRANSPORT" value="true" />
-              <option name="SERVER_MODE" value="false" />
-              <option name="SHMEM_ADDRESS" value="javadebug" />
-              <option name="HOST" value="localhost" />
-              <option name="PORT" value="5005" />
-              <method />
-            </configuration>
-        """))
-        listItems << "<item index='${listItems.size() + 1}' class='java.lang.String' itemvalue='Remote.Remote debug port 5005' />"
-
-        runManagerConfig.append(new XmlParser().parseText("""
-            <list size='${listItems.size() + 1}'>
-              <item index='0' class='java.lang.String' itemvalue='Application.Gradle' />
-              ${listItems.join('\n')}
-            </list>
-        """))
     }
 }
 
