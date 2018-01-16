@@ -492,7 +492,7 @@ h3.releaseinfo {
 
 .site-header__navigation-collapsible {
     flex: 1 1 auto;
-    height: 190px;
+    height: 195px;
     overflow: visible;
     transition: height 0.3s ease;
 }
@@ -503,7 +503,7 @@ h3.releaseinfo {
     flex-wrap: wrap;
     align-items: flex-start;
     max-height: 170px;
-    margin: 0 20px 0 0;
+    margin: 0 20px;
     padding-top: 12px;
     padding-left: 0;
     list-style-type: none;
