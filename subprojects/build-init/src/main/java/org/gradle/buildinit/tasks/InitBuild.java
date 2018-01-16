@@ -117,7 +117,7 @@ public class InitBuild extends DefaultTask {
         initDescriptor.generate(dsl, testFramework);
     }
 
-    @Option(option = "type", description = "Set type of build to create.", order = 0)
+    @Option(option = "type", description = "Set type of build to create.")
     public void setType(String type) {
         this.type = type;
     }
@@ -134,7 +134,7 @@ public class InitBuild extends DefaultTask {
      * @since 4.5
      */
     @Incubating
-    @Option(option = "dsl", description = "Set alternative build script DSL to be used.", order = 1)
+    @Option(option = "dsl", description = "Set alternative build script DSL to be used.")
     public void setDsl(String dsl) {
         this.dsl = dsl;
     }
@@ -151,7 +151,7 @@ public class InitBuild extends DefaultTask {
         return BuildInitDsl.listSupported();
     }
 
-    @Option(option = "test-framework", description = "Set alternative test framework to be used.", order = 2)
+    @Option(option = "test-framework", description = "Set alternative test framework to be used.")
     public void setTestFramework(String testFramework) {
         this.testFramework = testFramework;
     }

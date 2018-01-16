@@ -29,21 +29,19 @@ import java.util.Set;
 abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
-    private final int order;
     private final Class<?> optionType;
     private final NotationParser<CharSequence, ?> notationParser;
 
     public AbstractOptionElement(String optionName, org.gradle.api.internal.tasks.options.Option option, Class<?> optionType, Class<?> declaringClass, NotationParser<CharSequence, ?> notationParser) {
-        this(readDescription(option, optionName, declaringClass), option.order(), optionName, optionType, notationParser);
+        this(readDescription(option, optionName, declaringClass), optionName, optionType, notationParser);
     }
 
     public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, NotationParser<CharSequence, ?> notationParser) {
-        this(readDescription(option, optionName, declaringClass), option.order(), optionName, optionType, notationParser);
+        this(readDescription(option, optionName, declaringClass), optionName, optionType, notationParser);
     }
 
-    private AbstractOptionElement(String description, int order, String optionName, Class<?> optionType, NotationParser<CharSequence, ?> notationParser) {
+    private AbstractOptionElement(String description, String optionName, Class<?> optionType, NotationParser<CharSequence, ?> notationParser) {
         this.description = description;
-        this.order = order;
         this.optionName = optionName;
         this.optionType = optionType;
         this.notationParser = notationParser;
@@ -86,10 +84,6 @@ abstract class AbstractOptionElement implements OptionElement {
 
     public String getDescription() {
         return description;
-    }
-
-    public int getOrder() {
-        return order;
     }
 
     protected NotationParser<CharSequence, ?> getNotationParser() {

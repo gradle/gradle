@@ -331,18 +331,13 @@ This example demonstrates the use of multiple options for a single task. The tas
 [[sec:listing_task_options]]
 ==== Listing command line options
 
-Command line options using the annotations api:org.gradle.api.tasks.options.Option[] and api:org.gradle.api.tasks.options.OptionValues[] are self-documenting. You will see <<sec:declaring_task_option,declared options>> and their <<sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task.
+Command line options using the annotations api:org.gradle.api.tasks.options.Option[] and api:org.gradle.api.tasks.options.OptionValues[] are self-documenting. You will see <<sec:declaring_task_option,declared options>> and their <<sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task. The output renders options in alphabetical order.
 
 ++++
 <sample id="helpTaskOptions" dir="userguide/tasks/commandLineOption/optionValues" title="Listing available values for option">
     <output args="-q help --task processUrl"/>
 </sample>
 ++++
-
-[NOTE]
-====
-You can influence the order of options in the rendered output by assigning a counting number to the `order` parameter of the api:org.gradle.api.tasks.options.OptionValues[] annotation.
-====
 
 ==== Limitations
 

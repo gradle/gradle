@@ -8,15 +8,15 @@ class CustomTask extends DefaultTask {
     void doSomething() {
     }
 
-    @Option(option = "valueB", description = "descB", order = 1)
+    @Option(option = "valueB", description = "descB")
     public void setValueB(boolean value) {
     }
 
-    @Option(option = "valueA", description = "descA", order = 2)
+    @Option(option = "valueA", description = "descA")
     public void setValueA(boolean value) {
     }
 
-    @Option(option = "valueC", description = "descC", order = 0)
+    @Option(option = "valueC", description = "descC")
     public void setValueC(boolean value) {
     }
 }
