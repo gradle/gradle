@@ -100,6 +100,7 @@
                                             <li><a href="/userguide/web_project_tutorial.html">Web Application Quickstart</a></li>
                                             <li><a href="https://guides.gradle.org/writing-gradle-tasks/">Writing Custom Script Tasks</a></li>
                                             <li><a href="/userguide/custom_tasks.html">Writing Custom Task Classes</a></li>
+                                            <li><a href="/userguide/artifact_dependencies_tutorial.html">Dependency Management for Java Projects</a></li>
                                         </ul>
                                     </li>
                                     <li><a class="nav-dropdown" data-toggle="collapse" href="#java-plugins-reference" aria-expanded="false" aria-controls="java-plugins-reference">Plugins Reference</a>
@@ -171,10 +172,20 @@
                                     <li><a href="/userguide/feature_lifecycle.html">Feature Lifecycle</a></li></ul></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#managing-dependencies" aria-expanded="false" aria-controls="managing-dependencies">Managing Dependencies</a>
                                 <ul id="managing-dependencies">
-                                    <li><a href="/userguide/artifact_dependencies_tutorial.html">Dependency Management Basics</a></li>
-                                    <li><a href="/userguide/dependency_management.html">Advanced Dependency Management</a></li>
-                                    <li><a href="/userguide/dependency_types.html">Dependency Types</a></li>
-                                    <li><a href="/userguide/repository_types.html">Repository Types</a></li></ul></li>
+                                    <li><a href="/userguide/introduction_dependency_management.html">Introduction to Dependency Management</a></li>
+                                    <li><a href="/userguide/declaring_dependencies.html">Declaring Dependencies</a></li>
+                                    <li><a href="/userguide/declaring_repositories.html">Declaring Repositories</a></li>
+                                    <li><a href="/userguide/inspecting_dependencies.html">Inspecting Dependencies</a></li>
+                                    <li><a href="/userguide/managing_transitive_dependencies.html">Managing Transitive Dependencies</a></li>
+                                    <li><a href="/userguide/working_with_dependencies.html">Working with Dependencies</a></li>
+                                    <li><a href="/userguide/customizing_dependency_resolution_behavior.html">Customizing Dependency Resolution Behavior</a></li>
+                                    <li><a href="/userguide/troubleshooting_dependency_resolution.html">Troubleshooting Dependency Resolution</a></li>
+                                    <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-management-glossary" aria-expanded="false" aria-controls="dependency-management-glossary">Glossary</a>
+                                        <ul id="dependency-management-glossary">
+                                            <li><a href="/userguide/dependency_types.html">Dependency Types</a></li>
+                                            <li><a href="/userguide/repository_types.html">Repository Types</a></li>
+                                        </ul>
+                                    </li></ul></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing-artifacts" aria-expanded="false" aria-controls="publishing-artifacts">Publishing Artifacts</a>
                                 <ul id="publishing-artifacts">
                                     <li><a href="/userguide/artifact_management.html">Publishing Artifacts Overview</a></li>

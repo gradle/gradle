@@ -245,7 +245,7 @@ This will give you a link to a web-based report, where you can find dependency i
 
 image::img/gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
 
-Learn more in <<sec:inspecting_dependencies>>.
+Learn more in <<inspecting_dependencies>>.
 
 ==== Listing project dependencies
 
@@ -255,7 +255,7 @@ Running `gradle dependencies` gives you a list of the dependencies of the select
 ❯ gradle dependencies
 ----
 
-Concrete examples of build scripts and output available in the <<dependency_management, dependency management chapter>>.
+Concrete examples of build scripts and output available in the <<inspecting_dependencies>>.
 
 Running `gradle buildEnvironment` visualises the buildscript dependencies of the selected project, similarly to how `gradle dependencies` visualizes the dependencies of the software being built.
 

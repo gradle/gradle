@@ -56,7 +56,6 @@
         <xi:include href='../../../build/asciidoc/userguide/ant.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildLifecycle.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/logging.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/dependencyManagement.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/multiProjectBuilds.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/plugins.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/standardPlugins.xml'/>
@@ -71,6 +70,17 @@
         <xi:include href='../../../build/asciidoc/userguide/distributionPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/announcePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildAnnouncementsPlugin.xml'/>
+    </part>
+    <part>
+        <title>Dependency management</title>
+        <xi:include href='../../../build/asciidoc/userguide/introductionDependencyManagement.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/declaringDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/declaringRepositories.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/inspectingDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/managingTransitiveDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/workingWithDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/customizingDependencyResolutionBehavior.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/troubleshootingDependencyResolution.xml'/>
     </part>
     <part>
         <title>Extending the build</title>

@@ -1,0 +1,87 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[working_with_dependencies]]
+== Working with Dependencies
+
+For the examples below we have the following dependencies setup:
+
+++++
+<sample id="configurationHandlingSetup" dir="userguide/artifacts/configurationHandling" title="Configuration.copy">
+            <sourcefile file="build.gradle" snippet="setup"/>
+        </sample>
+++++
+
+The dependencies have the following transitive dependencies:
+
+shark-1.0 -&gt; seal-2.0, tuna-1.0
+
+orca-1.0 -&gt; seal-1.0
+
+tuna-1.0 -&gt; herring-1.0
+
+You can use the configuration to access the declared dependencies or a subset of those:
+
+++++
+<sample id="configurationHandlingDependencies" dir="userguide/artifacts/configurationHandling" title="Accessing declared dependencies">
+            <sourcefile file="build.gradle" snippet="dependencies"/>
+            <output args="-q dependencies"/>
+        </sample>
+++++
+
+The `dependencies` task returns only the dependencies belonging explicitly to the configuration. The `allDependencies` task includes the dependencies from extended configurations.
+
+To get the library files of the configuration dependencies you can do:
+
+++++
+<sample id="configurationHandlingAllFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.files">
+            <sourcefile file="build.gradle" snippet="allFiles"/>
+            <output args="-q allFiles"/>
+        </sample>
+++++
+
+Sometimes you want the library files of a subset of the configuration dependencies (e.g. of a single dependency).
+
+++++
+<sample id="configurationHandlingFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.files with spec">
+            <sourcefile file="build.gradle" snippet="files"/>
+            <output args="-q files"/>
+        </sample>
+++++
+
+The `Configuration.files` method always retrieves all artifacts of the _whole_ configuration. It then filters the retrieved files by specified dependencies. As you can see in the example, transitive dependencies are included.
+
+You can also copy a configuration. You can optionally specify that only a subset of dependencies from the original configuration should be copied. The copying methods come in two flavors. The `copy` method copies only the dependencies belonging explicitly to the configuration. The `copyRecursive` method copies all the dependencies, including the dependencies from extended configurations.
+
+++++
+<sample id="configurationHandlingCopy" dir="userguide/artifacts/configurationHandling" title="Configuration.copy">
+            <sourcefile file="build.gradle" snippet="copy"/>
+            <output args="-q copy"/>
+        </sample>
+++++
+
+It is important to note that the returned files of the copied configuration are often but not always the same than the returned files of the dependency subset of the original configuration. In case of version conflicts between dependencies of the subset and dependencies not belonging to the subset the resolve result might be different.
+
+++++
+<sample id="configurationHandlingCopyVsFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.copy vs. Configuration.files">
+            <sourcefile file="build.gradle" snippet="copyVsFiles"/>
+            <output args="-q copyVsFiles"/>
+        </sample>
+++++
+
+In the example above, `orca` has a dependency on `seal-1.0` whereas `shark` has a dependency on `seal-2.0`. The original configuration has therefore a version conflict which is resolved to the newer `seal-2.0` version. The `files` method therefore returns `seal-2.0` as a transitive dependency of `orca`. The copied configuration only has `orca` as a dependency and therefore there is no version conflict and `seal-1.0` is returned as a transitive dependency.
+
+Once a configuration is resolved it is immutable. Changing its state or the state of one of its dependencies will cause an exception. You can always copy a resolved configuration. The copied configuration is in the unresolved state and can be freshly resolved.
+
+To learn more about the API of the configuration class see the API documentation: api:org.gradle.api.artifacts.Configuration[].
