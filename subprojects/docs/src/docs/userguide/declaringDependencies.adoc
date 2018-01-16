@@ -136,7 +136,7 @@ The following example declares the dependencies on the `utils` and `api` project
 ++++
 
 [[sub:scope_of_dependency_configurations]]
-=== Defining the scope of a dependency
+=== Defining the scope of a dependency with configurations
 
 Every dependency declared for a Gradle project applies to a specific scope. For example some dependencies should be used for compiling source code whereas others only need to be available at runtime. Gradle represents the scope of a dependency with the help of a api:org.gradle.api.artifacts.Configuration[].
 
