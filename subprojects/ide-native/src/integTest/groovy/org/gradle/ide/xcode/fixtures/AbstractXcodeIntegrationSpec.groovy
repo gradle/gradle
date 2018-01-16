@@ -20,6 +20,7 @@ import com.google.common.base.Splitter
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -174,9 +175,9 @@ Actual: ${actual[key]}
     }
 
     // TODO: Use @RequiresInstalledToolChain instead once Xcode test are sorted out
-    void assumeSwiftCompilerVersion(int major) {
+    void assumeSwiftCompilerVersion(SwiftVersion swiftVersion) {
         assert toolChain != null, "You need to specify Swift tool chain requirement with 'requireSwiftToolChain()'"
-        assumeThat(toolChain.version.major, Matchers.equalTo(major))
+        assumeThat(toolChain.version.major, Matchers.equalTo(swiftVersion.version))
     }
 
     void assertTargetIsUnitTest(ProjectFile.PBXTarget target, String expectedProductName) {

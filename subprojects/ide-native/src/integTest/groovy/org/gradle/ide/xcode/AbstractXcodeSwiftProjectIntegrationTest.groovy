@@ -17,6 +17,8 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.ide.xcode.fixtures.ProjectFile
+import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.nativeplatform.fixtures.app.Swift4
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
@@ -28,8 +30,8 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeInt
     }
 
     @Unroll
-    def "detect Swift source compatibility from selected Swift #swiftcMajorVersion compiler"() {
-        assumeSwiftCompilerVersion(swiftcMajorVersion)
+    def "detect Swift source compatibility from selected Swift #sourceCompatibility compiler"() {
+        assumeSwiftCompilerVersion(sourceCompatibility)
 
         given:
         settingsFile << "rootProject.name = '${fixture.projectName}'"
@@ -41,14 +43,13 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeInt
         succeeds("xcode")
 
         then:
-        rootXcodeProject.projectFile.targets.findAll { it.name.contains(fixture.moduleName) }.buildConfigurationList.buildConfigurations.flatten().each {
-            assert it.buildSettings.SWIFT_VERSION == expectedSwiftVersion
-        }
+        def targets = rootXcodeProject.projectFile.findTargets(fixture.moduleName)
+        assertHasSwiftVersion(sourceCompatibility, targets)
 
         where:
-        fixture         | swiftcMajorVersion | expectedSwiftVersion
-        swift3Component | 3                  | '3.0'
-        swift4Component | 4                  | '4.0'
+        fixture         | sourceCompatibility
+        swift3Component | SwiftVersion.SWIFT3
+        swift4Component | SwiftVersion.SWIFT4
     }
 
     @Unroll
@@ -57,25 +58,22 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeInt
         settingsFile << "rootProject.name = '${fixture.projectName}'"
         makeSingleProject()
         buildFile << """
-            ${componentUnderTestDsl}.sourceCompatibility = ${sourceCompatibility}
+            ${componentUnderTestDsl}.sourceCompatibility = SwiftVersion.${sourceCompatibility.name()}
         """
 
         fixture.writeToProject(testDirectory)
-        println testDirectory
 
         when:
         succeeds("xcode")
 
         then:
-        // TODO: select target for specific component (compile and index)
-        rootXcodeProject.projectFile.targets.findAll { it.name.contains(fixture.moduleName) }.buildConfigurationList.buildConfigurations.flatten().each {
-            assert it.buildSettings.SWIFT_VERSION == expectedSwiftVersion
-        }
+        def targets = rootXcodeProject.projectFile.findTargets(fixture.moduleName)
+        assertHasSwiftVersion(sourceCompatibility, targets)
 
         where:
-        fixture         | sourceCompatibility   | expectedSwiftVersion
-        swift3Component | 'SwiftVersion.SWIFT3' | '3.0'
-        swift4Component | 'SwiftVersion.SWIFT4' | '4.0'
+        fixture         | sourceCompatibility
+        swift3Component | SwiftVersion.SWIFT3
+        swift4Component | SwiftVersion.SWIFT4
     }
 
     abstract void makeSingleProject()
@@ -89,4 +87,15 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeInt
     }
 
     abstract String getComponentUnderTestDsl()
+
+    void assertHasSwiftVersion(SwiftVersion expectedSwiftVersion, List<ProjectFile.PBXTarget> targets) {
+        assert !targets.empty
+        targets.each { target ->
+            def buildConfigurations = target.buildConfigurationList.buildConfigurations
+            assert !buildConfigurations.empty
+            buildConfigurations.each { buildConfiguration ->
+                assert buildConfiguration.buildSettings.SWIFT_VERSION == "${expectedSwiftVersion.version}.0"
+            }
+        }
+    }
 }

@@ -57,13 +57,8 @@ abstract class AbstractXcodeSwiftWithXCTestProjectIntegrationTest extends Abstra
         succeeds 'xcode'
 
         then:
-        def targets = rootXcodeProject.projectFile.targets
-        targets.findAll { it.name == fixture.main.moduleName }.buildConfigurationList.buildConfigurations.flatten().each {
-            assert it.buildSettings.SWIFT_VERSION == "${componentSourceCompatibility.version}.0"
-        }
-        targets.findAll { it.name == fixture.test.moduleName }.buildConfigurationList.buildConfigurations.flatten().each {
-            assert it.buildSettings.SWIFT_VERSION == "${xctestSourceCompatibility.version}.0"
-        }
+        assertHasSwiftVersion(componentSourceCompatibility, rootXcodeProject.projectFile.findTargets(fixture.main.moduleName))
+        assertHasSwiftVersion(xctestSourceCompatibility, rootXcodeProject.projectFile.findTargets(fixture.test.moduleName))
 
         where:
         fixture                                     | componentSourceCompatibility | xctestSourceCompatibility
