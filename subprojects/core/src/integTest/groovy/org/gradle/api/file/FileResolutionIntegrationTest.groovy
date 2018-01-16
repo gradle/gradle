@@ -115,4 +115,20 @@ The following types/formats are supported:
   - A RegularFile instance.
   - A URI or URL instance.""")
     }
+
+    def "file collections cannot be resolved if task dependency not executed yet"() {
+        buildFile << """
+
+task dep {}
+
+def f = files(dep)
+f.files.each { println it }
+"""
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause "Cannot resolve outputs for task ':dep' because it has not been executed yet."
+    }
 }

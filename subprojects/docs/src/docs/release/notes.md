@@ -22,6 +22,18 @@ The new metadata format is still under active development, but it can already be
 
 [The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.0](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
 
+### Safer handling of task dependencies in file collections
+
+File collections can contain the output of tasks, but if the file collection gets resolved before the tasks are executed, the files returned would not include the output of the tasks.
+This can happen when a file collection is unintentionally resolved during configuration time (before any tasks are executed); or a file collection is resolved during the execution of a task, but the file collection is not declared as an input of the task.
+Previously Gradle would silently ignore these kind of problems.
+Since Gradle 4.6 an exception is thrown instead that clearly states the problem:
+
+    * What went wrong:
+    A problem occurred evaluating root project 'test'.
+    > Cannot resolve outputs for task ':unexecutedTask' because it has not been executed yet.
+
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
