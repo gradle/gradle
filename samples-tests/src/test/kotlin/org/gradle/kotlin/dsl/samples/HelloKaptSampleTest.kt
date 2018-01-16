@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.samples
 
+import org.gradle.kotlin.dsl.fixtures.toPlatformLineSeparators
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertThat
@@ -17,7 +18,7 @@ class HelloKaptSampleTest : AbstractSampleTest("hello-kapt") {
             containsString("""
                 Hello Writer{name=Douglas, age=41, books=[THGttG, DGHDA]}
                 The answer is 42
-            """.trimIndent())
+            """.trimIndent().toPlatformLineSeparators())
         )
     }
 
