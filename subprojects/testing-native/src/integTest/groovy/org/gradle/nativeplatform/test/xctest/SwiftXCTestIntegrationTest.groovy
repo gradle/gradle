@@ -18,6 +18,8 @@ package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestAddDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestRemoveDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftAppTest
@@ -32,11 +34,9 @@ import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLibWithSingleXCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-@Requires([TestPrecondition.SWIFT_SUPPORT])
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
 class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements XCTestExecutionResult {
     def setup() {
         buildFile << """

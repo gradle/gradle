@@ -17,10 +17,10 @@
 package org.gradle.language.swift
 
 import org.gradle.language.AbstractNativeLibraryDependenciesIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
 class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDependenciesIntegrationTest {
     def "can compile against a library with implementation dependencies"() {
         settingsFile << """

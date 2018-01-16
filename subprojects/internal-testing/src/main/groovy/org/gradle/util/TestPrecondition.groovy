@@ -132,12 +132,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     CAN_INSTALL_EXECUTABLE({
         FILE_PERMISSIONS.fulfilled || WINDOWS.fulfilled
     }),
-    OBJECTIVE_C_SUPPORT({
-        NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
-    }),
-    SWIFT_SUPPORT({
-        NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
-    }),
     SMART_TERMINAL({
         System.getenv("TERM")?.toUpperCase() != "DUMB"
     }),

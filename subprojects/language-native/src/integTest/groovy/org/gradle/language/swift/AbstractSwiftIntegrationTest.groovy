@@ -16,14 +16,14 @@
 
 package org.gradle.language.swift
 
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.nativeplatform.fixtures.app.Swift4
 import org.gradle.util.Matchers
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
 abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegrationTest {
     def "skip assemble tasks when no source"() {
         given:

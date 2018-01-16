@@ -16,13 +16,13 @@
 
 package org.gradle.language.objectivecpp
 
+import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCppHelloWorldApp
-import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.OBJECTIVE_C_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.OBJECTIVE_C_SUPPORT)
 class ObjectiveCppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiledHeaderIntegrationTest {
     @Override
     IncrementalHelloWorldApp getApp() {

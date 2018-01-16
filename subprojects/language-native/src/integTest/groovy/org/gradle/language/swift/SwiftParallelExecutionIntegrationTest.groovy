@@ -17,11 +17,11 @@
 package org.gradle.language.swift
 
 import org.gradle.language.AbstractNativeParallelIntegrationTest
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
 class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegrationTest {
     def app = new SwiftApp()
 
