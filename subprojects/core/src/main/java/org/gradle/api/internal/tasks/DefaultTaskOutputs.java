@@ -69,7 +69,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PropertySpecFactory specFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
-        this.allOutputFiles = new TaskOutputUnionFileCollection(task);
+        this.allOutputFiles = new TaskOutputUnionFileCollection();
         this.propertyWalker = propertyWalker;
         this.specFactory = specFactory;
     }
@@ -287,19 +287,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     private class TaskOutputUnionFileCollection extends CompositeFileCollection implements Describable {
-        private final TaskInternal buildDependencies;
-
-        public TaskOutputUnionFileCollection(TaskInternal buildDependencies) {
-            this.buildDependencies = buildDependencies;
-        }
-
         @Override
         public String getDisplayName() {
-            return "task '" + task.getName() + "' output files";
+            return task + " output files";
         }
 
         @Override
         public void visitContents(FileCollectionResolveContext context) {
+            if (!task.getState().getExecuted()) {
+                throw new IllegalStateException(String.format("Cannot resolve outputs for %s because it has not been executed yet.", task));
+            }
             for (TaskFilePropertySpec propertySpec : getFileProperties()) {
                 context.add(propertySpec.getPropertyFiles());
             }
@@ -307,9 +304,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(buildDependencies);
+            context.add(task);
             super.visitDependencies(context);
         }
     }
-
 }
