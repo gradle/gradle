@@ -148,7 +148,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public boolean isRequiresAttributeMatching() {
+        public boolean isAttributeMatchingRequested() {
             return false;
         }
 

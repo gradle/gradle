@@ -232,7 +232,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public boolean isRequiresAttributeMatching() {
+    public boolean isAttributeMatchingRequested() {
         return false;
     }
 

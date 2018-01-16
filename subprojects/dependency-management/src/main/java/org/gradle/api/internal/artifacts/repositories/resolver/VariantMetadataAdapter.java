@@ -67,7 +67,7 @@ public class VariantMetadataAdapter implements VariantMetadata {
     @Override
     public VariantMetadata attributes(Action<? super AttributeContainer> action) {
         //by providing attribute rules, the user opts into attribute matching and we do not use legacy configuration matching anymore
-        metadata.setRequiresAttributeMatching(true);
+        metadata.setAttributeMatchingRequested(true);
         metadata.getVariantMetadataRules().addAttributesAction(metadata.getAttributesFactory(), new VariantMetadataRules.VariantAction<AttributeContainer>(spec, action));
         return this;
     }
