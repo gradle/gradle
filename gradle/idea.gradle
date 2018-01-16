@@ -210,16 +210,6 @@ limitations under the License."""
         }
     }
 
-    workspace.iws.withXml { provider ->
-        Node node = provider.asNode()
-
-        node.append(new XmlParser().parseText('''
-            <component name="CompilerWorkspaceConfiguration">
-              <option name="COMPILER_PROCESS_HEAP_SIZE" value="2048" />
-            </component>
-        '''))
-
-    }
 }
 
 def docsProject = project(":docs")
