@@ -23,4 +23,12 @@ public interface ComponentSelectionReasonInternal extends ComponentSelectionReas
     ComponentSelectionReasonInternal setCause(ComponentSelectionDescriptor description);
     ComponentSelectionReasonInternal addCause(ComponentSelectionDescriptor description);
     ComponentSelectionReasonInternal addCause(ComponentSelectionCause cause, String description);
+
+    /**
+     * Returns true if any of the {@link #getDescriptions() descriptions} contains a custom description instead of the
+     * standard ones.
+     *
+     * @return true if the standard description wasn't used
+     */
+    boolean hasCustomDescriptions();
 }

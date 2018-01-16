@@ -83,13 +83,4 @@ public interface ComponentSelectionReason {
      */
     List<ComponentSelectionDescriptor> getDescriptions();
 
-    /**
-     * Returns true if any of the {@link #getDescriptions() descriptions} contains a custom description instead of the
-     * standard ones.
-     *
-     * @return true if the standard description wasn't used
-     *
-     * @since 4.6
-     */
-    boolean hasCustomDescriptions();
 }

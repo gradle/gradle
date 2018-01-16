@@ -51,15 +51,18 @@ public class VersionSelectionReasons {
     private static class DefaultComponentSelectionReason implements ComponentSelectionReasonInternal {
 
         // Use a set to de-duplicate same descriptions
-        private final Set<ComponentSelectionDescriptor> descriptions;
+        private final Set<ComponentSelectionDescriptorInternal> descriptions;
 
         private DefaultComponentSelectionReason(ComponentSelectionDescriptor description) {
             descriptions = Sets.newLinkedHashSet();
-            descriptions.add(description);
+            descriptions.add((ComponentSelectionDescriptorInternal) description);
         }
 
         public DefaultComponentSelectionReason(List<ComponentSelectionDescriptor> descriptions) {
-            this.descriptions = Sets.newLinkedHashSet(descriptions);
+            this.descriptions = Sets.newLinkedHashSet();
+            for (ComponentSelectionDescriptor description : descriptions) {
+                this.descriptions.add((ComponentSelectionDescriptorInternal) description);
+            }
         }
 
 
@@ -112,24 +115,24 @@ public class VersionSelectionReasons {
         @Override
         public ComponentSelectionReasonInternal setCause(ComponentSelectionDescriptor description) {
             descriptions.clear();
-            descriptions.add(description);
+            descriptions.add((ComponentSelectionDescriptorInternal) description);
             return this;
         }
 
         @Override
         public ComponentSelectionReasonInternal addCause(ComponentSelectionDescriptor description) {
-            descriptions.add(description);
+            descriptions.add((ComponentSelectionDescriptorInternal) description);
             return this;
         }
 
         @Override
         public List<ComponentSelectionDescriptor> getDescriptions() {
-            return ImmutableList.copyOf(descriptions);
+            return ImmutableList.<ComponentSelectionDescriptor>copyOf(descriptions);
         }
 
         @Override
         public boolean hasCustomDescriptions() {
-            for (ComponentSelectionDescriptor description : descriptions) {
+            for (ComponentSelectionDescriptorInternal description : descriptions) {
                 if (description.hasCustomDescription()) {
                     return true;
                 }

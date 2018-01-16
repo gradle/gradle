@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A component selection description, which wraps a cause with an optional custom description.
@@ -23,6 +24,7 @@ import org.gradle.api.Incubating;
  * @since 4.6
  */
 @Incubating
+@HasInternalProtocol
 public interface ComponentSelectionDescriptor {
 
     /**
@@ -40,11 +42,4 @@ public interface ComponentSelectionDescriptor {
      */
     String getDescription();
 
-    /**
-     * Determines if a custom description was provided. This can be used in reporting to determine if additional details should
-     * be displayed.
-     *
-     * @return true if the description is not the default cause description.
-     */
-    boolean hasCustomDescription();
 }

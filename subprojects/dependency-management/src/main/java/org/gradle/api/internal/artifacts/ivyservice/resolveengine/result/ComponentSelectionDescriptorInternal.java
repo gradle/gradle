@@ -18,5 +18,21 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 
 public interface ComponentSelectionDescriptorInternal extends ComponentSelectionDescriptor {
+    /**
+     * Updates the description of this component selection descriptor.
+     *
+     * @param reason a new textual description of the descriptor.
+     *
+     * @return this descriptor
+     */
     ComponentSelectionDescriptorInternal withReason(String reason);
+
+    /**
+     * Determines if a custom description was provided. This can be used in reporting to determine if additional details should
+     * be displayed.
+     *
+     * @return true if the description is not the default cause description.
+     */
+    boolean hasCustomDescription();
+
 }
