@@ -219,15 +219,14 @@ limitations under the License."""
             </component>
         '''))
 
-        Node runManagerConfig = node.component.find { it.'@name' == 'RunManager' }
+    }
+}
 
-        // Add int test configuration to JUnit defaults
-        Node runConfig = runManagerConfig.configuration.find { it.'@type' == 'JUnit'}
-
-        Node vmParameters = runConfig.option.find { it.'@name' == 'VM_PARAMETERS' }
-
-        def docsProject = project(":docs")
-        def defaultTestVmParams = [
+def docsProject = project(":docs")
+docsProject.afterEvaluate {
+    idea.project.settings.runConfigurations {
+        defaults(JUnit) {
+            def defaultTestVmParams = [
                 "-ea",
                 "-Dorg.gradle.docs.releasenotes.source=${docsProject.releaseNotesMarkdown.markdownFile}",
                 "-Dorg.gradle.docs.releasenotes.rendered=${new File(docsProject.releaseNotes.destinationDir, docsProject.releaseNotes.fileName)}",
@@ -244,20 +243,17 @@ limitations under the License."""
                 "-Dorg.gradle.integtest.multiversion=default",
                 "-Dorg.gradle.integtest.testkit.compatibility=current",
                 "-Xmx512m"
-        ]
+            ]
 
-        if (!javaVersion.java8Compatible) {
-            defaultTestVmParams += "-XX:MaxPermSize=512m"
+            if (!javaVersion.java8Compatible) {
+                defaultTestVmParams += "-XX:MaxPermSize=512m"
+            }
+
+            vmParameters = defaultTestVmParams.collect { it.contains(" ") ? "\"$it\"" : it }.join(" ")
+
+            def lang = System.getenv('LANG') ?: 'en_US.UTF-8'
+            envs = ['LANG': lang]
         }
-
-        vmParameters.'@value' = defaultTestVmParams.collect { it.contains(" ") ? "\"$it\"" : it }.join(" ")
-
-        // Add int test environment variables
-        def lang = System.getenv('LANG') ?: 'en_US.UTF-8'
-        def envVars = runConfig.envs.first()
-        envVars.children.each { child -> envVars.remove(child) }
-        envVars.appendNode('env', [name: 'LANG', value: lang])
-
     }
 }
 
