@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport.aws.s3
 
-import com.amazonaws.services.s3.AmazonS3
+import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.s3.model.ObjectListing
 import com.amazonaws.services.s3.model.PutObjectRequest
@@ -41,7 +41,7 @@ class S3ClientTest extends Specification {
     @Requires(FIX_TO_WORK_ON_JAVA9)
     def "Should upload to s3"() {
         given:
-        AmazonS3 amazonS3Client = Mock()
+        AmazonS3Client amazonS3Client = Mock()
         S3Client client = new S3Client(amazonS3Client, s3ConnectionProperties)
         URI uri = new URI("s3://localhost/maven/snapshot/myFile.txt")
 
@@ -57,7 +57,7 @@ class S3ClientTest extends Specification {
     }
 
     def "should make batch call when more than one object listing exists"() {
-        def amazonS3Client = Mock(AmazonS3)
+        def amazonS3Client = Mock(AmazonS3Client)
         S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
         def uri = new URI("s3://mybucket.com.au/maven/release/")
         ObjectListing firstListing = Mock()
@@ -143,7 +143,7 @@ class S3ClientTest extends Specification {
     }
 
     def "should include uri when meta-data not found"() {
-        AmazonS3 amazonS3Client = Mock()
+        AmazonS3Client amazonS3Client = Mock()
         URI uri = new URI("https://somehost/file.txt")
         S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
         AmazonS3Exception amazonS3Exception = new AmazonS3Exception("test exception")
@@ -157,7 +157,7 @@ class S3ClientTest extends Specification {
     }
 
     def "should include uri when file not found"() {
-        AmazonS3 amazonS3Client = Mock()
+        AmazonS3Client amazonS3Client = Mock()
         URI uri = new URI("https://somehost/file.txt")
         S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
         AmazonS3Exception amazonS3Exception = new AmazonS3Exception("test exception")
@@ -172,7 +172,7 @@ class S3ClientTest extends Specification {
 
     @Requires(FIX_TO_WORK_ON_JAVA9)
     def "should include uri when upload fails"() {
-        AmazonS3 amazonS3Client = Mock()
+        AmazonS3Client amazonS3Client = Mock()
         URI uri = new URI("https://somehost/file.txt")
         S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
         AmazonS3Exception amazonS3Exception = new AmazonS3Exception("test exception")
