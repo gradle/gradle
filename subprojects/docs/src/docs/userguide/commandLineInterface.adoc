@@ -49,7 +49,7 @@ Many long-form options, have short option equivalents. The following are equival
 Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed. See the <<sec:gradle_configuration_properties, configuring build environment guide>> for details.
 ====
 
-The following sections describe use of the Gradle command-line interface, grouped roughly by user goal. Some plugins also add their own command line options, for example <<test_filtering,`--tests` for Java test filtering>>.
+The following sections describe use of the Gradle command-line interface, grouped roughly by user goal. Some plugins also add their own command line options, for example <<test_filtering,`--tests` for Java test filtering>>. For more information on exposing command line options for your own tasks, see <<sec:declaring_and_using_command_line_options>>.
 
 [[sec:command_line_executing_tasks]]
 === Executing tasks
