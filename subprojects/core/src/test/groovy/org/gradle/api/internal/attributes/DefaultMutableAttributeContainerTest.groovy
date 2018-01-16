@@ -55,4 +55,18 @@ class DefaultMutableAttributeContainerTest extends Specification {
         immutable2.getAttribute(attr1) == "child"
         immutable2.getAttribute(attr2) == "new parent"
     }
+
+    def "can call coercing function for plain String attributes"() {
+        given:
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def attribute = Attribute.of('a', String)
+
+        when:
+        container.attribute(attribute.name, "value")
+
+        then:
+        container.getAttribute(attribute) == 'value'
+        container.getAttribute(attribute).class == String
+        container.asImmutable().getAttribute(attribute) == 'value'
+    }
 }
