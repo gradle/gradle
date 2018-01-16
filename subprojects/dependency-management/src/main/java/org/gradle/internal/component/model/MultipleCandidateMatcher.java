@@ -77,7 +77,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     private final List<? extends T> candidates;
     private final ImmutableAttributes[] candidateAttributeSets;
 
-    private final Attribute<?>[] requestedAttributes;
+    private final List<Attribute<?>> requestedAttributes;
     private final BitSet compatible;
     private final Object[] requestedAttributeValues;
 
@@ -95,8 +95,8 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         for (int i = 0; i < candidates.size(); i++) {
             candidateAttributeSets[i] = ((AttributeContainerInternal) this.candidates.get(i).getAttributes()).asImmutable();
         }
-        this.requestedAttributes = requested.getAttributes().keySet().toArray(new Attribute[0]);
-        requestedAttributeValues = new Object[(1 + candidates.size()) * requestedAttributes.length];
+        this.requestedAttributes = requested.keySet().asList();
+        requestedAttributeValues = new Object[(1 + candidates.size()) * requestedAttributes.size()];
         compatible = new BitSet(candidates.size());
         compatible.set(0, candidates.size());
     }
@@ -114,8 +114,8 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private void fillRequestedValues() {
-        for (int a = 0; a < requestedAttributes.length; a++) {
-            Attribute<?> attribute = requestedAttributes[a];
+        for (int a = 0; a < requestedAttributes.size(); a++) {
+            Attribute<?> attribute = requestedAttributes.get(a);
             AttributeValue<?> attributeValue = requested.findEntry(attribute);
             setRequestedValue(a, attributeValue.isPresent() ? attributeValue.get() : null);
         }
@@ -130,7 +130,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     private void matchCandidate(int c) {
         int matchLength = 0;
 
-        for (int a = 0; a < requestedAttributes.length; a++) {
+        for (int a = 0; a < requestedAttributes.size(); a++) {
             MatchResult result = recordAndMatchCandidateValue(c, a);
             if (result == MatchResult.NO_MATCH) {
                 compatible.clear(c);
@@ -149,7 +149,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
 
     private MatchResult recordAndMatchCandidateValue(int c, int a) {
         Object requestedValue = getRequestedValue(a);
-        Attribute<?> attribute = requestedAttributes[a];
+        Attribute<?> attribute = requestedAttributes.get(a);
         AttributeValue<?> candidateValue = candidateAttributeSets[c].findEntry(attribute.getName());
 
         if (!candidateValue.isPresent()) {
@@ -170,7 +170,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
                 continue;
             }
             int lengthOfOtherMatch = 0;
-            for (int a = 0; a < requestedAttributes.length; a++) {
+            for (int a = 0; a < requestedAttributes.size(); a++) {
                 if (getCandidateValue(c, a) == null) {
                     continue;
                 }
@@ -200,7 +200,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private void disambiguateWithRequestedAttributes() {
-        for (int a = 0; a < requestedAttributes.length; a++) {
+        for (int a = 0; a < requestedAttributes.size(); a++) {
             disambiguateWithAttribute(a);
             if (remaining.cardinality() == 0) {
                 return;
@@ -236,8 +236,8 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
 
     private void disambiguateWithExtraAttributes() {
         collectExtraAttributes();
-        int allAttributes = requestedAttributes.length + extraAttributes.length;
-        for (int a = requestedAttributes.length; a < allAttributes; a++) {
+        int allAttributes = requestedAttributes.size() + extraAttributes.length;
+        for (int a = requestedAttributes.size(); a < allAttributes; a++) {
             disambiguateWithAttribute(a);
             if (remaining.cardinality() == 0) {
                 return;
@@ -269,17 +269,17 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private Attribute<?> getAttribute(int a) {
-        if (a < requestedAttributes.length) {
-            return requestedAttributes[a];
+        if (a < requestedAttributes.size()) {
+            return requestedAttributes.get(a);
         } else {
-            Attribute<?> extraAttribute = extraAttributes[a - requestedAttributes.length];
+            Attribute<?> extraAttribute = extraAttributes[a - requestedAttributes.size()];
             Attribute<?> schemaAttribute = schema.getAttribute(extraAttribute.getName());
             return schemaAttribute == null ? extraAttribute : schemaAttribute;
         }
     }
 
     private Object getRequestedValue(int a) {
-        if (a < requestedAttributes.length) {
+        if (a < requestedAttributes.size()) {
             return requestedAttributeValues[a];
         } else {
             return null;
@@ -287,7 +287,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private Object getCandidateValue(int c, int a) {
-        if (a < requestedAttributes.length) {
+        if (a < requestedAttributes.size()) {
             return requestedAttributeValues[getValueIndex(c, a)];
         } else {
             Attribute<?> extraAttribute = getAttribute(a);
@@ -306,7 +306,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
 
 
     private int getValueIndex(int c, int a) {
-        return (1 + c) * requestedAttributes.length + a;
+        return (1 + c) * requestedAttributes.size() + a;
     }
 
     private enum MatchResult {
