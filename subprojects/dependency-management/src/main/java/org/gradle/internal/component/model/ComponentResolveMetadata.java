@@ -78,7 +78,7 @@ public interface ComponentResolveMetadata extends HasAttributes {
     /**
      * Returns true if the use of attribute matching was requested (e.g. by using metadata rules that added attributes).
      */
-    boolean isRequiresAttributeMatching();
+    boolean isAttributeMatchingRequested();
 
     /**
      * Returns true if the variant/configuration selection should always be done by attribute matching during consumption of this component.

@@ -84,9 +84,12 @@ public interface MutableModuleComponentResolveMetadata {
 
     void setAttributes(AttributeContainer attributes);
 
-    boolean isRequiresAttributeMatching();
+    /**
+     * Returns true if the use of attribute matching was requested (e.g. by using metadata rules that added attributes).
+     */
+    boolean isAttributeMatchingRequested();
 
-    void setRequiresAttributeMatching(boolean requiresAttributeMatching);
+    void setAttributeMatchingRequested(boolean requiresAttributeMatching);
 
     /**
      * Creates an artifact for this module. Does not mutate this metadata.

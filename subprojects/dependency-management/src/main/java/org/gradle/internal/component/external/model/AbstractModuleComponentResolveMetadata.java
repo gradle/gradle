@@ -60,7 +60,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     // Configurations are built on-demand, but only once.
     private final Map<String, DefaultConfigurationMetadata> configurations = Maps.newHashMap();
     private ImmutableList<? extends ConfigurationMetadata> graphVariants;
-    private boolean requiresAttributeMatching;
+    private boolean attributeMatchingRequested;
 
     AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getComponentId();
@@ -74,7 +74,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         contentHash = metadata.getContentHash();
         attributesFactory = metadata.getAttributesFactory();
         attributes = extractAttributes(metadata);
-        requiresAttributeMatching = metadata.isRequiresAttributeMatching();
+        attributeMatchingRequested = metadata.isAttributeMatchingRequested();
         variants = metadata.getVariants();
     }
 
@@ -97,7 +97,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         contentHash = metadata.contentHash;
         attributesFactory = metadata.getAttributesFactory();
         attributes = metadata.attributes;
-        requiresAttributeMatching = metadata.isRequiresAttributeMatching();
+        attributeMatchingRequested = metadata.isAttributeMatchingRequested();
         variants = metadata.variants;
     }
 
@@ -159,7 +159,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             for (ComponentVariant variant : variants) {
                 configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, attributes, attributesFactory, variantMetadataRules));
             }
-            requiresAttributeMatching = true;
+            attributeMatchingRequested = true;
             graphVariants = configurations.build();
             return;
         }
@@ -231,18 +231,18 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public boolean isRequiresAttributeMatching() {
-        return requiresAttributeMatching;
+    public boolean isAttributeMatchingRequested() {
+        return attributeMatchingRequested;
     }
 
     public boolean useAttributeMatching() {
-        if (requiresAttributeMatching) {
+        if (attributeMatchingRequested) {
             return true;
         }
         if (graphVariants == null) {
             buildVariantsForGraphTraversal(variants);
         }
-        return requiresAttributeMatching;
+        return attributeMatchingRequested;
     }
 
     @Override
