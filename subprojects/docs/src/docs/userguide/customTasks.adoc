@@ -258,12 +258,12 @@ However, if the state files are non-relocatable, then they can't be shared via t
 The API for exposing command line options is an <<feature_lifecycle,incubating>> feature.
 ====
 
-A custom task implementation exposes properties to make the runtime behavior configurable. Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. That's particular helpful if the property value changes more frequently. The task API supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime.
+Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. Being able to pass in property values on the command line is particularly helpful if they change more frequently. The task API supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime.
 
 [[sec:declaring_task_option]]
-==== Declaring an option
+==== Declaring a command-line option
 
-Exposing a new command line parameter for a task property is straightforward. You just have to annotate the corresponding setter method of a property with api:org.gradle.api.tasks.options.Option[]. An option requires a mandatory identifier. Additionally, you can provide an optional description. A task can expose as many command line options as properties available in the class.
+Exposing a new command line option for a task property is straightforward. You just have to annotate the corresponding setter method of a property with api:org.gradle.api.tasks.options.Option[]. An option requires a mandatory identifier. Additionally, you can provide an optional description. A task can expose as many command line options as properties available in the class.
 
 Let's have a look at an example to illustrate the functionality. The custom task `UrlVerify` verifies whether a given URL can be resolved by making a HTTP call and checking the response code. The URL to be verified is configurable through the property `url`. The setter method for the property is annotated with api:org.gradle.api.tasks.options.Option[].
 
@@ -273,7 +273,7 @@ Let's have a look at an example to illustrate the functionality. The custom task
 </sample>
 ++++
 
-All options declared for a task can be <sec:listing_task_options,rendered as console output>> by running the `help` task.
+All options declared for a task can be <<sec:listing_task_options,rendered as console output>> by running the `help` task and the `--task` option.
 
 [[sec:using_task_option_command_line]]
 ==== Using an option on the command line
@@ -281,7 +281,7 @@ All options declared for a task can be <sec:listing_task_options,rendered as con
 Using an option on the command line has to adhere to the following rules:
 
 - The option uses a double-dash as prefix e.g. `--url`. A single dash does not qualify as valid syntax for a task option.
-- The option parameter follows directly after the task declaration e.g. `verifyUrl --url=http://www.google.com/`.
+- The option argument follows directly after the task declaration e.g. `verifyUrl --url=http://www.google.com/`.
 - Multiple options of a task can be declared in any order on the command line following the task name.
 
 Getting back to the previous example, the build script creates a task instance of type `UrlVerify` and provides a value from the command line through the exposed option.
@@ -305,7 +305,7 @@ Describes an option with the value `true` or `false`. Passing the option on the 
 Describes an option with an arbitrary String value. Passing the option on the command line requires a key-value pair of option and value separated by an equals sign e.g. `--containerId=2x94held`.
 
 `enum`::
-Describes an option as enum. The enum has to be passed on the command line as key-value pair similar to the String type e.g. `--log-level=DEBUG`.
+Describes an option as enum. The enum has to be passed on the command line as key-value pair similar to the String type e.g. `--log-level=DEBUG`. The provided value is not case sensitive.
 
 `List<String>`, `List<enum>`::
 Describes an option that can takes multiple values of a given type. The values for the option have to be provided as distinct declarations e.g. `--imageId=123 --imageId=456`. Other notations like comma-separated lists or multiple values separated by a space character are currently not supported.

@@ -24,7 +24,7 @@ The new metadata format is still under active development, but it can already be
 
 ### Public API for defining command line options for tasks
 
-A custom task implementation exposes properties to make the runtime behavior configurable. Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. That's particular helpful if the property value changes more frequently. With this version of Gradle, the task API now supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime. All you need to do is to annotate a setter method of a property with [Option](dsl/org.gradle.api.tasks.options.Option.html).
+Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. Being able to pass in property values on the command line is particularly helpful if they change more frequently. With this version of Gradle, the task API now supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime. All you need to do is to annotate a setter method of a property with [Option](dsl/org.gradle.api.tasks.options.Option.html).
 
 The following examples exposes a command line parameter `--url` for the custom task type `UrlVerify`. Let's assume you wanted to pass a URL to a task of this type named `verifyUrl`. The invocation looks as such: `gradle verifyUrl --url=https://gradle.org/`. You can find more information about this feature in the [user guide](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options).
 
