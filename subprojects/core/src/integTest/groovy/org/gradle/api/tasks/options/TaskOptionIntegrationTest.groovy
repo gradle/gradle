@@ -45,8 +45,10 @@ class TaskOptionIntegrationTest extends AbstractIntegrationSpec {
         'TestEnum'       | []                                   | 'null'           | 'not provided'
         'List<String>'   | ['--myProp=a', '--myProp=b']         | '[a, b]'         | 'provided'
         'List<String>'   | []                                   | 'null '          | 'not provided'
+        'List<String>'   | ['--myProp=a,b']                     | '[a,b]'          | 'provided with incorrect syntax'
         'List<TestEnum>' | ['--myProp=OPT_2', '--myProp=OPT_3'] | '[OPT_2, OPT_3]' | 'provided'
         'List<TestEnum>' | []                                   | 'null '          | 'not provided'
+        'List<TestEnum>' | ['--myProp=OPT_2,OPT_3']             | '[OPT_2,OPT_3]'  | 'provided with incorrect syntax'
     }
 
     def "can render option with help task"() {
