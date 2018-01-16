@@ -80,7 +80,6 @@ public class S3Client {
                 credentials =  new BasicSessionCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey(), awsCredentials.getSessionToken());
             }
         }
-
         AmazonS3ClientBuilder s3ClientBuilder = AmazonS3ClientBuilder.standard()
             .withCredentials(new AWSStaticCredentialsProvider(credentials))
             .withClientConfiguration(createConnectionProperties());
