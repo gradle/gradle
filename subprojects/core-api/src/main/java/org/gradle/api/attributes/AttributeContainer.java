@@ -59,6 +59,8 @@ public interface AttributeContainer extends HasAttributes {
 
     /**
      * Sets an attribute value by providing the string representation of the value.
+     * The attribute value will be automatically coerced into the type of the corresponding attribute,
+     * when it is matched with a typed version of the attribute.
      * It is not allowed to use <code>null</code> as an attribute value.
      * @param name the attribute's name
      * @param value the attribute value
