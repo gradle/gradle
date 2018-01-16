@@ -31,6 +31,8 @@ import java.util.Date;
 public class LazyPublishArtifact implements PublishArtifact {
     private final Provider<?> provider;
     private final String version;
+    private File file;
+    private ArtifactFile artifactFile;
 
     public LazyPublishArtifact(Provider<?> provider, String version) {
         this.provider = provider;
@@ -59,15 +61,18 @@ public class LazyPublishArtifact implements PublishArtifact {
 
     @Override
     public File getFile() {
-        Object value = provider.get();
-        if (value instanceof FileSystemLocation) {
-            FileSystemLocation location = (FileSystemLocation) value;
-            return location.getAsFile();
+        if (file == null) {
+            Object value = provider.get();
+            if (value instanceof FileSystemLocation) {
+                FileSystemLocation location = (FileSystemLocation) value;
+                file = location.getAsFile();
+            } else if (value instanceof File) {
+                file = (File) value;
+            } else {
+                throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
+            }
         }
-        if (value instanceof File) {
-            return (File) value;
-        }
-        throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
+        return file;
     }
 
     @Override
@@ -76,7 +81,11 @@ public class LazyPublishArtifact implements PublishArtifact {
     }
 
     private ArtifactFile getValue() {
-        return new ArtifactFile(getFile(), version);
+        if (artifactFile == null) {
+            artifactFile = new ArtifactFile(getFile(), version);
+
+        }
+        return artifactFile;
     }
 
     @Override
