@@ -18,6 +18,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`hello-android`](./hello-android): demonstrates a Kotlin-based Gradle build script for a Kotlin-based Android project
  - [`hello-coroutines`](./hello-coroutines): demonstrates how to enable experimental support for [coroutines in Kotlin](https://kotlinlang.org/docs/reference/coroutines.html)
  - [`hello-js`](./hello-js): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin and targets JavaScript
+ - [`hello-kapt`](./hello-kapt): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin and uses [`kapt`](https://kotlinlang.org/docs/reference/kapt.html) (Kotlin Annotation Processing Tool)
  - [`hello-kotlin`](./hello-kotlin): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin
  - [`hello-world`](./hello-world): demonstrates plugin application and configuration, dependency management, JUnit testing
  - [`kotlin-friendly-groovy-plugin`](./kotlin-friendly-groovy-plugin): demonstrates a Groovy Gradle plugin and its use from Kotlin-based build scripts
