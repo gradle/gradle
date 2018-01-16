@@ -78,11 +78,11 @@ Options
         then:
         outputContains("""
 Options
+     --prop1     Configures command line option 'prop1'.
+
      --prop2     Configures command line option 'prop2'.
 
-     --prop3     Configures command line option 'prop3'.
-
-     --prop1     Configures command line option 'prop1'.""")
+     --prop3     Configures command line option 'prop3'.""")
     }
 
     static String sampleTask() {
@@ -130,17 +130,17 @@ Options
                 private Boolean prop2;
                 private String prop3;
                 
-                @Option(option = "prop1", description = "Configures command line option 'prop1'.", order = 3)
+                @Option(option = "prop1", description = "Configures command line option 'prop1'.")
                 public void setProp1(String prop1) {
                     this.prop1 = prop1;
                 }
                 
-                @Option(option = "prop2", description = "Configures command line option 'prop2'.", order = 1)
+                @Option(option = "prop2", description = "Configures command line option 'prop2'.")
                 public void setProp2(Boolean prop2) {
                     this.prop2 = prop2;
                 }
                 
-                @Option(option = "prop3", description = "Configures command line option 'prop3'.", order = 2)
+                @Option(option = "prop3", description = "Configures command line option 'prop3'.")
                 public void setProp3(String prop3) {
                     this.prop3 = prop3;
                 }
