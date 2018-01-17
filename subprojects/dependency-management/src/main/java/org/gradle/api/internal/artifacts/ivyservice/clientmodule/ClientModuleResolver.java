@@ -196,5 +196,10 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         public Dependency getSource() {
             return delegate.getSource();
         }
+
+        @Override
+        public String getReason() {
+            return delegate.getReason();
+        }
     }
 }

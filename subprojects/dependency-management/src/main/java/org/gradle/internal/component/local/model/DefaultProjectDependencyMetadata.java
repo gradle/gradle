@@ -67,6 +67,11 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
+    public String getReason() {
+        return delegate.getReason();
+    }
+
+    @Override
     public boolean isTransitive() {
         return delegate.isTransitive();
     }
@@ -79,5 +84,10 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     @Override
     public List<IvyArtifactName> getArtifacts() {
         return delegate.getArtifacts();
+    }
+
+    @Override
+    public DependencyMetadata withReason(String reason) {
+        return delegate.withReason(reason);
     }
 }

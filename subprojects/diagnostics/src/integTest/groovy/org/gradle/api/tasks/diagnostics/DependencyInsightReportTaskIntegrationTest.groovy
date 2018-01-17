@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.diagnostics
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Unroll
@@ -1356,7 +1355,6 @@ foo:foo:1.0
 
 
     @Unroll
-    @NotYetImplemented
     def "renders custom dependency constraint reasons"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -1402,7 +1400,6 @@ org:foo: -> $selected
     }
 
     @Unroll
-    @NotYetImplemented
     def "renders custom dependency reasons"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()

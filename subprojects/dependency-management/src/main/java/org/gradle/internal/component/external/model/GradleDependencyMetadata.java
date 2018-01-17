@@ -38,16 +38,19 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     private final ModuleComponentSelector selector;
     private final List<ExcludeMetadata> excludes;
     private final boolean pending;
+    private final String reason;
 
-    public GradleDependencyMetadata(ModuleComponentSelector selector, boolean pending) {
+    public GradleDependencyMetadata(ModuleComponentSelector selector, boolean pending, String reason) {
         this.selector = selector;
+        this.reason = reason;
         this.excludes = Collections.emptyList();
         this.pending = pending;
     }
 
-    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes) {
+    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, String reason) {
         this.selector = selector;
         this.excludes = excludes;
+        this.reason = reason;
         this.pending = false;
     }
 
@@ -61,13 +64,21 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
         if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion), pending);
+        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion), pending, reason);
+    }
+
+    @Override
+    public ModuleDependencyMetadata withReason(String reason) {
+        if (reason.equals(this.reason)) {
+            return this;
+        }
+        return new GradleDependencyMetadata(selector, pending, reason);
     }
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
-            return new GradleDependencyMetadata((ModuleComponentSelector) target, pending);
+            return new GradleDependencyMetadata((ModuleComponentSelector) target, pending, reason);
         }
         return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
     }
@@ -100,6 +111,11 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     @Override
     public boolean isPending() {
         return pending;
+    }
+
+    @Override
+    public String getReason() {
+        return reason;
     }
 
 }
