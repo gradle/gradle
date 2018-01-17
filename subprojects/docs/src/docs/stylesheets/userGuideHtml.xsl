@@ -184,6 +184,7 @@
                                         <ul id="dependency-management-glossary">
                                             <li><a href="/userguide/dependency_types.html">Dependency Types</a></li>
                                             <li><a href="/userguide/repository_types.html">Repository Types</a></li>
+                                            <li><a href="/userguide/dependency_cache.html">Dependency Cache</a></li>
                                         </ul>
                                     </li></ul></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing-artifacts" aria-expanded="false" aria-controls="publishing-artifacts">Publishing Artifacts</a>
