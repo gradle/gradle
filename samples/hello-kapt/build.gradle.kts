@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.KaptAnnotationProcessorOptions
-import org.jetbrains.kotlin.gradle.plugin.KaptJavacOptionsDelegate
-
 plugins {
     application
     kotlin("jvm") version "1.2.20"
@@ -31,12 +28,12 @@ kapt {
     correctErrorTypes = true
 
     // Example of Javac Options configuration
-    javacOptions(delegateClosureOf<KaptJavacOptionsDelegate> {
+    javacOptions {
         option("SomeJavacOption", "OptionValue")
-    })
+    }
 
     // Kapt Arguments configuration
-    arguments(delegateClosureOf<KaptAnnotationProcessorOptions> {
+    arguments {
         arg("SomeKaptArgument", "ArgumentValue")
-    })
+    }
 }
