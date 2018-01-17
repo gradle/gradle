@@ -28,6 +28,7 @@ public abstract class AbstractDependencyImpl<T extends DirectDependencyMetadata>
     private final String group;
     private final String name;
     private MutableVersionConstraint versionConstraint;
+    private String reason;
 
     public AbstractDependencyImpl(String group, String name, String version) {
         this.group = group;
@@ -53,6 +54,17 @@ public abstract class AbstractDependencyImpl<T extends DirectDependencyMetadata>
     @Override
     public T version(Action<? super MutableVersionConstraint> configureAction) {
         configureAction.execute(versionConstraint);
+        return Cast.uncheckedCast(this);
+    }
+
+    @Override
+    public String getReason() {
+        return reason;
+    }
+
+    @Override
+    public T reason(String reason) {
+        this.reason = reason;
         return Cast.uncheckedCast(this);
     }
 
