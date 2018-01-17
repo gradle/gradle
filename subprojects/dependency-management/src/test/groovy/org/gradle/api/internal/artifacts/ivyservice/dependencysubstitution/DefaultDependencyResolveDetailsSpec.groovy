@@ -34,7 +34,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "1.0")
         !details.updated
-        !details.selectionDescription
+        details.selectionDescription == VersionSelectionReasons.REQUESTED
 
         when:
         details.useVersion("1.0") //the same version
@@ -202,7 +202,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
     }
 
     private static def newDependencyResolveDetails(String group, String name, String version) {
-        return new DefaultDependencyResolveDetails(new DefaultDependencySubstitution(newComponentSelector(group, name, version)), newVersionSelector(group, name, version))
+        return new DefaultDependencyResolveDetails(new DefaultDependencySubstitution(newComponentSelector(group, name, version),), newVersionSelector(group, name, version))
     }
 
     private static ModuleComponentSelector newComponentSelector(String group, String module, String version) {
