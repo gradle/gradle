@@ -34,23 +34,23 @@ class TaskOptionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Value of myProp: $optionValue")
 
         where:
-        optionType       | options                              | optionValue             | description
-        'String'         | ['--myProp=test']                    | 'test'                  | 'provided'
-        'String'         | ['--myProp=ab\'c=123:x\\yz" 45']       | 'ab\'c=123:x\\yz" 45' | 'provided with special characters'
-        'String'         | []                                   | 'null '                 | 'not provided'
-        'Boolean'        | ['--myProp']                         | 'true'                  | 'provided'
-        'Boolean'        | []                                   | 'null '                 | 'not provided'
-        'boolean'        | ['--myProp']                         | 'true'                  | 'provided'
-        'boolean'        | []                                   | 'false'                 | 'not provided'
-        'TestEnum'       | ['--myProp=OPT_2']                   | 'OPT_2'                 | 'provided with upper case'
-        'TestEnum'       | ['--myProp=opt_2']                   | 'OPT_2'                 | 'provided with lower case'
-        'TestEnum'       | []                                   | 'null'                  | 'not provided'
-        'List<String>'   | ['--myProp=a', '--myProp=b']         | '[a, b]'                | 'provided'
-        'List<String>'   | []                                   | 'null '                 | 'not provided'
-        'List<String>'   | ['--myProp=a,b']                     | '[a,b]'                 | 'provided with incorrect syntax'
-        'List<TestEnum>' | ['--myProp=OPT_2', '--myProp=OPT_3'] | '[OPT_2, OPT_3]'        | 'provided with upper case'
-        'List<TestEnum>' | []                                   | 'null '                 | 'not provided'
-        'List<TestEnum>' | ['--myProp=OPT_2,OPT_3']             | '[OPT_2,OPT_3]'         | 'provided with incorrect syntax'
+        optionType       | options                              | optionValue         | description
+        'String'         | ['--myProp=test']                    | 'test'              | 'provided'
+        'String'         | ['--myProp=ab\'c=123:x\\yz45']       | 'ab\'c=123:x\\yz45' | 'provided with special characters'
+        'String'         | []                                   | 'null '             | 'not provided'
+        'Boolean'        | ['--myProp']                         | 'true'              | 'provided'
+        'Boolean'        | []                                   | 'null '             | 'not provided'
+        'boolean'        | ['--myProp']                         | 'true'              | 'provided'
+        'boolean'        | []                                   | 'false'             | 'not provided'
+        'TestEnum'       | ['--myProp=OPT_2']                   | 'OPT_2'             | 'provided with upper case'
+        'TestEnum'       | ['--myProp=opt_2']                   | 'OPT_2'             | 'provided with lower case'
+        'TestEnum'       | []                                   | 'null'              | 'not provided'
+        'List<String>'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
+        'List<String>'   | []                                   | 'null '             | 'not provided'
+        'List<String>'   | ['--myProp=a,b']                     | '[a,b]'             | 'provided with incorrect syntax'
+        'List<TestEnum>' | ['--myProp=OPT_2', '--myProp=OPT_3'] | '[OPT_2, OPT_3]'    | 'provided with upper case'
+        'List<TestEnum>' | []                                   | 'null '             | 'not provided'
+        'List<TestEnum>' | ['--myProp=OPT_2,OPT_3']             | '[OPT_2,OPT_3]'     | 'provided with incorrect syntax'
     }
 
     def "can render option with help task"() {
