@@ -66,6 +66,6 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
         and:
         failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
         failure.assertThatCause(Matchers.startsWith("No tool chain is available to build Swift for host operating system '${osName}' architecture '${archName}'"))
-        failure.assertThatCause(Matchers.containsString("- Tool chain 'swiftc' (Swift Compiler): Could not determine SwiftC metadata: swiftc produced unexpected output."))
+        failure.assertThatCause(Matchers.containsString("- Tool chain '${toolChain.id}' (Swift Compiler): Could not determine SwiftC metadata: swiftc produced unexpected output."))
     }
 }
