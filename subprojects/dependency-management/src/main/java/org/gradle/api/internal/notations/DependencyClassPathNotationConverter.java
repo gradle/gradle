@@ -92,7 +92,6 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
             final Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
             boolean runningFromInstallation = currentGradleInstallation.getInstallation() != null;
             FileCollectionInternal fileCollectionInternal;
-            Factory<FileCollectionInternal> filesFactory;
             if (runningFromInstallation && notation.equals(GRADLE_API)) {
                 fileCollectionInternal = new GeneratedFileCollection(notation.displayName) {
                     @Override
