@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.plugin.KaptJavacOptionsDelegate
 
 plugins {
     application
-    kotlin("jvm") version "1.2.10"
-    kotlin("kapt") version "1.2.10"
+    kotlin("jvm") version "1.2.20"
+    kotlin("kapt") version "1.2.20"
 }
 
 application {

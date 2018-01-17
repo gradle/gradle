@@ -1,6 +1,6 @@
 plugins {
     id("com.android.application") version "3.0.1"
-    kotlin("android") version "1.2.10"
+    kotlin("android") version "1.2.20"
 }
 
 android {
@@ -27,7 +27,7 @@ android {
 dependencies {
     compile("com.android.support:appcompat-v7:27.0.1")
     compile("com.android.support.constraint:constraint-layout:1.0.2")
-    compile(kotlin("stdlib", "1.2.10"))
+    compile(kotlin("stdlib", "1.2.20"))
 }
 
 repositories {
