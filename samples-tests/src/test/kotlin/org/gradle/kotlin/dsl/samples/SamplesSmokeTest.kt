@@ -41,6 +41,21 @@ class SamplesSmokeTest(
     @Test
     fun `uses the right Kotlin Gradle Plugin version on `() {
 
+        assumeTrue(
+            "Requires published `kotlin-dsl` plugin depending on Kotlin 1.2.20",
+            sampleName !in setOf(
+                "hello-coroutines",
+                "hello-js",
+                "hello-kapt",
+                "hello-kotlin",
+                "maven-publish",
+                "model-rules",
+                "multi-kotlin-project",
+                "multi-kotlin-project-config-injection",
+                "multi-kotlin-project-with-buildSrc",
+                "multi-project-with-buildSrc",
+                "project-with-buildSrc"))
+
         val projectPaths = listOf(":") + listSubProjectPaths().map { "$it:" }
         val projectBuilds = projectPaths.map { buildSpec("${it}buildEnvironment") }
         val buildsToCheck =
