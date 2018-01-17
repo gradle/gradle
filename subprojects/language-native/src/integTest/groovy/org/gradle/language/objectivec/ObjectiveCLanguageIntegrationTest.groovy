@@ -17,11 +17,15 @@ package org.gradle.language.objectivec
 
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
-@RequiresInstalledToolChain(ToolChainRequirement.OBJECTIVE_C_SUPPORT)
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
+
+@RequiresInstalledToolChain(GCC_COMPATIBLE)
+@Requires(TestPrecondition.NOT_WINDOWS)
 class ObjectiveCLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest{
 
     @Override

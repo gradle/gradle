@@ -407,7 +407,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.GCC || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE || (!(this instanceof InstalledWindowsGcc) && requirement == ToolChainRequirement.OBJECTIVE_C_SUPPORT);
+            return requirement == ToolChainRequirement.GCC || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE;
         }
 
         @Override
@@ -629,7 +629,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.CLANG || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE || requirement == ToolChainRequirement.OBJECTIVE_C_SUPPORT;
+            return requirement == ToolChainRequirement.CLANG || requirement == ToolChainRequirement.GCC_COMPATIBLE || requirement == ToolChainRequirement.AVAILABLE;
         }
 
         @Override

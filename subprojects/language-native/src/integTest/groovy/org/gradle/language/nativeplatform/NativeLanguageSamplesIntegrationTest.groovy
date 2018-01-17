@@ -26,7 +26,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.OBJECTIVE_C_SUPPORT
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -93,7 +93,8 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(cpp.dir.file("build/install/main")).exec().out == "Hello world!\n"
     }
 
-    @RequiresInstalledToolChain(OBJECTIVE_C_SUPPORT)
+    @RequiresInstalledToolChain(GCC_COMPATIBLE)
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "objectiveC"() {
         given:
         sample objectiveC
@@ -108,7 +109,8 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         executable(objectiveC.dir.file("build/exe/main/main")).exec().out == "Hello world!\n"
     }
 
-    @RequiresInstalledToolChain(OBJECTIVE_C_SUPPORT)
+    @RequiresInstalledToolChain(GCC_COMPATIBLE)
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "objectiveCpp"() {
         given:
         sample objectiveCpp

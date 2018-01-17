@@ -18,12 +18,16 @@ package org.gradle.language.objectivec
 
 import org.gradle.language.AbstractNativeLanguageIncrementalCompileIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-@RequiresInstalledToolChain(ToolChainRequirement.OBJECTIVE_C_SUPPORT)
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
+
+@RequiresInstalledToolChain(GCC_COMPATIBLE)
+@Requires(TestPrecondition.NOT_WINDOWS)
 class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNativeLanguageIncrementalCompileIntegrationTest {
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {

@@ -18,12 +18,16 @@ package org.gradle.language.objectivec
 
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedObjectiveCHelloWorldApp
-//TODO find a better name
-@RequiresInstalledToolChain(ToolChainRequirement.OBJECTIVE_C_SUPPORT)
-class MixedObjectiveCIntegrationTest extends AbstractNativeLanguageIntegrationTest{
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
+
+@RequiresInstalledToolChain(GCC_COMPATIBLE)
+@Requires(TestPrecondition.NOT_WINDOWS)
+class MixedObjectiveCIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     @Override
     HelloWorldApp getHelloWorldApp() {
