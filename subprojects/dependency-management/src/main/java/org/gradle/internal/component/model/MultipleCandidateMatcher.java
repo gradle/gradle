@@ -67,8 +67,6 @@ import java.util.Set;
  * The information which candidates are compatible and which candidates are still valid during disambiguation is kept in two {@link BitSet}s. The nth bit is set if the nth candidate
  * is compatible. The longest match is kept using two integers, one containing the length of the match, the other containing the index of the candidate that was the longest.
  *
- * TODO For extra attributes we first check whether the schema knows an attribute of the same name and if so we coerce the candidate attribute, as it might be an untyped String coming
- * directly from published metadata. This might not be the best place to do this. This mapping is probably better done when constructing the metadata.
  * </p>
  */
 class MultipleCandidateMatcher<T extends HasAttributes> {
@@ -245,6 +243,13 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         }
     }
 
+    /**
+     * Collects attributes that were present on the candidates, but which the consumer did
+     * not ask for. Some of these attributes might be weakly typed, e.g. coming as Strings
+     * from an artifact repository. We always check whether the schema has a more strongly
+     * typed version of an attribute and use that one instead to apply its disambiguation
+     * rules.
+     */
     private void collectExtraAttributes() {
         Set<Attribute<?>> extraAttributes = Sets.newLinkedHashSet();
         for (ImmutableAttributes attributes : candidateAttributeSets) {
@@ -252,6 +257,13 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         }
         extraAttributes.removeAll(requested.keySet());
         this.extraAttributes = extraAttributes.toArray(new Attribute[0]);
+        for (int i = 0; i < this.extraAttributes.length; i++) {
+            Attribute<?> extraAttribute = this.extraAttributes[i];
+            Attribute<?> schemaAttribute = schema.getAttribute(extraAttribute.getName());
+            if (schemaAttribute != null) {
+                this.extraAttributes[i] = schemaAttribute;
+            }
+        }
     }
 
     private List<T> getCandidates(BitSet liveSet) {
@@ -272,9 +284,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         if (a < requestedAttributes.size()) {
             return requestedAttributes.get(a);
         } else {
-            Attribute<?> extraAttribute = extraAttributes[a - requestedAttributes.size()];
-            Attribute<?> schemaAttribute = schema.getAttribute(extraAttribute.getName());
-            return schemaAttribute == null ? extraAttribute : schemaAttribute;
+            return extraAttributes[a - requestedAttributes.size()];
         }
     }
 
