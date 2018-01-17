@@ -46,7 +46,7 @@ class VariantMetadataSpec {
         attributes[name] = value
     }
 
-    void dependsOn(String group, String module, String version) {
-        dependencies += new DependencySpec(group, module, version, null, null)
+    void dependsOn(String group, String module, String version, String reason = null) {
+        dependencies += new DependencySpec(group, module, version, null, null, reason)
     }
 }

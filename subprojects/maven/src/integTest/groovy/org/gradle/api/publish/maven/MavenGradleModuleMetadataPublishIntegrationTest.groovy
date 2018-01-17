@@ -320,4 +320,61 @@ class TestVariant implements org.gradle.api.internal.component.SoftwareComponent
         variant.dependencies[1].version == '2.0'
         variant.dependencies[1].rejectsVersion == []
     }
+
+    def "publishes dependency reasons"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
+                    dependencyConstraints: configurations.implementation.allDependencies.withType(DependencyConstraint),
+                    attributes: configurations.implementation.attributes))
+
+            dependencies {
+                implementation("org:foo:1.0") {
+                   reason 'version 1.0 is tested'                
+                }
+                constraints {                
+                    implementation("org:bar:2.0") {
+                        reason 'because 2.0 is cool'
+                    }
+                }
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from comp
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module('group', 'root', '1.0')
+        module.assertPublished()
+        module.parsedModuleMetadata.variant('api') {
+            dependency('org:foo:1.0') {
+                hasReason 'version 1.0 is tested'
+            }
+            constraint('org:bar:2.0') {
+                hasReason 'because 2.0 is cool'
+            }
+            noMoreDependencies()
+        }
+    }
+
 }
