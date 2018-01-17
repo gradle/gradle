@@ -40,6 +40,7 @@ import org.gradle.internal.HasInternalProtocol;
  *   }
  * }
  * </pre>
+ *
  * @since 4.4
  */
 @Incubating
@@ -47,6 +48,8 @@ import org.gradle.internal.HasInternalProtocol;
 public interface VcsMappings {
     /**
      * Adds a mapping rule that may define VCS information for any dependency. The supplied action is executed for all components.
+     *
+     * @since 4.6
      */
     VcsMappings all(Action<? super VcsMapping> rule);
 
@@ -56,9 +59,4 @@ public interface VcsMappings {
      * @param module The module to apply the rule to, in the form "group:module".
      */
     VcsMappings withModule(String module, Action<? super VcsMapping> rule);
-
-    /**
-     * Creates and configures a {@link VersionControlSpec} instance to pass to {@link VcsMapping#from(VersionControlSpec)}.
-     */
-    <T extends VersionControlSpec> T vcs(Class<T> type, Action<? super T> configuration);
 }

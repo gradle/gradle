@@ -81,7 +81,7 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec implements Sourc
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }

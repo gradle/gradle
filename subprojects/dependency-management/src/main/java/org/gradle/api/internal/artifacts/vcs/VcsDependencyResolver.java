@@ -160,8 +160,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     }
 
     private VcsMappingInternal getVcsMapping(DependencyMetadata dependency) {
-        if (vcsMappingsStore.hasRules()
-                && dependency.getSelector() instanceof ModuleComponentSelector) {
+        if (vcsMappingsStore.hasRules() && dependency.getSelector() instanceof ModuleComponentSelector) {
             return vcsMappingFactory.create(dependency.getSelector());
         }
         return null;

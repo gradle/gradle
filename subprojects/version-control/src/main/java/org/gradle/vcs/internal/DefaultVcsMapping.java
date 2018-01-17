@@ -17,15 +17,18 @@
 package org.gradle.vcs.internal;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.vcs.VersionControlSpec;
 
 public class DefaultVcsMapping implements VcsMappingInternal {
     private final ComponentSelector requested;
+    private final VersionControlSpecFactory specFactory;
     private VersionControlSpec versionControlSpec;
 
-    public DefaultVcsMapping(ComponentSelector requested) {
+    public DefaultVcsMapping(ComponentSelector requested, VersionControlSpecFactory specFactory) {
         this.requested = requested;
+        this.specFactory = specFactory;
     }
 
     @Override
@@ -37,6 +40,13 @@ public class DefaultVcsMapping implements VcsMappingInternal {
     public void from(VersionControlSpec versionControlSpec) {
         Preconditions.checkNotNull(versionControlSpec, "VCS repository cannot be null");
         this.versionControlSpec = versionControlSpec;
+    }
+
+    @Override
+    public <T extends VersionControlSpec> void from(Class<T> type, Action<? super T> configureAction) {
+        T spec = specFactory.create(type);
+        configureAction.execute(spec);
+        this.versionControlSpec = spec;
     }
 
     @Override

@@ -24,8 +24,6 @@ import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.git.internal.DefaultGitVersionControlSpec;
 import org.gradle.vcs.internal.spec.DirectoryRepositorySpec;
 
-import javax.annotation.Nullable;
-
 public class VersionControlSpecFactory {
     private final Instantiator instantiator;
     private final StartParameter rootBuildStartParameter;
@@ -35,13 +33,12 @@ public class VersionControlSpecFactory {
         this.rootBuildStartParameter = rootBuildStartParameter;
     }
 
-    @Nullable
     public <T extends VersionControlSpec> T create(Class<T> specType) {
         if (GitVersionControlSpec.class.isAssignableFrom(specType)) {
             return Cast.uncheckedCast(instantiator.newInstance(DefaultGitVersionControlSpec.class, rootBuildStartParameter));
         } else if (DirectoryRepositorySpec.class.isAssignableFrom(specType)) {
             return Cast.uncheckedCast(instantiator.newInstance(DirectoryRepositorySpec.class, rootBuildStartParameter));
         }
-        return null;
+        throw new IllegalArgumentException(String.format("Do not know how to create an instance of %s.", specType.getName()));
     }
 }

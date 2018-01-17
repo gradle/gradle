@@ -116,7 +116,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 vcsMappings {
                     all { details ->
                         if (details.requested.group == "org.test") {
-                            from vcs(GitVersionControlSpec) {
+                            from(GitVersionControlSpec) {
                                 url = uri(details.requested.module)
                             }
                         }
@@ -167,7 +167,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 vcsMappings {
                     all { details ->
                         if (details.requested.group == "org.test") {
-                            from vcs(GitVersionControlSpec) {
+                            from(GitVersionControlSpec) {
                                 url = uri(details.requested.module)
                             }
                         }
@@ -345,7 +345,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
             sourceControl {
                 vcsMappings {
                     withModule('${module}') {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = file('${location}').toURI()
                         }
                     }
