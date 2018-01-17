@@ -100,6 +100,6 @@ public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMe
 
     private org.gradle.internal.component.model.DependencyMetadata toDependencyMetadata(T details) {
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(details.getGroup(), details.getName(), DefaultImmutableVersionConstraint.of(details.getVersionConstraint()));
-        return new GradleDependencyMetadata(selector, isPending(), null);
+        return new GradleDependencyMetadata(selector, isPending(), details.getReason());
     }
 }
