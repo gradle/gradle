@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.toolchain
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.hamcrest.Matchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
@@ -42,6 +43,10 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
             echo "foo"
         """
         script.executable = true
+
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
+        app.writeToProject(testDirectory)
 
         when:
         buildFile << """

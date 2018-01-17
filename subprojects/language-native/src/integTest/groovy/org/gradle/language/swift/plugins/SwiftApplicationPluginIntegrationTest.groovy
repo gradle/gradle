@@ -16,5 +16,7 @@
 
 package org.gradle.language.swift.plugins
 
-class SwiftApplicationPluginIntegrationTest extends AbstractSwiftPluginIntegrationTest {
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
+
+class SwiftApplicationPluginIntegrationTest extends WellBehavedPluginTest {
 }

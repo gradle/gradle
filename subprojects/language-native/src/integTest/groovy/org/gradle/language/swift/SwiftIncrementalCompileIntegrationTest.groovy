@@ -253,8 +253,8 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksSkipped(":assemble", ":greeter:compileDebugSwift", ":greeter:linkDebug", ":greeter:assemble")
 
         executable("app/build/exe/main/debug/App").assertDoesNotExist()
-        file("app/build/exe/main/debug").assertHasDescendants()
-        file("app/build/obj/main/debug").assertHasDescendants()
+        file("app/build/exe/main/debug").assertDoesNotExist()
+        file("app/build/obj/main/debug").assertDoesNotExist()
         installation("app/build/install/main/debug").assertNotInstalled()
 
         sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
@@ -288,8 +288,8 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
         executable("build/exe/main/debug/App").assertDoesNotExist()
-        file("build/exe/main/debug").assertHasDescendants()
-        file("build/obj/main/debug").assertHasDescendants()
+        file("build/exe/main/debug").assertDoesNotExist()
+        file("build/obj/main/debug").assertDoesNotExist()
         installation("build/install/main/debug").assertNotInstalled()
     }
 
@@ -321,8 +321,8 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
 
         sharedLibrary("build/lib/main/debug/Hello").assertDoesNotExist()
-        file("build/lib/main/debug").assertHasDescendants()
-        file("build/obj/main/debug").assertHasDescendants()
+        file("build/lib/main/debug").assertDoesNotExist()
+        file("build/obj/main/debug").assertDoesNotExist()
     }
 
     private List<String> expectIntermediateDescendants(SourceElement sourceElement) {

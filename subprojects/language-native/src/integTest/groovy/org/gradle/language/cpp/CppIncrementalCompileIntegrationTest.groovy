@@ -170,7 +170,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksSkipped(skippedTasks)
 
         executable("app/build/exe/main/debug/app").assertDoesNotExist()
-        file("app/build/exe/main/debug").assertHasDescendants()
+        file("app/build/exe/main/debug").assertDoesNotExist()
         file("app/build/obj/main/debug").assertHasDescendants()
         installation("app/build/install/main/debug").assertNotInstalled()
 
@@ -207,7 +207,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksNotSkipped(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
 
         executable("build/exe/main/debug/app").assertDoesNotExist()
-        file("build/exe/main/debug").assertHasDescendants()
+        file("build/exe/main/debug").assertDoesNotExist()
         file("build/obj/main/debug").assertHasDescendants()
         installation("build/install/main/debug").assertNotInstalled()
     }
@@ -240,7 +240,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksNotSkipped(compileAndLinkTasks(debug), ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertDoesNotExist()
-        file("build/lib/main/debug").assertHasDescendants()
+        file("build/lib/main/debug").assertDoesNotExist()
         file("build/obj/main/debug").assertHasDescendants()
     }
 

@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.HostPlatform
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -28,9 +29,12 @@ class XCTestPluginOnUnsupportedPlatformIntegrationTest extends AbstractIntegrati
     }
 
     def "fails to build and run tests on unsupported platform"() {
-        fails "check"
+        def app = new SwiftAppWithXCTest()
+        app.writeToProject(testDirectory)
 
-        expect:
+        when:
+        fails "check"
+        then:
         failure.assertHasCause("""No tool chain is available to build Swift for host operating system '${osName}' architecture '${archName}':
   - Tool chain 'swiftc' (Swift Compiler): Could not find Swift compiler 'swiftc' in system path.""")
     }

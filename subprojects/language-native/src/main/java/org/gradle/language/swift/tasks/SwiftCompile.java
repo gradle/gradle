@@ -33,6 +33,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
@@ -130,6 +131,7 @@ public class SwiftCompile extends DefaultTask {
      * @since 4.4
      */
     @InputFiles
+    @SkipWhenEmpty
     @PathSensitive(PathSensitivity.RELATIVE)
     public ConfigurableFileCollection getSource() {
         return source;
