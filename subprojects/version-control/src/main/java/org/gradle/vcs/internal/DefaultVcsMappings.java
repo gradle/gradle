@@ -38,13 +38,13 @@ public class DefaultVcsMappings implements VcsMappings {
     }
 
     @Override
-    public VcsMappings addRule(String message, Action<VcsMapping> rule) {
+    public VcsMappings addRule(String message, Action<? super VcsMapping> rule) {
         vcsMappings.addRule(new DescribedRule(message, rule), gradle);
         return this;
     }
 
     @Override
-    public VcsMappings withModule(String groupName, Action<VcsMapping> rule) {
+    public VcsMappings withModule(String groupName, Action<? super VcsMapping> rule) {
         vcsMappings.addRule(new GavFilteredRule(groupName, rule), gradle);
         return this;
     }
@@ -58,9 +58,9 @@ public class DefaultVcsMappings implements VcsMappings {
 
     private static class DescribedRule implements Action<VcsMapping>, Describable {
         private final String displayName;
-        private final Action<VcsMapping> delegate;
+        private final Action<? super VcsMapping> delegate;
 
-        private DescribedRule(String displayName, Action<VcsMapping> delegate) {
+        private DescribedRule(String displayName, Action<? super VcsMapping> delegate) {
             this.displayName = displayName;
             this.delegate = delegate;
         }
@@ -79,7 +79,7 @@ public class DefaultVcsMappings implements VcsMappings {
     private static class GavFilteredRule extends DescribedRule {
         private final String groupName;
 
-        private GavFilteredRule(String groupName, Action<VcsMapping> delegate) {
+        private GavFilteredRule(String groupName, Action<? super VcsMapping> delegate) {
             super("filtered rule for module " + groupName, delegate);
             this.groupName = groupName;
         }

@@ -33,5 +33,8 @@ public interface VcsMapping {
      */
     ComponentSelector getRequested();
 
+    /**
+     * Specifies the VCS location for the requested component.
+     */
     void from(VersionControlSpec versionControlSpec);
 }
