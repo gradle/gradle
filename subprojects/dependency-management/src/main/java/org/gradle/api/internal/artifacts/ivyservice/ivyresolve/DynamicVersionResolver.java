@@ -93,6 +93,10 @@ public class DynamicVersionResolver {
             }
 
             result.resolved(metaDataFactory.transform(latestResolved));
+            String reason = dependency.getReason();
+            if (reason != null) {
+                result.setSelectionDescription(result.getSelectionDescription().withReason(reason));
+            }
             return;
         }
         if (!errors.isEmpty()) {

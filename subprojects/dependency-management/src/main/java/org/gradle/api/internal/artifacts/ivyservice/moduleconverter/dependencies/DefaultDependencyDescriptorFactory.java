@@ -49,7 +49,7 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
             nullToEmpty(dependencyConstraint.getGroup()), nullToEmpty(dependencyConstraint.getName()), dependencyConstraint.getVersionConstraint());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(componentId, selector, clientConfiguration, attributes, null,
-            Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, true);
+            Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, true, dependencyConstraint.getReason());
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependencyConstraint);
     }
 

@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
+import static org.gradle.api.artifacts.result.ComponentSelectionCause.REQUESTED;
 import static org.gradle.api.artifacts.result.ComponentSelectionCause.SELECTED_BY_RULE;
 
 public class DefaultDependencySubstitution implements DependencySubstitutionInternal {
@@ -76,7 +77,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
 
     @Override
     public boolean isUpdated() {
-        return selectionDescription != VersionSelectionReasons.REQUESTED;
+        return selectionDescription.getCause() != REQUESTED;
     }
 
     public static void validateTarget(ComponentSelector componentSelector) {
