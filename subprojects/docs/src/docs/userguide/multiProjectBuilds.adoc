@@ -48,7 +48,7 @@ Configuration on demand mode attempts to configure only projects that are releva
 * A task requested via task path from the command line (or Tooling API) causes the relevant project to be configured. For example, building 'projectA:projectB:someTask' causes configuration of projectB.
 
 
-Eager to try out this new feature? To configure on demand with every build run see <<sec:gradle_configuration_properties>>. To configure on demand just for a given build please see <<gradle_command_line>>.
+Eager to try out this new feature? To configure on demand with every build run see <<sec:gradle_configuration_properties>>. To configure on demand just for a given build, see <<sec:command_line_performance>>.
 
 [[sec:defining_common_behavior]]
 ==== Defining common behavior
@@ -497,7 +497,7 @@ Parallel project execution allows the separate projects in a decoupled multi-pro
 * Using pre-built artifacts in the place of building dependent projects.
 
 
-How does parallel execution work? First, you need to tell Gradle to use parallel mode. You can use the command line argument (<<gradle_command_line>>) or configure your build environment (<<sec:gradle_configuration_properties>>). Unless you provide a specific number of parallel threads, Gradle attempts to choose the right number based on available CPU cores. Every parallel worker exclusively owns a given project while executing a task. Task dependencies are fully supported and parallel workers will start executing upstream tasks first. Bear in mind that the alphabetical ordering of decoupled tasks, as can be seen during sequential execution, is not guaranteed in parallel mode. In other words, in parallel mode tasks will run as soon as their dependencies complete _and a task worker is available to run them_, which may be earlier than they would start during a sequential build. You should make sure that task dependencies and task inputs/outputs are declared correctly to avoid ordering issues.
+How does parallel execution work? First, you need to tell Gradle to use parallel mode. You can use the <<sec:command_line_performance,`--parallel` command line argument>> or configure your build environment (<<sec:gradle_configuration_properties>>). Unless you provide a specific number of parallel threads, Gradle attempts to choose the right number based on available CPU cores. Every parallel worker exclusively owns a given project while executing a task. Task dependencies are fully supported and parallel workers will start executing upstream tasks first. Bear in mind that the alphabetical ordering of decoupled tasks, as can be seen during sequential execution, is not guaranteed in parallel mode. In other words, in parallel mode tasks will run as soon as their dependencies complete _and a task worker is available to run them_, which may be earlier than they would start during a sequential build. You should make sure that task dependencies and task inputs/outputs are declared correctly to avoid ordering issues.
 
 [[sec:decoupled_projects]]
 === Decoupled Projects
