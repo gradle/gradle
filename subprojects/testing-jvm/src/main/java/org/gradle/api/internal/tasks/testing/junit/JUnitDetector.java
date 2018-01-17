@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassDetecter> {
+public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassDetector> {
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitDetector.class);
 
     public JUnitDetector(ClassFileExtractionManager classFileExtractionManager) {
@@ -31,8 +31,8 @@ public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassD
     }
 
     @Override
-    protected JUnitTestClassDetecter createClassVisitor() {
-        return new JUnitTestClassDetecter(this);
+    protected JUnitTestClassDetector createClassVisitor() {
+        return new JUnitTestClassDetector(this);
     }
 
     @Override

@@ -19,19 +19,19 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-class JUnitTestMethodDetecter extends MethodVisitor {
+class JUnitTestMethodDetector extends MethodVisitor {
 
-    private final JUnitTestClassDetecter testClassDetecter;
+    private final JUnitTestClassDetector testClassDetector;
 
-    JUnitTestMethodDetecter(JUnitTestClassDetecter testClassDetecter) {
+    JUnitTestMethodDetector(JUnitTestClassDetector testClassDetector) {
         super(Opcodes.ASM6);
-        this.testClassDetecter = testClassDetecter;
+        this.testClassDetector = testClassDetector;
     }
 
     @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if ("Lorg/junit/Test;".equals(desc)) {
-            testClassDetecter.setTest(true);
+            testClassDetector.setTest(true);
         }
         return null;
     }
