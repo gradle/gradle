@@ -416,11 +416,12 @@ Set to `rich` to enable color and other rich output in the console output, regar
 +
 Set to `verbose` to enable color and other rich output like the `rich`, but output task names and outcomes at the lifecycle log level, as is done by default in Gradle 3.5 and earlier.
 
+[[sec:command_line_warnings]]
 ==== Showing or hiding warnings
 By default, Gradle won't display all warnings (e.g. deprecation warnings). Instead, Gradle will collect them and render a summary at the end of the build like:
 
 ----
-There are <number> deprecation warnings, which may break the build in Gradle 5.0. Please run with --warning-mode=all to see them.
+Deprecated Gradle API and/or features were used in this build, making it incompatible with Gradle 5.0.
 ----
 
 You can control the verbosity of warnings on the console with the following options:

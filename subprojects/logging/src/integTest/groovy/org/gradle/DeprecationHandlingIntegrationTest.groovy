@@ -19,6 +19,7 @@ package org.gradle
 import org.gradle.api.JavaVersion
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
@@ -104,13 +105,14 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.contains('The deprecated task has been deprecated') == warningsCountInConsole > 0
 
         and:
-        output.contains("There are ${incrementWarningCountIfJava7(warningsCountInSummary)} deprecation warnings") == (warningsCountInSummary > 0)
+        output.contains("Deprecated Gradle API and/or features were used in this build, making it incompatible with Gradle ${GradleVersion.current().getNextMajor().getVersion()}.") == (warningsCountInSummary > 0)
+        output.contains("Please run with --warning-mode=all to see detailed warnings.") == (warningsCountInSummary > 0)
 
         and:
         assertFullStacktraceResult(fullStacktraceEnabled, warningsCountInConsole)
 
         where:
-        scenario                                    | warnings            | warningsCountInConsole | warningsCountInSummary | fullStacktraceEnabled
+        scenario                                        | warnings            | warningsCountInConsole | warningsCountInSummary | fullStacktraceEnabled
         'without stacktrace and --warning-mode=all'     | WarningMode.All     | 4                      | 0                      | false
         'with stacktrace and --warning-mode=all'        | WarningMode.All     | 4                      | 0                      | true
         'without stacktrace and --warning-mode=no'      | WarningMode.None    | 0                      | 0                      | false

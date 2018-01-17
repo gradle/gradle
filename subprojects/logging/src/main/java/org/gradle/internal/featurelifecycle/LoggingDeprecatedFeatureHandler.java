@@ -16,6 +16,7 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
@@ -30,6 +31,7 @@ import java.util.Set;
 public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
 
+    private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
     private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
@@ -76,9 +78,11 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
 
     public void reportSuppressedDeprecations() {
         if (warningMode == WarningMode.Summary && !messages.isEmpty()) {
-            LOGGER.warn("\nThere are {} deprecation warnings, which may break the build in Gradle {}. Please run with --warning-mode=all to see them.",
-                messages.size(),
-                GradleVersion.current().getNextMajor().getVersion());
+            LOGGER.warn("\n"
+                    + "Deprecated Gradle API and/or features were used in this build, making it incompatible with Gradle {}.\n"
+                    + "Read documentation on configuring warning logging at {}",
+                GradleVersion.current().getNextMajor().getVersion(),
+                DOCUMENTATION_REGISTRY.getDocumentationFor("command_line_interface", "sec:command_line_warnings"));
         }
     }
 
