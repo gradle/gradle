@@ -70,6 +70,13 @@ idea {
 	        processHeapSize = 2042
 	    }
 
+        groovyCompiler {
+            heapSize = 2000
+            excludes {
+                file("${rootProject.projectDir.absolutePath}/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy")
+            }
+        }
+
         copyright {
             useDefault = "ASL2"
             profiles {
@@ -178,15 +185,6 @@ limitations under the License."""
           </component>
         ''')
                 node.append(codeFormatSettings)
-
-                node.append(new XmlParser().parseText('''
-                    <component name="GroovyCompilerProjectConfiguration">
-                      <excludes>
-                        <file url="file://$PROJECT_DIR$/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy" />
-                      </excludes>
-                      <option name="heapSize" value="2000" />
-                    </component>
-                '''))
 
                 node.append(new NodeBuilder().component(name: 'FrameworkDetectionExcludesConfiguration') {
                   type(id: 'android')
