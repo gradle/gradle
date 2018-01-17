@@ -39,7 +39,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -69,7 +69,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -126,7 +126,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -149,7 +149,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -175,7 +175,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -205,7 +205,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -243,7 +243,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule('org.test:dep') {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -284,7 +284,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule('org.test:dep') {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -308,7 +308,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule('org.test:deeperDep') {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${deeperRepo.url}"
                         }
                     }
@@ -342,7 +342,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         sourceControl {
             vcsMappings {
                 withModule("org.test:dep") {
-                    from vcs(GitVersionControlSpec) {
+                    from(GitVersionControlSpec) {
                         url = "${repo.url}"
                     }
                 }
@@ -411,7 +411,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -451,7 +451,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }

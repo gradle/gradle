@@ -177,7 +177,7 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
         coords.each { coord ->
             settingsFile << """
                     withModule("${coord}") {
-                        from vcs(DirectoryRepositorySpec) {
+                        from(DirectoryRepositorySpec) {
                             sourceDir = file("${repo.name}")
                         }
                     }

@@ -61,7 +61,7 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
                 vcsMappings {
                     all { details ->
                         if (details.requested.group == "org.gradle.cpp") {
-                            from vcs(DirectoryRepositorySpec) {
+                            from(DirectoryRepositorySpec) {
                                 sourceDir = file(details.requested.module)
                             }
                         }

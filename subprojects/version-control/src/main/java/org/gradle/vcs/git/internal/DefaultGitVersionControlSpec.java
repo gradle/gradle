@@ -43,6 +43,7 @@ public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec imp
 
     @Override
     public void setUrl(String url) {
+        // TODO - should use a resolver so that this method is consistent with Project.uri(string)
         try {
             setUrl(new URI(url));
         } catch (URISyntaxException e) {

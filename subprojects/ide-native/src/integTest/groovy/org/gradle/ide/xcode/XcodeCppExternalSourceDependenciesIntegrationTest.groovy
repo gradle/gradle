@@ -48,7 +48,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
             sourceControl {
                 vcsMappings {
                     withModule("org.test:greeter") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -97,7 +97,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
             sourceControl {
                 vcsMappings {
                     withModule("org.test:greeter") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -160,7 +160,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
             sourceControl {
                 vcsMappings {
                     withModule("org.test:greeter") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -218,7 +218,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
             sourceControl {
                 vcsMappings {
                     withModule("org.test:greeter") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }

@@ -31,7 +31,7 @@ class SwiftDependenciesCppInteroperabilityIntegrationTest extends AbstractSwiftM
                 vcsMappings {
                     all { details ->
                         if (details.requested.group == "org.gradle.swift") {
-                            from vcs(GitVersionControlSpec) {
+                            from(GitVersionControlSpec) {
                                 url = uri(details.requested.module)
                             }
                         }

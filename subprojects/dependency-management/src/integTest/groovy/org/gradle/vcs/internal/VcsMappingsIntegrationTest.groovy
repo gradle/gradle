@@ -30,7 +30,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(DirectoryRepositorySpec) {
+                        from(DirectoryRepositorySpec) {
                             sourceDir = file("dep")
                         }
                     }
@@ -66,7 +66,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = 'https://bad.invalid'
                         }
                     }
@@ -87,7 +87,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
                 vcsMappings {
                     all { details ->
                         if (details.requested.group == "org.test") {
-                            from vcs(DirectoryRepositorySpec) {
+                            from(DirectoryRepositorySpec) {
                                 sourceDir = file("dep")
                             }
                         }
@@ -108,13 +108,13 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("unused:dep") {
-                        from vcs(DirectoryRepositorySpec) {
+                        from(DirectoryRepositorySpec) {
                             sourceDir = file("does-not-exist")
                         }
                     }
                     all { details ->
                         if (details instanceof ModuleVersionSelector && details.requested.group == "unused") {
-                            from vcs(DirectoryRepositorySpec) {
+                            from(DirectoryRepositorySpec) {
                                 sourceDir = file("does-not-exist")
                             }
                         }
@@ -133,12 +133,12 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(DirectoryRepositorySpec) {
+                        from(DirectoryRepositorySpec) {
                             sourceDir = file("does-not-exist")
                         }
                     }
                     withModule("org.test:dep") {
-                        from vcs(DirectoryRepositorySpec) {
+                        from(DirectoryRepositorySpec) {
                             sourceDir = file("dep")
                         }
                     }
@@ -157,7 +157,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(DirectoryRepositorySpec) {
+                        from(DirectoryRepositorySpec) {
                             sourceDir = file("dep")
                         }
                     }
@@ -216,7 +216,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule('org.test:dep') {
-                        from vcs(DirectoryRepositorySpec) {
+                        from(DirectoryRepositorySpec) {
                             sourceDir = file('repoRoot')
                             rootDir = 'dep'
                         }
@@ -234,7 +234,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule('org.test:dep') {
-                        from vcs(DirectoryRepositorySpec) {
+                        from(DirectoryRepositorySpec) {
                             sourceDir = file('dep')
                             rootDir = null
                         }
