@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.testing.testng;
+package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
@@ -21,13 +21,13 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-class TestNGTestClassDetecter extends TestClassVisitor {
+class JUnitTestClassDetector extends TestClassVisitor {
     private boolean isAbstract;
     private String className;
     private String superClassName;
     private boolean test;
 
-    TestNGTestClassDetecter(final TestFrameworkDetector detector) {
+    JUnitTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
     }
 
@@ -40,17 +40,25 @@ class TestNGTestClassDetecter extends TestClassVisitor {
     }
 
     @Override
+    public void visitInnerClass(String name, String outerName, String innerName, int access) {
+        if (name.equals(className) && (access & Opcodes.ACC_STATIC) == 0) {
+            isAbstract = true;
+        }
+    }
+
+    @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        if ("Lorg/testng/annotations/Test;".equals(desc)) {
+        if ("Lorg/junit/runner/RunWith;".equals(desc)) {
             test = true;
         }
+
         return null;
     }
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (!isAbstract && !test) {
-            return new TestNGTestMethodDetecter(this);
+        if (!test) {
+            return new JUnitTestMethodDetector(this);
         } else {
             return null;
         }
