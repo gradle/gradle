@@ -56,6 +56,6 @@ public class SecurityManagerTest {
         expect:
         fails('test')
         result.error.contains("Process 'Gradle Test Executor 1' finished with non-zero exit value 1")
-        result.error.contains("Please refer to the test chapter in user guide at https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_test.html")
+        result.error.contains("Please refer to the test execution section in the user guide at https://docs.gradle.org/${GradleVersion.current().version}/userguide/java_plugin.html#sec:test_execution")
     }
 }
