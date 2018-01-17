@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetecter> {
+class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetector> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestNGDetector.class);
 
     TestNGDetector(ClassFileExtractionManager classFileExtractionManager) {
@@ -31,8 +31,8 @@ class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetect
     }
 
     @Override
-    protected TestNGTestClassDetecter createClassVisitor() {
-        return new TestNGTestClassDetecter(this);
+    protected TestNGTestClassDetector createClassVisitor() {
+        return new TestNGTestClassDetector(this);
     }
 
     /**

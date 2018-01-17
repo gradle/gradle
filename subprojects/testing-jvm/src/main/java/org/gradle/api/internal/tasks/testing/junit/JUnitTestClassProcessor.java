@@ -33,7 +33,7 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
     private final ActorFactory actorFactory;
     private final Clock clock;
     private final JUnitSpec spec;
-    private JUnitTestClassExecuter executer;
+    private JUnitTestClassExecutor executer;
     private Actor resultProcessorActor;
 
     public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
@@ -57,7 +57,7 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
 
         // Build the JUnit adaptor stuff
         JUnitTestEventAdapter junitEventAdapter = new JUnitTestEventAdapter(threadSafeResultProcessor, clock, idGenerator);
-        executer = new JUnitTestClassExecuter(applicationClassLoader, spec, junitEventAdapter, threadSafeTestClassListener);
+        executer = new JUnitTestClassExecutor(applicationClassLoader, spec, junitEventAdapter, threadSafeTestClassListener);
     }
 
     @Override
