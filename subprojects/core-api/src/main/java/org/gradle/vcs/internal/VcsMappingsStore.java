@@ -24,7 +24,7 @@ import org.gradle.vcs.VcsMapping;
 public interface VcsMappingsStore {
     Action<VcsMapping> getVcsMappingRule();
     boolean hasRules();
-    void addRule(Action<VcsMapping> rule, Gradle gradle);
+    void addRule(Action<? super VcsMapping> rule, Gradle gradle);
 
     VcsMappingsStore NO_OP = new VcsMappingsStore() {
         @Override
@@ -38,7 +38,7 @@ public interface VcsMappingsStore {
         }
 
         @Override
-        public void addRule(Action<VcsMapping> rule, Gradle gradle) {
+        public void addRule(Action<? super VcsMapping> rule, Gradle gradle) {
         }
     };
 }

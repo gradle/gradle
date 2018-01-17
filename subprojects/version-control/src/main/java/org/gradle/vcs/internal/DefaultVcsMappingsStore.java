@@ -31,8 +31,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultVcsMappingsStore implements VcsMappingsStore {
-    private final Set<Action<VcsMapping>> rootVcsMappings = Sets.newLinkedHashSet();
-    private final Map<Gradle, Set<Action<VcsMapping>>> vcsMappings = Maps.newHashMap();
+    private final Set<Action<? super VcsMapping>> rootVcsMappings = Sets.newLinkedHashSet();
+    private final Map<Gradle, Set<Action<? super VcsMapping>>> vcsMappings = Maps.newHashMap();
 
     @Override
     public Action<VcsMapping> getVcsMappingRule() {
@@ -69,12 +69,12 @@ public class DefaultVcsMappingsStore implements VcsMappingsStore {
     }
 
     @Override
-    public void addRule(Action<VcsMapping> rule, Gradle gradle) {
+    public void addRule(Action<? super VcsMapping> rule, Gradle gradle) {
         if (gradle.getParent() == null) {
             rootVcsMappings.add(rule);
         } else {
             if (!vcsMappings.containsKey(gradle)) {
-                vcsMappings.put(gradle, Sets.<Action<VcsMapping>>newLinkedHashSet());
+                vcsMappings.put(gradle, Sets.<Action<? super VcsMapping>>newLinkedHashSet());
             }
             vcsMappings.get(gradle).add(rule);
         }

@@ -114,10 +114,10 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             sourceControl {
                 vcsMappings {
-                    addRule('org.test group rule') { details ->
+                    all { details ->
                         if (details.requested.group == "org.test") {
                             from vcs(GitVersionControlSpec) {
-                                url = file(details.requested.module).toURI()
+                                url = uri(details.requested.module)
                             }
                         }
                     }
@@ -165,10 +165,10 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             sourceControl {
                 vcsMappings {
-                    addRule('org.test group rule') { details ->
+                    all { details ->
                         if (details.requested.group == "org.test") {
                             from vcs(GitVersionControlSpec) {
-                                url = file(details.requested.module).toURI()
+                                url = uri(details.requested.module)
                             }
                         }
                     }
