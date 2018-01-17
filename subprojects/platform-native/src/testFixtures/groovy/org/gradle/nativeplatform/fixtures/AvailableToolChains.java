@@ -206,7 +206,7 @@ public class AvailableToolChains {
         if (compilerExe.isFile()) {
             SwiftcMetadata version = versionDeterminer.getCompilerMetaData(compilerExe, Collections.<String>emptyList());
             if (version.isAvailable()) {
-                return new InstalledSwiftc("swiftc", version.getVersion()).inPath(compilerExe.getParentFile(), new File("/usr/bin"));
+                return new InstalledSwiftc(version.getVersion()).inPath(compilerExe.getParentFile(), new File("/usr/bin"));
             }
         }
 
@@ -216,7 +216,7 @@ public class AvailableToolChains {
             for (File candidate : swiftcCandidates) {
                 SwiftcMetadata version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
                 if (version.isAvailable()) {
-                    InstalledSwiftc swiftc = new InstalledSwiftc("swiftc", version.getVersion());
+                    InstalledSwiftc swiftc = new InstalledSwiftc(version.getVersion());
                     if (!candidate.equals(firstInPath)) {
                         // Not the first swiftc in the path, needs the path variable updated
                         swiftc.inPath(candidate.getParentFile());
@@ -476,8 +476,8 @@ public class AvailableToolChains {
     public static class InstalledSwiftc extends InstalledToolChain {
         private final VersionNumber compilerVersion;
 
-        public InstalledSwiftc(String displayName, VersionNumber compilerVersion) {
-            super(displayName);
+        public InstalledSwiftc(VersionNumber compilerVersion) {
+            super("swiftc " + compilerVersion);
             this.compilerVersion = compilerVersion;
         }
 
@@ -520,7 +520,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            return requirement == ToolChainRequirement.SWIFTC || requirement == ToolChainRequirement.AVAILABLE || (requirement == ToolChainRequirement.SWIFTC_3 && getVersion().getMajor() == 3) || (requirement == ToolChainRequirement.SWIFTC_4 && getVersion().getMajor() == 4);
+            return requirement == ToolChainRequirement.SWIFTC || (requirement == ToolChainRequirement.SWIFTC_3 && getVersion().getMajor() == 3) || (requirement == ToolChainRequirement.SWIFTC_4 && getVersion().getMajor() == 4);
         }
 
         public VersionNumber getVersion() {

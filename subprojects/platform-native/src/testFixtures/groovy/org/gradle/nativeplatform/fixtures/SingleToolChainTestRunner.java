@@ -18,10 +18,7 @@ package org.gradle.nativeplatform.fixtures;
 
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
 
-import java.util.EnumSet;
 import java.util.List;
-
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.*;
 
 public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
     private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.cpp.toolChains";
@@ -39,12 +36,12 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
                 if (!toolChain.isAvailable()) {
                     throw new RuntimeException(String.format("Tool chain %s is not available.", toolChain.getDisplayName()));
                 }
-                add(new ToolChainExecution(toolChain, isRespectingSwiftConstraint(toolChain)));
+                add(new ToolChainExecution(toolChain, isRespectsInstalledConstraint(toolChain)));
             }
         } else {
             boolean hasEnabled = false;
             for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-                if (!hasEnabled && toolChain.isAvailable() && isRespectingSwiftConstraint(toolChain)) {
+                if (!hasEnabled && toolChain.isAvailable() && isRespectsInstalledConstraint(toolChain)) {
                     add(new ToolChainExecution(toolChain, true));
                     hasEnabled = true;
                 } else {
@@ -54,12 +51,9 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         }
     }
 
-    private boolean isRespectingSwiftConstraint(AvailableToolChains.ToolChainCandidate toolChain) {
+    private boolean isRespectsInstalledConstraint(AvailableToolChains.ToolChainCandidate toolChain) {
         RequiresInstalledToolChain toolChainRequirement = target.getAnnotation(RequiresInstalledToolChain.class);
-        if (toolChainRequirement == null) {
-            return true;
-        }
-        return EnumSet.of(SWIFTC, SWIFTC_3, SWIFTC_4).contains(toolChainRequirement.value()) == toolChain instanceof AvailableToolChains.InstalledSwiftc;
+        return toolChain.meets(toolChainRequirement == null ? ToolChainRequirement.AVAILABLE : toolChainRequirement.value());
     }
 
     private static class ToolChainExecution extends Execution {
