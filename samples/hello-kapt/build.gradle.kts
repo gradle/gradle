@@ -13,26 +13,21 @@ repositories {
 }
 
 dependencies {
-    compile(kotlin("stdlib"))
-    testCompile("junit:junit:4.12")
-
-    // Use AutoValue to check that annotation processing works
-    // https://github.com/google/auto/tree/master/value
     compileOnly("com.google.auto.value:auto-value:1.5")
-    // Kapt configuration for an annotation processor
     kapt("com.google.auto.value:auto-value:1.5")
+
+    compile(kotlin("stdlib"))
+
+    testCompile("junit:junit:4.12")
 }
 
 kapt {
-    // Type safe accessors for Kapt DSL
     correctErrorTypes = true
 
-    // Example of Javac Options configuration
     javacOptions {
         option("SomeJavacOption", "OptionValue")
     }
 
-    // Kapt Arguments configuration
     arguments {
         arg("SomeKaptArgument", "ArgumentValue")
     }
