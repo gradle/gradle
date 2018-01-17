@@ -32,9 +32,14 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     private ComponentSelectionDescriptorInternal selectionDescription;
     private ComponentSelector target;
 
-    public DefaultDependencySubstitution(ComponentSelector requested) {
+    public DefaultDependencySubstitution(ComponentSelector requested, String reason) {
         this.requested = requested;
         this.target = requested;
+        if (reason != null) {
+            this.selectionDescription = VersionSelectionReasons.REQUESTED.withReason(reason);
+        } else {
+            this.selectionDescription = VersionSelectionReasons.REQUESTED;
+        }
     }
 
     @Override
@@ -71,7 +76,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
 
     @Override
     public boolean isUpdated() {
-        return selectionDescription != null;
+        return selectionDescription != VersionSelectionReasons.REQUESTED;
     }
 
     public static void validateTarget(ComponentSelector componentSelector) {

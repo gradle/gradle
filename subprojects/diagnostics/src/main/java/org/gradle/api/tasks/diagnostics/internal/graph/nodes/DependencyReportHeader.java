@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 
 import java.util.Collections;
 import java.util.Set;
@@ -55,6 +56,10 @@ public class DependencyReportHeader implements RenderableDependency {
     }
 
     private String getReasonDescription(ComponentSelectionReason reason) {
-        return !reason.isExpected() ? reason.getDescription() : null;
+        String description = reason.getDescription();
+        if (reason.isExpected() && !((ComponentSelectionReasonInternal) reason).hasCustomDescriptions()) {
+            description = null;
+        }
+        return description;
     }
 }

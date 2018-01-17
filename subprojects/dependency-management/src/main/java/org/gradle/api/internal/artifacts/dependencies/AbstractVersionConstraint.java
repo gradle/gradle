@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.artifacts.VersionConstraint;
 
 public abstract class AbstractVersionConstraint implements VersionConstraint {
@@ -44,6 +45,6 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
 
     @Override
     public String toString() {
-        return getPreferredVersion() + (getRejectedVersions().isEmpty() ? "" : " (rejects: " + getRejectedVersions() + ")");
+        return getPreferredVersion() + (getRejectedVersions().isEmpty() ? "" : " (rejects: " + Joiner.on(" - ").join(getRejectedVersions()) + ")");
     }
 }

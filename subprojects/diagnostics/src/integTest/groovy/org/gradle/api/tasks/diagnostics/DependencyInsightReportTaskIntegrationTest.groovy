@@ -16,8 +16,10 @@
 
 package org.gradle.api.tasks.diagnostics
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
+import spock.lang.Unroll
 
 class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -245,15 +247,15 @@ org:leaf:2.0 -> 1.0
         given:
         ivyRepo.module("org", "leaf", "1.0").publish()
         ivyRepo.module("org", "middle", "1.0")
-                .dependsOn("org", "leaf", "1.0")
-                .dependsOn("org", "leaf", "[1.0,2.0]")
-                .dependsOn("org", "leaf", "latest.integration")
-                .publish()
+            .dependsOn("org", "leaf", "1.0")
+            .dependsOn("org", "leaf", "[1.0,2.0]")
+            .dependsOn("org", "leaf", "latest.integration")
+            .publish()
         ivyRepo.module("org", "top", "1.0")
-                .dependsOn("org", "middle", "1.0")
-                .dependsOn("org", "middle", "[1.0,2.0]")
-                .dependsOn("org", "middle", "latest.integration")
-                .publish()
+            .dependsOn("org", "middle", "1.0")
+            .dependsOn("org", "middle", "[1.0,2.0]")
+            .dependsOn("org", "middle", "latest.integration")
+            .publish()
 
         file("build.gradle") << """
             repositories {
@@ -528,10 +530,10 @@ org:foo:1.0 -> 2.0
         given:
         ivyRepo.module("org", "leaf", "1.6").publish()
         ivyRepo.module("org", "top", "1.0")
-                .dependsOn("org", "leaf", "[1.5,1.9]")
-                .dependsOn("org", "leaf", "latest.integration")
-                .dependsOn("org", "leaf", "1.+")
-                .publish()
+            .dependsOn("org", "leaf", "[1.5,1.9]")
+            .dependsOn("org", "leaf", "latest.integration")
+            .dependsOn("org", "leaf", "1.+")
+            .publish()
 
         file("build.gradle") << """
             repositories {
@@ -905,10 +907,10 @@ org:middle:1.0 -> 2.0+ FAILED
         given:
         mavenRepo.module("org", "leaf", "1.5").publish()
         mavenRepo.module("org", "top", "1.0")
-                .dependsOn("org", "leaf", "1.0")
-                .dependsOn("org", "leaf", "[1.5,1.9]")
-                .dependsOn("org", "leaf", "0.8+")
-                .publish()
+            .dependsOn("org", "leaf", "1.0")
+            .dependsOn("org", "leaf", "[1.5,1.9]")
+            .dependsOn("org", "leaf", "0.8+")
+            .publish()
 
         file("build.gradle") << """
             repositories {
@@ -950,10 +952,10 @@ org:leaf:[1.5,1.9] -> 1.5
     def "shows multiple failed outgoing dependencies"() {
         given:
         ivyRepo.module("org", "top", "1.0")
-                .dependsOn("org", "leaf", "1.0")
-                .dependsOn("org", "leaf", "[1.5,2.0]")
-                .dependsOn("org", "leaf", "1.6+")
-                .publish()
+            .dependsOn("org", "leaf", "1.0")
+            .dependsOn("org", "leaf", "[1.5,2.0]")
+            .dependsOn("org", "leaf", "1.6+")
+            .publish()
 
         file("build.gradle") << """
             repositories {
@@ -1351,4 +1353,95 @@ foo:bar:2.0
 foo:foo:1.0
 \\--- compile"""
     }
+
+
+    @Unroll
+    @NotYetImplemented
+    def "renders custom dependency constraint reasons"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+        mavenRepo.module("org", "foo", "1.3").publish()
+        mavenRepo.module("org", "foo", "1.4").publish()
+        mavenRepo.module("org", "foo", "1.5").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+            
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            
+            dependencies {
+                implementation 'org:foo' // no version
+                constraints {
+                    implementation('org:foo') {
+                         version { $version }
+                         reason '$reason'
+                    }
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "foo"
+
+        then:
+        output.contains """org:foo:$selected ($reason)
+
+org:foo: -> $selected
+\\--- compileClasspath
+"""
+        where:
+        version                             | reason                                          | selected
+        "prefer '[1.0, 2.0)'"               | "foo v2+ has an incompatible API for project X" | '1.5'
+        "strictly '[1.1, 1.4]'"             | "versions of foo verified to run on platform Y" | '1.4'
+        "prefer '[1.0, 1.4]'; reject '1.4'" | "1.4 has a critical bug"                        | '1.3'
+    }
+
+    @Unroll
+    @NotYetImplemented
+    def "renders custom dependency reasons"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+        mavenRepo.module("org", "foo", "1.3").publish()
+        mavenRepo.module("org", "foo", "1.4").publish()
+        mavenRepo.module("org", "foo", "1.5").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+            
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            
+            dependencies {
+                implementation('org:foo') {
+                   version { $version }
+                   reason '$reason'
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "foo"
+
+        then:
+        output.contains """org:foo:$selected ($reason)
+
+org:foo:$displayVersion -> $selected
+\\--- compileClasspath
+"""
+        where:
+        version                             | displayVersion | reason                                          | selected
+        "prefer '[1.0, 2.0)'"               | '[1.0, 2.0)'   | "foo v2+ has an incompatible API for project X" | '1.5'
+        "strictly '[1.1, 1.4]'"             | '[1.1, 1.4]'   | "versions of foo verified to run on platform Y" | '1.4'
+        "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'
+    }
+
 }

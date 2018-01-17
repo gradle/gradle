@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
+
 import javax.annotation.Nullable;
 
 /**
@@ -63,4 +65,23 @@ public interface Dependency {
      * @return The copy. Never returns null.
      */
     Dependency copy();
+
+    /**
+     * Returns a reason why this dependency should be used, in particular with regards to its version. The dependency report
+     * will use it to explain why a specific dependency was selected, or why a specific dependency version was used.
+     *
+     * @return a reason to use this dependency
+     *
+     * @since 4.6
+     */
+    @Incubating
+    String getReason();
+
+    /**
+     * Sets the reason why this dependency should be used.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    void setReason(String reason);
 }
