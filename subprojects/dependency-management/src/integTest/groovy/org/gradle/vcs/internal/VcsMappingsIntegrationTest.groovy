@@ -46,7 +46,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         settingsFile << """
             sourceControl {
                 vcsMappings {
-                    addRule('rule') { details ->
+                    all { details ->
                         foo()
                     }
                 }
@@ -85,7 +85,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         settingsFile << """
             sourceControl {
                 vcsMappings {
-                    addRule("rule") { details ->
+                    all { details ->
                         if (details.requested.group == "org.test") {
                             from vcs(DirectoryRepositorySpec) {
                                 sourceDir = file("dep")
@@ -112,7 +112,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
                             sourceDir = file("does-not-exist")
                         }
                     }
-                    addRule("rule") { details ->
+                    all { details ->
                         if (details instanceof ModuleVersionSelector && details.requested.group == "unused") {
                             from vcs(DirectoryRepositorySpec) {
                                 sourceDir = file("does-not-exist")

@@ -58,10 +58,10 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
 
             sourceControl {
                 vcsMappings {
-                    addRule("org.gradle.swift VCS rule") { details ->
+                    all { details ->
                         if (details.requested.group == "org.gradle.swift") {
                             from vcs(GitVersionControlSpec) {
-                                url = file(details.requested.module).toURI()
+                                url = uri(details.requested.module)
                             }
                         }
                     }

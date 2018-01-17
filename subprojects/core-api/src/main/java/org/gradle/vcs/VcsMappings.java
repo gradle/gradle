@@ -46,14 +46,16 @@ import org.gradle.internal.HasInternalProtocol;
 @HasInternalProtocol
 public interface VcsMappings {
     /**
-     * Adds a mapping rule that may define VCS information for any dependency. The supplied action is executed for each dependency.
+     * Adds a mapping rule that may define VCS information for any dependency. The supplied action is executed for all components.
      */
-    VcsMappings addRule(String message, Action<? super VcsMapping> rule);
+    VcsMappings all(Action<? super VcsMapping> rule);
 
     /**
-     * Adds a mapping rule that may define VCS information for the given module.
+     * Adds a mapping rule that may define VCS information for the given module. The supplied action is executed when the given module is required.
+     *
+     * @param module The module to apply the rule to, in the form "group:module".
      */
-    VcsMappings withModule(String groupName, Action<? super VcsMapping> rule);
+    VcsMappings withModule(String module, Action<? super VcsMapping> rule);
 
     /**
      * Creates and configures a {@link VersionControlSpec} instance to pass to {@link VcsMapping#from(VersionControlSpec)}.

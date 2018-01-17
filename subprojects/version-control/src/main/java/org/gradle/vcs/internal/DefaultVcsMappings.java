@@ -17,7 +17,6 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Cast;
@@ -38,14 +37,14 @@ public class DefaultVcsMappings implements VcsMappings {
     }
 
     @Override
-    public VcsMappings addRule(String message, Action<? super VcsMapping> rule) {
-        vcsMappings.addRule(new DescribedRule(message, rule), gradle);
+    public VcsMappings all(Action<? super VcsMapping> rule) {
+        vcsMappings.addRule(rule, gradle);
         return this;
     }
 
     @Override
-    public VcsMappings withModule(String groupName, Action<? super VcsMapping> rule) {
-        vcsMappings.addRule(new GavFilteredRule(groupName, rule), gradle);
+    public VcsMappings withModule(String module, Action<? super VcsMapping> rule) {
+        vcsMappings.addRule(new GavFilteredRule(module, rule), gradle);
         return this;
     }
 
@@ -56,32 +55,13 @@ public class DefaultVcsMappings implements VcsMappings {
         return vcs;
     }
 
-    private static class DescribedRule implements Action<VcsMapping>, Describable {
-        private final String displayName;
+    private static class GavFilteredRule implements Action<VcsMapping> {
+        private final String groupName;
         private final Action<? super VcsMapping> delegate;
 
-        private DescribedRule(String displayName, Action<? super VcsMapping> delegate) {
-            this.displayName = displayName;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void execute(VcsMapping vcsMapping) {
-            delegate.execute(vcsMapping);
-        }
-
-        @Override
-        public String getDisplayName() {
-            return displayName;
-        }
-    }
-
-    private static class GavFilteredRule extends DescribedRule {
-        private final String groupName;
-
         private GavFilteredRule(String groupName, Action<? super VcsMapping> delegate) {
-            super("filtered rule for module " + groupName, delegate);
             this.groupName = groupName;
+            this.delegate = delegate;
         }
 
         @Override
@@ -89,7 +69,7 @@ public class DefaultVcsMappings implements VcsMappings {
             if (mapping.getRequested() instanceof ModuleComponentSelector) {
                 ModuleComponentSelector moduleComponentSelector = Cast.uncheckedCast(mapping.getRequested());
                 if (groupName.equals(moduleComponentSelector.getGroup() + ":" + moduleComponentSelector.getModule())) {
-                    super.execute(mapping);
+                    delegate.execute(mapping);
                 }
             }
         }
