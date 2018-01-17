@@ -106,7 +106,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         output.contains("Deprecated Gradle API and/or features were used in this build, making it incompatible with Gradle ${GradleVersion.current().getNextMajor().getVersion()}.") == (warningsCountInSummary > 0)
-        output.contains("Please run with --warning-mode=all to see detailed warnings.") == (warningsCountInSummary > 0)
+        output.contains("Read documentation on configuring warning logging at") == (warningsCountInSummary > 0)
 
         and:
         assertFullStacktraceResult(fullStacktraceEnabled, warningsCountInConsole)

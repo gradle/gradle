@@ -16,7 +16,6 @@
 
 package org.gradle.initialization
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
@@ -60,7 +59,7 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         warningCountInConsole == stdOut.toString().count(message)
-        warningCountInSummary == stdOut.toString().count("There are ${incrementWarningCountIfJava7(warningCountInSummary)} deprecation warnings")
+        warningCountInSummary == stdOut.toString().count("Deprecated Gradle API and/or features were used in this build")
 
         where:
         issue                                          | deprecatedArgs        | warningsType     | warningCountInConsole | warningCountInSummary | message
@@ -70,9 +69,5 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
         'https://github.com/gradle/gradle/issues/3077' | '-a'                  | WarningMode.All  | 1                     | 0                     | NO_REBUILD_MESSAGE
         'https://github.com/gradle/gradle/issues/3077' | '-a'                  | null             | 0                     | 1                     | NO_REBUILD_MESSAGE
         'https://github.com/gradle/gradle/issues/3077' | '-a'                  | WarningMode.None | 0                     | 0                     | NO_REBUILD_MESSAGE
-    }
-
-    def incrementWarningCountIfJava7(int warningCount) {
-        return JavaVersion.current().isJava7() ? warningCount + 1 : warningCount
     }
 }
