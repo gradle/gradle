@@ -926,7 +926,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
     }
 
     def "can detect Swift compiler version"() {
-        def app = new SwiftCompilerDetectingApp()
+        def app = new SwiftCompilerDetectingApp(toolChain.version.major)
 
         given:
         buildFile << """
@@ -937,6 +937,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
         expect:
         succeeds ":assemble"
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        installation("build/install/main/debug").exec().out == app.expectedOutput.replace('{version}', "Swift ${toolChain.version.major}.x")
+        installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 }

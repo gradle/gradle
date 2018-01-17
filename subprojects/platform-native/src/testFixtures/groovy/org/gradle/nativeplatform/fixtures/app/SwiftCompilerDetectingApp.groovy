@@ -19,6 +19,12 @@ package org.gradle.nativeplatform.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 
 class SwiftCompilerDetectingApp extends SourceFileElement implements AppElement {
+    def swiftVersion
+
+    SwiftCompilerDetectingApp(swiftVersion) {
+        this.swiftVersion = swiftVersion
+    }
+
     @Override
     SourceFile getSourceFile() {
         return sourceFile('swift', 'main.swift', """
@@ -34,6 +40,6 @@ class SwiftCompilerDetectingApp extends SourceFileElement implements AppElement 
 
     @Override
     String getExpectedOutput() {
-        return "Compiled using {version} compiler\n"
+        return "Compiled using Swift ${swiftVersion}.x compiler\n"
     }
 }
