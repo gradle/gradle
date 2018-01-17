@@ -43,6 +43,8 @@ public interface ComponentVariant extends VariantResolveMetadata {
         VersionConstraint getVersionConstraint();
 
         ImmutableList<ExcludeMetadata> getExcludes();
+
+        String getReason();
     }
 
     interface DependencyConstraint {
@@ -51,6 +53,8 @@ public interface ComponentVariant extends VariantResolveMetadata {
         String getModule();
 
         VersionConstraint getVersionConstraint();
+
+        String getReason();
     }
 
     interface File {
