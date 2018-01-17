@@ -49,7 +49,7 @@ class SamplesSmokeTest(
             } else
                 projectBuilds
 
-        val foundKotlinGradlePlugin = buildsToCheck.map(this::assertKotlinGradlePluginVersion)
+        val foundKotlinGradlePlugin = buildsToCheck.map(::assertKotlinGradlePluginVersion)
 
         // Mark that test as ignored if not using the kotlin-gradle-plugin
         assumeTrue(foundKotlinGradlePlugin.any { it })
