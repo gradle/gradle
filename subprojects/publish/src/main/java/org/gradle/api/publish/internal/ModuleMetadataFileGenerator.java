@@ -18,6 +18,7 @@ package org.gradle.api.publish.internal;
 
 import com.google.common.base.Strings;
 import com.google.gson.stream.JsonWriter;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -395,6 +396,11 @@ public class ModuleMetadataFileGenerator {
         }
         if (dependency instanceof ModuleDependency) {
             writeExcludes((ModuleDependency) dependency, jsonWriter);
+        }
+        String reason = dependency.getReason();
+        if (StringUtils.isNotEmpty(reason)) {
+            jsonWriter.name("reason");
+            jsonWriter.value(reason);
         }
         jsonWriter.endObject();
     }

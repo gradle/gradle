@@ -75,6 +75,7 @@ public interface Dependency {
      * @since 4.6
      */
     @Incubating
+    @Nullable
     String getReason();
 
     /**

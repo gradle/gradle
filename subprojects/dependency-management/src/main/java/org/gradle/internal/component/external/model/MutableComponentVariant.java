@@ -24,7 +24,7 @@ import java.util.List;
 public interface MutableComponentVariant {
     void addFile(String name, String uri);
 
-    void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes);
+    void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason);
 
-    void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint);
+    void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason);
 }

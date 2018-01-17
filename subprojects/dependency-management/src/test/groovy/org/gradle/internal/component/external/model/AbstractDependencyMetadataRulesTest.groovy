@@ -92,9 +92,9 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         defaultVariant = metadata.addVariant("default", attributes)
         deps.each { name ->
             if (addAllDependenciesAsConstraints()) {
-                defaultVariant.addDependencyConstraint("org.test", name, new DefaultMutableVersionConstraint("1.0"))
+                defaultVariant.addDependencyConstraint("org.test", name, new DefaultMutableVersionConstraint("1.0"), null)
             } else {
-                defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [])
+                defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null)
             }
         }
         metadata

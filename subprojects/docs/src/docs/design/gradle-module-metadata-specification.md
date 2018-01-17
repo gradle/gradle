@@ -1,6 +1,6 @@
 # Gradle module metadata specification
 
-_Note: this format is not yet stable and may change at any time. Gradle does not guarantee to offer any long term support for this version of the format._
+_Note: this format is not yet stable and may change at any time. Gradle does not guarantee to offer any long term support for this version of the format. Any version before 1.0 is intentionally assumed not backwards compatible, and the parsers are not required to support pre 1.0 releases._
 
 This document describes version 0.3 of the Gradle module metadata file. A module metadata file describes the contents of a _module_, which is the unit of publication for a particular repository format, such as a module in a Maven repository. This is often called a "package" in many repository formats.
 
@@ -89,6 +89,7 @@ This value must contain an array with zero or more elements. Each element must b
    - `prefers`: optional. The preferred version for this dependency
    - `rejects`: optional. An array of rejected versions for this dependency.
 - `excludes`: optional. Defines the exclusions that apply to this dependency. 
+- `reason`: optional. A explanation why the dependency is used. Can typically be used to explain why a specific version is requested.
 
 #### `excludes` value
 
@@ -110,6 +111,7 @@ This value must contain an array with zero or more elements. Each element must b
 - `version`: optional. The version constraint of the dependency constraint. Has the same meaning as in the Gradle DSL. A version constraint consists of:
    - `prefers`: optional. The preferred version for this dependency constraint
    - `rejects`: optional. An array of rejected versions for this dependency constraint.
+- `reason`: optional. A explanation why the constraint is used. Can typically be used to explain why a specific version is rejected, or from where a platform comes from.
 
 ### `files` value
 
