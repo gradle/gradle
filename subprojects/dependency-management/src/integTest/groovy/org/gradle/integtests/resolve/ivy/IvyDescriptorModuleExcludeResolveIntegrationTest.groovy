@@ -366,6 +366,32 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         assertResolvedFiles(['a-1.0.jar', 'b-1.0.jar'])
     }
 
+    @Issue("GRADLE-3951")
+    def "artifact excludes merge correctly with chained composite exclusions"() {
+        ivyRepo.module('a').dependsOn('b').dependsOn('c').publish()
+
+        def moduleB = ivyRepo.module('b').dependsOn('d')
+        addExcludeRuleToModule(moduleB, [artifact: 'e'])
+        moduleB.publish()
+
+        def moduleC = ivyRepo.module('c').dependsOn('d')
+        addExcludeRuleToModule(moduleC, [artifact: 'e'])
+        addExcludeRuleToModule(moduleC, [artifact: 'doesnotexist1', matcher: 'regexp'])
+        moduleC.publish()
+
+        def moduleD = ivyRepo.module('d').dependsOn('e')
+        addExcludeRuleToModule(moduleD, [artifact: 'doesnotexist2', matcher: 'regexp'])
+        moduleD.publish()
+
+        ivyRepo.module('e').publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar'])
+    }
+
     private void addExcludeRuleToModule(IvyModule module, Map<String, String> excludeAttributes) {
         if (!excludeAttributes.containsKey("matcher")) {
             excludeAttributes.put("matcher", "exact")
