@@ -26,8 +26,8 @@ import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveCont
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec
+import org.gradle.api.internal.tasks.testing.TestExecutor
 import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
@@ -55,7 +55,7 @@ class TestTest extends AbstractConventionTaskTest {
     private File binResultsDir
     private File reportDir
 
-    def testExecuterMock = Mock(TestExecuter)
+    def testExecuterMock = Mock(TestExecutor)
     def testFrameworkMock = Mock(TestFramework)
 
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion
@@ -274,7 +274,7 @@ class TestTest extends AbstractConventionTaskTest {
 
     private void configureTask() {
         test.useTestFramework(testFrameworkMock)
-        test.setTestExecuter(testExecuterMock)
+        test.setTestExecutor(testExecuterMock)
 
         test.setTestClassesDir(classesDir)
         test.getReports().getJunitXml().setDestination(resultsDir)

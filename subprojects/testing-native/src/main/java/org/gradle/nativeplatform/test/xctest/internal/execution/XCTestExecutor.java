@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
-import org.gradle.api.internal.tasks.testing.TestExecuter;
+import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -54,7 +54,7 @@ import java.util.List;
  * - Smarter/fancier test filtering
  * - Test probing (so we know which tests exist without executing them)
  */
-public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
+public class XCTestExecutor implements TestExecutor<XCTestTestExecutionSpec> {
     @Inject
     public ExecHandleFactory getExecHandleFactory() {
         throw new UnsupportedOperationException();

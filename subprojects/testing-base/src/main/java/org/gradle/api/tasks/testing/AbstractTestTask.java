@@ -29,7 +29,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
-import org.gradle.api.internal.tasks.testing.TestExecuter;
+import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
@@ -159,7 +159,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @since 4.4
      */
     @Incubating
-    protected abstract TestExecuter<? extends TestExecutionSpec> createTestExecuter();
+    protected abstract TestExecutor<? extends TestExecutionSpec> createTestExecuter();
 
     /**
      * Creates test execution specification. For internal use only.
@@ -456,10 +456,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(getTestListenerInternalBroadcaster().getSource());
 
-        TestExecuter testExecuter = createTestExecuter();
+        TestExecutor testExecutor = createTestExecuter();
 
         try {
-            testExecuter.execute(createTestExecutionSpec(), resultProcessor);
+            testExecutor.execute(createTestExecutionSpec(), resultProcessor);
         } finally {
             parentProgressLogger.completed();
             testWorkerProgressListener.completeAll();
