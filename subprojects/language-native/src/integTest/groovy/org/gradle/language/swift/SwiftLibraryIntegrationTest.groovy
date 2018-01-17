@@ -26,7 +26,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLib
 
 import static org.gradle.util.Matchers.containsText
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "skip compile and link tasks when no source"() {
         given:

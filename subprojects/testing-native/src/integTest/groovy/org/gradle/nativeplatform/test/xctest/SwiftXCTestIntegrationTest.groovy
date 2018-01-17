@@ -36,7 +36,7 @@ import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 import spock.lang.Unroll
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements XCTestExecutionResult {
     def setup() {
         buildFile << """

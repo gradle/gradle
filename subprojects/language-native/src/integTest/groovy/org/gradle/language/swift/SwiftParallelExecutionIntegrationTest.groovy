@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegrationTest {
     def app = new SwiftApp()
 

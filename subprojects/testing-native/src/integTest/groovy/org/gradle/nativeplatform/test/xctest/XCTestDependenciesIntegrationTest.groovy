@@ -20,7 +20,7 @@ import org.gradle.language.AbstractNativeDependenciesIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class XCTestDependenciesIntegrationTest extends AbstractNativeDependenciesIntegrationTest {
     @Override
     protected void makeComponentWithLibrary() {

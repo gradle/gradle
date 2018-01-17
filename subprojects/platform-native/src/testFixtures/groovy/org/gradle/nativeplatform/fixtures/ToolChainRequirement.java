@@ -42,9 +42,9 @@ public enum ToolChainRequirement {
     // Any available Clang
     CLANG,
     // Any Swift compiler
-    SWIFT,
+    SWIFTC,
     // Any Swift 3.x compiler
-    SWIFT3,
+    SWIFTC_3,
     // Any Swift 4.x compiler
-    SWIFT4
+    SWIFTC_4
 }

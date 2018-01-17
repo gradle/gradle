@@ -20,7 +20,7 @@ import org.gradle.language.AbstractNativeProductionComponentDependenciesIntegrat
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftApplicationDependenciesIntegrationTest extends AbstractNativeProductionComponentDependenciesIntegrationTest {
     @Override
     protected void makeComponentWithLibrary() {

@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.fixtures.binaryinfo.BinaryInfo
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {

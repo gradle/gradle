@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
     def "binaries have the right Swift version"() {
         given:
@@ -41,7 +41,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         succeeds "verifyBinariesSwiftVersion"
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT4)
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
     def "throws exception when modifying Swift component source compatibility after the binaries are known"() {
         given:
         makeSingleProject()
@@ -64,7 +64,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         failure.assertHasCause("This property is locked and cannot be changed.")
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT4)
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
     def "can build Swift 3 source code on Swift 4 compiler"() {
         given:
         makeSingleProject()
@@ -92,7 +92,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT3)
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
     def "throws exception with meaningful message when building Swift 4 source code on Swift 3 compiler"() {
         given:
         makeSingleProject()
@@ -121,7 +121,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         failure.assertHasCause("swiftc compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT4.version}'")
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT3)
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
     def "can compile Swift 3 component on Swift 3 compiler"() {
         given:
         makeSingleProject()
@@ -145,7 +145,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT4)
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
     def "can compile Swift 4 component on Swift 4 compiler"() {
         given:
         makeSingleProject()

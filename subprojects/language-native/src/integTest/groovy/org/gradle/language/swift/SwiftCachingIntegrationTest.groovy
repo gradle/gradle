@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def app = new SwiftAppWithLibraries()

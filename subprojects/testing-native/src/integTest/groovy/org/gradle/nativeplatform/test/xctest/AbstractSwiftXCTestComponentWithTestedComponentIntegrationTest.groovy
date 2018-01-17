@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.fixtures.app.Swift4WithSwift3XCTest
 import spock.lang.Unroll
 
 abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest implements XCTestExecutionResult {
-    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT4)
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
     def "take swift source compatibility from tested component"() {
         given:
         makeSingleProject()
@@ -53,7 +53,7 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         swift3Component.assertTestCasesRan(testExecutionResult)
     }
 
-    @RequiresInstalledToolChain(ToolChainRequirement.SWIFT4)
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
     @Unroll
     def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:

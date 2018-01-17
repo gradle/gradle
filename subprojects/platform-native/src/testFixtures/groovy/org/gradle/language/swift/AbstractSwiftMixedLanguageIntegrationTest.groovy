@@ -28,11 +28,11 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 
 import static org.junit.Assume.assumeTrue
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class AbstractSwiftMixedLanguageIntegrationTest extends AbstractIntegrationSpec {
     public static final String SHARED = "SHARED"
     public static final String STATIC = "STATIC"
-    def swiftToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFT) as AvailableToolChains.InstalledToolChain
+    def swiftToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC) as AvailableToolChains.InstalledToolChain
     def cppToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.CLANG) as AvailableToolChains.InstalledToolChain
 
     def setup() {

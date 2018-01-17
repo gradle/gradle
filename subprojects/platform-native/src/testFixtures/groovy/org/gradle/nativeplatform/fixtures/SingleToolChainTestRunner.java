@@ -59,7 +59,7 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         if (toolChainRequirement == null) {
             return true;
         }
-        return EnumSet.of(SWIFT, SWIFT3, SWIFT4).contains(toolChainRequirement.value()) == toolChain instanceof AvailableToolChains.InstalledSwiftc;
+        return EnumSet.of(SWIFTC, SWIFTC_3, SWIFTC_4).contains(toolChainRequirement.value()) == toolChain instanceof AvailableToolChains.InstalledSwiftc;
     }
 
     private static class ToolChainExecution extends Execution {
