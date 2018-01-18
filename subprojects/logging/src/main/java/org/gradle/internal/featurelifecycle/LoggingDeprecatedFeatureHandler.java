@@ -18,7 +18,6 @@ package org.gradle.internal.featurelifecycle;
 
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
-import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,9 +75,8 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
 
     public void reportSuppressedDeprecations() {
         if (warningMode == WarningMode.Summary && !messages.isEmpty()) {
-            LOGGER.warn("\nThere are {} deprecation warnings, which may break the build in Gradle {}. Please run with --warning-mode=all to see them.",
-                messages.size(),
-                GradleVersion.current().getNextMajor().getVersion());
+            LOGGER.warn("\nThere were {} Gradle warnings. Please run with --warning-mode=all to see them.",
+                messages.size());
         }
     }
 
