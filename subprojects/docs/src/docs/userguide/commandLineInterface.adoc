@@ -420,7 +420,7 @@ Set to `verbose` to enable color and other rich output like the `rich`, but outp
 By default, Gradle won't display all warnings (e.g. deprecation warnings). Instead, Gradle will collect them and render a summary at the end of the build like:
 
 ----
-There are <number> deprecation warnings, which may break the build in Gradle 5.0. Please run with --warning-mode=all to see them.
+There were <number> Gradle warnings. Please run with --warning-mode=all to see them.
 ----
 
 You can control the verbosity of warnings on the console with the following options:

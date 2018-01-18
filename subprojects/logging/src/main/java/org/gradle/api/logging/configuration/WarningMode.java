@@ -19,7 +19,7 @@ package org.gradle.api.logging.configuration;
 import org.gradle.api.Incubating;
 
 /**
- * Specifies the warning mode a user wants to see.
+ * Specifies how to present Gradle warnings to the user.
  *
  * @since 4.5
  */
@@ -31,12 +31,12 @@ public enum WarningMode {
     All,
 
     /**
-     * Display a summary at the end of the build instead of rendering all warnings into the console output.
+     * Display a summary at the end of the build.
      */
     Summary,
 
     /**
-     * No deprecation warnings at all.
+     * Show no warnings at all.
      */
     None
 }
