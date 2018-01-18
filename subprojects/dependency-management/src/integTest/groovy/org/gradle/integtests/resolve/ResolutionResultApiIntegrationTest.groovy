@@ -19,6 +19,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
 
@@ -79,5 +80,133 @@ leaf:2.0 forced
 bar:1.0 requested
 baz:1.0 requested
 """
+    }
+
+    def "resolution result API gives access to dependency reasons in case of conflict"() {
+        given:
+        mavenRepo.with {
+            def leaf1 = module('org.test', 'leaf', '1.0').publish()
+            def leaf2 = module('org.test', 'leaf', '1.1').publish()
+            module('org.test', 'a', '1.0')
+                .dependsOn(leaf1, reason: 'first reason')
+                .withModuleMetadata()
+                .publish()
+            module('org.test', 'b', '1.0')
+                .dependsOn(leaf2, reason: 'second reason')
+                .withModuleMetadata()
+                .publish()
+
+        }
+        FeaturePreviewsFixture.enableGradleMetadata(file("gradle.properties"))
+
+        when:
+        file("build.gradle") << """
+            configurations {
+                implementation
+            }
+            
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            
+            dependencies {
+                implementation 'org.test:a:1.0'
+                implementation 'org.test:b:1.0'
+            }
+            
+            task checkResolutionResult {
+                doLast {
+                    def result = configurations.implementation.incoming.resolutionResult
+                    result.allComponents {
+                        if (it.id instanceof ModuleComponentIdentifier && it.id.module == 'leaf') {
+                            def selectionReason = it.selectionReason
+                            assert selectionReason.conflictResolution
+                            def descriptions = selectionReason.descriptions.reverse()
+                            assert descriptions.size() > 1
+                            descriptions.each {
+                                println "\$it.cause : \$it.description"
+                            }
+                            def descriptor = descriptions.find { it.cause == ComponentSelectionCause.REQUESTED }
+                            assert descriptor?.description == 'second reason'
+                        }
+                    }
+                }
+            }
+
+        """
+
+        then:
+        run "checkResolutionResult"
+    }
+
+    // TODO CC: Ideally, we should also keep the "rule applied" reason, but the infrastructure doesn't let us do this yet
+    def "resolution result API gives access to dependency reasons in case of conflict and selection by rule"() {
+        given:
+        mavenRepo.with {
+            def leaf1 = module('org.test', 'leaf', '1.0').publish()
+            def leaf2 = module('org.test', 'leaf', '1.1').publish()
+            module('org.test', 'a', '1.0')
+                .dependsOn('org.test', 'leaf', '0.9')
+                .withModuleMetadata()
+                .publish()
+            module('org.test', 'b', '1.0')
+                .dependsOn(leaf2, reason: 'second reason')
+                .withModuleMetadata()
+                .publish()
+
+        }
+        FeaturePreviewsFixture.enableGradleMetadata(file("gradle.properties"))
+
+        when:
+        file("build.gradle") << """
+            configurations {
+                implementation {
+                    resolutionStrategy {
+                        dependencySubstitution {
+                            all {
+                                if (it.requested instanceof ModuleComponentSelector) {
+                                    if (it.requested.module == 'leaf' && it.requested.version == '0.9') {
+                                        it.useTarget group: 'org.test', name: it.requested.module, version: '1.0'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            
+            dependencies {
+                implementation 'org.test:a:1.0'
+                implementation 'org.test:b:1.0'
+                
+            }
+            
+            task checkResolutionResult {
+                doLast {
+                    def result = configurations.implementation.incoming.resolutionResult
+                    result.allComponents {
+                        if (it.id instanceof ModuleComponentIdentifier && it.id.module == 'leaf') {
+                            def selectionReason = it.selectionReason
+                            assert selectionReason.conflictResolution
+                            def descriptions = selectionReason.descriptions.reverse()
+                            assert descriptions.size() > 1
+                            descriptions.each {
+                                println "\$it.cause : \$it.description"
+                            }
+                            def descriptor = descriptions.find { it.cause == ComponentSelectionCause.REQUESTED }
+                            assert descriptor?.description == 'second reason'
+                        }
+                    }
+                }
+            }
+
+        """
+
+        then:
+        run "checkResolutionResult"
     }
 }
