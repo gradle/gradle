@@ -107,11 +107,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 // Remove the "Expiring Daemon" message
                 i++;
             } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
-                // Remove the "Deprecated Gradle API..." message
-                i++;
-            } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_LOGGING_DOCS_MESSAGE)) {
-                // Remove the "Read documentation on..." message
-                i++;
+                // Remove the "Deprecated Gradle features..." message and "See https://docs.gradle.org..."
+                i+=2;
             } else if (line.contains(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING)) {
                 // Remove the Java 7 deprecation warning. This should be removed after 5.0
                 i++;
