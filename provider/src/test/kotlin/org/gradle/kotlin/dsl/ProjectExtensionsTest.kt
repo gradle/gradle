@@ -10,6 +10,9 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.Convention
 import org.gradle.api.publish.PublishingExtension
 
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
+
 import org.junit.Assert.fail
 import org.junit.Test
 
@@ -31,5 +34,16 @@ class ProjectExtensionsTest {
         }
 
         verify(convention).configure(eq(extensionType), any())
+    }
+
+    @Test
+    fun `can use project as property delegate`() {
+
+        val project = mock<Project> {
+            on { findProperty("p") } doReturn 42
+        }
+
+        val p by project
+        assertThat(p, equalTo<Any>(42))
     }
 }

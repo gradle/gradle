@@ -568,6 +568,23 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             containsString("*true*"))
     }
 
+    @Test
+    fun `can get project property via delegation within buildscript block`() {
+
+        withBuildScript("""
+            buildscript {
+                dependencies {
+                    val projectProperty by project
+                    println("*" + projectProperty + "*")
+                }
+            }
+        """)
+
+        assertThat(
+            build("-PprojectProperty=42").output,
+            containsString("*42*"))
+    }
+
     private
     fun assumeJavaLessThan9() {
         assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)

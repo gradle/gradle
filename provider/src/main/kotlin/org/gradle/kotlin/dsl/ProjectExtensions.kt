@@ -171,7 +171,7 @@ fun Project.dependencies(configuration: DependencyHandlerScope.() -> Unit) =
 /**
  * Locates a [Project] property using [Project.findProperty].
  */
-operator fun Project.getValue(any: Any, property: KProperty<*>): Any? =
+operator fun Project.getValue(any: Any?, property: KProperty<*>): Any? =
     findProperty(property.name)
 
 
