@@ -14,25 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve;
+package org.gradle.plugin.devel.impldeps
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestFile
 
-class ResolvedGeneratedJarsIntegrationTest extends AbstractIntegrationSpec {
+class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
-    void setup() {
+    def setup() {
         executer.requireOwnGradleUserHomeDir()
-        executer.requireGradleDistribution()
-        buildFile << """
-            apply plugin:'java'
-            
-            dependencies {
-                compileOnly gradleApi()
-                testCompileOnly gradleTestKit()
-            }
-    
-        """
+        buildFile << testablePluginProject(applyJavaPlugin())
     }
 
     def "gradle api jar is generated only when requested"() {
@@ -46,20 +36,20 @@ class ResolvedGeneratedJarsIntegrationTest extends AbstractIntegrationSpec {
         file("user-home/caches/${distribution.version.version}/generated-gradle-jars").assertIsEmptyDir()
 
         when:
-        run("classes")
+        succeeds("classes")
 
         then:
         file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-api-${distribution.version.version}.jar").assertExists()
+        assertSingleGenerationOutput(output, API_JAR_GENERATION_OUTPUT_REGEX)
 
     }
 
     def "gradle testkit jar is generated only when requested"() {
         setup:
-        executer.requireOwnGradleUserHomeDir()
         testCode()
 
         when:
-        run("classes")
+        succeeds("classes")
 
         then:
         file("user-home/caches/${distribution.version.version}/generated-gradle-jars").assertIsEmptyDir()
@@ -69,7 +59,7 @@ class ResolvedGeneratedJarsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-test-kit-${distribution.version.version}.jar").assertExists()
-
+        assertSingleGenerationOutput(output, TESTKIT_GENERATION_OUTPUT_REGEX)
     }
 
     private TestFile productionCode() {
@@ -77,7 +67,7 @@ class ResolvedGeneratedJarsIntegrationTest extends AbstractIntegrationSpec {
         package org.acme;
         import org.gradle.api.Project;
         import org.gradle.api.Plugin;
-        
+
         public class TestPlugin implements Plugin<Project> {
             public void apply(Project p) {}
         }
@@ -85,13 +75,26 @@ class ResolvedGeneratedJarsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private TestFile testCode() {
-        file("src/test/java/org/acme/TestPluginTest.java") << """
+        file("src/test/java/org/acme/BaseTestPluginTest.java") << """
         package org.acme;
+        import org.gradle.testkit.runner.GradleRunner;
+        import org.gradle.testkit.runner.BuildResult;
+        import org.junit.Rule;
+        import org.junit.rules.TemporaryFolder;
         
-        public class TestPluginTest {
+        public abstract class BaseTestPluginTest {
+            @Rule public final TemporaryFolder testProjectDir = new TemporaryFolder();
+
+            void run(String task) {
+            
+                BuildResult result = GradleRunner.create()
+                    .withProjectDir(testProjectDir.getRoot())
+                    .withArguments(task)
+                    .build();
+            }
+        
         }
         """
     }
 
-    def genJarDir()
 }
