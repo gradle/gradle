@@ -29,8 +29,8 @@ import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.GradleException;
 import org.gradle.vcs.VersionControlSpec;
-import org.gradle.vcs.VersionControlSystem;
-import org.gradle.vcs.VersionRef;
+import org.gradle.vcs.internal.VersionControlSystem;
+import org.gradle.vcs.internal.VersionRef;
 import org.gradle.vcs.git.GitVersionControlSpec;
 
 import java.io.File;

@@ -20,7 +20,7 @@ import com.google.common.collect.Maps
 import org.eclipse.jgit.revwalk.RevCommit
 import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.vcs.VersionRef
+import org.gradle.vcs.internal.VersionRef
 import org.gradle.vcs.fixtures.GitRepository
 import org.gradle.vcs.git.GitVersionControlSpec
 import org.junit.Rule

@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
-import org.gradle.vcs.VersionRef;
+import org.gradle.vcs.internal.VersionRef;
 
 import java.util.List;
 
