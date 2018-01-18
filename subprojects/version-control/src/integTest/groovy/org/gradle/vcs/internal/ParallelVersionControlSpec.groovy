@@ -53,8 +53,8 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
                     def spec = new DefaultGitVersionControlSpec()
                     spec.url = url
                     def system = versionControlSystemFactory.create(spec)
-                    def refs = system.getAvailableVersions(spec)
-                    system.populate(outputDir, refs[0], spec)
+                    def ref = system.getHead(spec)
+                    system.populate(outputDir, ref, spec)
                     assert new File(outputDir, 'repo/.git').exists()
                 }
             }

@@ -64,7 +64,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
         GitVersionControlSpec gitSpec = cast(spec);
         Collection<Ref> refs;
         try {
-            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).call();
+            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).setTags(true).call();
         } catch (URISyntaxException e) {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         } catch (GitAPIException e) {
@@ -80,9 +80,18 @@ public class GitVersionControlSystem implements VersionControlSystem {
 
     @Override
     public VersionRef getHead(VersionControlSpec spec) {
-        for (VersionRef ref : getAvailableVersions(spec)) {
-            if (ref.getVersion().equals("HEAD")) {
-                return ref;
+        GitVersionControlSpec gitSpec = cast(spec);
+        Collection<Ref> refs;
+        try {
+            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).call();
+        } catch (URISyntaxException e) {
+            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
+        } catch (GitAPIException e) {
+            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
+        }
+        for (Ref ref : refs) {
+            if (ref.getName().equals("HEAD")) {
+                return GitVersionRef.from(ref);
             }
         }
         throw new UnsupportedOperationException("Git repository has no HEAD reference");

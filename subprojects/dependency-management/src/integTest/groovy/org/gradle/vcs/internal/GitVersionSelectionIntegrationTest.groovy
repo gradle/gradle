@@ -191,4 +191,26 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         "1.+"       | _
         "[1.0,1.9]" | _
     }
+
+    @Unroll
+    def "static selector cannot reference branch #selector"() {
+        given:
+        buildFile << """
+            dependencies { compile 'test:test:${selector}' }
+        """
+        repo.commit("v1")
+        repo.createBranch("release")
+
+        when:
+        fails('checkDeps')
+
+        then:
+        failure.assertHasCause("Could not resolve test:test:${selector}.")
+
+        where:
+        selector  | _
+        "master"  | _
+        "release" | _
+        "HEAD"    | _
+    }
 }

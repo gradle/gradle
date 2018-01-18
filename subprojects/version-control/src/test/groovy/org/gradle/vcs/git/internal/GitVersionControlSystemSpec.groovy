@@ -222,7 +222,7 @@ class GitVersionControlSystemSpec extends Specification {
         e.cause.cause.message.contains('URI not supported: https://notarepo.invalid')
     }
 
-    def 'can get versions'() {
+    def 'treats tags as the available versions and ignores other references'() {
         given:
         def versions = gitVcs.getAvailableVersions(repoSpec)
         HashMap<String, String> versionMap = Maps.newHashMap()
@@ -231,12 +231,9 @@ class GitVersionControlSystemSpec extends Specification {
         }
 
         expect:
-        versions.size() == 5
-        versionMap['release'] == c1.id.name
+        versions.size() == 2
         versionMap['1.0.1'] == c1.id.name
         versionMap['v1.0.1'] == c1.id.name
-        versionMap['HEAD'] == c2.id.name
-        versionMap['master'] == c2.id.name
     }
 
     def 'can get HEAD of repository'() {
