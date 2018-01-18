@@ -22,9 +22,6 @@ import javax.tools.ToolProvider
 
 enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NULL_REQUIREMENT({ true }),
-    SWING({
-        !UNKNOWN_OS.fulfilled
-    }),
     JNA({
         !UNKNOWN_OS.fulfilled
     }),
