@@ -231,12 +231,20 @@ class GitVersionControlSystemSpec extends Specification {
         }
 
         expect:
-        versions.size() == 6
+        versions.size() == 5
         versionMap['release'] == c1.id.name
         versionMap['1.0.1'] == c1.id.name
         versionMap['v1.0.1'] == c1.id.name
         versionMap['HEAD'] == c2.id.name
-        versionMap['latest.integration'] == c2.id.name
         versionMap['master'] == c2.id.name
+    }
+
+    def 'can get HEAD of repository'() {
+        given:
+        def version = gitVcs.getHead(repoSpec)
+
+        expect:
+        version.version == 'HEAD'
+        version.canonicalId == c2.id.name
     }
 }

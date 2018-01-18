@@ -21,6 +21,11 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.specs.Spec;
@@ -40,13 +45,13 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.CollectionUtils;
 import org.gradle.vcs.VersionControlSpec;
-import org.gradle.vcs.internal.VersionControlSystem;
-import org.gradle.vcs.internal.VersionRef;
 import org.gradle.vcs.internal.VcsMappingFactory;
 import org.gradle.vcs.internal.VcsMappingInternal;
 import org.gradle.vcs.internal.VcsMappingsStore;
 import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
+import org.gradle.vcs.internal.VersionControlSystem;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
+import org.gradle.vcs.internal.VersionRef;
 import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 
 import java.io.File;
@@ -62,10 +67,12 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final VcsMappingsStore vcsMappingsStore;
     private final VcsMappingFactory vcsMappingFactory;
     private final VersionControlSystemFactory versionControlSystemFactory;
+    private final VersionSelectorScheme versionSelectorScheme;
+    private final VersionComparator versionComparator;
     private final File baseWorkingDir;
     private final Map<String, VersionRef> selectedVersionCache = new HashMap<String, VersionRef>();
 
-    public VcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirRoot, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsStore vcsMappingsStore, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+    public VcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirRoot, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsStore vcsMappingsStore, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
         this.baseWorkingDir = vcsWorkingDirRoot.getDir();
         this.projectDependencyResolver = projectDependencyResolver;
         this.serviceRegistry = serviceRegistry;
@@ -73,6 +80,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         this.vcsMappingsStore = vcsMappingsStore;
         this.vcsMappingFactory = vcsMappingFactory;
         this.versionControlSystemFactory = versionControlSystemFactory;
+        this.versionSelectorScheme = versionSelectorScheme;
+        this.versionComparator = versionComparator;
     }
 
     @Override
@@ -108,12 +117,12 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
                 Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> moduleToProject = includedBuildRegistry.getModuleToProjectMapping(includedBuild);
                 Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry = CollectionUtils.findFirst(moduleToProject, new Spec<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>>() {
-                        @Override
-                        public boolean isSatisfiedBy(Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry) {
-                            ModuleVersionIdentifier possibleMatch = entry.left;
-                            return depSelector.getGroup().equals(possibleMatch.getGroup())
-                                && depSelector.getModule().equals(possibleMatch.getName());
-                        }
+                    @Override
+                    public boolean isSatisfiedBy(Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry) {
+                        ModuleVersionIdentifier possibleMatch = entry.left;
+                        return depSelector.getGroup().equals(possibleMatch.getGroup())
+                            && depSelector.getModule().equals(possibleMatch.getName());
+                    }
                 });
                 if (entry == null) {
                     result.failed(new ModuleVersionResolveException(vcsMappingInternal.getRequested(), spec.getDisplayName() + " did not contain a project publishing the specified dependency."));
@@ -145,14 +154,33 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
     private VersionRef selectVersionFromRepository(VersionControlSpec spec, VersionControlSystem versionControlSystem, String version) {
         // TODO: Select version based on requested version and tags
+        // TODO: match with status, order versions correctly
+
+        if (version.equals("latest.integration")) {
+            VersionRef versionRef = versionControlSystem.getHead(spec);
+            selectedVersionCache.put(cacheKey(spec, version), versionRef);
+            return versionRef;
+        }
+
+        VersionSelector versionSelector = versionSelectorScheme.parseSelector(version);
+        if (versionSelector.requiresMetadata()) {
+            // TODO - implement this by moving this resolver to live alongside the external resolvers
+            return null;
+        }
         Set<VersionRef> versions = versionControlSystem.getAvailableVersions(spec);
+        Version bestVersion = null;
+        VersionRef bestCandidate = null;
         for (VersionRef candidate : versions) {
-            if (candidate.getVersion().equals(version)) {
-                selectedVersionCache.put(cacheKey(spec, version), candidate);
-                return candidate;
+            Version candidateVersion = VersionParser.INSTANCE.transform(candidate.getVersion());
+            if (versionSelector.accept(candidateVersion)) {
+                if (bestCandidate == null || versionComparator.asVersionComparator().compare(candidateVersion, bestVersion) > 0) {
+                    bestVersion = candidateVersion;
+                    bestCandidate = candidate;
+                }
             }
         }
-        return null;
+
+        return bestCandidate;
     }
 
     private String cacheKey(VersionControlSpec spec, String version) {

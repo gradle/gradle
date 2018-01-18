@@ -29,7 +29,12 @@ import java.util.Set;
 public class SimpleVersionControlSystem implements VersionControlSystem {
     @Override
     public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
-        return Sets.<VersionRef>newHashSet(new DefaultVersionRef());
+        return Sets.newHashSet(getHead(spec));
+    }
+
+    @Override
+    public VersionRef getHead(VersionControlSpec spec) {
+        return new DefaultVersionRef();
     }
 
     @Override
