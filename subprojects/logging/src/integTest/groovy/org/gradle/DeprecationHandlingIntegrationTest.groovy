@@ -19,7 +19,7 @@ package org.gradle
 import org.gradle.api.JavaVersion
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.GradleVersion
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import spock.lang.Unroll
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
@@ -105,8 +105,8 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.contains('The deprecated task has been deprecated') == warningsCountInConsole > 0
 
         and:
-        output.contains("Deprecated Gradle API and/or features were used in this build, making it incompatible with Gradle ${GradleVersion.current().getNextMajor().getVersion()}.") == (warningsCountInSummary > 0)
-        output.contains("Read documentation on configuring warning logging at") == (warningsCountInSummary > 0)
+        output.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY) == (warningsCountInSummary > 0)
+        output.contains(LoggingDeprecatedFeatureHandler.WARNING_LOGGING_DOCS_MESSAGE) == (warningsCountInSummary > 0)
 
         and:
         assertFullStacktraceResult(fullStacktraceEnabled, warningsCountInConsole)

@@ -19,6 +19,7 @@ package org.gradle.initialization
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import spock.lang.Unroll
 
 class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
@@ -59,7 +60,7 @@ class CommandLineArgDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         warningCountInConsole == stdOut.toString().count(message)
-        warningCountInSummary == stdOut.toString().count("Deprecated Gradle API and/or features were used in this build")
+        warningCountInSummary == stdOut.toString().count(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)
 
         where:
         issue                                          | deprecatedArgs        | warningsType     | warningCountInConsole | warningCountInSummary | message
