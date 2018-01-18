@@ -19,16 +19,15 @@ package org.gradle.initialization
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.operations.trace.BuildOperationRecord
 
-class LoadBuildBuildOperationIntegrationTest extends AbstractIntegrationSpec {
+class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
     final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
-    def "build operation fired"() {
+    def "build operations are fired and build path is exposed"() {
         buildFile << """
             task foo {
                 doLast {
@@ -40,12 +39,14 @@ class LoadBuildBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         succeeds('foo')
 
         then:
-        operation().details.buildPath == ":"
-        operation().result.isEmpty()
-    }
+        buildOperations.first(LoadBuildBuildOperationType).details.buildPath == ":"
+        buildOperations.first(LoadBuildBuildOperationType).result.isEmpty()
 
-    private BuildOperationRecord operation() {
-        buildOperations.first(LoadBuildBuildOperationType)
+        buildOperations.first(EvaluateSettingsBuildOperationType).details.buildPath == ":"
+        buildOperations.first(EvaluateSettingsBuildOperationType).result.isEmpty()
+
+        buildOperations.first(LoadProjectsBuildOperationType).details.buildPath == ":"
+        buildOperations.first(LoadProjectsBuildOperationType).result.rootProject.projectDir == settingsFile.parent
     }
 
 }
