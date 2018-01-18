@@ -22,13 +22,13 @@ import org.objectweb.asm.Opcodes;
 import java.util.HashSet;
 import java.util.Set;
 
-class TestNGTestMethodDetecter extends MethodVisitor {
-    private final TestNGTestClassDetecter testClassDetecter;
+class TestNGTestMethodDetector extends MethodVisitor {
+    private final TestNGTestClassDetector testClassDetector;
     private final Set<String> testMethodAnnotations = new HashSet<String>();
 
-    public TestNGTestMethodDetecter(TestNGTestClassDetecter testClassDetecter) {
+    public TestNGTestMethodDetector(TestNGTestClassDetector testClassDetector) {
         super(Opcodes.ASM6);
-        this.testClassDetecter = testClassDetecter;
+        this.testClassDetector = testClassDetector;
         testMethodAnnotations.add("Lorg/testng/annotations/Test;");
         testMethodAnnotations.add("Lorg/testng/annotations/BeforeSuite;");
         testMethodAnnotations.add("Lorg/testng/annotations/AfterSuite;");
@@ -42,7 +42,7 @@ class TestNGTestMethodDetecter extends MethodVisitor {
     @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if (testMethodAnnotations.contains(desc)) {
-            testClassDetecter.setTest(true);
+            testClassDetector.setTest(true);
         }
         return null;
     }

@@ -22,7 +22,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestExecuter;
+import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
@@ -45,9 +45,9 @@ import java.util.Set;
 /**
  * The default test class scanner factory.
  */
-public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
+public class DefaultTestExecutor implements TestExecutor<JvmTestExecutionSpec> {
 
-    private static final Logger LOGGER = Logging.getLogger(DefaultTestExecuter.class);
+    private static final Logger LOGGER = Logging.getLogger(DefaultTestExecutor.class);
 
     private final WorkerProcessFactory workerFactory;
     private final ActorFactory actorFactory;
@@ -58,7 +58,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     private final Clock clock;
     private final DocumentationRegistry documentationRegistry;
 
-    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
+    public DefaultTestExecutor(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
                                WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, int maxWorkerCount,
                                Clock clock, DocumentationRegistry documentationRegistry) {
         this.workerFactory = workerFactory;

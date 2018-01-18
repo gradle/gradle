@@ -19,8 +19,8 @@ package org.gradle.api.tasks.testing
 import org.gradle.api.GradleException
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
-import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec
+import org.gradle.api.internal.tasks.testing.TestExecutor
 import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestStartEvent
@@ -30,7 +30,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class TestTaskSpec extends AbstractProjectBuilderSpec {
-    def testExecuter = Mock(TestExecuter)
+    def testExecuter = Mock(TestExecutor)
     def testFramework = Mock(TestFramework)
     def suiteDescriptor = Mock(TestDescriptorInternal)
     def testDescriptor = Mock(TestDescriptorInternal)

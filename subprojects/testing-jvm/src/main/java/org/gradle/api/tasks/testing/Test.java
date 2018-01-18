@@ -30,9 +30,9 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
-import org.gradle.api.internal.tasks.testing.TestExecuter;
+import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
+import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecutor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
@@ -131,7 +131,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
-    private TestExecuter<JvmTestExecutionSpec> testExecuter;
+    private TestExecutor<JvmTestExecutionSpec> testExecutor;
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
@@ -525,16 +525,16 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     @Override
-    protected TestExecuter<JvmTestExecutionSpec> createTestExecuter() {
-        if (testExecuter == null) {
-            return new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
+    protected TestExecutor<JvmTestExecutionSpec> createTestExecuter() {
+        if (testExecutor == null) {
+            return new DefaultTestExecutor(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
                 getServices().get(WorkerLeaseRegistry.class),
                 getServices().get(BuildOperationExecutor.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount(),
                 getServices().get(Clock.class),
                 getServices().get(DocumentationRegistry.class));
         } else {
-            return testExecuter;
+            return testExecutor;
         }
     }
 
@@ -966,11 +966,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Sets the testExecuter property.
+     * Sets the testExecutor property.
      *
      * @since 4.2
      */
-    void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
-        this.testExecuter = testExecuter;
+    void setTestExecutor(TestExecutor<JvmTestExecutionSpec> testExecutor) {
+        this.testExecutor = testExecutor;
     }
 }
