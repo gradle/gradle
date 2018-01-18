@@ -30,6 +30,8 @@ import java.util.Set;
 
 public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
+    public static final String WARNING_SUMMARY = "Deprecated Gradle API and/or features were used in this build, making it incompatible with Gradle";
+    public static final String WARNING_LOGGING_DOCS_MESSAGE = "Read documentation on configuring warning logging at";
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
@@ -78,11 +80,9 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
 
     public void reportSuppressedDeprecations() {
         if (warningMode == WarningMode.Summary && !messages.isEmpty()) {
-            LOGGER.warn("\n"
-                    + "Deprecated Gradle API and/or features were used in this build, making it incompatible with Gradle {}.\n"
-                    + "Read documentation on configuring warning logging at {}",
-                GradleVersion.current().getNextMajor().getVersion(),
-                DOCUMENTATION_REGISTRY.getDocumentationFor("command_line_interface", "sec:command_line_warnings"));
+            LOGGER.warn("\n{} {}.\n{} {}",
+                WARNING_SUMMARY, GradleVersion.current().getNextMajor().getVersion(),
+                WARNING_LOGGING_DOCS_MESSAGE, DOCUMENTATION_REGISTRY.getDocumentationFor("command_line_interface", "sec:command_line_warnings"));
         }
     }
 

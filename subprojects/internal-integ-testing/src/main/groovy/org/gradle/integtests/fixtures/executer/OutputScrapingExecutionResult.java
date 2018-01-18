@@ -21,6 +21,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
@@ -104,6 +105,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 i++;
             } else if (line.contains(LowTenuredSpaceDaemonExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
                 // Remove the "Expiring Daemon" message
+                i++;
+            } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
+                // Remove the "Deprecated Gradle API..." message
+                i++;
+            } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_LOGGING_DOCS_MESSAGE)) {
+                // Remove the "Read documentation on..." message
                 i++;
             } else if (line.contains(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING)) {
                 // Remove the Java 7 deprecation warning. This should be removed after 5.0
