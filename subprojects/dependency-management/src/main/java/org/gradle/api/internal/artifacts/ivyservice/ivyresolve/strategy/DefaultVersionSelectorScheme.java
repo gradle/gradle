@@ -40,13 +40,13 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
     }
 
     public String renderSelector(VersionSelector selector) {
-        return ((AbstractVersionSelector) selector).getSelector();
+        return selector.getSelector();
     }
 
     @Override
     public VersionSelector complementForRejection(VersionSelector selector) {
         if (selector instanceof ExactVersionSelector) {
-            return new VersionRangeSelector("]" + ((ExactVersionSelector) selector).getSelector() + ",)", versionComparator.asVersionComparator());
+            return new VersionRangeSelector("]" + selector.getSelector() + ",)", versionComparator.asVersionComparator());
         }
         if (selector instanceof VersionRangeSelector) {
             VersionRangeSelector vrs = (VersionRangeSelector) selector;
