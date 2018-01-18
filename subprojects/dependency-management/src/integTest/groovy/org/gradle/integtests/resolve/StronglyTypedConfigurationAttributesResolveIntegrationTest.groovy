@@ -98,21 +98,21 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
             }
             project(':b') {
-                def flavorInteger = Attribute.of('flavor', Integer)
-                def buildTypeInteger = Attribute.of('buildType', Integer)
+                def flavorString = Attribute.of('flavor', String)
+                def buildTypeString = Attribute.of('buildType', String)
                 dependencies {
                     attributesSchema {
-                        attribute(flavorInteger)
-                        attribute(buildTypeInteger)
+                        attribute(flavorString)
+                        attribute(buildTypeString)
                     }
                 }
                 configurations {
                     create('default')
                     foo {
-                        attributes { attribute(flavorInteger, 1); attribute(buildTypeInteger, 1) }
+                        attributes { attribute(flavorString, 'free'); attribute(buildTypeString, 'debug') } // use String type instead of Flavor/BuildType
                     }
                     bar {
-                        attributes { attribute(flavorInteger, 1); attribute(buildTypeInteger, 2) }
+                        attributes { attribute(flavorString, 'free'); attribute(buildTypeString, 'release') } // use String type instead of Flavor/BuildType
                     }
                 }
                 task fooJar(type: Jar) {
@@ -135,14 +135,14 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
         then:
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.Integer.")
+        failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.String.")
 
         when:
         fails ':a:checkRelease'
 
         then:
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.Integer.")
+        failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.String.")
     }
 
     def "selects best compatible match using consumers disambiguation rules when multiple are compatible"() {

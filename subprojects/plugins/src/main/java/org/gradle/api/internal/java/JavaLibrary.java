@@ -84,7 +84,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
             "If you're using the Shadow plugin, try upgrading to v2.x");
         this.artifacts.add(jarArtifact);
         this.objectFactory = DEPRECATED_OBJECT_FACTORY;
-        this.attributesFactory = new DefaultImmutableAttributesFactory(new BackwardsCompatibilityIsolatableFactory(), NamedObjectInstantiator.INSTANCE);
+        this.attributesFactory = new DefaultImmutableAttributesFactory(new BackwardsCompatibilityIsolatableFactory());
         this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_RUNTIME, runtimeDependencies);
         this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_API, runtimeDependencies);
         this.configurations = null;

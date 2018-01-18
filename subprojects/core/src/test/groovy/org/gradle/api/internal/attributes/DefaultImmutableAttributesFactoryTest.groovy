@@ -17,7 +17,6 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -27,9 +26,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
     private static final Attribute<String> BAZ = Attribute.of("baz", String)
 
     def snapshotter = TestUtil.valueSnapshotter()
-    def instantiator = NamedObjectInstantiator.INSTANCE
-
-    def factory = new DefaultImmutableAttributesFactory(snapshotter, instantiator)
+    def factory = new DefaultImmutableAttributesFactory(snapshotter)
 
     def "can create empty set"() {
         when:
@@ -177,7 +174,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
 
     def "can compare attribute sets created by two different factories"() {
         given:
-        def otherFactory = new DefaultImmutableAttributesFactory(snapshotter, instantiator)
+        def otherFactory = new DefaultImmutableAttributesFactory(snapshotter)
 
         when:
         def set1 = factory.concat(factory.of(FOO, "foo"), BAR, "bar")
@@ -189,7 +186,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
 
     def "can append to a set created with a different factory"() {
         given:
-        def otherFactory = new DefaultImmutableAttributesFactory(snapshotter, instantiator)
+        def otherFactory = new DefaultImmutableAttributesFactory(snapshotter)
         def attributes = otherFactory.of(FOO, 'foo')
 
         when:

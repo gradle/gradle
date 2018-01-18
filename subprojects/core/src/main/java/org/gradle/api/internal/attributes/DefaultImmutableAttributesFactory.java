@@ -18,10 +18,8 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +29,9 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, List<DefaultImmutableAttributes>> children;
     private final IsolatableFactory isolatableFactory;
-    private NamedObjectInstantiator instantiator;
 
-    public DefaultImmutableAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
+    public DefaultImmutableAttributesFactory(IsolatableFactory isolatableFactory) {
         this.isolatableFactory = isolatableFactory;
-        this.instantiator = instantiator;
         this.root = ImmutableAttributes.EMPTY;
         this.children = Maps.newHashMap();
         children.put(root, new ArrayList<DefaultImmutableAttributes>());
@@ -62,15 +58,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value) {
-        return doConcatIsolatable(node, key, isolate(value));
-    }
-
-    private <T> Isolatable<T> isolate(T value) {
-        if (value instanceof String) {
-            return (Isolatable<T>) new CoercingStringValueSnapshot((String) value, instantiator);
-        } else {
-            return isolatableFactory.isolate(value);
-        }
+        return doConcatIsolatable(node, key, isolatableFactory.isolate(value));
     }
 
     @Override
