@@ -33,7 +33,6 @@ import org.junit.rules.ExternalResource;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
 public class GitRepository extends ExternalResource implements Named {
@@ -167,6 +166,10 @@ public class GitRepository extends ExternalResource implements Named {
         return git.branchCreate().setName(branchName).call();
     }
 
+    public Ref checkout(String branchName) throws GitAPIException {
+        return git.checkout().setName(branchName).call();
+    }
+
     public Ref createLightWeightTag(String tagName) throws GitAPIException {
         return git.tag().setName(tagName).call();
     }
@@ -187,23 +190,15 @@ public class GitRepository extends ExternalResource implements Named {
         return getWorkTree().file(path);
     }
 
-    public URI getUrl() throws URISyntaxException {
+    public URI getUrl() {
         return getWorkTree().toURI();
     }
 
     private String relativePath(File file) {
-        try {
-            return getUrl().relativize(file.toURI()).toString();
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return getUrl().relativize(file.toURI()).toString();
     }
 
     public String getId() {
-        try {
-            return "git-repo:" + getUrl().toASCIIString();
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return "git-repo:" + getUrl().toASCIIString();
     }
 }

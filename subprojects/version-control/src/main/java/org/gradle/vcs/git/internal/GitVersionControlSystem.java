@@ -29,9 +29,9 @@ import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.GradleException;
 import org.gradle.vcs.VersionControlSpec;
+import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.internal.VersionControlSystem;
 import org.gradle.vcs.internal.VersionRef;
-import org.gradle.vcs.git.GitVersionControlSpec;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,13 +74,18 @@ public class GitVersionControlSystem implements VersionControlSystem {
         for (Ref ref : refs) {
             GitVersionRef gitRef = GitVersionRef.from(ref);
             versions.add(gitRef);
-            // The HEAD reference in a Git Repository is a logical choice if the user is looking
-            // for the 'latest.integration' version of a dependency.
-            if (gitRef.getVersion().equals("HEAD")) {
-                versions.add(GitVersionRef.from("latest.integration", gitRef.getCanonicalId()));
-            }
         }
         return versions;
+    }
+
+    @Override
+    public VersionRef getHead(VersionControlSpec spec) {
+        for (VersionRef ref : getAvailableVersions(spec)) {
+            if (ref.getVersion().equals("HEAD")) {
+                return ref;
+            }
+        }
+        throw new UnsupportedOperationException("Git repository has no HEAD reference");
     }
 
     private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {

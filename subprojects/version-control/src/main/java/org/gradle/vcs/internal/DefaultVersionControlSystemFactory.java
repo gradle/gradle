@@ -75,6 +75,15 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         }
 
         @Override
+        public VersionRef getHead(VersionControlSpec spec) {
+            try {
+                return delegate.getHead(spec);
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not list available versions for '%s'.", spec.getDisplayName()), e);
+            }
+        }
+
+        @Override
         public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
             try {
                 return delegate.getAvailableVersions(spec);

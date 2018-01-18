@@ -43,4 +43,8 @@ public interface VersionControlSystem {
      */
     File populate(File versionDir, VersionRef ref, VersionControlSpec spec);
 
+    /**
+     * Returns the default revision for this VCS.
+     */
+    VersionRef getHead(VersionControlSpec spec);
 }
