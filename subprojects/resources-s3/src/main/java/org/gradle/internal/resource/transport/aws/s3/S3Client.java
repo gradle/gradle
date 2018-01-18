@@ -85,7 +85,7 @@ public class S3Client {
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
             amazonS3Client.setEndpoint(endpoint.get().toString());
-            clientOptionsBuilder.setPathStyleAccess(true);
+            clientOptionsBuilder.setPathStyleAccess(true).disableChunkedEncoding();
         }
         amazonS3Client.setS3ClientOptions(clientOptionsBuilder.build());
     }
