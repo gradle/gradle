@@ -99,6 +99,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
+            useAttributeMatching() >> true
             getVariantsForGraphTraversal() >> ImmutableList.of(toFooConfig, toBarConfig)
             getAttributesSchema() >> EmptySchema.INSTANCE
         }
@@ -203,6 +204,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
+            useAttributeMatching() >> true
             getVariantsForGraphTraversal() >> ImmutableList.of(toFooConfig, toBarConfig)
             getAttributesSchema() >> attributesSchema
             getComponentId() >> Stub(ComponentIdentifier) {
@@ -273,6 +275,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
+            useAttributeMatching() >> true
             getVariantsForGraphTraversal() >> ImmutableList.of(toFooConfig, toBarConfig)
             getAttributesSchema() >> attributesSchema
             getComponentId() >> Stub(ComponentIdentifier) {
@@ -401,6 +404,7 @@ Configuration 'bar': Required key 'something' and found incompatible value 'some
             isCanBeConsumed() >> true
         }
         def toComponent = Stub(ComponentResolveMetadata) {
+            useAttributeMatching() >> true
             getVariantsForGraphTraversal() >> ImmutableList.of(toFooConfig, toBarConfig)
             getAttributesSchema() >> EmptySchema.INSTANCE
         }

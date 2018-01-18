@@ -232,6 +232,16 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
+    public boolean isAttributeMatchingRequested() {
+        return false;
+    }
+
+    @Override
+    public boolean useAttributeMatching() {
+        return !getVariantsForGraphTraversal().isEmpty();
+    }
+
+    @Override
     public AttributesSchemaInternal getAttributesSchema() {
         return attributesSchema;
     }

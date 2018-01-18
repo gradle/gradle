@@ -58,6 +58,19 @@ public interface AttributeContainer extends HasAttributes {
     <T> AttributeContainer attribute(Attribute<T> key, T value);
 
     /**
+     * Sets an attribute value by providing the string representation of the value.
+     * The attribute value will be automatically coerced into the type of the corresponding attribute,
+     * when it is matched with a typed version of the attribute.
+     * It is not allowed to use <code>null</code> as an attribute value.
+     * @param name the attribute's name
+     * @param value the attribute value
+     * @return this container
+     *
+     * @since 4.6
+     */
+    AttributeContainer attribute(String name, String value);
+
+    /**
      * Returns the value of an attribute found in this container, or <code>null</code> if
      * this container doesn't have it.
      * @param <T> the type of the attribute

@@ -19,6 +19,8 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 
 import java.util.Set;
 
@@ -55,6 +57,15 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         assertAttributeConstraints(value, key);
         checkInsertionAllowed(key);
         state = cache.concat(state, key, value);
+        return this;
+    }
+
+    @Override
+    public AttributeContainer attribute(String name, String value) {
+        Attribute<String> key = Attribute.of(name, String.class);
+        assertAttributeConstraints(value, key);
+        checkInsertionAllowed(key);
+        state = cache.concat(state, key, new CoercingStringValueSnapshot(value, NamedObjectInstantiator.INSTANCE));
         return this;
     }
 

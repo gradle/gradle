@@ -79,7 +79,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
 
         then:
         runtime.variants.size() == 1
-        runtime.variants.first().attributes.empty
+        runtime.variants.first().attributes.keySet().size() == 1 //org.gradle.status
         runtime.variants.first().artifacts == runtime.artifacts
     }
 
@@ -145,15 +145,13 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
         def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal()
 
         then:
-        compileConf.attributes.empty
-        runtimeConf.attributes.empty
-        isJavaLibrary ? variantsForGraphTraversal.size() == 2 : variantsForGraphTraversal.empty
-
+        compileConf.attributes.keySet().size() == (isJavaLibrary ? 2 : 1) //includes org.gradle.status
+        runtimeConf.attributes.keySet().size() == (isJavaLibrary ? 2 : 1) //includes org.gradle.status
+        variantsForGraphTraversal.size() == immutableMetadata.configurationNames.size() //each config is available as variant
+        isJavaLibrary == immutableMetadata.useAttributeMatching()
         if (isJavaLibrary) {
-            assert variantsForGraphTraversal[0].name == "compile"
-            assert variantsForGraphTraversal[0].attributes.getAttribute(stringUsageAttribute) == "java-api"
-            assert variantsForGraphTraversal[1].name == "runtime"
-            assert variantsForGraphTraversal[1].attributes.getAttribute(stringUsageAttribute) == "java-runtime"
+            assert immutableMetadata.getConfiguration('compile').attributes.getAttribute(stringUsageAttribute) == "java-api"
+            assert immutableMetadata.getConfiguration('runtime').attributes.getAttribute(stringUsageAttribute) == "java-runtime"
         }
 
         where:

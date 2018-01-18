@@ -17,6 +17,7 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.Usage
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -54,5 +55,39 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def immutable2 = child.asImmutable()
         immutable2.getAttribute(attr1) == "child"
         immutable2.getAttribute(attr2) == "new parent"
+    }
+
+    def "can use coercing attribute method"() {
+        given:
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+
+        when:
+        container.attribute(Usage.NAME, 'special')
+
+        then:
+        //calling ony getAttribute can not do coercing
+        container.getAttribute(Usage.USAGE_ATTRIBUTE) == null
+        container.asImmutable().getAttribute(Usage.USAGE_ATTRIBUTE) == null
+        !container.asImmutable().findEntry(Usage.USAGE_ATTRIBUTE).isPresent()
+
+        def entry = container.asImmutable().findEntry(Usage.NAME)
+        entry.isPresent()
+        entry.get() == 'special'
+        entry.coerce(Usage.USAGE_ATTRIBUTE) instanceof Usage
+        entry.coerce(Usage.USAGE_ATTRIBUTE).name == 'special'
+    }
+
+    def "can use coercing attribute method for String attributes"() {
+        given:
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def attribute = Attribute.of('a', String)
+
+        when:
+        container.attribute(attribute.name, "value")
+
+        then:
+        container.getAttribute(attribute) == 'value'
+        container.getAttribute(attribute).class == String
+        container.asImmutable().getAttribute(attribute) == 'value'
     }
 }

@@ -37,7 +37,6 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +60,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     // Configurations are built on-demand, but only once.
     private final Map<String, DefaultConfigurationMetadata> configurations = Maps.newHashMap();
     private ImmutableList<? extends ConfigurationMetadata> graphVariants;
+    private boolean attributeMatchingRequested;
 
     AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getComponentId();
@@ -74,13 +74,13 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         contentHash = metadata.getContentHash();
         attributesFactory = metadata.getAttributesFactory();
         attributes = extractAttributes(metadata);
+        attributeMatchingRequested = metadata.isAttributeMatchingRequested();
         variants = metadata.getVariants();
     }
 
     private static ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
         return ((AttributeContainerInternal) metadata.getAttributes()).asImmutable();
     }
-
 
     /**
      * Creates a copy of the given metadata
@@ -97,6 +97,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         contentHash = metadata.contentHash;
         attributesFactory = metadata.getAttributesFactory();
         attributes = metadata.attributes;
+        attributeMatchingRequested = metadata.isAttributeMatchingRequested();
         variants = metadata.variants;
     }
 
@@ -124,7 +125,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         ImmutableList<String> hierarchy = constructHierarchy(descriptorConfiguration);
         boolean transitive = descriptorConfiguration.isTransitive();
         boolean visible = descriptorConfiguration.isVisible();
-        populated = createConfiguration(componentIdentifier, name, transitive, visible, hierarchy, variantMetadataRules);
+        populated = createConfiguration(componentIdentifier, name, transitive, visible, hierarchy, variantMetadataRules, attributes);
         configurations.put(name, populated);
         return populated;
     }
@@ -149,25 +150,28 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     /**
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
-    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, VariantMetadataRules componentMetadataRules);
+    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy,
+                                                                        VariantMetadataRules componentMetadataRules, ImmutableAttributes componentLevelAttributes);
 
-    /**
-     * If there are no variants defined in the metadata, but the implementation knows how to provide variants it can do that here.
-     * If it can not provide variants, an empty list needs to be returned to fall back to traditional configuration selection.
-     */
-    protected ImmutableList<? extends ConfigurationMetadata> maybeDeriveVariants() {
-        return ImmutableList.of();
-    }
-
-    private ImmutableList<? extends ConfigurationMetadata> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
-        if (variants.isEmpty()) {
-            return maybeDeriveVariants();
+    private void buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
+        if (!variants.isEmpty()) {
+            ImmutableList.Builder<ConfigurationMetadata> configurations = ImmutableList.builder();
+            for (ComponentVariant variant : variants) {
+                configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, attributes, attributesFactory, variantMetadataRules));
+            }
+            attributeMatchingRequested = true;
+            graphVariants = configurations.build();
+            return;
         }
-        List<VariantBackedConfigurationMetadata> configurations = new ArrayList<VariantBackedConfigurationMetadata>(variants.size());
-        for (ComponentVariant variant : variants) {
-            configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, attributes, attributesFactory, variantMetadataRules));
+        //fallback to treating all available configurations as variants
+        ImmutableList.Builder<ConfigurationMetadata> configurations = ImmutableList.builder();
+        for (String conf : getConfigurationNames()) {
+            ConfigurationMetadata configuration = getConfiguration(conf);
+            if (configuration != null) {
+                configurations.add(configuration);
+            }
         }
-        return ImmutableList.copyOf(configurations);
+        graphVariants = configurations.build();
     }
 
     @Nullable
@@ -227,9 +231,24 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
+    public boolean isAttributeMatchingRequested() {
+        return attributeMatchingRequested;
+    }
+
+    public boolean useAttributeMatching() {
+        if (attributeMatchingRequested) {
+            return true;
+        }
+        if (graphVariants == null) {
+            buildVariantsForGraphTraversal(variants);
+        }
+        return attributeMatchingRequested;
+    }
+
+    @Override
     public synchronized ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
         if (graphVariants == null) {
-            graphVariants = buildVariantsForGraphTraversal(variants);
+            buildVariantsForGraphTraversal(variants);
         }
         return graphVariants;
     }

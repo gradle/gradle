@@ -116,7 +116,7 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
 
         then:
         runtime.variants.size() == 1
-        runtime.variants.first().attributes.empty
+        runtime.variants.first().attributes.keySet().size() == 1 //org.gradle.status
         runtime.variants.first().artifacts*.name.name == ["one", "two"]
     }
 

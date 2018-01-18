@@ -298,7 +298,7 @@ class ComponentAttributeMatcherTest extends Specification {
         matcher.isMatching(schema, candidate, requested)
     }
 
-    def "selects fallback when it matches requested and there are no candidates"() {
+    def "selects fallback when it matches requested and there are no candidates or multiple matches"() {
         def key1 = Attribute.of("a1", String)
         def key2 = Attribute.of("a2", String)
         def key3 = Attribute.of("a3", String)
@@ -327,9 +327,9 @@ class ComponentAttributeMatcherTest extends Specification {
         matcher.match(schema, [], requested, fallback4) == []
 
         // Candidates, fallback matches
-        matcher.match(schema, [candidate1, candidate2], requested, fallback1) == []
-        matcher.match(schema, [candidate1, candidate2], requested, fallback2) == []
-        matcher.match(schema, [candidate1, candidate2], requested, fallback3) == []
+        matcher.match(schema, [candidate1, candidate2], requested, fallback1) == [fallback1]
+        matcher.match(schema, [candidate1, candidate2], requested, fallback2) == [fallback2]
+        matcher.match(schema, [candidate1, candidate2], requested, fallback3) == [fallback3]
 
         // No fallback
         matcher.match(schema, [candidate1, candidate2], requested, null) == []

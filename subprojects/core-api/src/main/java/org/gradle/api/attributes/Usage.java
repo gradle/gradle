@@ -27,7 +27,17 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface Usage extends Named {
-    Attribute<Usage> USAGE_ATTRIBUTE = Attribute.of("org.gradle.usage", Usage.class);
+    /**
+     * Name of the usage attribute that is used when the attribute is serialized in metadata.
+     *
+     * @since 4.6
+     */
+    String NAME = "org.gradle.usage";
+
+    /**
+     * The usage attribute.
+     */
+    Attribute<Usage> USAGE_ATTRIBUTE = Attribute.of(NAME, Usage.class);
 
     /**
      * The Java API of a library, packaged as class path elements, either a JAR or a classes directory.
