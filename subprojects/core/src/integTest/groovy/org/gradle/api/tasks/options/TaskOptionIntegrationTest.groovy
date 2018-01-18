@@ -34,19 +34,23 @@ class TaskOptionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Value of myProp: $optionValue")
 
         where:
-        optionType       | options                              | optionValue      | description
-        'String'         | ['--myProp=test']                    | 'test'           | 'provided'
-        'String'         | []                                   | 'null '          | 'not provided'
-        'Boolean'        | ['--myProp']                         | 'true'           | 'provided'
-        'Boolean'        | []                                   | 'null '          | 'not provided'
-        'boolean'        | ['--myProp']                         | 'true'           | 'provided'
-        'boolean'        | []                                   | 'false'          | 'not provided'
-        'TestEnum'       | ['--myProp=OPT_2']                   | 'OPT_2'          | 'provided'
-        'TestEnum'       | []                                   | 'null'           | 'not provided'
-        'List<String>'   | ['--myProp=a', '--myProp=b']         | '[a, b]'         | 'provided'
-        'List<String>'   | []                                   | 'null '          | 'not provided'
-        'List<TestEnum>' | ['--myProp=OPT_2', '--myProp=OPT_3'] | '[OPT_2, OPT_3]' | 'provided'
-        'List<TestEnum>' | []                                   | 'null '          | 'not provided'
+        optionType       | options                              | optionValue         | description
+        'String'         | ['--myProp=test']                    | 'test'              | 'provided'
+        'String'         | ['--myProp=ab\'c=123:x\\yz45']       | 'ab\'c=123:x\\yz45' | 'provided with special characters'
+        'String'         | []                                   | 'null '             | 'not provided'
+        'Boolean'        | ['--myProp']                         | 'true'              | 'provided'
+        'Boolean'        | []                                   | 'null '             | 'not provided'
+        'boolean'        | ['--myProp']                         | 'true'              | 'provided'
+        'boolean'        | []                                   | 'false'             | 'not provided'
+        'TestEnum'       | ['--myProp=OPT_2']                   | 'OPT_2'             | 'provided with upper case'
+        'TestEnum'       | ['--myProp=opt_2']                   | 'OPT_2'             | 'provided with lower case'
+        'TestEnum'       | []                                   | 'null'              | 'not provided'
+        'List<String>'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
+        'List<String>'   | []                                   | 'null '             | 'not provided'
+        'List<String>'   | ['--myProp=a,b']                     | '[a,b]'             | 'provided with incorrect syntax'
+        'List<TestEnum>' | ['--myProp=OPT_2', '--myProp=OPT_3'] | '[OPT_2, OPT_3]'    | 'provided with upper case'
+        'List<TestEnum>' | []                                   | 'null '             | 'not provided'
+        'List<TestEnum>' | ['--myProp=OPT_2,OPT_3']             | '[OPT_2,OPT_3]'     | 'provided with incorrect syntax'
     }
 
     def "can render option with help task"() {
@@ -74,11 +78,11 @@ Options
         then:
         outputContains("""
 Options
+     --prop1     Configures command line option 'prop1'.
+
      --prop2     Configures command line option 'prop2'.
 
-     --prop3     Configures command line option 'prop3'.
-
-     --prop1     Configures command line option 'prop1'.""")
+     --prop3     Configures command line option 'prop3'.""")
     }
 
     static String sampleTask() {
@@ -126,17 +130,17 @@ Options
                 private Boolean prop2;
                 private String prop3;
                 
-                @Option(option = "prop1", description = "Configures command line option 'prop1'.", order = 3)
+                @Option(option = "prop1", description = "Configures command line option 'prop1'.")
                 public void setProp1(String prop1) {
                     this.prop1 = prop1;
                 }
                 
-                @Option(option = "prop2", description = "Configures command line option 'prop2'.", order = 1)
+                @Option(option = "prop2", description = "Configures command line option 'prop2'.")
                 public void setProp2(Boolean prop2) {
                     this.prop2 = prop2;
                 }
                 
-                @Option(option = "prop3", description = "Configures command line option 'prop3'.", order = 2)
+                @Option(option = "prop3", description = "Configures command line option 'prop3'.")
                 public void setProp3(String prop3) {
                     this.prop3 = prop3;
                 }

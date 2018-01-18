@@ -236,16 +236,6 @@ include("child")
 
         then:
         result.output.contains("""Options
-     --type     Set type of build to create.
-                Available values are:
-                     basic
-                     groovy-application
-                     groovy-library
-                     java-application
-                     java-library
-                     pom
-                     scala-library
-
      --dsl     Set alternative build script DSL to be used.
                Available values are:
                     groovy
@@ -254,7 +244,17 @@ include("child")
      --test-framework     Set alternative test framework to be used.
                           Available values are:
                                spock
-                               testng""");
+                               testng
+
+     --type     Set type of build to create.
+                Available values are:
+                     basic
+                     groovy-application
+                     groovy-library
+                     java-application
+                     java-library
+                     pom
+                     scala-library""")
     }
 
     private ExecutionResult runInitWith(BuildInitDsl dsl) {
