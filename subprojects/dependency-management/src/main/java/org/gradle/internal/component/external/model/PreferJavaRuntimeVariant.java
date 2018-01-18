@@ -21,6 +21,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.DisambiguationRule;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 
 import java.util.Collections;
@@ -37,8 +38,10 @@ import java.util.Set;
  * declaring no preference for a particular variant.
  */
 class PreferJavaRuntimeVariant extends EmptySchema {
-    private static final Set<String> DEFAULT_JAVA_USAGES = ImmutableSet.of(Usage.JAVA_API, Usage.JAVA_RUNTIME);
-    private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Collections.<Attribute<?>>singleton(Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class));
+    private static final Usage RUNTIME_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME);
+    private static final Usage API_USAGE = NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_API);
+    private static final Set<Usage> DEFAULT_JAVA_USAGES = ImmutableSet.of(API_USAGE, RUNTIME_USAGE);
+    private static final Set<Attribute<?>> SUPPORTED_ATTRIBUTES = Collections.<Attribute<?>>singleton(Usage.USAGE_ATTRIBUTE);
     private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = new PreferJavaRuntimeVariant();
 
     static PreferJavaRuntimeVariant schema() {
@@ -55,17 +58,18 @@ class PreferJavaRuntimeVariant extends EmptySchema {
 
     @Override
     public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
-        if (Usage.USAGE_ATTRIBUTE.getName().equals(attribute.getName())) {
-            return Cast.uncheckedCast(new DisambiguationRule<String>() {
+        if (Usage.USAGE_ATTRIBUTE.equals(attribute)) {
+            return Cast.uncheckedCast(new DisambiguationRule<Usage>() {
                 @Override
                 public boolean doesSomething() {
                     return true;
                 }
 
-                public void execute(MultipleCandidatesResult<String> details) {
+                public void execute(MultipleCandidatesResult<Usage> details) {
                     if (details.getConsumerValue() == null) {
-                        if (details.getCandidateValues().equals(DEFAULT_JAVA_USAGES)) {
-                            details.closestMatch(Usage.JAVA_RUNTIME);
+                        Set<Usage> candidates = details.getCandidateValues();
+                        if (candidates.equals(DEFAULT_JAVA_USAGES)) {
+                            details.closestMatch(RUNTIME_USAGE);
                         }
                     }
                 }

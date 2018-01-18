@@ -17,7 +17,6 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -41,12 +40,9 @@ import java.util.Set;
 public class DefaultAttributesSchema implements AttributesSchemaInternal, AttributesSchema {
     private final ComponentAttributeMatcher componentAttributeMatcher;
     private final InstantiatorFactory instantiatorFactory;
-    /**
-     * TODO we currently keep the attributes in declaration order, so that matching error messages
-     * are always the same, no matter which machine the build is run on. We might want to reconsider
-     * this, as it adds some additional cost for very little benefit.
-     */
-    private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newLinkedHashMap();
+    private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
+    private final Map<String, Attribute<?>> attributesByName = Maps.newHashMap();
+
     private final DefaultAttributeMatcher matcher;
 
     public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory) {
@@ -75,6 +71,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         if (strategy == null) {
             strategy = Cast.uncheckedCast(instantiatorFactory.decorate().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory));
             strategies.put(attribute, strategy);
+            attributesByName.put(attribute.getName(), attribute);
         }
         if (configureAction != null) {
             configureAction.execute(strategy);
@@ -229,8 +226,20 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
-        public Set<Attribute<?>> getAttributes() {
-            return Sets.union(DefaultAttributesSchema.this.getAttributes(), producerSchema.getAttributes());
+        public Attribute<?> getAttribute(String name) {
+            Attribute<?> attribute = attributesByName.get(name);
+            if (attribute != null) {
+                return attribute;
+            }
+            if (producerSchema instanceof DefaultAttributesSchema) {
+                return ((DefaultAttributesSchema) producerSchema).attributesByName.get(name);
+            }
+            for (Attribute<?> producerAttribute : producerSchema.getAttributes()) {
+                if (producerAttribute.getName().equals(name)) {
+                    return producerAttribute;
+                }
+            }
+            return null;
         }
     }
 }
