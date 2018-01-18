@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import org.gradle.internal.SystemProperties
 import spock.lang.Unroll
 
 import static org.gradle.api.logging.configuration.ConsoleOutput.Rich
@@ -100,5 +101,24 @@ task upToDate{
 
         then:
         result.groupedOutput.task(':upToDate').outcome == 'UP-TO-DATE'
+    }
+
+    def 'verbose task header has no blank line above it'() {
+        given:
+        buildFile << '''
+task upToDate{
+    outputs.upToDateWhen {true}
+    doLast {}
+}
+'''
+
+        when:
+        succeeds('upToDate')
+        executer.withConsole(Verbose)
+        succeeds('upToDate')
+
+        then:
+        result.output.contains("> Task :upToDate")
+        !result.output.contains("${SystemProperties.instance.lineSeparator}> Task :upToDate")
     }
 }
