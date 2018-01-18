@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
@@ -36,6 +35,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+
+import static org.gradle.api.tasks.diagnostics.internal.graph.nodes.SelectionReasonHelper.getReasonDescription;
 
 public class DependencyInsightReporter {
     public Collection<RenderableDependency> prepare(Collection<DependencyResult> input, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
@@ -78,9 +79,4 @@ public class DependencyInsightReporter {
 
         return out;
     }
-
-    private String getReasonDescription(ComponentSelectionReason reason) {
-        return !reason.isExpected() ? reason.getDescription() : null;
-    }
-
 }

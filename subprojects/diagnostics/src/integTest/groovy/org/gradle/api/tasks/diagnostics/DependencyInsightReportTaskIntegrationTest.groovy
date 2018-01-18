@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -1441,4 +1442,36 @@ org:foo:$displayVersion -> $selected
         "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'
     }
 
+    def "shows published dependency reason"() {
+        given:
+        mavenRepo.with {
+            def leaf = module('org.test', 'leaf', '1.0').publish()
+            module('org.test', 'a', '1.0')
+                .dependsOn(leaf, reason: 'first reason')
+                .withModuleMetadata()
+                .publish()
+
+        }
+        FeaturePreviewsFixture.enableGradleMetadata(file("gradle.properties"))
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+            
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            
+            dependencies {
+                implementation 'org.test:a:1.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf"
+
+        then:
+        output.contains """org.test:leaf:1.0 (first reason)
+\\--- org.test:a:1.0
+     \\--- compileClasspath"""
+    }
 }
