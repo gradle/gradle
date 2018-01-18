@@ -42,6 +42,3 @@ A repository hosts a set of dependencies. The repository can be based on a binar
 Resolution rule::
 
 A resolution rule influences the behavior of how a <<sec:sub:terminology_dependency,dependency>> is resolved. Resolution rules are defined as part of the build logic. For more information, see <<customizing_dependency_resolution_behavior>>.
-
-
-
