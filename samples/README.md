@@ -43,13 +43,13 @@ _Note: Currently, these instructions only address working with IntelliJ IDEA. In
 
 ### Install IntelliJ IDEA
 
-Version 2017.1.3 or better is required, and can be downloaded from https://www.jetbrains.com/idea.
+Version 2017.3.3 or better is required, and can be downloaded from https://www.jetbrains.com/idea.
 
 ### Install IDEA Kotlin Plugin
 
 _Note: the specific version of the Kotlin plugin matters._
 
-All the samples should work against the latest Kotlin plugin, _1.1.2_ at the time of this writing, from the _Stable_ channel accessible via the _Tools_ > _Kotlin_ > _Configure Kotlin Plugin Updates_ action.
+All the samples should work against the latest Kotlin plugin, _1.2.20_ at the time of this writing, from the _Stable_ channel accessible via the _Tools_ > _Kotlin_ > _Configure Kotlin Plugin Updates_ action.
 
 Set up a sample project
 -----------------------
