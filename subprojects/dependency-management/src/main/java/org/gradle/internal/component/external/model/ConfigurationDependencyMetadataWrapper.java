@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -92,7 +93,7 @@ public class ConfigurationDependencyMetadataWrapper implements ModuleDependencyM
 
     @Override
     public ModuleDependencyMetadata withReason(String reason) {
-        if (reason.equals(this.getReason())) {
+        if (Objects.equal(reason, this.getReason())) {
             return this;
         }
         return new ConfigurationDependencyMetadataWrapper(configuration, componentId, delegate, reason);

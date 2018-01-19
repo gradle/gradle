@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -162,7 +163,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     @Override
     public DependencyMetadata withReason(String reason) {
-        if (reason.equals(this.reason)) {
+        if (Objects.equal(reason, this.reason)) {
             return this;
         }
         return copyWithReason(reason);
