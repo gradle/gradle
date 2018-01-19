@@ -6,7 +6,12 @@ Dependency management comes with a wealth of terminology. Here you can find the 
 [[sub:terminology_configuration]]
 === Configuration
 
-A configuration is a named set of <<sub:terminology_dependency,dependencies>> grouped together for a specific goal: For example the implementation configuration represents the set of dependencies required to compile a project. For more information, see <<sub:scope_of_dependency_configurations>>. _Note:_ The word "configuration" is an overloaded term and has a different meaning outside of the context of dependency management.
+A configuration is a named set of <<sub:terminology_dependency,dependencies>> grouped together for a specific goal: For example the implementation configuration represents the set of dependencies required to compile a project. For more information, see <<sub:scope_of_dependency_configurations>>.
+
+[NOTE]
+====
+The word "configuration" is an overloaded term and has a different meaning outside of the context of dependency management.
+====
 
 [[sub:terminology_dependency]]
 === Dependency
