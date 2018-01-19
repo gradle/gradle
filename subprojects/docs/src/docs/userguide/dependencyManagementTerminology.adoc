@@ -31,7 +31,7 @@ Dependencies can provide metadata. Metadata is the data that describes the depen
 [[sub:terminology_configuration]]
 Configuration::
 
-A configuration represents the scope in a Gradle project a set of <<sub:terminology_dependency,dependencies>> should apply to e.g. the Guava dependency should be used to compile source code. The word "configuration" is an overloaded term and has a different meaning outside of the context of dependency management. For more information, see <<sub:scope_of_dependency_configurations>>.
+A configuration is a named set of <<sub:terminology_dependency,dependencies>> grouped together for a specific goal: For example the implementation configuration represents the set of dependencies required to compile a project. For more information, see <<sub:scope_of_dependency_configurations>>. _Note:_ The word "configuration" is an overloaded term and has a different meaning outside of the context of dependency management.
 
 [[sub:terminology_repository]]
 Repository::
