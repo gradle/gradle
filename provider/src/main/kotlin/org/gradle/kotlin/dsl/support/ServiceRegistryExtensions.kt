@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.api.Project
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.service.ServiceRegistry
 
 
 inline
-fun <reified T : Any> Project.serviceOf(): T =
-    (this as ProjectInternal).services.get()
+fun <reified T : Any> ServiceRegistry.get(): T =
+    this[T::class.java]!!

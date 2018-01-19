@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support
+package org.gradle.kotlin.dsl
 
-import org.gradle.api.Project
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.Action
 
 
+/**
+ * Enables function invocation syntax on [Action] references.
+ */
 inline
-fun <reified T : Any> Project.serviceOf(): T =
-    (this as ProjectInternal).services.get()
+operator fun <reified T> Action<in T>.invoke(target: T) = execute(target)

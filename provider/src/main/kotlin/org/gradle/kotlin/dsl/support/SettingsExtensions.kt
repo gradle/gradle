@@ -16,8 +16,8 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.GradleInternal
+
 
 inline
 fun <reified T : Any> Settings.serviceOf(): T =
-    (gradle as GradleInternal).services[T::class.java]!!
+    gradle.serviceOf()
