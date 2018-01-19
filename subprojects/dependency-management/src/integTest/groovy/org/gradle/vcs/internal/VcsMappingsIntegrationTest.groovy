@@ -151,7 +151,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         assertRepoNotCheckedOut("does-not-exist")
     }
 
-    def 'missing settings has clear error'() {
+    def 'source build does not require a settings script'() {
         file('dep/settings.gradle').delete()
         settingsFile << """
             sourceControl {
@@ -165,16 +165,11 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             }
         """
         expect:
-        fails('assemble')
+        succeeds('assemble')
         assertRepoCheckedOut()
-        failureCauseContains("Included build from '")
-        failureCauseContains("' must contain a settings file.")
     }
 
     def 'main build can request plugins to be applied to source dependency build'() {
-        depProject.settingsFile.delete()
-        depProject.buildFile.delete()
-
         singleProjectBuild("buildSrc") {
             file("src/main/groovy/MyPlugin.groovy") << """
                 import org.gradle.api.*
