@@ -438,7 +438,7 @@ public class CompileOptions extends AbstractOptions {
     /**
      * informs whether to use incremental compilation feature. See {@link #setIncremental(boolean)}
      */
-    @Input
+    @Internal
     public boolean isIncremental() {
         return incremental;
     }

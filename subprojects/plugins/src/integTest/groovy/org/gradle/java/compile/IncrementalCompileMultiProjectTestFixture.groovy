@@ -18,10 +18,11 @@ package org.gradle.java.compile
 
 import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 
 @SelfType(AbstractIntegrationSpec)
 trait IncrementalCompileMultiProjectTestFixture {
-    def libraryAppProjectWithIncrementalCompilation() {
+    TestFile libraryAppProjectWithIncrementalCompilation() {
         multiProjectBuild('incremental', ['library', 'app']) {
             buildFile << '''
                 subprojects {
@@ -42,15 +43,15 @@ trait IncrementalCompileMultiProjectTestFixture {
         file('app/src/main/java/AClass.java') << 'public class AClass { }'
     }
 
-    def getAppCompileJava() {
+    static String getAppCompileJava() {
         ':app:compileJava'
     }
 
-    def getLibraryCompileJava() {
+    static String getLibraryCompileJava() {
         ':library:compileJava'
     }
 
-    def writeUnusedLibraryClass() {
+    TestFile writeUnusedLibraryClass() {
         file('library/src/main/java/Unused.java') << 'public class Unused { }'
     }
 }
