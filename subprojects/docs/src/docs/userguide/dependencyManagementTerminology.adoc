@@ -11,7 +11,7 @@ A piece of software that evolves over time e.g. link:https://github.com/google/g
 [[sub:terminology_version]]
 Version::
 
-A <<sub:terminology_module,module>> indicates its revision with the help of a version. Each module version contains a distinct set of changes. In practice there's no limitation to the scheme of the version. Timestamps, numbers, special suffixes like GA are all allowed identifiers. The most widely-used versioning strategy is link:https://semver.org/[semantic versioning]. Semantic versioning is represented by the scheme _major_._minor_._patch_ e.g. `1.4.15`. Each part conveys a special meaning about the backwards-compatibility of the release.
+A <<sub:terminology_module,module>> indicates its revision with the help of a version. Each module version contains a distinct set of changes. In practice there's no limitation to the scheme of the version. Timestamps, numbers, special suffixes like GA are all allowed identifiers. The most widely-used versioning strategy is link:https://semver.org/[semantic versioning].
 
 [[sub:terminology_dependency]]
 Dependency::
