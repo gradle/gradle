@@ -3,42 +3,42 @@
 
 Dependency management comes with a wealth of terminology. Here you can find the most commonly-used terms including references to the user guide to learn about their practical application.
 
-[[sub:terminology_module]]
-Module::
-
-A piece of software that evolves over time e.g. link:https://github.com/google/guava[Google Guava]. Every module has a name. Each release of a module is optimally represented by a <<sub:terminology_version,version>>. For convenient consumption, modules can be hosted in a <<sub:terminology_repository,repository>>.
-
-[[sub:terminology_version]]
-Version::
-
-A <<sub:terminology_module,module>> indicates its revision with the help of a version. Each module version contains a distinct set of changes. In practice there's no limitation to the scheme of the version. Timestamps, numbers, special suffixes like `-GA` are all allowed identifiers. The most widely-used versioning strategy is link:https://semver.org/[semantic versioning].
-
-[[sub:terminology_dependency]]
-Dependency::
-
-A dependency is used to define that a project or a module requires all or some of the artifacts provided by another project or module. The other project or module is selected by an identifier (e.g. project path, file path, maven coordinates) and optionally a version. Dependencies may provide <<sub:terminology_module_metadata,metadata>> to indicate that they depend on other dependencies required for it to work properly, so-called <<sub:terminology_transitive_dependency,transitive dependencies>>. For more information, see <<declaring_dependencies>>. Gradle's dependency resolution process can apply constraints declared in the build script to select a specific version.
-
-[[sub:terminology_transitive_dependency]]
-Transitive dependency::
-
-A transitive dependency is a dependency required by another dependency to work properly. Dependencies hosted on a <<sec:terminology_repository,repository>> can provide <<sub:terminology_module_metadata,metadata>> declaring transitive dependencies. By default, Gradle resolves transitive dependencies if defined by metadata. The behavior is highly customizable. For more information, see <<managing_transitive_dependencies>>.
-
-[[sub:terminology_module_metadata]]
-Module metadata::
-
-Dependencies can provide metadata. Metadata is the data that describes the dependency in more detail e.g. the coordinates for locating it in a repository, information about the project or required <<sub:terminology_transitive_dependency,transitive dependencies>>. In Maven the metadata file is called `.pom`, in Ivy it is called `ivy.xml`.
-
 [[sub:terminology_configuration]]
-Configuration::
+=== Configuration
 
 A configuration is a named set of <<sub:terminology_dependency,dependencies>> grouped together for a specific goal: For example the implementation configuration represents the set of dependencies required to compile a project. For more information, see <<sub:scope_of_dependency_configurations>>. _Note:_ The word "configuration" is an overloaded term and has a different meaning outside of the context of dependency management.
 
+[[sub:terminology_dependency]]
+=== Dependency
+
+A dependency is used to define that a project or a module requires all or some of the artifacts provided by another project or module. The other project or module is selected by an identifier (e.g. project path, file path, maven coordinates) and optionally a version. Dependencies may provide <<sub:terminology_module_metadata,metadata>> to indicate that they depend on other dependencies required for it to work properly, so-called <<sub:terminology_transitive_dependency,transitive dependencies>>. For more information, see <<declaring_dependencies>>. Gradle's dependency resolution process can apply constraints declared in the build script to select a specific version.
+
+[[sub:terminology_module]]
+=== Module
+
+A piece of software that evolves over time e.g. link:https://github.com/google/guava[Google Guava]. Every module has a name. Each release of a module is optimally represented by a <<sub:terminology_version,version>>. For convenient consumption, modules can be hosted in a <<sub:terminology_repository,repository>>.
+
+[[sub:terminology_module_metadata]]
+=== Module metadata
+
+Dependencies can provide metadata. Metadata is the data that describes the dependency in more detail e.g. the coordinates for locating it in a repository, information about the project or required <<sub:terminology_transitive_dependency,transitive dependencies>>. In Maven the metadata file is called `.pom`, in Ivy it is called `ivy.xml`.
+
 [[sub:terminology_repository]]
-Repository::
+=== Repository
 
 A repository hosts a set of <<sub:terminology_module,modules>> that can be used as <<sub:terminology_dependency,dependencies>>. The repository can be based on a binary repository product (e.g. Artifactory or Nexus) or a directory structure in the filesystem. Build scripts can define a set of repositories for resolving <<sub:terminology_dependency,dependencies>>. For more information, see <<declaring_repositories>>.
 
 [[sub:resolution_rule]]
-Resolution rule::
+=== Resolution rule
 
 A resolution rule influences the behavior of how a <<sec:sub:terminology_dependency,dependency>> is resolved. Resolution rules are defined as part of the build logic. For more information, see <<customizing_dependency_resolution_behavior>>.
+
+[[sub:terminology_transitive_dependency]]
+=== Transitive dependency
+
+A transitive dependency is a dependency required by another dependency to work properly. Dependencies hosted on a <<sec:terminology_repository,repository>> can provide <<sub:terminology_module_metadata,metadata>> declaring transitive dependencies. By default, Gradle resolves transitive dependencies if defined by metadata. The behavior is highly customizable. For more information, see <<managing_transitive_dependencies>>.
+
+[[sub:terminology_version]]
+=== Version
+
+A <<sub:terminology_module,module>> indicates its revision with the help of a version. Each module version contains a distinct set of changes. In practice there's no limitation to the scheme of the version. Timestamps, numbers, special suffixes like `-GA` are all allowed identifiers. The most widely-used versioning strategy is link:https://semver.org/[semantic versioning].
