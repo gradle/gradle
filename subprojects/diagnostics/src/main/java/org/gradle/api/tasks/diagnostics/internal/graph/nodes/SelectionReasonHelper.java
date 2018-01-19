@@ -20,10 +20,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 
 public abstract class SelectionReasonHelper {
     public static String getReasonDescription(ComponentSelectionReason reason) {
-        String description = reason.getDescription();
         if (reason.isExpected() && !((ComponentSelectionReasonInternal) reason).hasCustomDescriptions()) {
-            description = null;
+            return null;
         }
-        return description;
+        return reason.getDescription();
     }
 }
