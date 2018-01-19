@@ -30,7 +30,7 @@ For now, we will look at defining some simple tasks in a build with one project.
 [[sec:hello_world]]
 === Hello world
 
-You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle` in the current directory.footnote:[There are command line switches to change this behavior. See <<gradle_command_line>>)] We call this `build.gradle` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
+You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle` in the current directory.footnote:[There are command line switches to change this behavior. See <<command_line_interface>>)] We call this `build.gradle` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
 
 To try this out, create the following build script named `build.gradle`.
 

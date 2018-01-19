@@ -26,7 +26,7 @@ import spock.lang.Issue
 
 import static org.hamcrest.Matchers.startsWith
 
-@TargetVersions(["0.17", "0.21", "0.23", "0.24.1", CodeNarcPlugin.DEFAULT_CODENARC_VERSION])
+@TargetVersions(["0.17", "0.21", "0.23", "0.24.1", "0.25.2", CodeNarcPlugin.DEFAULT_CODENARC_VERSION])
 class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         buildFile << """

@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestDependency
 import spock.lang.Ignore
+import spock.lang.Issue
 
 class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
@@ -62,6 +63,13 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         }
         buildFile << """
             $content
+        """
+    }
+
+    void declaredReplacementWithReason(String rep, String reason) {
+        def d = new TestDependency(rep)
+        buildFile <<  """
+            dependencies.modules.module('${d.group}:${d.name}') { replacedBy '${d.pointsTo.group}:${d.pointsTo.name}', '$reason' }
         """
     }
 
@@ -351,4 +359,46 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         declaredReplacements 'a->b', 'a->c'
         expect: resolvedModules 'b', 'c'
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/1472")
+    def "handles '+' suffix in module name"() {
+        declaredDependencies 'org:foo+', 'org:bar'
+        declaredReplacements 'org:foo+->org:bar'
+        expect: resolvedModules 'org:bar'
+    }
+
+    def "can provide custom replacement reason"() {
+        declaredDependencies 'a', 'b'
+        declaredReplacementWithReason('a->b', 'A replaced with B')
+
+        when:
+        buildFile << """
+            task check {
+                doLast {
+                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
+                    assert modules.find { it.id.module == 'b' }.selectionReason.description == "A replaced with B"
+                }
+            }
+        """
+
+        then:
+        resolvedModules 'b'
+
+        when:
+        run 'dependencyInsight', '--configuration=conf', '--dependency=a'
+
+        then:
+        output.contains(""":dependencyInsight
+org:b:1 (A replaced with B)
+
+org:a:1 -> org:b:1
+\\--- conf""")
+
+        when:
+        run 'check'
+
+        then:
+        noExceptionThrown()
+    }
+
 }

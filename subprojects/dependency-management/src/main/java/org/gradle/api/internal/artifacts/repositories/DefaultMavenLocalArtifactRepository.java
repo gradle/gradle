@@ -18,13 +18,15 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArtifactProvider;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -55,8 +57,9 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                AuthenticationContainer authenticationContainer,
                                                ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                FileResourceRepository fileResourceRepository,
-                                               ExperimentalFeatures experimentalFeatures) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, experimentalFeatures);
+                                               FeaturePreviews featurePreviews,
+                                               MavenMutableModuleMetadataFactory metadataFactory) {
+        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, null, fileResourceRepository, featurePreviews, metadataFactory);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
@@ -67,6 +70,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
         }
 
         RepositoryTransport transport = getTransport(rootUri.getScheme());
+        MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), getResourcesFileStore());
         MavenResolver resolver = new MavenResolver(
             getName(),
             rootUri,
@@ -74,10 +78,9 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
             getLocallyAvailableResourceFinder(),
             getArtifactFileStore(),
             moduleIdentifierFactory,
-            transport.getResourceAccessor(),
-            getResourcesFileStore(),
-            createMetadataSources(),
-            MavenMetadataArtifactProvider.INSTANCE);
+            createMetadataSources(mavenMetadataLoader),
+            MavenMetadataArtifactProvider.INSTANCE,
+            mavenMetadataLoader);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
         }

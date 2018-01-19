@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.fixtures
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.binaryinfo.BinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.DumpbinBinaryInfo
+import org.gradle.nativeplatform.fixtures.binaryinfo.DumpbinGccProducedBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.FileArchOnlyBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
@@ -83,7 +84,7 @@ class NativeBinaryFixture {
         file.delete()
     }
 
-    public TestFile getStrippedRuntimeFile() {
+    TestFile getStrippedRuntimeFile() {
         if (toolChain?.visualCpp) {
             return file
         } else {
@@ -114,6 +115,9 @@ class NativeBinaryFixture {
         if (toolChain?.visualCpp) {
             // There is not a built-in tool for querying pdb files, so we just check that the debug file exists
             assertDebugFileExists()
+        } else if (toolChain.meets(ToolChainRequirement.GCC) && OperatingSystem.current().windows) {
+            // Currently cannot probe the actual symbols yet, just verify that there are some
+            binaryInfo.assertHasDebugSymbols()
         } else {
             def symbols = binaryInfo.listDebugSymbols()
             def symbolNames = symbols.collect { it.name }
@@ -124,7 +128,10 @@ class NativeBinaryFixture {
     }
 
     void assertDoesNotHaveDebugSymbolsFor(List<String> sourceFileNames) {
-        if (toolChain?.visualCpp) {
+        if (toolChain.meets(ToolChainRequirement.GCC) && OperatingSystem.current().windows) {
+            // Currently cannot probe the actual symbols yet, just verify that there are none
+            binaryInfo.assertDoesNotHaveDebugSymbols()
+        } else if (toolChain?.visualCpp) {
             def symbols = binaryInfo.listDebugSymbols()
             def symbolNames = symbols.collect { it.name }
             sourceFileNames.each { sourceFileName ->
@@ -150,6 +157,9 @@ class NativeBinaryFixture {
             return new OtoolBinaryInfo(file);
         }
         if (OperatingSystem.current().isWindows()) {
+            if (toolChain.meets(ToolChainRequirement.GCC)) {
+                return new DumpbinGccProducedBinaryInfo(file);
+            }
             return new DumpbinBinaryInfo(file);
         }
         return new ReadelfBinaryInfo(file);

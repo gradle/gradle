@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[plugins]]
-== Gradle Plugins
+== Using Gradle Plugins
 
 Gradle at its core intentionally provides very little for real world automation. All of the useful features, like the ability to compile Java code, are added by _plugins_. Plugins add new tasks (e.g. api:org.gradle.api.tasks.compile.JavaCompile[]), domain objects (e.g. api:org.gradle.api.tasks.SourceSet[]), conventions (e.g. Java source is located at `src/main/java`) as well as extending core objects and objects from other plugins.
 
@@ -224,7 +224,7 @@ To add resolution rules, use the `resolutionStrategy {}` inside the `pluginManag
 
 This tells Gradle to use the specified plugin implementation artifact instead of using its built-in default mapping from plugin ID to Maven/Ivy coordinates.
 
-The `pluginManagement {}` block may only appear in the `settings.gradle` file, and must be the first block in the file. Custom Maven and Ivy plugin repositories must contain <<sec:plugin_markers,plugin marker artifacts>> in addition to the artifacts which actually implement the plugin. For more information on publishing plugins to custom repositories read <<javaGradle_plugin>>.
+The `pluginManagement {}` block may only appear in the `settings.gradle` file, and must be the first block in the file. Custom Maven and Ivy plugin repositories must contain <<sec:plugin_markers,plugin marker artifacts>> in addition to the artifacts which actually implement the plugin. For more information on publishing plugins to custom repositories read <<java_gradle_plugin>>.
 
 See api:org.gradle.plugin.management.PluginManagementSpec[] for complete documentation for using the `pluginManagement {}` block.
 

@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
@@ -31,6 +32,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadataWrapper;
+import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -146,7 +148,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
 
         @Override
         public ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
-            return delegate.getVariantsForGraphTraversal();
+            return ImmutableList.of();
         }
 
         @Override
@@ -168,11 +170,16 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         public List<String> getStatusScheme() {
             return delegate.getStatusScheme();
         }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            return delegate.getAttributes();
+        }
     }
 
     private static class ClientModuleConfigurationMetadata extends DefaultConfigurationMetadata {
         ClientModuleConfigurationMetadata(ModuleComponentIdentifier componentId, String name, ModuleComponentArtifactMetadata artifact, List<ModuleDependencyMetadata> dependencies) {
-            super(componentId, name, true, true, ImmutableList.<String>of(), ImmutableList.of(artifact), null, ImmutableList.<ExcludeMetadata>of());
+            super(componentId, name, true, true, ImmutableList.<String>of(), ImmutableList.of(artifact), VariantMetadataRules.noOp(), ImmutableList.<ExcludeMetadata>of());
             setDependencies(dependencies);
         }
     }

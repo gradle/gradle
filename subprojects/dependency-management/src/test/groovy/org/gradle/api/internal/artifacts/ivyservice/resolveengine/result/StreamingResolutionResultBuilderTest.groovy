@@ -21,16 +21,15 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
@@ -39,11 +38,10 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 class StreamingResolutionResultBuilderTest extends Specification {
 
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    final VersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
-    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore(), moduleIdentifierFactory, versionSelectorScheme)
+    StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore(), moduleIdentifierFactory, new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     def "result can be read multiple times"() {
-        def rootNode = node(1, "org", "root", "1.0", ROOT)
+        def rootNode = node(1, "org", "root", "1.0", root())
         builder.start(rootNode)
         builder.visitNode(rootNode)
         builder.finish(rootNode)
@@ -54,17 +52,17 @@ class StreamingResolutionResultBuilderTest extends Specification {
         then:
         with(result) {
             root.id == DefaultModuleComponentIdentifier.newId("org", "root", "1.0")
-            root.selectionReason == ROOT
+            root.selectionReason == root()
         }
         printGraph(result.root) == """org:root:1.0
 """
     }
 
     def "maintains graph in byte stream"() {
-        def root = node(1, "org", "root", "1.0", ROOT)
+        def root = node(1, "org", "root", "1.0", root())
         def selector1 = selector(1, "org", "dep1", "2.0")
         def selector2 = selector(2, "org", "dep2", "3.0")
-        def dep1 = node(2, "org", "dep1", "2.0", CONFLICT_RESOLUTION)
+        def dep1 = node(2, "org", "dep1", "2.0", of([CONFLICT_RESOLUTION]))
         root.outgoingEdges >> [
                 dep(selector1, 2),
                 dep(selector2, new RuntimeException("Boo!"))
@@ -98,10 +96,10 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.start(root)
 
         builder.visitNode(root)
-        builder.visitNode(node(1, "org", "root", "1.0", REQUESTED)) //it's fine
+        builder.visitNode(node(1, "org", "root", "1.0", requested())) //it's fine
 
-        builder.visitNode(node(2, "org", "dep1", "2.0", CONFLICT_RESOLUTION))
-        builder.visitNode(node(2, "org", "dep1", "2.0", REQUESTED)) //will be ignored
+        builder.visitNode(node(2, "org", "dep1", "2.0", of([CONFLICT_RESOLUTION])))
+        builder.visitNode(node(2, "org", "dep1", "2.0", requested())) //will be ignored
 
         builder.visitSelector(selector)
 
@@ -211,12 +209,12 @@ class StreamingResolutionResultBuilderTest extends Specification {
         def edge = Stub(DependencyGraphEdge)
         _ * edge.selector >> selector
         _ * edge.requested >> selector.requested
-        _ * edge.reason >> VersionSelectionReasons.REQUESTED
+        _ * edge.reason >> requested()
         _ * edge.failure >> new ModuleVersionResolveException(selector.requested, failure)
         return edge
     }
 
-    private DependencyGraphNode node(Long resultId, String org, String name, String ver, ComponentSelectionReason reason = VersionSelectionReasons.REQUESTED) {
+    private DependencyGraphNode node(Long resultId, String org, String name, String ver, ComponentSelectionReason reason = requested()) {
         def component = Stub(DependencyGraphComponent)
         _ * component.resultId >> resultId
         _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(org, name, ver)

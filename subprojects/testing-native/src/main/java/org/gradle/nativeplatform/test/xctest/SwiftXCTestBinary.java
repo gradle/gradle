@@ -21,6 +21,9 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftBinary;
+import org.gradle.nativeplatform.tasks.AbstractLinkTask;
+import org.gradle.nativeplatform.test.TestComponent;
+import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
 
 /**
  * An test binary built from Swift source.
@@ -28,13 +31,13 @@ import org.gradle.language.swift.SwiftBinary;
  * @since 4.4
  */
 @Incubating
-public interface SwiftXCTestBinary extends SwiftBinary {
+public interface SwiftXCTestBinary extends SwiftBinary, TestComponent {
     /**
      * Returns the executable test file for this binary.
      *
-     * @since 4.4
+     * @since 4.5
      */
-    Provider<RegularFile> getExecutableTestFile();
+    Provider<RegularFile> getExecutableFile();
 
     /**
      * Returns the installation directory for this binary.
@@ -49,4 +52,14 @@ public interface SwiftXCTestBinary extends SwiftBinary {
      * @since 4.4
      */
     Provider<RegularFile> getRunScriptFile();
+
+    /**
+     * Returns the link task for this binary.
+     *
+     * @since 4.5
+     */
+    Provider<? extends AbstractLinkTask> getLinkTask();
+
+    @Override
+    Provider<? extends XCTest> getRunTask();
 }

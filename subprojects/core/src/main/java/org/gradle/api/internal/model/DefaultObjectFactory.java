@@ -19,9 +19,11 @@ package org.gradle.api.internal.model;
 import org.gradle.api.Named;
 import org.gradle.api.internal.provider.DefaultListProperty;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -54,5 +56,10 @@ public class DefaultObjectFactory implements ObjectFactory {
     @Override
     public <T> ListProperty<T> listProperty(Class<T> elementType) {
         return new DefaultListProperty<T>(elementType);
+    }
+
+    @Override
+    public <T> SetProperty<T> setProperty(Class<T> elementType) {
+        return new DefaultSetProperty<T>(elementType);
     }
 }

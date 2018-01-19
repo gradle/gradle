@@ -41,6 +41,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
@@ -99,7 +101,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     private TaskOutputCachingBuildCacheKey doResolve(TaskInternal task, TaskExecutionContext context) {
         TaskArtifactState taskState = context.getTaskArtifactState();
         TaskOutputCachingBuildCacheKey cacheKey = taskState.calculateCacheKey();
-        if (task.getOutputs().getHasOutput()) { // A task with no outputs an no cache key.
+        if (context.getTaskProperties().hasDeclaredOutputs()) { // A task with no outputs and no cache key.
             if (cacheKey.isValid()) {
                 LOGGER.info("Build cache key for {} is {}", task, cacheKey.getHashCode());
             }
@@ -136,6 +138,16 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                     }
                 });
             }
+        }
+
+        @Nullable
+        @Override
+        public Set<String> getInputPropertiesLoadedByUnknownClassLoader() {
+            SortedSet<String> inputPropertiesLoadedByUnknownClassLoader = key.getInputs().getInputPropertiesLoadedByUnknownClassLoader();
+            if (inputPropertiesLoadedByUnknownClassLoader == null || inputPropertiesLoadedByUnknownClassLoader.isEmpty()) {
+                return null;
+            }
+            return inputPropertiesLoadedByUnknownClassLoader;
         }
 
         @Nullable

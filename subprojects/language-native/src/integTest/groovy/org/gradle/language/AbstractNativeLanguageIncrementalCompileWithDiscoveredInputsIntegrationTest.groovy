@@ -56,7 +56,6 @@ abstract class AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsInteg
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped dependTask
         skipped compileTask
 
         and:

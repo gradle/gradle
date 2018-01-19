@@ -21,7 +21,7 @@ import org.gradle.internal.DisplayName;
 
 import java.util.List;
 
-public class DefaultVariantMetadata implements VariantMetadata {
+public class DefaultVariantMetadata implements VariantResolveMetadata {
     private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
     private final List<? extends ComponentArtifactMetadata> artifacts;
@@ -30,6 +30,11 @@ public class DefaultVariantMetadata implements VariantMetadata {
         this.displayName = displayName;
         this.attributes = attributes;
         this.artifacts = artifacts;
+    }
+
+    @Override
+    public String getName() {
+        return displayName.getDisplayName();
     }
 
     @Override

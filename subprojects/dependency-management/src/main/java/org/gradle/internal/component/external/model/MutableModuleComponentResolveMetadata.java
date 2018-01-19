@@ -15,17 +15,13 @@
  */
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.DirectDependenciesMetadata;
-import org.gradle.api.artifacts.DependencyConstraintMetadata;
-import org.gradle.api.artifacts.DependencyConstraintsMetadata;
-import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -73,17 +69,30 @@ public interface MutableModuleComponentResolveMetadata {
     void setSource(ModuleSource source);
 
     /**
+     * Adds a variant to this module.
+     */
+    MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes);
+
+    /**
      * Checks if the metadata defines the given variant. Depending on the origin of the metadata, a "variant" can be backed
      * by another concept (for example an ivy configuration). The check should be implemented in a cheap way without creating
      * full variant/configuration metadata objects since the method only needs to check the name.
      */
     boolean definesVariant(String name);
 
+    AttributeContainer getAttributes();
+
+    void setAttributes(AttributeContainer attributes);
+
     /**
      * Creates an artifact for this module. Does not mutate this metadata.
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
-    void addDependencyMetadataRule(String variantName, Action<DirectDependenciesMetadata> action, Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser);
-    void addDependencyConstraintMetadataRule(String variantName, Action<DependencyConstraintsMetadata> action, Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser);
+    ImmutableAttributesFactory getAttributesFactory();
+
+    /**
+     * Returns the metadata rules container for this module
+     */
+    VariantMetadataRules getVariantMetadataRules();
 }

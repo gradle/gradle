@@ -19,6 +19,7 @@ import org.gradle.api.Named;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -36,11 +37,20 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public <T> Property<T> property(Class<T> valueType) {
-        throw new UnsupportedOperationException("Instantiator does not support constructing property objects");
+        return broken();
     }
 
     @Override
     public <T> ListProperty<T> listProperty(Class<T> elementType) {
+        return broken();
+    }
+
+    @Override
+    public <T> SetProperty<T> setProperty(Class<T> elementType) {
+        return broken();
+    }
+
+    private <T> T broken() {
         throw new UnsupportedOperationException("Instantiator does not support constructing property objects");
     }
 

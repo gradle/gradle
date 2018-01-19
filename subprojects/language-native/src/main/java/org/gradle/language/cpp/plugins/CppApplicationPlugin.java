@@ -19,28 +19,21 @@ package org.gradle.language.cpp.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.AppliedPlugin;
-import org.gradle.api.publish.PublishingExtension;
-import org.gradle.api.publish.maven.MavenPublication;
-import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
+import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppApplication;
-import org.gradle.language.cpp.internal.MainExecutableVariant;
+import org.gradle.language.cpp.internal.DefaultCppExecutable;
 import org.gradle.language.cpp.internal.NativeVariant;
+import org.gradle.language.internal.NativeComponentFactory;
+import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 
 import javax.inject.Inject;
-
-import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
-import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
 /**
  * <p>A plugin that produces a native application from C++ source.</p>
@@ -53,91 +46,54 @@ import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
  */
 @Incubating
 public class CppApplicationPlugin implements Plugin<ProjectInternal> {
-    private final FileOperations fileOperations;
+    private final NativeComponentFactory componentFactory;
+    private final ToolChainSelector toolChainSelector;
 
     @Inject
-    public CppApplicationPlugin(FileOperations fileOperations) {
-        this.fileOperations = fileOperations;
+    public CppApplicationPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector) {
+        this.componentFactory = componentFactory;
+        this.toolChainSelector = toolChainSelector;
     }
 
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
-        ConfigurationContainer configurations = project.getConfigurations();
-        TaskContainer tasks = project.getTasks();
-        ObjectFactory objectFactory = project.getObjects();
+        final ObjectFactory objectFactory = project.getObjects();
 
-        // Add the application extension
-        final CppApplication application = project.getExtensions().create(CppApplication.class, "application", DefaultCppApplication.class,  "main", project.getLayout(), objectFactory, fileOperations, configurations);
+        // Add the application and extension
+        final DefaultCppApplication application = componentFactory.newInstance(CppApplication.class, DefaultCppApplication.class, "main");
+        project.getExtensions().add(CppApplication.class, "application", application);
         project.getComponents().add(application);
-        project.getComponents().add(application.getDebugExecutable());
-        project.getComponents().add(application.getReleaseExecutable());
 
         // Configure the component
         application.getBaseName().set(project.getName());
 
-        // Install the debug variant by default
-        tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(application.getDevelopmentBinary().getInstallDirectory());
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(final Project project) {
+                ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class);
 
-        // TODO - add lifecycle tasks to assemble each variant
+                CppExecutable debugExecutable = application.addExecutable("debug", true, false, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                application.addExecutable("release", true, true, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+
+                // Use the debug variant as the development binary
+                application.getDevelopmentBinary().set(debugExecutable);
+
+                application.getBinaries().realizeNow();
+            }
+        });
+
+        // Define publications
+        // TODO - move this to a shared location
 
         final Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
-
-        final Configuration debugRuntimeElements = configurations.maybeCreate("debugRuntimeElements");
-        debugRuntimeElements.extendsFrom(application.getImplementationDependencies());
-        debugRuntimeElements.setCanBeResolved(false);
-        debugRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-        debugRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, application.getDebugExecutable().isDebuggable());
-        debugRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, application.getDebugExecutable().isOptimized());
-        debugRuntimeElements.getOutgoing().artifact(application.getDebugExecutable().getExecutableFile());
-
-        final Configuration releaseRuntimeElements = configurations.maybeCreate("releaseRuntimeElements");
-        releaseRuntimeElements.extendsFrom(application.getImplementationDependencies());
-        releaseRuntimeElements.setCanBeResolved(false);
-        releaseRuntimeElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-        releaseRuntimeElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, application.getReleaseExecutable().isDebuggable());
-        releaseRuntimeElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, application.getReleaseExecutable().isOptimized());
-        releaseRuntimeElements.getOutgoing().artifact(application.getReleaseExecutable().getExecutableFile());
-
-        final MainExecutableVariant mainVariant = new MainExecutableVariant();
-        NativeVariant debugVariant = new NativeVariant("debug", runtimeUsage, debugRuntimeElements.getAllArtifacts(), debugRuntimeElements);
-        mainVariant.addVariant(debugVariant);
-        NativeVariant releaseVariant = new NativeVariant("release", runtimeUsage, releaseRuntimeElements.getAllArtifacts(), releaseRuntimeElements);
-        mainVariant.addVariant(releaseVariant);
-
-        project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
+        application.getBinaries().whenElementKnown(DefaultCppExecutable.class, new Action<DefaultCppExecutable>() {
             @Override
-            public void execute(AppliedPlugin appliedPlugin) {
-                project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
-                    @Override
-                    public void execute(PublishingExtension extension) {
-                        extension.getPublications().create("main", MavenPublication.class, new Action<MavenPublication>() {
-                            @Override
-                            public void execute(MavenPublication publication) {
-                                // TODO - should track changes to these properties
-                                publication.setGroupId(project.getGroup().toString());
-                                publication.setArtifactId(application.getBaseName().get());
-                                publication.setVersion(project.getVersion().toString());
-                                publication.from(mainVariant);
-                                ((MavenPublicationInternal) publication).publishWithOriginalFileName();
-                            }
-                        });
-                        for (final SoftwareComponent child : mainVariant.getVariants()) {
-                            extension.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
-                                @Override
-                                public void execute(MavenPublication publication) {
-                                    // TODO - should track changes to these properties
-                                    publication.setGroupId(project.getGroup().toString());
-                                    publication.setArtifactId(application.getBaseName().get() + "_" + child.getName());
-                                    publication.setVersion(project.getVersion().toString());
-                                    publication.from(child);
-                                    ((MavenPublicationInternal) publication).publishWithOriginalFileName();
-                                }
-                            });
-                        }
-                    }
-                });
+            public void execute(DefaultCppExecutable executable) {
+                Configuration runtimeElements = executable.getRuntimeElements().get();
+                NativeVariant variant = new NativeVariant(executable.getNames(), runtimeUsage, runtimeElements.getAllArtifacts(), runtimeElements);
+                application.getMainPublication().addVariant(variant);
             }
         });
     }

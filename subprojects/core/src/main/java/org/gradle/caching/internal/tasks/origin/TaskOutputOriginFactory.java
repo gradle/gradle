@@ -18,6 +18,7 @@ package org.gradle.caching.internal.tasks.origin;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -97,7 +98,7 @@ public class TaskOutputOriginFactory {
     public TaskOutputOriginReader createReader(final TaskInternal task) {
         return new TaskOutputOriginReader() {
             @Override
-            public TaskOutputOriginMetadata execute(InputStream inputStream) {
+            public OriginTaskExecutionMetadata execute(InputStream inputStream) {
                 // TODO: Replace this with something better
                 Properties properties = new Properties();
                 try {
@@ -112,7 +113,7 @@ public class TaskOutputOriginFactory {
 
                 UniqueId originBuildInvocationId = UniqueId.from(properties.getProperty(BUILD_INVOCATION_ID_KEY));
                 long originalExecutionTime = Long.parseLong(properties.getProperty(EXECUTION_TIME_KEY));
-                return new TaskOutputOriginMetadata(originBuildInvocationId, originalExecutionTime);
+                return new OriginTaskExecutionMetadata(originBuildInvocationId, originalExecutionTime);
             }
         };
     }

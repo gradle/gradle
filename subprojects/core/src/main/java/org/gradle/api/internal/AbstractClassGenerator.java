@@ -26,6 +26,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
@@ -145,7 +146,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                     continue;
                 }
 
-                if (!property.getters.isEmpty() && Property.class.isAssignableFrom(property.getType())) {
+                if (!property.getters.isEmpty() && (Property.class.isAssignableFrom(property.getType()) || HasMultipleValues.class.isAssignableFrom(property.getType()))) {
                     builder.addPropertySetters(property, property.getters.get(0));
                     continue;
                 }

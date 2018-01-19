@@ -23,10 +23,10 @@ class GradleFileModuleAdapter {
     private final String group
     private final String module
     private final String version
-    private final List<VariantMetadata> variants
+    private final List<VariantMetadataSpec> variants
     private final Map<String, String> attributes
 
-    GradleFileModuleAdapter(String group, String module, String version, List<VariantMetadata> variants, Map<String, String> attributes = [:]) {
+    GradleFileModuleAdapter(String group, String module, String version, List<VariantMetadataSpec> variants, Map<String, String> attributes = [:]) {
         this.group = group
         this.module = module
         this.version = version
@@ -63,8 +63,8 @@ class GradleFileModuleAdapter {
                     }
                     files(v.artifacts.collect { a ->
                         { ->
-                            name a.file.name
-                            url a.file.name
+                            name a.name
+                            url a.name
                         }
                     })
                     dependencies(v.dependencies.collect { d ->

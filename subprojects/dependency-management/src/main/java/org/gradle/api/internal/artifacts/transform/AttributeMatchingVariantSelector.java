@@ -32,13 +32,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 class AttributeMatchingVariantSelector implements VariantSelector {
-    private final VariantAttributeMatchingCache matchingCache;
+    private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final AttributeContainerInternal requested;
     private final boolean ignoreWhenNoMatches;
 
-    AttributeMatchingVariantSelector(VariantAttributeMatchingCache matchingCache, AttributesSchemaInternal schema, AttributeContainerInternal requested, boolean ignoreWhenNoMatches) {
-        this.matchingCache = matchingCache;
+    AttributeMatchingVariantSelector(ConsumerProvidedVariantFinder consumerProvidedVariantFinder, AttributesSchemaInternal schema, AttributeContainerInternal requested, boolean ignoreWhenNoMatches) {
+        this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.requested = requested;
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
@@ -74,7 +74,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         for (ResolvedVariant variant : producer.getVariants()) {
             AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
             ConsumerVariantMatchResult matchResult = new ConsumerVariantMatchResult();
-            matchingCache.collectConsumerVariants(variantAttributes, requested, matchResult);
+            consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requested, matchResult);
             for (ConsumerVariantMatchResult.ConsumerVariant consumerVariant : matchResult.getMatches()) {
                 candidates.add(Pair.of(variant, consumerVariant));
             }

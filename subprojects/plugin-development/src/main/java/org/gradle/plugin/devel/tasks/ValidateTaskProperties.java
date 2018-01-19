@@ -53,6 +53,7 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.util.internal.PatchedClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -136,7 +137,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
         final Method validatorMethod;
         try {
             taskInterface = classLoader.loadClass(Task.class.getName());
-            Class<?> validatorClass = classLoader.loadClass("org.gradle.api.internal.project.taskfactory.TaskPropertyValidationAccess");
+            Class<?> validatorClass = classLoader.loadClass("org.gradle.api.internal.tasks.properties.PropertyValidationAccess");
             validatorMethod = validatorClass.getMethod("collectTaskValidationProblems", Class.class, Map.class);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
@@ -152,7 +153,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
                 }
                 ClassReader reader;
                 try {
-                    reader = new ClassReader(Files.asByteSource(fileDetails.getFile()).read());
+                    reader = new PatchedClassReader(Files.asByteSource(fileDetails.getFile()).read());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }

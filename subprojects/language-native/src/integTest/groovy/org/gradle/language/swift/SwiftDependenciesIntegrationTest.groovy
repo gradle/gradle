@@ -17,12 +17,12 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.vcs.fixtures.GitRepository
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new SwiftAppWithLibraries()
 
@@ -125,7 +125,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
             }
         """
         libraryPath.file("settings.gradle").touch()
-        libraryRepo.commit("initial commit", libraryRepo.listFiles())
+        libraryRepo.commit("initial commit")
         libraryRepo.close()
     }
 
@@ -139,7 +139,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
             version = '1.0'
         """
         logPath.file("settings.gradle").touch()
-        logRepo.commit("initial commit", logRepo.listFiles())
+        logRepo.commit("initial commit")
         logRepo.close()
     }
 }

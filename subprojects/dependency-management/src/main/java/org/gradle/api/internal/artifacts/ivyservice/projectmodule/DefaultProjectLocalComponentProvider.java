@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
@@ -35,11 +35,11 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
 
 public class DefaultProjectLocalComponentProvider implements ProjectLocalComponentProvider {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
-    private final ConfigurationComponentMetaDataBuilder metaDataBuilder;
+    private final LocalComponentMetadataBuilder metaDataBuilder;
     private final ListMultimap<String, LocalComponentArtifactMetadata> registeredArtifacts = ArrayListMultimap.create();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public DefaultProjectLocalComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public DefaultProjectLocalComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.projectRegistry = projectRegistry;
         this.metaDataBuilder = metaDataBuilder;
         this.moduleIdentifierFactory = moduleIdentifierFactory;

@@ -56,7 +56,7 @@ trait CppTaskNames {
     }
 
     String[] compileTasks(String project = '', String buildType) {
-        ["${project}:depend${buildType}Cpp", compileTask(project, buildType)] as String[]
+        [compileTask(project, buildType)] as String[]
     }
 
     String compileTask(String project = '', String buildType) {
@@ -65,6 +65,10 @@ trait CppTaskNames {
 
     String linkTask(String project = '', String buildType) {
         "${project}:link${buildType}"
+    }
+
+    String staticLinkTask(String project = '', String buildType) {
+        "${project}:create${buildType}"
     }
 
     String installTask(String project = '', String buildType) {
@@ -78,6 +82,12 @@ trait CppTaskNames {
     String[] compileAndLinkTasks(List<String> projects = [''], String buildType) {
         projects.collect { project ->
             [*compileTasks(project, buildType), linkTask(project, buildType)]
+        }.flatten()
+    }
+
+    String[] compileAndStaticLinkTasks(List<String> projects = [''], String buildType) {
+        projects.collect { project ->
+            [*compileTasks(project, buildType), staticLinkTask(project, buildType)]
         }.flatten()
     }
 
@@ -125,4 +135,7 @@ trait CppTaskNames {
         RELEASE
     }
 
+    String getDebugShared() {
+        return "${DEBUG}Shared"
+    }
 }

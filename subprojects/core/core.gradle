@@ -51,6 +51,7 @@ dependencies {
 
     implementation project(":modelGroovy")
     implementation libraries.asm
+    implementation libraries.asm_commons
     implementation libraries.slf4j_api
     implementation libraries.commons_collections
     implementation libraries.commons_io

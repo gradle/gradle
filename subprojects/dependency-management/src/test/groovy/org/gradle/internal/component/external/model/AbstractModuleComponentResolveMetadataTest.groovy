@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.component.external.descriptor.Configuration
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import spock.lang.Specification
 
@@ -32,7 +31,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     def configurations = []
     def dependencies = []
 
-    abstract AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies)
+    abstract ModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List dependencies)
 
     ModuleComponentResolveMetadata getMetadata() {
         return createMetadata(id, configurations, dependencies)

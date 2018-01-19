@@ -24,6 +24,7 @@ import org.gradle.language.base.internal.compile.DefaultCompilerVersion;
 import org.gradle.language.base.internal.compile.VersionAwareCompiler;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.internal.LinkerSpec;
+import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.SwiftcPlatformToolChain;
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider;
@@ -38,11 +39,12 @@ import org.gradle.nativeplatform.toolchain.internal.SymbolExtractor;
 import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.gcc.ArStaticLibraryArchiver;
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.nativeplatform.toolchain.internal.tools.ToolSearchPath;
+import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.VersionNumber;
 
 class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
     private final ToolSearchPath toolSearchPath;
@@ -63,6 +65,23 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     @Override
+    public ToolSearchResult isToolAvailable(ToolType toolType) {
+        if (toolType == ToolType.SWIFT_COMPILER || toolType == ToolType.LINKER) {
+            return toolSearchPath.locate(toolType, "swiftc");
+        }
+        if (toolType == ToolType.STATIC_LIB_ARCHIVER) {
+            return toolSearchPath.locate(toolType, "ar");
+        }
+        if (toolType == ToolType.SYMBOL_EXTRACTOR) {
+            return toolSearchPath.locate(toolType, SymbolExtractorOsConfig.current().getExecutableName());
+        }
+        if (toolType == ToolType.STRIPPER) {
+            return toolSearchPath.locate(toolType, "strip");
+        }
+        throw new IllegalArgumentException();
+    }
+
+    @Override
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
         if (SwiftCompileSpec.class.isAssignableFrom(spec)) {
             return CompilerUtil.castCompiler(createSwiftCompiler());
@@ -78,10 +97,16 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
 
     protected Compiler<SwiftCompileSpec> createSwiftCompiler() {
         CommandLineToolConfigurationInternal swiftCompilerTool = (CommandLineToolConfigurationInternal) toolRegistry.getSwiftCompiler();
-        SwiftCompiler swiftCompiler = new SwiftCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(ToolType.SWIFT_COMPILER, "swiftc"), context(swiftCompilerTool), getObjectFileExtension(), workerLeaseService);
+        SwiftCompiler swiftCompiler = new SwiftCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool(ToolType.SWIFT_COMPILER, "swiftc"), context(swiftCompilerTool), getObjectFileExtension(), workerLeaseService, swiftcMetaData.getVersion());
         // TODO - OutputCleaningCompiler shouldn't be required
         OutputCleaningCompiler<SwiftCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<SwiftCompileSpec>(swiftCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
-        return new VersionAwareCompiler<SwiftCompileSpec>(outputCleaningCompiler, new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), VersionNumber.UNKNOWN));
+        return new VersionAwareCompiler<SwiftCompileSpec>(outputCleaningCompiler, new DefaultCompilerVersion("swiftc", swiftcMetaData.getVendor(), swiftcMetaData.getVersion()));
+    }
+
+    @Override
+    protected Compiler<StaticLibraryArchiverSpec> createStaticLibraryArchiver() {
+        CommandLineToolConfigurationInternal staticLibArchiverTool = (CommandLineToolConfigurationInternal) toolRegistry.getStaticLibArchiver();
+        return new ArStaticLibraryArchiver(buildOperationExecutor, commandLineTool(ToolType.STATIC_LIB_ARCHIVER, "ar"), context(staticLibArchiverTool), workerLeaseService);
     }
 
     @Override
@@ -104,5 +129,10 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
         MutableCommandLineToolContext baseInvocation = new DefaultMutableCommandLineToolContext();
         baseInvocation.setArgAction(toolConfiguration.getArgAction());
         return baseInvocation;
+    }
+
+    @Override
+    public SwiftcMetadata getCompilerMetadata() {
+        return swiftcMetaData;
     }
 }

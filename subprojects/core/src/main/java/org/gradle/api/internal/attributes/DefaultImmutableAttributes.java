@@ -17,7 +17,6 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.AbstractIterator;
-import com.google.common.collect.Iterators;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
@@ -115,25 +114,17 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         @Override
         public Iterator<Attribute<?>> iterator() {
             return new AbstractIterator<Attribute<?>>() {
-                private boolean visitedThis = false;
-                private Iterator<Attribute<?>> parentIterator;
+                private DefaultImmutableAttributes current = DefaultImmutableAttributes.this;
 
                 @Override
                 protected Attribute<?> computeNext() {
-                    if (!visitedThis) {
-                        visitedThis = true;
-                        if (attribute == null) {
-                            return endOfData();
-                        }
+                    Attribute<?> attribute;
+                    while (current != null && (attribute = current.attribute) != null) {
+                        DefaultImmutableAttributes parent = current.parent;
+                        current = parent;
                         if (parent == null || !parent.contains(attribute)) {
                             return attribute;
                         }
-                    }
-                    if (parentIterator == null) {
-                        parentIterator = parent == null ? Iterators.<Attribute<?>>emptyIterator() : parent.keySet().iterator();
-                    }
-                    if (parentIterator.hasNext()) {
-                        return parentIterator.next();
                     }
                     return endOfData();
                 }
@@ -163,6 +154,16 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         }
         if (parent != null) {
             return parent.getAttribute(key);
+        }
+        return null;
+    }
+
+    protected <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
+        if (key.equals(attribute)) {
+            return Cast.uncheckedCast(value);
+        }
+        if (parent != null) {
+            return parent.getIsolatableAttribute(key);
         }
         return null;
     }
@@ -199,8 +200,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     }
 
     @Nullable
-    @Override
-    public <S> S coerce(Class<S> type) {
+    private <S> S coerce(Class<S> type) {
         if (value != null) {
             Isolatable<S> converted = value.coerce(type);
             if (converted != null) {
@@ -208,6 +208,24 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
             }
         }
         return null;
+    }
+
+    @Override
+    public <S> S coerce(Attribute<S> otherAttribute) {
+        Class<S> attributeType = otherAttribute.getType();
+        if (attributeType.isAssignableFrom(attribute.getType())) {
+            return (S) get();
+        }
+
+        S converted = coerce(attributeType);
+        if (converted != null) {
+            return converted;
+        }
+        String foundType = get().getClass().getName();
+        if (foundType.equals(attributeType.getName())) {
+            foundType += " with a different ClassLoader";
+        }
+        throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), attributeType.getName(), foundType));
     }
 
     @Override

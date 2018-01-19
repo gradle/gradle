@@ -16,22 +16,45 @@
 
 package org.gradle.nativeplatform.test.xctest.internal
 
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.file.FileOperations
-import org.gradle.language.swift.SwiftComponent
-import org.gradle.nativeplatform.test.xctest.SwiftXCTestSuite
+import org.gradle.language.swift.SwiftPlatform
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultSwiftXCTestSuiteTest extends Specification {
-    def "has only a single executables"() {
-        def componentUnderTest = Mock(SwiftComponent)
-        SwiftXCTestSuite testSuite = new DefaultSwiftXCTestSuite("test", Mock(ProjectLayout), Stub(FileOperations), TestUtil.objectFactory(), Stub(ConfigurationContainer))
-        testSuite.testedComponent.set(componentUnderTest)
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
+
+    def "has implementation dependencies"() {
+        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
+
         expect:
-        testSuite.developmentBinary.name == "testExecutable"
-        testSuite.developmentBinary.debuggable
-        testSuite.testedComponent.get() == componentUnderTest
+        testSuite.implementationDependencies == project.configurations.testImplementation
+    }
+
+    def "can add a test executable"() {
+        def targetPlatform = Stub(SwiftPlatform)
+        def toolChain = Stub(NativeToolChainInternal)
+        def platformToolProvider = Stub(PlatformToolProvider)
+        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
+
+        expect:
+        def exe = testSuite.addExecutable("Executable", targetPlatform, toolChain, platformToolProvider)
+        exe.name == 'testExecutable'
+        exe.targetPlatform == targetPlatform
+        exe.toolChain == toolChain
+        exe.platformToolProvider == platformToolProvider
+    }
+
+    def "can add a test bundle"() {
+        def testSuite = new DefaultSwiftXCTestSuite("test", project, project.objects)
+
+        expect:
+        def exe = testSuite.addBundle("Executable", Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        exe.name == 'testExecutable'
     }
 }

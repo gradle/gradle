@@ -173,14 +173,14 @@ class SimpleStateCacheTest extends Specification {
         and:
         r == "b"
 
-        when: // same logical value, but different object is written back
+        when: // same logical value, but different object
         r = cache.maybeUpdate { new String("b") }
 
         then:
         1 * serializer.read(_)
 
         and:
-        1 * serializer.write(_, "b")
+        0 * serializer.write(_, _)
 
         and:
         r == "b"

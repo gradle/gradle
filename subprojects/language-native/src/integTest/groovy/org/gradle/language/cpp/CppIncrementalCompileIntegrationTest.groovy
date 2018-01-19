@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputApp
@@ -26,7 +27,7 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleLinkOutputAppWi
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleLinkOutputLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 
-class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
     def "removes stale object files for executable"() {
         settingsFile << "rootProject.name = 'app'"
@@ -169,7 +170,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         result.assertTasksSkipped(skippedTasks)
 
         executable("app/build/exe/main/debug/app").assertDoesNotExist()
-        file("app/build/exe/main/debug").assertHasDescendants()
+        file("app/build/exe/main/debug").assertDoesNotExist()
         file("app/build/obj/main/debug").assertHasDescendants()
         installation("app/build/install/main/debug").assertNotInstalled()
 
@@ -206,7 +207,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         result.assertTasksNotSkipped(compileAndLinkTasks(debug), installTaskDebug(), ":assemble")
 
         executable("build/exe/main/debug/app").assertDoesNotExist()
-        file("build/exe/main/debug").assertHasDescendants()
+        file("build/exe/main/debug").assertDoesNotExist()
         file("build/obj/main/debug").assertHasDescendants()
         installation("build/install/main/debug").assertNotInstalled()
     }
@@ -239,7 +240,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractCppInstalledToolChain
         result.assertTasksNotSkipped(compileAndLinkTasks(debug), ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertDoesNotExist()
-        file("build/lib/main/debug").assertHasDescendants()
+        file("build/lib/main/debug").assertDoesNotExist()
         file("build/obj/main/debug").assertHasDescendants()
     }
 

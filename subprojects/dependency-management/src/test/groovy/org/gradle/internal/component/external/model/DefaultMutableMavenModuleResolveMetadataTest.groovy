@@ -18,27 +18,32 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.hash.HashValue
+import org.gradle.util.TestUtil
 
 class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
+    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
-        return new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, dependencies)
+        mavenMetadataFactory.create(id, dependencies) as AbstractMutableModuleComponentResolveMetadata
     }
 
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id) {
-        return new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
+        mavenMetadataFactory.create(id) as AbstractMutableModuleComponentResolveMetadata
     }
 
     def "defines configurations for maven scopes and several usage buckets"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
+        def metadata = mavenMetadataFactory.create(id)
 
         expect:
         def immutable = metadata.asImmutable()
@@ -54,7 +59,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
     def "default metadata"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id)
+        def metadata = mavenMetadataFactory.create(id)
 
         expect:
         metadata.packaging == 'jar'
@@ -73,11 +78,10 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
 
         def vid = Mock(ModuleVersionIdentifier)
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, [])
+        def metadata = mavenMetadataFactory.create(id)
 
         expect:
         metadata.componentId == id
-        metadata.id == vid
         metadata.status == "integration"
 
         and:
@@ -92,7 +96,6 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable != metadata
         immutable.componentId == id
         immutable.source == null
-        immutable.id == vid
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.snapshotTimestamp == null
         immutable.packaging == "jar"
@@ -107,7 +110,6 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         copy != metadata
         copy.componentId == id
         copy.source == null
-        copy.id == vid
         copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         copy.snapshotTimestamp == null
         copy.packaging == "jar"
@@ -127,8 +129,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def source = Stub(ModuleSource)
         def contentHash = new HashValue("123")
 
-        def vid = Mock(ModuleVersionIdentifier)
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(vid, id, [])
+        def metadata = mavenMetadataFactory.create(id)
 
         when:
         metadata.componentId = newId
@@ -184,7 +185,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
+        def metadata = mavenMetadataFactory.create(id)
 
         when:
         def immutable = metadata.asImmutable()
@@ -233,7 +234,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "1.2")
         def source = Stub(ModuleSource)
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [])
+        def metadata = mavenMetadataFactory.create(id)
 
         when:
         def immutable = metadata.asImmutable()

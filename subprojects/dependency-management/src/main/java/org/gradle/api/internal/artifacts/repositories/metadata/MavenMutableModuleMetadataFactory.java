@@ -17,30 +17,52 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.MavenDependencyDescriptor;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
+
+import java.util.Collections;
+import java.util.List;
 
 public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableMavenModuleResolveMetadata> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ImmutableAttributesFactory attributesFactory;
+    private final NamedObjectInstantiator objectInstantiator;
+    private final FeaturePreviews featurePreviews;
 
-    public MavenMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public MavenMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                             ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator,
+                                             FeaturePreviews featurePreviews) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.attributesFactory = attributesFactory;
+        this.objectInstantiator = objectInstantiator;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
     public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableMavenModuleResolveMetadata(mvi, from);
+        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, Collections.<MavenDependencyDescriptor>emptyList(), attributesFactory, objectInstantiator, featurePreviews.isAdvancedPomSupportEnabled());
     }
 
-    protected ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
+    private ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
         return moduleIdentifierFactory.moduleWithVersion(from.getGroup(), from.getModule(), from.getVersion());
     }
 
     @Override
     public MutableMavenModuleResolveMetadata missing(ModuleComponentIdentifier from) {
-        return MavenResolver.processMetaData(DefaultMutableMavenModuleResolveMetadata.missing(asVersionIdentifier(from), from));
+        MutableMavenModuleResolveMetadata metadata = create(from);
+        metadata.setMissing(true);
+        return MavenResolver.processMetaData(metadata);
+    }
+
+    public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from, List<MavenDependencyDescriptor> dependencies) {
+        ModuleVersionIdentifier mvi = asVersionIdentifier(from);
+        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, dependencies, attributesFactory, objectInstantiator, featurePreviews.isAdvancedPomSupportEnabled());
     }
 }

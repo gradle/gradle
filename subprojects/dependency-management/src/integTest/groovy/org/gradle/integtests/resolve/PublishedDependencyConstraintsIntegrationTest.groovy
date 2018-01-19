@@ -26,9 +26,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
     void "dependency constraint is ignored when feature is not enabled"() {
         given:
         // Do not enable feature
-        settingsFile.text = """
-            rootProject.name = 'test'
-        """
+        propertiesFile.text = ''
 
         repository {
             'org:foo:1.0'()
@@ -62,8 +60,8 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:first-level:1.0")
-                module("org:foo:1.0")
+                module("org:first-level:1.0:default")
+                module("org:foo:1.0:default")
             }
         }
     }

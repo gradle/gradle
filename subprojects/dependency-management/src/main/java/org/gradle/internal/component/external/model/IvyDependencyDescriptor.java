@@ -96,11 +96,6 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         return dynamicConstraintVersion;
     }
 
-    @Override
-    public Set<String> getModuleConfigurations() {
-        return confs.keySet();
-    }
-
     public SetMultimap<String, String> getConfMappings() {
         return confs;
     }

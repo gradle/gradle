@@ -19,11 +19,13 @@ package org.gradle.language.cpp;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.provider.Property;
+import org.gradle.language.ComponentWithBinaries;
+import org.gradle.language.BinaryCollection;
+import org.gradle.language.ComponentWithDependencies;
 
 /**
  * Configuration for a C++ component, such as a library or executable, defining the source files and private header directories that make up the component. Private headers are those that are visible only to the source files of the component.
@@ -35,7 +37,7 @@ import org.gradle.api.provider.Property;
  * @since 4.2
  */
 @Incubating
-public interface CppComponent extends SoftwareComponent {
+public interface CppComponent extends ComponentWithBinaries, ComponentWithDependencies {
     /**
      * Specifies the base name for this component. This name is used to calculate various output file names. The default value is calculated from the project name.
      */
@@ -86,7 +88,9 @@ public interface CppComponent extends SoftwareComponent {
     Configuration getImplementationDependencies();
 
     /**
-     * Returns the binary of the component to use as the default for development.
+     * Returns the binaries for this library.
+     *
+     * @since 4.5
      */
-    CppBinary getDevelopmentBinary();
+    BinaryCollection<? extends CppBinary> getBinaries();
 }

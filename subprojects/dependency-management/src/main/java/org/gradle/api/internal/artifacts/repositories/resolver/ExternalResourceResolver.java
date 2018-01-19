@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -32,6 +31,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadata
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.specs.Spec;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.UncheckedException;
@@ -42,12 +42,10 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
-import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
@@ -79,12 +77,11 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class ExternalResourceResolver<T extends ModuleComponentResolveMetadata, S extends MutableModuleComponentResolveMetadata & MutableComponentVariantResolveMetadata> implements ModuleVersionPublisher, ConfiguredModuleComponentRepository {
+public abstract class ExternalResourceResolver<T extends ModuleComponentResolveMetadata> implements ModuleVersionPublisher, ConfiguredModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final String name;
@@ -99,7 +96,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    private final VersionLister versionLister;
     private final ImmutableMetadataSources metadataSources;
     private final MetadataArtifactProvider metadataArtifactProvider;
 
@@ -110,7 +106,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        boolean local,
                                        ExternalResourceRepository repository,
                                        CacheAwareExternalResourceAccessor cachingResourceAccessor,
-                                       VersionLister versionLister,
                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
@@ -119,7 +114,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
-        this.versionLister = versionLister;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
@@ -169,32 +163,31 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     private void doListModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
         ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getSelector().getGroup(), dependency.getSelector().getModule());
-        Set<String> versions = new LinkedHashSet<String>();
-        VersionPatternVisitor visitor = versionLister.newVisitor(module, versions, result);
 
-        // List modules based on metadata files (artifact version is not considered in listVersionsForAllPatterns())
-        IvyArtifactName metaDataArtifact = metadataArtifactProvider.getMetaDataArtifactName(dependency.getSelector().getModule());
-        listVersionsForAllPatterns(ivyPatterns, metaDataArtifact, visitor);
+        // TODO:DAZ Provide an abstraction for accessing resources within the same module (maven-metadata, directory listing, etc)
+        // That way we can avoid passing `ivyPatterns` and `artifactPatterns` around everywhere
+        ResourceVersionLister versionLister = new ResourceVersionLister(repository);
+        List<ResourcePattern> completeIvyPatterns = filterComplete(this.ivyPatterns, module);
+        List<ResourcePattern> completeArtifactPatterns = filterComplete(this.artifactPatterns, module);
 
-        // List modules with missing metadata files
-        for (IvyArtifactName otherArtifact : getDependencyArtifactNames(dependency.getSelector().getModule(), dependency.getArtifacts())) {
-            listVersionsForAllPatterns(artifactPatterns, otherArtifact, visitor);
+        // Iterate over the metadata sources to see if they can provide the version list
+        for (MetadataSource<?> metadataSource : metadataSources.sources()) {
+            metadataSource.listModuleVersions(dependency, module, completeIvyPatterns, completeArtifactPatterns, versionLister, result);
+            if (result.hasResult() && result.isAuthoritative()) {
+                return;
+            }
         }
-        result.listed(versions);
+
+        result.listed(ImmutableSet.<String>of());
     }
 
-    private static List<IvyArtifactName> getDependencyArtifactNames(String moduleName, List<IvyArtifactName> artifacts) {
-        if (artifacts.isEmpty()) {
-            IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(moduleName, "jar", "jar");
-            return ImmutableList.of(defaultArtifact);
-        }
-        return artifacts;
-    }
-
-    private void listVersionsForAllPatterns(List<ResourcePattern> patternList, IvyArtifactName ivyArtifactName, VersionPatternVisitor visitor) {
-        for (ResourcePattern resourcePattern : patternList) {
-            visitor.visit(resourcePattern, ivyArtifactName);
-        }
+    private List<ResourcePattern> filterComplete(List<ResourcePattern> ivyPatterns, final ModuleIdentifier module) {
+        return CollectionUtils.filter(ivyPatterns, new Spec<ResourcePattern>() {
+            @Override
+            public boolean isSatisfiedBy(ResourcePattern element) {
+                return element.isComplete(module);
+            }
+        });
     }
 
     protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
@@ -239,7 +232,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return artifactResolver;
     }
 
-    protected ExternalResourceArtifactResolver createArtifactResolver(List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns) {
+    private ExternalResourceArtifactResolver createArtifactResolver(List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns) {
         return new DefaultExternalResourceArtifactResolver(repository, locallyAvailableResourceFinder, ivyPatterns, artifactPatterns, artifactFileStore, cachingResourceAccessor);
     }
 

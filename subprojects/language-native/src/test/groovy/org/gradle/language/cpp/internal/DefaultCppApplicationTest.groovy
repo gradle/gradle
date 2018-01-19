@@ -16,23 +16,33 @@
 
 package org.gradle.language.cpp.internal
 
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.file.FileOperations
+import org.gradle.language.cpp.CppPlatform
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultCppApplicationTest extends Specification {
-    def "has debug and release executables"() {
-        def app = new DefaultCppApplication("main", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(FileOperations), Stub(ConfigurationContainer))
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
+    def application = new DefaultCppApplication("main", project.objects, project)
 
+    def "has implementation dependencies"() {
         expect:
-        app.debugExecutable.name == "mainDebug"
-        app.debugExecutable.debuggable
-        !app.debugExecutable.optimized
-        app.releaseExecutable.name == "mainRelease"
-        app.releaseExecutable.debuggable
-        app.releaseExecutable.optimized
-        app.developmentBinary == app.debugExecutable
+        application.implementationDependencies == project.configurations['implementation']
+    }
+
+    def "has a main publication"() {
+        expect:
+        application.mainPublication
+    }
+
+    def "can add an executable"() {
+        expect:
+        def exe = application.addExecutable("debug", true, false, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        exe.name == 'mainDebug'
     }
 }

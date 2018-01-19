@@ -20,7 +20,6 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.xml.MarkupBuilder;
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
@@ -175,7 +174,6 @@ public class TestNGOptions extends TestFrameworkOptions {
      * @since 1.11
      */
     @Incubating
-    @OutputDirectory
     public File getOutputDirectory() {
         return outputDirectory;
     }

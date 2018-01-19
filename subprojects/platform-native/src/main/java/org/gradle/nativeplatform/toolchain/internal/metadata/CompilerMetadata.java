@@ -17,7 +17,10 @@
 package org.gradle.nativeplatform.toolchain.internal.metadata;
 
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
+import org.gradle.util.VersionNumber;
 
 public interface CompilerMetadata extends ToolSearchResult {
     String getVendor();
+
+    VersionNumber getVersion();
 }

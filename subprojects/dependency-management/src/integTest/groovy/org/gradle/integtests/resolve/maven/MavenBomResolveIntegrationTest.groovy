@@ -17,18 +17,18 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenModule
 
 class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile)
+    def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration('runtime')
     MavenModule bom
     MavenModule moduleA
 
     def setup() {
         resolve.prepare()
-        ExperimentalFeaturesFixture.enable(settingsFile)
+        FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
         settingsFile << "rootProject.name = 'testproject'"
         buildFile << """
             repositories { maven { url "${mavenHttpRepo.uri}" } }
@@ -70,9 +70,10 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         then:
         resolve.expectGraph {
             root(':', ':testproject:') {
-                module("group:bom:1.0", {
+                module("group:bom:1.0") {
                     module("group:moduleA:2.0")
-                }).noArtifacts()
+                    noArtifacts()
+                }
                 edge("group:moduleA:", "group:moduleA:2.0")
             }
         }
@@ -96,9 +97,10 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         resolve.expectGraph {
             root(':', ':testproject:') {
                 module("group:main:5.0") {
-                    module("group:bom:1.0", {
+                    module("group:bom:1.0") {
                         module("group:moduleA:2.0")
-                    }).noArtifacts()
+                        noArtifacts()
+                    }
                 }
                 edge("group:moduleA:", "group:moduleA:2.0")
             }
@@ -133,9 +135,10 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         then:
         resolve.expectGraph {
             root(':', ':testproject:') {
-                module("group:bom:1.0", {
+                module("group:bom:1.0") {
                     module("group:moduleA:2.0")
-                }).noArtifacts()
+                    noArtifacts()
+                }
                 edge("group:moduleA:", "group:moduleA:2.0")
             }
         }
@@ -148,14 +151,52 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         then:
         resolve.expectGraph {
             root(':', ':testproject:') {
-                module("group:bom:1.0", {
+                module("group:bom:1.0") {
                     module("group:moduleA:2.0") {
                         module("group:moduleC:1.0")
                     }
-                }).noArtifacts()
+                    noArtifacts()
+                }
                 edge("group:moduleA:", "group:moduleA:2.0")
             }
         }
+    }
+
+    def "a bom can declare dependencies"() {
+        given:
+        mavenHttpRepo.module('group', 'moduleC', '1.0').allowAll().publish()
+        bom.pomFile.text = bom.pomFile.text.replace("</project>", '''
+                <dependencies>
+                    <dependency>
+                        <groupId>group</groupId>
+                        <artifactId>moduleC</artifactId>
+                        <version>1.0</version>
+                    </dependency>
+                </dependencies>
+            </project>''')
+
+        buildFile << """
+            dependencies {
+                compile "group:bom:1.0"
+                compile "group:moduleA"
+            }
+        """
+
+        when:
+        succeeds 'checkDep'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("group:bom:1.0") {
+                    module("group:moduleA:2.0")
+                    module("group:moduleC:1.0")
+                    noArtifacts()
+                }
+                edge("group:moduleA:", "group:moduleA:2.0")
+            }
+        }
+
     }
 
     def "a parent pom is not a bom"() {

@@ -19,30 +19,49 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
 
     public static final String POM_PACKAGING = "pom";
     public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private static final PreferJavaRuntimeVariant SCHEMA_DEFAULT_JAVA_VARIANTS = PreferJavaRuntimeVariant.schema();
+    // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
+    private static final Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
+
+    private final boolean advancedPomSupportEnabled;
+    private final ImmutableAttributesFactory attributesFactory;
+    private final NamedObjectInstantiator objectInstantiator;
 
     private final ImmutableList<MavenDependencyDescriptor> dependencies;
     private final String packaging;
     private final boolean relocated;
     private final String snapshotTimestamp;
 
-    DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata) {
+    private ImmutableList<? extends ConfigurationMetadata> derivedVariants;
+
+    DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator, boolean advancedPomSupportEnabled) {
         super(metadata);
+        this.advancedPomSupportEnabled = advancedPomSupportEnabled;
+        this.attributesFactory = attributesFactory;
+        this.objectInstantiator = objectInstantiator;
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
@@ -51,6 +70,9 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
+        this.advancedPomSupportEnabled = metadata.advancedPomSupportEnabled;
+        this.attributesFactory = metadata.attributesFactory;
+        this.objectInstantiator = metadata.objectInstantiator;
         packaging = metadata.packaging;
         relocated = metadata.relocated;
         snapshotTimestamp = metadata.snapshotTimestamp;
@@ -60,11 +82,29 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     @Override
-    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> parents, DependencyMetadataRules dependencyMetadataRules) {
+    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> parents, VariantMetadataRules componentMetadataRules) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(name);
-        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, dependencyMetadataRules, ImmutableList.<ExcludeMetadata>of());
+        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.<ExcludeMetadata>of());
         configuration.setDependencies(filterDependencies(configuration));
         return configuration;
+    }
+
+    @Override
+    protected ImmutableList<? extends ConfigurationMetadata> maybeDeriveVariants() {
+        return isJavaLibrary() ? getDerivedVariants() : ImmutableList.<ConfigurationMetadata>of();
+    }
+
+    private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
+        if (derivedVariants == null) {
+            derivedVariants = ImmutableList.of(
+                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("compile"), Usage.JAVA_API, attributesFactory),
+                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("runtime"), Usage.JAVA_RUNTIME, attributesFactory));
+        }
+        return derivedVariants;
+    }
+
+    private ConfigurationMetadata withUsageAttribute(DefaultConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory) {
+        return conf.withAttributes(attributesFactory.concat(ImmutableAttributes.EMPTY, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator)));
     }
 
     private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {
@@ -79,25 +119,40 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
+        boolean isOptionalConfiguration = "optional".equals(config.getName());
+
         for (MavenDependencyDescriptor dependency : dependencies) {
-            if (include(dependency, config.getHierarchy())) {
+            if (isOptionalConfiguration && includeInOptionalConfiguration(dependency)) {
+                filteredDependencies.add(new OptionalConfigurationDependencyMetadata(config, getComponentId(), dependency));
+            } else if (include(dependency, config.getHierarchy())) {
                 filteredDependencies.add(contextualize(config, getComponentId(), dependency));
             }
         }
         return filteredDependencies.build();
     }
 
-    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor incoming) {
+    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
         return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
     }
 
-    private boolean include(ExternalDependencyDescriptor dependency, Collection<String> hierarchy) {
-        for (String moduleConfiguration : dependency.getModuleConfigurations()) {
-            if (hierarchy.contains(moduleConfiguration)) {
-                return true;
-            }
+    private boolean includeInOptionalConfiguration(MavenDependencyDescriptor dependency) {
+        MavenScope dependencyScope = dependency.getScope();
+        // Include all 'optional' dependencies in "optional" configuration
+        return dependency.isOptional()
+            && dependencyScope != MavenScope.Test
+            && dependencyScope != MavenScope.System;
+    }
+
+    private boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy) {
+        MavenScope dependencyScope = dependency.getScope();
+        if (dependency.isOptional() && ignoreOptionalDependencies()) {
+            return false;
         }
-        return false;
+        return hierarchy.contains(dependencyScope.name().toLowerCase());
+    }
+
+    private boolean ignoreOptionalDependencies() {
+        return !advancedPomSupportEnabled;
     }
 
     @Override
@@ -107,7 +162,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     @Override
     public MutableMavenModuleResolveMetadata asMutable() {
-        return new DefaultMutableMavenModuleResolveMetadata(this);
+        return new DefaultMutableMavenModuleResolveMetadata(this, attributesFactory, objectInstantiator, advancedPomSupportEnabled);
     }
 
     public String getPackaging() {
@@ -124,6 +179,10 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     public boolean isKnownJarPackaging() {
         return JAR_PACKAGINGS.contains(packaging);
+    }
+
+    private boolean isJavaLibrary() {
+        return advancedPomSupportEnabled && (isKnownJarPackaging() || isPomPackaging());
     }
 
     @Nullable
@@ -168,5 +227,39 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
             packaging,
             relocated,
             snapshotTimestamp);
+    }
+
+    /**
+     * Adapts a MavenDependencyDescriptor to `DependencyMetadata` for the magic "optional" configuration.
+     *
+     * This configuration has special semantics:
+     *  - Dependencies in the "optional" configuration are _never_ themselves optional (ie not 'pending')
+     *  - Dependencies in the "optional" configuration can have dependency artifacts, even if the dependency is flagged as 'optional'.
+     *    (For a standard configuration, any dependency flagged as 'optional' will have no dependency artifacts).
+     */
+    private static class OptionalConfigurationDependencyMetadata extends ConfigurationDependencyMetadataWrapper {
+        private final MavenDependencyDescriptor dependencyDescriptor;
+
+        public OptionalConfigurationDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, MavenDependencyDescriptor delegate) {
+            super(configuration, componentId, delegate);
+            this.dependencyDescriptor = delegate;
+        }
+
+        /**
+         * Dependencies markes as optional/pending in the "optional" configuration _can_ have dependency artifacts.
+         */
+        @Override
+        public List<IvyArtifactName> getArtifacts() {
+            IvyArtifactName dependencyArtifact = dependencyDescriptor.getDependencyArtifact();
+            return dependencyArtifact == null ? ImmutableList.<IvyArtifactName>of() : ImmutableList.of(dependencyArtifact);
+        }
+
+        /**
+         * Dependencies in the "optional" configuration are never 'pending'.
+         */
+        @Override
+        public boolean isPending() {
+            return false;
+        }
     }
 }

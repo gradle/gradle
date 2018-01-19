@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.external.descriptor.MavenScope;
@@ -31,7 +30,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Represents a dependency as represented in a Maven POM file.
@@ -46,9 +44,6 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
     @Nullable
     private final IvyArtifactName dependencyArtifact;
 
-    // The module configurations that this dependency applies to: should not be necessary.
-    private final Set<String> moduleConfigurations;
-
     public MavenDependencyDescriptor(MavenScope scope, boolean optional, ModuleComponentSelector selector,
                                      @Nullable IvyArtifactName dependencyArtifact, List<ExcludeMetadata> excludes) {
         this.scope = scope;
@@ -56,12 +51,6 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
         this.optional = optional;
         this.dependencyArtifact = dependencyArtifact;
         this.excludes = ImmutableList.copyOf(excludes);
-
-        if (optional && scope != MavenScope.Test && scope != MavenScope.System) {
-            moduleConfigurations = ImmutableSet.of("optional", scope.name().toLowerCase());
-        } else {
-            moduleConfigurations = ImmutableSet.of(scope.name().toLowerCase());
-        }
     }
 
     @Override
@@ -71,11 +60,6 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
 
     public MavenScope getScope() {
         return scope;
-    }
-
-    @Override
-    public Set<String> getModuleConfigurations() {
-        return moduleConfigurations;
     }
 
     @Override
@@ -150,7 +134,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
     public ImmutableList<IvyArtifactName> getConfigurationArtifacts(ConfigurationMetadata fromConfiguration) {
         // Special handling for artifacts declared for optional dependencies
         if (isOptional()) {
-            return getArtifactsForOptionalDependency(fromConfiguration);
+            return getArtifactsForOptionalDependency();
         }
         return getDependencyArtifacts();
     }
@@ -160,15 +144,10 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
      * dependency will update the version of any dependency with matching GAV.
      * (Same goes for <type> on optional dependencies: they are effectively ignored).
      *
-     * The exception to the optional case is when the magic "optional" configuration is being resolved.
-     *
      * Note that this doesn't really match with Maven, where an optional dependency with classifier will
      * provide a version for any other dependency with matching GAV + classifier.
      */
-    private ImmutableList<IvyArtifactName> getArtifactsForOptionalDependency(ConfigurationMetadata fromConfiguration) {
-        if ("optional".equals(fromConfiguration.getName())) {
-            return getDependencyArtifacts();
-        }
+    private ImmutableList<IvyArtifactName> getArtifactsForOptionalDependency() {
         return ImmutableList.of();
     }
 
@@ -203,8 +182,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
             && Objects.equal(selector, that.selector)
             && scope == that.scope
             && Objects.equal(excludes, that.excludes)
-            && Objects.equal(dependencyArtifact, that.dependencyArtifact)
-            && Objects.equal(moduleConfigurations, that.moduleConfigurations);
+            && Objects.equal(dependencyArtifact, that.dependencyArtifact);
     }
 
     @Override
@@ -214,7 +192,6 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
             scope,
             optional,
             excludes,
-            dependencyArtifact,
-            moduleConfigurations);
+            dependencyArtifact);
     }
 }

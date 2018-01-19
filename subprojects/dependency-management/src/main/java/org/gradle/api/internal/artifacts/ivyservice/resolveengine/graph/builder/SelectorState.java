@@ -18,9 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -28,6 +30,8 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
+
+import java.util.Collections;
 
 /**
  * Resolution state for a given module version selector.
@@ -71,7 +75,7 @@ class SelectorState implements DependencyGraphSelector {
     }
 
     public ComponentSelectionReason getSelectionReason() {
-        return selected == null ? idResolveResult.getSelectionReason() : selected.getSelectionReason();
+        return selected == null ? VersionSelectionReasons.of(Collections.<ComponentSelectionDescriptor>singletonList(idResolveResult.getSelectionDescription())) : selected.getSelectionReason();
     }
 
     public ComponentState getSelected() {
@@ -102,7 +106,7 @@ class SelectorState implements DependencyGraphSelector {
 
         selected = resolveState.getRevision(idResolveResult.getModuleVersionId());
         selected.selectedBy(this);
-        selected.setSelectionReason(idResolveResult.getSelectionReason());
+        selected.addCause(idResolveResult.getSelectionDescription());
         targetModule = selected.getModule();
         targetModule.addSelector(this);
         versionConstraint = idResolveResult.getResolvedVersionConstraint();

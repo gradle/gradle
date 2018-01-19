@@ -17,6 +17,7 @@
 package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 
 /**
  * Configuration for a Swift application, defining the source files that make up the application plus other settings.
@@ -26,20 +27,10 @@ import org.gradle.api.Incubating;
  * @since 4.2
  */
 @Incubating
-public interface SwiftApplication extends SwiftComponent {
+public interface SwiftApplication extends ProductionSwiftComponent {
     /**
      * {@inheritDoc}
      */
     @Override
-    SwiftExecutable getDevelopmentBinary();
-
-    /**
-     * Returns the debug executable for this application.
-     */
-    SwiftExecutable getDebugExecutable();
-
-    /**
-     * Returns the release executable for this application.
-     */
-    SwiftExecutable getReleaseExecutable();
+    Provider<? extends SwiftExecutable> getDevelopmentBinary();
 }

@@ -27,6 +27,7 @@ import org.gradle.internal.hash.Hashing;
  */
 public class DefaultBuildCacheHasher implements BuildCacheHasher {
     private final Hasher hasher = Hashing.md5().newHasher();
+    private boolean valid = true;
 
     @Override
     public DefaultBuildCacheHasher putByte(byte value) {
@@ -98,7 +99,20 @@ public class DefaultBuildCacheHasher implements BuildCacheHasher {
     }
 
     @Override
+    public void markAsInvalid() {
+        this.valid = false;
+    }
+
+    @Override
+    public boolean isValid() {
+        return valid;
+    }
+
+    @Override
     public HashCode hash() {
+        if (!valid) {
+            throw new IllegalStateException("Build cache hash is not valid");
+        }
         return hasher.hash();
     }
 }

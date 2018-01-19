@@ -118,6 +118,7 @@ class OperatingSystemTest extends Specification {
         def os = new OperatingSystem.Windows()
 
         expect:
+        os.staticLibrarySuffix == ".lib"
         os.getStaticLibraryName("a.lib") == "a.lib"
         os.getStaticLibraryName("a.LIB") == "a.LIB"
         os.getStaticLibraryName("a") == "a.lib"
@@ -251,6 +252,7 @@ class OperatingSystemTest extends Specification {
         def os = new OperatingSystem.Unix()
 
         expect:
+        os.staticLibrarySuffix == ".a"
         os.getStaticLibraryName("a.a") == "a.a"
         os.getStaticLibraryName("liba.a") == "liba.a"
         os.getStaticLibraryName("a") == "liba.a"

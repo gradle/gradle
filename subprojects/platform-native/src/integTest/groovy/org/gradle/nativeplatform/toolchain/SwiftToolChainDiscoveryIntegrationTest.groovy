@@ -16,13 +16,13 @@
 
 package org.gradle.nativeplatform.toolchain
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.hamcrest.Matchers
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
@@ -35,42 +35,6 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
         """
     }
 
-    // Doesn't run on Java 9 since we are setting environment variables
-    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
-    def "toolchain is not available when swift executable is not found"() {
-        when:
-        // When using executer.withEnvironment and setting the PATH="" then gradle cannot launch since e.g. sh, sed are not found.
-        // When using the embedded executer, then setting the PATH="" from within the build script makes other tests fail since they are on the same JVM.
-        // So we use `withEnvironment` for the embedded executer and set the PATH from the build script for everything else.
-        if (GradleContextualExecuter.embedded) {
-            executer.withEnvironmentVars(PATH: "")
-        } else {
-            buildFile << """
-                import org.gradle.internal.nativeintegration.ProcessEnvironment
-                project.services.get(ProcessEnvironment).setEnvironmentVariable('PATH', '')
-            """
-        }
-
-        buildFile << """                           
-            model {
-                toolChains {
-                    ${toolChain.id} {
-                        path.clear()
-                    }
-                }
-            }
-            apply plugin: 'swift-application'
-        """
-
-        then:
-        fails('assemble')
-
-        and:
-        failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform 'current'"))
-        failure.assertThatCause(Matchers.containsString("- Tool chain 'swiftc' (Swift Compiler): Could not find Swift compiler 'swiftc' in system path."))
-    }
-
     def "toolchain is not available when the discovered swift executable does not return sensible output"() {
         def scriptDir = testDirectory.createDir("scriptDir")
         def script = scriptDir.createFile("swiftc")
@@ -79,6 +43,10 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
             echo "foo"
         """
         script.executable = true
+
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = '${app.projectName}'"
+        app.writeToProject(testDirectory)
 
         when:
         buildFile << """
@@ -97,7 +65,7 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
 
         and:
         failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform 'current'"))
-        failure.assertThatCause(Matchers.containsString("- Tool chain 'swiftc' (Swift Compiler): Could not determine SwiftC metadata: swiftc produced unexpected output."))
+        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build Swift for host operating system '${osName}' architecture '${archName}'"))
+        failure.assertThatCause(Matchers.containsString("- Tool chain '${toolChain.id}' (Swift Compiler): Could not determine SwiftC metadata: swiftc produced unexpected output."))
     }
 }

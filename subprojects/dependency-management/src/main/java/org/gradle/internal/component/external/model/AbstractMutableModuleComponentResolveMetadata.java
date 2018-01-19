@@ -19,59 +19,58 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.DirectDependenciesMetadata;
-import org.gradle.api.artifacts.DependencyConstraintMetadata;
-import org.gradle.api.artifacts.DependencyConstraintsMetadata;
-import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
-abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata, MutableComponentVariantResolveMetadata {
+abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
     public static final HashValue EMPTY_CONTENT = HashUtil.createHash("", "MD5");
+    private static final String DEFAULT_STATUS = "integration";
+
+    private final ImmutableAttributesFactory attributesFactory;
+
     private ModuleComponentIdentifier componentId;
     private ModuleVersionIdentifier id;
     private boolean changing;
     private boolean missing;
-    private String status = "integration";
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
     private HashValue contentHash = EMPTY_CONTENT;
+    private /*Mutable*/AttributeContainerInternal componentLevelAttributes;
 
-    final Map<String, DependencyMetadataRules> dependencyMetadataRules = Maps.newHashMap();
+    private final VariantMetadataRules variantMetadataRules = new VariantMetadataRules();
 
     private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
 
-    AbstractMutableModuleComponentResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
+    AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier) {
+        this.attributesFactory = attributesFactory;
         this.componentId = componentIdentifier;
         this.id = id;
+        this.componentLevelAttributes = defaultAttributes(attributesFactory);
     }
 
     AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
@@ -79,11 +78,16 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.id = metadata.getId();
         this.changing = metadata.isChanging();
         this.missing = metadata.isMissing();
-        this.status = metadata.getStatus();
         this.statusScheme = metadata.getStatusScheme();
         this.moduleSource = metadata.getSource();
         this.contentHash = metadata.getContentHash();
         this.variants = metadata.getVariants();
+        this.attributesFactory = metadata.getAttributesFactory();
+        this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) metadata.getAttributes());
+    }
+
+    private static AttributeContainerInternal defaultAttributes(ImmutableAttributesFactory attributesFactory) {
+        return (AttributeContainerInternal) attributesFactory.mutable().attribute(ProjectInternal.STATUS_ATTRIBUTE, DEFAULT_STATUS);
     }
 
     @Override
@@ -104,14 +108,16 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
 
     @Override
     public String getStatus() {
-        return status;
+        return componentLevelAttributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE);
     }
 
     protected abstract ImmutableMap<String, Configuration> getConfigurationDefinitions();
 
     @Override
     public void setStatus(String status) {
-        this.status = status;
+        AttributeContainerInternal attributes = this.componentLevelAttributes;
+        attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, status);
+        componentLevelAttributes = attributes;
     }
 
     @Override
@@ -164,15 +170,17 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.moduleSource = source;
     }
 
-    public void setAttributes(ImmutableAttributes attributes) {
-        // map the "status" attribute to the "status" field
-        // currently this is the only "attribute" that is supported
-        // so this explains that we don't bother storing the whole attribute set
-        // into a mutable attribute container, but only map known attributes
-        // to fiels instead
-        if (attributes.contains(ProjectInternal.STATUS_ATTRIBUTE)) {
-            setStatus(attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE));
+    public void setAttributes(AttributeContainer attributes) {
+        this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) attributes);
+        // the "status" attribute is mandatory, so if it's missing, we need to add it
+        if (!attributes.contains(ProjectInternal.STATUS_ATTRIBUTE)) {
+            componentLevelAttributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, DEFAULT_STATUS);
         }
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return componentLevelAttributes;
     }
 
     @Override
@@ -182,25 +190,8 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     }
 
     @Override
-    public void addDependencyMetadataRule(String variantName, Action<DirectDependenciesMetadata> action, Instantiator instantiator,
-                                          NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
-                                          NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
-        maybeCreateRulesContainer(variantName, instantiator, dependencyNotationParser, dependencyConstraintNotationParser);
-        dependencyMetadataRules.get(variantName).addDependencyAction(action);
-    }
-
-    @Override
-    public void addDependencyConstraintMetadataRule(String variantName, Action<DependencyConstraintsMetadata> action, Instantiator instantiator,
-                                                    NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
-                                                    NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
-        maybeCreateRulesContainer(variantName, instantiator, dependencyNotationParser, dependencyConstraintNotationParser);
-        dependencyMetadataRules.get(variantName).addDependencyConstraintAction(action);
-    }
-
-    private void maybeCreateRulesContainer(String variantName, Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser) {
-        if (!dependencyMetadataRules.containsKey(variantName)) {
-            dependencyMetadataRules.put(variantName, new DependencyMetadataRules(instantiator, dependencyNotationParser, dependencyConstraintNotationParser));
-        }
+    public VariantMetadataRules getVariantMetadataRules() {
+        return variantMetadataRules;
     }
 
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {
@@ -258,6 +249,10 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             }
         }
         return false;
+    }
+
+    public ImmutableAttributesFactory getAttributesFactory() {
+        return attributesFactory;
     }
 
 
@@ -434,7 +429,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         }
     }
 
-    protected static class ImmutableVariantImpl implements ComponentVariant, VariantMetadata {
+    protected static class ImmutableVariantImpl implements ComponentVariant, VariantResolveMetadata {
         private final ModuleComponentIdentifier componentId;
         private final String name;
         private final ImmutableAttributes attributes;

@@ -17,10 +17,10 @@
 package org.gradle.language.cpp.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.TestFiles
+import org.gradle.language.cpp.CppPlatform
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -29,32 +29,31 @@ import spock.lang.Specification
 class DefaultCppLibraryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
-    def api = Stub(TestConfiguration)
-    def configurations = Stub(ConfigurationContainer)
-    def projectLayout = Mock(ProjectLayout)
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
     DefaultCppLibrary library
 
     def setup() {
-        _ * configurations.maybeCreate("api") >> api
-        _ * configurations.maybeCreate(_) >> Stub(TestConfiguration)
-        library = new DefaultCppLibrary("main", projectLayout, TestUtil.objectFactory(), fileOperations, configurations)
+        library = new DefaultCppLibrary("main", project.objects, project, project.configurations)
+    }
+
+    def "has implementation configuration"() {
+        expect:
+        library.implementationDependencies == project.configurations.implementation
     }
 
     def "has api configuration"() {
         expect:
-        library.apiDependencies == api
+        library.apiDependencies == project.configurations.api
     }
 
-    def "has debug and release shared libraries"() {
+    def "has api elements configuration"() {
         expect:
-        library.debugSharedLibrary.name == "mainDebug"
-        library.debugSharedLibrary.debuggable
-        !library.debugSharedLibrary.optimized
-        library.releaseSharedLibrary.name == "mainRelease"
-        library.releaseSharedLibrary.debuggable
-        library.releaseSharedLibrary.optimized
-        library.developmentBinary == library.debugSharedLibrary
+        library.apiElements == project.configurations.cppApiElements
+    }
+
+    def "has main publication"() {
+        expect:
+        library.mainPublication
     }
 
     def "uses convention for public headers when nothing specified"() {
@@ -72,6 +71,18 @@ class DefaultCppLibraryTest extends Specification {
         library.publicHeaderDirs.files == [d] as Set
     }
 
+    def "can add shared library"() {
+        expect:
+        def binary = library.addSharedLibrary('debug', true, false, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        binary.name == 'mainDebug'
+    }
+
+    def "can add static library"() {
+        expect:
+        def binary = library.addStaticLibrary('debug', true, false, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        binary.name == 'mainDebug'
+    }
+
     def "compile include path includes public and private header dirs"() {
         def defaultPrivate = tmpDir.file("src/main/headers")
         def defaultPublic = tmpDir.file("src/main/public")
@@ -81,18 +92,16 @@ class DefaultCppLibraryTest extends Specification {
         def d4 = tmpDir.file("src/main/d4")
 
         expect:
-        library.debugSharedLibrary.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
-        library.releaseSharedLibrary.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
+        def binary = library.addSharedLibrary('debug', true, false, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        binary.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
 
         library.publicHeaders.from(d1)
         library.privateHeaders.from(d2)
-        library.debugSharedLibrary.compileIncludePath.files as List == [d1, d2]
-        library.releaseSharedLibrary.compileIncludePath.files as List == [d1, d2]
+        binary.compileIncludePath.files as List == [d1, d2]
 
         library.publicHeaders.setFrom(d3)
         library.privateHeaders.from(d4)
-        library.debugSharedLibrary.compileIncludePath.files as List == [d3, d2, d4]
-        library.releaseSharedLibrary.compileIncludePath.files as List == [d3, d2, d4]
+        binary.compileIncludePath.files as List == [d3, d2, d4]
     }
 
     def "can query the header files of the library"() {
@@ -132,8 +141,8 @@ class DefaultCppLibraryTest extends Specification {
     def "uses component name to determine header directories"() {
         def h1 = tmpDir.createFile("src/a/public")
         def h2 = tmpDir.createFile("src/b/public")
-        def c1 = new DefaultCppLibrary("a", projectLayout, TestUtil.objectFactory(), fileOperations, configurations)
-        def c2 = new DefaultCppLibrary("b", projectLayout, TestUtil.objectFactory(), fileOperations, configurations)
+        def c1 = new DefaultCppLibrary("a", project.objects, project, project.configurations)
+        def c2 = new DefaultCppLibrary("b", project.objects, project, project.configurations)
 
         expect:
         c1.publicHeaderDirs.files == [h1] as Set

@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -33,7 +34,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ExperimentalFeatures;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
@@ -47,6 +48,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
+import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency;
@@ -96,8 +98,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final DefaultMavenArtifactSet mavenArtifacts;
     private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<MavenDependencyInternal>();
+    private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<MavenDependency>();
+    private final Set<MavenDependency> apiDependencyConstraints = new LinkedHashSet<MavenDependency>();
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
-    private final ExperimentalFeatures experimentalFeatures;
+    private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private FileCollection pomFile;
     private FileCollection moduleMetadataFile;
@@ -108,7 +112,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     public DefaultMavenPublication(
         String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-        ExperimentalFeatures experimentalFeatures,
+        FeaturePreviews featurePreviews,
         ImmutableAttributesFactory immutableAttributesFactory) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
@@ -116,7 +120,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.immutableAttributesFactory = immutableAttributesFactory;
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
-        this.experimentalFeatures = experimentalFeatures;
+        this.featurePreviews = featurePreviews;
     }
 
     public String getName() {
@@ -163,6 +167,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
         Set<ModuleDependency> seenDependencies = Sets.newHashSet();
+        Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
         for (UsageContext usageContext : getSortedUsageContexts()) {
             // TODO Need a smarter way to map usage to artifact classifier
             for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
@@ -182,6 +187,13 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                     }
                 }
             }
+            Set<MavenDependency> dependencyConstraints = dependencyConstraintsFor(usageContext.getUsage());
+            for (DependencyConstraint dependency : usageContext.getDependencyConstraints()) {
+                if (seenConstraints.add(dependency)
+                    && !dependency.getVersionConstraint().getPreferredVersion().isEmpty()) {
+                    addDependencyConstraint(dependency, dependencyConstraints);
+                }
+            }
         }
     }
 
@@ -198,6 +210,13 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return runtimeDependencies;
     }
 
+    private Set<MavenDependency> dependencyConstraintsFor(Usage usage) {
+        if (Usage.JAVA_API.equals(usage.getName())) {
+            return apiDependencyConstraints;
+        }
+        return runtimeDependencyConstraints;
+    }
+
     private void addProjectDependency(ProjectDependency dependency, Set<MavenDependencyInternal> dependencies) {
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
         dependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.<DependencyArtifact>emptyList(), getExcludeRules(dependency)));
@@ -205,6 +224,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private void addModuleDependency(ModuleDependency dependency, Set<MavenDependencyInternal> dependencies) {
         dependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts(), getExcludeRules(dependency)));
+    }
+
+    private void addDependencyConstraint(DependencyConstraint dependency, Set<MavenDependency> dependencies) {
+        dependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion()));
     }
 
     private static Set<ExcludeRule> getExcludeRules(ModuleDependency dependency) {
@@ -260,6 +283,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public MavenProjectIdentity getMavenProjectIdentity() {
         return projectIdentity;
+    }
+
+    @Override
+    public Set<MavenDependency> getApiDependencyConstraints() {
+        return apiDependencyConstraints;
+    }
+
+    @Override
+    public Set<MavenDependency> getRuntimeDependencyConstraints() {
+        return runtimeDependencyConstraints;
     }
 
     public Set<MavenDependencyInternal> getRuntimeDependencies() {
@@ -350,7 +383,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             // Always publish `ComponentWithVariants`
             return true;
         }
-        return experimentalFeatures.isEnabled();
+        return featurePreviews.isGradleMetadataEnabled();
     }
 
     @Override

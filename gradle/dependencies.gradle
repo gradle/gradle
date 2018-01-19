@@ -19,7 +19,7 @@ ext {
     libraries = [:]
 }
 
-versions.gradle_kotlin_dsl = '0.14.0'
+versions.gradle_kotlin_dsl = '0.15.3'
 versions.commons_io = '2.2'
 versions.groovy = '2.4.12'
 versions.bouncycastle = '1.58'
@@ -27,7 +27,10 @@ versions.maven = '3.0.4'
 versions.httpclient = '4.4.1'
 
 libraries.ant = 'org.apache.ant:ant:1.9.9'
-libraries.asm =  'org.ow2.asm:asm-debug-all:6.0_BETA'
+libraries.asm =  'org.ow2.asm:asm:6.0'
+libraries.asm_commons =  'org.ow2.asm:asm-commons:6.0'
+libraries.asm_util =  'org.ow2.asm:asm-util:6.0'
+libraries.asm_tree =  'org.ow2.asm:asm-tree:6.0'
 libraries.cglib = 'cglib:cglib:3.2.5'
 libraries.bndlib = 'biz.aQute.bnd:biz.aQute.bndlib:3.4.0'
 libraries.commons_cli = 'commons-cli:commons-cli:1.2'
@@ -36,6 +39,7 @@ libraries.commons_lang = 'commons-lang:commons-lang:2.6'
 libraries.commons_collections = 'commons-collections:commons-collections:3.2.2'
 libraries.commons_compress = 'org.apache.commons:commons-compress:1.14'
 libraries.jsch = 'com.jcraft:jsch:0.1.54'
+libraries.fastutil = "it.unimi.dsi:fastutil:7.2.1"
 
 libraries.ivy = 'org.apache.ivy:ivy:2.2.0'
 
@@ -121,7 +125,7 @@ libraries.bouncycastle_pgp = "org.bouncycastle:bcpg-jdk15on:${versions.bouncycas
 libraries.joda = 'joda-time:joda-time:2.8.2'
 
 versions.aws = "1.11.6"
-versions.jackson = "2.8.9"
+versions.jackson = "2.8.11"
 libraries.awsS3 = [
         "com.amazonaws:aws-java-sdk-s3:${versions.aws}",
         "com.amazonaws:aws-java-sdk-kms:${versions.aws}",
@@ -356,8 +360,14 @@ def changeVersionInMetadata(DependencyMetadata dependencyMetadata, String versio
 allprojects {
     configurations.all {
         resolutionStrategy.eachDependency { details ->
-            if (details.requested.group == 'org.ow2.asm') {
+            if (details.requested.name == 'asm') {
                 details.useTarget(libraries.asm)
+            } else if (details.requested.name == 'asm-util') {
+                details.useTarget(libraries.asm_util)
+            } else if (details.requested.name == 'asm-commons') {
+                details.useTarget(libraries.asm_commons)
+            } else if (details.requested.name == 'asm-tree') {
+                details.useTarget(libraries.asm_tree)
             } else if (details.requested.group == 'org.codehaus.groovy') {
                 details.useTarget(libraries.groovy)
             } else if (details.requested.group == 'cglib') {

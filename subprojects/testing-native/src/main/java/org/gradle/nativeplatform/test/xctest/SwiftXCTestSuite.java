@@ -17,7 +17,9 @@
 package org.gradle.nativeplatform.test.xctest;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 import org.gradle.language.swift.SwiftComponent;
+import org.gradle.nativeplatform.test.TestSuiteComponent;
 
 /**
  * A XCTest suite, implemented in Swift.
@@ -25,19 +27,10 @@ import org.gradle.language.swift.SwiftComponent;
  * @since 4.2
  */
 @Incubating
-public interface SwiftXCTestSuite extends SwiftComponent {
+public interface SwiftXCTestSuite extends SwiftComponent, TestSuiteComponent {
     /**
      * {@inheritDoc}
-     * <p>
-     * For test suites, this is the test executable binary.
      */
     @Override
-    SwiftXCTestBinary getDevelopmentBinary();
-
-    /**
-     * Returns the executable that will be executed to run the tests.
-     *
-     * @since 4.4
-     */
-    SwiftXCTestBinary getTestExecutable();
+    Provider<? extends SwiftXCTestBinary> getTestBinary();
 }

@@ -18,14 +18,19 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.internal.Pair;
 
 import java.util.List;
+import java.util.Set;
 
 public interface IncludedBuildInternal extends ConfigurableIncludedBuild {
     List<Action<? super DependencySubstitutions>> getRegisteredDependencySubstitutions();
+    Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules();
 
     SettingsInternal getLoadedSettings();
     GradleInternal getConfiguredBuild();

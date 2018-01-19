@@ -17,6 +17,7 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -28,9 +29,11 @@ import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
+import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +41,12 @@ import java.util.Set;
 public class DefaultAttributesSchema implements AttributesSchemaInternal, AttributesSchema {
     private final ComponentAttributeMatcher componentAttributeMatcher;
     private final InstantiatorFactory instantiatorFactory;
-    private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
+    /**
+     * TODO we currently keep the attributes in declaration order, so that matching error messages
+     * are always the same, no matter which machine the build is run on. We might want to reconsider
+     * this, as it adds some additional cost for very little benefit.
+     */
+    private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newLinkedHashMap();
     private final DefaultAttributeMatcher matcher;
 
     public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory) {
@@ -132,9 +140,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested) {
-            DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
-            effectiveSchema.matchValue(attribute, result);
-            return result.isCompatible();
+            return effectiveSchema.matchValue(attribute, requested, candidate);
         }
 
         @Override
@@ -157,55 +163,74 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public boolean hasAttribute(Attribute<?> attribute) {
-            return getAttributes().contains(attribute) || producerSchema.getAttributes().contains(attribute);
+            return DefaultAttributesSchema.this.getAttributes().contains(attribute) || producerSchema.getAttributes().contains(attribute);
         }
 
         @Override
-        public void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result) {
+        public Set<Object> disambiguate(Attribute<?> attribute, Object requested, Set<Object> candidates) {
+            DefaultMultipleCandidateResult<Object> result = null;
+
             DisambiguationRule<Object> rules = disambiguationRules(attribute);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return;
+            if (rules.doesSomething()) {
+                result = new DefaultMultipleCandidateResult<Object>(requested, candidates);
+                rules.execute(result);
+                if (result.hasResult()) {
+                    return result.getMatches();
+                }
             }
 
             rules = producerSchema.disambiguationRules(attribute);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return;
+            if (rules.doesSomething()) {
+                if (result == null) {
+                    result = new DefaultMultipleCandidateResult<Object>(requested, candidates);
+                }
+                rules.execute(result);
+                if (result.hasResult()) {
+                    return result.getMatches();
+                }
             }
 
-            Object requested = result.getConsumerValue();
-            if (requested != null && result.getCandidateValues().contains(requested)) {
-                result.closestMatch(requested);
-                return;
+            if (requested != null && candidates.contains(requested)) {
+                return Collections.singleton(requested);
             }
 
-            // Select all candidates
-            for (Object candidate : result.getCandidateValues()) {
-                result.closestMatch(candidate);
-            }
+            return candidates;
         }
 
         @Override
-        public void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result) {
-            if (result.getConsumerValue().equals(result.getProducerValue())) {
-                result.compatible();
-                return;
+        public boolean matchValue(Attribute<?> attribute, Object requested, Object candidate) {
+            if (requested.equals(candidate)) {
+                return true;
             }
+
+            CompatibilityCheckResult<Object> result = null;
 
             CompatibilityRule<Object> rules = compatibilityRules(attribute);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return;
-            }
-            rules = producerSchema.compatibilityRules(attribute);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return;
+            if (rules.doesSomething()) {
+                result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
+                rules.execute(result);
+                if (result.hasResult()) {
+                    return result.isCompatible();
+                }
             }
 
-            // If no result, the values are not compatible
-            result.incompatible();
+            rules = producerSchema.compatibilityRules(attribute);
+            if (rules.doesSomething()) {
+                if (result == null) {
+                    result = new DefaultCompatibilityCheckResult<Object>(requested, candidate);
+                }
+                rules.execute(result);
+                if (result.hasResult()) {
+                    return result.isCompatible();
+                }
+            }
+
+            return false;
+        }
+
+        @Override
+        public Set<Attribute<?>> getAttributes() {
+            return Sets.union(DefaultAttributesSchema.this.getAttributes(), producerSchema.getAttributes());
         }
     }
 }

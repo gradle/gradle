@@ -19,11 +19,13 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.id.UniqueId;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
@@ -38,7 +40,7 @@ public interface TaskArtifactState {
      */
     boolean isUpToDate(Collection<String> messages);
 
-    IncrementalTaskInputs getInputChanges();
+    IncrementalTaskInputs getInputChanges(TaskProperties taskProperties);
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.
@@ -63,12 +65,12 @@ public interface TaskArtifactState {
     /**
      * Called on completion of task execution.
      */
-    void snapshotAfterTaskExecution(Throwable failure);
+    void snapshotAfterTaskExecution(Throwable failure, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext);
 
     /**
      * Called on task being loaded from cache.
      */
-    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot);
+    void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originMetadata);
 
     /**
      * Returns the history for this task.
@@ -80,14 +82,5 @@ public interface TaskArtifactState {
      */
     Map<String, Map<String, FileContentSnapshot>> getOutputContentSnapshots();
 
-    /**
-     * The ID of the build that created the outputs that might be reused.
-     * Null if there are no previous executions, or outputs must not be reused (e.g. --rerun-tasks).
-     * Never null if {@link #isUpToDate(Collection)} returns true.
-     *
-     * TODO: should this move to getExecutionHistory()?
-     * @since 4.0
-     */
-    @Nullable
-    UniqueId getOriginBuildInvocationId();
+
 }

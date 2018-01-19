@@ -25,6 +25,7 @@ import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
+import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +36,7 @@ import static java.lang.String.format;
 
 public class ComponentModuleMetadataContainer implements ModuleReplacementsData {
 
-    private final Map<ModuleIdentifier, ModuleIdentifier> replacements = newHashMap();
+    private final Map<ModuleIdentifier, Replacement> replacements = newHashMap();
     private final Set<ModuleIdentifier> targets = newHashSet();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
@@ -47,10 +48,17 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
         final NotationParser<Object, ModuleIdentifier> parser = parser(moduleIdentifierFactory);
         final ModuleIdentifier source = parser.parseNotation(sourceModule);
         return new ComponentModuleMetadataDetails() {
-            public void replacedBy(final Object targetModule) {
+
+            @Override
+            public void replacedBy(Object moduleNotation) {
+                replacedBy(moduleNotation, null);
+            }
+
+            @Override
+            public void replacedBy(final Object targetModule, @Nullable String reason) {
                 ModuleIdentifier target = parser.parseNotation(targetModule);
                 detectCycles(replacements, source, target);
-                replacements.put(source, target);
+                replacements.put(source, new Replacement(target, reason));
                 targets.add(target);
             }
 
@@ -59,12 +67,12 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
             }
 
             public ModuleIdentifier getReplacedBy() {
-                return replacements.get(source);
+                return unwrap(replacements.get(source));
             }
         };
     }
 
-    public ModuleIdentifier getReplacementFor(ModuleIdentifier sourceModule) {
+    public Replacement getReplacementFor(ModuleIdentifier sourceModule) {
         return replacements.get(sourceModule);
     }
 
@@ -73,12 +81,12 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
         return targets.contains(moduleId) || replacements.keySet().contains(moduleId);
     }
 
-    private static void detectCycles(Map<ModuleIdentifier, ModuleIdentifier> replacements, ModuleIdentifier source, ModuleIdentifier target) {
+    private static void detectCycles(Map<ModuleIdentifier, Replacement> replacements, ModuleIdentifier source, ModuleIdentifier target) {
         if (source.equals(target)) {
             throw new InvalidUserDataException(String.format("Cannot declare module replacement that replaces self: %s->%s", source, target));
         }
 
-        ModuleIdentifier m = replacements.get(target);
+        ModuleIdentifier m = unwrap(replacements.get(target));
         if (m == null) {
             //target does not exist in the map, there's no cycle for sure
             return;
@@ -94,8 +102,12 @@ public class ComponentModuleMetadataContainer implements ModuleReplacementsData 
                         format("Cannot declare module replacement %s->%s because it introduces a cycle: %s",
                                 source, target, Joiner.on("->").join(visited) + "->" + source));
             }
-            m = replacements.get(m);
+            m = unwrap(replacements.get(m));
         }
+    }
+
+    private static ModuleIdentifier unwrap(Replacement replacement) {
+        return replacement == null ? null : replacement.getTarget();
     }
 
     private static NotationParser<Object, ModuleIdentifier> parser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {

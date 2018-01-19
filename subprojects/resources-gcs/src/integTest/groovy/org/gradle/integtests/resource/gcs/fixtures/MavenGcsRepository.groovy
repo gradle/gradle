@@ -41,4 +41,8 @@ class MavenGcsRepository implements MavenRepository {
     MavenGcsModule module(String organisation, String module, String version = "1.0") {
         new MavenGcsModule(server, backingRepository.module(organisation, module, version), repositoryPath, bucket)
     }
+
+    GcsDirectoryResource directoryList(String organisation, String module) {
+        return new GcsDirectoryResource(server, bucket, this.module(organisation, module).backingModule.moduleDir.parentFile)
+    }
 }

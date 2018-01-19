@@ -25,6 +25,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
@@ -95,6 +96,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildScan;
     private boolean noBuildScan;
     private boolean interactive;
+    private boolean advancedPomSupport;
+    private boolean gradleMetadata;
 
     /**
      * {@inheritDoc}
@@ -145,6 +148,22 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public WarningMode getWarningMode() {
+        return loggingConfiguration.getWarningMode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setWarningMode(WarningMode warningMode) {
+        loggingConfiguration.setWarningMode(warningMode);
+    }
+
+    /**
      * Sets the project's cache location. Set to null to use the default location.
      */
     public void setProjectCacheDir(@Nullable File projectCacheDir) {
@@ -190,6 +209,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     protected StartParameter prepareNewInstance(StartParameter p) {
         prepareNewBuild(p);
+        p.setWarningMode(getWarningMode());
         p.buildFile = buildFile;
         p.projectDir = projectDir;
         p.settingsFile = settingsFile;
@@ -224,6 +244,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.setLogLevel(getLogLevel());
         p.setConsoleOutput(getConsoleOutput());
         p.setShowStacktrace(getShowStacktrace());
+        p.setWarningMode(getWarningMode());
         p.profile = profile;
         p.continueOnFailure = continueOnFailure;
         p.offline = offline;
@@ -849,5 +870,45 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public void setInteractive(boolean interactive) {
         this.interactive = interactive;
+    }
+
+    /**
+     * Returns true if optional dependencies, compile/runtime scope separation and BOMs are included in dependency resolution.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public boolean isAdvancedPomSupport() {
+        return advancedPomSupport;
+    }
+
+    /**
+     * Specifies if optional dependencies, compile/runtime scope separation and BOMs are to be included in dependency resolution.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public void setAdvancedPomSupport(boolean advancedPomSupport) {
+        this.advancedPomSupport = advancedPomSupport;
+    }
+
+    /**
+     * Returns true if gradle metadata should be use as preferred format for resolving and publishing dependencies.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public boolean isGradleMetadata() {
+        return gradleMetadata;
+    }
+
+    /**
+     * Specifies if gradle metadata should be use as preferred format for resolving and publishing dependencies.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public void setGradleMetadata(boolean gradleMetadata) {
+        this.gradleMetadata = gradleMetadata;
     }
 }

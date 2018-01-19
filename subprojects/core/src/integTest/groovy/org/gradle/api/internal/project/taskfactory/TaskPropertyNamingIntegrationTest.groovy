@@ -55,6 +55,9 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 @OutputDirectories Map<String, File> namedOutputDirectories
             }
 
+            import org.gradle.api.internal.tasks.*
+            import org.gradle.api.internal.tasks.properties.*
+
             task myTask(type: MyTask) {
                 inputString = "data"
 
@@ -74,7 +77,20 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 namedOutputDirectories = [one: file("outputs-one"), two: file("outputs-two")]
 
                 doLast {
-                    inputs.fileProperties.each { property ->
+                    def outputFiles = []
+                    def inputFiles = []
+                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
+                        @Override
+                        void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
+                            inputFiles << inputFileProperty
+                        }
+
+                        @Override
+                        void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
+                            outputFiles << outputFileProperty
+                        }
+                    })
+                    inputFiles.each { property ->
                         println "Input: \${property.propertyName} \${property.propertyFiles.files*.name.sort()}"
                     }
                     outputs.fileProperties.each { property ->
@@ -102,5 +118,236 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Output: outputFile [output.txt]"
         output.contains 'Output: outputFiles$1 [output1.txt]'
         output.contains 'Output: outputFiles$2 [output2.txt]'
+    }
+
+    def "nested properties are discovered"() {
+        buildFile << classesForNestedProperties()
+        buildFile << """
+            task test(type: TaskWithNestedObjectProperty) {           
+                input = "someString"
+                bean = new NestedProperty(
+                    inputDir: file('input'),
+                    input: 'someString',
+                    outputDir: file("\$buildDir/output"),  
+                    nestedBean: new AnotherNestedProperty(inputFile: file('inputFile'))
+                )
+            }        
+            task printMetadata(type: PrintInputsAndOutputs) {
+                task = test
+            }
+        """
+        file('input').createDir()
+        file('inputFile').createFile()
+
+        expect:
+        succeeds "test", "printMetadata"
+        output.contains "Input property 'input'"
+        output.contains "Input property 'bean.class'"
+
+        output.contains "Input property 'bean.input'"
+        output.contains "Input property 'bean.nestedBean.class'"
+        output.contains "Input file property 'bean.inputDir'"
+        output.contains "Input file property 'bean.nestedBean.inputFile'"
+        output.contains "Output file property 'bean.outputDir'"
+    }
+
+    def "nested iterable properties have names"() {
+        buildFile << printPropertiesTask()
+        buildFile << """ 
+            class TaskWithNestedBean extends DefaultTask {
+                @Nested
+                List<Object> beans
+            }
+
+            class NestedBean {
+                @Input
+                input
+            }
+            
+            class OtherNestedBean {
+                @Input
+                secondInput
+            }
+            
+            task test(type: TaskWithNestedBean) {           
+                beans = [new NestedBean(input: 'someString'), new OtherNestedBean(secondInput: 'otherString')]
+            }        
+            task printMetadata(type: PrintInputsAndOutputs) {
+                task = test
+            }            
+        """
+
+        expect:
+        succeeds 'test', 'printMetadata'
+        output.contains "Input property 'beans.\$0.class'"
+        output.contains "Input property 'beans.\$0.input'"
+        output.contains "Input property 'beans.\$1.class'"
+        output.contains "Input property 'beans.\$1.secondInput'"
+    }
+
+    def "nested destroyables are discovered"() {
+        buildFile << classesForNestedProperties()
+        buildFile << """
+            class MyDestroyer extends DefaultTask {
+                @TaskAction void doStuff() {}
+                @Nested
+                Object bean
+            }
+            class DestroyerBean {
+                @Destroys File destroyedFile
+            }
+
+            task destroy(type: MyDestroyer) {
+                bean = new DestroyerBean(
+                    destroyedFile: file("\$buildDir/destroyed")
+                )
+            }               
+            task printMetadata(type: PrintInputsAndOutputs) {
+                task = destroy
+            }
+        """
+
+        when:
+        succeeds "destroy", "printMetadata"
+
+        then:
+        output.contains "Input property 'bean.class'"
+        output =~ /Destroys: '.*destroyed'/
+    }
+
+    def "nested local state is discovered"() {
+        buildFile << classesForNestedProperties()
+        buildFile << """
+            class TaskWithNestedLocalState extends DefaultTask {
+                @TaskAction void doStuff() {}
+                @Nested
+                Object bean
+            }
+            class LocalStateBean {
+                @LocalState File localStateFile
+            }
+
+            task taskWithLocalState(type: TaskWithNestedLocalState) {
+                bean = new LocalStateBean(
+                    localStateFile: file("\$buildDir/localState")
+                )
+            }               
+            task printMetadata(type: PrintInputsAndOutputs) {
+                task = taskWithLocalState
+            }
+        """
+
+        when:
+        succeeds "taskWithLocalState", "printMetadata"
+
+        then:
+        output.contains "Input property 'bean.class'"
+        output =~ /Local state: '.*localState'/
+    }
+
+    def "input properties can be overridden"() {
+        buildFile << classesForNestedProperties()
+        buildFile << """
+            task test(type: TaskWithNestedObjectProperty) { 
+                input = "someString"
+                bean = new NestedProperty(
+                    input: 'someString',
+                )                    
+                inputs.property("input", "someOtherString") 
+                inputs.property("bean.input", "otherNestedString")
+            }                        
+            task printMetadata(type: PrintInputsAndOutputs) {
+                task = test
+            }
+        """
+        file('input').createDir()
+        file('inputFile').createFile()
+
+        when:
+        succeeds "test", "printMetadata"
+
+        then:
+        output.contains "Input property 'input'"
+        output.contains "Input property 'bean.input'"
+
+        output.contains "Input property 'bean.class'"
+        output.contains "Input file property 'bean.inputDir'"
+    }
+
+    String classesForNestedProperties() {
+        """
+            class TaskWithNestedObjectProperty extends DefaultTask {
+                @Nested
+                Object bean
+                @Input
+                String input
+                
+                @TaskAction
+                void doStuff() {}
+            }
+            
+            class NestedProperty {
+                @InputDirectory
+                @Optional
+                File inputDir
+                
+                @OutputDirectory
+                @Optional
+                File outputDir      
+                        
+                @Input
+                String input
+                @Nested
+                @Optional
+                Object nestedBean
+                @Destroys File destroyedFile
+            }                    
+            class AnotherNestedProperty {
+                @InputFile
+                File inputFile
+            }     
+            
+            ${printPropertiesTask()}
+        """
+    }
+
+    String printPropertiesTask() {
+        """
+            import org.gradle.api.internal.tasks.*
+            import org.gradle.api.internal.tasks.properties.*
+
+            class PrintInputsAndOutputs extends DefaultTask {
+                Task task
+                @TaskAction
+                void printInputsAndOutputs() {
+                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), task, new PropertyVisitor() {
+                        @Override
+                        void visitInputProperty(TaskInputPropertySpec inputProperty) {
+                            println "Input property '\${inputProperty.propertyName}'"
+                        }
+
+                        @Override
+                        void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
+                            println "Input file property '\${inputFileProperty.propertyName}'"
+                        }
+
+                        @Override
+                        void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
+                            println "Output file property '\${outputFileProperty.propertyName}'"
+                        }
+
+                        @Override
+                        void visitDestroyableProperty(TaskDestroyablePropertySpec destroyable) {
+                            println "Destroys: '\${destroyable.value.call()}'"
+                        }
+
+                        @Override
+                        void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
+                            println "Local state: '\${localStateProperty.value.call()}'"
+                        }
+                    })
+                }
+            }
+        """
     }
 }

@@ -23,8 +23,6 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.junit.Assume
 import spock.lang.Unroll
 
-import static org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest.worksWithCppPlugin
-
 class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -79,29 +77,6 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         toolChainAfter = toolChains[1]
     }
 
-    @Unroll
-    def "detects changes to system headers when toolchain changes from #toolChainBefore to #toolChainAfter"() {
-        buildFile.text = buildScriptForToolChains(toolChainBefore, toolChainAfter)
-
-        when:
-        run ':app:compileDebugCpp'
-
-        then:
-        executedAndNotSkipped ':app:compileDebugCpp'
-
-        when:
-        run ':app:compileDebugCpp', '-PuseAlternativeToolChain=true', "--info"
-
-        then:
-        executedAndNotSkipped ':app:dependDebugCpp'
-        output =~ /Value of input property 'includePaths' has changed for task ':app:dependDebugCpp'/
-
-        where:
-        toolChains << toolChainPairs
-        toolChainBefore = toolChains[0]
-        toolChainAfter = toolChains[1]
-    }
-
     private static GString buildScriptForToolChains(InstalledToolChain before, InstalledToolChain after) {
         """ 
             allprojects {
@@ -135,7 +110,7 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
 
     private static List<List<InstalledToolChain>> getToolChainPairs() {
         def availableToolChains = AvailableToolChains.toolChains.findAll {
-            it.available && worksWithCppPlugin(it) && !(it instanceof AvailableToolChains.InstalledSwiftc)
+            it.available && !(it instanceof AvailableToolChains.InstalledSwiftc)
         }
         int numberOfToolChains = availableToolChains.size()
         Assume.assumeTrue('2 or more tool chains are required for this test', numberOfToolChains >= 2)

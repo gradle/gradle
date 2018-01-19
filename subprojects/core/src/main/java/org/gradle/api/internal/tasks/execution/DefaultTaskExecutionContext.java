@@ -16,9 +16,11 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
-import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -27,8 +29,16 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private TaskArtifactState taskArtifactState;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
-    private UniqueId originBuildInvocationId;
     private List<String> upToDateMessages;
+    private TaskProperties taskProperties;
+    private OriginTaskExecutionMetadata originExecutionMetadata;
+    private Long executionTime;
+
+    private final Timer executionTimer;
+
+    public DefaultTaskExecutionContext() {
+        this.executionTimer = Time.startTimer();
+    }
 
     @Override
     public TaskArtifactState getTaskArtifactState() {
@@ -51,13 +61,30 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public UniqueId getOriginBuildInvocationId() {
-        return originBuildInvocationId;
+    public OriginTaskExecutionMetadata getOriginExecutionMetadata() {
+        return originExecutionMetadata;
     }
 
     @Override
-    public void setOriginBuildInvocationId(@Nullable UniqueId originBuildInvocationId) {
-        this.originBuildInvocationId = originBuildInvocationId;
+    public void setOriginExecutionMetadata(OriginTaskExecutionMetadata originExecutionMetadata) {
+        this.originExecutionMetadata = originExecutionMetadata;
+    }
+
+    public long markExecutionTime() {
+        if (this.executionTime != null) {
+            throw new IllegalStateException("execution time already set");
+        }
+
+        return this.executionTime = executionTimer.getElapsedMillis();
+    }
+
+    @Override
+    public long getExecutionTime() {
+        if (this.executionTime == null) {
+            throw new IllegalStateException("execution time not yet set");
+        }
+
+        return executionTime;
     }
 
     @Override
@@ -69,6 +96,16 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setUpToDateMessages(List<String> upToDateMessages) {
         this.upToDateMessages = upToDateMessages;
+    }
+
+    @Override
+    public void setTaskProperties(TaskProperties taskProperties) {
+        this.taskProperties = taskProperties;
+    }
+
+    @Override
+    public TaskProperties getTaskProperties() {
+        return taskProperties;
     }
 
 }

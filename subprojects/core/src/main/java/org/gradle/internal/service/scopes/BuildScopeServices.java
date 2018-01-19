@@ -58,14 +58,16 @@ import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
-import org.gradle.api.internal.project.taskfactory.DefaultTaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
-import org.gradle.api.internal.project.taskfactory.TaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
+import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker;
+import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
@@ -103,6 +105,7 @@ import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
+import org.gradle.initialization.BuildOperationSettingsProcessor;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
@@ -114,11 +117,12 @@ import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.NotifyingBuildLoader;
-import org.gradle.initialization.NotifyingSettingsProcessor;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
 import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
+import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
+import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcessor;
 import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsLoaderFactory;
 import org.gradle.initialization.SettingsProcessor;
@@ -233,12 +237,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator);
     }
 
-    protected TaskClassValidatorExtractor createTaskClassValidatorExtractor(List<PropertyAnnotationHandler> annotationHandlers) {
-        return new DefaultTaskClassValidatorExtractor(annotationHandlers);
+    protected PropertyMetadataStore createPropertyMetadataStore(List<PropertyAnnotationHandler> annotationHandlers) {
+        return new DefaultPropertyMetadataStore(annotationHandlers);
     }
 
-    protected TaskClassInfoStore createTaskClassInfoStore(TaskClassValidatorExtractor validatorExtractor) {
-        return new DefaultTaskClassInfoStore(validatorExtractor);
+    protected PropertyWalker createPropertyWalker(PropertyMetadataStore propertyMetadataStore) {
+        return new DefaultPropertyWalker(propertyMetadataStore);
+    }
+
+    protected TaskClassInfoStore createTaskClassInfoStore() {
+        return new DefaultTaskClassInfoStore();
     }
 
     protected ITaskFactory createITaskFactory(TaskClassInfoStore taskClassInfoStore) {
@@ -342,18 +350,22 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected SettingsProcessor createSettingsProcessor(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, Instantiator instantiator,
                                                         ServiceRegistryFactory serviceRegistryFactory, IGradlePropertiesLoader propertiesLoader, BuildOperationExecutor buildOperationExecutor) {
-        return new NotifyingSettingsProcessor(
-            new PropertiesLoadingSettingsProcessor(
-                new ScriptEvaluatingSettingsProcessor(
-                    scriptPluginFactory,
-                    new SettingsFactory(
-                        instantiator,
-                        serviceRegistryFactory,
-                        scriptHandlerFactory
-                    ),
-                    propertiesLoader
-                ),
-                propertiesLoader
+        return new BuildOperationSettingsProcessor(
+            new RootBuildCacheControllerSettingsProcessor(
+                new SettingsEvaluatedCallbackFiringSettingsProcessor(
+                    new PropertiesLoadingSettingsProcessor(
+                        new ScriptEvaluatingSettingsProcessor(
+                            scriptPluginFactory,
+                            new SettingsFactory(
+                                instantiator,
+                                serviceRegistryFactory,
+                                scriptHandlerFactory
+                            ),
+                            propertiesLoader
+                        ),
+                        propertiesLoader
+                    )
+                )
             ),
             buildOperationExecutor);
     }

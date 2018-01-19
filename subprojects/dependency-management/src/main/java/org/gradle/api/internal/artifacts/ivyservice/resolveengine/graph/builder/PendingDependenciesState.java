@@ -37,7 +37,7 @@ public class PendingDependenciesState {
         return pendingDependencies;
     }
 
-    public void notPending(ModuleIdentifier module) {
-        pendingDependencies.put(module, NOT_PENDING);
+    public PendingDependencies notPending(ModuleIdentifier module) {
+        return pendingDependencies.put(module, NOT_PENDING);
     }
 }

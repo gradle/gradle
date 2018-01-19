@@ -18,6 +18,7 @@ package org.gradle.nativeplatform
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -26,6 +27,8 @@ import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
+
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
@@ -204,7 +207,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        executedTasks == [":dependMainExecutableMainCpp", ":compileMainExecutableMainCpp", ":preLinkMainExecutable", ":linkMainExecutable", ":postLinkMainExecutable", ":mainExecutable"]
+        executedTasks == [":compileMainExecutableMainCpp", ":preLinkMainExecutable", ":linkMainExecutable", ":postLinkMainExecutable", ":mainExecutable"]
     }
 
     @Issue("GRADLE-2973")
@@ -275,6 +278,47 @@ model {
         modPath(executable("build/exe/main/main").file).assertExists()
         modPath(sharedLibrary("build/libs/hello/shared/hello").file).assertExists()
         modPath(staticLibrary("build/libs/hello/static/hello").file).assertExists()
+    }
+
+    @Issue("https://github.com/gradle/gradle-native/issues/368")
+    @RequiresInstalledToolChain(VISUALCPP)
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "can configure output file for shared library on MSVC"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
+
+        and:
+        buildFile << """
+apply plugin: 'cpp'
+model {
+    components {
+        def modPath = { File original, String type -> new File(original.parent, type + "/new_output/_" + original.name) }
+        main(NativeExecutableSpec) {
+            sources {
+                cpp.lib library: "hello"
+            }
+        }
+        hello(NativeLibrarySpec) {
+            binaries.withType(SharedLibraryBinarySpec) {
+                sharedLibraryFile = modPath(sharedLibraryFile, "runtime")
+                sharedLibraryLinkFile = modPath(sharedLibraryLinkFile, "link")
+            }
+        }
+    }
+}
+"""
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/main").exec().out == app.englishOutput
+
+        then:
+        file("build/libs/hello/shared/link/new_output/_hello.lib").assertExists()
+        file("build/libs/hello/shared/runtime/new_output/_hello.dll").assertExists()
     }
 
     @Unroll

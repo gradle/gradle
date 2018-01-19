@@ -23,12 +23,14 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedVariantResult
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Assert
+import org.junit.ComparisonFailure
 /**
  * A test fixture that injects a task into a build that resolves a dependency configuration and does some validation of the resulting graph, to
  * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
@@ -36,6 +38,7 @@ import org.junit.Assert
 class ResolveTestFixture {
     private final TestFile buildFile
     private final String config
+    private String defaultConfig = "default"
     private boolean buildArtifacts = true
 
     ResolveTestFixture(TestFile buildFile, String config = "compile") {
@@ -44,8 +47,13 @@ class ResolveTestFixture {
     }
 
     ResolveTestFixture withoutBuildingArtifacts() {
-        buildArtifacts = false;
-        return this;
+        buildArtifacts = false
+        return this
+    }
+
+    ResolveTestFixture expectDefaultConfiguration(String config) {
+        defaultConfig = config
+        return this
     }
 
     /**
@@ -77,7 +85,7 @@ allprojects {
      * Verifies the result of executing the task injected by {@link #prepare()}. The closure delegates to a {@link GraphBuilder} instance.
      */
     void expectGraph(@DelegatesTo(GraphBuilder) Closure closure) {
-        def graph = new GraphBuilder()
+        def graph = new GraphBuilder(defaultConfig)
         closure.resolveStrategy = Closure.DELEGATE_ONLY
         closure.delegate = graph
         closure.call()
@@ -91,7 +99,7 @@ allprojects {
 
         def actualRoot = findLines(configDetails, 'root').first()
         def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]".toString()
-        assert actualRoot == expectedRoot
+        assert actualRoot.startsWith(expectedRoot)
 
         def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
 
@@ -112,7 +120,10 @@ allprojects {
         compare("configurations in graph", actualConfigurations, expectedConfigurations)
 
         def actualComponents = findLines(configDetails, 'component')
-        def expectedComponents = graph.nodes.collect { "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]" }
+        def expectedComponents = graph.nodes.collect {
+            def variantDetails = it.checkVariant ? "[variant:name:${it.variantName} attributes:${it.variantAttributes}]" : ''
+            "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]$variantDetails"
+        }
         compare("components in graph", actualComponents, expectedComponents)
 
         def actualEdges = findLines(configDetails, 'dependency')
@@ -179,14 +190,30 @@ allprojects {
     }
 
     void compare(String compType, Collection<String> actual, Collection<String> expected) {
-        def actualFormatted = Joiner.on("\n").join(new ArrayList<String>(actual).sort())
-        def expectedFormatted = Joiner.on("\n").join(new ArrayList<String>(expected).sort())
-        Assert.assertEquals("Result contains unexpected $compType", expectedFormatted, actualFormatted)
+        def actualSorted = new ArrayList<String>(actual).sort()
+        def expectedSorted = new ArrayList<String>(expected).sort()
+        boolean equals = actual.size() == expectedSorted.size()
+        if (equals) {
+            for (int i = 0; i < actual.size(); i++) {
+                equals &= actualSorted.get(i).startsWith(expectedSorted.get(i))
+            }
+        }
+        def actualFormatted = Joiner.on("\n").join(actualSorted)
+        def expectedFormatted = Joiner.on("\n").join(expectedSorted)
+        if (!equals) {
+            throw new ComparisonFailure("Result contains unexpected $compType", expectedFormatted, actualFormatted);
+        }
+
     }
 
     static class GraphBuilder {
         private final Map<String, NodeBuilder> nodes = new LinkedHashMap<>()
         private NodeBuilder root
+        private String defaultConfig
+
+        GraphBuilder(String defaultConfig) {
+            this.defaultConfig = defaultConfig
+        }
 
         Collection<NodeBuilder> getNodes() {
             return nodes.values()
@@ -216,13 +243,13 @@ allprojects {
 
         private void visitNodes(NodeBuilder node, Set<NodeBuilder> result) {
             Set<NodeBuilder> nodesToVisit = []
-            for (EdgeBuilder edge: node.deps) {
+            for (EdgeBuilder edge : node.deps) {
                 def targetNode = edge.selected
                 if (result.add(targetNode)) {
                     nodesToVisit << targetNode
                 }
             }
-            for(NodeBuilder child: nodesToVisit) {
+            for (NodeBuilder child : nodesToVisit) {
                 visitNodes(child, result)
             }
         }
@@ -235,7 +262,7 @@ allprojects {
         }
 
         private visitEdges(NodeBuilder node, Set<NodeBuilder> seenNodes, Set<EdgeBuilder> edges) {
-            for (EdgeBuilder edge: node.deps) {
+            for (EdgeBuilder edge : node.deps) {
                 edges.add(edge)
                 if (seenNodes.add(edge.selected)) {
                     visitEdges(edge.selected, seenNodes, edges)
@@ -306,6 +333,9 @@ allprojects {
         def node(String id, String moduleVersion, Map attrs) {
             def node = nodes[moduleVersion]
             if (!node) {
+                if (!attrs.configuration) {
+                    attrs.configuration = defaultConfig
+                }
                 node = new NodeBuilder(id, moduleVersion, attrs, this)
                 nodes[moduleVersion] = node
             }
@@ -372,15 +402,21 @@ allprojects {
         final List<String> files = []
         private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
         private final Set<String> reasons = new TreeSet<String>()
+        String variantName
+        String variantAttributes
+
+        boolean checkVariant
 
         NodeBuilder(String id, String moduleVersionId, Map attrs, GraphBuilder graph) {
             this.graph = graph
             this.group = attrs.group
             this.module = attrs.module
             this.version = attrs.version
-            this.configuration = attrs.configuration ? attrs.configuration : "default"
+            this.configuration = attrs.configuration
             this.moduleVersionId = moduleVersionId
             this.id = id
+            this.variantName = attrs.variantName
+            this.variantAttributes = attrs.variantAttributes
         }
 
         Set<ExpectedArtifact> getArtifacts() {
@@ -488,7 +524,7 @@ allprojects {
          * Marks that this node was selected due to conflict resolution.
          */
         NodeBuilder byConflictResolution() {
-            reasons << 'conflict'
+            reasons << 'conflict resolution'
             this
         }
 
@@ -496,7 +532,7 @@ allprojects {
          * Marks that this node was selected by a rule.
          */
         NodeBuilder selectedByRule() {
-            reasons << 'selectedByRule'
+            reasons << 'selected by rule'
             this
         }
 
@@ -512,7 +548,7 @@ allprojects {
          * Marks that this node was substituted in a composite.
          */
         NodeBuilder compositeSubstitute() {
-            reasons << 'compositeSubstitution'
+            reasons << 'composite build substitution'
             this
         }
 
@@ -521,6 +557,16 @@ allprojects {
          */
         NodeBuilder byReason(String reason) {
             reasons << reason
+            this
+        }
+
+        NodeBuilder variant(String name, Map<String, String> attributes = [:]) {
+            checkVariant = true
+            variantName = name
+            variantAttributes = attributes.collect { "$it.key=$it.value" }.sort().join(',')
+            if (id.startsWith("project ")) {
+                configuration = variantName
+            }
             this
         }
     }
@@ -623,23 +669,36 @@ class GenerateGraphTask extends DefaultTask {
     }
 
     def formatComponent(ResolvedComponentResult result) {
-        return "[id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}]"
+        return "[id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}][variant:${formatVariant(result.variant)}]"
+    }
+
+    def formatVariant(ResolvedVariantResult variant) {
+        return "name:${variant.displayName} attributes:${formatAttributes(variant.attributes)}"
+    }
+
+    def formatAttributes(AttributeContainer attributes) {
+        attributes.keySet().collect {
+            "$it.name=${attributes.getAttribute(it)}"
+        }.sort().join(',')
     }
 
     def formatReason(ComponentSelectionReason reason) {
         def reasons = []
-        if (reason.conflictResolution) {
-            reasons << "conflict"
+        if (!reason.hasCustomDescriptions()) {
+            if (reason.conflictResolution) {
+                reasons << "conflict resolution"
+            }
+            if (reason.forced) {
+                reasons << "forced"
+            }
+            if (reason.selectedByRule) {
+                reasons << "selected by rule"
+            }
+            if (reason.compositeSubstitution) {
+                reasons << "composite build substitution"
+            }
         }
-        if (reason.forced) {
-            reasons << "forced"
-        }
-        if (reason.selectedByRule) {
-            reasons << "selectedByRule"
-        }
-        if (reason.compositeSubstitution) {
-            reasons << "compositeSubstitution"
-        }
+
         return reasons.empty ? reason.description : reasons.join(',')
     }
 }

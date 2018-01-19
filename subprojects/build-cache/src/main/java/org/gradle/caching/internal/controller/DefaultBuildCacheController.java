@@ -180,8 +180,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
                     }
 
                     context.setResult(new UnpackOperationResult(
-                        result.getArtifactEntryCount(),
-                        result.getOriginalExecutionTime()
+                        result.getArtifactEntryCount()
                     ));
                 }
 

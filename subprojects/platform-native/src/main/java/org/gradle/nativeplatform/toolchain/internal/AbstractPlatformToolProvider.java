@@ -35,6 +35,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCPCHCom
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
 import org.gradle.util.TreeVisitor;
 
 import static org.gradle.internal.FileUtils.withExtension;
@@ -70,6 +71,11 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     @Override
     public boolean producesImportLibrary() {
         return false;
+    }
+
+    @Override
+    public boolean requiresDebugBinaryStripping() {
+        return true;
     }
 
     @Override
@@ -170,19 +176,19 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     }
 
     protected Compiler<?> createObjectiveCppCompiler() {
-        throw unavailableTool("Obj-C++ compiler is not available");
+        throw unavailableTool("Objective-C++ compiler is not available");
     }
 
     protected Compiler<?> createObjectiveCppPCHCompiler() {
-        throw unavailableTool("Obj-C++ pre-compiled header compiler is not available");
+        throw unavailableTool("Objective-C++ pre-compiled header compiler is not available");
     }
 
     protected Compiler<?> createObjectiveCCompiler() {
-        throw unavailableTool("Obj-C compiler is not available");
+        throw unavailableTool("Objective-C compiler is not available");
     }
 
     protected Compiler<?> createObjectiveCPCHCompiler() {
-        throw unavailableTool("Obj-C compiler is not available");
+        throw unavailableTool("Objective-C compiler is not available");
     }
 
     protected Compiler<?> createWindowsResourceCompiler() {
@@ -212,5 +218,10 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     @Override
     public String getObjectFileExtension() {
         return targetOperatingSystem.isWindows() ? ".obj" : ".o";
+    }
+
+    @Override
+    public CompilerMetadata getCompilerMetadata() {
+        throw unavailableTool("Compiler is not available");
     }
 }

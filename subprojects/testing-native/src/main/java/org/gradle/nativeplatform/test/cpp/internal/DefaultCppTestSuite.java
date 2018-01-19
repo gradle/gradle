@@ -16,28 +16,58 @@
 
 package org.gradle.nativeplatform.test.cpp.internal;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ProjectLayout;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.language.ComponentDependencies;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppComponent;
+import org.gradle.language.internal.DefaultComponentDependencies;
+import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
 public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestSuite {
+    private final ObjectFactory objectFactory;
     private final Property<CppComponent> testedComponent;
-    private final CppExecutable testBinary;
+    private final Property<CppTestExecutable> testBinary;
+    private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultCppTestSuite(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, final FileOperations fileOperations, ConfigurationContainer configurations) {
-        super(name, fileOperations, objectFactory, configurations);
+    public DefaultCppTestSuite(String name, ObjectFactory objectFactory, FileOperations fileOperations) {
+        super(name, fileOperations, objectFactory);
+        this.objectFactory = objectFactory;
         this.testedComponent = objectFactory.property(CppComponent.class);
-        this.testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, name + "Executable", projectLayout, objectFactory, getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), configurations, getImplementationDependencies(), getTestedComponent());
-        getBaseName().set(name);
+        this.testBinary = objectFactory.property(CppTestExecutable.class);
+        this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
+    }
+
+    public CppTestExecutable addExecutable(String nameSuffix, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        CppTestExecutable testBinary = objectFactory.newInstance(DefaultCppTestExecutable.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), true, false, getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), getTestedComponent(), targetPlatform, toolChain, platformToolProvider);
+        this.testBinary.set(testBinary);
+        getBinaries().add(testBinary);
+        return testBinary;
+    }
+
+    @Override
+    public Configuration getImplementationDependencies() {
+        return dependencies.getImplementationDependencies();
+    }
+
+    @Override
+    public ComponentDependencies getDependencies() {
+        return dependencies;
+    }
+
+    public void dependencies(Action<? super ComponentDependencies> action) {
+        action.execute(dependencies);
     }
 
     public Property<CppComponent> getTestedComponent() {
@@ -45,12 +75,7 @@ public class DefaultCppTestSuite extends DefaultCppComponent implements CppTestS
     }
 
     @Override
-    public CppExecutable getTestExecutable() {
-        return testBinary;
-    }
-
-    @Override
-    public CppExecutable getDevelopmentBinary() {
+    public Property<CppTestExecutable> getTestBinary() {
         return testBinary;
     }
 }

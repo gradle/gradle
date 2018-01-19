@@ -25,8 +25,9 @@ class IvyHttpRepository implements RemoteIvyRepository, HttpRepository {
     private final IvyFileRepository backingRepository
     private final String contextPath
     private final boolean m2Compatible
+    private final HttpRepository.MetadataType metadataType
 
-    IvyHttpRepository(HttpServer server, String contextPath = "/repo", IvyFileRepository backingRepository, boolean m2Compatible = false) {
+    IvyHttpRepository(HttpServer server, String contextPath = "/repo", HttpRepository.MetadataType metadataType = HttpRepository.MetadataType.DEFAULT, IvyFileRepository backingRepository, boolean m2Compatible = false) {
         if (!contextPath.startsWith("/")) {
             throw new IllegalArgumentException("Context path must start with '/'")
         }
@@ -34,6 +35,7 @@ class IvyHttpRepository implements RemoteIvyRepository, HttpRepository {
         this.contextPath = contextPath
         this.backingRepository = backingRepository
         this.m2Compatible = m2Compatible
+        this.metadataType = metadataType
     }
 
     URI getUri() {
@@ -63,5 +65,10 @@ class IvyHttpRepository implements RemoteIvyRepository, HttpRepository {
 
     String getBaseArtifactPattern() {
         backingRepository.baseArtifactPattern
+    }
+
+    @Override
+    HttpRepository.MetadataType getProvidesMetadata() {
+        return metadataType
     }
 }

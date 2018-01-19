@@ -17,15 +17,17 @@
 package org.gradle.internal.component.model;
 
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.DirectDependenciesMetadata;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
+import org.gradle.api.artifacts.DirectDependenciesMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
-import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependenciesMetadataAdapter;
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintsMetadataAdapter;
+import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependenciesMetadataAdapter;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
@@ -37,7 +39,7 @@ import java.util.List;
  * A set of rules provided by the build script author
  * (as {@link Action<DirectDependenciesMetadata>} or {@link Action<DependencyConstraintsMetadata>})
  * that are applied on the dependencies defined in variant/configuration metadata. The rules are applied
- * in the {@link #execute(List)} method when the dependencies of a variant are needed during dependency resolution.
+ * in the {@link #execute(VariantResolveMetadata, List)} method when the dependencies of a variant are needed during dependency resolution.
  */
 public class DependencyMetadataRules {
     private static final Spec<ModuleDependencyMetadata> DEPENDENCY_FILTER = new Spec<ModuleDependencyMetadata>() {
@@ -56,8 +58,8 @@ public class DependencyMetadataRules {
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser;
-    private final List<Action<DirectDependenciesMetadata>> dependencyActions = new ArrayList<Action<DirectDependenciesMetadata>>();
-    private final List<Action<DependencyConstraintsMetadata>> dependencyConstraintActions = new ArrayList<Action<DependencyConstraintsMetadata>>();
+    private final List<VariantMetadataRules.VariantAction<? super DirectDependenciesMetadata>> dependencyActions = Lists.newArrayList();
+    private final List<VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata>> dependencyConstraintActions = Lists.newArrayList();
 
     public DependencyMetadataRules(Instantiator instantiator,
                                    NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser,
@@ -67,34 +69,34 @@ public class DependencyMetadataRules {
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;
     }
 
-    public void addDependencyAction(Action<DirectDependenciesMetadata> action) {
+    public void addDependencyAction(VariantMetadataRules.VariantAction<? super DirectDependenciesMetadata> action) {
         dependencyActions.add(action);
     }
 
-    public void addDependencyConstraintAction(Action<DependencyConstraintsMetadata> action) {
+    public void addDependencyConstraintAction(VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata> action) {
         dependencyConstraintActions.add(action);
     }
 
-    public <T extends ModuleDependencyMetadata> List<T> execute(List<T> dependencies) {
+    public <T extends ModuleDependencyMetadata> List<T> execute(VariantResolveMetadata variant, List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<T>();
-        calculatedDependencies.addAll(executeDependencyRules(dependencies));
-        calculatedDependencies.addAll(executeDependencyConstraintRules(dependencies));
+        calculatedDependencies.addAll(executeDependencyRules(variant, dependencies));
+        calculatedDependencies.addAll(executeDependencyConstraintRules(variant, dependencies));
         return calculatedDependencies;
     }
 
-    private <T extends ModuleDependencyMetadata> List<T> executeDependencyRules(List<T> dependencies) {
+    private <T extends ModuleDependencyMetadata> List<T> executeDependencyRules(VariantResolveMetadata variant, List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<T>(CollectionUtils.filter(dependencies, DEPENDENCY_FILTER));
-        for (Action<DirectDependenciesMetadata> dependenciesMetadataAction : dependencyActions) {
-            dependenciesMetadataAction.execute(instantiator.newInstance(
+        for (VariantMetadataRules.VariantAction<? super DirectDependenciesMetadata> dependenciesMetadataAction : dependencyActions) {
+            dependenciesMetadataAction.maybeExecute(variant, instantiator.newInstance(
                 DirectDependenciesMetadataAdapter.class, calculatedDependencies, instantiator, dependencyNotationParser));
         }
         return calculatedDependencies;
     }
 
-    private <T extends ModuleDependencyMetadata> List<T> executeDependencyConstraintRules(List<T> dependencies) {
+    private <T extends ModuleDependencyMetadata> List<T> executeDependencyConstraintRules(VariantResolveMetadata variant, List<T> dependencies) {
         List<T> calculatedDependencies = new ArrayList<T>(CollectionUtils.filter(dependencies, DEPENDENCY_CONSTRAINT_FILTER));
-        for (Action<DependencyConstraintsMetadata> dependencyConstraintsMetadataAction : dependencyConstraintActions) {
-            dependencyConstraintsMetadataAction.execute(instantiator.newInstance(
+        for (VariantMetadataRules.VariantAction<? super DependencyConstraintsMetadata> dependencyConstraintsMetadataAction : dependencyConstraintActions) {
+            dependencyConstraintsMetadataAction.maybeExecute(variant, instantiator.newInstance(
                 DependencyConstraintsMetadataAdapter.class, calculatedDependencies, instantiator, dependencyConstraintNotationParser));
         }
         return calculatedDependencies;

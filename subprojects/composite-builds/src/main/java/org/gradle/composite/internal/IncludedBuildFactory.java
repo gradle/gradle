@@ -16,10 +16,9 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.NestedBuildFactory;
 
-import java.io.File;
-
 public interface IncludedBuildFactory {
-    IncludedBuildInternal createBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory);
+    IncludedBuildInternal createBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 }

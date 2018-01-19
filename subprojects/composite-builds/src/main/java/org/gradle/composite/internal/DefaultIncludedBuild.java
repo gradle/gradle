@@ -18,23 +18,40 @@ package org.gradle.composite.internal;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.DependencySubstitutions;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
-import org.gradle.internal.Factory;
+import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.Pair;
+import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
-    private final File projectDir;
-    private final Factory<GradleLauncher> gradleLauncherFactory;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);
+
+    private final BuildDefinition buildDefinition;
+    private final NestedBuildFactory gradleLauncherFactory;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
 
@@ -42,15 +59,16 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     private GradleLauncher gradleLauncher;
     private String name;
+    private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
-    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
-        this.projectDir = projectDir;
+    public DefaultIncludedBuild(BuildDefinition buildDefinition, NestedBuildFactory launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
+        this.buildDefinition = buildDefinition;
         this.gradleLauncherFactory = launcherFactory;
         this.parentLease = parentLease;
     }
 
     public File getProjectDir() {
-        return projectDir;
+        return buildDefinition.getBuildRootDir();
     }
 
     @Override
@@ -82,6 +100,29 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
     }
 
     @Override
+    public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
+        // TODO: Synchronization
+        if (availableModules==null) {
+            Gradle gradle = getConfiguredBuild();
+            availableModules = Sets.newLinkedHashSet();
+            for (Project project : gradle.getRootProject().getAllprojects()) {
+                registerProject(availableModules, (ProjectInternal) project);
+            }
+        }
+        return availableModules;
+    }
+
+    private void registerProject(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules, ProjectInternal project) {
+        LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
+        ProjectComponentIdentifier originalIdentifier = newProjectId(project);
+        DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
+        ProjectComponentIdentifier componentIdentifier = newProjectId(this, project.getPath());
+        ModuleVersionIdentifier moduleId = originalComponent.getId();
+        LOGGER.info("Registering " + project + " in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
+        availableModules.add(Pair.of(moduleId, componentIdentifier));
+    }
+
+    @Override
     public SettingsInternal getLoadedSettings() {
         return getGradleLauncher().getLoadedSettings();
     }
@@ -106,7 +147,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
-            gradleLauncher = gradleLauncherFactory.create();
+            gradleLauncher = gradleLauncherFactory.nestedInstance(buildDefinition.newInstance());
         }
         return gradleLauncher;
     }
@@ -116,7 +157,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
         final GradleLauncher launcher = getGradleLauncher();
         launcher.addListener(listener);
         launcher.scheduleTasks(tasks);
-        WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
+        WorkerLeaseService workerLeaseService = launcher.getGradle().getServices().get(WorkerLeaseService.class);
         try {
             workerLeaseService.withSharedLease(parentLease, new Runnable() {
                 @Override
@@ -136,7 +177,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     @Override
     public String toString() {
-        return String.format("includedBuild[%s]", projectDir.getName());
+        return String.format("includedBuild[%s]", getProjectDir());
     }
 
     @Override

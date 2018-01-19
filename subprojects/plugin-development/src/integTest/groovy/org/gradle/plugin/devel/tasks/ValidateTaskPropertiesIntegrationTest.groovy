@@ -227,4 +227,72 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         file("build/reports/task-properties/report.txt").text == ""
     }
+
+    def "detects problems with file inputs"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import java.io.File;
+
+            @CacheableTask
+            public class MyTask extends DefaultTask {
+                @Input
+                public long getGoodTime() {
+                    return 0;
+                }
+
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @javax.inject.Inject
+                org.gradle.api.internal.file.FileResolver fileResolver;
+
+                public long getBadTime() {
+                    return 0;
+                }
+
+                public static class Options {
+                    @Input
+                    public String getGoodNested() {
+                        return "good";
+                    }
+                    public String getBadNested(){
+                        return "bad";
+                    }
+                }
+                
+                @OutputDirectory
+                public File getOutputDir() {
+                    return new File("outputDir");
+                }
+                
+                @InputDirectory
+                @Optional
+                public File getInputDirectory() {
+                    return new File("inputDir");
+                }
+                
+                @Input
+                public File getFile() {
+                    return new File("some-file");
+                }
+                
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Task type 'MyTask': property 'file' has @Input annotation used on property of type java.io.File.
+            Warning: Task type 'MyTask': property 'inputDirectory' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+        """.stripIndent().trim()
+    }
 }

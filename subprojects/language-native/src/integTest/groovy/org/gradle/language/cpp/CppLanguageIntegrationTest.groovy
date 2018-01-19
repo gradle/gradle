@@ -52,7 +52,7 @@ model {
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
-    def "finds C++ system headers"() {
+    def "finds C and C++ standard library headers"() {
         // https://github.com/gradle/gradle-native/issues/282
         Assume.assumeFalse(toolChain.id == "gcccygwin")
         given:
@@ -66,14 +66,16 @@ model {
 
         and:
         file("src/main/cpp/includeIoStream.cpp") << """
+            #include <stdio.h>
             #include <iostream>
         """
 
         when:
+        executer.withArgument("--info")
         run 'mainSharedLibrary'
 
         then:
-        file('build/dependMainSharedLibraryMainCpp/inputs.txt').text.contains('iostream')
+        output.contains("Found all include files for ':compileMainSharedLibraryMainCpp'")
     }
 
     def "sources are compiled with C++ compiler"() {

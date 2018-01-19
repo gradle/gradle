@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.external.descriptor;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.Exclude;
@@ -85,15 +84,27 @@ public class DefaultExclude implements Exclude {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         DefaultExclude that = (DefaultExclude) o;
-        return Objects.equal(moduleId, that.moduleId)
-            && Objects.equal(artifact, that.artifact)
-            && Objects.equal(configurations, that.configurations)
-            && Objects.equal(patternMatcher, that.patternMatcher);
+
+        if (!moduleId.equals(that.moduleId)) {
+            return false;
+        }
+        if (artifact != null ? !artifact.equals(that.artifact) : that.artifact != null) {
+            return false;
+        }
+        if (!configurations.equals(that.configurations)) {
+            return false;
+        }
+        return patternMatcher != null ? patternMatcher.equals(that.patternMatcher) : that.patternMatcher == null;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(moduleId, artifact, configurations, patternMatcher);
+        int result = moduleId.hashCode();
+        result = 31 * result + (artifact != null ? artifact.hashCode() : 0);
+        result = 31 * result + configurations.hashCode();
+        result = 31 * result + (patternMatcher != null ? patternMatcher.hashCode() : 0);
+        return result;
     }
 }

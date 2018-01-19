@@ -16,16 +16,15 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestAddDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftXCTestRemoveDiscoveryBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftAppTest
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithSingleXCTestSuite
-import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftFailingXCTestBundle
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
@@ -35,19 +34,14 @@ import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLibWithSingleXCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
-import org.gradle.nativeplatform.fixtures.xctest.XCTestFinderFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-@Requires([TestPrecondition.SWIFT_SUPPORT])
-class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements XCTestExecutionResult {
     def setup() {
-        def xcTestFinder = new XCTestFinderFixture(toolChain)
         buildFile << """
 apply plugin: 'xctest'
 """
-        buildFile << xcTestFinder.buildscript()
     }
 
     def "fails when test cases fail"() {
@@ -67,40 +61,6 @@ apply plugin: 'xctest'
     }
 
     def "succeeds when test cases pass"() {
-        given:
-        def lib = new SwiftLibWithXCTest()
-        settingsFile << "rootProject.name = '${lib.projectName}'"
-        buildFile << "apply plugin: 'swift-library'"
-        lib.writeToProject(testDirectory)
-
-        when:
-        succeeds("test")
-
-        then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-        lib.assertTestCasesRan(testExecutionResult)
-    }
-
-    @Unroll
-    def "runs tests when #task lifecycle task executes"() {
-        given:
-        def lib = new SwiftLibWithXCTest()
-        settingsFile << "rootProject.name = '${lib.projectName}'"
-        buildFile << "apply plugin: 'swift-library'"
-        lib.writeToProject(testDirectory)
-
-        when:
-        succeeds(task)
-
-        then:
-        executed(":xcTest")
-        lib.assertTestCasesRan(testExecutionResult)
-
-        where:
-        task << ["test", "check", "build"]
-    }
-
-    def "can test public and internal features of a Swift library"() {
         given:
         def lib = new SwiftLibWithXCTest()
         settingsFile << "rootProject.name = '${lib.projectName}'"
@@ -164,22 +124,6 @@ apply plugin: 'xctest'
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         testBundle.assertAlternateTestCasesRan(testExecutionResult)
-    }
-
-    def "skips test tasks as up-to-date when nothing changes between invocation"() {
-        given:
-        def lib = new SwiftLibWithXCTest()
-        settingsFile << "rootProject.name = '${lib.projectName}'"
-        buildFile << "apply plugin: 'swift-library'"
-        lib.writeToProject(testDirectory)
-
-        when:
-        succeeds("test")
-        succeeds("test")
-
-        then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
-        result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
     }
 
     def "build logic can change source layout convention"() {
@@ -279,23 +223,6 @@ apply plugin: 'swift-application'
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
         result.assertTasksSkipped(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
-    }
-
-    def "can test public and internal features of a Swift application"() {
-        given:
-        def app = new SwiftAppWithXCTest()
-        settingsFile << "rootProject.name = '${app.projectName}'"
-        buildFile << """
-apply plugin: 'swift-application'
-"""
-        app.writeToProject(testDirectory)
-
-        when:
-        succeeds("test")
-
-        then:
-        result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":relocateMainForTest", ":linkTest", ":installTest", ":xcTest", ":test")
-        app.assertTestCasesRan(testExecutionResult)
     }
 
     def "can test public and internal features of a Swift application with a single source file"() {
@@ -616,9 +543,5 @@ apply plugin: 'swift-library'
 
     private static void assertMainSymbolIsAbsent(NativeBinaryFixture binary) {
         assert binary.binaryInfo.listSymbols().every { it.name != '_main' }
-    }
-
-    TestExecutionResult getTestExecutionResult() {
-        return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
     }
 }

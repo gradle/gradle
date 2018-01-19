@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.reporting.Report
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -72,7 +73,7 @@ class TaskReportContainerTest extends Specification {
     }
 
     List<String> getInputPropertyValue() {
-        task.inputs.properties["reports.enabledReportNames"] as List<String>
+        TaskPropertyTestUtils.getProperties(task)["reports.enabledReportNames"] as List<String>
     }
 
     @Unroll("tasks inputs and outputs are wired correctly A: #aEnabled, B: #bEnabled")

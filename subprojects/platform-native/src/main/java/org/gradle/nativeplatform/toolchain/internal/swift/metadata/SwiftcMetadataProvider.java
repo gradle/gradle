@@ -22,6 +22,7 @@ import org.gradle.nativeplatform.toolchain.internal.metadata.AbstractMetadataPro
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
+import org.gradle.util.VersionNumber;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -69,7 +70,15 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.contains("Swift version")) {
-                    return new DefaultSwiftcMetadata(line);
+                    String[] tokens = line.split(" ");
+                    // Assuming format: 'Swift version 4.0.2 (...)'
+                    int i = 2;
+                    if ("Apple".equals(tokens[0])) {
+                        // Actual format: 'Apple Swift version 4.0.2 (...)'
+                        i++;
+                    }
+                    VersionNumber version = VersionNumber.parse(tokens[i]);
+                    return new DefaultSwiftcMetadata(line, version);
                 }
             }
             return new BrokenMetadata(String.format("Could not determine %s metadata: %s produced unexpected output.", getCompilerType().getDescription(), swiftc.getName()));
@@ -89,13 +98,20 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
 
     private class DefaultSwiftcMetadata implements SwiftcMetadata {
         private final String versionString;
+        private final VersionNumber version;
 
-        public DefaultSwiftcMetadata(String versionString) {
+        public DefaultSwiftcMetadata(String versionString, VersionNumber version) {
             this.versionString = versionString;
+            this.version = version;
         }
 
         public String getVendor() {
             return versionString;
+        }
+
+        @Override
+        public VersionNumber getVersion() {
+            return version;
         }
 
         @Override

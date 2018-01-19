@@ -28,24 +28,24 @@ public interface ArtifactVisitor {
     /**
      * Visits an artifact. Artifacts are resolved but not necessarily downloaded unless {@link #requireArtifactFiles()} returns true.
      */
-    void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact);
+    void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact);
 
     /**
-     * Should the file for each artifacts be made available prior to calling {@link #visitArtifact(AttributeContainer, ResolvableArtifact)}?
+     * Should the file for each artifacts be made available prior to calling {@link #visitArtifact(String, AttributeContainer, ResolvableArtifact)}?
      *
      * Returns true here allows the collection to pre-emptively resolve the files in parallel.
      */
     boolean requireArtifactFiles();
 
     /**
-     * Should {@link #visitFile(ComponentArtifactIdentifier, AttributeContainer, File)} be called?
+     * Should {@link #visitFile(ComponentArtifactIdentifier, String, AttributeContainer, File)} be called?
      */
     boolean includeFiles();
 
     /**
      * Visits a file. Should be considered an artifact but is separate as a migration step.
      */
-    void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file);
+    void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file);
 
     /**
      * Called when some problem occurs visiting some element of the set. Visiting may continue.

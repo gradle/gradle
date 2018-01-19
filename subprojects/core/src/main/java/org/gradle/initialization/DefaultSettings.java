@@ -33,7 +33,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
-import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
@@ -46,6 +45,8 @@ import org.gradle.vcs.SourceControl;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.gradle.util.NameValidator.asValidName;
 
@@ -68,6 +69,8 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     private final ScriptHandler scriptHandler;
     private final ServiceRegistry services;
 
+    private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<IncludedBuildSpec>();
+
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                            ClassLoaderScope settingsClassLoaderScope, ClassLoaderScope buildRootClassLoaderScope, ScriptHandler settingsScriptHandler,
                            File settingsDir, ScriptSource settingsScript, StartParameter startParameter) {
@@ -89,6 +92,11 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     public GradleInternal getGradle() {
         return gradle;
+    }
+
+    @Override
+    public List<IncludedBuildSpec> getIncludedBuilds() {
+        return includedBuildSpecs;
     }
 
     public Settings getSettings() {
@@ -214,7 +222,13 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getRootClassLoaderScope(), getResourceLoader(), this);
+        return new DefaultObjectConfigurationAction(
+            getFileResolver(),
+            getScriptPluginFactory(),
+            getScriptHandlerFactory(),
+            getRootClassLoaderScope(),
+            getResourceLoader(),
+            this);
     }
 
     public ClassLoaderScope getRootClassLoaderScope() {
@@ -255,16 +269,6 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     @Inject
-    protected IncludedBuildRegistry getIncludedBuildRegistry() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected NestedBuildFactory getNestedBuildFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
     public PluginManagerInternal getPluginManager() {
         throw new UnsupportedOperationException();
     }
@@ -278,8 +282,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     public void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration) {
         if (gradle.getParent() == null) {
             File projectDir = getFileResolver().resolve(rootProject);
-            ConfigurableIncludedBuild includedBuild = getIncludedBuildRegistry().addExplicitBuild(projectDir, getNestedBuildFactory());
-            configuration.execute(includedBuild);
+            includedBuildSpecs.add(new IncludedBuildSpec(projectDir, configuration));
         } else {
             throw new InvalidUserDataException(String.format("Included build '%s' cannot have included builds.", getRootProject().getName()));
         }

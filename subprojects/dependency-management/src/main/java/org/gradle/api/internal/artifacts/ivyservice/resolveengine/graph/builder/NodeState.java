@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -169,8 +170,7 @@ class NodeState implements DependencyGraphNode {
     }
 
     protected void visitDependencies(ModuleExclusion resolutionFilter, PendingDependenciesHandler pendingDependenciesHandler, Collection<EdgeState> resultingOutgoingEdges) {
-        boolean isOptionalConfiguration = "optional".equals(metaData.getName());
-        PendingDependenciesHandler.Visitor pendingDepsVisitor =  pendingDependenciesHandler.start(isOptionalConfiguration);
+        PendingDependenciesHandler.Visitor pendingDepsVisitor =  pendingDependenciesHandler.start();
         try {
             for (DependencyMetadata dependency : metaData.getDependencies()) {
                 DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
@@ -305,5 +305,9 @@ class NodeState implements DependencyGraphNode {
         previousTraversalExclusions = null;
         outgoingEdges.clear();
         resolveState.onMoreSelected(this);
+    }
+
+    public ImmutableAttributesFactory getAttributesFactory() {
+        return resolveState.getAttributesFactory();
     }
 }

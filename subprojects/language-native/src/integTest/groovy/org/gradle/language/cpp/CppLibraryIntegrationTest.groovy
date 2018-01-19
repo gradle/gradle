@@ -24,7 +24,29 @@ import org.hamcrest.Matchers
 
 import static org.gradle.util.Matchers.containsText
 
-class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements CppTaskNames {
+
+    @Override
+    protected String getComponentUnderTestDsl() {
+        return "library"
+    }
+
+    @Override
+    protected List<String> getTasksToAssembleDevelopmentBinary() {
+        return [":compileDebugCpp", ":linkDebug"]
+    }
+
+    @Override
+    protected String getDevelopmentBinaryCompileTask() {
+        return ":compileDebugCpp"
+    }
+
+    @Override
+    protected void makeSingleProject() {
+        buildFile << """
+            apply plugin: 'cpp-library'
+        """
+    }
 
     def "skip compile and link tasks when no source"() {
         given:
@@ -59,7 +81,7 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
-    def "finds C++ system headers"() {
+    def "finds C and C++ standard library headers"() {
         given:
         buildFile << """
             apply plugin: 'cpp-library'
@@ -67,14 +89,16 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
 
         and:
         file("src/main/cpp/includingIoStream.cpp") << """
+            #include <stdio.h>
             #include <iostream>
         """
 
         when:
+        executer.withArgument("--info")
         run "assemble"
 
         then:
-        file('build/dependDebugCpp/inputs.txt').text.contains('iostream')
+        output.contains("Found all include files for ':compileDebugCpp'")
     }
 
     def "sources are compiled with C++ compiler"() {
@@ -103,7 +127,7 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         and:
         buildFile << """
             apply plugin: 'cpp-library'
-            compileReleaseCpp.macros(WITH_FEATURE: "true")
+            library.binaries.get { it.optimized }.configure { compileTask.get().macros(WITH_FEATURE: "true") }
          """
 
         expect:
@@ -134,22 +158,36 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         buildFile << """
             apply plugin: 'cpp-library'
             
-            task assembleLinktimeDebug {
-                dependsOn library.debugSharedLibrary.linkFile
-            }
-            task assembleRuntimeDebug {
-                dependsOn library.debugSharedLibrary.runtimeFile
+            task assembleLinkDebug {
+                dependsOn library.binaries.get { !it.optimized }.map { it.linkFile }
             }
          """
 
         expect:
-        succeeds "assembleLinktimeDebug"
-        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assembleLinktimeDebug")
+        succeeds "assembleLinkDebug"
+        result.assertTasksExecuted(compileAndLinkTasks(debug), ":assembleLinkDebug")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
+    }
 
+    def "can use runtime file as task dependency"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            
+            task assembleRuntimeDebug {
+                dependsOn library.binaries.get { !it.optimized }.map { it.runtimeFile }
+            }
+         """
+
+        expect:
         succeeds "assembleRuntimeDebug"
         result.assertTasksExecuted(compileAndLinkTasks(debug), ":assembleRuntimeDebug")
-
+        sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
     def "can use objects as task dependency"() {
@@ -163,7 +201,7 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
             apply plugin: 'cpp-library'
             
             task compileDebug {
-                dependsOn library.debugSharedLibrary.objects
+                dependsOn library.binaries.get { !it.optimized }.map { it.objects }
             }
          """
 
@@ -171,6 +209,7 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         succeeds "compileDebug"
         result.assertTasksExecuted(compileTasks(debug), ":compileDebug")
         objectFiles(lib.sources)*.assertExists()
+        sharedLibrary("build/lib/main/debug/hello").assertDoesNotExist()
     }
 
     def "build logic can change source layout convention"() {
@@ -260,10 +299,13 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         and:
         buildFile << """
             apply plugin: 'cpp-library'
-            compileDebugCpp.objectFileDir = layout.buildDirectory.dir("object-files")
-            linkDebug.binaryFile = layout.buildDirectory.file("shared/main.bin")
-            if (linkDebug.importLibrary.present) {
-                linkDebug.importLibrary = layout.buildDirectory.file("import/main.lib")
+            library.binaries.get { !it.optimized }.configure { 
+                compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
+                def link = linkTask.get()
+                link.binaryFile = layout.buildDirectory.file("shared/main.bin")
+                if (link.importLibrary.present) {
+                    link.importLibrary = layout.buildDirectory.file("import/main.lib")
+                }
             }
          """
 
@@ -340,6 +382,50 @@ class CppLibraryIntegrationTest extends AbstractCppInstalledToolChainIntegration
         sharedLibrary("lib1/build/lib/main/release/lib1").strippedRuntimeFile.assertExists()
         sharedLibrary("lib2/build/lib/main/release/lib2").strippedRuntimeFile.assertExists()
         sharedLibrary("lib3/build/lib/main/release/lib3").strippedRuntimeFile.assertExists()
+    }
+
+    def "can compile and link against static implementation and api libraries"() {
+        settingsFile << "include 'lib1', 'lib2', 'lib3'"
+        def app = new CppAppWithLibrariesWithApiDependencies()
+
+        given:
+        buildFile << """
+            project(':lib1') {
+                apply plugin: 'cpp-library'
+                dependencies {
+                    api project(':lib2')
+                    implementation project(':lib3')
+                }
+            }
+            project(':lib2') {
+                apply plugin: 'cpp-library'
+                library.linkage = [Linkage.STATIC]
+            }
+            project(':lib3') {
+                apply plugin: 'cpp-library'
+                library.linkage = [Linkage.STATIC]
+            }
+        """
+        app.deck.writeToProject(file("lib1"))
+        app.card.writeToProject(file("lib2"))
+        app.shuffle.writeToProject(file("lib3"))
+
+        expect:
+        succeeds assembleTaskDebug(':lib1')
+
+        result.assertTasksExecuted(compileAndStaticLinkTasks([':lib3', ':lib2'], debug), compileAndLinkTasks([':lib1'], debug), assembleTaskDebug(':lib1'))
+        sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
+        staticLibrary("lib2/build/lib/main/debug/lib2").assertExists()
+        staticLibrary("lib3/build/lib/main/debug/lib3").assertExists()
+
+        succeeds assembleTaskRelease(':lib1')
+
+        result.assertTasksExecuted(compileAndStaticLinkTasks([':lib3', ':lib2'], release), compileAndLinkTasks([':lib1'], release), extractAndStripSymbolsTasksRelease(':lib1', toolChain), assembleTaskRelease(':lib1'))
+        sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
+        staticLibrary("lib2/build/lib/main/release/lib2").assertExists()
+        staticLibrary("lib3/build/lib/main/release/lib3").assertExists()
+
+        sharedLibrary("lib1/build/lib/main/release/lib1").strippedRuntimeFile.assertExists()
     }
 
     def "private headers are not visible to consumer"() {

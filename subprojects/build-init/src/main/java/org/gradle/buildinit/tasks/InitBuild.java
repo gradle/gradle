@@ -18,28 +18,33 @@ package org.gradle.buildinit.tasks;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.options.Option;
-import org.gradle.api.internal.tasks.options.OptionValues;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.buildinit.plugins.internal.BuildInitTestFramework;
+import org.gradle.api.tasks.options.Option;
+import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds;
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import java.io.File;
 import java.util.List;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Generates a Gradle project structure.
  */
 public class InitBuild extends DefaultTask {
     private String type;
+    private String dsl;
     private String testFramework;
 
     @Internal
@@ -52,7 +57,21 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     public String getType() {
-        return !Strings.isNullOrEmpty(type) ? type : getProject().file("pom.xml").exists() ? BuildInitTypeIds.POM : BuildInitTypeIds.BASIC;
+        return isNullOrEmpty(type) ? detectType() : type;
+    }
+
+    /**
+     * The desired DSL of build scripts to create, defaults to 'groovy'.
+     *
+     * This property can be set via command-line option '--dsl'.
+     *
+     * @since 4.5
+     */
+    @Incubating
+    @Optional
+    @Input
+    public String getDsl() {
+        return isNullOrEmpty(dsl) ? BuildInitDsl.GROOVY.getId() : dsl;
     }
 
     /**
@@ -77,6 +96,7 @@ public class InitBuild extends DefaultTask {
     @TaskAction
     public void setupProjectLayout() {
         final String type = getType();
+        BuildInitDsl dsl = BuildInitDsl.fromName(getDsl());
         BuildInitTestFramework testFramework = BuildInitTestFramework.fromName(getTestFramework());
         final ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
         if (!projectLayoutRegistry.supports(type)) {
@@ -94,10 +114,10 @@ public class InitBuild extends DefaultTask {
             throw new GradleException("The requested test framework '" + testFramework.getId() + "' is not supported in '" + type + "' setup type");
         }
 
-        initDescriptor.generate(testFramework);
+        initDescriptor.generate(dsl, testFramework);
     }
 
-    @Option(option = "type", description = "Set type of build to create.", order = 0)
+    @Option(option = "type", description = "Set type of build to create.")
     public void setType(String type) {
         this.type = type;
     }
@@ -108,7 +128,30 @@ public class InitBuild extends DefaultTask {
         return getProjectLayoutRegistry().getSupportedTypes();
     }
 
-    @Option(option = "test-framework", description = "Set alternative test framework to be used.", order = 1)
+    /**
+     * Set alternative build script DSL to be used.
+     *
+     * @since 4.5
+     */
+    @Incubating
+    @Option(option = "dsl", description = "Set alternative build script DSL to be used.")
+    public void setDsl(String dsl) {
+        this.dsl = dsl;
+    }
+
+    /**
+     * Available build script DSLs to be used.
+     *
+     * @since 4.5
+     */
+    @Incubating
+    @OptionValues("dsl")
+    @SuppressWarnings("unused")
+    public List<String> getAvailableDSLs() {
+        return BuildInitDsl.listSupported();
+    }
+
+    @Option(option = "test-framework", description = "Set alternative test framework to be used.")
     public void setTestFramework(String testFramework) {
         this.testFramework = testFramework;
     }
@@ -123,4 +166,11 @@ public class InitBuild extends DefaultTask {
         this.projectLayoutRegistry = projectLayoutRegistry;
     }
 
+    private String detectType() {
+        return file("pom.xml").exists() ? BuildInitTypeIds.POM : BuildInitTypeIds.BASIC;
+    }
+
+    private File file(String path) {
+        return getProject().file(path);
+    }
 }

@@ -23,11 +23,14 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
-
-import javax.inject.Inject;
+import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 /**
  * Binary of a XCTest suite component.
@@ -35,21 +38,22 @@ import javax.inject.Inject;
  *
  * Either way, the installation provides a single entry point for executing this binary.
  */
-public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements SwiftXCTestBinary {
+public abstract class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements SwiftXCTestBinary {
     private final RegularFileProperty executableFile;
     private final DirectoryProperty installDirectory;
     private final RegularFileProperty runScriptFile;
+    private final Property<XCTest> runTaskProperty;
 
-    @Inject
-    public DefaultSwiftXCTestBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation) {
-        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation);
+    public DefaultSwiftXCTestBinary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean debuggable, boolean optimized, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        super(name, projectLayout, objectFactory, module, debuggable, optimized, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider);
         this.executableFile = projectLayout.fileProperty();
         this.installDirectory = projectLayout.directoryProperty();
         this.runScriptFile = projectLayout.fileProperty();
+        this.runTaskProperty = objectFactory.property(XCTest.class);
     }
 
     @Override
-    public RegularFileProperty getExecutableTestFile() {
+    public RegularFileProperty getExecutableFile() {
         return executableFile;
     }
 
@@ -61,5 +65,10 @@ public class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements Swif
     @Override
     public RegularFileProperty getRunScriptFile() {
         return runScriptFile;
+    }
+
+    @Override
+    public Property<XCTest> getRunTask() {
+        return runTaskProperty;
     }
 }

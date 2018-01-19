@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
@@ -26,7 +27,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         buildFile << """
             plugins {
                 id "java"
-                id "nebula.dependency-recommender" version "5.0.0"
+                id "nebula.dependency-recommender" version "5.1.0"
             }
 
             ${jcenterRepository()}
@@ -50,7 +51,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         when:
         buildFile << """
             plugins {
-                id 'nebula.plugin-plugin' version '5.18.0'
+                id 'nebula.plugin-plugin' version '6.1.1'
             }
         """
 
@@ -116,11 +117,111 @@ testCompile('junit:junit:4.7')""")
         when:
         buildFile << """
             plugins {
-                id "nebula.dependency-lock" version "4.9.5"
+                id "nebula.dependency-lock" version "5.0.0"
             }
         """.stripIndent()
 
         then:
         runner('buildEnvironment', 'generateLock').build()
+    }
+
+    @Issue("gradle/gradle#3798")
+    @Unroll
+    def "nebula dependency lock plugin version #version binary compatibility"() {
+        when:
+        buildFile << """
+            plugins {
+                id 'java-library'
+                id 'nebula.dependency-lock' version '$version'
+            }
+            
+            ${jcenterRepository()}
+            
+            dependencies {
+                api 'org.apache.commons:commons-math3:3.6.1'
+            }
+            
+            task resolve {
+                doFirst {
+                    configurations.compileClasspath.each { println it.name }
+                }
+            }
+        """
+        file('dependencies.lock') << '''{
+    "compileClasspath": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    },
+    "default": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    },
+    "runtimeClasspath": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    },
+    "testCompileClasspath": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    },
+    "testRuntimeClasspath": {
+        "org.apache.commons:commons-math3": {
+            "locked": "3.6.1",
+            "requested": "3.6.1"
+        }
+    }
+}'''
+
+        then:
+        runner('dependencies').build()
+        runner('generateLock').build()
+        runner('resolve').build()
+
+        where:
+        version << ['4.9.5', '5.0.0']
+    }
+
+    @Issue('https://plugins.gradle.org/plugin/nebula.resolution-rules')
+    def 'nebula resolution rules plugin'() {
+        when:
+        file('rules.json') << """
+            {
+                "replace" : [
+                    {
+                        "module" : "asm:asm",
+                        "with" : "org.ow2.asm:asm",
+                        "reason" : "The asm group id changed for 4.0 and later",
+                        "author" : "Example Person <person@example.org>",
+                        "date" : "2015-10-07T20:21:20.368Z"
+                    }
+                ]
+            }
+"""
+        buildFile << """
+            plugins {
+                id 'java-library'
+                id 'nebula.resolution-rules' version '5.1.0'
+            }
+            
+            ${jcenterRepository()}                        
+
+            dependencies {
+                resolutionRules files('rules.json')
+                
+                // Need a non-empty configuration to trigger the plugin
+                api 'org.apache.commons:commons-math3:3.6.1'
+            }
+        """.stripIndent()
+
+        then:
+        runner('dependencies').build()
     }
 }

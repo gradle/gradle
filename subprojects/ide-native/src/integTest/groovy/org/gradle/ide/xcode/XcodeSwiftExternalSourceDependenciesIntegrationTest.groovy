@@ -17,23 +17,21 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.internal.hash.HashUtil
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GFileUtils
 import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.internal.SourceDependencies
 import org.junit.Rule
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
-class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeIntegrationSpec {
+class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeIntegrationSpec implements SourceDependencies {
     @Rule
     GitRepository repo = new GitRepository('greeter', temporaryFolder.getTestDirectory())
 
     def setup() {
-        useSwiftCompiler()
+        requireSwiftToolChain()
     }
 
     def "adds source dependencies Swift module of main component to Xcode indexer search path"() {
@@ -47,7 +45,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             """
             fixture.library.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         settingsFile << """
@@ -77,7 +75,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds 'xcode'
 
         then:
-        executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcode")
+        executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")
 
         def appProject = xcodeProject("${rootProjectName}.xcodeproj").projectFile
@@ -96,7 +94,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             """
             fixture.library.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         settingsFile << """
@@ -126,7 +124,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds 'xcode'
 
         then:
-        executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppExecutable", ":xcode")
+        executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")//, "${checkoutRelativeDir(repo.name, commit.id.name, repo.id)}/greeter.xcodeproj")
 
         def appProject = xcodeProject("${rootProjectName}.xcodeproj").projectFile
@@ -145,7 +143,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             """
             library.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
 
         and:
@@ -175,7 +173,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds 'xcode'
 
         then:
-        executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppSharedLibrary", ":xcode")
+        executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")
 
         def appProject = xcodeProject("${rootProjectName}.xcodeproj").projectFile
@@ -196,7 +194,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             """
             library.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
 
         and:
@@ -226,7 +224,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds 'xcode'
 
         then:
-        executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeSchemeAppSharedLibrary", ":xcode")
+        executedAndNotSkipped(":greeter:compileDebugSwift", ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")
 
         def appProject = xcodeProject("${rootProjectName}.xcodeproj").projectFile
@@ -245,7 +243,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             """
             fixture.library.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         singleProjectBuild("app") {
@@ -283,7 +281,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds 'xcode'
 
         then:
-        executedAndNotSkipped(":greeter:compileDebugSwift", ":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable",
+        executedAndNotSkipped(":greeter:compileDebugSwift", ":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", "app/app.xcodeproj")
 
@@ -303,7 +301,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             """
             fixture.library.writeToProject(it)
         }
-        def commit = repo.commit('initial commit', GFileUtils.listFiles(file('greeter'), null, true))
+        def commit = repo.commit('initial commit')
 
         and:
         singleProjectBuild("app") {
@@ -341,20 +339,11 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds 'xcode'
 
         then:
-        executedAndNotSkipped(":greeter:compileDebugSwift", ":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeSchemeAppExecutable",
+        executedAndNotSkipped(":greeter:compileDebugSwift", ":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", "app/app.xcodeproj")
 
         def appProject = xcodeProject("app/app.xcodeproj").projectFile
         appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(checkoutDir(repo.name, commit.id.name, repo.id).file('build/modules/main/debug'))
-    }
-
-    TestFile checkoutDir(String repoName, String versionId, String repoId, TestFile baseDir=testDirectory) {
-        baseDir.file(checkoutRelativeDir(repoName, versionId, repoId))
-    }
-
-    String checkoutRelativeDir(String repoName, String versionId, String repoId) {
-        def hashedRepo = HashUtil.createCompactMD5(repoId)
-        return ".gradle/vcsWorkingDirs/${hashedRepo}-${versionId}/${repoName}"
     }
 }

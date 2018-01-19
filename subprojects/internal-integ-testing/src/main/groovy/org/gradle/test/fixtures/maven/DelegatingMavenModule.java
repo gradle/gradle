@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.maven;
 
+import groovy.lang.Closure;
 import org.gradle.test.fixtures.GradleModuleMetadata;
 import org.gradle.test.fixtures.Module;
 import org.gradle.test.fixtures.ModuleArtifact;
@@ -252,5 +253,15 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     @Override
     public boolean getUniqueSnapshots() {
         return backingModule.getUniqueSnapshots();
+    }
+
+    @Override
+    public void withVariant(String name, Closure<?> action) {
+        backingModule.withVariant(name, action);
+    }
+
+    @Override
+    public Map<String, String> getAttributes() {
+        return backingModule.getAttributes();
     }
 }

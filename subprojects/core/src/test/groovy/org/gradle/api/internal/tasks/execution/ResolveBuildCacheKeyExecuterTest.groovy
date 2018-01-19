@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -39,7 +38,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def task = Mock(TaskInternal)
     def taskContext = Mock(TaskExecutionContext)
     def taskArtifactState = Mock(TaskArtifactState)
-    def taskOutputs = Mock(TaskOutputsInternal)
+    def taskProperties = Mock(TaskProperties)
     def delegate = Mock(TaskExecuter)
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def executer = new ResolveBuildCacheKeyExecuter(delegate, buildOperationExecutor)
@@ -55,13 +54,13 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         }
 
         then:
+        1 * taskContext.getTaskProperties() >> taskProperties
         1 * task.getIdentityPath() >> Path.path(":foo")
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
 
         then:
-        1 * task.getOutputs() >> taskOutputs
-        1 * taskOutputs.getHasOutput() >> true
+        1 * taskProperties.hasDeclaredOutputs() >> true
         1 * cacheKey.isValid() >> true
         1 * cacheKey.getHashCode() >> "0123456789abcdef"
 
@@ -103,8 +102,8 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskArtifactState.calculateCacheKey() >> noCacheKey
 
         then:
-        1 * task.getOutputs() >> taskOutputs
-        1 * taskOutputs.getHasOutput() >> false
+        1 * taskContext.getTaskProperties() >> taskProperties
+        1 * taskProperties.hasDeclaredOutputs() >> false
 
         then:
         1 * taskContext.setBuildCacheKey(noCacheKey)
@@ -129,38 +128,37 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
 
         when:
         inputs.inputHashes >> ImmutableSortedMap.copyOf(b: HashCode.fromInt(0x000000bb), a: HashCode.fromInt(0x000000aa))
-
         then:
         adapter.inputHashes == [a: "000000aa", b: "000000bb"]
 
         when:
-        inputs.classLoaderHash >> HashCode.fromInt(0x000000cc)
+        inputs.inputPropertiesLoadedByUnknownClassLoader >> ImmutableSortedSet.of("bean", "someOtherBean")
+        then:
+        adapter.inputPropertiesLoadedByUnknownClassLoader == ["bean", "someOtherBean"] as SortedSet
 
+        when:
+        inputs.classLoaderHash >> HashCode.fromInt(0x000000cc)
         then:
         adapter.classLoaderHash == "000000cc"
 
         when:
         inputs.actionClassLoaderHashes >> ImmutableList.copyOf([HashCode.fromInt(0x000000ee), HashCode.fromInt(0x000000dd)])
-
         then:
         adapter.actionClassLoaderHashes == ["000000ee", "000000dd"]
 
         when:
         inputs.actionClassNames >> ImmutableList.copyOf(["foo", "bar"])
-
         then:
         adapter.actionClassNames == ["foo", "bar"]
 
         when:
         inputs.outputPropertyNames >> ImmutableSortedSet.copyOf(["2", "1"])
-
         then:
         adapter.outputPropertyNames == ["1", "2"]
 
         when:
         key.hashCode >> HashCode.fromInt(0x000000ff)
         key.valid >> true
-
         then:
         adapter.buildCacheKey == "000000ff"
     }

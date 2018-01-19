@@ -16,40 +16,36 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.testing.internal.util.RetryRule
 import org.junit.Rule
+import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.RetryRuleUtil.getRootCauseMessage
 import static org.gradle.testing.internal.util.RetryRule.retryIf
 
-class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
+class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "src/main/java/App.java"
     public static final String SAMPLE_APP_TEST_CLASS = "src/test/java/AppTest.java"
     public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "src/test/groovy/AppTest.groovy"
 
-    final wrapper = new WrapperTestFixture(testDirectory)
-
     @Rule
-    RetryRule retryRule = retryIf{ Throwable t ->
+    RetryRule retryRule = retryIf { Throwable t ->
         //retry on Jcenter connectivity issue
         getRootCauseMessage(t).startsWith("Could not GET")
     }
 
-    def "creates sample source if no source present"() {
+    @Unroll
+    def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-application')
+        succeeds('init', '--type', 'java-application', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
         file(SAMPLE_APP_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
         succeeds("build")
@@ -62,45 +58,53 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("Hello world")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "creates sample source using spock instead of junit"() {
+    @Unroll
+    def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-application', '--test-framework', 'spock')
+        succeeds('init', '--type', 'java-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
         file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
         succeeds("build")
 
         then:
         assertTestPassed("application has a greeting")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "creates sample source using testng instead of junit"() {
+    @Unroll
+    def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-application', '--test-framework', 'testng')
+        succeeds('init', '--type', 'java-application', '--test-framework', 'testng', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
         file(SAMPLE_APP_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
         succeeds("build")
 
         then:
         assertTestPassed("appHasAGreeting")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "setupProjectLayout is skipped when java sources detected"() {
+    @Unroll
+    def "setupProjectLayout is skipped when java sources detected with #scriptDsl build scripts"() {
         setup:
         file("src/main/java/org/acme/SampleMain.java") << """
         package org.acme;
@@ -115,19 +119,18 @@ class JavaApplicationInitIntegrationTest extends AbstractIntegrationSpec {
                 }
         """
         when:
-        succeeds('init', '--type', 'java-application')
+        succeeds('init', '--type', 'java-application', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_APP_CLASS).exists()
         !file(SAMPLE_APP_TEST_CLASS).exists()
-        buildFile.exists()
-        settingsFile.exists()
-        wrapper.generated()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def assertTestPassed(String name) {
-        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("AppTest")
-        testResult.testClass("AppTest").assertTestPassed(name)
+    void assertTestPassed(String name) {
+        new DefaultTestExecutionResult(testDirectory).testClass("AppTest").assertTestPassed(name)
     }
 }

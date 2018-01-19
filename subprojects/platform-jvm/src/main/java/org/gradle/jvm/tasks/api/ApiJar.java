@@ -16,20 +16,23 @@
 
 package org.gradle.jvm.tasks.api;
 
-import org.gradle.api.DefaultTask;
+import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.ErroringAction;
+import org.gradle.util.internal.PatchedClassReader;
 import org.objectweb.asm.ClassReader;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -70,7 +73,7 @@ import static org.gradle.internal.IoActions.withResource;
  * @see org.gradle.jvm.plugins.JvmComponentPlugin
  */
 @Incubating
-public class ApiJar extends DefaultTask {
+public class ApiJar extends SourceTask {
 
     private Set<String> exportedPackages;
     private File outputFile;
@@ -96,7 +99,7 @@ public class ApiJar extends DefaultTask {
     @TaskAction
     public void createApiJar() throws IOException {
         // Make sure all entries are always written in the same order
-        final File[] sourceFiles = sortedSourceFiles();
+        final List<File> sourceFiles = sortedSourceFiles();
         final ApiClassExtractor apiClassExtractor = new ApiClassExtractor(getExportedPackages());
         withResource(
             new JarOutputStream(new BufferedOutputStream(new FileOutputStream(getOutputFile()), 65536)),
@@ -116,7 +119,7 @@ public class ApiJar extends DefaultTask {
                         if (!isClassFile(sourceFile)) {
                             continue;
                         }
-                        ClassReader classReader = new ClassReader(readFileToByteArray(sourceFile));
+                        ClassReader classReader = new PatchedClassReader(readFileToByteArray(sourceFile));
                         if (!apiClassExtractor.shouldExtractApiClassFrom(classReader)) {
                             continue;
                         }
@@ -151,9 +154,9 @@ public class ApiJar extends DefaultTask {
         return hasExtension(file, ".class");
     }
 
-    private File[] sortedSourceFiles() {
-        final File[] sourceFiles = (File[]) getInputs().getSourceFiles().asType(File[].class);
-        Arrays.sort(sourceFiles);
+    private List<File> sortedSourceFiles() {
+        List<File> sourceFiles = Lists.newArrayList(getSource().getFiles());
+        Collections.sort(sourceFiles);
         return sourceFiles;
     }
 }

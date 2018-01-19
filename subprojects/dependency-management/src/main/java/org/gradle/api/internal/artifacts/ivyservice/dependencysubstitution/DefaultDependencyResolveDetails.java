@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
@@ -33,9 +34,21 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     private final DependencySubstitutionInternal delegate;
     private ModuleVersionSelector requested;
 
+    private String customDescription;
+    private VersionConstraint useVersion;
+    private ModuleComponentSelector useSelector;
+
     public DefaultDependencyResolveDetails(DependencySubstitutionInternal delegate, ModuleVersionSelector requested) {
         this.delegate = delegate;
         this.requested = requested;
+    }
+
+    private ComponentSelectionDescriptorInternal selectionReason() {
+        ComponentSelectionDescriptorInternal reason = VersionSelectionReasons.SELECTED_BY_RULE;
+        if (customDescription != null) {
+            reason = reason.withReason(customDescription);
+        }
+        return reason;
     }
 
     @Override
@@ -48,17 +61,19 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         if (version == null) {
             throw new IllegalArgumentException("Configuring the dependency resolve details with 'null' version is not allowed.");
         }
-        useVersion(new DefaultMutableVersionConstraint(version), VersionSelectionReasons.SELECTED_BY_RULE);
+        useVersion(new DefaultMutableVersionConstraint(version), selectionReason());
     }
 
     @Override
-    public void useVersion(VersionConstraint version, ComponentSelectionReason selectionReason) {
+    public void useVersion(VersionConstraint version, ComponentSelectionDescriptorInternal selectionReason) {
         assert selectionReason != null;
         if (version == null) {
             throw new IllegalArgumentException("Configuring the dependency resolve details with 'null' version is not allowed.");
         }
 
-//        ModuleVersionSelector currentTarget = determineTarget(delegate, requested);
+        useSelector = null;
+        useVersion = version;
+
         if (delegate.getTarget() instanceof ModuleComponentSelector) {
             ModuleComponentSelector target = (ModuleComponentSelector) delegate.getTarget();
             if (!version.equals(target.getVersionConstraint())) {
@@ -78,12 +93,18 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     @Override
     public void useTarget(Object notation) {
         ModuleVersionSelector newTarget = ModuleVersionSelectorParsers.parser().parseNotation(notation);
-        delegate.useTarget(DefaultModuleComponentSelector.newSelector(newTarget), VersionSelectionReasons.SELECTED_BY_RULE);
+        useVersion = null;
+        useSelector = DefaultModuleComponentSelector.newSelector(newTarget);
+        useComponentSelector();
+    }
+
+    private void useComponentSelector() {
+        delegate.useTarget(useSelector, selectionReason());
     }
 
     @Override
-    public ComponentSelectionReason getSelectionReason() {
-        return delegate.getSelectionReason();
+    public ComponentSelectionDescriptorInternal getSelectionDescription() {
+        return delegate.getSelectionDescription();
     }
 
     @Override
@@ -97,6 +118,21 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         }
         // If the target is a project component, it has not been modified from the requested
         return requested;
+    }
+
+    @Override
+    public DependencyResolveDetails because(String description) {
+        customDescription = description;
+
+        // we need to check if a call to `useVersion` or `useTarget` has been done before
+        // so that we can consistently set the reason independently of the order of invocations
+        if (useVersion != null) {
+            useVersion(useVersion, selectionReason());
+        } else if (useSelector != null) {
+            useComponentSelector();
+        }
+
+        return this;
     }
 
     @Override

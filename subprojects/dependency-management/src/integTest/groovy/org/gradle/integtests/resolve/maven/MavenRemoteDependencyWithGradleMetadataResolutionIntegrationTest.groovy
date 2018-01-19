@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
@@ -30,7 +30,7 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
         resolve.prepare()
         server.start()
 
-        ExperimentalFeaturesFixture.enable(settingsFile)
+        FeaturePreviewsFixture.enableGradleMetadata(propertiesFile)
         settingsFile << "rootProject.name = 'test'"
 
     }
@@ -60,7 +60,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
 
@@ -71,7 +71,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
 
@@ -86,7 +86,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
     }
@@ -688,7 +688,7 @@ Required by:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
     }
@@ -729,7 +729,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2")
+                module("test:a:1.2:runtime")
             }
         }
     }

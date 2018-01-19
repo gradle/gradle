@@ -85,7 +85,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
             }
             withoutModuleMetadata {
-                expectFiles "bar-1.0.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
             }
         }
 
@@ -256,11 +256,13 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         then:
         javaLibrary.assertPublished()
 
+        javaLibrary.parsedPom.packaging == null // 'jar' packaging
         javaLibrary.parsedPom.scopes.keySet() == ["compile", "runtime"] as Set
         javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.springframework:spring-core:1.2.9")
-        javaLibrary.parsedPom.scopes.compile.dependencies.size() == 1 //we do not publish constraints in POMs yet
+        javaLibrary.parsedPom.scopes.compile.assertDependencyManagement("commons-logging:commons-logging:1.1")
+
         javaLibrary.parsedPom.scopes.runtime.assertDependsOn("org.apache.commons:commons-compress:1.5")
-        javaLibrary.parsedPom.scopes.runtime.dependencies.size() == 1 //we do not publish constraints in POMs yet
+        javaLibrary.parsedPom.scopes.runtime.assertDependencyManagement("commons-logging:commons-logging:1.2", "org.tukaani:xz:1.6")
 
         and:
         javaLibrary.parsedModuleMetadata.variant('api') {
@@ -296,7 +298,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 expectFiles 'commons-compress-1.5.jar', 'commons-logging-1.2.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.6.jar'
             }
             withoutModuleMetadata {
-                // Dependency constraints not published to Maven POM
+                // POM <dependencyManagement> elements are not consumed as constraints for packaging == 'jar'.
                 expectFiles 'commons-compress-1.5.jar', 'commons-logging-1.0.4.jar', 'publishTest-1.9.jar', 'spring-core-1.2.9.jar', 'xz-1.2.jar'
             }
         }
@@ -342,7 +344,9 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         javaLibrary.assertPublished()
 
         javaLibrary.parsedPom.scopes.keySet() == ["runtime"] as Set
+
         javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:[3.2, 4)")
+        javaLibrary.parsedPom.scopes.runtime.assertDependencyManagement()
 
         and:
         javaLibrary.parsedModuleMetadata.variant('api') {
@@ -407,7 +411,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         javaLibrary.parsedPom.scopes.keySet() == ["runtime"] as Set
         javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:")
-        javaLibrary.parsedPom.scopes.runtime.dependencies.size() == 1 //we do not publish constraints in POMs yet
+        javaLibrary.parsedPom.scopes.runtime.assertDependencyManagement("commons-collections:commons-collections:3.2.2")
 
         and:
         javaLibrary.parsedModuleMetadata.variant('api') {
@@ -425,16 +429,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         resolveArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles 'commons-collections-3.2.2.jar', 'publishTest-1.9.jar'
-            }
-            withoutModuleMetadata {
-                shouldFail {
-                    // This currently fails, because the POM does not provide a version, and we don't yet publish constraints to POM files.
-                    assertHasDescription("Could not resolve all files for configuration ':resolve'")
-                    assertHasCause("Could not find commons-collections:commons-collections:")
-                }
-            }
+            expectFiles 'commons-collections-3.2.2.jar', 'publishTest-1.9.jar'
         }
     }
 
@@ -482,10 +477,11 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         createBuildScripts("""
             dependencies {
-                api "org.test:bar:1.0"
+                api "org.test:bar"
                 implementation "org.test:foo:1.0"
                 
                 constraints {
+                    api "org.test:bar:1.0"
                     implementation "org.test:bar:1.1"
                 }
             }
@@ -507,45 +503,45 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         mavenModule.assertPublished()
         mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom")
 
-        // No files are published for either variant
-        with(javaLibrary.parsedModuleMetadata) {
-            variants*.name as Set == ['api', 'runtime'] as Set
-            variant('api').files.empty
-            variant('runtime').files.empty
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            files.empty
+            dependency('org.test:bar:').exists()
+            constraint('org.test:bar:1.0').exists()
+            noMoreDependencies()
         }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            files.empty
+            dependency('org.test:bar:').exists()
+            dependency('org.test:foo:1.0').exists()
+            constraint('org.test:bar:1.0').exists()
+            constraint('org.test:bar:1.1').exists()
+            noMoreDependencies()
+        }
+
 
         // Published with pom packaging
         assert javaLibrary.parsedPom.packaging == 'pom'
-
-        javaLibrary.assertApiDependencies("org.test:bar:1.0")
-        javaLibrary.assertRuntimeDependencies("org.test:foo:1.0")
+        javaLibrary.parsedPom.scopes.compile.assertDependsOn('org.test:bar:')
+        javaLibrary.parsedPom.scopes.compile.assertDependencyManagement('org.test:bar:1.0')
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn('org.test:foo:1.0')
+        javaLibrary.parsedPom.scopes.runtime.assertDependencyManagement('org.test:bar:1.1')
 
         and:
         resolveArtifacts(javaLibrary) {
-            // Platform constraints are not published to Maven POM
-            withModuleMetadata {
-                expectFiles "bar-1.1.jar", "foo-1.0.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "bar-1.0.jar", "foo-1.0.jar"
-            }
+            expectFiles "bar-1.1.jar", "foo-1.0.jar"
         }
-        // Maven POM compile scope contains 'implementation' dependencies
         resolveApiArtifacts(javaLibrary) {
             withModuleMetadata {
                 expectFiles "bar-1.0.jar"
             }
             withoutModuleMetadata {
-                expectFiles "bar-1.0.jar", "foo-1.0.jar"
+                expectFiles "bar-1.0.jar"
             }
         }
         resolveRuntimeArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "bar-1.1.jar", "foo-1.0.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "bar-1.0.jar", "foo-1.0.jar"
-            }
+            expectFiles "bar-1.1.jar", "foo-1.0.jar"
         }
     }
 

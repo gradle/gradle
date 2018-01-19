@@ -122,7 +122,7 @@ public final class BuildCacheControllerFactory {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Finalize build cache configuration")
-                    .details(DetailsImpl.INSTANCE);
+                    .details(new DetailsImpl(buildIdentityPath.getPath()));
             }
         });
     }
@@ -266,9 +266,15 @@ public final class BuildCacheControllerFactory {
     }
 
     private static class DetailsImpl implements FinalizeBuildCacheConfigurationBuildOperationType.Details {
-        public static final FinalizeBuildCacheConfigurationBuildOperationType.Details INSTANCE = new DetailsImpl();
+        private final String buildPath;
 
-        private DetailsImpl() {
+        private DetailsImpl(String buildPath) {
+            this.buildPath = buildPath;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return buildPath;
         }
     }
 

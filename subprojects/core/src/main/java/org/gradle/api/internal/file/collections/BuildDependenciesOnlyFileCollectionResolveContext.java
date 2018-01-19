@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskOutputs;
@@ -54,9 +53,7 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
     @Override
     public FileCollectionResolveContext add(Object element) {
         // TODO - need to sync with DefaultFileCollectionResolveContext
-        if (element instanceof FileCollection) {
-            taskContext.add(element);
-        } else if (element instanceof MinimalFileCollection && element instanceof Buildable) {
+        if (element instanceof Buildable) {
             taskContext.add(element);
         } else if (element instanceof Task) {
             taskContext.add(element);

@@ -22,20 +22,20 @@ import org.gradle.platform.base.internal.toolchain.ToolChainInternal;
 
 public interface NativeToolChainInternal extends NativeToolChain, ToolChainInternal<NativePlatformInternal> {
     /**
-     * Locates the tools that can target the given platform.
+     * Same as {@link #select(NativeLanguage, NativePlatformInternal)} with language {@link NativeLanguage#ANY}.
      */
     @Override
     PlatformToolProvider select(NativePlatformInternal targetPlatform);
 
     /**
-     * Returns a unique, opaque, getOutputType for the output produced by this toolchain on the current operating system.
+     * Locates the tools that can build binaries from the given source language that can run on the given target machine.
      */
-    String getOutputType();
+    PlatformToolProvider select(NativeLanguage sourceLanguage, NativePlatformInternal targetMachine);
 
     /**
-     * Whether or not this tool chain requires a debuggable binary to be stripped or whether the binary is stripped by default.
+     * Returns a unique, opaque, output type for the output produced by this toolchain on the current operating system.
      */
-    boolean requiresDebugBinaryStripping();
+    String getOutputType();
 
     class Identifier {
         public static String identify(NativeToolChainInternal toolChain, NativePlatformInternal platform) {

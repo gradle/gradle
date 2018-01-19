@@ -33,4 +33,12 @@ class MavenDependency {
     public String toString() {
         return String.format("MavenDependency %s:%s:%s:%s@%s", groupId, artifactId, version, classifier, type)
     }
+
+    String getKey() {
+        def key = "${groupId}:${artifactId}:${version}"
+        if (classifier) {
+            key += ":${classifier}"
+        }
+        key
+    }
 }

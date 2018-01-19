@@ -15,31 +15,80 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.Exclude;
+
+import java.util.Collection;
+import java.util.List;
 
 public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableIvyModuleResolveMetadata> {
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private static final Configuration DEFAULT_CONFIGURATION = new Configuration(Dependency.DEFAULT_CONFIGURATION, true, true, ImmutableSet.<String>of());
+    private static final List<Configuration> DEFAULT_CONFIGURATION_LIST = ImmutableList.of(DEFAULT_CONFIGURATION);
+    private static final ImmutableSet<String> SINGLE_DEFAULT_CONFIGURATION_NAME = ImmutableSet.of(Dependency.DEFAULT_CONFIGURATION);
 
-    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ImmutableAttributesFactory attributesFactory;
+
+    public IvyMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableAttributesFactory attributesFactory) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
     public MutableIvyModuleResolveMetadata create(ModuleComponentIdentifier from) {
-        ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableIvyModuleResolveMetadata(mvi, from);
+        return create(from, ImmutableList.<IvyDependencyDescriptor>of());
     }
 
-    protected ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
+    public MutableIvyModuleResolveMetadata create(ModuleComponentIdentifier from, List<IvyDependencyDescriptor> dependencies) {
+        return create(
+            from,
+            dependencies,
+            DEFAULT_CONFIGURATION_LIST,
+            createDefaultArtifact(from),
+            ImmutableList.<Exclude>of());
+    }
+
+    public MutableIvyModuleResolveMetadata create(ModuleComponentIdentifier from,
+                                                  List<IvyDependencyDescriptor> dependencies,
+                                                  Collection<Configuration> configurationDefinitions,
+                                                  Collection<? extends Artifact> artifactDefinitions,
+                                                  Collection<? extends Exclude> excludes) {
+        ModuleVersionIdentifier mvi = asVersionIdentifier(from);
+        return new DefaultMutableIvyModuleResolveMetadata(
+            attributesFactory,
+            mvi,
+            from,
+            dependencies,
+            configurationDefinitions,
+            artifactDefinitions,
+            excludes);
+    }
+
+    private ImmutableList<? extends Artifact> createDefaultArtifact(ModuleComponentIdentifier from) {
+        return ImmutableList.of(new Artifact(new DefaultIvyArtifactName(from.getModule(), "jar", "jar"), SINGLE_DEFAULT_CONFIGURATION_NAME));
+    }
+
+    private ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
         return moduleIdentifierFactory.moduleWithVersion(from.getGroup(), from.getModule(), from.getVersion());
     }
 
     @Override
     public MutableIvyModuleResolveMetadata missing(ModuleComponentIdentifier from) {
-        return DefaultMutableIvyModuleResolveMetadata.missing(asVersionIdentifier(from), from);
+        MutableIvyModuleResolveMetadata metadata = create(from);
+        metadata.setMissing(true);
+        return metadata;
     }
+
 }

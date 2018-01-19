@@ -65,4 +65,19 @@ class GccPlatformToolProviderTest extends Specification {
         ToolType.OBJECTIVECPP_COMPILER | ['-x', 'objective-c++']
         ToolType.ASSEMBLER             | []
     }
+
+    def "gets compiler metadata from the provider"() {
+        def platformToolProvider = new GccPlatformToolProvider(buildOperationExecuter, operatingSystem, toolSearchPath, toolRegistry, execActionFactory, namingSchemeFactory, true, workerLeaseService, metaDataProvider)
+
+        when:
+        platformToolProvider.getCompilerMetadata();
+
+        then:
+        1 * metaDataProvider.getCompilerMetaData(_, _) >> {
+            assert arguments[1] == ['-x', 'c']
+            Mock(GccMetadata)
+        }
+        1 * toolRegistry.getTool(ToolType.C_COMPILER) >> new DefaultGccCommandLineToolConfiguration(ToolType.C_COMPILER, 'exe')
+        1 * toolSearchPath.locate(ToolType.C_COMPILER, 'exe') >> Mock(CommandLineToolSearchResult)
+    }
 }

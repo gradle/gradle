@@ -51,6 +51,14 @@ If your application requires a specific set of JVM settings or system properties
         </sample>
 ++++
 
+If your application's start scripts should be in a different directory than `bin`, you can configure the `executableDir` property.
+
+++++
+<sample id="configureApplicationDefaultJvmArgs" dir="application" title="Configure custom directory for start scripts">
+            <sourcefile file="build.gradle" snippet="executableDir-conf"/>
+        </sample>
+++++
+
 
 [[sec:the_distribution]]
 ==== The distribution

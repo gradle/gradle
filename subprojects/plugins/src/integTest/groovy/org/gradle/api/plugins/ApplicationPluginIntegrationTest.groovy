@@ -258,6 +258,32 @@ dependencies {
         file('build/install/sample/lib').allDescendants() == ['sample.jar', 'compile-1.0.jar'] as Set
     }
 
+    def "executables can be placed at the root of the distribution"() {
+        given:
+        buildFile << """
+executableDir = ''
+"""
+        when:
+        run "installDist"
+
+        then:
+        file('build/install/sample/sample').exists()
+        file('build/install/sample/sample.bat').exists()
+    }
+
+    def "executables can be placed in a custom directory"() {
+        given:
+        buildFile << """
+executableDir = 'foo/bar'
+"""
+        when:
+        run "installDist"
+
+        then:
+        file('build/install/sample/foo/bar/sample').exists()
+        file('build/install/sample/foo/bar/sample.bat').exists()
+    }
+
     def "includes transitive implementation dependencies in distribution"() {
         mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
 

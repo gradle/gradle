@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.detection;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -55,10 +56,11 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     private final BuildOperationExecutor buildOperationExecutor;
     private final int maxWorkerCount;
     private final Clock clock;
+    private final DocumentationRegistry documentationRegistry;
 
     public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
                                WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, int maxWorkerCount,
-                               Clock clock) {
+                               Clock clock, DocumentationRegistry documentationRegistry) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
         this.moduleRegistry = moduleRegistry;
@@ -66,6 +68,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         this.buildOperationExecutor = buildOperationExecutor;
         this.maxWorkerCount = maxWorkerCount;
         this.clock = clock;
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
@@ -77,7 +80,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(currentWorkerLease, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
-                    classpath, testFramework.getWorkerConfigurationAction(), moduleRegistry);
+                    classpath, testFramework.getWorkerConfigurationAction(), moduleRegistry, documentationRegistry);
             }
         };
         final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {

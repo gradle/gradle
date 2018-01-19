@@ -50,7 +50,7 @@ class CachedCustomPluginIntegrationTest extends AbstractIntegrationSpec implemen
             apply plugin: "org.example.plugin"
         """
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.empty
 
@@ -59,7 +59,7 @@ class CachedCustomPluginIntegrationTest extends AbstractIntegrationSpec implemen
         file("buildSrc/.gradle").deleteDir()
         cleanBuildDir()
 
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
     }

@@ -16,74 +16,92 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
+import spock.lang.Unroll
 
-class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
+import static org.hamcrest.Matchers.allOf
+
+class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "src/main/java/Library.java"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/java/LibraryTest.java"
     public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "src/test/groovy/LibraryTest.groovy"
 
-    final wrapper = new WrapperTestFixture(testDirectory)
-
-    def "creates sample source if no source present"() {
+    @Unroll
+    def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-library')
+        succeeds('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
         file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        buildFileSeparatesImplementationAndApi()
-        settingsFile.exists()
-        wrapper.generated()
+
+        and:
+        def dslFixture = dslFixtureFor(scriptDsl)
+        dslFixture.assertGradleFilesGenerated()
+        buildFileSeparatesImplementationAndApi(dslFixture)
 
         when:
         succeeds("build")
 
         then:
         assertTestPassed("testSomeLibraryMethod")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "creates sample source using spock instead of junit"() {
+    @Unroll
+    def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-library', '--test-framework', 'spock')
+        succeeds('init', '--type', 'java-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
         file(SAMPLE_SPOCK_LIBRARY_TEST_CLASS).exists()
-        buildFileSeparatesImplementationAndApi('org.spockframework')
-        settingsFile.exists()
-        wrapper.generated()
+
+        and:
+        def dslFixture = dslFixtureFor(scriptDsl)
+        dslFixture.assertGradleFilesGenerated()
+        buildFileSeparatesImplementationAndApi(dslFixture, 'org.spockframework')
 
         when:
         succeeds("build")
 
         then:
         assertTestPassed("someLibraryMethod returns true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "creates sample source using testng instead of junit"() {
+    @Unroll
+    def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-library', '--test-framework', 'testng')
+        succeeds('init', '--type', 'java-library', '--test-framework', 'testng', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
         file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        buildFileSeparatesImplementationAndApi('org.testng')
-        settingsFile.exists()
-        wrapper.generated()
+
+        and:
+        def dslFixture = dslFixtureFor(scriptDsl)
+        dslFixture.assertGradleFilesGenerated()
+        buildFileSeparatesImplementationAndApi(dslFixture, 'org.testng')
 
         when:
         succeeds("build")
 
         then:
         assertTestPassed("someLibraryMethodReturnsTrue")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def "setupProjectLayout is skipped when java sources detected"() {
+    @Unroll
+    def "setupProjectLayout is skipped when java sources detected with #scriptDsl build scripts"() {
         setup:
         file("src/main/java/org/acme/SampleMain.java") << """
         package org.acme;
@@ -98,27 +116,30 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
                 }
         """
         when:
-        succeeds('init', '--type', 'java-library')
+        succeeds('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()
         !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        buildFileSeparatesImplementationAndApi()
-        settingsFile.exists()
-        wrapper.generated()
+
+        and:
+        def dslFixture = dslFixtureFor(scriptDsl)
+        dslFixture.assertGradleFilesGenerated()
+        buildFileSeparatesImplementationAndApi(dslFixture)
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    def assertTestPassed(String name) {
-        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("LibraryTest")
-        testResult.testClass("LibraryTest").assertTestPassed(name)
+    void assertTestPassed(String name) {
+        new DefaultTestExecutionResult(testDirectory).testClass("LibraryTest").assertTestPassed(name)
     }
 
-    private void buildFileSeparatesImplementationAndApi(String testFramework = 'junit:junit:') {
-        assert buildFile.exists()
-        def text = buildFile.text
-        assert text.contains("api 'org.apache.commons:commons-math3")
-        assert text.contains("implementation 'com.google.guava:guava:")
-        assert text.contains("testImplementation '$testFramework")
+    private static void buildFileSeparatesImplementationAndApi(ScriptDslFixture dslFixture, String testFramework = 'junit:junit:') {
+        dslFixture.buildFile.assertContents(
+            allOf(
+                dslFixture.containsConfigurationDependencyNotation('api', 'org.apache.commons:commons-math3'),
+                dslFixture.containsConfigurationDependencyNotation('implementation', 'com.google.guava:guava:'),
+                dslFixture.containsConfigurationDependencyNotation('testImplementation', testFramework)))
     }
 }

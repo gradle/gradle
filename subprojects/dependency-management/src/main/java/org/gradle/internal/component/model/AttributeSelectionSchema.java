@@ -17,13 +17,15 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.CompatibilityCheckResult;
-import org.gradle.api.internal.attributes.MultipleCandidatesResult;
+
+import java.util.Set;
 
 public interface AttributeSelectionSchema {
     boolean hasAttribute(Attribute<?> attribute);
 
-    void disambiguate(Attribute<?> attribute, MultipleCandidatesResult<Object> result);
+    Set<Attribute<?>> getAttributes();
 
-    void matchValue(Attribute<?> attribute, CompatibilityCheckResult<Object> result);
+    Set<Object> disambiguate(Attribute<?> attribute, Object requested, Set<Object> candidates);
+
+    boolean matchValue(Attribute<?> attribute, Object requested, Object candidate);
 }

@@ -30,11 +30,11 @@ class MonkeyPatchRelocationIntegrationTest extends AbstractIntegrationSpec imple
         setupProjectIn(relocated)
 
         inDirectory(original)
-        withBuildCache().succeeds "broken"
+        withBuildCache().run "broken"
 
         when:
         inDirectory(relocated)
-        withBuildCache().succeeds "broken"
+        withBuildCache().run "broken"
         then:
         skipped ":broken"
     }

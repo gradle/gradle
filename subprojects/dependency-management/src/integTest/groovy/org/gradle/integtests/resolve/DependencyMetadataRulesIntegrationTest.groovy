@@ -40,7 +40,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         if (gradleMetadataEnabled || useIvy()) {
             'customVariant'
         } else {
-            'compile'
+            'runtime'
         }
     }
 
@@ -60,6 +60,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
             }
         """
     }
+
     @Unroll
     def "#thing can be added using #notation notation"() {
         when:
@@ -90,11 +91,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('org.test:moduleB:', 'org.test:moduleB:1.0')
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module('org.test:moduleB:1.0')
                 }
             }
@@ -140,11 +141,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('org.test:moduleB:', 'org.test:moduleB:1.0')
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module('org.test:moduleB:1.0')
                 }
             }
@@ -189,10 +190,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest")
+                module("org.test:moduleA:1.0:$expectedVariant")
             }
         }
     }
@@ -236,11 +237,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org.test:moduleB:1.0")
-                module("org.test:moduleA:1.0:$variantToTest")
+                module("org.test:moduleA:1.0:$expectedVariant")
             }
         }
     }
@@ -286,10 +287,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest")
+                module("org.test:moduleA:1.0:$expectedVariant")
             }
         }
 
@@ -336,10 +337,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module('org.test:moduleB:1.0')
                 }
             }
@@ -387,11 +388,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('org.test:moduleB:', 'org.test:moduleB:1.0')
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module('org.test:moduleB:1.0')
                 }
             }
@@ -416,6 +417,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         """
         repositoryInteractions {
             'org.test:moduleA:1.0' {
+                variant("default", ['some':'other'])
                 expectGetMetadata()
                 expectGetArtifact()
             }
@@ -423,10 +425,48 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest")
+                module("org.test:moduleA:1.0:$expectedVariant")
+            }
+        }
+    }
+
+    def "can update all variants at once"() {
+        when:
+        buildFile << """
+            dependencies {
+                components {
+                    withModule('org.test:moduleA') {
+                        allVariants {
+                            withDependencies {
+                                add('org.test:moduleB:1.0')
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                variant("default", ['some':'other'])
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0' {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def expectedVariant = variantToTest
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org.test:moduleA:1.0:$expectedVariant") {
+                    module('org.test:moduleB:1.0')
+                }
             }
         }
     }
@@ -476,11 +516,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('org.test:moduleC:', 'org.test:moduleC:1.0')
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0") {
                         module('org.test:moduleC:1.0')
                     }
@@ -560,10 +600,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
 
         then:
         succeeds 'checkDep'
-        def variantToTest = variantToTest
+        def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org.test:moduleA:1.0:$variantToTest") {
+                module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0") {
                         module('org.test:moduleC:1.0') {
                             module('org.test:moduleD:1.0')
@@ -572,28 +612,6 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 }
             }
         }
-    }
-
-    def "fails when attempting to select a variant that does not exist"() {
-        when:
-        buildFile << """
-            dependencies {
-                components {
-                    withModule('org.test:moduleA') {
-                        withVariant("testBlue") { }
-                    }
-                }
-            }
-        """
-        repositoryInteractions {
-            'org.test:moduleA:1.0' {
-                expectGetMetadata()
-            }
-        }
-
-        then:
-        fails 'checkDep'
-        failure.assertHasCause("Variant testBlue is not declared for org.test:moduleA:1.0")
     }
 
     def "resolving one configuration does not influence the result of resolving another configuration."() {

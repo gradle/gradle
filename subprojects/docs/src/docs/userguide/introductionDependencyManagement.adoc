@@ -1,0 +1,117 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[introduction_dependency_management]]
+== Introduction to Dependency Management
+
+Dependency management is a critical feature of every build, and Gradle has placed an emphasis on offering first-class dependency management that is both easy to understand and compatible with a wide variety of approaches. If you are familiar with the approach used by either Maven or Ivy you will be delighted to learn that Gradle is fully compatible with both approaches in addition to being flexible enough to support fully-customized approaches.
+
+Here are the major highlights of Gradle's support for dependency management:
+
+* _Transitive dependency management_: Gradle gives you full control of your project's dependency tree.
+* _Support for non-managed dependencies_: If your dependencies are simply files in version control or a shared drive, Gradle provides powerful functionality to support this.
+* _Support for custom dependency definitions._: Gradle's Module Dependencies give you the ability to describe the dependency hierarchy in the build script.
+* _A fully customizable approach to Dependency Resolution_: Gradle provides you with the ability to customize resolution rules making dependency substitution easy.
+* _Full Compatibility with Maven and Ivy_: If you have defined dependencies in a Maven POM or an Ivy file, Gradle provides seamless integration with a range of popular build tools.
+* _Integration with existing dependency management infrastructure_: Gradle is compatible with both Maven and Ivy repositories. If you use Archiva, Nexus, or Artifactory, Gradle is 100% compatible with all repository formats.
+
+With hundreds of thousands of interdependent open source components each with a range of versions and incompatibilities, dependency management has a habit of causing problems as builds grow in complexity. When a build's dependency tree becomes unwieldy, your build tool shouldn't force you to adopt a single, inflexible approach to dependency management. A proper build system has to be designed to be flexible, and Gradle can handle any situation.
+
+
+[[sub:dependency_management_and_migrations]]
+=== Flexible dependency management for migrations
+
+Dependency management can be particularly challenging during a migration from one build system to another. If you are migrating from a tool like Ant or Maven to Gradle, you may be faced with some difficult situations. For example, one common pattern is an Ant project with version-less jar files stored in the filesystem. Other build systems require a wholesale replacement of this approach before migrating. With Gradle, you can adapt your new build to any existing source of dependencies or dependency metadata. This makes incremental migration to Gradle much easier than the alternative. On most large projects, build migrations and any change to development process is incremental because most organizations can't afford to stop everything and migrate to a build tool's idea of dependency management.
+
+Even if your project is using a custom dependency management system or something like an Eclipse .classpath file as master data for dependency management, it is very easy to write a Gradle plugin to use this data in Gradle. For migration purposes this is a common technique with Gradle. (But, once you've migrated, it might be a good idea to move away from a .classpath file and use Gradle's dependency management features directly.)
+
+[[sub:dependency_management_and_java]]
+=== Dependency management and Java
+
+It is ironic that in a language known for its rich library of open source components that Java has no concept of libraries or versions. In Java, there is no standard way to tell the JVM that you are using version 3.0.5 of Hibernate, and there is no standard way to say that `foo-1.0.jar` depends on `bar-2.0.jar`. This has led to external solutions often based on build tools. The most popular ones at the moment are Maven and Ivy. While Maven provides a complete build system, Ivy focuses solely on dependency management.
+
+Both tools rely on descriptor XML files, which contain information about the dependencies of a particular jar. Both also use repositories where the actual jars are placed together with their descriptor files, and both offer resolution for conflicting jar versions in one form or the other. Both have emerged as standards for solving dependency conflicts, and while Gradle originally used Ivy under the hood for its dependency management. Gradle has replaced this direct dependency on Ivy with a native Gradle dependency resolution engine which supports a range of approaches to dependency resolution including both POM and Ivy descriptor files.
+
+[[sec:dependency_resolution]]
+=== How dependency resolution works
+
+Gradle takes your dependency declarations and repository definitions and attempts to download all of your dependencies by a process called _dependency resolution_. Below is a brief outline of how this process works.
+
+* Given a required dependency, Gradle first attempts to resolve the _module_ for that dependency. Each repository is inspected in order, searching first for a _module descriptor_ file (POM or Ivy file) that indicates the presence of that module. If no module descriptor is found, Gradle will search for the presence of the primary _module artifact_ file indicating that the module exists in the repository.
+
+** If the dependency is declared as a dynamic version (like `1.+`), Gradle will resolve this to the newest available static version (like `1.2`) in the repository. For Maven repositories, this is done using the `maven-metadata.xml` file, while for Ivy repositories this is done by directory listing.
+
+** If the module descriptor is a POM file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the POM.
+
+* Once each repository has been inspected for the module, Gradle will choose the 'best' one to use. This is done using the following criteria:
+
+** For a dynamic version, a 'higher' static version is preferred over a 'lower' version.
+
+** Modules declared by a module descriptor file (Ivy or POM file) are preferred over modules that have an artifact file only.
+
+** Modules from earlier repositories are preferred over modules in later repositories.
+
+** When the dependency is declared by a static version and a module descriptor file is found in a repository, there is no need to continue searching later repositories and the remainder of the process is short-circuited.
+
+* All of the artifacts for the module are then requested from the _same repository_ that was chosen in the process above.
+
+[[sec:dependency_cache]]
+=== The dependency cache
+
+Gradle contains a highly sophisticated dependency caching mechanism, which seeks to minimise the number of remote requests made in dependency resolution, while striving to guarantee that the results of dependency resolution are correct and reproducible.
+
+The Gradle dependency cache consists of 2 key types of storage:
+
+* A file-based store of downloaded artifacts, including binaries like jars as well as raw downloaded meta-data like POM files and Ivy files. The storage path for a downloaded artifact includes the SHA1 checksum, meaning that 2 artifacts with the same name but different content can easily be cached.
+* A binary store of resolved module meta-data, including the results of resolving dynamic versions, module descriptors, and artifacts.
+
+Separating the storage of downloaded artifacts from the cache metadata permits us to do some very powerful things with our cache that would be difficult with a transparent, file-only cache layout.
+
+The Gradle cache does not allow the local cache to hide problems and create other mysterious and difficult to debug behavior that has been a challenge with many build tools. This new behavior is implemented in a bandwidth and storage efficient way. In doing so, Gradle enables reliable and reproducible enterprise builds.
+
+[[sub:cache_metadata]]
+==== Separate metadata cache
+
+Gradle keeps a record of various aspects of dependency resolution in binary format in the metadata cache. The information stored in the metadata cache includes:
+
+* The result of resolving a dynamic version (e.g. `1.+`) to a concrete version (e.g. `1.2`).
+* The resolved module metadata for a particular module, including module artifacts and module dependencies.
+* The resolved artifact metadata for a particular artifact, including a pointer to the downloaded artifact file.
+* The _absence_ of a particular module or artifact in a particular repository, eliminating repeated attempts to access a resource that does not exist.
+
+Every entry in the metadata cache includes a record of the repository that provided the information as well as a timestamp that can be used for cache expiry.
+
+[[sub:cache_repository_independence]]
+==== Repository caches are independent
+
+As described above, for each repository there is a separate metadata cache. A repository is identified by its URL, type and layout. If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository. This will always involve a remote lookup on the repository, however in many cases no download will be required (see <<sub:cache_artifact_reuse>>, below).
+
+Dependency resolution will fail if the required artifacts are not available in any repository specified by the build, even if the local cache has a copy of this artifact which was retrieved from a different repository. Repository independence allows builds to be isolated from each other in an advanced way that no build tool has done before. This is a key feature to create builds that are reliable and reproducible in any environment.
+
+[[sub:cache_artifact_reuse]]
+==== Artifact reuse
+
+Before downloading an artifact, Gradle tries to determine the checksum of the required artifact by downloading the sha file associated with that artifact. If the checksum can be retrieved, an artifact is not downloaded if an artifact already exists with the same id and checksum. If the checksum cannot be retrieved from the remote server, the artifact will be downloaded (and ignored if it matches an existing artifact).
+
+As well as considering artifacts downloaded from a different repository, Gradle will also attempt to reuse artifacts found in the local Maven Repository. If a candidate artifact has been downloaded by Maven, Gradle will use this artifact if it can be verified to match the checksum declared by the remote server.
+
+[[sub:cache_checksum_storage]]
+==== Checksum based storage
+
+It is possible for different repositories to provide a different binary artifact in response to the same artifact identifier. This is often the case with Maven SNAPSHOT artifacts, but can also be true for any artifact which is republished without changing its identifier. By caching artifacts based on their SHA1 checksum, Gradle is able to maintain multiple versions of the same artifact. This means that when resolving against one repository Gradle will never overwrite the cached artifact file from a different repository. This is done without requiring a separate artifact file store per repository.
+
+[[sub:cache_locking]]
+==== Cache Locking
+
+The Gradle dependency cache uses file-based locking to ensure that it can safely be used by multiple Gradle processes concurrently. The lock is held whenever the binary meta-data store is being read or written, but is released for slow operations such as downloading remote artifacts.

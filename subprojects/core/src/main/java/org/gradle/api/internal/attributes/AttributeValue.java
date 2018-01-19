@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.attributes.Attribute;
+
 import javax.annotation.Nullable;
 
 /**
@@ -38,8 +40,8 @@ public interface AttributeValue<T> {
 
         @Nullable
         @Override
-        public <S> S coerce(Class<S> type) {
-            return null;
+        public <S> S coerce(Attribute<S> type) {
+            throw new UnsupportedOperationException("coerce() should not be called on a missing attribute value");
         }
 
         @Override
@@ -61,9 +63,10 @@ public interface AttributeValue<T> {
     T get();
 
     /**
-     * Returns the value of this attribute as the given type, if possible.
-     * @return null if cannot be converted.
+     * Coerces this value to the type of the other attribute, so it can be compared
+     * to a value of that other attribute.
+     *
+     * @throws IllegalArgumentException if this attribute is not compatible with the other one
      */
-    @Nullable
-    <S> S coerce(Class<S> type);
+    <S> S coerce(Attribute<S> otherAttribute);
 }

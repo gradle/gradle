@@ -17,6 +17,8 @@ package org.gradle.util
 
 import com.google.common.base.Charsets
 
+import java.nio.CharBuffer
+
 import static org.gradle.util.GUtil.*
 
 public class GUtilTest extends spock.lang.Specification {
@@ -284,6 +286,20 @@ public class GUtilTest extends spock.lang.Specification {
         "notKnown" | _
         "3"        | _
         "3"        | _
+    }
+
+    def "can check if one CharSequence ends with another"() {
+        expect:
+        endsWith(a, b) == a.endsWith(b)
+        endsWith(CharBuffer.wrap(a), CharBuffer.wrap(b)) == a.endsWith(b)
+
+        where:
+        a           | b
+        "foo"       | "fo"
+        "foo"       | "oo"
+        "fo"        | "foo"
+        "foo"       | ""
+        ""          | "foo"
     }
 
     static enum TestEnum {

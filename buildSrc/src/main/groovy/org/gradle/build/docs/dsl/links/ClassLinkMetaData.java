@@ -39,7 +39,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         this.className = classMetaData.getClassName();
         this.simpleName = classMetaData.getSimpleName();
         this.packageName = classMetaData.getPackageName();
-        this.style = classMetaData.isGroovy() ? LinkMetaData.Style.Groovydoc : LinkMetaData.Style.Javadoc;
+        this.style = LinkMetaData.Style.Javadoc;
         for (MethodMetaData method : classMetaData.getDeclaredMethods()) {
             addMethod(method, style);
         }
@@ -81,7 +81,10 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
             }
         }
         if (candidates.isEmpty()) {
-            String message = String.format("No method '%s' found for class '%s'.", method, className);
+            String message = String.format("No method '%s' found for class '%s'.\nFound the following methods:", method, className);
+            for (MethodLinkMetaData methodLinkMetaData : methods.values()) {
+                message += "\n  " + methodLinkMetaData;
+            }
             message += "\nThis problem may happen when some apilink from docbook template xmls refers to unknown method."
                     + "\nExample: <apilink class=\"org.gradle.api.Project\" method=\"someMethodThatDoesNotExist\"/>";
             throw new RuntimeException(message);
@@ -139,11 +142,11 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         public String getDisplayName() {
             return signature;
         }
-        
+
         public String getUrlFragment(String className) {
-            return style == LinkMetaData.Style.Dsldoc ? String.format("%s:%s", className, signature) : signature;
+            return style == LinkMetaData.Style.Dsldoc ? String.format("%s:%s", className, signature) : signature.replace('(', '-').replace(')', '-');
         }
-        
+
         @Override
         public String toString() {
             return signature;

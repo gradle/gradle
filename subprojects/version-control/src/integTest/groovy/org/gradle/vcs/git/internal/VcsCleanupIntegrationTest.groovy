@@ -18,14 +18,14 @@ package org.gradle.vcs.git.internal
 
 import org.eclipse.jgit.revwalk.RevCommit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.internal.SourceDependencies
 import org.junit.Rule
 
 import java.util.concurrent.TimeUnit
 
-class VcsCleanupIntegrationTest extends AbstractIntegrationSpec {
+class VcsCleanupIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
     @Rule
     GitRepository repo = new GitRepository("dep", testDirectory)
 
@@ -45,18 +45,18 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec {
         repo.workTree.file("settings.gradle") << """
             rootProject.name = "dep"
         """
-        commits["initial"] = repo.commit('initial', repo.workTree)
+        commits["initial"] = repo.commit('initial')
 
         def versionFile = repo.workTree.file("version")
         versions.each { version ->
             versionFile.text = version
-            def commit = repo.commit("version is $version", repo.workTree)
+            def commit = repo.commit("version is $version")
             repo.createLightWeightTag(version)
             commits[version] = commit
         }
 
         versionFile.text = "4.0-SNAPSHOT"
-        commits["latest.integration"] = repo.commit("version is snapshot", repo.workTree)
+        commits["latest.integration"] = repo.commit("version is snapshot")
 
         buildFile << """
             apply plugin: 'base'
@@ -175,15 +175,6 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec {
     private void markUnused(String version) {
         def checkout = checkoutDir("dep", commits[version].id.name, repo.id).parentFile
         checkout.setLastModified(checkout.lastModified() - TimeUnit.DAYS.toMillis(10))
-    }
-
-    TestFile checkoutDir(String repoName, String versionId, String repoId, TestFile baseDir=testDirectory) {
-        def hashedRepo = hashRepositoryId(repoId)
-        baseDir.file(".gradle/vcsWorkingDirs/${hashedRepo}-${versionId}/${repoName}")
-    }
-
-    String hashRepositoryId(String repoId) {
-        HashUtil.createCompactMD5(repoId)
     }
 
     TestFile gcFile() {

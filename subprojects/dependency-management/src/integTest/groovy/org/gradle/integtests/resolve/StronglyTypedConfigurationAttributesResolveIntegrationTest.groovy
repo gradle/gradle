@@ -135,14 +135,14 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
         then:
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Unexpected type for attribute 'buildType' provided. Expected a value of type BuildType but found a value of type java.lang.String.")
+        failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.String.")
 
         when:
         fails ':a:checkRelease'
 
         then:
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Unexpected type for attribute 'buildType' provided. Expected a value of type BuildType but found a value of type java.lang.String.")
+        failure.assertHasCause("Unexpected type for attribute 'flavor' provided. Expected a value of type Flavor but found a value of type java.lang.String.")
     }
 
     def "selects best compatible match using consumers disambiguation rules when multiple are compatible"() {
@@ -158,7 +158,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
                 void execute(MultipleCandidatesDetails<Flavor> details) {
-                    assert details.candidateValues*.name == ['ONE', 'TWO']
+                    assert details.candidateValues*.name as Set == ['ONE', 'TWO'] as Set
                     details.candidateValues.each { producerValue ->
                         if (producerValue.name == 'TWO') {
                             details.closestMatch(producerValue)
@@ -1273,7 +1273,7 @@ All of them match the consumer attributes:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
+        failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
         failure.assertHasCause("The constructor for class FlavorSelectionRule should be annotated with @Inject.")
     }
@@ -1345,7 +1345,7 @@ All of them match the consumer attributes:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("Could not select value from candidates [paid, free] using FlavorSelectionRule.")
+        failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("broken!")
     }
 }

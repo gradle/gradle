@@ -29,7 +29,7 @@ class PrettyPrefixedLogHeaderFormatterTest extends Specification {
         def formattedText = formatter.format(":test", "", null, "XYZ", true)
 
         then:
-        formattedText[1].style == StyledTextOutput.Style.FailureHeader
+        formattedText[0].style == StyledTextOutput.Style.FailureHeader
     }
 
     def "prints header of not-failing tasks white"() {
@@ -40,6 +40,6 @@ class PrettyPrefixedLogHeaderFormatterTest extends Specification {
         def formattedText = formatter.format(":test", "", null, "XYZ", false)
 
         then:
-        formattedText[1].style == StyledTextOutput.Style.Header
+        formattedText[0].style == StyledTextOutput.Style.Header
     }
 }

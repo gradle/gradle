@@ -16,16 +16,21 @@
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
+import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +77,22 @@ public class DefaultArtifactMetadataSource extends AbstractMetadataSource<Mutabl
         }
         IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), artifactType, artifactExtension);
         return ImmutableList.of(defaultArtifact);
+    }
+
+    @Override
+    public void listModuleVersions(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
+        // List modules with missing metadata files
+        IvyArtifactName dependencyArtifact = getPrimaryDependencyArtifact(dependency);
+        versionLister.listVersions(module, dependencyArtifact, artifactPatterns, result);
+    }
+
+    private static IvyArtifactName getPrimaryDependencyArtifact(ModuleDependencyMetadata dependency) {
+        String moduleName = dependency.getSelector().getModule();
+        List<IvyArtifactName> artifacts = dependency.getArtifacts();
+        if (artifacts.isEmpty()) {
+            return new DefaultIvyArtifactName(moduleName, "jar", "jar");
+        }
+        return artifacts.get(0);
     }
 
 }

@@ -16,8 +16,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+
 /**
  * This is a variation of {@link PublishedDependencyConstraintsIntegrationTest} that tests dependency constraints
  * declared in the build script (instead of published)
@@ -26,7 +26,6 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
     private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
 
     def setup() {
-        ExperimentalFeaturesFixture.enable(settingsFile)
         settingsFile << "rootProject.name = 'test'"
         resolve.prepare()
         buildFile << """
@@ -37,35 +36,6 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 conf
             }
         """
-    }
-
-    void "dependency constraint is ignored when feature not enabled"() {
-        given:
-        // Do not enable feature
-        settingsFile.text = """
-            rootProject.name = 'test'
-        """
-        mavenRepo.module("org", "foo", '1.0').publish()
-        mavenRepo.module("org", "foo", '1.1').publish()
-
-        buildFile << """
-            dependencies {
-                conf 'org:foo:1.0'
-                constraints {
-                    conf 'org:foo:1.1'
-                }
-            }
-        """
-
-        when:
-        run 'checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("org:foo:1.0")
-            }
-        }
     }
 
     void "dependency constraint is not included in resolution without a hard dependency"() {
@@ -343,6 +313,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
 
     void "dependency constraints defined for a build are applied when resolving a configuration that uses that build as an included build"() {
         given:
+        resolve.expectDefaultConfiguration('default')
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
 
@@ -381,7 +352,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
                 edge("org:included:1.0", "project :included", "org:included:1.0") {
                     noArtifacts()
-                    module("org:foo:1.1")
+                    module("org:foo:1.1:runtime")
                 }.compositeSubstitute()
             }
         }

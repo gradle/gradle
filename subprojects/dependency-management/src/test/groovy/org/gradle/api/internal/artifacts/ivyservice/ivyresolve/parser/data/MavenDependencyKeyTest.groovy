@@ -23,29 +23,33 @@ import static org.gradle.util.Matchers.strictlyEquals
 
 class MavenDependencyKeyTest extends Specification {
     @Unroll
-    def "can compare with other instance (#groupId, #artifactId, #type, #classifier)"() {
+    def "can compare with other instance (#groupId, #artifactId, #type, #classifier, #scope)"() {
         expect:
-        MavenDependencyKey key1 = new MavenDependencyKey('group-one', 'artifact-one', 'jar', 'sources')
-        MavenDependencyKey key2 = new MavenDependencyKey(groupId, artifactId, type, classifier)
+        MavenDependencyKey key1 = new MavenDependencyKey('group-one', 'artifact-one', 'jar', 'sources', 'runtime')
+        MavenDependencyKey key2 = new MavenDependencyKey(groupId, artifactId, type, classifier, scope)
         strictlyEquals(key1, key2) == equality
         (key1.hashCode() == key2.hashCode()) == hashCode
         (key1.toString() == key2.toString()) == stringRepresentation
+        key1.equalsWithoutScope(key2) == equalityWithoutScope
+        key2.equalsWithoutScope(key1) == equalityWithoutScope
 
         where:
-        groupId     | artifactId     | type  | classifier | equality | hashCode | stringRepresentation
-        'group-one' | 'artifact-one' | 'jar' | null       | false    | false    | false
-        'group-one' | 'artifact-one' | 'jar' | 'sources'  | true     | true     | true
+        groupId     | artifactId     | type  | classifier | scope     | equality | hashCode | stringRepresentation | equalityWithoutScope
+        'group-one' | 'artifact-one' | 'jar' | null       | null      | false    | false    | false                | false
+        'group-one' | 'artifact-one' | 'jar' | 'sources'  | null      | false    | false    | false                | true
+        'group-one' | 'artifact-one' | 'jar' | 'sources'  | 'compile' | false    | false    | false                 | true
+        'group-one' | 'artifact-one' | 'jar' | 'sources'  | 'runtime' | true     | true     | true                 | true
     }
 
     @Unroll
-    def "builds String representation (#groupId, #artifactId, #type, #classifier)"() {
+    def "builds String representation (#groupId, #artifactId, #type, #classifier, #scope)"() {
         expect:
-        MavenDependencyKey key = new MavenDependencyKey(groupId, artifactId, type, classifier)
+        MavenDependencyKey key = new MavenDependencyKey(groupId, artifactId, type, classifier, scope)
         key.toString() == stringRepresentation
 
         where:
-        groupId     | artifactId     | type  | classifier | stringRepresentation
-        'group-one' | 'artifact-one' | 'jar' | null       | 'group-one:artifact-one:jar'
-        'group-one' | 'artifact-one' | 'jar' | 'sources'  | 'group-one:artifact-one:jar:sources'
+        groupId     | artifactId     | type  | classifier | scope     | stringRepresentation
+        'group-one' | 'artifact-one' | 'jar' | null       | null      | 'group-one:artifact-one:jar'
+        'group-one' | 'artifact-one' | 'jar' | 'sources'  | 'runtime' | 'group-one:artifact-one:jar:sources:runtime'
     }
 }

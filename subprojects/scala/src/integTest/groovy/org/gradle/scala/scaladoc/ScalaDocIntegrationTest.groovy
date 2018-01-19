@@ -56,14 +56,14 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
         buildScript(classes.buildScript())
 
         when:
-        withBuildCache().succeeds scaladoc
+        withBuildCache().run scaladoc
 
         then:
         executedAndNotSkipped scaladoc
 
         when:
         succeeds 'clean'
-        withBuildCache().succeeds scaladoc
+        withBuildCache().run scaladoc
 
         then:
         skipped scaladoc

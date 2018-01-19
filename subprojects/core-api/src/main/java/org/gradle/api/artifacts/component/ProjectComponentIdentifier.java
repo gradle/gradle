@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.component;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * An identifier for a component instance that is built as part of the current build.
@@ -23,6 +24,7 @@ import org.gradle.api.Incubating;
  * @since 1.10
  */
 @Incubating
+@UsedByScanPlugin
 public interface ProjectComponentIdentifier extends ComponentIdentifier {
     /**
      * Identifies the build that contains the project component.

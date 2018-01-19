@@ -20,7 +20,9 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -30,7 +32,7 @@ import java.util.Set;
 /**
  * The meta-data for a component instance that is required during dependency resolution.
  */
-public interface ComponentResolveMetadata {
+public interface ComponentResolveMetadata extends HasAttributes {
     List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
 
     /**
@@ -63,7 +65,7 @@ public interface ComponentResolveMetadata {
     ComponentResolveMetadata withSource(ModuleSource source);
 
     /**
-     * Returns the names of all of the legacy configurations for this component. May be empty, in which case the component should provide at least one variant via {@link #getVariantsForGraphTraversal()}.
+     * Returns the names of all of the legacy configurations for this component. May be empty, in which case the component should provide at least one variant via {@link #getVariantsForGraphTraversal(ImmutableAttributesFactory)}.
      */
     Set<String> getConfigurationNames();
 
@@ -90,4 +92,5 @@ public interface ComponentResolveMetadata {
     String getStatus();
 
     List<String> getStatusScheme();
+
 }

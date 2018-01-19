@@ -26,7 +26,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
@@ -86,11 +85,11 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     }
 
     @Override
-    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, DependencyMetadataRules dependencyMetadataRules) {
+    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, VariantMetadataRules componentMetadataRules) {
         ImmutableList<ModuleComponentArtifactMetadata> artifacts = filterArtifacts(name, hierarchy);
         ImmutableList<ExcludeMetadata> excludesForConfiguration = filterExcludes(hierarchy);
 
-        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, ImmutableList.copyOf(artifacts), dependencyMetadataRules, excludesForConfiguration);
+        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, hierarchy, ImmutableList.copyOf(artifacts), componentMetadataRules, excludesForConfiguration);
         configuration.setDependencies(filterDependencies(configuration));
         return configuration;
     }
@@ -135,27 +134,27 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
-        for (ExternalDependencyDescriptor dependency : dependencies) {
-            IvyDependencyDescriptor defaultDependencyMetadata = (IvyDependencyDescriptor) dependency;
-            if (include(defaultDependencyMetadata, config.getName(), config.getHierarchy())) {
-                filteredDependencies.add(contextualize(config, getComponentId(), defaultDependencyMetadata));
+        for (IvyDependencyDescriptor dependency : dependencies) {
+            if (include(dependency, config.getName(), config.getHierarchy())) {
+                filteredDependencies.add(contextualize(config, getComponentId(), dependency));
             }
         }
         return filteredDependencies.build();
     }
 
-    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor incoming) {
+    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, IvyDependencyDescriptor incoming) {
         return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
     }
 
-    private boolean include(ExternalDependencyDescriptor dependency, String configName, Collection<String> hierarchy) {
-        for (String moduleConfiguration : dependency.getModuleConfigurations()) {
+    private boolean include(IvyDependencyDescriptor dependency, String configName, Collection<String> hierarchy) {
+        Set<String> dependencyConfigurations = dependency.getConfMappings().keySet();
+        for (String moduleConfiguration : dependencyConfigurations) {
             if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
                 return true;
             }
             if (moduleConfiguration.equals("*")) {
                 boolean include = true;
-                for (String conf2 : dependency.getModuleConfigurations()) {
+                for (String conf2 : dependencyConfigurations) {
                     if (conf2.startsWith("!") && conf2.substring(1).equals(configName)) {
                         include = false;
                         break;

@@ -18,13 +18,13 @@ package org.gradle.language.swift.tasks
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.binaryinfo.BinaryInfo
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-@Requires([TestPrecondition.SWIFT_SUPPORT])
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
@@ -32,7 +32,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         buildFile << """
             apply plugin: "swift-application"
             task unexport(type: UnexportMainSymbol) {
-                source components.main.developmentBinary.objects
+                source { components.main.developmentBinary.get().objects }
             }
         """
     }

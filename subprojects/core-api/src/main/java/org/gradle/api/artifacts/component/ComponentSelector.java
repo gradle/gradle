@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.component;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Represents some opaque criteria used to select a component instance during dependency resolution. Various sub-interfaces
@@ -24,6 +25,7 @@ import org.gradle.api.Incubating;
  * @since 1.10
  */
 @Incubating
+@UsedByScanPlugin
 public interface ComponentSelector {
     /**
      * Returns a human-consumable display name for this selector.

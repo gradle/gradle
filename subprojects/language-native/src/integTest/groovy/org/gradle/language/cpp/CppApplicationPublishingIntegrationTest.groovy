@@ -16,18 +16,21 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ExperimentalFeaturesFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
+import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
-class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest implements CppTaskNames {
+class CppApplicationPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
     def repo = new MavenFileRepository(file("repo"))
     def consumer = file("consumer").createDir()
 
     def setup() {
         when:
-        ExperimentalFeaturesFixture.enable(consumer.file("settings.gradle"))
+        FeaturePreviewsFixture.enableGradleMetadata(consumer.file("gradle.properties"))
         consumer.file("build.gradle") << """
             repositories {
                 maven { 
@@ -136,7 +139,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolCh
 
         then:
         def executable = executable("consumer/install/test")
-        executable.file.setExecutable(true)
         executable.exec().out == app.expectedOutput
     }
 
@@ -164,7 +166,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolCh
             project(':greeter') { 
                 apply plugin: 'cpp-library'
             }
-"""
+        """
         app.greeter.writeToProject(file('greeter'))
         app.main.writeToProject(file('app'))
 
@@ -211,17 +213,109 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolCh
             dependencies {
                 install 'some.group:app:1.2'
             }
-"""
+        """
         executer.inDirectory(consumer)
         run("install")
 
         then:
         def executable = executable("consumer/install/app")
-        executable.file.setExecutable(true)
         executable.exec().out == app.expectedOutput
     }
 
-    def "uses the basename to calculate the coords"() {
+    def "can publish an executable and a binary-specific dependency to a Maven repository"() {
+        def app = new CppAppWithLibrary()
+        def logger = new CppLogger().asLib()
+
+        given:
+        settingsFile << "include 'greeter', 'app', 'logger'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'maven-publish'
+                
+                group = 'some.group'
+                version = '1.2'
+                publishing {
+                    repositories { maven { url '${repo.uri}' } }
+                }
+            }
+            project(':app') { 
+                apply plugin: 'cpp-application'
+                dependencies {
+                    implementation project(':greeter')
+                }
+                application {
+                    binaries.configureEach {
+                        dependencies {
+                            if (!optimized) {
+                                implementation project(':logger')
+                            }
+                        }
+                    }
+                }
+            }
+            project(':greeter') { 
+                apply plugin: 'cpp-library'
+            }
+            project(':logger') {
+                apply plugin: 'cpp-library'
+            }
+        """
+        app.greeter.writeToProject(file('greeter'))
+        app.main.writeToProject(file('app'))
+        logger.writeToProject(file('logger'))
+
+        when:
+        run('publish')
+
+        then:
+        def appModule = repo.module('some.group', 'app', '1.2')
+        appModule.assertPublished()
+
+        def appDebugModule = repo.module('some.group', 'app_debug', '1.2')
+        appDebugModule.assertPublished()
+        appDebugModule.parsedPom.scopes.size() == 1
+        appDebugModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2", "some.group:logger:1.2")
+
+        def appDebugMetadata = appDebugModule.parsedModuleMetadata
+        def appDebugRuntime = appDebugMetadata.variant("debug-runtime")
+        appDebugRuntime.dependencies.size() == 2
+        appDebugRuntime.dependencies.collect { it.coords } == [ 'some.group:logger:1.2', 'some.group:greeter:1.2' ]
+
+        def appReleaseModule = repo.module('some.group', 'app_release', '1.2')
+        appReleaseModule.assertPublished()
+        appReleaseModule.parsedPom.scopes.size() == 1
+        appReleaseModule.parsedPom.scopes.runtime.assertDependsOn("some.group:greeter:1.2")
+
+        def appReleaseMetadata = appReleaseModule.parsedModuleMetadata
+        def appReleaseRuntime = appReleaseMetadata.variant("release-runtime")
+        appReleaseRuntime.dependencies.size() == 1
+        appReleaseRuntime.dependencies[0].coords == 'some.group:greeter:1.2'
+
+        repo.module('some.group', 'greeter', '1.2').assertPublished()
+        repo.module('some.group', 'greeter_debug', '1.2').assertPublished()
+        repo.module('some.group', 'greeter_release', '1.2').assertPublished()
+
+        repo.module('some.group', 'logger', '1.2').assertPublished()
+        repo.module('some.group', 'logger_debug', '1.2').assertPublished()
+        repo.module('some.group', 'logger_release', '1.2').assertPublished()
+
+        when:
+        def consumer = file("consumer").createDir()
+        consumer.file("settings.gradle") << ''
+        consumer.file("build.gradle") << """
+            dependencies {
+                install 'some.group:app:1.2'
+            }
+        """
+        executer.inDirectory(consumer)
+        run("install")
+
+        then:
+        def executable = executable("consumer/install/app")
+        executable.exec().out == app.expectedOutput
+    }
+
+    def "uses the basename to calculate the coordinates"() {
         def app = new CppAppWithLibrary()
 
         given:
@@ -247,7 +341,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolCh
                 apply plugin: 'cpp-library'
                 library.baseName = 'appGreeter'
             }
-"""
+        """
         app.greeter.writeToProject(file('greeter'))
         app.main.writeToProject(file('app'))
 
@@ -296,8 +390,15 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppInstalledToolCh
 
         then:
         def executable = executable("consumer/install/testApp")
-        executable.file.setExecutable(true)
         executable.exec().out == app.expectedOutput
+    }
+
+    @Override
+    ExecutableFixture executable(Object path) {
+        ExecutableFixture executable = super.executable(path)
+        // Executables synced from a binary repo lose their executable bit
+        executable.file.setExecutable(true)
+        executable
     }
 
 }

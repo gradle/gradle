@@ -51,7 +51,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.empty
 
@@ -60,7 +60,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/.gradle").deleteDir()
         cleanBuildDir()
 
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
     }
@@ -78,7 +78,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         skippedTasks.empty
         file("build/output.txt").text == "input"
@@ -87,7 +87,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         taskSourceFile.text = customKotlinTask(" modified")
 
         cleanBuildDir()
-        withBuildCache().succeeds "customTask"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
         file("build/output.txt").text == "input modified"

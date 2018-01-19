@@ -16,26 +16,24 @@
 
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
+import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 
-class JDependRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
+class JDependRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
+
     @Override
     protected String getTaskName() {
         return ":jdepend"
     }
 
     @Override
-    protected void setupProjectInOriginalLocation() {
-        file("src/main/java/org/gradle/Class1.java") <<
+    protected void setupProjectIn(TestFile projectDir) {
+        projectDir.file("src/main/java/org/gradle/Class1.java") <<
             "package org.gradle; class Class1 { public boolean is() { return true; } }"
-        file("src/main/java/org/gradle/Class1Test.java") <<
+        projectDir.file("src/main/java/org/gradle/Class1Test.java") <<
             "package org.gradle; class Class1Test { public boolean is() { return true; } }"
 
-        buildFile << buildFileWithClassesDir("build/classes")
-    }
-
-    private static String buildFileWithClassesDir(String classesDir) {
-        """
+        projectDir.file("build.gradle") << """
             apply plugin: "jdepend"
 
             ${mavenCentralRepository()}
@@ -43,27 +41,20 @@ class JDependRelocationIntegrationTest extends AbstractTaskRelocationIntegration
             task compile(type: JavaCompile) {
                 sourceCompatibility = JavaVersion.current()
                 targetCompatibility = JavaVersion.current()
-                destinationDir = file("$classesDir")
+                destinationDir = file("build/classes")
                 source "src/main/java"
                 classpath = files()
             }
 
             task jdepend(type: JDepend) {
                 dependsOn compile
-                classesDirs = files("$classesDir")
+                classesDirs = files("build/classes")
             }
         """
     }
 
     @Override
-    protected void moveFilesAround() {
-        buildFile.text = buildFileWithClassesDir("build/other-classes")
-        assert file("build/classes").directory
-        file("build/classes").deleteDir()
-    }
-
-    @Override
-    protected extractResults() {
-        file("build/reports/jdepend/jdepend.xml").text
+    protected extractResultsFrom(TestFile projectDir) {
+        projectDir.file("build/reports/jdepend/jdepend.xml").text
     }
 }

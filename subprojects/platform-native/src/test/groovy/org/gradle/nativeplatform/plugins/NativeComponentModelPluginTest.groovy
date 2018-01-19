@@ -36,6 +36,7 @@ import org.gradle.nativeplatform.StaticLibraryBinarySpec
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
+import org.gradle.nativeplatform.toolchain.internal.NativeLanguage
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.BinarySpec
@@ -263,7 +264,7 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
     def toolChain(def name) {
         Stub(NativeToolChainInternal) {
             getName() >> name
-            select(_) >> Stub(PlatformToolProvider) {
+            select(NativeLanguage.ANY, _) >> Stub(PlatformToolProvider) {
                 isAvailable() >> true
             }
         }

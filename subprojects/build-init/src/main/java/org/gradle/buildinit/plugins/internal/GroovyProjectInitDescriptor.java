@@ -18,6 +18,10 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 
 public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
@@ -30,10 +34,10 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
     }
 
     @Override
-    public void generate(BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(testFramework);
+    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+        globalSettingsDescriptor.generate(dsl, testFramework);
 
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(fileResolver.resolve("build.gradle"))
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
             .fileComment("This generated file contains a sample Groovy project to get you started.")
             .fileComment("For more details take a look at the Groovy Quickstart chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_groovy_projects"))
@@ -51,12 +55,13 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
 
     @Override
     public boolean supports(BuildInitTestFramework testFramework) {
-        return testFramework == BuildInitTestFramework.SPOCK;
+        return testFramework == SPOCK;
     }
 
     protected abstract TemplateOperation sourceTemplateOperation();
 
     protected abstract TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework);
 
-    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {}
+    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
+    }
 }

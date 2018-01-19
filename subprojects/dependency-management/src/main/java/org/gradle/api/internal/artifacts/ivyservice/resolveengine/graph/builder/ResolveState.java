@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -33,9 +34,10 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.ComponentResolveResult;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,18 +54,19 @@ class ResolveState {
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
     private final Set<NodeState> queued = Sets.newHashSet();
-    private final LinkedList<NodeState> queue = new LinkedList<NodeState>();
+    private final Deque<NodeState> queue = new ArrayDeque<NodeState>();
     private final AttributesSchemaInternal attributesSchema;
     private final ModuleExclusions moduleExclusions;
     private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
     private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction;
     private final ModuleReplacementsData moduleReplacementsData;
     private final ComponentSelectorConverter componentSelectorConverter;
+    private final ImmutableAttributesFactory attributesFactory;
 
     public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                         ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
                         ModuleExclusions moduleExclusions, ModuleReplacementsData moduleReplacementsData,
-                        ComponentSelectorConverter componentSelectorConverter) {
+                        ComponentSelectorConverter componentSelectorConverter, ImmutableAttributesFactory attributesFactory) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
         this.metaDataResolver = metaDataResolver;
@@ -72,6 +75,7 @@ class ResolveState {
         this.moduleExclusions = moduleExclusions;
         this.moduleReplacementsData = moduleReplacementsData;
         this.componentSelectorConverter = componentSelectorConverter;
+        this.attributesFactory = attributesFactory;
         ComponentState rootVersion = getRevision(rootResult.getId());
         rootVersion.setMetaData(rootResult.getMetaData());
         root = new RootNode(idGenerator.generateId(), rootVersion, new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName), this);
@@ -187,5 +191,9 @@ class ResolveState {
 
     public ComponentSelectorConverter getComponentSelectorConverter() {
         return componentSelectorConverter;
+    }
+
+    public ImmutableAttributesFactory getAttributesFactory() {
+        return attributesFactory;
     }
 }

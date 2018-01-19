@@ -19,10 +19,12 @@ package org.gradle.language.swift;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
+import org.gradle.language.ComponentWithBinaries;
+import org.gradle.language.BinaryCollection;
+import org.gradle.language.ComponentWithDependencies;
 
 /**
  * Configuration for a Swift component, such as a library or executable, defining the source files that make up the component plus other settings.
@@ -34,7 +36,7 @@ import org.gradle.api.provider.Property;
  * @since 4.2
  */
 @Incubating
-public interface SwiftComponent extends SoftwareComponent {
+public interface SwiftComponent extends ComponentWithBinaries, ComponentWithDependencies {
     /**
      * Defines the Swift module for this component. The default value is calculated from the project name.
      */
@@ -58,12 +60,21 @@ public interface SwiftComponent extends SoftwareComponent {
     FileCollection getSwiftSource();
 
     /**
-     * Returns the binary of the component to use as the default for development.
+     * Returns the binaries for this library.
+     *
+     * @since 4.5
      */
-    SwiftBinary getDevelopmentBinary();
+    BinaryCollection<? extends SwiftBinary> getBinaries();
 
     /**
      * Returns the implementation dependencies of this component.
      */
     Configuration getImplementationDependencies();
+
+    /**
+     * Returns the Swift language level to use to compile the source files.
+     *
+     * @since 4.6
+     */
+    Property<SwiftVersion> getSourceCompatibility();
 }

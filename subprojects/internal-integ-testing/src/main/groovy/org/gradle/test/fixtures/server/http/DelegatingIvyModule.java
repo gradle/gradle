@@ -230,4 +230,14 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     public void assertMetadataAndJarFilePublished() {
         backingModule.assertMetadataAndJarFilePublished();
     }
+
+    @Override
+    public void withVariant(String name, Closure<?> action) {
+        backingModule.withVariant(name, action);
+    }
+
+    @Override
+    public Map<String, String> getAttributes() {
+        return backingModule.getAttributes();
+    }
 }

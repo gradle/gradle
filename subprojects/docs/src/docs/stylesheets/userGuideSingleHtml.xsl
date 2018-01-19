@@ -28,4 +28,14 @@
         <xsl:value-of select="bookinfo/releaseinfo"/>
         <xsl:text> (Single Page)</xsl:text>
     </xsl:template>
+
+    <!-- Prevent indexing of single userguide page -->
+    <xsl:param name="html.stylesheet">DUMMY</xsl:param>
+    <xsl:template name="output.html.stylesheets">
+        <meta name="robots" content="noindex"/>
+        <link href="https://fonts.googleapis.com/css?family=Lato:400,400i" rel="stylesheet"/>
+        <link rel="preconnect" href="//assets.gradle.com" crossorigin="crossorigin"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <link href="base.css" rel="stylesheet" type="text/css"/>
+    </xsl:template>
 </xsl:stylesheet>

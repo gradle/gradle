@@ -46,26 +46,11 @@ dependencies {
 }
 //END SNIPPET module-dependencies
 
-//START SNIPPET dependencies-with-empty-attributes
-dependencies {
-    runtime ":junit:4.12", ":testng"
-    runtime name: 'testng'
-}
-//END SNIPPET dependencies-with-empty-attributes
-
 //START SNIPPET dependency-configurations
 dependencies {
     runtime group: 'org.somegroup', name: 'somedependency', version: '1.0', configuration: 'someConfiguration'
 }
 //END SNIPPET dependency-configurations
-
-
-//START SNIPPET artifact-only
-dependencies {
-    runtime "org.groovy:groovy:2.2.0@jar"
-    runtime group: 'org.groovy', name: 'groovy', version: '2.2.0', ext: 'jar'
-}
-//END SNIPPET artifact-only
 
 //START SNIPPET client-modules
 dependencies {
@@ -87,14 +72,3 @@ dependencies {
     runtime fileTree(dir: 'libs', include: '*.jar')
 }
 //END SNIPPET file-dependencies
-
-//START SNIPPET list-grouping
-List groovy = ["org.codehaus.groovy:groovy-all:2.4.10@jar",
-               "commons-cli:commons-cli:1.0@jar",
-               "org.apache.ant:ant:1.9.6@jar"]
-List hibernate = ['org.hibernate:hibernate:3.0.5@jar',
-                  'somegroup:someorg:1.0@jar']
-dependencies {
-    runtime groovy, hibernate
-}
-//END SNIPPET list-grouping

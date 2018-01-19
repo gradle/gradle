@@ -51,7 +51,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.VariantMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
@@ -105,7 +105,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         ParallelResolveArtifactSet artifacts = ParallelResolveArtifactSet.wrap(resolveResult.artifactsResults.getArtifacts(), buildOperationExecutor);
         artifacts.visit(new ArtifactVisitor() {
             @Override
-            public void visitArtifact(AttributeContainer variant, ResolvableArtifact artifact) {
+            public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
                 result.add(artifact.getFile());
             }
 
@@ -125,7 +125,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             }
 
             @Override
-            public void visitFile(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variant, File file) {
+            public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
                 result.add(file);
             }
         });
@@ -173,7 +173,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             }
 
             @Override
-            public ImmutableAttributes mapAttributesFor(VariantMetadata variant) {
+            public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant) {
                 return variant.getAttributes().asImmutable();
             }
 

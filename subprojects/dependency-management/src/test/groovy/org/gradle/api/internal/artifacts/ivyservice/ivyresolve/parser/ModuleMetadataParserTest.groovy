@@ -25,7 +25,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.MutableComponentVariant
-import org.gradle.internal.component.external.model.MutableComponentVariantResolveMetadata
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.util.TestUtil
@@ -55,7 +55,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     def "parses minimal metadata resource"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
         parser.parse(resource('{ "formatVersion": "0.3" }'), metadata)
@@ -65,7 +65,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     def "parses minimal metadata with identity and producer information"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
         parser.parse(resource('''
@@ -81,7 +81,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     def "parses component metadata attributes"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
         parser.parse(resource('''
@@ -98,7 +98,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     def "parses content with variant"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant = Mock(MutableComponentVariant)
 
         when:
@@ -117,14 +117,14 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant
+        1 * metadata.addVariant("api", attributes(usage: "compile"),) >> variant
         1 * variant.addFile("a.zip", "a.zop")
         1 * variant.addDependency("g1", "m1", prefers("v1"), [])
         0 * _
     }
 
     def "parses content with variants"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant1 = Mock(MutableComponentVariant)
         def variant2 = Mock(MutableComponentVariant)
 
@@ -146,13 +146,13 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * metadata.addVariant("api", attributes(usage: "compile"),) >> variant1
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip"),) >> variant2
         0 * _
     }
 
     def "parses content with files"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant1 = Mock(MutableComponentVariant)
         def variant2 = Mock(MutableComponentVariant)
 
@@ -182,17 +182,17 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * metadata.addVariant("api", attributes(usage: "compile"),) >> variant1
         1 * variant1.addFile("api.zip", "api.zop")
         1 * variant1.addFile("api-2.zip", "api-2.zop")
-        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip"),) >> variant2
         1 * variant2.addFile("api.zip", "api.zop")
         1 * variant2.addFile("runtime.zip", "runtime.zop")
         0 * _
     }
 
     def "parses content with dependencies"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant1 = Mock(MutableComponentVariant)
         def variant2 = Mock(MutableComponentVariant)
 
@@ -233,12 +233,12 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * metadata.addVariant("api", attributes(usage: "compile"),) >> variant1
         1 * variant1.addDependency("g0", "m0", emptyConstraint(), [])
         1 * variant1.addDependency("g1", "m1", prefers("v1"), [])
         1 * variant1.addDependency("g2", "m2", prefers("v2"), [])
         1 * variant1.addDependency("g3", "m3", prefers("v3"), excludes("gx:mx", "*:*"))
-        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip"),) >> variant2
         1 * variant2.addDependency("g3", "m3", prefers("v3"), [])
         1 * variant2.addDependency("g4", "m4", prefersAndRejects("v4", ["v5"]), [])
         1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), [])
@@ -246,7 +246,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     def "parses content with dependency constraints"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant1 = Mock(MutableComponentVariant)
         def variant2 = Mock(MutableComponentVariant)
 
@@ -282,11 +282,11 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * metadata.addVariant("api", attributes(usage: "compile"),) >> variant1
         1 * variant1.addDependencyConstraint("g1", "m1", prefers("v1"))
         1 * variant1.addDependencyConstraint("g2", "m2", prefers("v2"))
         1 * variant1.addDependencyConstraint("g3", "m3", prefers("v3"))
-        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip"),) >> variant2
         1 * variant2.addDependencyConstraint("g3", "m3", prefers("v3"))
         1 * variant2.addDependencyConstraint("g4", "m4", prefersAndRejects("v4", ["v5"]))
         1 * variant2.addDependencyConstraint("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]))
@@ -294,7 +294,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     def "parses content with boolean attributes"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant = Mock(MutableComponentVariant)
 
         when:
@@ -312,12 +312,12 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile", debuggable: true, testable: false)) >> variant
+        1 * metadata.addVariant("api", attributes(usage: "compile", debuggable: true, testable: false),) >> variant
         0 * _
     }
 
     def "parses minimal variant"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant1 = Mock(MutableComponentVariant)
         def variant2 = Mock(MutableComponentVariant)
 
@@ -340,13 +340,13 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes()) >> variant1
-        1 * metadata.addVariant("runtime", attributes()) >> variant2
+        1 * metadata.addVariant("api", attributes(),) >> variant1
+        1 * metadata.addVariant("runtime", attributes(),) >> variant2
         0 * _
     }
 
     def "parses content with variants in another module"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant1 = Mock(MutableComponentVariant)
         def variant2 = Mock(MutableComponentVariant)
 
@@ -380,15 +380,15 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * metadata.addVariant("api", attributes(usage: "compile"),) >> variant1
         1 * variant1.addDependency("g1", "m1", prefers("v1"), [])
-        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip"),) >> variant2
         1 * variant2.addDependency("g2", "m2", prefers("v2"), [])
         0 * _
     }
 
     def "fails on badly formed content"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
         parser.parse(resource('not-json'), metadata)
@@ -399,7 +399,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     def "ignores unknown top-level values"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
         parser.parse(resource('''{ 
@@ -417,7 +417,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     def "ignores unknown variant values"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
         parser.parse(resource('''
@@ -438,12 +438,12 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes())
+        1 * metadata.addVariant("api", attributes(),)
         0 * metadata._
     }
 
     def "ignores unknown file values"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant = Mock(MutableComponentVariant)
 
         when:
@@ -469,12 +469,12 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes()) >> variant
+        1 * metadata.addVariant("api", attributes(),) >> variant
         0 * metadata._
     }
 
     def "ignores unknown dependency values"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant = Mock(MutableComponentVariant)
 
         when:
@@ -504,13 +504,13 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes()) >> variant
+        1 * metadata.addVariant("api", attributes(),) >> variant
         1 * variant.addDependency("g", "m", prefers("v"), excludes("g:*"))
         0 * metadata._
     }
 
     def "fails when content does not contain a json object"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
         parser.parse(resource('["abc"]'), metadata)
@@ -522,7 +522,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     def "fails on missing format version"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
         parser.parse(resource('{ }'), metadata)
@@ -542,7 +542,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     def "fails when format version does not have string value"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
         parser.parse(resource('{ "formatVersion": 1.2 }'), metadata)
@@ -554,7 +554,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     def "fails on unsupported format version"() {
-        def metadata = Mock(MutableComponentVariantResolveMetadata)
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
         parser.parse(resource('{ "formatVersion": "123.4" }'), metadata)

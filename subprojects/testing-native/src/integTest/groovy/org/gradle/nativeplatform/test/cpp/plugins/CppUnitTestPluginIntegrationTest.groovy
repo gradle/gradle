@@ -16,41 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
-import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-class CppUnitTestPluginIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
-    def "can run test executable"() {
-        def app = new CppHelloWorldApp()
-        buildFile << """
-            apply plugin: 'cpp-library'
-            apply plugin: 'cpp-unit-test'
-        """
-
-        app.library.writeSources(file("src/main"))
-        app.simpleTestExecutable.writeSources(file("src/unitTest"))
-
-        when:
-        succeeds("check")
-
-        then:
-        result.assertTasksExecuted(":dependDebugCpp", ":compileDebugCpp",
-            ":dependUnitTestCpp", ":compileUnitTestCpp", ":linkUnitTest", ":installUnitTest", ":runUnitTest", ":check")
-    }
-
-    def "does nothing if cpp-library or cpp-application are not applied"() {
-        def app = new CppHelloWorldApp()
-        buildFile << """
-            apply plugin: 'cpp-unit-test'
-        """
-
-        app.library.writeSources(file("src/main"))
-        app.simpleTestExecutable.writeSources(file("src/unitTest"))
-
-        when:
-        succeeds("check")
-
-        then:
-        result.assertTasksExecuted( ":check")
-    }
+class CppUnitTestPluginIntegrationTest extends WellBehavedPluginTest {
 }

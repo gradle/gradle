@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.HasConfigurableAttributes;
 
 /**
  * Represents the metadata of one variant of a component, see {@link ComponentMetadataDetails#withVariant(String, Action)}.
@@ -25,15 +26,14 @@ import org.gradle.api.Incubating;
  * @since 4.4
  */
 @Incubating
-public interface VariantMetadata {
-    //This interface should extend HasAttributes to allow modification of the variant's attributes
+public interface VariantMetadata extends HasConfigurableAttributes<VariantMetadata> {
 
     /**
      * Register a rule that modifies the dependencies of this variant.
      *
      * @param action the action that performs the dependencies adjustment
      */
-    void withDependencies(Action<DirectDependenciesMetadata> action);
+    void withDependencies(Action<? super DirectDependenciesMetadata> action);
 
     /**
      * Register a rule that modifies the dependency constraints of this variant.
@@ -41,5 +41,7 @@ public interface VariantMetadata {
      * @param action the action that performs the dependency constraints adjustment
      * @since 4.5
      */
-    void withDependencyConstraints(Action<DependencyConstraintsMetadata> action);
+    void withDependencyConstraints(Action<? super DependencyConstraintsMetadata> action);
+
+
 }

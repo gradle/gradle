@@ -1,30 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
-            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getFilter()",
-            "acceptation": "Method was pulled up from Test class and was introduce in 1.10"
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
-            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.setTestNameIncludePatterns(java.util.List)",
-            "acceptation": "Method was pulled up from Test class"
-        },
-        {
-            "type": "org.gradle.api.artifacts.ModuleDependency",
-            "member": "Class org.gradle.api.artifacts.ModuleDependency",
-            "acceptation": "Inserted new interface in hierarchy to distinguish direct dependencies and dependency constraints",
-            "changes": [
-                "org.gradle.api.artifacts.DirectDependency"
-            ]
-        },
-        {
-            "type": "org.gradle.api.artifacts.SelfResolvingDependency",
-            "member": "Class org.gradle.api.artifacts.SelfResolvingDependency",
-            "acceptation": "Inserted new interface in hierarchy to distinguish direct dependencies and dependency constraints",
-            "changes": [
-                "org.gradle.api.artifacts.DirectDependency"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }

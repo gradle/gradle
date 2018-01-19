@@ -25,10 +25,16 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "allows optional @#annotation.simpleName to have null value"() {
         buildFile << """
+            import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
+            import org.gradle.api.internal.tasks.TaskPropertyUtils
+            import org.gradle.api.internal.tasks.properties.PropertyWalker
+
             class CustomTask extends DefaultTask {
                 @Optional @$annotation.simpleName input
                 @TaskAction void doSomething() {
-                    assert inputs.files.empty
+                    def visitor = new GetInputFilesVisitor(this.toString())
+                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), this, visitor)
+                    assert visitor.files.empty
                 }
             }
 
@@ -67,5 +73,39 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         method << ["file", "dir"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/3792")
+    def "task dependency is discovered via Buildable input files"() {
+        buildFile << """
+            @groovy.transform.TupleConstructor
+            class BuildableArtifact implements Buildable, Iterable<File> {
+                FileCollection files
+
+                Iterator<File> iterator() {
+                    files.iterator()
+                }
+
+                TaskDependency getBuildDependencies() {
+                    files.getBuildDependencies()
+                }
+            }
+
+            task foo {
+                outputs.file "foo.txt"
+                doFirst {}
+            }
+
+            task bar {
+                inputs.files(new BuildableArtifact(files(foo)))
+                outputs.file "bar.txt"
+                doFirst {}
+            }
+        """
+
+        when:
+        run "bar"
+        then:
+        executed ":foo"
     }
 }

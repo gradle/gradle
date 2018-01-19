@@ -20,9 +20,11 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * A factory for creating various kinds of model objects.
@@ -98,4 +100,16 @@ public interface ObjectFactory {
      * @since 4.3
      */
     <T> ListProperty<T> listProperty(Class<T> elementType);
+
+    /**
+     * Creates a {@link SetProperty} implementation to hold a {@link Set} of the given element type. The property with have an empty set as its initial value.
+     *
+     * <p>The implementation will return immutable {@link Set} values from its query methods.</p>
+     *
+     * @param elementType The type of element.
+     * @param <T> The type of element.
+     * @return The property. Never returns null;
+     * @since 4.5
+     */
+    <T> SetProperty<T> setProperty(Class<T> elementType);
 }

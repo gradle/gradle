@@ -17,13 +17,19 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.scan.UsedByScanPlugin;
+
+import java.util.List;
 
 /**
  * Answers the question why a component was selected during the dependency resolution.
  *
  * @since 1.3
  */
+@UsedByScanPlugin
 @Incubating
+@HasInternalProtocol
 public interface ComponentSelectionReason {
 
     /**
@@ -62,6 +68,19 @@ public interface ComponentSelectionReason {
 
     /**
      * Returns a human-consumable description of this selection reason.
+     *
+     * @deprecated Use {@link #getDescriptions()} instead
      */
+    @Deprecated
     String getDescription();
+
+    /**
+     * Returns a list of descriptions of the causes that led to the selection of this component.
+     *
+     * @return the list of descriptions.
+     *
+     * @since 4.6
+     */
+    List<ComponentSelectionDescriptor> getDescriptions();
+
 }

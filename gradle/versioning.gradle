@@ -97,9 +97,7 @@ task determineCommitId {
 
         // It's a source distribution, we don't know.
         strategies << {
-            if (!file("design-docs").directory) {
-                "<unknown>"
-            }
+            "<unknown>"
         }
 
         for (strategy in strategies) {
@@ -107,9 +105,6 @@ task determineCommitId {
             if (commitId) {
                 break
             }
-        }
-        if (!commitId) {
-            throw new InvalidUserDataException("Could not determine commit id")
         }
     }
 }

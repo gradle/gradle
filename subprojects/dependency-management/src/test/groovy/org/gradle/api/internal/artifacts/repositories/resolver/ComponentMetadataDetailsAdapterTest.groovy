@@ -17,18 +17,26 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.Action
-import org.gradle.api.GradleException
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder
+import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
+import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata
-import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata
+import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentAttributeMatcher
+import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class ComponentMetadataDetailsAdapterTest extends Specification {
     private instantiator = DirectInstantiator.INSTANCE
@@ -37,20 +45,34 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
 
     def versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
-    def attributes = TestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
-    def variantDefinedInGradleMetadata
+    def testAttribute = Attribute.of("someAttribute", String)
+    def attributes = TestUtil.attributesFactory().of(testAttribute, "someValue")
+    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
+    def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
+    def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
-    def adapterOnMavenMetadata = new ComponentMetadataDetailsAdapter(new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
+    def gradleMetadata
+    def adapterOnMavenMetadata = new ComponentMetadataDetailsAdapter(mavenComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
     def adapterOnIvyMetadata = new ComponentMetadataDetailsAdapter(ivyComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
     def adapterOnGradleMetadata = new ComponentMetadataDetailsAdapter(gradleComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser)
 
     private ivyComponentMetadata() {
-        new DefaultMutableIvyModuleResolveMetadata(versionIdentifier, componentIdentifier, [new Configuration("configurationDefinedInIvyMetadata", true, true, [])], [], [], [])
+        ivyMetadataFactory.create(componentIdentifier, [], [new Configuration("configurationDefinedInIvyMetadata", true, true, [])], [], [])
     }
     private gradleComponentMetadata() {
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(versionIdentifier, componentIdentifier)
-        variantDefinedInGradleMetadata = metadata.addVariant("variantDefinedInGradleMetadata", attributes) //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
+        def metadata = mavenMetadataFactory.create(componentIdentifier)
+        metadata.addVariant("variantDefinedInGradleMetadata1", attributes) //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
+        metadata.addVariant("variantDefinedInGradleMetadata2", TestUtil.attributesFactory().of(testAttribute, "other")) //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
+        gradleMetadata = metadata
         metadata
+    }
+
+    private MutableMavenModuleResolveMetadata mavenComponentMetadata() {
+        mavenMetadataFactory.create(componentIdentifier)
+    }
+
+    def setup() {
+        schema.attribute(testAttribute)
     }
 
     def "sees variants defined in Gradle metadata"() {
@@ -58,11 +80,42 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def rule = Mock(Action)
 
         when:
-        adapterOnGradleMetadata.withVariant("variantDefinedInGradleMetadata", rule)
+        adapterOnGradleMetadata.withVariant("variantDefinedInGradleMetadata1", rule)
 
         then:
         noExceptionThrown()
         1 * rule.execute(_)
+    }
+
+    def "can execute rule on all variants"() {
+        given:
+        def adapterRule = Mock(Action)
+        def dependenciesRule = Mock(Action)
+        def constraintsRule = Mock(Action)
+        def attributesRule = Mock(Action)
+        when:
+        adapterOnGradleMetadata.allVariants(adapterRule)
+
+        then: "the adapter rule is called once"
+        noExceptionThrown()
+        1 * adapterRule.execute(_) >> {
+            def adapter = it[0]
+            adapter.withDependencies(dependenciesRule)
+            adapter.withDependencyConstraints(constraintsRule)
+            adapter.attributes(attributesRule)
+        }
+        0 * _
+
+        when:
+        resolve(gradleMetadata)
+
+        then: "attributes are used during matching, the rule is applied on all variants"
+        2 * attributesRule.execute(_)
+
+        and: " we only apply the dependencies rule to the selected variant"
+        1 * dependenciesRule.execute(_)
+        1 * constraintsRule.execute(_)
+        0 * _
     }
 
     def "treats ivy configurations as variants"() {
@@ -94,30 +147,14 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         variantCount * rule.execute(_)
     }
 
-    def "fails when selecting a variant that does not exist"() {
-        when:
-        adapterOnGradleMetadata.withVariant("doesNotExist", {})
+    void resolve(MutableModuleComponentResolveMetadata component) {
+        def immutable = component.asImmutable()
+        def componentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "consumer", "1.0")
+        def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
+        def componentSelector = newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultMutableVersionConstraint(consumerIdentifier.version))
+        def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, null, [] as List, [], false, false, true, false)
 
-        then:
-        def e = thrown(GradleException)
-        e.message == "Variant doesNotExist is not declared for org.test:producer:1.0"
-    }
-
-    def "fails when selecting a maven scope that does not exist"() {
-        when:
-        adapterOnMavenMetadata.withVariant("doesNotExist", {})
-
-        then:
-        def e = thrown(GradleException)
-        e.message == "Variant doesNotExist is not declared for org.test:producer:1.0"
-    }
-
-    def "fails when selecting an ivy configuration that does not exist"() {
-        when:
-        adapterOnIvyMetadata.withVariant("doesNotExist", {})
-
-        then:
-        def e = thrown(GradleException)
-        e.message == "Variant doesNotExist is not declared for org.test:producer:1.0"
+        def configuration = consumer.selectConfigurations(attributes, immutable, schema)[0]
+        configuration.dependencies
     }
 }

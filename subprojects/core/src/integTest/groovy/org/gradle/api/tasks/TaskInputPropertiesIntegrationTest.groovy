@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.Actions
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -688,5 +689,101 @@ task someTask(type: SomeTask) {
 
         expect:
         succeeds "foo"
+    }
+
+    def "input and output properties are not evaluated too often"() {
+        buildFile << """ 
+            @CacheableTask    
+            class CustomTask extends DefaultTask {
+                int outputFileCount = 0
+                int inputFileCount = 0
+                int inputValueCount = 0
+                int nestedInputCount = 0
+                int nestedInputValueCount = 0
+                private NestedBean bean = new NestedBean()
+                
+                @OutputFile
+                File getOutputFile() {
+                    count("outputFile", ++outputFileCount)
+                    return project.file('build/foo.bar')
+                }        
+                
+                @InputFile
+                File getInputFile() {
+                    count("inputFile", ++inputFileCount)
+                    return project.file('input.txt')
+                }
+                
+                @Input
+                String getInput() {
+                    count("inputValue", ++inputValueCount)
+                    return "Input"
+                }
+                
+                @Nested
+                Object getBean() {
+                    count("nestedInput", ++nestedInputCount)
+                    return bean
+                }
+                
+                @TaskAction
+                void doStuff() {
+                    outputFile.text = inputFile.text
+                }
+                
+                void count(String name, int currentValue) {
+                    println "Evaluating \${name} \${currentValue}"                
+                }
+                                
+                class NestedBean {
+                    @Input getFirst() {
+                        count("nestedInputValue", ++nestedInputValueCount)
+                        return "first"
+                    }
+                    
+                    @Input getSecond() {
+                        return "second"
+                    }
+                }
+            }
+            
+            task myTask(type: CustomTask)
+            
+            task assertInputCounts {
+                dependsOn myTask
+                doLast {
+                    ['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].each { name ->
+                        assert myTask."\$name" == project.property(name) as Integer                    
+                    }
+                }
+            }
+        """
+        def inputFile = file('input.txt')
+        inputFile.text = "input"
+        def expectedCounts = [inputFile: 3, outputFile: 3, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
+        def expectedUpToDateCounts = [inputFile: 2, outputFile: 2, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
+        def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}"}
+        def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}"}
+        def localCache = new TestBuildCache(file('cache-dir'))
+        settingsFile << localCache.localCacheConfiguration()
+
+        expect:
+        succeeds(*arguments)
+        executedAndNotSkipped(':myTask')
+
+        when:
+        inputFile.text = "changed"
+        then:
+        withBuildCache().succeeds(*arguments)
+        executedAndNotSkipped(':myTask')
+        and:
+        succeeds(*upToDateArguments)
+        skipped(':myTask')
+
+        when:
+        file('build').deleteDir()
+        then:
+        withBuildCache().succeeds(*upToDateArguments)
+        skipped(':myTask')
     }
 }

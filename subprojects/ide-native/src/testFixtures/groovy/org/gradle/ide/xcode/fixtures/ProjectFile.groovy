@@ -59,6 +59,10 @@ class ProjectFile {
         return targets.find { it instanceof PBXNativeTarget }
     }
 
+    List<PBXTarget> findTargets(String moduleName) {
+        return targets.findAll { it.name == moduleName }
+    }
+
     PBXLegacyTarget getGradleTarget() {
         return targets.find { it instanceof PBXLegacyTarget }
     }
@@ -222,6 +226,10 @@ class ProjectFile {
 
         void assertIsDynamicLibrary() {
             assertIs(ProductType.DYNAMIC_LIBRARY)
+        }
+
+        void assertIsStaticLibrary() {
+            assertIs(ProductType.STATIC_LIBRARY)
         }
 
         void assertIsUnitTest() {

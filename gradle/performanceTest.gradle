@@ -41,17 +41,6 @@ configurations {
 dependencies {
     performanceTestCompile project(":internalPerformanceTesting")
 
-    //so that implicit help tasks are available:
-    performanceTestRuntime project(':diagnostics')
-
-    performanceTestRuntime project(':buildInit')
-    performanceTestRuntime project(':buildCacheHttp')
-    performanceTestRuntime project(':codeQuality')
-    performanceTestRuntime project(':ide')
-    performanceTestRuntime project(':maven')
-    performanceTestRuntime project(':testingNative')
-    performanceTestRuntime project(':toolingApiBuilders')
-
     junit 'junit:junit:4.12'
 }
 

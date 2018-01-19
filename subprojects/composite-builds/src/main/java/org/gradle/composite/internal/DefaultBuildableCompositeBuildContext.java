@@ -30,8 +30,6 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,17 +37,14 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildableCompositeBuildContext.class);
-
     // TODO: Synchronization
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
-    private final Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> provided = Sets.newHashSet();
+    private final Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules = Sets.newHashSet();
     private final Set<BuildIdentifier> configuredBuilds = Sets.newHashSet();
     private final List<Action<DependencySubstitution>> substitutionRules = Lists.newArrayList();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder;
     private IncludedBuildRegistry includedBuildRegistry;
-
 
     public DefaultBuildableCompositeBuildContext(ImmutableModuleIdentifierFactory moduleIdentifierFactory, IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -65,12 +60,11 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     public Collection<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
         RegisteredProject registeredProject = getRegisteredProject(project);
         return registeredProject != null ? registeredProject.artifacts : null;
-     }
+    }
 
     @Override
-    public void registerSubstitution(ModuleVersionIdentifier moduleId, ProjectComponentIdentifier project) {
-        LOGGER.info("Registering " + project + " in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
-        provided.add(Pair.of(moduleId, project));
+    public void addAvailableModules(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules) {
+        this.availableModules.addAll(availableModules);
     }
 
     @Override
@@ -81,8 +75,9 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     @Override
     public Action<DependencySubstitution> getRuleAction() {
         List<Action<DependencySubstitution>> allActions = Lists.newArrayList();
-        if (!provided.isEmpty()) {
-            allActions.add(new CompositeBuildDependencySubstitutions(provided, moduleIdentifierFactory));
+        if (!availableModules.isEmpty()) {
+            // Automatically substitute all available modules
+            allActions.add(new CompositeBuildDependencySubstitutions(availableModules, moduleIdentifierFactory));
         }
         allActions.addAll(substitutionRules);
         return Actions.composite(allActions);
@@ -90,7 +85,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     @Override
     public boolean hasRules() {
-        return !(provided.isEmpty() && substitutionRules.isEmpty());
+        return !(availableModules.isEmpty() && substitutionRules.isEmpty());
     }
 
     private RegisteredProject getRegisteredProject(ProjectComponentIdentifier project) {

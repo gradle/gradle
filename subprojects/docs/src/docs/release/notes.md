@@ -2,51 +2,56 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
-Add-->
+### Advanced POM support (preview)
+
+Gradle now supports [additional features for modules with POM metadata](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc). This includes support for _optional dependencies_, _BOM import_ and _compile/runtime scope separation_. 
+
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
+
+### New Gradle `.module` metadata format (preview)
+
+In order to provide rich support for variant-aware dependency management and dependency constraints, Gradle 5.0 will define a [new module metadata format](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc), that can be used in conjunction with Ivy descriptor and Maven POM files in existing repositories.
+
+The new metadata format is still under active development, but it can already be used in its current state in Gradle 4.6+ by setting `org.gralde.gradlemetadata=true` in _gradle.properties_.
 
 <!--
 ### Example new and noteworthy
-
-Think of every feature section as a mini blog post.
-
-1) Make sure the release notes render properly: `./gradlew :docs:releaseNotes && open subprojects/docs/build/docs/release-notes.html`
-  TIP: Continuous build is useful when working on release notes.
-  NOTE: The markdown processor does not know GitHub flavored markdown syntax.
-
-2) Explain why users should care.
-  TIP: Avoid technical details with no indications how this impacts users.
-
-3) Link to documentation or a blog post for more detailed information.
-
-4) Show, don't just tell, if possible.
-  NOTE: Totally fine to just link to an example that show the feature.
 -->
 
-### Provider API documentation
+### Default JaCoCo version upgraded to 0.8.0
 
-In this release, the Gradle team added a new chapter in the user guide documenting the [Provider API](userguide/lazy_configuration.html).
+[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.0](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
 
-### Faster C/C++ compilation and builds
+### Public API for defining command line options for tasks
 
-#### Build Cache Support
+Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. Being able to pass in property values on the command line is particularly helpful if they change more frequently. With this version of Gradle, the task API now supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime. All you need to do is to annotate a setter method of a property with [Option](dsl/org.gradle.api.tasks.options.Option.html).
 
-We introduced [experimental C/C++ caching support](https://docs.gradle.org/4.3/release-notes.html#experimental-task-output-caching-for-c/c++-compilation) in Gradle 4.3, but this feature was hidden behind an additional flag until we had fixed some underlying correctness issues.
+The following examples exposes a command line parameter `--url` for the custom task type `UrlVerify`. Let's assume you wanted to pass a URL to a task of this type named `verifyUrl`. The invocation looks as such: `gradle verifyUrl --url=https://gradle.org/`. You can find more information about this feature in the [user guide](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options).
 
-In this release, we have fixed some underlying issues with calculating the correct build cache key for C++ compilation and have removed the special flag.  If you [enable the build cache](userguide/build_cache.html#sec:build_cache_enable), Gradle will try to reuse task outputs from C/C++ compile tasks when all inputs (compiler flags, source, dependencies) are identical, which can [greatly reduce](https://blog.gradle.org/introducing-gradle-build-cache) build times.
+```
+import org.gradle.api.tasks.options.Option;
 
-Please note that there are [some caveats](userguide/build_cache.html#sec:task_output_caching_known_issues_caveats) when using the build cache.  In particular for C++, object files that contain absolute paths (e.g., object files with debug information) are reusable and cacheable, but may cause problems when debugging.
+public class UrlVerify extends DefaultTask {
+    private String url;
 
-#### Incremental Compilation
+    @Option(option = "url", description = "Configures the URL to be verified.")
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
-Gradle's incremental C/C++ compilation works by analysing and understanding the dependencies between source files and the header files that they include. Gradle can use this information to compile only those source files that are affected by a change in a header file. In some cases, Gradle could not analyze all of these dependencies and would assume all source files depend on all header files. Changes to any header file would require recompiling all source files, regardless of whether the compiler output would change or not. This also affected how well the Gradle build cache could be used to skip compilation.
+    @Input
+    public String getUrl() {
+        return url;
+    }
 
-In this release, Gradle's incremental C/C++ compilation is now able to understand most dependencies between source files and header files. This means incremental compilation will occur more often and builds are more likely to see cache hits.
+    @TaskAction
+    public void verify() {
+        getLogger().quiet("Verifying URL '{}'", url);
 
-### Arbitrary task property names
-
-When registering task properties via the runtime API, property names are not required to be Java identifiers anymore, and can be any non-empty string.
+        // verify URL by making a HTTP call
+    }
+}
+```
 
 ## Promoted features
 
@@ -58,6 +63,10 @@ The following are the features that have been promoted in this Gradle release.
 <!--
 ### Example promoted
 -->
+
+### TestKit becomes public feature
+
+TestKit was first introduced in Gradle 2.6 to support developers with writing and executing functional tests for plugins. In the course of the Gradle 2.x releases, a lot of new functionality was added. This version of Gradle removes the incubating status and makes TestKit a public feature.
 
 ## Fixed issues
 
@@ -72,24 +81,27 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
-### Deprecation of no-search-upward command line options 
+### Local build cache directory cleanup is now time-based
 
-The command line options for searching in parent directories for a `settings.gradle` file (`-u`/`--no-search-upward`) has been deprecated and will be removed in Gradle 5.0. A Gradle project should always define a `settings.gradle` file to avoid the performance overhead of walking parent directories.
+Previously, Gradle would clean up the [local build cache directory](userguide/build_cache.html#sec:build_cache_configure_local) only if the size of its contents reached 5 GB, or whatever was configured in `targetSizeInMB`.
+From now on Gradle will instead clean up everything older than 7 days, regardless of the size of the cache directory.
+As a consequence `targetSizeInMB` is now deprecated, and changing its value has no effect.
+
+The minimum age for entries to be cleaned up can now be configured in `settings.gradle` via the [`removeUnusedEntriesAfterDays`](dsl/org.gradle.caching.local.DirectoryBuildCache.html#org.gradle.caching.local.DirectoryBuildCache:removeUnusedEntriesAfterDays) property:
+
+```
+buildCache {
+    local {
+        removeUnusedEntriesAfterDays = 30
+    }
+}
+```
 
 ## Potential breaking changes
-
-* Two overloaded `ValidateTaskProperties.setOutputFile()` methods were removed. They are replaced with auto-generated setters when the task is accessed from a build script.
-
-* The `maven-publish` plugin now produces more complete `maven-metadata.xml` files, including maintaining a list of `<snapshotVersion>` elements. Some older versions of Maven may not be able to consume this metadata.
 
 <!--
 ### Example breaking change
 -->
-
-### HTTP build cache does not follow redirects
-
-When connecting to an HTTP build cache backend via [HttpBuildCache](dsl/org.gradle.caching.http.HttpBuildCache.html), Gradle does not follow redirects any more, and treats them as errors instead.
-Getting a redirect from the build cache backend is mostly a configuration error (e.g. using an http url instead of https), and has negative effects on performance.
 
 ## External contributions
 
@@ -99,9 +111,7 @@ We would like to thank the following community members for making contributions 
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
 
-- [Nikita Skvortsov](https://github.com/nskvortsov) — Optimize generated IDEA dependencies (gradle/gradle#3460)
-- [Theodore Ni](https://github.com/tjni) — Ignored TestNG tests should not throw an exception (gradle/gradle#3570)
-- [James Wald](https://github.com/jameswald) — Introduce command line option for Wrapper task to set distribution SHA256 sum (gradle/gradle#1777)
+ - [Sergei Dryganets](https://github.com/dryganets) - Improved gpg instructions in signing plugin documentation (gradle/gradle#4023)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

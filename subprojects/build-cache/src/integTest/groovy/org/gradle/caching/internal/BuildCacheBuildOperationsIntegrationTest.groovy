@@ -25,14 +25,14 @@ import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.util.TextUtil
 import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
-class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
     @Shared
     String localCacheClass = "LocalBuildCache"
@@ -127,6 +127,9 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "emits only pack/unpack operations for local"() {
+        def localCache = new TestBuildCache(file("local-cache"))
+        settingsFile << localCache.localCacheConfiguration()
+
         when:
         buildFile << cacheableTask() << """
             apply plugin: "base"
@@ -141,7 +144,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         def packOp = operations.only(BuildCacheArchivePackBuildOperationType)
 
         packOp.details.cacheKey != null
-        packOp.result.archiveSize == localCacheArtifact(packOp.details.cacheKey.toString()).length()
+        packOp.result.archiveSize == localCache.cacheArtifact(packOp.details.cacheKey.toString()).length()
         packOp.result.archiveEntryCount == 4
 
         when:
@@ -155,15 +158,18 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         // Not all of the tar.gz bytes need to be read in order to unpack the archive.
         // On Linux at least, the archive may have redundant padding bytes
         // Furthermore, the exact amount of padding appears to be non deterministic.
-        def cacheArtifact = localCacheArtifact(unpackOp.details.cacheKey.toString())
+        def cacheArtifact = localCache.cacheArtifact(unpackOp.details.cacheKey.toString())
         def sizeDiff = cacheArtifact.length() - unpackOp.details.archiveSize.toLong()
         sizeDiff > -100 && sizeDiff < 100
 
         unpackOp.result.archiveEntryCount == 4
-        unpackOp.result.originalExecutionTime > 0
     }
 
-    def "records load failure"() {
+    @Unroll
+    def "records load failure for #exceptionType"() {
+        def localCache = new TestBuildCache(file("local-cache"))
+        settingsFile << localCache.localCacheConfiguration()
+
         when:
         remote("throw new ${exceptionType.name}('!')", "writer.writeTo(new ${NullOutputStream.name}())")
         settingsFile << """
@@ -187,7 +193,11 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         exceptionType << [RuntimeException, IOException]
     }
 
-    def "records store failure"() {
+    @Unroll
+    def "records store failure for #exceptionType"() {
+        def localCache = new TestBuildCache(file("local-cache"))
+        settingsFile << localCache.localCacheConfiguration()
+
         when:
         remote("", "throw new ${exceptionType.name}('!')")
         settingsFile << """
@@ -235,6 +245,9 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "records ops for miss then store"() {
+        def localCache = new TestBuildCache(file("local-cache"))
+        settingsFile << localCache.localCacheConfiguration()
+
         given:
         remote("", "writer.writeTo(new ${NullOutputStream.name}())")
 
@@ -258,7 +271,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         def remoteStoreOp = operations.only(BuildCacheRemoteStoreBuildOperationType)
 
         packOp.details.cacheKey == remoteStoreOp.details.cacheKey
-        def localCacheArtifact = localCacheArtifact(packOp.details.cacheKey.toString())
+        def localCacheArtifact = localCache.cacheArtifact(packOp.details.cacheKey.toString())
         if (localStore) {
             assert packOp.result.archiveSize == localCacheArtifact.length()
         } else {
@@ -283,6 +296,9 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "records ops for remote hit"() {
+        def buildCache = new TestBuildCache(testDirectory.file("build-cache-dir").createDir())
+        settingsFile << buildCache.localCacheConfiguration()
+
         given:
         buildFile << cacheableTask() << """
             apply plugin: "base"
@@ -293,15 +309,15 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         def initialPackOp = operations.only(BuildCacheArchivePackBuildOperationType)
         def artifactFileCopy = file("artifact")
         // move it out of the local for us to use
-        assert localCacheArtifact(initialPackOp.details.cacheKey.toString()).renameTo(artifactFileCopy)
-        assert !localCacheArtifact(initialPackOp.details.cacheKey.toString()).exists()
+        assert buildCache.cacheArtifact(initialPackOp.details.cacheKey.toString()).renameTo(artifactFileCopy)
+        assert !buildCache.cacheArtifact(initialPackOp.details.cacheKey.toString()).exists()
 
         when:
         settingsFile.text = ""
         remote("reader.readFrom(new File('${TextUtil.normaliseFileSeparators(artifactFileCopy.absolutePath)}').newInputStream())", "writer.writeTo(new ${NullOutputStream.name}())")
         settingsFile << """
             buildCache {
-                ${localCacheConfiguration()}
+                ${buildCache.localCacheConfiguration()}
                 $config   
             }
         """
@@ -313,7 +329,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         def unpackOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)
 
         unpackOp.details.cacheKey == remoteHitLoadOp.details.cacheKey
-        def localCacheArtifact = localCacheArtifact(remoteHitLoadOp.details.cacheKey.toString())
+        def localCacheArtifact = buildCache.cacheArtifact(remoteHitLoadOp.details.cacheKey.toString())
         if (localStore) {
             assert remoteHitLoadOp.result.archiveSize == localCacheArtifact.length()
         } else {
@@ -321,7 +337,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         }
 
         unpackOp.result.archiveEntryCount == 4
-        unpackOp.result.originalExecutionTime > 0
         unpackOp.details.archiveSize == remoteHitLoadOp.result.archiveSize
 
         operations.orderedSerialSiblings(remoteHitLoadOp, unpackOp)
@@ -338,6 +353,9 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def "does not emit operations for custom local cache implementations"() {
+        def localCache = new TestBuildCache(file("local-cache"))
+        settingsFile << localCache.localCacheConfiguration()
+
         given:
         remote("", "writer.writeTo(new ${NullOutputStream.name}())")
 
@@ -361,7 +379,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec i
         def packOp = operations.only(BuildCacheArchivePackBuildOperationType)
 
         packOp.details.cacheKey == remoteMissLoadOp.details.cacheKey
-        def localCacheArtifact = localCacheArtifact(packOp.details.cacheKey.toString())
+        def localCacheArtifact = localCache.cacheArtifact(packOp.details.cacheKey.toString())
         !localCacheArtifact.exists()
 
         packOp.result.archiveEntryCount == 4

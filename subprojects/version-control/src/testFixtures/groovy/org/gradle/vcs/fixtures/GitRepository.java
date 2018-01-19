@@ -16,18 +16,17 @@
 
 package org.gradle.vcs.fixtures;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.gradle.api.Named;
-import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.junit.rules.ExternalResource;
 
@@ -35,9 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 public class GitRepository extends ExternalResource implements Named {
     private final String repoName;
@@ -51,6 +48,15 @@ public class GitRepository extends ExternalResource implements Named {
 
     public GitRepository(File parentDirectory) {
         this("repo", parentDirectory);
+    }
+
+    /**
+     * Returns the underlying Git object from JGit.
+     *
+     * Please consider adding more convenience methods to this fixture over using "raw" Git APIs.
+     */
+    public Git getGit() {
+        return git;
     }
 
     @Override
@@ -91,26 +97,70 @@ public class GitRepository extends ExternalResource implements Named {
         git.close();
     }
 
-    public RevCommit commit(String message, Collection<File> files) throws GitAPIException {
+    public RevCommit addSubmodule(GitRepository submoduleRepo) throws GitAPIException {
+        Repository submodule = null;
+        try {
+            submodule = git.submoduleAdd().
+                setURI(submoduleRepo.getWorkTree().toString()).
+                setPath(submoduleRepo.getName()).
+                call();
+            return commit("add submodule " + submoduleRepo.getName(), submoduleRepo.getName());
+        } finally {
+            if (submodule != null) {
+                submodule.close();
+            }
+        }
+    }
+
+    /**
+     * Updates any submodules in this repository to the latest in the submodule origin repository
+     */
+    public RevCommit updateSubmodulesToLatest() throws GitAPIException {
+        List<String> submodulePaths = Lists.newArrayList();
+        try {
+            SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository());
+            try {
+                while (walker.next()) {
+                    Repository submodule = walker.getRepository();
+                    try {
+                        submodulePaths.add(walker.getPath());
+                        Git.wrap(submodule).pull().call();
+                    } finally {
+                        submodule.close();
+                    }
+                }
+            } finally {
+                walker.close();
+            }
+            return commit("update submodules", submodulePaths.toArray(new String[submodulePaths.size()]));
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    /**
+     * Commits changes to the given paths.  The paths are passed as-is to the underlying JGit library.
+     */
+    public RevCommit commit(String message, String... paths) throws GitAPIException {
         AddCommand add = git.add();
-        for (File file : files) {
-            add.addFilepattern(relativePath(file));
+        for (String path : paths) {
+            add.addFilepattern(path);
         }
         add.call();
         return git.commit().setMessage(message).call();
     }
 
-    public RevCommit commit(String message, File... files) throws GitAPIException {
-        return commit(message, Arrays.asList(files));
-    }
-
-    public RevCommit commit(String message, File file) throws GitAPIException {
-        // if the file is a directory, list all files in it and add those
-        if (file.isDirectory()) {
-            return commit(message, GFileUtils.listFiles(file, null, true));
-        } else {
-            return commit(message, Collections.singleton(file));
+    /**
+     * Commits all changes in the working tree. This is approximately {@code git commit -am "message"}
+     */
+    public RevCommit commit(String message) throws GitAPIException {
+        // Commit all changes in the working tree
+        AddCommand add = git.add();
+        for (File file : GFileUtils.listFiles(getWorkTree(), null, true)) {
+            add.addFilepattern(relativePath(file));
         }
+        add.call();
+        return git.commit().setMessage(message).call();
     }
 
     public Ref createBranch(String branchName) throws GitAPIException {
@@ -147,20 +197,6 @@ public class GitRepository extends ExternalResource implements Named {
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-    }
-
-    public Collection<TestFile> listFiles() throws GitAPIException {
-        Status status = git.status().call();
-        Collection<TestFile> files = Sets.newHashSet();
-        Transformer<TestFile, String> relativePathToTestFile = new Transformer<TestFile, String>() {
-            @Override
-            public TestFile transform(String path) {
-                return getWorkTree().file(path);
-            }
-        };
-        CollectionUtils.collect(status.getUncommittedChanges(), files, relativePathToTestFile);
-        CollectionUtils.collect(status.getUntracked(), files, relativePathToTestFile);
-        return files;
     }
 
     public String getId() {

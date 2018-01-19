@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.PersistentCache;
@@ -27,15 +28,15 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.List;
 
-abstract class AbstractCacheCleanup implements CleanupAction {
+public abstract class AbstractCacheCleanup implements CleanupAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCacheCleanup.class);
 
     @Override
-    public void clean(final PersistentCache persistentCache) {
-        final File[] filesEligibleForCleanup = findEligibleFiles(persistentCache);
+    public void clean(PersistentCache persistentCache) {
+        File[] filesEligibleForCleanup = findEligibleFiles(persistentCache);
 
         if (filesEligibleForCleanup.length > 0) {
-            final List<File> filesForDeletion = findFilesToDelete(persistentCache, filesEligibleForCleanup);
+            List<File> filesForDeletion = findFilesToDelete(persistentCache, filesEligibleForCleanup);
 
             if (!filesForDeletion.isEmpty()) {
                 cleanupFiles(persistentCache, filesForDeletion);
@@ -43,9 +44,9 @@ abstract class AbstractCacheCleanup implements CleanupAction {
         }
     }
 
-    protected abstract List<File> findFilesToDelete(final PersistentCache persistentCache, File[] filesEligibleForCleanup);
+    protected abstract List<File> findFilesToDelete(PersistentCache persistentCache, File[] filesEligibleForCleanup);
 
-    File[] findEligibleFiles(final PersistentCache persistentCache) {
+    private static File[] findEligibleFiles(final PersistentCache persistentCache) {
         // TODO: This doesn't descend subdirectories.
         return persistentCache.getBaseDir().listFiles(new FileFilter() {
             @Override
@@ -55,17 +56,19 @@ abstract class AbstractCacheCleanup implements CleanupAction {
         });
     }
 
-    protected boolean isReserved(final PersistentCache persistentCache, File file) {
+    @VisibleForTesting
+    static boolean isReserved(PersistentCache persistentCache, File file) {
         return persistentCache.getReservedCacheFiles().contains(file);
     }
 
-    void cleanupFiles(final PersistentCache persistentCache, final List<File> filesForDeletion) {
+    @VisibleForTesting
+    static void cleanupFiles(PersistentCache persistentCache, List<File> filesForDeletion) {
         // Need to remove some files
         long removedSize = deleteFiles(filesForDeletion);
         LOGGER.info("{} removing {} cache entries ({} reclaimed).", persistentCache, filesForDeletion.size(), FileUtils.byteCountToDisplaySize(removedSize));
     }
 
-    private long deleteFiles(List<File> files) {
+    private static long deleteFiles(List<File> files) {
         long removedSize = 0;
         for (File file : files) {
             try {

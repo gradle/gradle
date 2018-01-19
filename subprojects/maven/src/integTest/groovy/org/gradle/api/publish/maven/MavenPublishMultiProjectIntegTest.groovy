@@ -313,7 +313,6 @@ project(":project2") {
     def "publish and resolve java-library with dependency on java-library-platform"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
-        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
 
         settingsFile << """
@@ -349,7 +348,7 @@ project(":platform") {
 project(":library") {
     dependencies {
         api project(":platform")
-        api "org.test:bar:1.0"
+        api "org.test:bar"
     }
     publishing {
         repositories {
@@ -370,6 +369,7 @@ project(":library") {
         then:
         platformModule.parsedPom.packaging == 'pom'
         platformModule.parsedPom.scopes.compile.assertDependsOn("org.test:foo:1.0")
+        platformModule.parsedPom.scopes.compile.assertDependencyManagement("org.test:bar:1.1")
         platformModule.parsedModuleMetadata.variant('api') {
             dependency("org.test:foo:1.0").exists()
             constraint("org.test:bar:1.1").exists()
@@ -377,9 +377,10 @@ project(":library") {
         }
 
         libraryModule.parsedPom.packaging == null
-        libraryModule.parsedPom.scopes.compile.assertDependsOn("org.test:bar:1.0", "org.test:platform:1.0")
+        libraryModule.parsedPom.scopes.compile.assertDependsOn("org.test:bar:", "org.test:platform:1.0")
+        libraryModule.parsedPom.scopes.compile.assertDependencyManagement()
         libraryModule.parsedModuleMetadata.variant('api') {
-            dependency("org.test:bar:1.0").exists()
+            dependency("org.test:bar:").exists()
             dependency("org.test:platform:1.0").exists()
             noMoreDependencies()
         }
@@ -387,13 +388,7 @@ project(":library") {
         and:
         resolveArtifacts(platformModule) { expectFiles 'foo-1.0.jar' }
         resolveArtifacts(libraryModule) {
-            withModuleMetadata {
-                expectFiles 'bar-1.1.jar', 'foo-1.0.jar', 'library-1.0.jar'
-            }
-            // Platform constraints are not published to Maven POM
-            withoutModuleMetadata {
-                expectFiles 'bar-1.0.jar', 'foo-1.0.jar', 'library-1.0.jar'
-            }
+            expectFiles 'bar-1.1.jar', 'foo-1.0.jar', 'library-1.0.jar'
         }
     }
 

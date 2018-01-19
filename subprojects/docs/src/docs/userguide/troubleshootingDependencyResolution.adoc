@@ -1,0 +1,97 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[troubleshooting_dependency_resolution]]
+== Troubleshooting Dependency Resolution
+
+Managing large dependency graphs can be challenging. This section describes techniques for troubleshooting issues you might encounter in your project.
+
+[[sub:versioning_the_jar_name]]
+=== Putting the version in the filename (version the jar)
+
+The version of a library must be part of the filename. While the version of a jar is usually in the Manifest file, it isn't readily apparent when you are inspecting a project. If someone asks you to look at a collection of 20 jar files, which would you prefer? A collection of files with names like `commons-beanutils-1.3.jar` or a collection of files with names like `spring.jar`? If dependencies have file names with version numbers you can quickly identify the versions of your dependencies.
+
+If versions are unclear you can introduce subtle bugs which are very hard to find. For example there might be a project which uses Hibernate 2.5. Think about a developer who decides to install version 3.0.5 of Hibernate on her machine to fix a critical security bug but forgets to notify others in the team of this change. She may address the security bug successfully, but she also may have introduced subtle bugs into a codebase that was using a now-deprecated feature from Hibernate. Weeks later there is an exception on the integration machine which can't be reproduced on anyone's machine. Multiple developers then spend days on this issue only finally realising that the error would have been easy to uncover if they knew that Hibernate had been upgraded from 2.5 to 3.0.5.
+
+Versions in jar names increase the expressiveness of your project and make them easier to maintain. This practice also reduces the potential for error.
+
+[[sub:version_conflicts]]
+=== Resolving version conflicts
+
+Conflicting versions of the same jar should be detected and either resolved or cause an exception. If you don't use transitive dependency management, version conflicts are undetected and the often accidental order of the classpath will determine what version of a dependency will win. On a large project with many developers changing dependencies, successful builds will be few and far between as the order of dependencies may directly affect whether a build succeeds or fails (or whether a bug appears or disappears in production).
+
+If you haven't had to deal with the curse of conflicting versions of jars on a classpath, here is a small anecdote of the fun that awaits you. In a large project with 30 submodules, adding a dependency to a subproject changed the order of a classpath, swapping Spring 2.5 for an older 2.4 version. While the build continued to work, developers were starting to notice all sorts of surprising (and surprisingly awful) bugs in production. Worse yet, this unintentional downgrade of Spring introduced several security vulnerabilities into the system, which now required a full security audit throughout the organization.
+
+In short, version conflicts are bad, and you should manage your transitive dependencies to avoid them. You might also want to learn where conflicting versions are used and consolidate on a particular version of a dependency across your organization. With a good conflict reporting tool like Gradle, that information can be used to communicate with the entire organization and standardize on a single version. _If you think version conflicts don't happen to you, think again._ It is very common for different first-level dependencies to rely on a range of different overlapping versions for other dependencies, and the JVM doesn't yet offer an easy way to have different versions of the same jar in the classpath (see <<sub:dependency_management_and_java>>).
+
+Gradle offers the following conflict resolution strategies:
+
+* _Newest_: The newest version of the dependency is used. This is Gradle's default strategy, and is often an appropriate choice as long as versions are backwards-compatible.
+* _Fail_: A version conflict results in a build failure. This strategy requires all version conflicts to be resolved explicitly in the build script. See api:org.gradle.api.artifacts.ResolutionStrategy[] for details on how to explicitly choose a particular version.
+
+While the strategies introduced above are usually enough to solve most conflicts, Gradle provides more fine-grained mechanisms to resolve version conflicts:
+
+* Configuring a first level dependency as _forced_. This approach is useful if the dependency in conflict is already a first level dependency. See examples in api:org.gradle.api.artifacts.dsl.DependencyHandler[].
+* Configuring any dependency (transitive or not) as _forced_. This approach is useful if the dependency in conflict is a transitive dependency. It also can be used to force versions of first level dependencies. See examples in api:org.gradle.api.artifacts.ResolutionStrategy[].
+* Configuring dependency resolution to _prefer modules that are part of your build_ (transitive or not). This approach is useful if your build contains custom forks of modules (as part of <<multi_project_builds>> or as include in <<composite_builds>>). See examples in api:org.gradle.api.artifacts.ResolutionStrategy[].
+* Dependency resolve rules are an <<feature_lifecycle,incubating>> feature give you fine-grained control over the version selected for a particular dependency.
+
+To deal with problems due to version conflicts, reports with dependency graphs are also very helpful. Such reports are another feature of dependency management.
+
+[[sub:dynamic_versions_and_changing_modules]]
+=== Using dynamic versions and changing modules
+
+There are many situations when you want to use the latest version of a particular dependency, or the latest in a range of versions. This can be a requirement during development, or you may be developing a library that is designed to work with a range of dependency versions. You can easily depend on these constantly changing dependencies by using a _dynamic version_. A dynamic version can be either a version range (e.g. `2.+`) or it can be a placeholder for the latest version available (e.g. `latest.integration`).
+
+Alternatively, sometimes the module you request can change over time, even for the same version. An example of this type of _changing module_ is a Maven `SNAPSHOT` module, which always points at the latest artifact published. In other words, a standard Maven snapshot is a module that never stands still so to speak, it is a “changing module”.
+
+The main difference between a _dynamic version_ and a _changing module_ is that when you resolve a _dynamic version_, you'll get the real, static version as the module name. When you resolve a _changing module_, the artifacts are named using the version you requested, but the underlying artifacts may change over time.
+
+By default, Gradle caches dynamic versions and changing modules for 24 hours. You can override the default cache modes using <<sec:controlling_dependency_caching_command_line,command line options>>. You can also <<sec:controlling_dependency_caching_programmatically,change the cache expiry times in your build programmatically>> using the resolution strategy.
+
+[[sec:controlling_dependency_caching_programmatically]]
+=== Controlling dependency caching programmatically
+
+You can fine-tune certain aspects of caching using the `ResolutionStrategy` for a configuration.
+
+By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version for a dynamic version, use:
+
+++++
+<sample id="dynamic-version-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Dynamic version cache control">
+                <sourcefile file="build.gradle" snippet="dynamic-version-cache-control"/>
+            </sample>
+++++
+
+By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
+
+++++
+<sample id="changing-module-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Changing module cache control">
+                <sourcefile file="build.gradle" snippet="changing-module-cache-control"/>
+            </sample>
+++++
+
+For more details, take a look at the API documentation for api:org.gradle.api.artifacts.ResolutionStrategy[].
+
+[[sec:controlling_dependency_caching_command_line]]
+=== Controlling dependency caching from the command line
+
+==== Avoiding network access with offline mode
+
+The `--offline` command line switch tells Gradle to always use dependency modules from the cache, regardless if they are due to be checked again. When running with offline, Gradle will never attempt to access the network to perform dependency resolution. If required modules are not present in the dependency cache, build execution will fail.
+
+==== Forcing all dependencies to be re-resolved
+
+At times, the Gradle Dependency Cache can be out of sync with the actual state of the configured repositories. Perhaps a repository was initially misconfigured, or perhaps a “non-changing” module was published incorrectly. To refresh all dependencies in the dependency cache, use the `--refresh-dependencies` option on the command line.
+
+The `--refresh-dependencies` option tells Gradle to ignore all cached entries for resolved modules and artifacts. A fresh resolve will be performed against all configured repositories, with dynamic versions recalculated, modules refreshed, and artifacts downloaded. However, where possible Gradle will check if the previously downloaded artifacts are valid before downloading again. This is done by comparing published SHA1 values in the repository with the SHA1 values for existing downloaded artifacts.

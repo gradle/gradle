@@ -19,36 +19,27 @@ package org.gradle.language.swift.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Task;
+import org.gradle.api.Project;
+import org.gradle.api.attributes.AttributeCompatibilityRule;
+import org.gradle.api.attributes.CompatibilityCheckDetails;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.TaskContainer;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.language.swift.SwiftBinary;
-import org.gradle.language.swift.SwiftExecutable;
+import org.gradle.language.plugins.NativeBasePlugin;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.SwiftSharedLibrary;
+import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
-import org.gradle.language.swift.internal.DefaultSwiftExecutable;
-import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
+import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
-import org.gradle.nativeplatform.tasks.ExtractSymbols;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
-import org.gradle.nativeplatform.tasks.StripSymbols;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
+import org.gradle.util.VersionNumber;
 
 import java.util.concurrent.Callable;
 
@@ -60,21 +51,20 @@ import java.util.concurrent.Callable;
 @Incubating
 public class SwiftBasePlugin implements Plugin<ProjectInternal> {
     @Override
-    public void apply(ProjectInternal project) {
-        project.getPluginManager().apply(LifecycleBasePlugin.class);
+    public void apply(final ProjectInternal project) {
+        project.getPluginManager().apply(NativeBasePlugin.class);
         project.getPluginManager().apply(SwiftCompilerPlugin.class);
-
-        // TODO - Merge with CppBasePlugin to remove code duplication
 
         final TaskContainerInternal tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
-        final ModelRegistry modelRegistry = project.getModelRegistry();
         final ProviderFactory providers = project.getProviders();
 
-        project.getComponents().withType(SwiftBinary.class, new Action<SwiftBinary>() {
+        project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE).getCompatibilityRules().add(SwiftCppUsageCompatibilityRule.class);
+
+        project.getComponents().withType(DefaultSwiftBinary.class, new Action<DefaultSwiftBinary>() {
             @Override
-            public void execute(final SwiftBinary binary) {
-                final Names names = Names.of(binary.getName());
+            public void execute(final DefaultSwiftBinary binary) {
+                final Names names = binary.getNames();
                 SwiftCompile compile = tasks.create(names.getCompileTaskName("swift"), SwiftCompile.class);
                 compile.getModules().from(binary.getCompileModules());
                 compile.getSource().from(binary.getSwiftSource());
@@ -91,135 +81,86 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
                 compile.getModuleFile().set(buildDirectory.file(providers.provider(new Callable<String>() {
                     @Override
-                    public String call() throws Exception {
+                    public String call() {
                         return "modules/" + names.getDirName() + binary.getModule().get() + ".swiftmodule";
                     }
                 })));
-                ((DefaultSwiftBinary)binary).getModuleFile().set(compile.getModuleFile());
+                compile.getSourceCompatibility().set(binary.getSourceCompatibility());
+                binary.getModuleFile().set(compile.getModuleFile());
 
-                DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
+                NativePlatform currentPlatform = binary.getTargetPlatform();
                 compile.setTargetPlatform(currentPlatform);
 
                 // TODO - make this lazy
-                NativeToolChainInternal toolChain = (NativeToolChainInternal) modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class).getForPlatform(currentPlatform);
+                NativeToolChainInternal toolChain = binary.getToolChain();
                 compile.setToolChain(toolChain);
 
-                ((DefaultSwiftBinary)binary).getObjectsDir().set(compile.getObjectFileDir());
+                binary.getCompileTask().set(compile);
+                binary.getObjectsDir().set(compile.getObjectFileDir());
+            }
+        });
+        project.getComponents().withType(SwiftSharedLibrary.class, new Action<SwiftSharedLibrary>() {
+            @Override
+            public void execute(SwiftSharedLibrary library) {
+                // Specific compiler arguments
+                library.getCompileTask().get().getCompilerArgs().add("-parse-as-library");
+            }
+        });
+        project.getComponents().withType(SwiftStaticLibrary.class, new Action<SwiftStaticLibrary>() {
+            @Override
+            public void execute(SwiftStaticLibrary library) {
+                // Specific compiler arguments
+                library.getCompileTask().get().getCompilerArgs().add("-parse-as-library");
+            }
+        });
 
-                Task lifecycleTask = tasks.maybeCreate(names.getTaskName("assemble"));
-
-                if (binary instanceof SwiftExecutable) {
-                    DefaultSwiftExecutable executable = (DefaultSwiftExecutable) binary;
-                    // Add a link task
-                    LinkExecutable link = tasks.create(names.getTaskName("link"), LinkExecutable.class);
-                    link.source(binary.getObjects());
-                    link.lib(binary.getLinkLibraries());
-                    final PlatformToolProvider toolProvider = toolChain.select(currentPlatform);
-                    Provider<RegularFile> exeLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getModule().get());
-                        }
-                    }));
-                    link.setOutputFile(exeLocation);
-                    link.setTargetPlatform(currentPlatform);
-                    link.setToolChain(toolChain);
-                    link.setDebuggable(binary.isDebuggable());
-
-                    if (executable.isDebuggable() && executable.isOptimized()) {
-                        Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + binary.getModule().get());
-                            }
-                        }));
-                        Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/"+ binary.getModule().get());
-                            }
-                        }));
-                        StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation, lifecycleTask);
-                        executable.getExecutableFile().set(stripSymbols.getOutputFile());
-                    } else {
-                        executable.getExecutableFile().set(link.getBinaryFile());
+        project.getComponents().withType(DefaultSwiftComponent.class, new Action<DefaultSwiftComponent>() {
+            @Override
+            public void execute(final DefaultSwiftComponent component) {
+                project.afterEvaluate(new Action<Project>() {
+                    @Override
+                    public void execute(Project project) {
+                        component.getSourceCompatibility().lockNow();
                     }
-
-                    // Add an install task
-                    // TODO - maybe not for all executables
-                    // TODO - add stripped symbols to the installation
-                    final InstallExecutable install = tasks.create(names.getTaskName("install"), InstallExecutable.class);
-                    install.setPlatform(link.getTargetPlatform());
-                    install.setToolChain(link.getToolChain());
-                    install.getInstallDirectory().set(buildDirectory.dir("install/" + names.getDirName()));
-                    install.getSourceFile().set(executable.getExecutableFile());
-                    install.lib(binary.getRuntimeLibraries());
-                    executable.getInstallDirectory().set(install.getInstallDirectory());
-                    executable.getRunScriptFile().set(install.getRunScriptFile());
-
-                    lifecycleTask.dependsOn(install.getInstallDirectory());
-                } else if (binary instanceof SwiftSharedLibrary) {
-                    DefaultSwiftSharedLibrary library = (DefaultSwiftSharedLibrary) binary;
-
-                    // Specific compiler arguments
-                    compile.getCompilerArgs().add("-parse-as-library");
-
-                    // Add a link task
-                    final LinkSharedLibrary link = tasks.create(names.getTaskName("link"), LinkSharedLibrary.class);
-                    link.source(binary.getObjects());
-                    link.lib(binary.getLinkLibraries());
-                    // TODO - need to set soname
-                    final PlatformToolProvider toolProvider = toolChain.select(currentPlatform);
-                    Provider<RegularFile> runtimeFile = buildDirectory.file(providers.provider(new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + binary.getModule().get());
-                        }
-                    }));
-                    link.setOutputFile(runtimeFile);
-                    link.setTargetPlatform(currentPlatform);
-                    link.setToolChain(toolChain);
-                    link.setDebuggable(binary.isDebuggable());
-
-                    if (library.isDebuggable() && library.isOptimized()) {
-                        Provider<RegularFile> symbolLocation = buildDirectory.file(providers.provider(new Callable<String>() {
+                });
+                component.getBinaries().whenElementKnown(DefaultSwiftBinary.class, new Action<DefaultSwiftBinary>() {
+                    @Override
+                    public void execute(final DefaultSwiftBinary binary) {
+                        Provider<SwiftVersion> swiftLanguageVersionProvider = project.provider(new Callable<SwiftVersion>() {
                             @Override
-                            public String call() {
-                                return toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + binary.getModule().get());
+                            public SwiftVersion call() throws Exception {
+                                SwiftVersion swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
+                                if (swiftSourceCompatibility == null) {
+                                    return toSwiftVersion(binary.getPlatformToolProvider().getCompilerMetadata().getVersion());
+                                }
+                                return swiftSourceCompatibility;
                             }
-                        }));
-                        Provider<RegularFile> strippedLocation = buildDirectory.file(providers.provider(new Callable<String>() {
-                            @Override
-                            public String call() {
-                                return toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/"+ binary.getModule().get());
-                            }
-                        }));
-                        StripSymbols stripSymbols = extractAndStripSymbols(link, names, tasks, toolChain, currentPlatform, symbolLocation, strippedLocation, lifecycleTask);
-                        library.getRuntimeFile().set(stripSymbols.getOutputFile());
-                    } else {
-                        library.getRuntimeFile().set(link.getBinaryFile());
+                        });
+
+                        binary.getSourceCompatibility().set(swiftLanguageVersionProvider);
                     }
-                    lifecycleTask.dependsOn(library.getRuntimeFile());
-                }
+                });
             }
         });
     }
 
-    private StripSymbols extractAndStripSymbols(AbstractLinkTask link, Names names, TaskContainer tasks, NativeToolChainInternal toolChain, NativePlatformInternal currentPlatform, Provider<RegularFile> symbolLocation, Provider<RegularFile> strippedLocation, Task lifecycleTask) {
-        ExtractSymbols extractSymbols = tasks.create(names.getTaskName("extractSymbols"), ExtractSymbols.class);
-        extractSymbols.getBinaryFile().set(link.getBinaryFile());
-        extractSymbols.getSymbolFile().set(symbolLocation);
-        extractSymbols.setTargetPlatform(currentPlatform);
-        extractSymbols.setToolChain(toolChain);
-        lifecycleTask.dependsOn(extractSymbols);
+    static class SwiftCppUsageCompatibilityRule implements AttributeCompatibilityRule<Usage> {
+        @Override
+        public void execute(CompatibilityCheckDetails<Usage> details) {
+            if (Usage.SWIFT_API.equals(details.getConsumerValue().getName())
+                && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
+                details.compatible();
+            }
+        }
+    }
 
-        StripSymbols stripSymbols = tasks.create(names.getTaskName("stripSymbols"), StripSymbols.class);
-        stripSymbols.getBinaryFile().set(link.getBinaryFile());
-        stripSymbols.getOutputFile().set(strippedLocation);
-        stripSymbols.setTargetPlatform(currentPlatform);
-        stripSymbols.setToolChain(toolChain);
-        lifecycleTask.dependsOn(stripSymbols);
-
-        return stripSymbols;
+    static SwiftVersion toSwiftVersion(VersionNumber swiftCompilerVersion) {
+        if (swiftCompilerVersion.getMajor() == 3) {
+            return SwiftVersion.SWIFT3;
+        } else if (swiftCompilerVersion.getMajor() == 4) {
+            return SwiftVersion.SWIFT4;
+        } else {
+            throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified Swift compiler version (%s)", swiftCompilerVersion.toString()));
+        }
     }
 }

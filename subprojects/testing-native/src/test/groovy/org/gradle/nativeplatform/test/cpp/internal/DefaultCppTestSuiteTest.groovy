@@ -16,22 +16,31 @@
 
 package org.gradle.nativeplatform.test.cpp.internal
 
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.file.ProjectLayout
-import org.gradle.api.internal.file.FileOperations
-import org.gradle.language.cpp.CppComponent
-import org.gradle.nativeplatform.test.cpp.CppTestSuite
+import org.gradle.language.cpp.CppPlatform
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultCppTestSuiteTest extends Specification {
-    def "has only a single executables"() {
-        def componentUnderTest = Mock(CppComponent)
-        CppTestSuite testSuite = new DefaultCppTestSuite("unitTest", Mock(ProjectLayout), TestUtil.objectFactory(), Stub(FileOperations), Stub(ConfigurationContainer))
-        testSuite.testedComponent.set(componentUnderTest)
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
+
+    def "has implementation dependencies"() {
+        def testSuite = new DefaultCppTestSuite("test", project.objects, project)
+
         expect:
-        testSuite.developmentBinary.name == "unitTestExecutable"
-        testSuite.developmentBinary.debuggable
-        testSuite.testedComponent.get() == componentUnderTest
+        testSuite.implementationDependencies == project.configurations['testImplementation']
+    }
+
+    def "can add executable"() {
+        def testSuite = new DefaultCppTestSuite("test", project.objects, project)
+
+        expect:
+        def exe = testSuite.addExecutable("exe", Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        exe.name == 'testExe'
     }
 }

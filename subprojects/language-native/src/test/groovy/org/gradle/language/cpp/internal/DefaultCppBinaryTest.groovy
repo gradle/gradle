@@ -19,20 +19,26 @@ package org.gradle.language.cpp.internal
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.provider.Provider
+import org.gradle.language.cpp.CppPlatform
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
-
 class DefaultCppBinaryTest extends Specification {
-    def implementation = Stub(Configuration)
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
+    def implementation = Stub(ConfigurationInternal)
     def headerDirs = Stub(FileCollection)
     def compile = Stub(Configuration)
     def link = Stub(Configuration)
     def runtime = Stub(Configuration)
     def configurations = Stub(ConfigurationContainer)
-    def projectLayout = Mock(ProjectLayout)
 
     DefaultCppBinary binary
 
@@ -43,7 +49,7 @@ class DefaultCppBinaryTest extends Specification {
         _ * configurations.create("nativeRuntimeDebug") >> runtime
         _ * componentHeaders.plus(_) >> headerDirs
 
-        binary = new DefaultCppBinary("mainDebug", projectLayout, TestUtil.objectFactory(), Stub(Provider), true, false,Stub(FileCollection), componentHeaders, configurations, implementation)
+        binary = new DefaultCppBinary("mainDebug", project.layout, project.objects, Stub(Provider), true, false, Stub(FileCollection), componentHeaders, configurations, implementation, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
     }
 
     def "creates configurations for the binary"() {

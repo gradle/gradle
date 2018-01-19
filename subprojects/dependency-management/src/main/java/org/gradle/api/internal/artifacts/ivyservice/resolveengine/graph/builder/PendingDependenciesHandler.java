@@ -16,38 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 public interface PendingDependenciesHandler {
-    PendingDependenciesHandler IGNORE = new IgnorePendingDependenciesHandler();
-
-    Visitor start(boolean isOptionalConfiguration);
+    Visitor start();
 
     interface Visitor {
         boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState);
 
         void complete();
     }
-
-    class IgnorePendingDependenciesHandler implements PendingDependenciesHandler {
-        @Override
-        public Visitor start(boolean isOptionalConfiguration) {
-            return new IgnorePendingDependenciesVisitor(isOptionalConfiguration);
-        }
-
-        static class IgnorePendingDependenciesVisitor implements PendingDependenciesHandler.Visitor {
-            private final boolean isOptionalConfiguration;
-
-            IgnorePendingDependenciesVisitor(boolean isOptionalConfiguration) {
-                this.isOptionalConfiguration = isOptionalConfiguration;
-            }
-
-            @Override
-            public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
-                return !isOptionalConfiguration && dependencyState.getDependencyMetadata().isPending();
-            }
-
-            @Override
-            public void complete() {
-            }
-        }
-   }
-
 }

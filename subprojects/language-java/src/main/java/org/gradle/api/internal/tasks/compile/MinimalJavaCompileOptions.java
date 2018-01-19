@@ -49,7 +49,7 @@ public class MinimalJavaCompileOptions implements Serializable {
     public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
         FileCollection sourcepath = compileOptions.getSourcepath();
         this.sourcepath = sourcepath == null ? null : ImmutableList.copyOf(sourcepath.getFiles());
-        this.compilerArgs = Lists.newArrayList(compileOptions.getCompilerArgs());
+        this.compilerArgs = Lists.newArrayList(compileOptions.getAllCompilerArgs());
         this.encoding = compileOptions.getEncoding();
         this.bootClasspath = DeprecationLogger.whileDisabled(new Factory<String>() {
             @Nullable

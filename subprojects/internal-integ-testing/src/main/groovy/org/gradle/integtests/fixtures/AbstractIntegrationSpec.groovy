@@ -88,6 +88,10 @@ class AbstractIntegrationSpec extends Specification {
         testDirectory.file('settings.gradle')
     }
 
+    protected TestFile getPropertiesFile() {
+        testDirectory.file('gradle.properties')
+    }
+
     def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
         buildTestFixture.singleProjectBuild(projectName, cl)
     }
@@ -151,6 +155,11 @@ class AbstractIntegrationSpec extends Specification {
     protected GradleExecuter requireGradleDistribution() {
         executer.requireGradleDistribution()
         executer
+    }
+
+    AbstractIntegrationSpec withBuildCache() {
+        executer.withBuildCacheEnabled()
+        this
     }
 
     /**

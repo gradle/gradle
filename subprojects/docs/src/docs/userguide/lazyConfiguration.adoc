@@ -15,7 +15,7 @@
 [[lazy_configuration]]
 == Lazy Configuration
 
-As a build grows in complexity, knowing when and where a particular value is configured can become difficult to reason about. Gradle provides several ways to manage this complexity with lazy configuration.
+As a build grows in complexity, knowing when and where a particular value is configured can become difficult to reason about. Gradle provides several ways to manage this complexity using _lazy configuration_.
 
 [[sec:lazy_properties]]
 === Lazy properties
@@ -41,7 +41,8 @@ Gradle represents lazy properties with two interfaces:
 * api:org.gradle.api.provider.Property[] are properties that can be queried and overwritten.
 ** Properties with these types are configurable.
 ** `Property` implements the `Provider` interface.
-** The method api:org.gradle.api.provider.Property#set(T)[] provides a value for the property, overwriting whatever value may have been present.
+** The method api:org.gradle.api.provider.Property#set(T)[] specifies a value for the property, overwriting whatever value may have been present.
+** The method api:org.gradle.api.provider.Property#set(org.gradle.api.provider.Provider)[] specifies a `Provider` for the value for the property, overwriting whatever value may have been present. This allows you to wire together `Provider` and `Property` instances before the values are configured.
 ** A `Property` can be created by the factory method api:org.gradle.api.model.ObjectFactory#property(java.lang.Class)[].
 
 Neither of these types nor their subtypes are intended to be implemented by a build script or plugin author.  Gradle provides several factory methods to create instances of these types. See the <<lazy_configuration_reference,Quick Reference>> for all of the types and factories available.
@@ -57,7 +58,7 @@ The following demonstrates a task with a read-only property and a configurable p
 </sample>
 ++++
 
-The `Greeting` task has a `Property<String>` for the mutable part of the message and a `Provider` for the modified, read-only, message.
+The `Greeting` task has a `Property<String>` for the mutable part of the message and a `Provider<String>` for the calculated, read-only, message.
 
 [NOTE]
 ====
@@ -138,15 +139,18 @@ Another thing to note is the absence of any explicit task dependency. Properties
 [[sec:working_with_collection]]
 === Working with collection Providers
 
-In this section, we are going to explore lazy collections. They work exactly like any other `Provider` and, just like `FileSystemLocation` providers, they have additional modeling around them. They are implemented as a strongly typed model called api:org.gradle.api.provider.ListProperty[]. You can create a new `ListProperty` using api:org.gradle.api.model.ObjectFactory#listProperty(java.lang.Class)[] and specifying the element's type.
+In this section, we are going to explore lazy collections. They work exactly like any other `Provider` and, just like `FileSystemLocation` providers, they have additional modeling around them. There are two provider interfaces available, one for `List` values and another for `Set` values:
 
-This type of property allows you to overwrite the entire list with api:org.gradle.api.provider.Property#set(org.gradle.api.provider.Provider)[] or add new elements through the various `add` methods:
+* For `List` values the interface is called api:org.gradle.api.provider.ListProperty[]. You can create a new `ListProperty` using api:org.gradle.api.model.ObjectFactory#listProperty(java.lang.Class)[] and specifying the element's type.
+* For `Set` values the interface is called api:org.gradle.api.provider.SetProperty[]. You can create a new `SetProperty` using api:org.gradle.api.model.ObjectFactory#setProperty(java.lang.Class)[] and specifying the element's type.
 
-* api:org.gradle.api.provider.ListProperty#add(T)[]: Add a single concrete element to the list
-* api:org.gradle.api.provider.ListProperty#add(org.gradle.api.provider.Provider)[]: Add a lazily evaluated element to the list
-* api:org.gradle.api.provider.ListProperty#addAll(org.gradle.api.provider.Provider)[]: Add a lazily evaluated list of elements to the list
+This type of property allows you to overwrite the entire collection value with api:org.gradle.api.provider.HasMultipleValues#set(java.lang.Iterable)[] and api:org.gradle.api.provider.HasMultipleValues#set(org.gradle.api.provider.Provider)[] or add new elements through the various `add` methods:
 
-Just like every `Provider`, the list is evaluated when api:org.gradle.api.provider.Provider#get()[] is called. The following example show the api:org.gradle.api.provider.ListProperty[] in action:
+* api:org.gradle.api.provider.HasMultipleValues#add(T)[]: Add a single concrete element to the collection
+* api:org.gradle.api.provider.HasMultipleValues#add(org.gradle.api.provider.Provider)[]: Add a lazily evaluated element to the collection
+* api:org.gradle.api.provider.HasMultipleValues#addAll(org.gradle.api.provider.Provider)[]: Add a lazily evaluated collection of elements to the list
+
+Just like every `Provider`, the collection is calculated when api:org.gradle.api.provider.Provider#get()[] is called. The following example show the api:org.gradle.api.provider.ListProperty[] in action:
 
 ++++
 <sample id="listProperty" dir="providers/listProperty" title="List property">
@@ -224,6 +228,11 @@ The Provider API is <<feature_lifecycle,incubating>>. Please create new issues a
 |api:org.gradle.api.provider.Provider[]<List<T>>
 |api:org.gradle.api.provider.ListProperty[]
 |* api:org.gradle.api.model.ObjectFactory#listProperty(java.lang.Class)[]
+
+|Set of any type
+|api:org.gradle.api.provider.Provider[]<Set<T>>
+|api:org.gradle.api.provider.SetProperty[]
+|* api:org.gradle.api.model.ObjectFactory#setProperty(java.lang.Class)[]
 
 |Any other type
 |api:org.gradle.api.provider.Provider[]<T>

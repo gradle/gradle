@@ -24,19 +24,20 @@ import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
+import org.gradle.language.nativeplatform.internal.Names;
 
 import java.util.Set;
 
 public class NativeVariant implements SoftwareComponentInternal, ComponentWithVariants {
-    private final String name;
     private final Usage linkUsage;
     private final Configuration linkElements;
     private final Usage runtimeUsage;
     private final Set<? extends PublishArtifact> runtimeArtifacts;
     private final Configuration runtimeElementsConfiguration;
+    private final Names names;
 
-    public NativeVariant(String name, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration dependencies) {
-        this.name = name;
+    public NativeVariant(Names names, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration dependencies) {
+        this.names = names;
         this.linkUsage = null;
         this.linkElements = null;
         this.runtimeUsage = usage;
@@ -44,8 +45,8 @@ public class NativeVariant implements SoftwareComponentInternal, ComponentWithVa
         this.runtimeElementsConfiguration = dependencies;
     }
 
-    public NativeVariant(String name, Usage linkUsage, Configuration linkElements, Usage runtimeUsage, Configuration runtimeElements) {
-        this.name = name;
+    public NativeVariant(Names names, Usage linkUsage, Configuration linkElements, Usage runtimeUsage, Configuration runtimeElements) {
+        this.names = names;
         this.linkUsage = linkUsage;
         this.linkElements = linkElements;
         this.runtimeUsage = runtimeUsage;
@@ -55,7 +56,7 @@ public class NativeVariant implements SoftwareComponentInternal, ComponentWithVa
 
     @Override
     public String getName() {
-        return name;
+        return names.getBaseName();
     }
 
     @Override
@@ -66,9 +67,9 @@ public class NativeVariant implements SoftwareComponentInternal, ComponentWithVa
     @Override
     public Set<? extends UsageContext> getUsages() {
         if (linkElements == null) {
-            return ImmutableSet.of(new DefaultUsageContext(name + "-runtime", runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
+            return ImmutableSet.of(new DefaultUsageContext(names.getLowerBaseName() + "-runtime", runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
         } else {
-            return ImmutableSet.of(new DefaultUsageContext(name + "-link", linkUsage, linkElements.getAllArtifacts(), linkElements), new DefaultUsageContext(name + "-runtime", runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
+            return ImmutableSet.of(new DefaultUsageContext(names.getLowerBaseName() + "-link", linkUsage, linkElements.getAllArtifacts(), linkElements), new DefaultUsageContext(names.getLowerBaseName() + "-runtime", runtimeUsage, runtimeArtifacts, runtimeElementsConfiguration));
         }
     }
 }

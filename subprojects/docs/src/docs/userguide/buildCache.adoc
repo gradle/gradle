@@ -158,6 +158,7 @@ Currently, the following built-in Gradle tasks are cacheable:
     api:org.gradle.testing.jacoco.tasks.JacocoMerge[],
     api:org.gradle.testing.jacoco.tasks.JacocoReport[]
 * Other tasks:
+    api:org.gradle.api.plugins.antlr.AntlrTask[]
     api:org.gradle.plugin.devel.tasks.ValidateTaskProperties[],
     api:org.gradle.api.tasks.WriteProperties[]
 
@@ -305,8 +306,7 @@ The remote build cache can be configured by specifying the type of build cache t
 The built-in local build cache, api:org.gradle.caching.local.DirectoryBuildCache[], uses a directory to store build cache artifacts.
 By default, this directory resides in the Gradle user home directory, but its location is configurable.
 
-Gradle will periodically clean-up the local cache directory to reduce it to a configurable target size.
-This means that the local build cache directory may temporarily grow over the target size until the next clean-up is scheduled.
+Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
 
 For more details on the configuration options refer to the DSL documentation of api:org.gradle.caching.local.DirectoryBuildCache[].
 Here is an example of the configuration.
@@ -385,6 +385,16 @@ It is also possible to configure the build cache from an <<sec:using_an_init_scr
     <test args="-I init.gradle"/>
 </sample>
 ++++
+
+[[sec:build_cache_composite]]
+==== Build cache and composite builds
+
+Gradle's <<composite_builds, composite build feature>> allows including other complete Gradle builds into another.
+Such included builds will inherit the build cache configuration from the top level build,
+regardless of whether the included builds define build cache configuration themselves or not.
+
+The build cache configuration present for any included build is effectively ignored, in favour of the top level build's configuration.
+This also applies to any `buildSrc` projects of any included builds.
 
 [[sec:build_cache_setup_http_backend]]
 === How to set up an HTTP build cache backend

@@ -121,7 +121,7 @@ public class GradlePomModuleDescriptorBuilder {
             scope = MavenScope.Compile;
         }
 
-        String version = determineVersion(dep, optional);
+        String version = determineVersion(dep);
         String mappedVersion = convertVersionFromMavenSyntax(version);
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(dep.getGroupId(), dep.getArtifactId(), new DefaultImmutableVersionConstraint(mappedVersion));
 
@@ -230,10 +230,9 @@ public class GradlePomModuleDescriptorBuilder {
      * - If this is an optional dependency: return the empty version
      *
      * @param dependency Dependency
-     * @param optional is this an optional dependency?
      * @return Resolved dependency version
      */
-    private String determineVersion(PomDependencyMgt dependency, boolean optional) {
+    private String determineVersion(PomDependencyMgt dependency) {
         String version = dependency.getVersion();
         version = (version == null || version.length() == 0) ? getDefaultVersion(dependency) : version;
         return version == null ? "" : version;

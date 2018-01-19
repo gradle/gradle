@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.tasks
 
-import org.gradle.language.cpp.AbstractCppInstalledToolChainIntegrationTest
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -27,7 +27,7 @@ import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
 @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
-class ExtractSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
+class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new IncrementalCppStaleCompileOutputApp()
 
     def setup() {
@@ -38,10 +38,13 @@ class ExtractSymbolsIntegrationTest extends AbstractCppInstalledToolChainIntegra
                 id 'cpp-application'
             }
             
-            task extractSymbolsDebug(type: ExtractSymbols) {
-                toolChain = linkDebug.toolChain
-                targetPlatform = linkDebug.targetPlatform
-                binaryFile.set linkDebug.binaryFile
+            task extractSymbolsDebug(type: ExtractSymbols) { extract ->
+                project.application.binaries.get { !it.optimized }.configure {
+                    def linkDebug = linkTask.get()
+                    extract.toolChain = linkDebug.toolChain
+                    extract.targetPlatform = linkDebug.targetPlatform
+                    extract.binaryFile.set linkDebug.binaryFile
+                }
                 symbolFile.set file("build/symbols")
             }
         """

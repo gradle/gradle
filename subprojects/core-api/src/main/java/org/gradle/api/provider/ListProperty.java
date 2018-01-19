@@ -29,37 +29,5 @@ import java.util.List;
  * @since 4.3
  */
 @Incubating
-public interface ListProperty<T> extends Property<List<T>> {
-    /**
-     * Adds an element to the property without evaluating existing providers already present.
-     *
-     * @param element The element
-     * @throws NullPointerException if the specified element is null
-     * @since 4.4
-     */
-    void add(T element);
-
-    /**
-     * Adds an element to the property given by the provider without evaluating existing providers already present.
-     * <p>
-     *     The given provider will be queried when it's time to get the value of the property.
-     *     This property will be unchanged if its value is not defined.
-     * </p>
-     *
-     * @param provider Provider
-     * @since 4.4
-     */
-    void add(Provider<? extends T> provider);
-
-    /**
-     * Adds a collection of elements to the property given by the provider without evaluating existing providers
-     * <p>
-     *     The given provider will be queried when it's time to get the value of the property.
-     *     This property will be unchanged if its value is not defined.
-     * </p>
-     *
-     * @param provider Provider of elements
-     * @since 4.4
-     */
-    void addAll(Provider<? extends Iterable<T>> provider);
+public interface ListProperty<T> extends Provider<List<T>>, HasMultipleValues<T> {
 }

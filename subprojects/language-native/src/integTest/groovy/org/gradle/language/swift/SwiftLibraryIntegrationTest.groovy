@@ -18,15 +18,15 @@ package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLib
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.Matchers.containsText
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "skip compile and link tasks when no source"() {
         given:
@@ -75,7 +75,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
-    def "can build release variant of library"() {
+    def "can build debug and release variants of library"() {
         given:
         def lib = new SwiftLib()
         settingsFile << "rootProject.name = '${lib.projectName}'"
@@ -87,13 +87,21 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
          """
 
         when:
+        succeeds "assembleDebug"
+
+        then:
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assembleDebug")
+        file("build/modules/main/debug/${lib.moduleName}.swiftmodule").assertIsFile()
+        sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
+
+        when:
         succeeds "assembleRelease"
 
         then:
         result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease", ":extractSymbolsRelease", ":stripSymbolsRelease", ":assembleRelease")
         file("build/modules/main/release/${lib.moduleName}.swiftmodule").assertIsFile()
-        sharedLibrary("build/lib/main/release/${lib.moduleName}" ).assertExists()
-        sharedLibrary("build/lib/main/release/${lib.moduleName}" ).assertHasStrippedDebugSymbolsFor(lib.sourceFileNames)
+        sharedLibrary("build/lib/main/release/${lib.moduleName}").assertExists()
+        sharedLibrary("build/lib/main/release/${lib.moduleName}").assertHasStrippedDebugSymbolsFor(lib.sourceFileNames)
     }
 
     def "can use link file as task dependency"() {
@@ -106,15 +114,36 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         buildFile << """
             apply plugin: 'swift-library'
             
+            task assembleLinkDebug {
+                dependsOn library.binaries.getByName('mainDebug').map { it.linkFile }
+            }
+         """
+
+        expect:
+        succeeds "assembleLinkDebug"
+        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assembleLinkDebug")
+        sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
+    }
+
+    def "can use runtime file as task dependency"() {
+        given:
+        def lib = new SwiftLib()
+        settingsFile << "rootProject.name = '${lib.projectName}'"
+        lib.writeToProject(testDirectory)
+
+        and:
+        buildFile << """
+            apply plugin: 'swift-library'
+            
             task assembleRuntimeDebug {
-                dependsOn library.debugSharedLibrary.runtimeFile
+                dependsOn library.binaries.getByName('mainDebug').map { it.runtimeFile }
             }
          """
 
         expect:
         succeeds "assembleRuntimeDebug"
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assembleRuntimeDebug")
-        sharedLibrary("build/lib/main/debug/${lib.moduleName}" ).assertExists()
+        sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
     def "can use objects as task dependency"() {
@@ -128,7 +157,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
             apply plugin: 'swift-library'
             
             task compileDebug {
-                dependsOn library.debugSharedLibrary.objects
+                dependsOn library.binaries.getByName('mainDebug').map { it.objects }
             }
          """
 
@@ -136,6 +165,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         succeeds "compileDebug"
         result.assertTasksExecuted(":compileDebugSwift", ":compileDebug")
         objectFiles(lib)*.assertExists()
+        sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertDoesNotExist()
     }
 
     def "build logic can change source layout convention"() {
@@ -157,7 +187,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
-        sharedLibrary("build/lib/main/debug/${lib.moduleName}" ).assertExists()
+        sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
     def "build logic can add individual source files"() {
@@ -182,7 +212,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         expect:
         succeeds "assemble"
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
-        sharedLibrary("build/lib/main/debug/${lib.moduleName}" ).assertExists()
+        sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
     def "build logic can change buildDir"() {
@@ -216,9 +246,11 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         and:
         buildFile << """
             apply plugin: 'swift-library'
-            compileDebugSwift.objectFileDir = layout.buildDirectory.dir("object-files")
-            compileDebugSwift.moduleFile = layout.buildDirectory.file("some-lib.swiftmodule")
-            linkDebug.binaryFile = layout.buildDirectory.file("some-lib/main.bin")
+            library.binaries.getByName('mainDebug').configure {
+                compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
+                compileTask.get().moduleFile = layout.buildDirectory.file("some-lib.swiftmodule")
+                linkTask.get().binaryFile = layout.buildDirectory.file("some-lib/main.bin")
+            }
          """
 
         expect:
@@ -245,7 +277,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         succeeds "assemble"
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
         file("build/modules/main/debug/${lib.moduleName}.swiftmodule").assertExists()
-        sharedLibrary("build/lib/main/debug/${lib.moduleName}" ).assertExists()
+        sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
     def "can compile and link against another library"() {
@@ -331,6 +363,27 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
         assertMainSymbolIsAbsent(objectFiles(lib))
         assertMainSymbolIsAbsent(sharedLibrary("build/lib/main/debug/Greeter"))
+    }
+
+    def "fails when no linkage is specified"() {
+        def library = new SwiftLib()
+        buildFile << """
+            apply plugin: 'swift-library'
+
+            library {
+                linkage = []
+            }
+        """
+        settingsFile << """
+            rootProject.name = 'foo'
+        """
+        library.writeToProject(testDirectory)
+
+        when:
+        fails('assemble')
+
+        then:
+        failure.assertHasCause('A linkage needs to be specified for the library.')
     }
 
     private static void assertMainSymbolIsAbsent(List<NativeBinaryFixture> binaries) {

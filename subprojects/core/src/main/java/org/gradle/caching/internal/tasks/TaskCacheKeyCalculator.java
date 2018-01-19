@@ -38,8 +38,12 @@ public class TaskCacheKeyCalculator {
         for (Map.Entry<String, ValueSnapshot> entry : inputProperties.entrySet()) {
             DefaultBuildCacheHasher newHasher = new DefaultBuildCacheHasher();
             entry.getValue().appendToHasher(newHasher);
-            HashCode hash = newHasher.hash();
-            builder.appendInputPropertyHash(entry.getKey(), hash);
+            if (newHasher.isValid()) {
+                HashCode hash = newHasher.hash();
+                builder.appendInputPropertyHash(entry.getKey(), hash);
+            } else {
+                builder.inputPropertyLoadedByUnknownClassLoader(entry.getKey());
+            }
         }
 
         SortedMap<String, FileCollectionSnapshot> inputFilesSnapshots = execution.getInputFilesSnapshot();

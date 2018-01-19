@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
 import java.util.Collection;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Map;
  * @param <T> type of the dependency metadata in this collection
  * @since 4.4
  */
+@Incubating
 public interface DependenciesMetadata<T extends DependencyMetadata> extends Collection<T> {
 
     /**
@@ -49,7 +51,7 @@ public interface DependenciesMetadata<T extends DependencyMetadata> extends Coll
      * @param dependencyNotation the dependency
      * @param configureAction action to configure details of the dependency - see {@link DependencyMetadata}
      */
-    void add(String dependencyNotation, Action<T> configureAction);
+    void add(String dependencyNotation, Action<? super T> configureAction);
 
     /**
      * Add a dependency or a dependency constraint using the map notation: <code>group: <i>group</i>, name: <i>name</i>, version: <i>version</i></code>.
@@ -57,5 +59,5 @@ public interface DependenciesMetadata<T extends DependencyMetadata> extends Coll
      * @param dependencyNotation the dependency
      * @param configureAction action to configure details of the dependency - see {@link DependencyMetadata}
      */
-    void add(Map<String, String> dependencyNotation, Action<T> configureAction);
+    void add(Map<String, String> dependencyNotation, Action<? super T> configureAction);
 }

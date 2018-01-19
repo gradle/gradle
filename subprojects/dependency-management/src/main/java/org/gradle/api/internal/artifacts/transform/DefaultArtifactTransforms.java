@@ -20,16 +20,16 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 public class DefaultArtifactTransforms implements ArtifactTransforms {
-    private final VariantAttributeMatchingCache matchingCache;
+    private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
 
-    public DefaultArtifactTransforms(VariantAttributeMatchingCache matchingCache, AttributesSchemaInternal schema) {
-        this.matchingCache = matchingCache;
+    public DefaultArtifactTransforms(ConsumerProvidedVariantFinder consumerProvidedVariantFinder, AttributesSchemaInternal schema) {
+        this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
     }
 
     public VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants) {
-        return new AttributeMatchingVariantSelector(matchingCache, schema, consumerAttributes.asImmutable(), allowNoMatchingVariants);
+        return new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, schema, consumerAttributes.asImmutable(), allowNoMatchingVariants);
     }
 
 }

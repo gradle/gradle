@@ -16,15 +16,17 @@
 
 package org.gradle.api.internal.artifacts.vcs;
 
-import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
+import org.gradle.api.specs.Spec;
 import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.initialization.NestedBuildFactory;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -36,6 +38,7 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.util.CollectionUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
 import org.gradle.vcs.VersionRef;
@@ -44,8 +47,10 @@ import org.gradle.vcs.internal.VcsMappingInternal;
 import org.gradle.vcs.internal.VcsMappingsStore;
 import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
+import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -76,7 +81,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
         if (vcsMappingInternal != null) {
             // Safe to cast because if it weren't a ModuleComponentSelector, vcsMappingInternal would be null.
-            ModuleComponentSelector depSelector = (ModuleComponentSelector) dependency.getSelector();
+            final ModuleComponentSelector depSelector = (ModuleComponentSelector) dependency.getSelector();
             vcsMappingsStore.getVcsMappingRule().execute(vcsMappingInternal);
 
             // TODO: Need failure handling, e.g., cannot clone repository
@@ -93,31 +98,35 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     return;
                 }
 
-                File dependencyWorkingDir = new File(populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion), spec.getRootDir());
-
                 //TODO: Allow user to provide settings script in VcsMapping
-                if (!(new File(dependencyWorkingDir, "settings.gradle").exists())
-                    && !(new File(dependencyWorkingDir, "settings.gradle.kts").exists())) {
-                    throw new GradleException(
-                        String.format(
-                            "Included build from '%s' must contain a settings file.",
-                            spec.getDisplayName()));
-                }
+                File dependencyWorkingDir = new File(populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion), spec.getRootDir());
 
                 // TODO: This shouldn't rely on the service registry to find NestedBuildFactory
                 IncludedBuildRegistry includedBuildRegistry = serviceRegistry.get(IncludedBuildRegistry.class);
                 NestedBuildFactory nestedBuildFactory = serviceRegistry.get(NestedBuildFactory.class);
-                IncludedBuild includedBuild = includedBuildRegistry.addImplicitBuild(dependencyWorkingDir, nestedBuildFactory);
+                IncludedBuild includedBuild = includedBuildRegistry.addImplicitBuild(((AbstractVersionControlSpec)spec).getBuildDefinition(dependencyWorkingDir), nestedBuildFactory);
 
-                String projectPath = ":"; // TODO: This needs to be extracted by configuring the build. Assume it's from the root for now
-                LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(DefaultProjectComponentIdentifier.newProjectId(includedBuild, projectPath));
-
-                if (componentMetaData == null) {
-                    result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(includedBuild, projectPath), vcsMappingInternal + " could not be resolved into a usable project."));
+                Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> moduleToProject = includedBuildRegistry.getModuleToProjectMapping(includedBuild);
+                Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry = CollectionUtils.findFirst(moduleToProject, new Spec<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>>() {
+                        @Override
+                        public boolean isSatisfiedBy(Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry) {
+                            ModuleVersionIdentifier possibleMatch = entry.left;
+                            return depSelector.getGroup().equals(possibleMatch.getGroup())
+                                && depSelector.getModule().equals(possibleMatch.getName());
+                        }
+                });
+                if (entry == null) {
+                    result.failed(new ModuleVersionResolveException(vcsMappingInternal.getRequested(), spec.getDisplayName() + " did not contain a project publishing the specified dependency."));
                 } else {
-                    result.resolved(componentMetaData);
+                    LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(entry.right);
+
+                    if (componentMetaData == null) {
+                        result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(includedBuild, entry.right.getProjectPath()), vcsMappingInternal.getRepository().getDisplayName() + " could not be resolved into a usable project."));
+                    } else {
+                        result.resolved(componentMetaData);
+                    }
+                    return;
                 }
-                return;
             }
         }
 

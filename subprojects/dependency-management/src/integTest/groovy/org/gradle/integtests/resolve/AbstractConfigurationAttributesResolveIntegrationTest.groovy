@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -105,8 +106,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
     }
 
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration"() {
+        def resolveRelease = new ResolveTestFixture(buildFile, '_compileFreeRelease')
+        def resolveDebug = new ResolveTestFixture(buildFile, '_compileFreeDebug')
+
         given:
-        file('settings.gradle') << "include 'a', 'b'"
+        file('settings.gradle') << """rootProject.name='test' 
+include 'a', 'b'
+"""
         buildFile << """
             $typeDefs
 
@@ -150,18 +156,38 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
             }
 
         """
+        def origFile = buildFile.text
 
         when:
-        run ':a:checkDebug'
+        resolveRelease.prepare()
+        run ':a:checkDeps'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+        result.assertTasksExecuted(':b:barJar', ':a:checkDeps')
+        resolveRelease.expectGraph {
+            root(":a", "test:a:") {
+                project(':b', 'test:b:') {
+                    variant 'bar', [flavor: 'free', buildType: 'release']
+                    artifact name: 'b-bar'
+                }
+            }
+        }
 
         when:
-        run ':a:checkRelease'
+        buildFile.text = origFile
+        resolveDebug.prepare()
+        run ':a:checkDeps'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
+        result.assertTasksExecuted(':b:fooJar', ':a:checkDeps')
+        resolveDebug.expectGraph {
+            root(":a", "test:a:") {
+                project(':b', 'test:b:') {
+                    variant 'foo', [flavor: 'free', buildType: 'debug']
+                    artifact name: 'b-foo'
+                }
+            }
+        }
     }
 
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration and target configuration is not top-level"() {

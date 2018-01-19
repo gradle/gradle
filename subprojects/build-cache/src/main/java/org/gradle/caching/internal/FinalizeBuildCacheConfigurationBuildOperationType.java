@@ -42,6 +42,13 @@ public final class FinalizeBuildCacheConfigurationBuildOperationType implements 
     @UsedByScanPlugin
     public interface Details {
 
+        /**
+         * The path to the build that the build cache configuration is associated with.
+         *
+         * @since 4.5
+         */
+        String getBuildPath();
+
     }
 
     @UsedByScanPlugin

@@ -17,8 +17,10 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.RegularFile;
-import org.gradle.api.provider.Provider;
+import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.nativeplatform.ComponentWithLinkUsage;
+import org.gradle.language.nativeplatform.ComponentWithRuntimeUsage;
+import org.gradle.language.nativeplatform.ComponentWithSharedLibrary;
 
 /**
  * A shared library built from C++ source.
@@ -26,18 +28,5 @@ import org.gradle.api.provider.Provider;
  * @since 4.2
  */
 @Incubating
-public interface CppSharedLibrary extends CppBinary {
-    /**
-     * Returns the link-time file for this binary.
-     *
-     * @since 4.4
-     */
-    Provider<RegularFile> getLinkFile();
-
-    /**
-     * Returns the run-time file for this binary.
-     *
-     * @since 4.4
-     */
-    Provider<RegularFile> getRuntimeFile();
+public interface CppSharedLibrary extends CppBinary, ComponentWithSharedLibrary, ComponentWithLinkUsage, ComponentWithRuntimeUsage, ComponentWithOutputs {
 }

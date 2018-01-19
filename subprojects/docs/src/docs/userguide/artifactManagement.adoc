@@ -18,11 +18,11 @@
 
 [NOTE]
 ====
- 
+
 This chapter describes the _original_ publishing mechanism available in Gradle 1.0: in Gradle 1.3 a new mechanism for publishing was introduced. While this new mechanism is <<feature_lifecycle,incubating>> and not yet complete, it introduces some new concepts and features that do (and will) make Gradle publishing even more powerful.
-  
+
 You can read about the new publishing plugins in <<publishing_ivy>> and <<publishing_maven>>. Please try them out and give us feedback.
- 
+
 ====
 
 
@@ -88,7 +88,7 @@ There is a map-based syntax for defining an artifact using a file. The map must 
 [[sec:publishing_artifacts]]
 === Publishing artifacts
 
-We have said that there is a specific upload task for each configuration. Before you can do an upload, you have to configure the upload task and define where to publish the artifacts to. The repositories you have defined (as described in <<sec:repositories>>) are not automatically used for uploading. In fact, some of those repositories only allow downloading artifacts, not uploading. Here is an example of how you can configure the upload task of a configuration:
+We have said that there is a specific upload task for each configuration. Before you can do an upload, you have to configure the upload task and define where to publish the artifacts to. The repositories you have defined (as described in <<declaring_repositories>>) are not automatically used for uploading. In fact, some of those repositories only allow downloading artifacts, not uploading. Here is an example of how you can configure the upload task of a configuration:
 
 ++++
 <sample id="uploading" dir="userguide/artifacts/uploading" title="Configuration of the upload task">
@@ -96,7 +96,7 @@ We have said that there is a specific upload task for each configuration. Before
         </sample>
 ++++
 
-As you can see, you can either use a reference to an existing repository or create a new repository. As described in <<sub:more_about_ivy_resolvers>>, you can use all the Ivy resolvers suitable for the purpose of uploading.
+As you can see, you can either use a reference to an existing repository or create a new repository.
 
 If an upload repository is defined with multiple patterns, Gradle must choose a pattern to use for uploading each file. By default, Gradle will upload to the pattern defined by the `url` parameter, combined with the optional `layout` parameter. If no `url` parameter is supplied, then Gradle will use the first defined `artifactPattern` for uploading, or the first defined `ivyPattern` for uploading Ivy files, if this is set.
 
@@ -107,4 +107,4 @@ Uploading to a Maven repository is described in <<uploading_to_maven_repositorie
 
 If your project is supposed to be used as a library, you need to define what are the artifacts of this library and what are the dependencies of these artifacts. The Java plugin adds a `runtime` configuration for this purpose, with the implicit assumption that the `runtime` dependencies are the dependencies of the artifact you want to publish. Of course this is fully customizable. You can add your own custom configuration or let the existing configurations extend from other configurations. You might have a different group of artifacts which have a different set of dependencies. This mechanism is very powerful and flexible.
 
-If someone wants to use your project as a library, she simply needs to declare which configuration of the dependency to depend on. A Gradle dependency offers the `configuration` property to declare this. If this is not specified, the `default` configuration is used (see <<sec:dependency_configurations>>). Using your project as a library can either happen from within a multi-project build or by retrieving your project from a repository. In the latter case, an `ivy.xml` descriptor in the repository is supposed to contain all the necessary information. If you work with Maven repositories you don't have the flexibility as described above. For how to publish to a Maven repository, see the section <<uploading_to_maven_repositories>>.
+If someone wants to use your project as a library, she simply needs to declare which configuration of the dependency to depend on. A Gradle dependency offers the `configuration` property to declare this. If this is not specified, the `default` configuration is used (see <<sub:scope_of_dependency_configurations>>). Using your project as a library can either happen from within a multi-project build or by retrieving your project from a repository. In the latter case, an `ivy.xml` descriptor in the repository is supposed to contain all the necessary information. If you work with Maven repositories you don't have the flexibility as described above. For how to publish to a Maven repository, see the section <<uploading_to_maven_repositories>>.

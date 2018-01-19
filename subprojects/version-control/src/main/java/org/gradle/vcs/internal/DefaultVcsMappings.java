@@ -32,7 +32,7 @@ public class DefaultVcsMappings implements VcsMappings {
     private final Gradle gradle;
 
     public DefaultVcsMappings(Instantiator instantiator, VcsMappingsStore vcsMappings, Gradle gradle) {
-        this.versionControlSpecFactory = new VersionControlSpecFactory(instantiator);
+        this.versionControlSpecFactory = new VersionControlSpecFactory(instantiator, gradle.getStartParameter());
         this.vcsMappings = vcsMappings;
         this.gradle = gradle;
     }

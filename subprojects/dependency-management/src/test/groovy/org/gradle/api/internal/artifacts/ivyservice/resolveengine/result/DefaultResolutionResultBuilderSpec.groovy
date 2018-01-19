@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult
@@ -122,8 +123,8 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     def "includes selection reason"() {
         given:
         node("a")
-        node("b", VersionSelectionReasons.FORCED)
-        node("c", VersionSelectionReasons.CONFLICT_RESOLUTION)
+        node("b", VersionSelectionReasons.of([VersionSelectionReasons.FORCED]))
+        node("c", VersionSelectionReasons.of([VersionSelectionReasons.CONFLICT_RESOLUTION]))
         node("d")
         resolvedConf("a", [dep("b"), dep("c"), dep("d", new RuntimeException("Boo!"))])
         resolvedConf("b", [])
@@ -237,12 +238,12 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 """
     }
 
-    private void node(String module, ComponentSelectionReason reason = VersionSelectionReasons.REQUESTED) {
+    private void node(String module, ComponentSelectionReason reason = VersionSelectionReasons.requested()) {
         DummyModuleVersionSelection moduleVersion = comp(module, reason)
         builder.visitComponent(moduleVersion)
     }
 
-    private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = VersionSelectionReasons.REQUESTED) {
+    private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = VersionSelectionReasons.requested()) {
         def moduleVersion = new DummyModuleVersionSelection(resultId: id(module), moduleVersion: newId("x", module, "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
         moduleVersion
     }
@@ -267,6 +268,8 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         ModuleVersionIdentifier moduleVersion
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
+        String variantName
+        AttributeContainer variantAttributes
     }
 
     class DummyInternalDependencyResult implements DependencyResult {

@@ -17,6 +17,7 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.GradleLauncher;
@@ -39,6 +40,7 @@ public class BuildSourceBuilder {
     };
     public static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
     };
+    public static final String BUILD_SRC = "buildSrc";
 
     private final NestedBuildFactory nestedBuildFactory;
     private final ClassLoaderScope classLoaderScope;
@@ -81,7 +83,7 @@ public class BuildSourceBuilder {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Build buildSrc").
-                    progressDisplayName("buildSrc").
+                    progressDisplayName("Building buildSrc").
                     details(BUILD_BUILDSRC_DETAILS);
             }
         });
@@ -106,7 +108,8 @@ public class BuildSourceBuilder {
         startParameterArg.setProjectProperties(startParameter.getProjectProperties());
         startParameterArg.setSearchUpwards(false);
         startParameterArg.setProfile(startParameter.isProfile());
-        GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(startParameterArg);
+        // TODO: Migrate buildSrc builds to be more similar to other "included" builds.
+        GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(BuildDefinition.fromStartParameter(startParameterArg));
         GradleInternal build = gradleLauncher.getGradle();
         if (build.getParent().findIdentityPath() == null) {
             // When nested inside a nested build, we need to synthesize a path for this build, as the root project is not yet known for the parent build

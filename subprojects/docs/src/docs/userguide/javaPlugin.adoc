@@ -757,6 +757,16 @@ Tests are executed in a separate JVM, isolated from the main build process. The 
 
 There are a number of properties which control how the test process is launched. This includes things such as system properties, JVM arguments, and the Java executable to use.
 
+[NOTE]
+====
+
+The test process can exit unexpectedly if configured incorrectly. For instance, if the Java executable does not exist or an invalid JVM argument is provided, the test process will fail to start.
+Similarly, if a test makes programmatic changes to the test process, this can also cause unexpected failures.  For example, issues may occur if a https://docs.oracle.com/javase/8/docs/api/java/lang/SecurityManager.html[SecurityManager] is modified in a test because
+Gradle's internal messaging depends on reflection and socket communication, which may be disrupted if the permissions on the security manager change. (In this case, you should restore the original `SecurityManager` after the test so that the
+gradle test worker process can continue to function.)
+
+====
+
 You can specify whether or not to execute your tests in parallel. Gradle provides parallel test execution by running multiple test processes concurrently. Each test process executes only a single test at a time, so you generally don't need to do anything special to your tests to take advantage of this. The `maxParallelForks` property specifies the maximum number of test processes to run at any given time. The default is 1, that is, do not execute the tests in parallel.
 
 The test process sets the `org.gradle.test.worker` system property to a unique identifier for that test process, which you can use, for example, in files names or other resource identifiers.
@@ -787,9 +797,9 @@ Starting with Gradle 1.10, it is possible to include only specific tests, based 
 
 Test filtering feature has following characteristic:
 
-* Fully qualified class name or fully qualified method name is supported, e.g. “org.gradle.SomeTest”, “org.gradle.SomeTest.someMethod”
+* Fully qualified class name or fully qualified method name is supported, e.g. ???org.gradle.SomeTest???, ???org.gradle.SomeTest.someMethod???
 * Wildcard '*' is supported for matching any characters
-* Command line option “--tests” is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple “--tests” options and tests matching any of those patterns will be included.
+* Command line option ???--tests??? is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple ???--tests??? options and tests matching any of those patterns will be included.
 * Gradle tries to filter the tests given the limitations of the test framework API. Some advanced, synthetic tests may not be fully compatible with filtering. However, the vast majority of tests and use cases should be handled neatly.
 * Test filtering supersedes the file-based test selection. The latter may be completely replaced in future. We will grow the test filtering API and add more kinds of filters.
 
@@ -818,6 +828,11 @@ Some examples of using the command line option:
 * `gradle test --tests "\*ParameterizedTest.*[2]"`
 * `gradle someTestTask --tests \*UiTest someOtherTestTask --tests \*WebTest\*ui`
 
+This is something you can combine with <<continuous_build, continuous build>> using `--continuous` (or `-t`, for short) to re-execute a subset of tests immediately after every change.
+
+----
+gradle test --continuous --tests "com.mypackage.foo.*"
+----
 
 [[sec:single_test_execution_via_system_properties]]
 ==== Single test execution via System Properties
@@ -828,7 +843,7 @@ Some examples of using the command line option:
 This mechanism has been superseded by 'Test Filtering', described above.
 ====
 
-Setting a system property of __taskName.single__ = __testNamePattern__ will only execute tests that match the specified __testNamePattern__. The __taskName__ can be a full multi-project path like “:sub1:sub2:test” or just the task name. The __testNamePattern__ will be used to form an include pattern of “\**/testNamePattern*.class”. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples:
+Setting a system property of __taskName.single__ = __testNamePattern__ will only execute tests that match the specified __testNamePattern__. The __taskName__ can be a full multi-project path like ???:sub1:sub2:test??? or just the task name. The __testNamePattern__ will be used to form an include pattern of ???\**/testNamePattern*.class???. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples:
 
 * `gradle -Dtest.single=ThisUniquelyNamedTest test`
 * `gradle -Dtest.single=a/b/ test`
@@ -853,7 +868,7 @@ When using TestNG, we scan for methods annotated with `@Test`.
 
 Note that abstract classes are not executed. Gradle also scans up the inheritance tree into jar files on the test classpath.
 
-If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are “`\**/*Tests.class`”, “`*\*/*Test.class`” and “`*\*/Abstract*.class`” for include and exclude, respectively.
+If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are ???`\**/*Tests.class`???, ???`*\*/*Test.class`??? and ???`*\*/Abstract*.class`??? for include and exclude, respectively.
 
 [[test_grouping]]
 ==== Test grouping
@@ -882,7 +897,7 @@ The TestNG framework has a quite similar concept. In TestNG you can specify diff
 
 TestNG allows explicit control of the execution order of tests.
 
-The `preserveOrder` property controls whether tests are executed in deterministic order. Preserving the order guarantees that the complete test (including `@BeforeXXX` and `@AfterXXX`) is run in a test thread before the next test is run. While preserving the order of tests is the default behavior when directly working with `testng.xml` files, the http://testng.org/javadocs/org/testng/TestNG.html[TestNG API], that is used for running tests programmatically, as well as Gradle's TestNG integration execute tests in unpredictable order by default.footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] Preserving the order of tests was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
+The `preserveOrder` property controls whether tests are executed in deterministic order. Preserving the order guarantees that the complete test (including `@BeforeXXX` and `@AfterXXX`) is run in a test thread before the next test is run. While preserving the order of tests is the default behavior when directly working with `testng.xml` files, the https://jitpack.io/com/github/cbeust/testng/master/javadoc/org/testng/TestNG.html[TestNG API], that is used for running tests programmatically, as well as Gradle's TestNG integration execute tests in unpredictable order by default.footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] Preserving the order of tests was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testngpreserveorder" dir="testing/testng/preserveorder" title="Preserving order of TestNG tests">
@@ -993,7 +1008,7 @@ Manifests are merged in the order they are declared by the `from` statement. If 
 You can easily write a manifest to disk.
 
 ++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="manifest" dir="userguide/tutorial/manifest" title="Separate MANIFEST.MF for a particular archive">
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="manifest" dir="userguide/tutorial/manifest" title="Saving a MANIFEST.MF to disk">
                 <sourcefile file="build.gradle" snippet="write"/>
             </sample>
 ++++

@@ -28,9 +28,12 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Rule
     GitRepository deeperRepo = new GitRepository('deeperDep', temporaryFolder.getTestDirectory())
 
+    @Rule
+    GitRepository evenDeeperRepo = new GitRepository('evenDeeperDep', temporaryFolder.getTestDirectory())
+
     def 'can define and use source repositories'() {
         given:
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
 
         settingsFile << """
             sourceControl {
@@ -50,10 +53,65 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         gitCheckout.file('.git').assertExists()
     }
 
+    def 'can define and use source repositories with submodules'() {
+        given:
+        // Populate submodule origin
+        evenDeeperRepo.file('foo').text = "baz"
+        evenDeeperRepo.commit('initial commit', "foo")
+        deeperRepo.file('foo').text = "bar"
+        deeperRepo.commit("initial commit", "foo")
+        // Add submodule to repo
+        deeperRepo.addSubmodule(evenDeeperRepo)
+        repo.addSubmodule(deeperRepo)
+        def commit = repo.commit('initial commit')
+
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds('assemble')
+
+        then:
+        // Git repo is cloned
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
+        gitCheckout.file('.git').assertExists()
+        // Submodule is cloned
+        gitCheckout.file('deeperDep/.git').assertExists()
+        gitCheckout.file('deeperDep/foo').text == "bar"
+        gitCheckout.file('deeperDep/evenDeeperDep/.git').assertExists()
+        gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "baz"
+
+        when:
+        // Update submodule origin
+        evenDeeperRepo.file('foo').text = "buzz"
+        evenDeeperRepo.commit("update file", "foo")
+        deeperRepo.file('foo').text = "baz"
+        deeperRepo.commit("update file", "foo")
+        // Update parent repository
+        deeperRepo.updateSubmodulesToLatest()
+        commit = repo.updateSubmodulesToLatest()
+        gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
+        succeeds('assemble')
+
+        then:
+        // Submodule is updated
+        gitCheckout.file('deeperDep/foo').text == "baz"
+        gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "buzz"
+    }
+
     @Issue('gradle/gradle-native#206')
     def 'can define and use source repositories with initscript resolution present'() {
         given:
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
         temporaryFolder.file('initialize.gradle') << """
         initscript {            
             dependencies {
@@ -85,7 +143,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Issue('gradle/gradle-native#207')
     def 'can use repositories even when clean is run'() {
         given:
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
 
         settingsFile << """
             sourceControl {
@@ -124,12 +182,12 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
                 }
             }
         """
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
         repo.createLightWeightTag('1.3.0')
 
         def javaFile = file('dep/src/main/java/Dep.java')
         javaFile.replace('class', 'interface')
-        repo.commit('Changed Dep to an interface', file('dep'))
+        repo.commit('Changed Dep to an interface')
 
         buildFile.replace('latest.integration', '1.3.0')
 
@@ -154,12 +212,12 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
                 }
             }
         """
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
         repo.createLightWeightTag('1.3.0')
 
         def javaFile = file('dep/src/main/java/Dep.java')
         javaFile.replace('class', 'interface')
-        repo.commit('Changed Dep to an interface', file('dep'))
+        repo.commit('Changed Dep to an interface')
 
         buildFile.replace('latest.integration', '1.4.0')
 
@@ -172,7 +230,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
 
         when:
         javaFile.replace('interface', 'class')
-        repo.commit('Switch it back to a class.', file('dep'))
+        repo.commit('Switch it back to a class.')
         repo.createLightWeightTag('1.4.0')
 
         then:
@@ -203,11 +261,11 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
                 compile "org.test:dep:1.4.0"
             }
         """
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
         repo.createLightWeightTag('1.3.0')
         def javaFile = file('dep/src/main/java/Dep.java')
         javaFile.replace('class', 'interface')
-        def commit2 = repo.commit('Changed Dep to an interface', file('dep'))
+        def commit2 = repo.commit('Changed Dep to an interface')
         repo.createLightWeightTag('1.4.0')
 
         when:
@@ -258,8 +316,8 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
              }
         """
 
-        def depCommit = repo.commit('initial commit', file('dep'))
-        def deeperCommit = deeperRepo.commit('initial commit', file('deeperDep'))
+        def depCommit = repo.commit('initial commit')
+        def deeperCommit = deeperRepo.commit('initial commit')
 
         when:
         succeeds('assemble')
@@ -314,7 +372,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
                 compile project(':bar')
             }
         """
-        def commit = repo.commit('initial commit', file('dep'))
+        def commit = repo.commit('initial commit')
         def block = server.expectAndBlock("block")
 
         when:
@@ -326,7 +384,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         // Change the head of the repo
         def javaFile = file('dep/src/main/java/Dep.java')
         javaFile.replace('class', 'interface')
-        repo.commit('Changed Dep to an interface', javaFile)
+        repo.commit('Changed Dep to an interface')
 
         // Finish up build
         block.releaseAll()
@@ -342,6 +400,81 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
 
         cleanup:
         server.stop()
+    }
+
+    def "external modifications to source dependency directories are reset"() {
+        given:
+        repo.file('foo').text = "bar"
+        def commit = repo.commit('initial commit')
+
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds('assemble')
+
+        then:
+        // Git repo is cloned
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
+        gitCheckout.file('foo').text == "bar"
+
+        when:
+        gitCheckout.file('foo').text = "baz"
+        succeeds('assemble')
+
+        then:
+        gitCheckout.file('foo').text == "bar"
+    }
+
+    def "external modifications to source dependency submodule directories are reset"() {
+        given:
+        // Populate submodule origin
+        evenDeeperRepo.file('foo').text = "baz"
+        evenDeeperRepo.commit('initial commit', "foo")
+        deeperRepo.file('foo').text = "bar"
+        deeperRepo.commit("initial commit", "foo")
+        // Add submodule to repo
+        deeperRepo.addSubmodule(evenDeeperRepo)
+        repo.addSubmodule(deeperRepo)
+        def commit = repo.commit('initial commit')
+
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from vcs(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds('assemble')
+
+        then:
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
+        gitCheckout.file('deeperDep/foo').text == "bar"
+        gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "baz"
+
+        when:
+        gitCheckout.file('deeperDep/foo').text = "baz"
+        gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "buzz"
+        succeeds('assemble')
+
+        then:
+        gitCheckout.file('deeperDep/foo').text == "bar"
+        gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "baz"
     }
 
     // TODO: Use HTTP hosting for git repo

@@ -24,13 +24,15 @@ import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
-public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T> implements PluginCollection<T> {
+import java.util.Collection;
 
-    public DefaultPluginCollection(Class<T> type) {
-        super(type);
+class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T> implements PluginCollection<T> {
+
+    DefaultPluginCollection(Class<T> type, Collection<T> plugins) {
+        super(type, plugins);
     }
-    
-    protected DefaultPluginCollection(DefaultPluginCollection<? super T> collection, CollectionFilter<T> filter) {
+
+    private DefaultPluginCollection(DefaultPluginCollection<? super T> collection, CollectionFilter<T> filter) {
         super(collection, filter);
     }
 

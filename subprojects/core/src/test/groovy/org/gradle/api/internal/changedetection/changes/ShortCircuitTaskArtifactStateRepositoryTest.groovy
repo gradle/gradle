@@ -21,9 +21,8 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
-import org.gradle.internal.id.UniqueId
+import org.gradle.api.internal.tasks.execution.TaskProperties
+import org.gradle.api.specs.AndSpec
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
@@ -35,22 +34,25 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
     def taskArtifactState = Mock(TaskArtifactState)
     def inputs = Mock(TaskInputsInternal)
     def outputs = Mock(TaskOutputsInternal)
+    def taskProperties = Mock(TaskProperties)
     def task = Mock(TaskInternal)
-    def upToDateSpec = Mock(Spec)
+    def upToDateSpec = Mock(AndSpec)
 
     def setup() {
         _ * task.getInputs() >> inputs
         _ * task.getOutputs() >> outputs
+        _ * outputs.getUpToDateSpec() >> upToDateSpec
     }
 
-    def doesNotLoadHistoryWhenTaskHasNoDeclaredOutputs() {
+    def doesNotLoadHistoryWhenTaskHasNoOutputs() {
         def messages = []
 
         when:
-        TaskArtifactState state = repository.getStateFor(task)
+        TaskArtifactState state = repository.getStateFor(task, taskProperties)
 
         then:
-        1 * outputs.getHasOutput() >> false
+        1 * upToDateSpec.isEmpty() >> true
+        1 * taskProperties.hasDeclaredOutputs() >> false
         0 * taskArtifactState._
 
         and:
@@ -61,15 +63,14 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
 
     def delegatesDirectToBackingRepositoryWithoutRerunTasks() {
         when:
-        TaskArtifactState state = repository.getStateFor(task)
+        TaskArtifactState state = repository.getStateFor(task, taskProperties)
 
         then:
-        1 * outputs.getHasOutput() >> true
-        1 * outputs.getUpToDateSpec() >> upToDateSpec
+        1 * taskProperties.hasDeclaredOutputs() >> true
         1 * upToDateSpec.isSatisfiedBy(task) >> true
 
         and:
-        1 * delegate.getStateFor(task) >> taskArtifactState
+        1 * delegate.getStateFor(task, taskProperties) >> taskArtifactState
         state == taskArtifactState
     }
 
@@ -78,11 +79,11 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
 
         when:
         startParameter.setRerunTasks(true)
-        def state = repository.getStateFor(task)
+        def state = repository.getStateFor(task, taskProperties)
 
         then:
-        1 * outputs.getHasOutput() >> true
-        1 * delegate.getStateFor(task) >> taskArtifactState
+        1 * upToDateSpec.empty >> false
+        1 * delegate.getStateFor(task, taskProperties) >> taskArtifactState
         0 * taskArtifactState._
 
         and:
@@ -90,22 +91,21 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         !messages.empty
 
         and:
-        !state.inputChanges.incremental
+        !state.getInputChanges(taskProperties).incremental
     }
 
     def taskArtifactsAreAlwaysOutOfDateWhenUpToDateSpecReturnsFalse() {
         def messages = []
 
         when:
-        def state = repository.getStateFor(task)
+        def state = repository.getStateFor(task, taskProperties)
 
         then:
-        1 * outputs.getHasOutput() >> true
-        1 * outputs.getUpToDateSpec() >> upToDateSpec
+        1 * taskProperties.hasDeclaredOutputs() >> true
         1 * upToDateSpec.isSatisfiedBy(task) >> false
 
         and:
-        1 * delegate.getStateFor(task) >> taskArtifactState
+        1 * delegate.getStateFor(task, taskProperties) >> taskArtifactState
         0 * taskArtifactState._
 
         and:
@@ -113,61 +113,7 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         !messages.empty
 
         and:
-        !state.inputChanges.incremental
-    }
-
-    def "origin build ID is null task has no output"() {
-        given:
-        1 * outputs.getHasOutput() >> false
-
-        when:
-        def state = repository.getStateFor(task)
-
-        then:
-        state.originBuildInvocationId == null
-    }
-
-    def "origin build ID is null if forcing rerun"() {
-        given:
-        1 * outputs.getHasOutput() >> true
-        1 * delegate.getStateFor(_) >> taskArtifactState
-        taskArtifactState.getOriginBuildInvocationId() >> UniqueId.generate()
-        startParameter.rerunTasks = true
-
-        when:
-        def state = repository.getStateFor(task)
-
-        then:
-        state.originBuildInvocationId == null
-    }
-
-    def "origin build ID is null up to date spec declares out of date"() {
-        given:
-        1 * outputs.getHasOutput() >> true
-        1 * delegate.getStateFor(_) >> taskArtifactState
-        taskArtifactState.getOriginBuildInvocationId() >> UniqueId.generate()
-        1 * outputs.getUpToDateSpec() >> Specs.SATISFIES_NONE
-
-        when:
-        def state = repository.getStateFor(task)
-
-        then:
-        state.originBuildInvocationId == null
-    }
-
-    def "propagates origin build ID if reusing state"() {
-        given:
-        def id = UniqueId.generate()
-        1 * outputs.getHasOutput() >> true
-        1 * delegate.getStateFor(_) >> taskArtifactState
-        1 * outputs.getUpToDateSpec() >> Specs.SATISFIES_ALL
-        taskArtifactState.getOriginBuildInvocationId() >> id
-
-        when:
-        def state = repository.getStateFor(task)
-
-        then:
-        state.originBuildInvocationId == id
+        !state.getInputChanges(taskProperties).incremental
     }
 
 }

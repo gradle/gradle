@@ -84,7 +84,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
             }
         }
     }
-    
+
     private CancellableOperationManager createCancellableOperationManager(BuildActionParameters actionParameters, BuildCancellationToken cancellationToken) {
         final CancellableOperationManager cancellableOperationManager;
         if (actionParameters.isInteractive()) {
@@ -92,7 +92,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                 System.setIn(new DisconnectableInputStream(System.in));
             }
             DisconnectableInputStream inputStream = (DisconnectableInputStream) System.in;
-            cancellableOperationManager = new DefaultCancellableOperationManager(executorFactory.create("cancel signal monitor"), inputStream, cancellationToken);
+            cancellableOperationManager = new DefaultCancellableOperationManager(executorFactory.create("Cancel signal monitor"), inputStream, cancellationToken);
         } else {
             cancellableOperationManager = new PassThruCancellableOperationManager(cancellationToken);
         }
@@ -110,6 +110,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
             ContinuousExecutionGate deploymentRequestExecutionGate = deploymentRegistry.getExecutionGate();
             executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager, deploymentRequestExecutionGate);
         }
+        cancellableOperationManager.closeInput();
     }
 
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices,

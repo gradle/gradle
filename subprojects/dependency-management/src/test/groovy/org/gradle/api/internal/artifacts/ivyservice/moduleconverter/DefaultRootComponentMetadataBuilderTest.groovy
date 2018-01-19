@@ -35,7 +35,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     ComponentIdentifierFactory componentIdentifierFactory = Mock()
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     ProjectFinder projectFinder = Mock()
-    ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder = Mock()
+    LocalComponentMetadataBuilder configurationComponentMetaDataBuilder = Mock()
     ConfigurationsProvider configurationsProvider = Mock()
 
     def builder = new DefaultRootComponentMetadataBuilder(

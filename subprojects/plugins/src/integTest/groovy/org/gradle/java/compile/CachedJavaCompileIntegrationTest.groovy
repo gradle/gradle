@@ -57,7 +57,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
         libraryAppProjectWithIncrementalCompilation()
 
         when:
-        withBuildCache().succeeds appCompileJava
+        withBuildCache().run appCompileJava
 
         then:
         executedAndNotSkipped appCompileJava
@@ -76,7 +76,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
         executedAndNotSkipped libraryCompileJava
 
         when:
-        withBuildCache().succeeds 'clean', appCompileJava
+        withBuildCache().run 'clean', appCompileJava
 
         then:
         result.output.contains "${appCompileJava} FROM-CACHE"

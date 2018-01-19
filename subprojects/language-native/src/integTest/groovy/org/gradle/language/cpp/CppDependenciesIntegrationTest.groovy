@@ -16,10 +16,11 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.vcs.internal.spec.DirectoryRepositorySpec
 
-class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegrationTest {
+class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new CppAppWithLibraries()
 
     def "can combine C++ builds in a composite"() {
@@ -87,7 +88,7 @@ class CppDependenciesIntegrationTest extends AbstractCppInstalledToolChainIntegr
     }
 
     private void assertTasksExecutedFor(String buildType) {
-        def tasks = [":app:depend${buildType}Cpp", ":hello:depend${buildType}Cpp", ":log:depend${buildType}Cpp", ":hello:compile${buildType}Cpp", ":hello:link${buildType}", ":log:compile${buildType}Cpp", ":log:link${buildType}", ":app:compile${buildType}Cpp", ":app:link${buildType}", ":app:install${buildType}"]
+        def tasks = [":hello:compile${buildType}Cpp", ":hello:link${buildType}", ":log:compile${buildType}Cpp", ":log:link${buildType}", ":app:compile${buildType}Cpp", ":app:link${buildType}", ":app:install${buildType}"]
         if (buildType == "Release" && !toolChain.visualCpp) {
             tasks << [ ":log:stripSymbols${buildType}", ":hello:stripSymbols${buildType}", ":app:stripSymbols${buildType}"]
         }

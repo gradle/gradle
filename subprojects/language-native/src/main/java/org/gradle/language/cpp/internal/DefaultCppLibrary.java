@@ -16,45 +16,102 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.provider.LockableSetProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.language.LibraryDependencies;
+import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppLibrary;
-import org.gradle.language.cpp.CppSharedLibrary;
+import org.gradle.language.cpp.CppPlatform;
+import org.gradle.language.internal.DefaultLibraryDependencies;
+import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
+import org.gradle.nativeplatform.Linkage;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary {
+public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary, PublicationAwareComponent {
+    private final ObjectFactory objectFactory;
     private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
-    private final DefaultCppSharedLibrary debug;
-    private final DefaultCppSharedLibrary release;
-    private final Configuration api;
+    private final LockableSetProperty<Linkage> linkage;
+    private final Property<CppBinary> developmentBinary;
+    private final Configuration apiElements;
+    private final MainLibraryVariant mainVariant;
+    private final DefaultLibraryDependencies dependencies;
 
     @Inject
-    public DefaultCppLibrary(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
-        super(name, fileOperations, objectFactory, configurations);
+    public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
+        super(name, fileOperations, objectFactory);
+        this.objectFactory = objectFactory;
+        this.developmentBinary = objectFactory.property(CppBinary.class);
         publicHeaders = fileOperations.files();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
-        debug = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Debug", projectLayout, objectFactory, getBaseName(), true, false, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
-        release = objectFactory.newInstance(DefaultCppSharedLibrary.class, name + "Release", projectLayout, objectFactory, getBaseName(), true, true, getCppSource(), getAllHeaderDirs(), configurations, getImplementationDependencies());
 
-        api = configurations.maybeCreate(getNames().withSuffix("api"));
-        api.setCanBeConsumed(false);
-        api.setCanBeResolved(false);
-        getImplementationDependencies().extendsFrom(api);
+        linkage = new LockableSetProperty<Linkage>(objectFactory.setProperty(Linkage.class));
+        linkage.add(Linkage.SHARED);
+
+        dependencies = objectFactory.newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));
+
+        Usage apiUsage = objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API);
+
+        apiElements = configurations.create(getNames().withSuffix("cppApiElements"));
+        apiElements.extendsFrom(dependencies.getApiDependencies());
+        apiElements.setCanBeResolved(false);
+        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+
+        mainVariant = new MainLibraryVariant("api", apiUsage, apiElements);
+    }
+
+    public DefaultCppSharedLibrary addSharedLibrary(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), debuggable, optimized, getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+        getBinaries().add(result);
+        return result;
+    }
+
+    public DefaultCppStaticLibrary addStaticLibrary(String nameSuffix, boolean debuggable, boolean optimized, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getName() + StringUtils.capitalize(nameSuffix), getBaseName(), debuggable, optimized, getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider);
+        getBinaries().add(result);
+        return result;
+    }
+
+    @Override
+    public Configuration getImplementationDependencies() {
+        return dependencies.getImplementationDependencies();
     }
 
     @Override
     public Configuration getApiDependencies() {
-        return api;
+        return dependencies.getApiDependencies();
+    }
+
+    @Override
+    public LibraryDependencies getDependencies() {
+        return dependencies;
+    }
+
+    public void dependencies(Action<? super LibraryDependencies> action) {
+        action.execute(dependencies);
+    }
+
+    public Configuration getApiElements() {
+        return apiElements;
+    }
+
+    @Override
+    public MainLibraryVariant getMainPublication() {
+        return mainVariant;
     }
 
     @Override
@@ -86,17 +143,12 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     }
 
     @Override
-    public CppSharedLibrary getDevelopmentBinary() {
-        return debug;
+    public Property<CppBinary> getDevelopmentBinary() {
+        return developmentBinary;
     }
 
     @Override
-    public CppSharedLibrary getDebugSharedLibrary() {
-        return debug;
-    }
-
-    @Override
-    public CppSharedLibrary getReleaseSharedLibrary() {
-        return release;
+    public LockableSetProperty<Linkage> getLinkage() {
+        return linkage;
     }
 }

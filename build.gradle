@@ -181,6 +181,7 @@ apply from: "gradle/buildScanUserData.gradle"
 apply from: "gradle/taskCacheBuildScanUserData.gradle"
 apply from: "gradle/versioning.gradle"
 apply from: "gradle/dependencies.gradle"
+apply from: "gradle/minifiedDependencies.gradle"
 apply from: "gradle/wrapper.gradle"
 apply from: "gradle/idea.gradle"
 apply from: "gradle/eclipse.gradle"
@@ -257,7 +258,13 @@ configurations {
         extendsFrom runtime
         extendsFrom gradlePlugins
     }
+
+    all {
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+    }
 }
+
+ext.allTestRuntimeDependencies = configurations.testRuntime.allDependencies
 
 def patchedExternalModulesDir = new File(buildDir, "external/files")
 def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).files.sort() })

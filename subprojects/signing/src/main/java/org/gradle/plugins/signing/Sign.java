@@ -40,8 +40,6 @@ import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.plugins.signing.signatory.Signatory;
-import org.gradle.plugins.signing.signatory.pgp.PgpKeyId;
-import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
 import org.gradle.plugins.signing.type.SignatureType;
 
 import javax.inject.Inject;
@@ -95,12 +93,11 @@ public class Sign extends DefaultTask implements SignatureSpec {
             }
         });
 
-        getInputs().property("signatory", new Callable<String>() {
+        getInputs().property("signatory", new Callable<Object>() {
             @Override
-            public String call() throws Exception {
-                final PgpSignatory signatory = (PgpSignatory) getSignatory();
-                final PgpKeyId id = signatory == null ? null : signatory.getKeyId();
-                return id == null ? null : id.getAsHex();
+            public Object call() throws Exception {
+                Signatory signatory = getSignatory();
+                return signatory == null ? null : signatory.getKeyId();
             }
         }).optional(true);
     }
