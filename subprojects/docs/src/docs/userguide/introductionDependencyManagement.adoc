@@ -42,7 +42,7 @@ At runtime, Gradle will locate the declared dependencies if needed for operating
 
 Once resolved, the resolution mechanism <<dependency_cache,stores the underlying files of a dependency in a local cache>>, also referred to as the _dependency cache_. Future builds reuse the files stored in the cache to avoid unnecessary network calls.
 
-Some dependencies provide additional metadata. Metadata is the data that describes the dependency in more detail e.g. the coordinates for finding it in a repository, information about the project, or its authors. As part of the metadata, a dependency can define that other dependencies are needed at runtime for it to work properly. For example, the JUnit 5 platform dependency also requires the platform commons dependency. Gradle automatically resolves those additional dependencies, so called _transitive dependencies_. If needed, you can <<managing_transitive_dependencies,customize the behavior the handling of transitive dependencies>> to your project's requirements.
+Some dependencies provide additional metadata. Metadata is the data that describes the dependency in more detail e.g. the coordinates for finding it in a repository, information about the project, or its authors. As part of the metadata, a dependency can define that other dependencies are needed for it to work properly. For example, the JUnit 5 platform dependency also requires the platform commons dependency. Gradle automatically resolves those additional dependencies, so called _transitive dependencies_. If needed, you can <<managing_transitive_dependencies,customize the behavior the handling of transitive dependencies>> to your project's requirements.
 
 Projects with tens or hundreds of declared dependencies can easily suffer from dependency hell. Gradle provides sufficient tooling to visualize, navigate and analyze the dependency graph of a project either with the help of a link:https://scans.gradle.com/get-started[build scan] or built-in tasks. Learn more in <<inspecting_dependencies>>.
 
@@ -60,21 +60,21 @@ Projects with tens or hundreds of declared dependencies can easily suffer from d
 
 Gradle takes your dependency declarations and repository definitions and attempts to download all of your dependencies by a process called _dependency resolution_. Below is a brief outline of how this process works.
 
-* Given a required dependency, Gradle first attempts to resolve the _module_ for that dependency. Each repository is inspected in order, searching first for a _module descriptor_ file (POM or Ivy file) that indicates the presence of that module. If no module descriptor is found, Gradle will search for the presence of the primary _module artifact_ file indicating that the module exists in the repository.
+* Given a required dependency, Gradle first attempts to resolve the _module_ the dependency points at. Each repository is inspected in order, searching first for a _module descriptor_ file (POM or Ivy file) that indicates the presence of that module. If no module descriptor is found, Gradle will search for the presence of the primary _module artifact_ file indicating that the module exists in the repository.
 
-** If the dependency is declared as a dynamic version (like `1.+`), Gradle will resolve this to the highest available static version (like `1.2`) in the repository. For Maven repositories, this is done using the `maven-metadata.xml` file, while for Ivy repositories this is done by directory listing.
+** If the dependency is declared as a dynamic version (like `1.+`), Gradle will resolve this to the highest available concrete version (like `1.2`) in the repository. For Maven repositories, this is done using the `maven-metadata.xml` file, while for Ivy repositories this is done by directory listing.
 
-** If the module descriptor is a POM file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the POM.
+** If the module metadata is a POM file that has a parent POM declared, Gradle will recursively attempt to resolve each of the parent modules for the POM.
 
 * Once each repository has been inspected for the module, Gradle will choose the 'best' one to use. This is done using the following criteria:
 
-** For a dynamic version, a 'higher' static version is preferred over a 'lower' version.
+** For a dynamic version, a 'higher' concrete version is preferred over a 'lower' version.
 
 ** Modules declared by a module descriptor file (Ivy or POM file) are preferred over modules that have an artifact file only.
 
 ** Modules from earlier repositories are preferred over modules in later repositories.
 
-** When the dependency is declared by a static version and a module descriptor file is found in a repository, there is no need to continue searching later repositories and the remainder of the process is short-circuited.
+** When the dependency is declared by a concrete version and a module descriptor file is found in a repository, there is no need to continue searching later repositories and the remainder of the process is short-circuited.
 
 * All of the artifacts for the module are then requested from the _same repository_ that was chosen in the process above.
 
