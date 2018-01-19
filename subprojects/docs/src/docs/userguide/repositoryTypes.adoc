@@ -62,7 +62,7 @@ Gradle can consume dependencies available in the link:https://maven.apache.org/g
 
 [NOTE]
 ====
-Gradle stores resolved dependencies in <<sec:dependency_cache,its own cache>>. A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
+Gradle stores resolved dependencies in <<dependency_cache,its own cache>>. A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
 ====
 
 To declare the local Maven cache as a repository add this to your build script:
