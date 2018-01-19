@@ -184,7 +184,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
 
     @Override
     public boolean contains(Attribute<?> key) {
-        return hierarchy.containsKey(key);
+        return hierarchyByName.containsKey(key.getName());
     }
 
     @Override
