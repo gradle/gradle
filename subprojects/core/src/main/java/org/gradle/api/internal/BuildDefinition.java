@@ -20,21 +20,23 @@ import org.gradle.StartParameter;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequests;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class BuildDefinition {
-    private final File projectDir;
+    private final File buildRootDir;
     private final StartParameter startParameter;
     private final PluginRequests injectedSettingsPlugins;
 
-    public BuildDefinition(File projectDir, StartParameter startParameter, PluginRequests injectedSettingsPlugins) {
-        this.projectDir = projectDir;
+    public BuildDefinition(File buildRootDir, StartParameter startParameter, PluginRequests injectedSettingsPlugins) {
+        this.buildRootDir = buildRootDir;
         this.startParameter = startParameter;
         this.injectedSettingsPlugins = injectedSettingsPlugins;
     }
 
-    public File getProjectDir() {
-        return projectDir;
+    @Nullable
+    public File getBuildRootDir() {
+        return buildRootDir;
     }
 
     public StartParameter getStartParameter() {
@@ -45,13 +47,13 @@ public class BuildDefinition {
         return injectedSettingsPlugins;
     }
 
-    public static BuildDefinition fromStartParameterForBuild(StartParameter startParameter, File projectDir, PluginRequests pluginRequests) {
+    public static BuildDefinition fromStartParameterForBuild(StartParameter startParameter, File buildRootDir, PluginRequests pluginRequests) {
         StartParameter includedBuildStartParam = startParameter.newBuild();
-        includedBuildStartParam.setProjectDir(projectDir);
+        includedBuildStartParam.setCurrentDir(buildRootDir);
         includedBuildStartParam.setSearchUpwards(false);
         includedBuildStartParam.setConfigureOnDemand(false);
         includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
-        return new BuildDefinition(projectDir, startParameter, pluginRequests);
+        return new BuildDefinition(buildRootDir, includedBuildStartParam, pluginRequests);
     }
 
     public static BuildDefinition fromStartParameter(StartParameter startParameter) {

@@ -68,7 +68,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
     }
 
     public File getProjectDir() {
-        return buildDefinition.getProjectDir();
+        return buildDefinition.getBuildRootDir();
     }
 
     @Override
