@@ -15,7 +15,7 @@
 [[declaring_repositories]]
 == Declaring Repositories
 
-Gradle can resolve external dependencies from one or many repositories based on Maven, Ivy or flat directory directory formats. Check out the <<repository_types,full reference on all types of repositories>> for more information.
+Gradle can resolve external dependencies from one or many repositories based on Maven, Ivy or flat directory formats. Check out the <<repository_types,full reference on all types of repositories>> for more information.
 
 [[sec:declaring_public_repository]]
 === Declaring a publicly-available repository
@@ -55,6 +55,8 @@ Add the following code to declare an in-house repository for your build reachabl
 ++++
 
 Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage see the <<sub:supported_transport_protocols,reference manual on supported transport protocols>>.
+
+You can also <<sec:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories as they are very flexible in terms of how modules are organised in a repository.
 
 [[sec:declaring_multiple_repositories]]
 === Declaring multiple repositories
