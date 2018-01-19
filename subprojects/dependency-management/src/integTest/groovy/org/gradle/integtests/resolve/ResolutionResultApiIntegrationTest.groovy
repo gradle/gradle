@@ -21,10 +21,12 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
 class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTest {
+    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, 'conf')
 
     /*
     The ResolutionResult API is also covered by the dependency report integration tests.
@@ -102,7 +104,7 @@ baz:1.0 requested
         when:
         file("build.gradle") << """
             configurations {
-                implementation
+                conf
             }
             
             repositories {
@@ -110,13 +112,13 @@ baz:1.0 requested
             }
             
             dependencies {
-                implementation 'org.test:a:1.0'
-                implementation 'org.test:b:1.0'
+                conf 'org.test:a:1.0'
+                conf 'org.test:b:1.0'
             }
             
-            task checkResolutionResult {
+            task checkDeps {
                 doLast {
-                    def result = configurations.implementation.incoming.resolutionResult
+                    def result = configurations.conf.incoming.resolutionResult
                     result.allComponents {
                         if (it.id instanceof ModuleComponentIdentifier && it.id.module == 'leaf') {
                             def selectionReason = it.selectionReason
@@ -136,7 +138,7 @@ baz:1.0 requested
         """
 
         then:
-        run "checkResolutionResult"
+        run "checkDeps"
     }
 
     // TODO CC: Ideally, we should also keep the "rule applied" reason, but the infrastructure doesn't let us do this yet
@@ -156,11 +158,10 @@ baz:1.0 requested
 
         }
         FeaturePreviewsFixture.enableGradleMetadata(file("gradle.properties"))
-
-        when:
+        file('settings.gradle') << """rootProject.name='test'"""
         file("build.gradle") << """
             configurations {
-                implementation {
+                conf {
                     resolutionStrategy {
                         dependencySubstitution {
                             all {
@@ -180,14 +181,16 @@ baz:1.0 requested
             }
             
             dependencies {
-                implementation 'org.test:a:1.0'
-                implementation 'org.test:b:1.0'
+                conf 'org.test:a:1.0'
+                conf 'org.test:b:1.0'
                 
             }
-            
-            task checkResolutionResult {
+        """
+        resolve.prepare()
+        buildFile << """           
+            checkDeps {
                 doLast {
-                    def result = configurations.implementation.incoming.resolutionResult
+                    def result = configurations.conf.incoming.resolutionResult
                     result.allComponents {
                         if (it.id instanceof ModuleComponentIdentifier && it.id.module == 'leaf') {
                             def selectionReason = it.selectionReason
@@ -203,10 +206,25 @@ baz:1.0 requested
                     }
                 }
             }
-
         """
 
+        when:
+
+        run "checkDeps"
+
         then:
-        run "checkResolutionResult"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.test:a:1.0:runtime') {
+                    edge('org.test:leaf:0.9', 'org.test:leaf:1.1')
+                        .byConflictResolution() // conflict with the version requested by 'b'
+                        .byReason('second reason') // this comes from 'b'
+                        // ideally, should also have a reason for the dependency upgrade from 0.9 to 1.0
+                }
+                module('org.test:b:1.0:runtime') {
+                    module('org.test:leaf:1.1').byConflictResolution().byReason('second reason')
+                }
+            }
+        }
     }
 }
