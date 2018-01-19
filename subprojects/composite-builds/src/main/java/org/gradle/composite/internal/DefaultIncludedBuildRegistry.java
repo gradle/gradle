@@ -40,6 +40,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -51,7 +52,8 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
     private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;
 
     // TODO: Locking around this
-    private final Map<BuildDefinition, IncludedBuildInternal> includedBuilds = Maps.newLinkedHashMap();
+    // TODO: use some kind of build identifier as the key
+    private final Map<File, IncludedBuildInternal> includedBuilds = Maps.newLinkedHashMap();
 
     public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, DefaultProjectPathRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, CompositeBuildContext compositeBuildContext) {
         this.includedBuildFactory = includedBuildFactory;
@@ -126,21 +128,24 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry, Stop
 
     @Override
     public ConfigurableIncludedBuild addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
-        ConfigurableIncludedBuild includedBuild = includedBuilds.get(buildDefinition);
+        // TODO: synchronization
+        ConfigurableIncludedBuild includedBuild = includedBuilds.get(buildDefinition.getBuildRootDir());
         if (includedBuild == null) {
             includedBuild = registerBuild(buildDefinition, nestedBuildFactory);
             registerProjects(Collections.<IncludedBuild>singletonList(includedBuild), true);
         }
+        // TODO: else, verify that the build definition is the same
         return includedBuild;
     }
 
     private IncludedBuildInternal registerBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
         // TODO: synchronization
-        IncludedBuildInternal includedBuild = includedBuilds.get(buildDefinition);
+        IncludedBuildInternal includedBuild = includedBuilds.get(buildDefinition.getBuildRootDir());
         if (includedBuild == null) {
             includedBuild = includedBuildFactory.createBuild(buildDefinition, nestedBuildFactory);
-            includedBuilds.put(buildDefinition, includedBuild);
+            includedBuilds.put(buildDefinition.getBuildRootDir(), includedBuild);
         }
+        // TODO: else, verify that the build definition is the same
         return includedBuild;
     }
 
