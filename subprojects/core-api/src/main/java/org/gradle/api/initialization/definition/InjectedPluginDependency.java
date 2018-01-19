@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.composite.internal;
+package org.gradle.api.initialization.definition;
 
-import org.gradle.api.internal.BuildDefinition;
-import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.api.Incubating;
 
-public interface IncludedBuildFactory {
-    IncludedBuildInternal createBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+import javax.annotation.Nullable;
+
+/**
+ * TODO:
+ * @since 4.6
+ */
+@Incubating
+public interface InjectedPluginDependency {
+
+    /**
+     * TODO
+     *
+     * @param version the version string ({@code null} for no specified version, which is the default)
+     * @return this
+     */
+    InjectedPluginDependency version(@Nullable String version);
 }

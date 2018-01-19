@@ -83,7 +83,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             buildController.stopTaskExecution();
         }
         buildControllers.clear();
-        for (IncludedBuild includedBuild : includedBuildRegistry.getIncludedBuilds().values()) {
+        for (IncludedBuild includedBuild : includedBuildRegistry.getIncludedBuilds()) {
             ((IncludedBuildInternal) includedBuild).finishBuild();
         }
     }

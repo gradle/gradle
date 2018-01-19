@@ -17,6 +17,8 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import spock.lang.Ignore
+
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
@@ -57,6 +59,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         failure.assertHasDescription("Included build '${buildDir.absolutePath}' is not a directory.")
     }
 
+    @Ignore
     def "reports failure when included build directory is not the root directory of build"() {
         when:
         includedBuilds << buildB.file('b1')
