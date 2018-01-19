@@ -16,7 +16,7 @@ A <<sub:terminology_module,module>> indicates its revision with the help of a ve
 [[sub:terminology_dependency]]
 Dependency::
 
-A dependency is defined as a versioned or unversioned module. Dependencies may provide <<sub:terminology_dependency_metadata,metadata>> to indicate that they depend on other dependencies required for it work properly, so-called <<sub:terminology_transitive_dependency,transitive dependencies>>. For more information, see <<declaring_dependencies>>. Gradle's dependency resolution process can apply constraints declared in the build script to select a specific version.
+A dependency is used to define that a project or a module requires all or some of the artifacts provided by another project or module. The other project or module is selected by an identifier (e.g. project path, file path, maven coordinates) and optionally a version. Dependencies may provide <<sub:terminology_dependency_metadata,metadata>> to indicate that they depend on other dependencies required for it to work properly, so-called <<sub:terminology_transitive_dependency,transitive dependencies>>. For more information, see <<declaring_dependencies>>. Gradle's dependency resolution process can apply constraints declared in the build script to select a specific version.
 
 [[sub:terminology_transitive_dependency]]
 Transitive dependency::
