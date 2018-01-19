@@ -17,12 +17,12 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.FilePropertyContainer;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -62,7 +62,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private TaskExecutionHistory history;
-    private final List<DeclaredTaskOutputFileProperty> registeredFileProperties = Lists.newArrayList();
+    private final FilePropertyContainer<DeclaredTaskOutputFileProperty> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
@@ -76,7 +76,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public void visitRegisteredProperties(PropertyVisitor visitor) {
-        TaskPropertyUtils.ensurePropertiesHaveNames(registeredFileProperties);
         for (DeclaredTaskOutputFileProperty fileProperty : registeredFileProperties) {
             visitor.visitOutputFileProperty(fileProperty);
         }

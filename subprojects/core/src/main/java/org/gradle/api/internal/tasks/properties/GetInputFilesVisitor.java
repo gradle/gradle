@@ -17,33 +17,24 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Sets;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskPropertyUtils;
 
-import java.util.Set;
+import java.util.List;
 
 public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
-    private final String beanName;
-    private ImmutableSortedSet.Builder<TaskInputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
-    private Set<String> names = Sets.newHashSet();
+    private final List<TaskInputFilePropertySpec> specs = Lists.newArrayList();
     private boolean hasSourceFiles;
 
     private ImmutableSortedSet<TaskInputFilePropertySpec> fileProperties;
 
-    public GetInputFilesVisitor(String beanName) {
-        this.beanName = beanName;
+    public GetInputFilesVisitor() {
     }
 
     @Override
     public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
-        String propertyName = inputFileProperty.getPropertyName();
-        if (!names.add(propertyName)) {
-            throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", "input", propertyName));
-        }
-        builder.add(inputFileProperty);
+        specs.add(inputFileProperty);
         if (inputFileProperty.isSkipWhenEmpty()) {
             hasSourceFiles = true;
         }
@@ -51,43 +42,9 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
 
     public ImmutableSortedSet<TaskInputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
-            fileProperties = builder.build();
+            fileProperties = TaskPropertyUtils.collectFileProperties("input", specs.iterator());
         }
         return fileProperties;
-    }
-
-    public FileCollection getFiles() {
-        return new CompositeFileCollection() {
-            @Override
-            public String getDisplayName() {
-                return beanName + " input files";
-            }
-
-            @Override
-            public void visitContents(FileCollectionResolveContext context) {
-                for (TaskInputFilePropertySpec filePropertySpec : getFileProperties()) {
-                    context.add(filePropertySpec.getPropertyFiles());
-                }
-            }
-        };
-    }
-
-    public FileCollection getSourceFiles() {
-        return new CompositeFileCollection() {
-            @Override
-            public String getDisplayName() {
-                return beanName + " source files";
-            }
-
-            @Override
-            public void visitContents(FileCollectionResolveContext context) {
-                for (TaskInputFilePropertySpec filePropertySpec : getFileProperties()) {
-                    if (filePropertySpec.isSkipWhenEmpty()) {
-                        context.add(filePropertySpec.getPropertyFiles());
-                    }
-                }
-            }
-        };
     }
 
     public boolean hasSourceFiles() {

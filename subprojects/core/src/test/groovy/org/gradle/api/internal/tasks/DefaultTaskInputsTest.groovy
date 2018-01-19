@@ -25,8 +25,11 @@ import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
+import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.util.UsesNativeServices
+import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
@@ -282,6 +285,29 @@ class DefaultTaskInputsTest extends Specification {
         inputs.hasSourceFiles
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/4085")
+    @Unroll
+    def "can register more unnamed properties with method #method after properties have been queried"() {
+        inputs."$method"("input-1")
+        // Trigger naming properties
+        inputs.hasSourceFiles
+        inputs."$method"("input-2")
+        def names = []
+
+        when:
+        inputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
+            @Override
+            void visitInputFileProperty(TaskInputFilePropertySpec property) {
+                names += property.propertyName
+            }
+        })
+        then:
+        names == ['$1', '$2']
+
+        where:
+        method << ["file", "dir", "files"]
+    }
+
     def inputProperties() {
         def visitor = new GetInputPropertiesVisitor("test")
         TaskPropertyUtils.visitProperties(walker, task, visitor)
@@ -289,7 +315,7 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def inputFileProperties() {
-        GetInputFilesVisitor visitor = new GetInputFilesVisitor("test")
+        GetInputFilesVisitor visitor = new GetInputFilesVisitor()
         TaskPropertyUtils.visitProperties(walker, task, visitor)
         return visitor.getFileProperties()
     }
