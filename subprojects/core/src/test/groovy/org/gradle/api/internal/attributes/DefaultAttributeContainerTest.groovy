@@ -26,7 +26,7 @@ class DefaultAttributeContainerTest extends Specification {
     def cache = TestUtil.attributesFactory()
 
     private DefaultMutableAttributeContainer newContainer() {
-        return new DefaultMutableAttributeContainer(cache)
+        return new DefaultMutableAttributeContainer(cache, TestUtil.objectInstantiator())
     }
 
     def "can query contents of container"() {
@@ -99,7 +99,7 @@ class DefaultAttributeContainerTest extends Specification {
 
         expect:
         def parent = newContainer()
-        def child = new DefaultMutableAttributeContainer(cache, parent)
+        def child = new DefaultMutableAttributeContainer(cache, parent, TestUtil.objectInstantiator())
 
         child.empty
         child.keySet().empty
@@ -128,7 +128,7 @@ class DefaultAttributeContainerTest extends Specification {
         child.getAttribute(other) == "other"
         child.asImmutable().keySet() == [thing, other] as Set
 
-        def child2 = new DefaultMutableAttributeContainer(cache, newContainer())
+        def child2 = new DefaultMutableAttributeContainer(cache, newContainer(), TestUtil.objectInstantiator())
         child2.attribute(thing, "child")
 
         !child2.empty

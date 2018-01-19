@@ -259,7 +259,7 @@ Found the following transforms:
     }
 
     private AttributeContainerInternal typeAttributes(String artifactType) {
-        def attributeContainer = new DefaultMutableAttributeContainer(TestUtil.attributesFactory())
+        def attributeContainer = new DefaultMutableAttributeContainer(TestUtil.attributesFactory(), TestUtil.objectInstantiator())
         attributeContainer.attribute(ARTIFACT_FORMAT, artifactType)
         attributeContainer.asImmutable()
     }

@@ -96,10 +96,10 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                 components {
                     withModule('org.test:module') {                       
                         if ($componentLevel) {
-                            attributes { attribute usage, 'unknown' }
+                            attributes { attribute ${attribute}, ${attributeValue} }
                         } else {
-                            withVariant('api') { attributes { attribute usage, 'unknownApiVariant' } }
-                            withVariant('runtime') { attributes { attribute usage, 'unknownRuntimeVariant' } }
+                            withVariant('api') { attributes { attribute ${attribute}, ${attributeValue.replace('unknown', 'unknownApiVariant')} } }
+                            withVariant('runtime') { attributes { attribute ${attribute}, ${attributeValue.replace('unknown', 'unknownRuntimeVariant')} } }
                         }
                     }
                 }
@@ -133,7 +133,11 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         }
 
         where:
-        componentLevel << [true, false]
+        componentLevel | attribute               | attributeValue
+        true           | 'Usage.NAME'            | "'unknown'"
+        true           | 'Usage.USAGE_ATTRIBUTE' | "objects.named(Usage, 'unknown')"
+        false          | 'Usage.NAME'            | "'unknown'"
+        false          | 'Usage.USAGE_ATTRIBUTE' | "objects.named(Usage, 'unknown')"
     }
 
     def "can use a component metadata rule to infer quality attribute"() {

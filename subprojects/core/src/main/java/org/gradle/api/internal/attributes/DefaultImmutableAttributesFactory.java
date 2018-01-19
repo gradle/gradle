@@ -18,7 +18,6 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -47,12 +46,12 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public AttributeContainerInternal mutable() {
-        return new DefaultMutableAttributeContainer(this);
+        return new DefaultMutableAttributeContainer(this, instantiator);
     }
 
     @Override
     public AttributeContainerInternal mutable(AttributeContainerInternal parent) {
-        return new DefaultMutableAttributeContainer(this, parent);
+        return new DefaultMutableAttributeContainer(this, parent, instantiator);
     }
 
     @Override
@@ -62,15 +61,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value) {
-        return doConcatIsolatable(node, key, isolate(value));
-    }
-
-    private <T> Isolatable<T> isolate(T value) {
-        if (value instanceof String) {
-            return (Isolatable<T>) new CoercingStringValueSnapshot((String) value, instantiator);
-        } else {
-            return isolatableFactory.isolate(value);
-        }
+        return doConcatIsolatable(node, key, isolatableFactory.isolate(value));
     }
 
     @Override
@@ -78,7 +69,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         return doConcatIsolatable(node, key, value);
     }
 
-    private <T> ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
+    private ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
         synchronized (this) {
             List<DefaultImmutableAttributes> nodeChildren = children.get(node);
             if (nodeChildren == null) {

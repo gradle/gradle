@@ -29,11 +29,11 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def attr2 = Attribute.of("two", String)
 
         given:
-        def parent = new DefaultMutableAttributeContainer(attributesFactory)
+        def parent = new DefaultMutableAttributeContainer(attributesFactory, TestUtil.objectInstantiator())
         parent.attribute(attr1, "parent")
         parent.attribute(attr2, "parent")
 
-        def child = new DefaultMutableAttributeContainer(attributesFactory, parent)
+        def child = new DefaultMutableAttributeContainer(attributesFactory, parent, TestUtil.objectInstantiator())
         child.attribute(attr1, "child")
 
         expect:
@@ -59,7 +59,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
     def "can use coercing attribute method"() {
         given:
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = new DefaultMutableAttributeContainer(attributesFactory, TestUtil.objectInstantiator())
 
         when:
         container.attribute(Usage.NAME, 'special')
@@ -79,7 +79,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
     def "can use coercing attribute method for String attributes"() {
         given:
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = new DefaultMutableAttributeContainer(attributesFactory, TestUtil.objectInstantiator())
         def attribute = Attribute.of('a', String)
 
         when:

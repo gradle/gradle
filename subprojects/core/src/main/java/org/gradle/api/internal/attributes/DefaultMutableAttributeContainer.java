@@ -27,15 +27,17 @@ import java.util.Set;
 class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     private final ImmutableAttributesFactory cache;
     private final AttributeContainerInternal parent;
+    private final NamedObjectInstantiator instantiator;
     private ImmutableAttributes state = ImmutableAttributes.EMPTY;
 
-    public DefaultMutableAttributeContainer(ImmutableAttributesFactory cache) {
-        this(cache, null);
+    public DefaultMutableAttributeContainer(ImmutableAttributesFactory cache, NamedObjectInstantiator instantiator) {
+        this(cache, null, instantiator);
     }
 
-    public DefaultMutableAttributeContainer(ImmutableAttributesFactory cache, AttributeContainerInternal parent) {
+    public DefaultMutableAttributeContainer(ImmutableAttributesFactory cache, AttributeContainerInternal parent, NamedObjectInstantiator instantiator) {
         this.cache = cache;
         this.parent = parent;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -65,7 +67,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         Attribute<String> key = Attribute.of(name, String.class);
         assertAttributeConstraints(value, key);
         checkInsertionAllowed(key);
-        state = cache.concat(state, key, new CoercingStringValueSnapshot(value, NamedObjectInstantiator.INSTANCE));
+        state = cache.concat(state, key, new CoercingStringValueSnapshot(value, instantiator));
         return this;
     }
 
