@@ -30,7 +30,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegration
         productionCode()
 
         when:
-        run("tasks")
+        succeeds("tasks")
 
         then:
         file("user-home/caches/${distribution.version.version}/generated-gradle-jars").assertIsEmptyDir()
@@ -55,7 +55,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegration
         file("user-home/caches/${distribution.version.version}/generated-gradle-jars").assertIsEmptyDir()
 
         when:
-        run("testClasses")
+        succeeds("testClasses")
 
         then:
         file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-test-kit-${distribution.version.version}.jar").assertExists()
@@ -78,21 +78,18 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegration
         file("src/test/java/org/acme/BaseTestPluginTest.java") << """
         package org.acme;
         import org.gradle.testkit.runner.GradleRunner;
-        import org.gradle.testkit.runner.BuildResult;
-        import org.junit.Rule;
-        import org.junit.rules.TemporaryFolder;
+        import org.junit.Test;
+        import static org.junit.Assert.assertTrue;
         
         public abstract class BaseTestPluginTest {
-            @Rule public final TemporaryFolder testProjectDir = new TemporaryFolder();
-
-            void run(String task) {
-            
-                BuildResult result = GradleRunner.create()
-                    .withProjectDir(testProjectDir.getRoot())
-                    .withArguments(task)
-                    .build();
+            GradleRunner runner() {
+                return GradleRunner.create();
             }
-        
+
+            @Test 
+            void commonTest() {
+                assertTrue(true);
+            }         
         }
         """
     }
