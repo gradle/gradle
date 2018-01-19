@@ -30,7 +30,6 @@ import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 
-import java.io.File
 import java.lang.IllegalArgumentException
 
 import kotlin.reflect.KClass
@@ -56,8 +55,7 @@ fun settingsScriptTarget(settings: Settings, topLevelScript: Boolean) =
         settings,
         type = Settings::class,
         scriptTemplate = KotlinSettingsScript::class,
-        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class.takeIf { topLevelScript },
-        rootDir = settings.rootDir)
+        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class.takeIf { topLevelScript })
 
 
 private
@@ -68,7 +66,6 @@ fun projectScriptTarget(project: Project, topLevelScript: Boolean): KotlinScript
         scriptTemplate = KotlinBuildScript::class,
         buildscriptBlockTemplate = KotlinBuildscriptBlock::class.takeIf { topLevelScript },
         pluginsBlockTemplate = KotlinPluginsBlock::class.takeIf { topLevelScript },
-        rootDir = project.rootDir,
         accessorsClassPath = accessorsClassPathProviderFor(project, topLevelScript),
         prepare = {
             project.run {
@@ -100,7 +97,6 @@ data class KotlinScriptTarget<T : Any>(
     val scriptTemplate: KClass<*>,
     val buildscriptBlockTemplate: KClass<*>?,
     val pluginsBlockTemplate: KClass<*>? = null,
-    val rootDir: File,
     val accessorsClassPath: AccessorsClassPathProvider = emptyAccessorsClassPathProvider,
     val prepare: () -> Unit = {}) {
 
