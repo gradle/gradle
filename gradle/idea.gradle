@@ -167,6 +167,7 @@ limitations under the License."""
         }
 
         gradleSettings {
+            // use wrapper-based sync instead of this line
             sdkHome = gradle.gradleHomeDir.absolutePath
         }
 
