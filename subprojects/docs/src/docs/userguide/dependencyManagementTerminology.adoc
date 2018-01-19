@@ -36,7 +36,7 @@ A configuration is a named set of <<sub:terminology_dependency,dependencies>> gr
 [[sub:terminology_repository]]
 Repository::
 
-A repository hosts a set of dependencies. The repository can be based on a binary repository product e.g. Artifactory or Nexus or a directory structure in the filesystem. Build scripts can define a set of repositories for resolving <<sub:terminology_dependency,dependencies>>. For more information, see <<declaring_repositories>>.
+A repository hosts a set of <<sub:terminology_module,modules>> that can be used as <<sub:terminology_dependency,dependencies>>. The repository can be based on a binary repository product (e.g. Artifactory or Nexus) or a directory structure in the filesystem. Build scripts can define a set of repositories for resolving <<sub:terminology_dependency,dependencies>>. For more information, see <<declaring_repositories>>.
 
 [[sub:resolution_rule]]
 Resolution rule::
