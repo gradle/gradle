@@ -26,7 +26,7 @@ A transitive dependency is a dependency required by another dependency to work p
 [[sub:terminology_module_metadata]]
 Module metadata::
 
-Dependencies can provide metadata. Metadata is the data that describes the dependency in more detail e.g. the coordinates for locating it in a repository, information about the project or required <<sub:terminology_transitive_dependency,transitive dependencies>>. In Maven the metadata file is called `pom.xml`, in Ivy it is called `ivy.xml`.
+Dependencies can provide metadata. Metadata is the data that describes the dependency in more detail e.g. the coordinates for locating it in a repository, information about the project or required <<sub:terminology_transitive_dependency,transitive dependencies>>. In Maven the metadata file is called `.pom`, in Ivy it is called `ivy.xml`.
 
 [[sub:terminology_configuration]]
 Configuration::
