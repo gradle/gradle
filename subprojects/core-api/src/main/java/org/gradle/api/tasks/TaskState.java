@@ -88,4 +88,12 @@ public interface TaskState {
      */
     @Incubating
     boolean getNoSource();
+
+    /**
+     * Returns true if task output was from cache.
+     *
+     * @return true if this task output is from cache
+     * @since 3.4
+     */
+    boolean isFromCache();
 }
