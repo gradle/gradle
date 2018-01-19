@@ -194,7 +194,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(DirectoryRepositorySpec) {
+                        from(DirectoryRepositorySpec) {
                             sourceDir = file("dep")
                             plugins {
                                 id "com.example.MyPlugin"
