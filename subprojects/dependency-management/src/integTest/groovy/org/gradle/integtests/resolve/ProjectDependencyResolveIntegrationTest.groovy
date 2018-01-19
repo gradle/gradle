@@ -136,7 +136,9 @@ project(":a") {
         runtime { extendsFrom api }
     }
     dependencies {
-        api "org.other:externalA:1.2"
+        api("org.other:externalA:1.2") {
+            reason 'also check dependency reasons'
+        }
     }
     task jar(type: Jar) { baseName = 'a' }
     artifacts { api jar }
@@ -146,7 +148,9 @@ project(":b") {
         compile
     }
     dependencies {
-        compile project(path: ':a', configuration: 'runtime')
+        compile(project(path: ':a', configuration: 'runtime')) {
+            reason 'can provide a dependency reason for project dependencies too'
+        }
     }
     task check(dependsOn: configurations.compile) {
         doLast {
@@ -171,8 +175,10 @@ project(":b") {
         resolve.expectGraph {
             root(":b", "test:b:") {
                 project(":a", 'test:a:') {
+                    byReason('can provide a dependency reason for project dependencies too')
                     variant('runtime')
                     module('org.other:externalA:1.2') {
+                        byReason('also check dependency reasons')
                         variant('default')
                     }
                 }
