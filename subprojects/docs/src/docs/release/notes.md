@@ -18,6 +18,21 @@ The new metadata format is still under active development, but it can already be
 ### Example new and noteworthy
 -->
 
+### Specifying metadata sources for repositories
+
+Gradle now allows you to explicitly state for [which metadata files](userguide/repository_types.html#sub:supported_metadata_sources) it should search in a repository. You can use this, for example, to gain efficiency when querying a Maven repository by telling Gradle not to look for plain `jar` files anymore when the `pom` file for a module is missing.
+
+    repositories {
+         mavenCentral {
+             metadataSources {
+                 mavenPom() // Look for Maven '.pom' files
+                 // artifact() - Do not look for artifacts without metadata file
+             }
+         }
+    }
+
+You can also use this to selectively opt into using the new Gradle metadata format for one repository using `metadataSources { gradleMetadata() }`.
+
 ### Default JaCoCo version upgraded to 0.8.0
 
 [The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.0](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.

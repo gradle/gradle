@@ -181,6 +181,60 @@ You can specify credentials for Ivy repositories secured by basic authentication
 </sample>
 ++++
 
+[[sub:supported_metadata_sources]]
+=== Supported metadata sources
+
+When searching for a module in a repository, Gradle, by default, checks for supported metadata file formats in that repository. In a Maven repository, Gradle looks for a `.pom` file, in an ivy repository it looks for an `ivy.xml` file and in a flat directory repository it looks directly for `.jar` files as it does not expect any metadata. Starting with 5.0, Gradle also looks for `.module` (Gradle module metadata) files.
+
+However, if you define a customized repository you might want to configure this behavior. For example, you can define a Maven repository without `.pom` files but only jars. To do so, you can configure _metadata sources_ for any repository. You can specify multiple sources to tell Gradle to keep looking if a file was not found. For example, you can configure a Maven repository such that Gradle looks for artifacts only if the metadata is missing.
+
+++++
+<sample id="metadataSources" dir="userguide/artifacts/defineRepository" title="Maven repository that supports artifacts without metadata">
+    <sourcefile file="build.gradle" snippet="maven-repo-with-metadata-sources"/>
+</sample>
+++++
+
+In case multiple sources are defined, the order of checking for sources is predefined. The following metadata sources are supported:
+
+.Repository transport protocols
+[cols="2,2,1,1,1", options="header"]
+|===
+| Metadata source
+| Description
+| Order
+| Maven
+| Ivy / flat dir
+
+| `gradleMetadata()`
+| Look for Gradle `.module` files
+| 1st
+| yes
+| yes
+
+| `mavenPom()`
+| Look for Maven `.pom` files
+| 2nd
+| yes
+| yes
+
+| `ivyDescriptor()`
+| Look for `ivy.xml` files
+| 2nd
+| no
+| yes
+
+| `artifact()`
+| Look directly for artifact
+| 3rd
+| yes
+| yes
+|===
+
+[NOTE]
+====
+The defaults for Ivy and Maven repositories change with Gradle 5.0. Before 5.0, `artifact()` was included in the defaults. Leading to some inefficiency when modules are missing completey. To restore this behavior, for example, for Maven central you can use `mavenCentral { mavenPom(); artifact() }`. In a similar way, you can opt into the new behavior in older Gradle verisions using `mavenCentral { mavenPom() }`
+====
+
 [[sub:supported_transport_protocols]]
 === Supported repository transport protocols
 
