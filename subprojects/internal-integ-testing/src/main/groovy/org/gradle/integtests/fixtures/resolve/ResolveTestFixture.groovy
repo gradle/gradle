@@ -124,7 +124,7 @@ allprojects {
             def variantDetails = it.checkVariant ? "[variant:name:${it.variantName} attributes:${it.variantAttributes}]" : ''
             "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]$variantDetails"
         }
-        compare("components in graph", actualComponents, expectedComponents)
+        compareNodes("components in graph", parseNodes(actualComponents), parseNodes(expectedComponents))
 
         def actualEdges = findLines(configDetails, 'dependency')
         def expectedEdges = graph.edges.collect { "[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
@@ -187,6 +187,108 @@ allprojects {
 
     List<String> findLines(List<String> lines, String prefix) {
         return lines.findAll { it.startsWith(prefix + ":") }.collect { it.substring(prefix.length() + 1) }
+    }
+
+    static List<ParsedNode> parseNodes(List<String> nodes) {
+        nodes.collect { parseNode(it) }
+    }
+
+    static ParsedNode parseNode(String line) {
+        int start = 4
+        // we look for ][ instead of just ], because of that one test that checks that we can have random characters in id
+        // see IvyDynamicRevisionRemoteResolveIntegrationTest. uses latest version from version range with punctuation characters
+        int idx = line.indexOf('][')
+        String id = line.substring(start, idx) // [id:
+        start = idx + 5
+        idx = line.indexOf('][', start)
+        String module = line.substring(start, idx) // [mv:
+        start = idx + 9
+        idx = line.indexOf(']', start) // [reason:
+        List<String> reasons = line.substring(start, idx).split(',') as List<String>
+        start = idx + 15
+        String variant = null
+        Map<String, String> attributes = [:]
+        if (start<line.length()) {
+            idx = line.indexOf(' attributes:', start) // [variant name:
+            variant = line.substring(start, idx)
+            start = idx + 12
+            idx = line.indexOf(']', start) // attributes:
+            attributes = line.substring(start, idx)
+                .split(',') // attributes are separated by commas
+                .findAll() // only keep non empty entries (thank you, split!)
+                .collectEntries { it.split('=') as List }
+        }
+        new ParsedNode(id: id, module:module, reasons: reasons, variant: variant, attributes: attributes)
+    }
+
+    static class ParsedNode {
+        String id
+        String module
+        List<String> reasons
+        String variant
+        Map<String, String> attributes
+
+        boolean diff(ParsedNode actual, StringBuilder sb) {
+            List<String> errors = []
+            if (id != actual.id) {
+                errors << "Expected ID '$id' but was: $actual.id"
+            }
+            if (module != actual.module) {
+                errors << "Expected module '$module' but was: $actual.module"
+            }
+            if (!actual.reasons.containsAll(reasons)) {
+                reasons.each { reason ->
+                    if (!actual.reasons.contains(reason)) {
+                        errors << "Expected reason '$reason' but wasn't found. Actual reasons: ${actual.reasons}"
+                    }
+                }
+            }
+            if (variant) {
+                if (variant != actual.variant) {
+                    errors << "Expected variant name $variant, but was: $actual.variant"
+                }
+                if (attributes != actual.attributes) {
+                    errors << "Expected variant attributes $attributes, but was: $actual.attributes"
+                }
+            }
+
+            if (errors) {
+                sb.append("On component $id:\n")
+                errors.each {
+                    sb.append("   - ").append(it).append("\n")
+                }
+                return true
+            }
+            return false
+        }
+
+        String toString() {
+            "id: $id, module: $module, reasons: ${reasons}${variant?', variant ' + variant:''}${attributes?', variant attributes' + attributes:''}"
+        }
+    }
+
+    static void compareNodes(String compType, Collection<ParsedNode> actual, Collection<ParsedNode> expected) {
+        def actualSorted = actual.sort { it.id }
+        def expectedSorted = expected.sort { it.id }
+        StringBuilder errors = new StringBuilder()
+        StringBuilder matched = new StringBuilder()
+        expectedSorted.each { node ->
+            def actualNode = actualSorted.find { it.id == node.id }
+            if (!actualNode) {
+                errors.append("Expected to find node ${node.id} but wasn't present in result\n")
+            }
+            if (!node.diff(actualNode, errors)) {
+                matched.append("   - $node\n")
+            }
+        }
+        actualSorted.each { node ->
+            if (!expectedSorted.find { it.id == node.id } ) {
+                errors.append("Found unexpected node $node")
+            }
+        }
+        if (errors.length()>0) {
+            throw new AssertionError("Result contains unexpected $compType\n${errors}\nMatched $compType:\n${matched}")
+        }
     }
 
     void compare(String compType, Collection<String> actual, Collection<String> expected) {
@@ -683,22 +785,7 @@ class GenerateGraphTask extends DefaultTask {
     }
 
     def formatReason(ComponentSelectionReason reason) {
-        def reasons = []
-        if (!reason.hasCustomDescriptions()) {
-            if (reason.conflictResolution) {
-                reasons << "conflict resolution"
-            }
-            if (reason.forced) {
-                reasons << "forced"
-            }
-            if (reason.selectedByRule) {
-                reasons << "selected by rule"
-            }
-            if (reason.compositeSubstitution) {
-                reasons << "composite build substitution"
-            }
-        }
-
-        return reasons.empty ? reason.description : reasons.join(',')
+        def reasons = reason.descriptions.collect { it.description }.join(',')
+        return reasons
     }
 }
