@@ -16,15 +16,15 @@ A <<sub:terminology_module,module>> indicates its revision with the help of a ve
 [[sub:terminology_dependency]]
 Dependency::
 
-A dependency is used to define that a project or a module requires all or some of the artifacts provided by another project or module. The other project or module is selected by an identifier (e.g. project path, file path, maven coordinates) and optionally a version. Dependencies may provide <<sub:terminology_dependency_metadata,metadata>> to indicate that they depend on other dependencies required for it to work properly, so-called <<sub:terminology_transitive_dependency,transitive dependencies>>. For more information, see <<declaring_dependencies>>. Gradle's dependency resolution process can apply constraints declared in the build script to select a specific version.
+A dependency is used to define that a project or a module requires all or some of the artifacts provided by another project or module. The other project or module is selected by an identifier (e.g. project path, file path, maven coordinates) and optionally a version. Dependencies may provide <<sub:terminology_module_metadata,metadata>> to indicate that they depend on other dependencies required for it to work properly, so-called <<sub:terminology_transitive_dependency,transitive dependencies>>. For more information, see <<declaring_dependencies>>. Gradle's dependency resolution process can apply constraints declared in the build script to select a specific version.
 
 [[sub:terminology_transitive_dependency]]
 Transitive dependency::
 
-A transitive dependency is a dependency required by another dependency to work properly. Dependencies hosted on a <<sec:terminology_repository,repository>> can provide <<sub:terminology_dependency_metadata,metadata>> declaring transitive dependencies. By default, Gradle resolves transitive dependencies if defined by metadata. The behavior is highly customizable. For more information, see <<managing_transitive_dependencies>>.
+A transitive dependency is a dependency required by another dependency to work properly. Dependencies hosted on a <<sec:terminology_repository,repository>> can provide <<sub:terminology_module_metadata,metadata>> declaring transitive dependencies. By default, Gradle resolves transitive dependencies if defined by metadata. The behavior is highly customizable. For more information, see <<managing_transitive_dependencies>>.
 
-[[sub:terminology_dependency_metadata]]
-Dependency metadata::
+[[sub:terminology_module_metadata]]
+Module metadata::
 
 Dependencies can provide metadata. Metadata is the data that describes the dependency in more detail e.g. the coordinates for locating it in a repository, information about the project or required <<sub:terminology_transitive_dependency,transitive dependencies>>. In Maven the metadata file is called `pom.xml`, in Ivy it is called `ivy.xml`.
 
