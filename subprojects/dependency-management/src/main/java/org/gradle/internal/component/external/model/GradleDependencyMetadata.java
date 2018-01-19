@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -69,7 +70,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
 
     @Override
     public ModuleDependencyMetadata withReason(String reason) {
-        if (reason.equals(this.reason)) {
+        if (Objects.equal(reason, this.reason)) {
             return this;
         }
         return new GradleDependencyMetadata(selector, pending, reason);
