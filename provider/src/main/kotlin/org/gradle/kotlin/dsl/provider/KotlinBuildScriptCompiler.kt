@@ -49,24 +49,31 @@ typealias KotlinScript = (Any) -> Unit
 
 internal
 class KotlinBuildScriptCompiler(
-    val kotlinCompiler: CachingKotlinCompiler,
-    val scriptSource: ScriptSource,
-    val scriptTarget: KotlinScriptTarget<out Any>,
-    val scriptHandler: ScriptHandlerInternal,
-    val pluginRequestsHandler: PluginRequestsHandler,
-    val baseScope: ClassLoaderScope,
-    val targetScope: ClassLoaderScope,
-    val classPathProvider: KotlinScriptClassPathProvider,
-    val embeddedKotlinProvider: EmbeddedKotlinProvider) {
+    private val kotlinCompiler: CachingKotlinCompiler,
+    private val scriptSource: ScriptSource,
+    private val scriptTarget: KotlinScriptTarget<out Any>,
+    private val scriptHandler: ScriptHandlerInternal,
+    private val pluginRequestsHandler: PluginRequestsHandler,
+    private val baseScope: ClassLoaderScope,
+    private val targetScope: ClassLoaderScope,
+    private val classPathProvider: KotlinScriptClassPathProvider,
+    private val embeddedKotlinProvider: EmbeddedKotlinProvider) {
 
+    private
     val scriptResource = scriptSource.resource!!
+
+    private
     val scriptPath = scriptSource.fileName!!
+
     val script = convertLineSeparators(scriptResource.text!!)
 
+    private
     val buildscriptBlockCompilationClassPath: ClassPath = classPathProvider.compilationClassPathOf(targetScope.parent)
 
+    private
     val pluginsBlockCompilationClassPath: ClassPath = buildscriptBlockCompilationClassPath
 
+    private
     val compilationClassPath: ClassPath by lazy {
         buildscriptBlockCompilationClassPath + scriptHandler.scriptClassPath
     }
