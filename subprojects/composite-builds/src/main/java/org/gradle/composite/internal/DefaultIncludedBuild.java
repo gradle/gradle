@@ -147,7 +147,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
-            gradleLauncher = gradleLauncherFactory.nestedInstance(buildDefinition);
+            gradleLauncher = gradleLauncherFactory.nestedInstance(buildDefinition.newInstance());
         }
         return gradleLauncher;
     }
@@ -157,7 +157,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
         final GradleLauncher launcher = getGradleLauncher();
         launcher.addListener(listener);
         launcher.scheduleTasks(tasks);
-        WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
+        WorkerLeaseService workerLeaseService = launcher.getGradle().getServices().get(WorkerLeaseService.class);
         try {
             workerLeaseService.withSharedLease(parentLease, new Runnable() {
                 @Override

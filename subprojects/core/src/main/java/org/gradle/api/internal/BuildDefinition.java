@@ -59,4 +59,11 @@ public class BuildDefinition {
     public static BuildDefinition fromStartParameter(StartParameter startParameter) {
         return new BuildDefinition(null, startParameter, DefaultPluginRequests.EMPTY);
     }
+
+    /**
+     * Creates a defensive copy of this build definition, to isolate this instance from mutations made to the {@link StartParameter} during execution of the build.
+     */
+    public BuildDefinition newInstance() {
+        return new BuildDefinition(buildRootDir, startParameter.newInstance(), injectedSettingsPlugins);
+    }
 }
