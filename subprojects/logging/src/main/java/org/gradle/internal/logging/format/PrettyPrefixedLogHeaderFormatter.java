@@ -35,10 +35,11 @@ public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
         final String message = header != null ? header : description;
         if (message != null) {
             // Visually indicate group by adding surrounding lines, if requested
+            final List<StyledTextOutputEvent.Span> result = Lists.newArrayList(header(message, failed), status(status, failed), eol());
             if (spaceBefore) {
-                return Lists.newArrayList(eol(), header(message, failed), status(status, failed), eol());
+                result.add(0, eol());
             }
-            return Lists.newArrayList(header(message, failed), status(status, failed), eol());
+            return result;
         } else {
             return Collections.emptyList();
         }
