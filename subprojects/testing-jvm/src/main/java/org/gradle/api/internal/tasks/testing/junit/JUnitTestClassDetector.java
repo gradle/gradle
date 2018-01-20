@@ -22,11 +22,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 class JUnitTestClassDetector extends TestClassVisitor {
-    private boolean isAbstract;
-    private String className;
-    private String superClassName;
-    private boolean test;
-
     JUnitTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
     }
@@ -58,33 +53,17 @@ class JUnitTestClassDetector extends TestClassVisitor {
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         if (!test) {
-            return new JUnitTestMethodDetector(this);
+            return new MethodVisitor(Opcodes.ASM6) {
+                @Override
+                public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+                    if ("Lorg/junit/Test;".equals(desc)) {
+                        JUnitTestClassDetector.this.test = true;
+                    }
+                    return null;
+                }
+            };
         } else {
             return null;
         }
-    }
-
-    @Override
-    public String getClassName() {
-        return className;
-    }
-
-    @Override
-    public boolean isAbstract() {
-        return isAbstract;
-    }
-
-    @Override
-    public boolean isTest() {
-        return test;
-    }
-
-    void setTest(boolean test) {
-        this.test = test;
-    }
-
-    @Override
-    public String getSuperClassName() {
-        return superClassName;
     }
 }
