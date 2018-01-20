@@ -24,6 +24,8 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.util.internal.PatchedClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -39,15 +41,13 @@ import java.util.Set;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> implements TestFrameworkDetector {
-    protected static final String TEST_CASE = "junit/framework/TestCase";
-    protected static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";
-    protected static final String JAVA_LANG_OBJECT = "java/lang/Object";
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTestFrameworkDetector.class);
+    private static final String JAVA_LANG_OBJECT = "java/lang/Object";
 
     private List<File> testClassDirectories;
     private final ClassFileExtractionManager classFileExtractionManager;
     private final Map<File, Boolean> superClasses;
     private TestClassProcessor testClassProcessor;
-    private final List<String> knownTestCaseClassNames;
 
     private Set<File> testClassesDirectories;
     private Set<File> testClasspath;
@@ -56,13 +56,11 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         assert classFileExtractionManager != null;
         this.classFileExtractionManager = classFileExtractionManager;
         this.superClasses = new HashMap<File, Boolean>();
-        this.knownTestCaseClassNames = new ArrayList<String>();
-        addKnownTestCaseClassNames(TEST_CASE, GROOVY_TEST_CASE);
     }
 
     protected abstract T createClassVisitor();
 
-    protected File getSuperTestClassFile(String superClassName) {
+    private File getSuperTestClassFile(String superClassName) {
         prepareClasspath();
         if (StringUtils.isEmpty(superClassName)) {
             throw new IllegalArgumentException("superClassName is empty!");
@@ -143,10 +141,42 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         return processTestClass(testClassFile, false);
     }
 
-    protected abstract boolean processTestClass(File testClassFile, boolean superClass);
+    /**
+     * Uses a TestClassVisitor to detect whether the class in the testClassFile is a test class. <p/> If the class is not a test, this function will go up the inheritance tree to check if a parent
+     * class is a test class. First the package of the parent class is checked, if it is a java.lang or groovy.lang the class can't be a test class, otherwise the parent class is scanned. <p/> When a
+     * parent class is a test class all the extending classes are marked as test classes.
+     */
+    private boolean processTestClass(final File testClassFile, boolean superClass) {
+        final TestClassVisitor classVisitor = classVisitor(testClassFile);
 
-    protected boolean processSuperClass(File testClassFile) {
-        boolean isTest = false;
+        boolean isTest = classVisitor.isTest();
+
+        if (!isTest) { // scan parent class
+            final String superClassName = classVisitor.getSuperClassName();
+
+            if (isKnownTestCaseClassName(superClassName)) {
+                isTest = true;
+            } else {
+                final File superClassFile = getSuperTestClassFile(superClassName);
+
+                if (superClassFile != null) {
+                    isTest = processSuperClass(superClassFile);
+                } else {
+                    LOGGER.debug("test-class-scan : failed to scan parent class {}, could not find the class file",
+                        superClassName);
+                }
+            }
+        }
+
+        publishTestClass(isTest, classVisitor, superClass);
+
+        return isTest;
+    }
+
+    protected abstract boolean isKnownTestCaseClassName(String testCaseClassName);
+
+    private boolean processSuperClass(File testClassFile) {
+        boolean isTest;
 
         Boolean isSuperTest = superClasses.get(testClassFile);
 
@@ -165,7 +195,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
      * In none super class mode a test class is published when the class is a test and it is not abstract. In super class mode it must not publish the class otherwise it will get published multiple
      * times (for each extending class).
      */
-    protected void publishTestClass(boolean isTest, TestClassVisitor classVisitor, boolean superClass) {
+    private void publishTestClass(boolean isTest, TestClassVisitor classVisitor, boolean superClass) {
         if (isTest && !classVisitor.isAbstract() && !superClass) {
             String className = Type.getObjectType(classVisitor.getClassName()).getClassName();
             testClassProcessor.processTestClass(new DefaultTestClassRunInfo(className));
@@ -175,25 +205,5 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     @Override
     public void startDetection(TestClassProcessor testClassProcessor) {
         this.testClassProcessor = testClassProcessor;
-    }
-
-    public void addKnownTestCaseClassNames(String... knownTestCaseClassNames) {
-        if (knownTestCaseClassNames != null && knownTestCaseClassNames.length != 0) {
-            for (String knownTestCaseClassName : knownTestCaseClassNames) {
-                if (StringUtils.isNotEmpty(knownTestCaseClassName)) {
-                    this.knownTestCaseClassNames.add(knownTestCaseClassName.replaceAll("\\.", "/"));
-                }
-            }
-        }
-    }
-
-    protected boolean isKnownTestCaseClassName(String testCaseClassName) {
-        boolean isKnownTestCase = false;
-
-        if (StringUtils.isNotEmpty(testCaseClassName)) {
-            isKnownTestCase = knownTestCaseClassNames.contains(testCaseClassName);
-        }
-
-        return isKnownTestCase;
     }
 }
