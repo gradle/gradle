@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,37 @@
 
 package org.gradle.test.fixtures.server.http;
 
-import com.google.common.io.Files;
 import com.sun.net.httpserver.HttpExchange;
+import org.gradle.api.Action;
 
-import java.io.File;
 import java.io.IOException;
 
-class SendFileContent implements BlockingHttpServer.ExpectedRequest, ResourceHandler, ResourceExpectation {
+class ExpectMethodAndRunAction implements ResourceHandler, BlockingHttpServer.ExpectedRequest, ResourceExpectation {
+    private final String method;
     private final String path;
-    private final File file;
+    private final Action<? super HttpExchange> action;
 
-    SendFileContent(String path, File file) {
-        this.path = SendFixedContent.removeLeadingSlash(path);
-        this.file = file;
+    ExpectMethodAndRunAction(String method, String path, Action<? super HttpExchange> action) {
+        this.method = method;
+        this.path = removeLeadingSlash(path);
+        this.action = action;
     }
 
-    @Override
-    public String getPath() {
+    static String removeLeadingSlash(String path) {
+        if (path.startsWith("/")) {
+            return path.substring(1);
+        }
         return path;
     }
 
     @Override
     public String getMethod() {
-        return "GET";
+        return method;
+    }
+
+    @Override
+    public String getPath() {
+        return path;
     }
 
     @Override
@@ -48,7 +56,6 @@ class SendFileContent implements BlockingHttpServer.ExpectedRequest, ResourceHan
 
     @Override
     public void writeTo(int requestId, HttpExchange exchange) throws IOException {
-        exchange.sendResponseHeaders(200, file.length());
-        Files.copy(file, exchange.getResponseBody());
+        action.execute(exchange);
     }
 }

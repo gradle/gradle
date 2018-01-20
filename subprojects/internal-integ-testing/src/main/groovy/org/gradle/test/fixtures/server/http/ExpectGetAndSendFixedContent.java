@@ -16,20 +16,35 @@
 
 package org.gradle.test.fixtures.server.http;
 
+import com.google.common.base.Charsets;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 
-class ExpectPut implements BlockingHttpServer.ExpectedRequest, ResourceExpectation, ResourceHandler {
+class ExpectGetAndSendFixedContent implements ResourceHandler, BlockingHttpServer.ExpectedRequest, ResourceExpectation {
     private final String path;
+    private final String content;
 
-    ExpectPut(String path) {
-        this.path = SendFixedContent.removeLeadingSlash(path);
+    ExpectGetAndSendFixedContent(String path) {
+        this.path = removeLeadingSlash(path);
+        this.content = "";
+    }
+
+    ExpectGetAndSendFixedContent(String path, String content) {
+        this.path = removeLeadingSlash(path);
+        this.content = content;
+    }
+
+    static String removeLeadingSlash(String path) {
+        if (path.startsWith("/")) {
+            return path.substring(1);
+        }
+        return path;
     }
 
     @Override
     public String getMethod() {
-        return "PUT";
+        return "GET";
     }
 
     @Override
@@ -44,6 +59,8 @@ class ExpectPut implements BlockingHttpServer.ExpectedRequest, ResourceExpectati
 
     @Override
     public void writeTo(int requestId, HttpExchange exchange) throws IOException {
-        exchange.sendResponseHeaders(200, 0);
+        byte[] bytes = content.getBytes(Charsets.UTF_8);
+        exchange.sendResponseHeaders(200, bytes.length);
+        exchange.getResponseBody().write(bytes);
     }
 }

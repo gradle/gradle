@@ -15,9 +15,13 @@
  */
 package org.gradle.test.fixtures.server.http;
 
+import com.google.common.io.Files;
 import com.sun.net.httpserver.BasicAuthenticator;
 import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import org.gradle.api.Action;
+import org.gradle.internal.ErroringAction;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
@@ -117,7 +121,7 @@ public class BlockingHttpServer extends ExternalResource {
     public void expectConcurrent(String... expectedRequests) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
         for (String call : expectedRequests) {
-            expectations.add(new SendFixedContent(call));
+            expectations.add(new ExpectGetAndSendFixedContent(call));
         }
         addNonBlockingHandler(expectations);
     }
@@ -128,7 +132,7 @@ public class BlockingHttpServer extends ExternalResource {
     public void expectConcurrent(Collection<String> expectedRequests) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
         for (String call : expectedRequests) {
-            expectations.add(new SendFixedContent(call));
+            expectations.add(new ExpectGetAndSendFixedContent(call));
         }
         addNonBlockingHandler(expectations);
     }
@@ -156,22 +160,33 @@ public class BlockingHttpServer extends ExternalResource {
     /**
      * Expect a GET request to the given path, and return the contents of the given file.
      */
-    public ExpectedRequest file(String path, File file) {
-        return new SendFileContent(path, file);
+    public ExpectedRequest file(String path, final File file) {
+        return new ExpectMethodAndRunAction("GET", path, new ErroringAction<HttpExchange>() {
+            @Override
+            protected void doExecute(HttpExchange httpExchange) throws Exception {
+                httpExchange.sendResponseHeaders(200, file.length());
+                Files.copy(file, httpExchange.getResponseBody());
+            }
+        });
     }
 
     /**
      * Expect a GET request to the given path, and return some arbitrary content.
      */
     public ExpectedRequest resource(String path) {
-        return new SendFixedContent(path);
+        return new ExpectGetAndSendFixedContent(path);
     }
 
     /**
      * Expect a GET request to the given path, and return a 404 response.
      */
     public ExpectedRequest missing(String path) {
-        return new ExpectGetMissing(path);
+        return new ExpectMethodAndRunAction("GET", path, new ErroringAction<HttpExchange>() {
+            @Override
+            protected void doExecute(HttpExchange httpExchange) throws Exception {
+                httpExchange.sendResponseHeaders(404, 0);
+            }
+        });
     }
 
     /**
@@ -185,14 +200,28 @@ public class BlockingHttpServer extends ExternalResource {
      * Expect a GET request to the given path, and return the given content (UTF-8 encoded)
      */
     public ExpectedRequest resource(String path, String content) {
-        return new SendFixedContent(path, content);
+        return new ExpectGetAndSendFixedContent(path, content);
+    }
+
+    /**
+     * Expect a GET request to the given path and run the given action to create the response.
+     */
+    public ExpectedRequest get(String path, Action<? super HttpExchange> action) {
+        return new ExpectMethodAndRunAction("GET", path, action);
     }
 
     /**
      * Expect a PUT request to the given path, discard the request body
      */
     public ExpectedRequest put(String path) {
-        return new ExpectPut(path);
+        return new ExpectMethodAndRunAction("PUT", path, new SendEmptyResponse());
+    }
+
+    /**
+     * Expect a POST request to the given path and run the given action to create the response.
+     */
+    public ExpectedRequest post(String path, Action<? super HttpExchange> action) {
+        return new ExpectMethodAndRunAction("POST", path, action);
     }
 
     /**
@@ -219,7 +248,7 @@ public class BlockingHttpServer extends ExternalResource {
     public BlockingHandler expectConcurrentAndBlock(int concurrent, String... expectedCalls) {
         List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
         for (String call : expectedCalls) {
-            expectations.add(new SendFixedContent(call));
+            expectations.add(new ExpectGetAndSendFixedContent(call));
         }
         return addBlockingHandler(concurrent, expectations);
     }
@@ -256,14 +285,14 @@ public class BlockingHttpServer extends ExternalResource {
      * Expects the given request to be made. Releases the request as soon as it is received.
      */
     public void expect(String expectedCall) {
-        addNonBlockingHandler(Collections.singleton(new SendFixedContent(expectedCall)));
+        addNonBlockingHandler(Collections.singleton(new ExpectGetAndSendFixedContent(expectedCall)));
     }
 
     /**
      * Expects the given request to be made. Blocks until the request is explicitly released using one of the methods on {@link BlockingHandler}.
      */
     public BlockingHandler expectAndBlock(String expectedCall) {
-        return addBlockingHandler(1, Collections.singleton(new SendFixedContent(expectedCall)));
+        return addBlockingHandler(1, Collections.singleton(new ExpectGetAndSendFixedContent(expectedCall)));
     }
 
     /**
@@ -360,6 +389,13 @@ public class BlockingHttpServer extends ExternalResource {
          * Waits for the expected number of concurrent requests to be received.
          */
         void waitForAllPendingCalls();
+    }
+
+    private static class SendEmptyResponse extends ErroringAction<HttpExchange> {
+        @Override
+        protected void doExecute(HttpExchange httpExchange) throws Exception {
+            httpExchange.sendResponseHeaders(200, 0);
+        }
     }
 
     private class MustBeRunning implements WaitPrecondition {
