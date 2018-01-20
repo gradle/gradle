@@ -17,26 +17,23 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
 class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Ignore("temporary")
     @Unroll
     def "allows optional @#annotation.simpleName to have null value"() {
         buildFile << """
             import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
-            import org.gradle.api.internal.tasks.TaskPropertyUtils
+            import org.gradle.api.tasks.TaskPropertyTestUtils
             import org.gradle.api.internal.tasks.properties.PropertyWalker
 
             class CustomTask extends DefaultTask {
                 @Optional @$annotation.simpleName input
                 @TaskAction void doSomething() {
-                    def visitor = new GetInputFilesVisitor(this.toString())
-                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), this, visitor)
-                    assert visitor.files.empty
+                    def inputFiles = TaskPropertyTestUtils.getInputFiles(this)
+                    assert inputFiles.empty
                 }
             }
 
