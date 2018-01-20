@@ -17,7 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.util.ports.ReleasingPortAllocator
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -342,7 +342,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
     def 'org.ajoberstar.grgit plugin'() {
         given:
-        GitRepository.init(testProjectDir.root)
+        GitFileRepository.init(testProjectDir.root)
         buildFile << """
             plugins {
                 id "org.ajoberstar.grgit" version "2.1.0"

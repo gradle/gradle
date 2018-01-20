@@ -20,7 +20,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -113,7 +113,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
 
     private writeHelloLibrary() {
         def libraryPath = file("hello")
-        def libraryRepo = GitRepository.init(libraryPath)
+        def libraryRepo = GitFileRepository.init(libraryPath)
         app.library.writeToProject(libraryPath)
         libraryPath.file("build.gradle") << """
             apply plugin: 'swift-library'
@@ -131,7 +131,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
 
     private writeLogLibrary() {
         def logPath = file("log")
-        def logRepo = GitRepository.init(logPath)
+        def logRepo = GitFileRepository.init(logPath)
         app.logLibrary.writeToProject(logPath)
         logPath.file("build.gradle") << """
             apply plugin: 'swift-library'

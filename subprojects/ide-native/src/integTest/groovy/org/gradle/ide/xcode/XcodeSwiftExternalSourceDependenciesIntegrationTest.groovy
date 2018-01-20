@@ -20,7 +20,7 @@ import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.internal.SourceDependencies
 import org.junit.Rule
 
@@ -28,7 +28,7 @@ import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
 class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeIntegrationSpec implements SourceDependencies {
     @Rule
-    GitRepository repo = new GitRepository('greeter', temporaryFolder.getTestDirectory())
+    GitFileRepository repo = new GitFileRepository('greeter', temporaryFolder.getTestDirectory())
 
     def setup() {
         requireSwiftToolChain()
