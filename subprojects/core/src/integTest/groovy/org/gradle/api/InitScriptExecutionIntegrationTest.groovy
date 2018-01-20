@@ -19,6 +19,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "executes init.gradle from user home dir"() {
@@ -127,6 +130,40 @@ try {
 
         then:
         notThrown(Throwable)
+    }
+
+    @Requires([KOTLIN_SCRIPT])
+    def "each Kotlin init script has independent ClassLoader"() {
+        given:
+        createExternalJar()
+
+        and:
+        TestFile initScript1 = file('init1.init.gradle.kts')
+        initScript1 << '''
+initscript {
+    dependencies { classpath(files("repo/test-1.3.jar")) }
+}
+org.gradle.test.BuildClass()
+'''
+        TestFile initScript2 = file('init2.init.gradle.kts')
+        initScript2 << '''
+try {
+    Class.forName("org.gradle.test.BuildClass")
+} catch (e: ClassNotFoundException) {
+    println("BuildClass not found as expected.")
+}
+'''
+
+        buildFile << 'task doStuff'
+
+        when:
+        ExecutionResult result = executer.usingInitScript(initScript1).usingInitScript(initScript2).withTasks('doStuff').run()
+
+        then:
+        notThrown(Throwable)
+
+        and:
+        result.output.contains("BuildClass not found as expected")
     }
 
     def "init script can inject configuration into the root project and all projects"() {
