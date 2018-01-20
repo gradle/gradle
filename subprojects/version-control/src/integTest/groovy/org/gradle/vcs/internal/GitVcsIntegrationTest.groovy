@@ -17,19 +17,19 @@
 package org.gradle.vcs.internal
 
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 import spock.lang.Issue
 
 class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Rule
-    GitRepository repo = new GitRepository('dep', temporaryFolder.getTestDirectory())
+    GitFileRepository repo = new GitFileRepository('dep', temporaryFolder.getTestDirectory())
 
     @Rule
-    GitRepository deeperRepo = new GitRepository('deeperDep', temporaryFolder.getTestDirectory())
+    GitFileRepository deeperRepo = new GitFileRepository('deeperDep', temporaryFolder.getTestDirectory())
 
     @Rule
-    GitRepository evenDeeperRepo = new GitRepository('evenDeeperDep', temporaryFolder.getTestDirectory())
+    GitFileRepository evenDeeperRepo = new GitFileRepository('evenDeeperDep', temporaryFolder.getTestDirectory())
 
     def 'can define and use source repositories'() {
         given:

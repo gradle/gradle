@@ -17,7 +17,7 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithCppLibrary
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 
 class SwiftDependenciesCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     def app = new SwiftAppWithCppLibrary()
@@ -82,7 +82,7 @@ class SwiftDependenciesCppInteroperabilityIntegrationTest extends AbstractSwiftM
 
     private writeHelloLibrary() {
         def libraryPath = file("hello")
-        def libraryRepo = GitRepository.init(libraryPath)
+        def libraryRepo = GitFileRepository.init(libraryPath)
         app.library.writeToProject(libraryPath)
         libraryPath.file("build.gradle") << """
             apply plugin: 'swift-library'
@@ -100,7 +100,7 @@ class SwiftDependenciesCppInteroperabilityIntegrationTest extends AbstractSwiftM
 
     private writeCppLogLibrary() {
         def logPath = file("log")
-        def logRepo = GitRepository.init(logPath)
+        def logRepo = GitFileRepository.init(logPath)
         app.logLibrary.writeToProject(logPath)
         logPath.file("build.gradle") << """
             apply plugin: 'cpp-library'
