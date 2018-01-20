@@ -36,7 +36,7 @@ public class ExternalResourceName {
             throw new IllegalArgumentException(String.format("Cannot create resource name from non-hierarchical URI '%s'.", uri.toString()));
         }
         this.encodedRoot = encodeRoot(uri);
-        this.path = uri.getPath();
+        this.path = extractPath(uri);
     }
 
     public ExternalResourceName(String path) {
@@ -54,18 +54,30 @@ public class ExternalResourceName {
             throw new IllegalArgumentException(String.format("Cannot create resource name from non-hierarchical URI '%s'.", parent.toString()));
         }
         String newPath;
+        String parentPath = extractPath(parent);
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
         if (path.length() == 0) {
-            newPath = parent.getPath();
-        } else if (parent.getPath().endsWith("/")) {
-            newPath = parent.getPath() + path;
+            newPath = parentPath;
+        } else if (parentPath.endsWith("/")) {
+            newPath = parentPath + path;
         } else {
-            newPath = parent.getPath() + "/" + path;
+            newPath = parentPath + "/" + path;
         }
         this.encodedRoot = encodeRoot(parent);
         this.path = newPath;
+    }
+
+    private boolean isFileOnHost(URI uri) {
+        return "file".equals(uri.getScheme()) && uri.getPath().startsWith("//");
+    }
+
+    private String extractPath(URI parent) {
+        if (isFileOnHost(parent)) {
+            return URI.create(parent.getPath()).getPath();
+        }
+        return parent.getPath();
     }
 
     private String encodeRoot(URI uri) {
@@ -74,10 +86,10 @@ public class ExternalResourceName {
             builder.append(uri.getScheme());
             builder.append(":");
 
-            if (uri.getScheme().equals("file")) {
-                if (uri.getPath().startsWith("//")) {
-                    builder.append("//");
-                }
+            if (isFileOnHost(uri)) {
+                String hostName = URI.create(uri.getPath()).getHost();
+                builder.append("////");
+                builder.append(hostName);
             }
         }
         if (uri.getHost() != null) {

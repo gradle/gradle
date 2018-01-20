@@ -245,6 +245,77 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output =~ /Local state: '.*localState'/
     }
 
+    def "unnamed file properties are named"() {
+        buildFile << """
+            import org.gradle.api.internal.tasks.*
+            import org.gradle.api.internal.tasks.properties.*
+
+            task myTask {
+                inputs.file("input.txt")
+                inputs.files("input-1.txt", "input-2.txt")
+                inputs.dir("input-dir")
+
+                outputs.file("output.txt")
+                outputs.files("output-1.txt", "output-2.txt")
+                outputs.dir("output-dir")
+                outputs.dirs("output-dir-1", "output-dir-2")
+            }
+        """ << printProperties("myTask")
+        when:
+        run "printProperties"
+        then:
+        output.contains """
+            Input file property '\$1'
+            Input file property '\$2'
+            Input file property '\$3'
+            Output file property '\$1'
+            Output file property '\$2'
+            Output file property '\$3'
+            Output file property '\$4'
+        """.stripIndent()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/4085")
+    def "can register more unnamed properties after properties have been queried"() {
+        buildFile << """
+            import org.gradle.api.internal.tasks.*
+            import org.gradle.api.internal.tasks.properties.*
+
+            task myTask {
+                // Register first unnamed property
+                inputs.file("input-1.txt")
+                // Trigger calculating unnamed property names
+                inputs.hasInputs
+
+                // Register another unnamed property
+                inputs.file("input-2.txt")
+                // Trigger calculating unnamed property names again
+                inputs.hasInputs
+                
+                // Register first unnamed property
+                outputs.file("output-1.txt")
+                // Trigger calculating unnamed property names
+                outputs.hasOutput
+
+                // Register another unnamed property
+                outputs.file("output-2.txt")
+                // Trigger calculating unnamed property names again
+                outputs.hasOutput
+            }
+            
+            ${printProperties("myTask")}
+        """
+        when:
+        run "printProperties"
+        then:
+        output.contains """
+            Input file property '\$1'
+            Input file property '\$2'
+            Output file property '\$1'
+            Output file property '\$2'
+        """.stripIndent()
+    }
+
     def "input properties can be overridden"() {
         buildFile << classesForNestedProperties()
         buildFile << """
@@ -347,6 +418,14 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                         }
                     })
                 }
+            }
+        """
+    }
+
+    def printProperties(String task) {
+        printPropertiesTask() << """
+            task printProperties(type: PrintInputsAndOutputs) {
+                task = $task
             }
         """
     }
