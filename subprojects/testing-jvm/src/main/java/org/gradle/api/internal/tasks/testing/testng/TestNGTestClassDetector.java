@@ -21,12 +21,10 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-class TestNGTestClassDetector extends TestClassVisitor {
-    private boolean isAbstract;
-    private String className;
-    private String superClassName;
-    private boolean test;
+import java.util.HashSet;
+import java.util.Set;
 
+class TestNGTestClassDetector extends TestClassVisitor {
     TestNGTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
     }
@@ -50,33 +48,33 @@ class TestNGTestClassDetector extends TestClassVisitor {
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         if (!isAbstract && !test) {
-            return new TestNGTestMethodDetector(this);
+            return new TestNGTestMethodDetector();
         } else {
             return null;
         }
     }
 
-    @Override
-    public String getClassName() {
-        return className;
-    }
+    class TestNGTestMethodDetector extends MethodVisitor {
+        private final Set<String> testMethodAnnotations = new HashSet<String>();
 
-    @Override
-    public boolean isAbstract() {
-        return isAbstract;
-    }
+        public TestNGTestMethodDetector() {
+            super(Opcodes.ASM6);
+            testMethodAnnotations.add("Lorg/testng/annotations/Test;");
+            testMethodAnnotations.add("Lorg/testng/annotations/BeforeSuite;");
+            testMethodAnnotations.add("Lorg/testng/annotations/AfterSuite;");
+            testMethodAnnotations.add("Lorg/testng/annotations/BeforeTest;");
+            testMethodAnnotations.add("Lorg/testng/annotations/AfterTest;");
+            testMethodAnnotations.add("Lorg/testng/annotations/BeforeGroups;");
+            testMethodAnnotations.add("Lorg/testng/annotations/AfterGroups;");
+            testMethodAnnotations.add("Lorg/testng/annotations/Factory;");
+        }
 
-    @Override
-    public boolean isTest() {
-        return test;
-    }
-
-    void setTest(boolean test) {
-        this.test = test;
-    }
-
-    @Override
-    public String getSuperClassName() {
-        return superClassName;
+        @Override
+        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            if (testMethodAnnotations.contains(desc)) {
+                TestNGTestClassDetector.this.test = true;
+            }
+            return null;
+        }
     }
 }

@@ -23,8 +23,11 @@ import org.objectweb.asm.Opcodes;
  * Base class for ASM test class scanners.
  */
 public abstract class TestClassVisitor extends ClassVisitor {
-
     protected final TestFrameworkDetector detector;
+    protected boolean isAbstract;
+    protected String className;
+    protected String superClassName;
+    protected boolean test;
 
     protected TestClassVisitor(TestFrameworkDetector detector) {
         super(Opcodes.ASM6);
@@ -34,11 +37,19 @@ public abstract class TestClassVisitor extends ClassVisitor {
         this.detector = detector;
     }
 
-    public abstract String getClassName();
+    public String getClassName() {
+        return className;
+    }
 
-    public abstract boolean isTest();
+    public boolean isTest() {
+        return test;
+    }
 
-    public abstract boolean isAbstract();
+    public boolean isAbstract() {
+        return isAbstract;
+    }
 
-    public abstract String getSuperClassName();
+    public String getSuperClassName() {
+        return superClassName;
+    }
 }
