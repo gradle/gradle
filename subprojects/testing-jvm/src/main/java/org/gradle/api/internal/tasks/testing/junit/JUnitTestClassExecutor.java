@@ -52,17 +52,18 @@ public class JUnitTestClassExecutor {
     public void execute(String testClassName) {
         executionListener.testClassStarted(testClassName);
 
+        boolean testClassSkipped = false;
         Throwable failure = null;
         try {
-            runTestClass(testClassName);
+            testClassSkipped = runTestClass(testClassName);
         } catch (Throwable throwable) {
             failure = throwable;
         }
 
-        executionListener.testClassFinished(failure);
+        executionListener.testClassFinished(failure, testClassSkipped);
     }
 
-    private void runTestClass(String testClassName) throws ClassNotFoundException {
+    private boolean runTestClass(String testClassName) throws ClassNotFoundException {
         final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
         List<Filter> filters = new ArrayList<Filter>();
         if (options.hasCategoryConfiguration()) {
@@ -101,17 +102,17 @@ public class JUnitTestClassExecutor {
                 try {
                     filterable.filter(filter);
                 } catch (NoTestsRemainException e) {
-                    // Ignore
-                    return;
+                    return true;
                 }
             }
         } else if (allTestsFiltered(runner, filters)) {
-            return;
+            return true;
         }
 
         RunNotifier notifier = new RunNotifier();
         notifier.addListener(listener);
         runner.run(notifier);
+        return false;
     }
 
     private void verifyJUnitCategorySupport() {

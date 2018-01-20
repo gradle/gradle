@@ -29,20 +29,27 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JUnitTestEventAdapter extends RunListener {
+    private class JUnitTestEventInternalDescriptor {
+        public TestDescriptorInternal descriptor;
+        public TestResult.ResultType result;
+
+        public JUnitTestEventInternalDescriptor(TestDescriptorInternal descriptor, TestResult.ResultType result) {
+            this.descriptor = descriptor;
+            this.result = result;
+        }
+    }
+
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)", Pattern.DOTALL);
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
-    private final Map<Description, TestDescriptorInternal> executing = new HashMap<Description, TestDescriptorInternal>();
-    private final Set<Description> assumptionFailed = new HashSet<Description>();
+    private final Map<Integer, JUnitTestEventInternalDescriptor> executing = new HashMap<Integer, JUnitTestEventInternalDescriptor>();
 
     public JUnitTestEventAdapter(TestResultProcessor resultProcessor, Clock clock,
                                  IdGenerator<?> idGenerator) {
@@ -56,7 +63,7 @@ public class JUnitTestEventAdapter extends RunListener {
     public void testStarted(Description description) throws Exception {
         TestDescriptorInternal descriptor = nullSafeDescriptor(idGenerator.generateId(), description);
         synchronized (lock) {
-            TestDescriptorInternal oldTest = executing.put(description, descriptor);
+            JUnitTestEventInternalDescriptor oldTest = executing.put(description.hashCode(), new JUnitTestEventInternalDescriptor(descriptor, null));
             assert oldTest == null : String.format("Unexpected start event for %s", description);
         }
         resultProcessor.started(descriptor, startEvent());
@@ -64,27 +71,32 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testFailure(Failure failure) throws Exception {
-        TestDescriptorInternal testInternal;
+        JUnitTestEventInternalDescriptor testInternal;
         synchronized (lock) {
-            testInternal = executing.get(failure.getDescription());
+            testInternal = executing.get(failure.getDescription().hashCode());
         }
         boolean needEndEvent = false;
         if (testInternal == null) {
             // This can happen when, for example, a @BeforeClass or @AfterClass method fails
             needEndEvent = true;
-            testInternal = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
-            resultProcessor.started(testInternal, startEvent());
+            testInternal = new JUnitTestEventInternalDescriptor(nullSafeDescriptor(idGenerator.generateId(), failure.getDescription()), TestResult.ResultType.FAILURE);
+            resultProcessor.started(testInternal.descriptor, startEvent());
         }
-        resultProcessor.failure(testInternal.getId(), failure.getException());
+        resultProcessor.failure(testInternal.descriptor.getId(), failure.getException());
+        testInternal.result = TestResult.ResultType.FAILURE;
         if (needEndEvent) {
-            resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(clock.getCurrentTime()));
+            resultProcessor.completed(testInternal.descriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.FAILURE));
         }
     }
 
     @Override
     public void testAssumptionFailure(Failure failure) {
+        JUnitTestEventInternalDescriptor testInternal;
         synchronized (lock) {
-            assumptionFailed.add(failure.getDescription());
+            testInternal = executing.get(failure.getDescription().hashCode());
+        }
+        if (testInternal != null && testInternal.result == null) {
+            testInternal.result = TestResult.ResultType.SKIPPED;
         }
     }
 
@@ -97,9 +109,9 @@ public class JUnitTestEventAdapter extends RunListener {
             return;
         }
 
-        TestDescriptorInternal testInternal = descriptor(idGenerator.generateId(), description);
-        resultProcessor.started(testInternal, startEvent());
-        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
+        TestDescriptorInternal descriptorInternal = descriptor(idGenerator.generateId(), description);
+        resultProcessor.started(descriptorInternal, startEvent());
+        resultProcessor.completed(descriptorInternal.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
     }
 
     private void processIgnoredClass(Description description) throws Exception {
@@ -113,19 +125,19 @@ public class JUnitTestEventAdapter extends RunListener {
     @Override
     public void testFinished(Description description) throws Exception {
         long endTime = clock.getCurrentTime();
-        TestDescriptorInternal testInternal;
+        JUnitTestEventInternalDescriptor testInternal;
         TestResult.ResultType resultType;
         synchronized (lock) {
-            testInternal = executing.remove(description);
+            testInternal = executing.remove(description.hashCode());
             if (testInternal == null && executing.size() == 1) {
                 // Assume that test has renamed itself (this can actually happen)
                 testInternal = executing.values().iterator().next();
                 executing.clear();
             }
             assert testInternal != null : String.format("Unexpected end event for %s", description);
-            resultType = assumptionFailed.remove(description) ? TestResult.ResultType.SKIPPED : null;
+            resultType = testInternal.result != null ? testInternal.result : TestResult.ResultType.SUCCESS;
         }
-        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
+        resultProcessor.completed(testInternal.descriptor.getId(), new TestCompleteEvent(endTime, resultType));
     }
 
     private TestStartEvent startEvent() {

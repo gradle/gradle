@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 
@@ -35,6 +36,7 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
     private final Clock clock;
     private final Set<Object> currentTests = new LinkedHashSet<Object>();
     private boolean testsStarted;
+    private boolean testFailed;
     private TestDescriptorInternal currentTestClass;
 
     public TestClassExecutionEventGenerator(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, Clock clock) {
@@ -46,28 +48,41 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
     @Override
     public void testClassStarted(String testClassName) {
         currentTestClass = new DefaultTestClassDescriptor(idGenerator.generateId(), testClassName);
+        testFailed = false;
         resultProcessor.started(currentTestClass, new TestStartEvent(clock.getCurrentTime()));
     }
 
     @Override
-    public void testClassFinished(Throwable failure) {
+    public void testClassFinished(Throwable failure, boolean testClassSkipped) {
         long now = clock.getCurrentTime();
         try {
+            TestResult.ResultType result;
             if (failure != null) {
                 if (currentTests.isEmpty()) {
-                    String testName = testsStarted ? "executionError": "initializationError";
+                    String testName = testsStarted ? "executionError" : "initializationError";
                     DefaultTestDescriptor initializationError = new DefaultTestDescriptor(idGenerator.generateId(), currentTestClass.getClassName(), testName);
                     resultProcessor.started(initializationError, new TestStartEvent(now));
                     resultProcessor.failure(initializationError.getId(), failure);
-                    resultProcessor.completed(initializationError.getId(), new TestCompleteEvent(now));
+                    resultProcessor.completed(initializationError.getId(), new TestCompleteEvent(now, TestResult.ResultType.FAILURE));
                 } else {
                     for (Object test : currentTests) {
                         resultProcessor.failure(test, failure);
-                        resultProcessor.completed(test, new TestCompleteEvent(now));
+                        resultProcessor.completed(test, new TestCompleteEvent(now, TestResult.ResultType.FAILURE));
                     }
                 }
+                // An exception was thrown by the Runner
+                result = TestResult.ResultType.FAILURE;
+            } else if (testFailed) {
+                // One or more tests failed
+                result = TestResult.ResultType.FAILURE;
+            } else if (testClassSkipped) {
+                // The Runner never ran, so we can assume the whole class was skipped
+                result = TestResult.ResultType.SKIPPED;
+            } else {
+                // Even if individual tests were ignored, @Before or @After methods may have run, so set the class status to SUCCESS
+                result = TestResult.ResultType.SUCCESS;
             }
-            resultProcessor.completed(currentTestClass.getId(), new TestCompleteEvent(now));
+            resultProcessor.completed(currentTestClass.getId(), new TestCompleteEvent(now, result));
         } finally {
             testsStarted = false;
             currentTests.clear();
@@ -95,6 +110,7 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
 
     @Override
     public void failure(Object testId, Throwable result) {
+        testFailed = true;
         resultProcessor.failure(testId, result);
     }
 }
