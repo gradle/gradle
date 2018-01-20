@@ -24,7 +24,7 @@ class ExpectHead implements BlockingHttpServer.ExpectedRequest, ResourceExpectat
     private final String path;
 
     ExpectHead(String path) {
-        this.path = SendFixedContent.removeLeadingSlash(path);
+        this.path = ExpectGetAndSendFixedContent.removeLeadingSlash(path);
     }
 
     @Override
