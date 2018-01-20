@@ -42,9 +42,9 @@ import kotlin.script.experimental.dependencies.ScriptDependencies
 
 internal
 class CachingKotlinCompiler(
-    val scriptCache: ScriptCache,
-    val implicitImports: ImplicitImports,
-    val progressLoggerFactory: ProgressLoggerFactory) {
+    private val scriptCache: ScriptCache,
+    private val implicitImports: ImplicitImports,
+    private val progressLoggerFactory: ProgressLoggerFactory) {
 
     init {
         org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
