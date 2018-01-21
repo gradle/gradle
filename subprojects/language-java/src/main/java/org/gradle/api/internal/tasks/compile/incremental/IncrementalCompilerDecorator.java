@@ -72,8 +72,12 @@ public class IncrementalCompilerDecorator {
             return cleaningCompiler;
         }
         if (!annotationProcessorPath.isEmpty()) {
-            LOG.info("{} - is not incremental. Annotation processors are present.", displayName);
-            return cleaningCompiler;
+            if ("true".equals(System.getProperty("org.gradle.incremental.ignoreAnnotationProcessors"))) {
+                LOG.info("{} - is incremental. Annotation processors are present, but org.gradle.incremental.ignoreAnnotationProcessors system property is set to true.", displayName);
+            } else {
+                LOG.info("{} - is not incremental. Annotation processors are present.", displayName);
+                return cleaningCompiler;
+            }
         }
         ClassSetAnalysisData data = compileCaches.getLocalClassSetAnalysisStore().get();
         if (data == null) {
