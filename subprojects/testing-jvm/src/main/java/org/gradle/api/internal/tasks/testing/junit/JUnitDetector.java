@@ -15,22 +15,17 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.apache.commons.lang.StringUtils;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.testing.detection.AbstractTestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassDetector> {
     private static final String TEST_CASE = "junit/framework/TestCase";
     private static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";
-    private final List<String> knownTestCaseClassNames;
+    private static final ImmutableSet<String> KNOWN_TEST_CASE_CLASS_NAMES = ImmutableSet.of(TEST_CASE, GROOVY_TEST_CASE);
 
     public JUnitDetector(ClassFileExtractionManager classFileExtractionManager) {
         super(classFileExtractionManager);
-        this.knownTestCaseClassNames = new ArrayList<String>();
-        addKnownTestCaseClassNames(TEST_CASE, GROOVY_TEST_CASE);
     }
 
     @Override
@@ -40,22 +35,6 @@ public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassD
 
     @Override
     protected boolean isKnownTestCaseClassName(String testCaseClassName) {
-        boolean isKnownTestCase = false;
-
-        if (StringUtils.isNotEmpty(testCaseClassName)) {
-            isKnownTestCase = knownTestCaseClassNames.contains(testCaseClassName);
-        }
-
-        return isKnownTestCase;
-    }
-
-    private void addKnownTestCaseClassNames(String... knownTestCaseClassNames) {
-        if (knownTestCaseClassNames != null && knownTestCaseClassNames.length != 0) {
-            for (String knownTestCaseClassName : knownTestCaseClassNames) {
-                if (StringUtils.isNotEmpty(knownTestCaseClassName)) {
-                    this.knownTestCaseClassNames.add(knownTestCaseClassName.replaceAll("\\.", "/"));
-                }
-            }
-        }
+        return KNOWN_TEST_CASE_CLASS_NAMES.contains(testCaseClassName);
     }
 }

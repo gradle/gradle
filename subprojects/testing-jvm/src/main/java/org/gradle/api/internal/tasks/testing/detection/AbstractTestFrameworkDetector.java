@@ -33,7 +33,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,14 +65,11 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             throw new IllegalArgumentException("superClassName is empty!");
         }
 
-        final Iterator<File> testClassDirectoriesIt = testClassDirectories.iterator();
-
         File superTestClassFile = null;
-        while (superTestClassFile == null && testClassDirectoriesIt.hasNext()) {
-            final File testClassDirectory = testClassDirectoriesIt.next();
-            final File superTestClassFileCandidate = new File(testClassDirectory, superClassName + ".class");
-            if (superTestClassFileCandidate.exists()) {
-                superTestClassFile = superTestClassFileCandidate;
+        for (File testClassDirectory : testClassDirectories) {
+            File candidate = new File(testClassDirectory, superClassName + ".class");
+            if (candidate.exists()) {
+                superTestClassFile = candidate;
             }
         }
 
