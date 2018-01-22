@@ -15,64 +15,59 @@
  */
 package org.gradle.api.internal.tasks.testing.testng;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import java.util.HashSet;
 import java.util.Set;
 
 class TestNGTestClassDetector extends TestClassVisitor {
+    private static final Set<String> TEST_METHOD_ANNOTATIONS =
+        ImmutableSet.<String>builder()
+        .add("Lorg/testng/annotations/Test;")
+        .add("Lorg/testng/annotations/BeforeSuite;")
+        .add("Lorg/testng/annotations/AfterSuite;")
+        .add("Lorg/testng/annotations/BeforeTest;")
+        .add("Lorg/testng/annotations/AfterTest;")
+        .add("Lorg/testng/annotations/BeforeGroups;")
+        .add("Lorg/testng/annotations/AfterGroups;")
+        .add("Lorg/testng/annotations/Factory;")
+        .build();
+
     TestNGTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
     }
 
     @Override
-    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        isAbstract = (access & Opcodes.ACC_ABSTRACT) != 0;
-
-        this.className = name;
-        this.superClassName = superName;
-    }
-
-    @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if ("Lorg/testng/annotations/Test;".equals(desc)) {
-            test = true;
+            setTest(true);
         }
         return null;
     }
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (!isAbstract && !test) {
+        if (!isAbstract() && !isTest()) {
             return new TestNGTestMethodDetector();
         } else {
             return null;
         }
     }
 
-    class TestNGTestMethodDetector extends MethodVisitor {
-        private final Set<String> testMethodAnnotations = new HashSet<String>();
-
-        public TestNGTestMethodDetector() {
+    private class TestNGTestMethodDetector extends MethodVisitor {
+        private TestNGTestMethodDetector() {
             super(Opcodes.ASM6);
-            testMethodAnnotations.add("Lorg/testng/annotations/Test;");
-            testMethodAnnotations.add("Lorg/testng/annotations/BeforeSuite;");
-            testMethodAnnotations.add("Lorg/testng/annotations/AfterSuite;");
-            testMethodAnnotations.add("Lorg/testng/annotations/BeforeTest;");
-            testMethodAnnotations.add("Lorg/testng/annotations/AfterTest;");
-            testMethodAnnotations.add("Lorg/testng/annotations/BeforeGroups;");
-            testMethodAnnotations.add("Lorg/testng/annotations/AfterGroups;");
-            testMethodAnnotations.add("Lorg/testng/annotations/Factory;");
+
         }
 
         @Override
         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            if (testMethodAnnotations.contains(desc)) {
-                TestNGTestClassDetector.this.test = true;
+            if (TEST_METHOD_ANNOTATIONS.contains(desc)) {
+                setTest(true);
             }
             return null;
         }

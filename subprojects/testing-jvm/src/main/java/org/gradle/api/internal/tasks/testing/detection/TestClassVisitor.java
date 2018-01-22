@@ -24,10 +24,10 @@ import org.objectweb.asm.Opcodes;
  */
 public abstract class TestClassVisitor extends ClassVisitor {
     protected final TestFrameworkDetector detector;
-    protected boolean isAbstract;
-    protected String className;
-    protected String superClassName;
-    protected boolean test;
+    private boolean isAbstract;
+    private String className;
+    private String superClassName;
+    private boolean test;
 
     protected TestClassVisitor(TestFrameworkDetector detector) {
         super(Opcodes.ASM6);
@@ -45,11 +45,26 @@ public abstract class TestClassVisitor extends ClassVisitor {
         return test;
     }
 
+    protected void setTest(boolean test) {
+        this.test = test;
+    }
+
     public boolean isAbstract() {
         return isAbstract;
     }
 
+    protected void setAbstract(boolean anAbstract) {
+        this.isAbstract = anAbstract;
+    }
+
     public String getSuperClassName() {
         return superClassName;
+    }
+
+    @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        isAbstract = (access & Opcodes.ACC_ABSTRACT) != 0;
+        className = name;
+        superClassName = superName;
     }
 }

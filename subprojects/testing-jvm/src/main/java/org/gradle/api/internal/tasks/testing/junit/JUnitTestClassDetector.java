@@ -27,24 +27,16 @@ class JUnitTestClassDetector extends TestClassVisitor {
     }
 
     @Override
-    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        isAbstract = (access & Opcodes.ACC_ABSTRACT) != 0;
-
-        this.className = name;
-        this.superClassName = superName;
-    }
-
-    @Override
     public void visitInnerClass(String name, String outerName, String innerName, int access) {
-        if (name.equals(className) && (access & Opcodes.ACC_STATIC) == 0) {
-            isAbstract = true;
+        if (name.equals(getClassName()) && (access & Opcodes.ACC_STATIC) == 0) {
+            setAbstract(true);
         }
     }
 
     @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if ("Lorg/junit/runner/RunWith;".equals(desc)) {
-            test = true;
+            setTest(true);
         }
 
         return null;
@@ -52,12 +44,12 @@ class JUnitTestClassDetector extends TestClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (!test) {
+        if (!isTest()) {
             return new MethodVisitor(Opcodes.ASM6) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     if ("Lorg/junit/Test;".equals(desc)) {
-                        JUnitTestClassDetector.this.test = true;
+                        setTest(true);
                     }
                     return null;
                 }
@@ -66,4 +58,6 @@ class JUnitTestClassDetector extends TestClassVisitor {
             return null;
         }
     }
+
+
 }
