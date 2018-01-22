@@ -23,9 +23,9 @@ import java.util.Set;
 public interface AttributeSelectionSchema {
     boolean hasAttribute(Attribute<?> attribute);
 
-    Set<Attribute<?>> getAttributes();
-
     Set<Object> disambiguate(Attribute<?> attribute, Object requested, Set<Object> candidates);
 
     boolean matchValue(Attribute<?> attribute, Object requested, Object candidate);
+
+    Attribute<?> getAttribute(String name);
 }
