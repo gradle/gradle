@@ -170,6 +170,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     private VariantMetadataSpec createVariant(String variant, Map<String, String> attributes) {
         def variantMetadata = new VariantMetadataSpec(variant, attributes)
+        variants.removeAll { it.name == variant }
         variants.add(variantMetadata)
         return variantMetadata;
     }

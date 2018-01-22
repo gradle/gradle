@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import javax.annotation.Nullable;
 
@@ -47,6 +48,11 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
         }
 
         return getSimpleName() + " -> " + selected.getDisplayName();
+    }
+
+    @Override
+    public ResolvedVariantResult getResolvedVariant() {
+        return null;
     }
 
     /**
