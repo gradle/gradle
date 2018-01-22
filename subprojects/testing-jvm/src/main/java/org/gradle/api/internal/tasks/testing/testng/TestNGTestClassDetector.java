@@ -42,6 +42,11 @@ class TestNGTestClassDetector extends TestClassVisitor {
     }
 
     @Override
+    protected boolean ignoreNonStaticInnerClass() {
+        return false;
+    }
+
+    @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if ("Lorg/testng/annotations/Test;".equals(desc)) {
             setTest(true);
