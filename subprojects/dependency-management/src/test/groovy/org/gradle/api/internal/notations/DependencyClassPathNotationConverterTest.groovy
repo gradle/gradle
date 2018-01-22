@@ -74,7 +74,7 @@ class DependencyClassPathNotationConverterTest extends Specification {
 
         then:
         out instanceof DefaultSelfResolvingDependency
-        out.source.files as List == [shadedApiJar] + localGroovyFiles + installationBeaconFiles
+        out.files as List == [shadedApiJar] + localGroovyFiles + installationBeaconFiles
     }
 
     def "reuses dependency instances"() {

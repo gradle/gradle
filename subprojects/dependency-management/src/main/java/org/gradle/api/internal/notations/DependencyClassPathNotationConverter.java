@@ -17,15 +17,20 @@ package org.gradle.api.internal.notations;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.SingletonFileSet;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -75,35 +80,51 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     public void convert(DependencyFactory.ClassPathNotation notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
-            internCacheWriteLock.lock();
-            try {
-                dependency = maybeCreateUnderLock(notation);
-            } finally {
-                internCacheWriteLock.unlock();
-            }
+            dependency = maybeCreateUnderLock(notation);
         }
 
         result.converted(dependency);
     }
 
-    private SelfResolvingDependency maybeCreateUnderLock(DependencyFactory.ClassPathNotation notation) {
+    private SelfResolvingDependency maybeCreateUnderLock(final DependencyFactory.ClassPathNotation notation) {
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
-            Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
+            final Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
             boolean runningFromInstallation = currentGradleInstallation.getInstallation() != null;
-            FileCollectionInternal files;
+            FileCollectionInternal fileCollectionInternal;
             if (runningFromInstallation && notation.equals(GRADLE_API)) {
-                files = gradleApiFileCollection(classpath);
+                fileCollectionInternal = new GeneratedFileCollection(notation.displayName) {
+                    @Override
+                    FileCollection generateFileCollection() {
+                        try {
+                            internCacheWriteLock.lock();
+                            return gradleApiFileCollection(classpath);
+                        } finally {
+                            internCacheWriteLock.unlock();
+                        }
+                    }
+                };
             } else if (runningFromInstallation && notation.equals(GRADLE_TEST_KIT)) {
-                files = gradleTestKitFileCollection(classpath);
+                fileCollectionInternal = new GeneratedFileCollection(notation.displayName) {
+                    @Override
+                    FileCollection generateFileCollection() {
+                        try {
+                            internCacheWriteLock.lock();
+                            return gradleTestKitFileCollection(classpath);
+                        } finally {
+                            internCacheWriteLock.unlock();
+                        }
+                    }
+                };
             } else {
-                files = fileResolver.resolveFiles(classpath);
+                fileCollectionInternal = fileResolver.resolveFiles(classpath);
             }
-            dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), files);
+            dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), fileCollectionInternal);
             internCache.put(notation, dependency);
         }
         return dependency;
     }
+
 
     private FileCollectionInternal gradleApiFileCollection(Collection<File> apiClasspath) {
         // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
@@ -142,5 +163,30 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private FileCollectionInternal relocatedDepsJar(Collection<File> classpath, String displayName, RuntimeShadedJarType runtimeShadedJarType) {
         File gradleImplDepsJar = runtimeShadedJarFactory.get(runtimeShadedJarType, classpath);
         return new FileCollectionAdapter(new SingletonFileSet(gradleImplDepsJar, displayName));
+    }
+
+    abstract class GeneratedFileCollection extends CompositeFileCollection {
+
+        private final String displayName;
+
+        public GeneratedFileCollection(String notation) {
+            this.displayName = notation + " files";
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public void visitContents(FileCollectionResolveContext context) {
+            // we assume generated file collections have no build dependencies
+            if (context instanceof BuildDependenciesOnlyFileCollectionResolveContext) {
+                return;
+            }
+            context.add(generateFileCollection());
+        }
+
+        abstract FileCollection generateFileCollection();
     }
 }
