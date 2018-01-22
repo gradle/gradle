@@ -41,6 +41,10 @@ public abstract class TestClassVisitor extends ClassVisitor {
         return className;
     }
 
+    public String getSuperClassName() {
+        return superClassName;
+    }
+
     public boolean isTest() {
         return test;
     }
@@ -53,18 +57,23 @@ public abstract class TestClassVisitor extends ClassVisitor {
         return isAbstract;
     }
 
-    protected void setAbstract(boolean anAbstract) {
-        this.isAbstract = anAbstract;
-    }
-
-    public String getSuperClassName() {
-        return superClassName;
-    }
-
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         isAbstract = (access & Opcodes.ACC_ABSTRACT) != 0;
         className = name;
         superClassName = superName;
+    }
+
+    @Override
+    public void visitInnerClass(String name, String outerName, String innerName, int access) {
+        if (ignoreNonStaticInnerClass() && innerClassIsNonStatic(name, access)) {
+            isAbstract = true;
+        }
+    }
+
+    protected abstract boolean ignoreNonStaticInnerClass();
+
+    private boolean innerClassIsNonStatic(String name, int access) {
+        return name.equals(getClassName()) && (access & Opcodes.ACC_STATIC) == 0;
     }
 }

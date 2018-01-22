@@ -27,10 +27,8 @@ class JUnitTestClassDetector extends TestClassVisitor {
     }
 
     @Override
-    public void visitInnerClass(String name, String outerName, String innerName, int access) {
-        if (name.equals(getClassName()) && (access & Opcodes.ACC_STATIC) == 0) {
-            setAbstract(true);
-        }
+    protected boolean ignoreNonStaticInnerClass(){
+        return true;
     }
 
     @Override
