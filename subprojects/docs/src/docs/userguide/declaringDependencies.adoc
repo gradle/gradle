@@ -43,6 +43,16 @@ A typical example for such a library in a Java project is the link:https://proje
 
 A Gradle project can define other types of repositories hosting binary dependencies. You can learn more about the syntax and API in the section on <<sec:declaring_repositories,declaring repositories>>. Refer to <<java_plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for binary dependencies declarations is <<sec:customizing_dependencies,highly customizable>>.
 
+==== Declaring a binary dependency without version
+
+A recommended practice for larger projects is to declare dependencies without versions and use <<sec:dependency_constraints,dependency constraints>> for version declaration. The advantage is that dependency constrains allow you to manage versions of all dependencies, including transitive ones, in one place.
+
+++++
+<sample id="binary-dependencies-without-version" dir="userguide/dependencies/declaringBinaryDependenciesWithoutVersion" title="Declaring a binary dependencies without version">
+    <sourcefile file="build.gradle" snippet="binary-dependencies-without-version"/>
+</sample>
+++++
+
 ==== Declaring a dynamic version of a binary dependency
 
 Projects might adopt a more aggressive approach for consuming binary dependencies. For example you might want to always integrate the latest version of a dependency to consume cutting edge features at any given time. A _dynamic version_ allows for resolving the latest version or the latest version of a version range for a given dependency.

@@ -17,6 +17,24 @@
 
 Resolution behavior for transitive dependencies can be customized to a high degree to meet enterprise requirements.
 
+[[sec:dependency_constraints]]
+=== Dependency constraints
+
+Dependency constraints allow you to define the version or the version range of both dependencies declared in the build script and transitive dependencies. It is the preferred method to express constraints that should be applied to all dependencies of a configuration.
+
+++++
+<sample id="dependencyConstraints" dir="userguide/dependencies/dependencyConstraints" title="Define dependency constraints">
+    <sourcefile file="build.gradle" snippet="dependency-constraints"/>
+</sample>
+++++
+
+In the example, all versions are omitted from the dependency declaration. Instead, the versions are defined in the constraints block. The version definition for `commons-codec:1.11` is only taken into account if `commons-codec` is brought in as transitive dependency, since `commons-codec` is not defined as dependency in the project. Otherwise, the constraint has no effect.
+
+Dependency constraints can have different scopes defined by configurations <<sub:scope_of_dependency_configurations,in the same way as dependencies>>.
+
+In case you are building and publishing a library, for example a <<java_library_plugin,Java library>>, the dependency constraints are published when the https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md[Gradle module metadata format] is used.
+
+
 [[sec:excluding_transitive_module_dependencies]]
 === Excluding transitive module dependencies
 

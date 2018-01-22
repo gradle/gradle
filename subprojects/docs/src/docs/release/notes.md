@@ -2,6 +2,23 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Dependency constraints
+
+With [dependency constraints](userguide/managing_transitive_dependencies.html#sec:dependency_constraints), Gradle adds a mechanism to express constraints over transitive dependencies. They are used during dependency resolution of a build and are also published when the Gradle module metadata format is used (see below).
+
+    dependencies {
+        implementation 'org.apache.httpcomponents:httpclient'  
+    }
+    
+    dependencies {
+        constraints {
+            // declare versions for my dependencies in a central place
+            implementation 'org.apache.httpcomponents:httpclient:4.5.3'
+            // declare versions for transitive dependencies
+            implementation 'commons-codec:commons-codec:1.11'
+        }
+    }
+
 ### Advanced POM support (preview)
 
 Gradle now supports [additional features for modules with POM metadata](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc). This includes support for _optional dependencies_, _BOM import_ and _compile/runtime scope separation_. 
