@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import java.util.Set;
 
@@ -37,6 +38,11 @@ public abstract class AbstractRenderableModuleResult implements RenderableDepend
     @Override
     public String getName() {
         return getId().getDisplayName();
+    }
+
+    @Override
+    public ResolvedVariantResult getResolvedVariant() {
+        return module.getVariant();
     }
 
     @Override

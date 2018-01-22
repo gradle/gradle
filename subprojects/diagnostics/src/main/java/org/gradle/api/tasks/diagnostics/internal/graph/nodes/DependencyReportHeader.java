@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import java.util.Collections;
 import java.util.Set;
@@ -25,9 +26,11 @@ import static org.gradle.api.tasks.diagnostics.internal.graph.nodes.SelectionRea
 
 public class DependencyReportHeader implements RenderableDependency {
     private final DependencyEdge dependency;
+    private final ResolvedVariantResult selectedVariant;
 
-    public DependencyReportHeader(DependencyEdge dependency) {
+    public DependencyReportHeader(DependencyEdge dependency, ResolvedVariantResult extraDetails) {
         this.dependency = dependency;
+        this.selectedVariant = extraDetails;
     }
 
     @Override
@@ -55,4 +58,8 @@ public class DependencyReportHeader implements RenderableDependency {
         return Collections.emptySet();
     }
 
+    @Override
+    public ResolvedVariantResult getResolvedVariant() {
+        return selectedVariant;
+    }
 }

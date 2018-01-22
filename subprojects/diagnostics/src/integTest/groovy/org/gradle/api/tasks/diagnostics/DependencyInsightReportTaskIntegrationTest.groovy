@@ -1474,4 +1474,5 @@ org:foo:$displayVersion -> $selected
 \\--- org.test:a:1.0
      \\--- compileClasspath"""
     }
+
 }
