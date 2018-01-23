@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,49 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality
+package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
-import java.util.regex.Pattern
-
-class CheckstyleRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
+class PmdRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override
     protected String getTaskName() {
-        return ":checkstyle"
+        return ":pmd"
     }
 
     @Override
     protected void setupProjectIn(TestFile projectDir) {
-        projectDir.file("config/checkstyle/checkstyle.xml") << """<?xml version="1.0"?>
-<!DOCTYPE module PUBLIC
-          "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
-          "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
-<module name="Checker">
-    <module name="RegexpSingleline">
-       <property name="format" value="\\s+\$"/>
-       <property name="minimum" value="0"/>
-       <property name="maximum" value="0"/>
-       <property name="message" value="Line has trailing spaces."/>
-    </module>
-</module>
-        """
-
         projectDir.file("src/main/java/org/gradle/Class1.java") <<
-            "package org.gradle; class Class1 { public boolean is() { return true; } }  "
+            "package org.gradle; class Class1 { public boolean is() { return true; } }"
         projectDir.file("src/main/java/org/gradle/Class1Test.java") <<
             "package org.gradle; class Class1Test { public boolean is() { return true; } }"
 
         projectDir.file("build.gradle") << """
-            apply plugin: "checkstyle"
+            apply plugin: "java"
+            apply plugin: "pmd"
 
             ${mavenCentralRepository()}
 
-            task checkstyle(type: Checkstyle) {
+            task pmd(type: Pmd) {
                 source "src/main/java"
-                classpath = files()
                 ignoreFailures = true
             }
         """
@@ -64,7 +48,7 @@ class CheckstyleRelocationIntegrationTest extends AbstractProjectRelocationInteg
 
     @Override
     protected extractResultsFrom(TestFile projectDir) {
-        return projectDir.file("build/reports/checkstyle/checkstyle.xml").text
-            .replaceAll(Pattern.quote(projectDir.absolutePath + File.separator) + ".*?" + Pattern.quote(File.separator), "")
+        projectDir.file("build/reports/pmd/pmd.xml").text
+            .replaceAll(/timestamp=".*?"/, 'timestamp="[NUMBER]"')
     }
 }
