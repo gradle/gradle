@@ -77,7 +77,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executed()
-        localCache.assertEmpty()
+        localCache.empty
         remoteCache.listCacheFiles().size() == 1
 
         when:
@@ -113,7 +113,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executed()
-        localCache.assertEmpty()
+        localCache.empty
         remoteCache.listCacheFiles().size() == 1
 
         when:
@@ -126,7 +126,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         cached()
-        localCache.assertEmpty()
+        localCache.empty
 
         when:
         assert remoteCache.cacheDir.deleteDir()
