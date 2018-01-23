@@ -265,7 +265,10 @@ blockquote p:last-child {
     .sidebar {
         display: none;
     }
-    .container, .appendix, .book, .chapter {
+    .container,
+    .main-content > .appendix,
+    .main-content > .book,
+    .main-content > .chapter {
         margin-top: 0;
         margin-bottom: 0;
     }
@@ -776,7 +779,9 @@ h3.releaseinfo {
         width: 13.75rem;
     }
 
-    .appendix, .chapter, .book {
+    .main-content > .appendix,
+    .main-content > .book,
+    .main-content > .chapter {
         flex: 0 0 45rem;
         margin: 0 20px;
     }
@@ -805,7 +810,7 @@ h3.releaseinfo {
 }
 
 /* Fixed intra-chapter navigation for desktops */
-@media screen and (min-width: 75rem) {
+@media screen and (min-width: 75rem) and (min-height: 48rem) {
     .appendix .toc,
     .book .home .toc,
     .chapter .toc {
@@ -872,29 +877,19 @@ h3.releaseinfo {
     }
 }
 
-@media screen and (min-width: 84.375rem) {
+@media screen and (min-width: 84.375rem) and (min-height: 48rem) {
     .appendix .toc,
     .book .home .toc,
     .chapter .toc {
         left: calc(50% + 26.25rem);
     }
-
-    .appendix, .book, .chapter {
-        flex-basis: 50rem;
-        max-width: 50rem;
-    }
 }
 
-@media screen and (min-width: 93.75rem) {
+@media screen and (min-width: 93.75rem) and (min-height: 48rem) {
     .appendix .toc,
     .book .home .toc,
     .chapter .toc {
         left: calc(50% + 31.25rem);
-    }
-
-    .appendix, .book, .chapter {
-        flex-basis: 60rem;
-        max-width: 60rem;
     }
 }
 
@@ -961,7 +956,6 @@ h3.releaseinfo {
 .site-footer__link-group {
     flex: 1 1 auto;
     flex-basis: 175px;
-    margin-bottom: 1rem;
 }
 
 .site-footer__link-group header {
@@ -1086,9 +1080,17 @@ h3.releaseinfo {
 }
 
 @media all and (max-width: 29.99rem) {
+    .site-footer__navigation {
+        margin: 0.5rem auto;
+    }
+
     .site-footer__rights,
     .site-footer-secondary__links {
         display: none;
+    }
+
+    .site-footer__link-group {
+        margin-bottom: 1rem;
     }
 
     .site-footer__logo {
@@ -1102,13 +1104,34 @@ h3.releaseinfo {
     }
 }
 
-@media screen and (min-width: 87.5rem) {
+/* Avoid the footer taking up much of the screen on short displays */
+@media all and (max-height: 56.25rem) {
     .site-footer__navigation {
-        max-width: 90rem;
+        margin: 1rem auto 1rem auto;
+        padding-top: 0;
+        padding-bottom: 0;
     }
+}
 
+@media screen and (min-width: 84.375rem) {
     .ui-logos .ui-logo {
         box-shadow: 0 6px 15px 1px rgba(0, 0, 0, 0.56);
+    }
+
+    .main-content > .appendix,
+    .main-content > .book,
+    .main-content > .chapter {
+        flex-basis: 50rem;
+        max-width: 50rem;
+    }
+}
+
+@media screen and (min-width: 93.75rem) {
+    .main-content > .appendix,
+    .main-content > .book,
+    .main-content > .chapter {
+        flex-basis: 60rem;
+        max-width: 60rem;
     }
 }
 
