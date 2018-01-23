@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.initialization.definition.SelfResolvingPluginRequest;
 import org.gradle.internal.Factories;
@@ -35,8 +36,9 @@ public class SelfResolvingRequestPluginResolver implements PluginResolver {
     @Override
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         if (pluginRequest instanceof SelfResolvingPluginRequest) {
-            PluginResolution pluginResolution = new ClassPathPluginResolution(pluginRequest.getId(), ((SelfResolvingPluginRequest)pluginRequest).getClassLoaderScope(), EMPTY_CLASSPATH_FACTORY, pluginInspector);
-            result.found("Already on classpath", pluginResolution);
+            ClassLoaderScope classLoaderScope = ((SelfResolvingPluginRequest) pluginRequest).getClassLoaderScope();
+            PluginResolution pluginResolution = new ClassPathPluginResolution(pluginRequest.getId(), classLoaderScope, EMPTY_CLASSPATH_FACTORY, pluginInspector);
+            result.found("injected from outer build", pluginResolution);
         }
     }
 }

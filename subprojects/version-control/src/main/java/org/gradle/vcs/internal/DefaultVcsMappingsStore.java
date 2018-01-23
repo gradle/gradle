@@ -72,6 +72,8 @@ public class DefaultVcsMappingsStore implements VcsMappingsStore {
     @Override
     public void addRule(final Action<? super VcsMapping> rule, final Gradle gradle) {
         // TODO: Hacky hook to ensure we have the classloader scope from the appropriate Gradle instance.
+        // Detangle the "build definition" part of the VcsMapping from the rule itself so this classloader can
+        // be carried around by it.
         Action<VcsMapping> classloaderWrapping = new Action<VcsMapping>() {
             @Override
             public void execute(VcsMapping vcsMapping) {
