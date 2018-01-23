@@ -39,6 +39,13 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 
 import java.util.Map;
 
+/**
+ * A ModuleComponentRepository that caches all results in-memory for the life of a single build.
+ * This ensures that any repository with the same {@link ModuleComponentRepository#getId()} will return the
+ * same result for a dependency for the life of a build.
+ *
+ * Unfortunately, this leads to bugs due to the fact that the resolution strategy will be ignored for subsequent resolves.
+ */
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
     private final ModuleComponentRepositoryAccess localAccess;
     private final ModuleComponentRepositoryAccess remoteAccess;
