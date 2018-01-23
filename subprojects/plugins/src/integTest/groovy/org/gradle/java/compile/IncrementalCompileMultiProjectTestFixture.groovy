@@ -43,11 +43,11 @@ trait IncrementalCompileMultiProjectTestFixture {
         file('app/src/main/java/AClass.java') << 'public class AClass { }'
     }
 
-    static String getAppCompileJava() {
+    String getAppCompileJava() {
         ':app:compileJava'
     }
 
-    static String getLibraryCompileJava() {
+    String getLibraryCompileJava() {
         ':library:compileJava'
     }
 
