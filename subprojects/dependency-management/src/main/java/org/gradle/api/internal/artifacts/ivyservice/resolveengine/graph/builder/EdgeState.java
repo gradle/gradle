@@ -43,7 +43,6 @@ import java.util.List;
  * Represents the edges in the dependency graph.
  */
 class EdgeState implements DependencyGraphEdge {
-    private final DependencyState dependencyState;
     private final DependencyMetadata dependencyMetadata;
     private final NodeState from;
     private final SelectorState selector;
@@ -56,12 +55,11 @@ class EdgeState implements DependencyGraphEdge {
 
     EdgeState(NodeState from, DependencyState dependencyState, ModuleExclusion transitiveExclusions, ResolveState resolveState) {
         this.from = from;
-        this.dependencyState = dependencyState;
-        this.dependencyMetadata = dependencyState.getDependency();
+        this.dependencyMetadata = dependencyState.getDependencyMetadata();
         // The accumulated exclusions that apply to this edge based on the path from the root
         this.transitiveExclusions = transitiveExclusions;
         this.resolveState = resolveState;
-        this.selector = resolveState.getSelector(dependencyState, dependencyState.getModuleIdentifier());
+        this.selector = resolveState.getSelector(dependencyMetadata, dependencyState.getModuleIdentifier());
     }
 
     @Override
@@ -147,7 +145,7 @@ class EdgeState implements DependencyGraphEdge {
             targetConfigurations = dependencyMetadata.selectConfigurations(attributes, targetModuleVersion, resolveState.getAttributesSchema());
         } catch (Throwable t) {
 //                 Broken selector
-            targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);
+            targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyMetadata.getSelector(), t);
             return;
         }
         for (ConfigurationMetadata targetConfiguration : targetConfigurations) {
@@ -168,7 +166,7 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public ComponentSelector getRequested() {
-        return dependencyState.getRequested();
+        return dependencyMetadata.getSelector();
     }
 
     @Override
