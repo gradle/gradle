@@ -57,7 +57,7 @@ public interface DependencyMetadata<SELF extends DependencyMetadata> {
     SELF version(Action<? super MutableVersionConstraint> configureAction);
 
     /**
-     * Returns the reason this dependency should be selected.
+     * Returns the reason why this dependency should be selected.
      *
      * @return the reason, or null if no reason is found in metadata.
      *
@@ -75,5 +75,5 @@ public interface DependencyMetadata<SELF extends DependencyMetadata> {
      * @since 4.6
      */
     @Incubating
-    SELF reason(String reason);
+    SELF because(String reason);
 }

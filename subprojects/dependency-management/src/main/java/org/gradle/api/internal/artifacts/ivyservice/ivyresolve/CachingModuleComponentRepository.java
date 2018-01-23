@@ -62,6 +62,15 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * A ModuleComponentRepository that loads and saves resolution results in the dependency resolution cache.
+ *
+ * The `LocateInCacheRepositoryAccess` provided by {@link #getLocalAccess()} will attempt to handle any resolution request
+ * directly from the cache, checking for cache expiry based on the `ResolutionStrategy` in operation.
+ *
+ * The `ResolveAndCacheRepositoryAccess` provided by {@link #getRemoteAccess()} will first delegate any resolution request,
+ * and then store the result in the dependency resolution cache.
+ */
 public class CachingModuleComponentRepository implements ModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleComponentRepository.class);
 

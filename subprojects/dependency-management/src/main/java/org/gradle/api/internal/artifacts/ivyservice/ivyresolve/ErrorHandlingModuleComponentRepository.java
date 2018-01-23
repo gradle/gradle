@@ -38,6 +38,13 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 
 import java.util.Map;
 
+/**
+ * A ModuleComponentRepository that catches any exception and applies it to the result object.
+ * This allows other repository implementations to throw exceptions on failure.
+ *
+ * This implementation will also blacklist any repository that throws a critical failure, failing-fast with that
+ * repository for any subsequent requests.
+ */
 public class ErrorHandlingModuleComponentRepository implements ModuleComponentRepository {
 
     private final ModuleComponentRepository delegate;

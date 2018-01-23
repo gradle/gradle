@@ -15,68 +15,66 @@
  */
 package org.gradle.api.internal.tasks.testing.testng;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-class TestNGTestClassDetecter extends TestClassVisitor {
-    private boolean isAbstract;
-    private String className;
-    private String superClassName;
-    private boolean test;
+import java.util.Set;
 
-    TestNGTestClassDetecter(final TestFrameworkDetector detector) {
+class TestNGTestClassDetector extends TestClassVisitor {
+    private static final Set<String> TEST_METHOD_ANNOTATIONS =
+        ImmutableSet.<String>builder()
+        .add("Lorg/testng/annotations/Test;")
+        .add("Lorg/testng/annotations/BeforeSuite;")
+        .add("Lorg/testng/annotations/AfterSuite;")
+        .add("Lorg/testng/annotations/BeforeTest;")
+        .add("Lorg/testng/annotations/AfterTest;")
+        .add("Lorg/testng/annotations/BeforeGroups;")
+        .add("Lorg/testng/annotations/AfterGroups;")
+        .add("Lorg/testng/annotations/Factory;")
+        .build();
+
+    TestNGTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
     }
 
     @Override
-    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        isAbstract = (access & Opcodes.ACC_ABSTRACT) != 0;
-
-        this.className = name;
-        this.superClassName = superName;
+    protected boolean ignoreNonStaticInnerClass() {
+        return false;
     }
 
     @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if ("Lorg/testng/annotations/Test;".equals(desc)) {
-            test = true;
+            setTest(true);
         }
         return null;
     }
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (!isAbstract && !test) {
-            return new TestNGTestMethodDetecter(this);
+        if (!isAbstract() && !isTest()) {
+            return new TestNGTestMethodDetector();
         } else {
             return null;
         }
     }
 
-    @Override
-    public String getClassName() {
-        return className;
-    }
+    private class TestNGTestMethodDetector extends MethodVisitor {
+        private TestNGTestMethodDetector() {
+            super(Opcodes.ASM6);
 
-    @Override
-    public boolean isAbstract() {
-        return isAbstract;
-    }
+        }
 
-    @Override
-    public boolean isTest() {
-        return test;
-    }
-
-    void setTest(boolean test) {
-        this.test = test;
-    }
-
-    @Override
-    public String getSuperClassName() {
-        return superClassName;
+        @Override
+        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            if (TEST_METHOD_ANNOTATIONS.contains(desc)) {
+                setTest(true);
+            }
+            return null;
+        }
     }
 }

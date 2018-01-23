@@ -790,7 +790,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                         withVariant('$variantToTest') {
                             withDependencies {
                                 it.each {
-                                    it.reason 'can set a custom reason in a rule'
+                                    it.because 'can set a custom reason in a rule'
                                 }
                             }
                         }
@@ -844,13 +844,13 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                         withVariant('$variantToTest') {
                             withDependencies {
                                 it.each {
-                                    it.reason 'can set a custom reason in a rule'
+                                    it.because 'can set a custom reason in a rule'
                                 }
                             }
                             withDependencyConstraints {
                                 it.each {
                                     it.version { prefer '1.1' }
-                                    it.reason '1.0 is buggy'
+                                    it.because '1.0 is buggy'
                                 }
                             }
                         }

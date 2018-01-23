@@ -137,7 +137,7 @@ project(":a") {
     }
     dependencies {
         api("org.other:externalA:1.2") {
-            reason 'also check dependency reasons'
+            because 'also check dependency reasons'
         }
     }
     task jar(type: Jar) { baseName = 'a' }
@@ -149,7 +149,7 @@ project(":b") {
     }
     dependencies {
         compile(project(path: ':a', configuration: 'runtime')) {
-            reason 'can provide a dependency reason for project dependencies too'
+            because 'can provide a dependency reason for project dependencies too'
         }
     }
     task check(dependsOn: configurations.compile) {

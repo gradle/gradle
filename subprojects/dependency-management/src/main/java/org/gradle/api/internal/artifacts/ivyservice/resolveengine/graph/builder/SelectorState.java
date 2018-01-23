@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
@@ -31,12 +31,13 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 
+import java.util.Collections;
+
 /**
  * Resolution state for a given module version selector.
  */
 class SelectorState implements DependencyGraphSelector {
     private final Long id;
-    private final DependencyState dependencyState;
     private final DependencyMetadata dependencyMetadata;
     private final DependencyToComponentIdResolver resolver;
     private final ResolveState resolveState;
@@ -46,10 +47,9 @@ class SelectorState implements DependencyGraphSelector {
     private BuildableComponentIdResolveResult idResolveResult;
     private ResolvedVersionConstraint versionConstraint;
 
-    SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId) {
+    SelectorState(Long id, DependencyMetadata dependencyMetadata, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId) {
         this.id = id;
-        this.dependencyState = dependencyState;
-        this.dependencyMetadata = dependencyState.getDependency();
+        this.dependencyMetadata = dependencyMetadata;
         this.resolver = resolver;
         this.resolveState = resolveState;
         this.targetModule = resolveState.getModule(targetModuleId);
@@ -67,7 +67,7 @@ class SelectorState implements DependencyGraphSelector {
 
     @Override
     public ComponentSelector getRequested() {
-        return dependencyState.getRequested();
+        return dependencyMetadata.getSelector();
     }
 
     ModuleVersionResolveException getFailure() {
@@ -75,13 +75,7 @@ class SelectorState implements DependencyGraphSelector {
     }
 
     public ComponentSelectionReason getSelectionReason() {
-        if (selected != null) {
-            return selected.getSelectionReason();
-        }
-        if (dependencyState.getRuleDescriptor() == null) {
-            return VersionSelectionReasons.of(idResolveResult.getSelectionDescription());
-        }
-        return VersionSelectionReasons.of(Lists.newArrayList(idResolveResult.getSelectionDescription(), dependencyState.getRuleDescriptor()));
+        return selected == null ? VersionSelectionReasons.of(Collections.<ComponentSelectionDescriptor>singletonList(idResolveResult.getSelectionDescription())) : selected.getSelectionReason();
     }
 
     public ComponentState getSelected() {
@@ -104,12 +98,7 @@ class SelectorState implements DependencyGraphSelector {
         }
 
         idResolveResult = new DefaultBuildableComponentIdResolveResult();
-        if (dependencyState.failure != null) {
-            idResolveResult.failed(dependencyState.failure);
-        } else {
-            resolver.resolve(dependencyMetadata, idResolveResult);
-        }
-
+        resolver.resolve(dependencyMetadata, idResolveResult);
         if (idResolveResult.getFailure() != null) {
             failure = idResolveResult.getFailure();
             return null;
@@ -118,9 +107,6 @@ class SelectorState implements DependencyGraphSelector {
         selected = resolveState.getRevision(idResolveResult.getModuleVersionId());
         selected.selectedBy(this);
         selected.addCause(idResolveResult.getSelectionDescription());
-        if (dependencyState.getRuleDescriptor() != null) {
-            selected.addCause(dependencyState.getRuleDescriptor());
-        }
         targetModule = selected.getModule();
         targetModule.addSelector(this);
         versionConstraint = idResolveResult.getResolvedVersionConstraint();

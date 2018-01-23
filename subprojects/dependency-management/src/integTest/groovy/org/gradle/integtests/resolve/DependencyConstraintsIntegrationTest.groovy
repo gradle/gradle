@@ -153,7 +153,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org:bar:1.0'
                 constraints {
                     conf('org:foo:[1.0,1.1]') {
-                        reason 'tested versions'
+                        because 'tested versions'
                     }
                 }
             }
@@ -292,7 +292,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 dependencies {
                     constraints {
                         conf('org:foo:1.1') {
-                            reason 'transitive dependency constraint'
+                            because 'transitive dependency constraint'
                         }
                     }
                 }
