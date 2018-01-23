@@ -18,20 +18,14 @@ package org.gradle.api.initialization.definition;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
- * TODO:
+ * Specification of a dependency on a plugin injected into an included build.
+ *
+ * @see InjectedPluginDependencies
+ *
  * @since 4.6
  */
 @Incubating
 public interface InjectedPluginDependency {
 
-    /**
-     * TODO
-     *
-     * @param version the version string ({@code null} for no specified version, which is the default)
-     * @return this
-     */
-    InjectedPluginDependency version(@Nullable String version);
 }

@@ -19,12 +19,11 @@ package org.gradle.initialization.definition;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 
-// TODO: Add context information
 public class SelfResolvingPluginRequest extends DefaultPluginRequest {
     private final ClassLoaderScope classLoaderScope;
 
-    public SelfResolvingPluginRequest(String id, String version, ClassLoaderScope classLoaderScope) {
-        super(id, version, true, null, "injected plugin");
+    public SelfResolvingPluginRequest(String id, ClassLoaderScope classLoaderScope) {
+        super(id, null, true, null, "injected plugin");
         this.classLoaderScope = classLoaderScope;
     }
 

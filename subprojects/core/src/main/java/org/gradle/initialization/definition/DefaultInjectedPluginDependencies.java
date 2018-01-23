@@ -59,7 +59,7 @@ public class DefaultInjectedPluginDependencies implements InjectedPluginDependen
     List<PluginRequestInternal> listPluginRequests() {
         List<PluginRequestInternal> pluginRequests = collect(dependencies, new Transformer<PluginRequestInternal, DefaultInjectedPluginDependency>() {
             public PluginRequestInternal transform(DefaultInjectedPluginDependency original) {
-                return new SelfResolvingPluginRequest(original.getId(), original.getVersion(), classLoaderScope);
+                return new SelfResolvingPluginRequest(original.getId(), classLoaderScope);
             }
         });
 

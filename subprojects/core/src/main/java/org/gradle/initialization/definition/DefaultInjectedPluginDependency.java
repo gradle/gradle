@@ -18,27 +18,14 @@ package org.gradle.initialization.definition;
 
 import org.gradle.api.initialization.definition.InjectedPluginDependency;
 
-import javax.annotation.Nullable;
-
 public class DefaultInjectedPluginDependency implements InjectedPluginDependency {
     private final String id;
-    private String version;
 
-    public DefaultInjectedPluginDependency(String id) {
+    DefaultInjectedPluginDependency(String id) {
         this.id = id;
-    }
-
-    @Override
-    public InjectedPluginDependency version(@Nullable String version) {
-        this.version = version;
-        return this;
     }
 
     public String getId() {
         return id;
-    }
-
-    public String getVersion() {
-        return version;
     }
 }
