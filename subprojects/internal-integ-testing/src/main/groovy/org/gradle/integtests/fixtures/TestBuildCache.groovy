@@ -69,8 +69,12 @@ class TestBuildCache {
         cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{32}/ }.sort()
     }
 
+    boolean isEmpty() {
+        listCacheFiles().empty
+    }
+
     void assertEmpty() {
-        assert listCacheFiles().empty
+        assert isEmpty()
     }
 
     TestFile cacheArtifact(String cacheKey) {
