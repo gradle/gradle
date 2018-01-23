@@ -287,6 +287,12 @@ code, pre {
     font-style: normal;
 }
 
+.example-contents > p > code {
+    line-height: 1.0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
 *:not(pre) > code {
     font-size: 0.9375em;
     letter-spacing: 0;
