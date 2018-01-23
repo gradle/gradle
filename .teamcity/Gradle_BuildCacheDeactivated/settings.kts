@@ -28,11 +28,11 @@ calling the subProjects() method in this project.
 version = "2017.1"
 val buildModel = CIBuildModel(
         projectPrefix = "Gradle_BuildCacheDeactivated_",
-        rootProjectName = "Parent Child build cache pipeline",
+        rootProjectName = "Build Cache Deactivated",
         masterAndReleaseBranches = listOf("master"),
+        parentBuildCache = NoBuildCache,
+        childBuildCache = NoBuildCache,
         tagBuilds = false,
-        parentBuildCache = RemoteBuildCache("%gradle.cache.parent.url%", "%gradle.cache.parent.username%", "%gradle.cache.parent.password%"),
-        childBuildCache = RemoteBuildCache("%gradle.cache.child.url%", "%gradle.cache.child.username%", "%gradle.cache.child.password%"),
         publishStatusToGitHub = false,
         buildScanTags = listOf("BuildCacheDeactivated"),
         stages = listOf(
@@ -44,8 +44,7 @@ val buildModel = CIBuildModel(
                 Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
                         trigger = Trigger.eachCommit,
                         functionalTests = listOf(
-                                TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
-                        functionalTestsDependOnSpecificBuilds = true)
+                                TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)))
         )
 )
 project(RootProject(buildModel))
