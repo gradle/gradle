@@ -30,7 +30,7 @@ import spock.lang.Specification
 
 class DefaultDependencySubstitutionSpec extends Specification {
     def componentSelector = Mock(ComponentSelector)
-    def details = new DefaultDependencySubstitution(componentSelector)
+    def details = new DefaultDependencySubstitution(componentSelector, null)
 
     def "can override target and selection reason for project"() {
         when:

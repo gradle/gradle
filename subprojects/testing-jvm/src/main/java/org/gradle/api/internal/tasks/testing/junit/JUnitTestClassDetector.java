@@ -21,35 +21,20 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-class JUnitTestClassDetecter extends TestClassVisitor {
-    private boolean isAbstract;
-    private String className;
-    private String superClassName;
-    private boolean test;
-
-    JUnitTestClassDetecter(final TestFrameworkDetector detector) {
+class JUnitTestClassDetector extends TestClassVisitor {
+    JUnitTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
     }
 
     @Override
-    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        isAbstract = (access & Opcodes.ACC_ABSTRACT) != 0;
-
-        this.className = name;
-        this.superClassName = superName;
-    }
-
-    @Override
-    public void visitInnerClass(String name, String outerName, String innerName, int access) {
-        if (name.equals(className) && (access & Opcodes.ACC_STATIC) == 0) {
-            isAbstract = true;
-        }
+    protected boolean ignoreNonStaticInnerClass(){
+        return true;
     }
 
     @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if ("Lorg/junit/runner/RunWith;".equals(desc)) {
-            test = true;
+            setTest(true);
         }
 
         return null;
@@ -57,34 +42,20 @@ class JUnitTestClassDetecter extends TestClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (!test) {
-            return new JUnitTestMethodDetecter(this);
+        if (!isTest()) {
+            return new MethodVisitor(Opcodes.ASM6) {
+                @Override
+                public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+                    if ("Lorg/junit/Test;".equals(desc)) {
+                        setTest(true);
+                    }
+                    return null;
+                }
+            };
         } else {
             return null;
         }
     }
 
-    @Override
-    public String getClassName() {
-        return className;
-    }
 
-    @Override
-    public boolean isAbstract() {
-        return isAbstract;
-    }
-
-    @Override
-    public boolean isTest() {
-        return test;
-    }
-
-    void setTest(boolean test) {
-        this.test = test;
-    }
-
-    @Override
-    public String getSuperClassName() {
-        return superClassName;
-    }
 }

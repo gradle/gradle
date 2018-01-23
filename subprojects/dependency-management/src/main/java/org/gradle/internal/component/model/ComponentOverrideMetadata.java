@@ -27,6 +27,9 @@ import java.util.List;
  */
 public interface ComponentOverrideMetadata {
 
+    /**
+     * If the dependency declared artifacts for the component, return them. Empty otherwise.
+     */
     List<IvyArtifactName> getArtifacts();
 
     /**
@@ -34,7 +37,13 @@ public interface ComponentOverrideMetadata {
      */
     ClientModule getClientModule();
 
+    /**
+     * Return true if the dependency declaration defines this component as changing.
+     */
     boolean isChanging();
 
+    /**
+     * Return a copy of this override metadata with `isChanging()` set to true.
+     */
     ComponentOverrideMetadata withChanging();
 }

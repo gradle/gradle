@@ -31,6 +31,13 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
+/**
+ * A ModuleComponentRepository that wraps another, but assumes that _all_ access is local. This means that the accessor returned
+ * by {@link #getLocalAccess()} will attempt both local _and_ remote access operations on the delegate.
+ *
+ * This is used to wrap a file-backed ExternalResourceRepository instance, so that both 'local' and 'remote' operations will
+ * be considered local.
+ */
 public class LocalModuleComponentRepository extends BaseModuleComponentRepository {
     private final ComponentMetadataProcessor metadataProcessor;
     private final LocalAccess localAccess = new LocalAccess();

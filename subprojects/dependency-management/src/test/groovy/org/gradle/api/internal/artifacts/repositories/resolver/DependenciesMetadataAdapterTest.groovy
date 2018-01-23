@@ -173,7 +173,7 @@ class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata = []
         for (int i = 0; i < size; i++) {
             ModuleComponentSelector requested = newSelector("org.gradle.test", "module$size", "1.0")
-            dependenciesMetadata += [ new GradleDependencyMetadata(requested, []) ]
+            dependenciesMetadata += [ new GradleDependencyMetadata(requested, [], null) ]
         }
         adapter = new TestDependenciesMetadataAdapter(dependenciesMetadata)
     }

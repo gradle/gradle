@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.FilePropertyContainer;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
@@ -37,8 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
-
 @NonNullApi
 public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileCollection allInputFiles;
@@ -47,7 +46,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final TaskMutator taskMutator;
     private final PropertyWalker propertyWalker;
     private final List<DeclaredTaskInputProperty> registeredProperties = Lists.newArrayList();
-    private final List<DeclaredTaskInputFileProperty> registeredFileProperties = Lists.newArrayList();
+    private final FilePropertyContainer<DeclaredTaskInputFileProperty> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInputs deprecatedThis;
     private final PropertySpecFactory specFactory;
 
@@ -71,7 +70,6 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public void visitRegisteredProperties(PropertyVisitor visitor) {
-        ensurePropertiesHaveNames(registeredFileProperties);
         for (DeclaredTaskInputFileProperty fileProperty : registeredFileProperties) {
             visitor.visitInputFileProperty(fileProperty);
         }
@@ -133,7 +131,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasSourceFiles() {
-        GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString());
+        GetInputFilesVisitor visitor = new GetInputFilesVisitor();
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         return visitor.hasSourceFiles();
     }

@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve
+
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+
 /**
  * This also tests maven's optional dependencies for the cases where we only have pom metadata available.
  */
@@ -107,7 +110,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             'org:foo:1.0'()
             'org:foo:1.1'()
             'org:first-level:1.0' {
-                constraint 'org:foo:1.1'
+                constraint(group:'org', artifact:'foo', version:'1.1', reason:'published dependency constraint')
             }
         }
 
@@ -145,7 +148,10 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             root(":", ":test:") {
                 module("org:first-level:1.0") {
                     if (available) {
-                        module("org:foo:1.1")
+                        def module = module("org:foo:1.1")
+                        if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+                            module.byReason('published dependency constraint')
+                        }
                     }
                 }
                 if (available) {

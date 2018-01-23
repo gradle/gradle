@@ -19,13 +19,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
+import java.util.ArrayDeque;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 public class VersionSelectionReasons {
     public static final ComponentSelectionDescriptorInternal REQUESTED = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REQUESTED);
@@ -50,18 +50,17 @@ public class VersionSelectionReasons {
 
     private static class DefaultComponentSelectionReason implements ComponentSelectionReasonInternal {
 
-        // Use a set to de-duplicate same descriptions
-        private final Set<ComponentSelectionDescriptorInternal> descriptions;
+        private final ArrayDeque<ComponentSelectionDescriptorInternal> descriptions;
 
         private DefaultComponentSelectionReason(ComponentSelectionDescriptor description) {
-            descriptions = Sets.newLinkedHashSet();
+            descriptions = new ArrayDeque<ComponentSelectionDescriptorInternal>(1);
             descriptions.add((ComponentSelectionDescriptorInternal) description);
         }
 
         public DefaultComponentSelectionReason(List<ComponentSelectionDescriptor> descriptions) {
-            this.descriptions = Sets.newLinkedHashSet();
+            this.descriptions = new ArrayDeque<ComponentSelectionDescriptorInternal>(1);
             for (ComponentSelectionDescriptor description : descriptions) {
-                this.descriptions.add((ComponentSelectionDescriptorInternal) description);
+                addCause(description);
             }
         }
 
@@ -98,7 +97,7 @@ public class VersionSelectionReasons {
 
         public String getDescription() {
             // for backwards compatibility, we use the last added description
-            return Iterables.getLast(descriptions).toString();
+            return descriptions.getLast().toString();
         }
 
         public String toString() {
@@ -107,7 +106,7 @@ public class VersionSelectionReasons {
 
         @Override
         public ComponentSelectionReasonInternal addCause(ComponentSelectionCause cause, String description) {
-            descriptions.add(new DefaultComponentSelectionDescriptor(cause, description));
+            addCause(new DefaultComponentSelectionDescriptor(cause, description));
             return this;
         }
 
@@ -115,13 +114,15 @@ public class VersionSelectionReasons {
         @Override
         public ComponentSelectionReasonInternal setCause(ComponentSelectionDescriptor description) {
             descriptions.clear();
-            descriptions.add((ComponentSelectionDescriptorInternal) description);
+            addCause(description);
             return this;
         }
 
         @Override
         public ComponentSelectionReasonInternal addCause(ComponentSelectionDescriptor description) {
-            descriptions.add((ComponentSelectionDescriptorInternal) description);
+            if (!descriptions.contains(description)) {
+                descriptions.add((ComponentSelectionDescriptorInternal) description);
+            }
             return this;
         }
 
@@ -149,7 +150,21 @@ public class VersionSelectionReasons {
                 return false;
             }
             DefaultComponentSelectionReason that = (DefaultComponentSelectionReason) o;
-            return Objects.equal(descriptions, that.descriptions);
+            return sameDescriptorsAs(that);
+        }
+
+        private boolean sameDescriptorsAs(DefaultComponentSelectionReason that) {
+            if (descriptions.size() != that.descriptions.size()) {
+                return false;
+            }
+            Iterator<ComponentSelectionDescriptorInternal> it1 = descriptions.iterator();
+            Iterator<ComponentSelectionDescriptorInternal> it2 = descriptions.iterator();
+            while (it1.hasNext()) {
+                if (!it1.next().equals(it2.next())) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @Override

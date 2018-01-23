@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.CompositeTaskOutputPropertySpec;
@@ -25,12 +26,11 @@ import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 @NonNullApi
 public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
-    private List<TaskOutputFilePropertySpec> specs = new ArrayList<TaskOutputFilePropertySpec>();
+    private final List<TaskOutputFilePropertySpec> specs = Lists.newArrayList();
     private ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties;
     private boolean hasDeclaredOutputs;
 

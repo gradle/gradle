@@ -156,10 +156,10 @@ public class ModuleMetadataParser {
             variant.addFile(file.name, file.uri);
         }
         for (ModuleDependency dependency : dependencies) {
-            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes);
+            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes, dependency.reason);
         }
         for (ModuleDependencyConstraint dependencyConstraint : dependencyConstraints) {
-            variant.addDependencyConstraint(dependencyConstraint.group, dependencyConstraint.module, dependencyConstraint.versionConstraint);
+            variant.addDependencyConstraint(dependencyConstraint.group, dependencyConstraint.module, dependencyConstraint.versionConstraint, dependencyConstraint.reason);
         }
     }
 
@@ -181,7 +181,7 @@ public class ModuleMetadataParser {
             }
         }
         reader.endObject();
-        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.<ExcludeMetadata>of()));
+        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.<ExcludeMetadata>of(), null));
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
@@ -191,6 +191,7 @@ public class ModuleMetadataParser {
             reader.beginObject();
             String group = null;
             String module = null;
+            String reason = null;
             VersionConstraint version = DefaultImmutableVersionConstraint.of();
             ImmutableList<ExcludeMetadata> excludes = ImmutableList.of();
             while (reader.peek() != END_OBJECT) {
@@ -203,11 +204,13 @@ public class ModuleMetadataParser {
                     version = consumeVersion(reader);
                 } else if (name.equals("excludes")) {
                     excludes = consumeExcludes(reader);
+                } else if (name.equals("reason")) {
+                    reason = reader.nextString();
                 } else {
                     consumeAny(reader);
                 }
             }
-            dependencies.add(new ModuleDependency(group, module, version, excludes));
+            dependencies.add(new ModuleDependency(group, module, version, excludes, reason));
             reader.endObject();
         }
         reader.endArray();
@@ -221,6 +224,7 @@ public class ModuleMetadataParser {
             reader.beginObject();
             String group = null;
             String module = null;
+            String reason = null;
             VersionConstraint version = null;
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
@@ -230,11 +234,13 @@ public class ModuleMetadataParser {
                     module = reader.nextString();
                 } else if (name.equals("version")) {
                     version = consumeVersion(reader);
+                }  else if (name.equals("reason")) {
+                    reason = reader.nextString();
                 } else {
                     consumeAny(reader);
                 }
             }
-            dependencies.add(new ModuleDependencyConstraint(group, module, version));
+            dependencies.add(new ModuleDependencyConstraint(group, module, version, reason));
             reader.endObject();
         }
         reader.endArray();
@@ -346,12 +352,14 @@ public class ModuleMetadataParser {
         final String module;
         final VersionConstraint versionConstraint;
         final ImmutableList<ExcludeMetadata> excludes;
+        private final String reason;
 
-        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<ExcludeMetadata> excludes) {
+        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<ExcludeMetadata> excludes, String reason) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
             this.excludes = excludes;
+            this.reason = reason;
         }
     }
 
@@ -359,11 +367,13 @@ public class ModuleMetadataParser {
         final String group;
         final String module;
         final VersionConstraint versionConstraint;
+        private final String reason;
 
-        ModuleDependencyConstraint(String group, String module, VersionConstraint versionConstraint) {
+        ModuleDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
+            this.reason = reason;
         }
     }
 }

@@ -23,7 +23,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.tasks.TaskFilePropertyBuilder;
 import org.gradle.internal.Cast;
 
 import java.util.Iterator;
@@ -61,17 +60,6 @@ public class TaskPropertyUtils {
             builder.add(propertySpec);
         }
         return builder.build();
-    }
-
-    public static <T extends TaskPropertySpec & TaskFilePropertyBuilder> void ensurePropertiesHaveNames(Iterable<T> properties) {
-        int unnamedPropertyCounter = 0;
-        for (T propertySpec : properties) {
-            String propertyName = propertySpec.getPropertyName();
-            if (propertyName == null) {
-                propertyName = "$" + (++unnamedPropertyCounter);
-                propertySpec.withPropertyName(propertyName);
-            }
-        }
     }
 
     public static <T extends TaskFilePropertySpec> SortedSet<ResolvedTaskOutputFilePropertySpec> resolveFileProperties(ImmutableSortedSet<T> properties) {

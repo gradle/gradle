@@ -32,9 +32,11 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
             class CustomTask extends DefaultTask {
                 @Optional @$annotation.simpleName input
                 @TaskAction void doSomething() {
-                    def visitor = new GetInputFilesVisitor(this.toString())
-                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), this, visitor)
-                    assert visitor.files.empty
+                    GetInputFilesVisitor visitor = new GetInputFilesVisitor()
+                    def walker = services.get(PropertyWalker)
+                    TaskPropertyUtils.visitProperties(walker, this, visitor)
+                    def inputFiles = visitor.fileProperties*.propertyFiles*.files.flatten()
+                    assert inputFiles.empty
                 }
             }
 

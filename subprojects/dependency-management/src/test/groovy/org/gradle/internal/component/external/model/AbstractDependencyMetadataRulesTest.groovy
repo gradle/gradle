@@ -92,9 +92,9 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         defaultVariant = metadata.addVariant("default", attributes)
         deps.each { name ->
             if (addAllDependenciesAsConstraints()) {
-                defaultVariant.addDependencyConstraint("org.test", name, new DefaultMutableVersionConstraint("1.0"))
+                defaultVariant.addDependencyConstraint("org.test", name, new DefaultMutableVersionConstraint("1.0"), null)
             } else {
-                defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [])
+                defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null)
             }
         }
         metadata
@@ -270,7 +270,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "consumer", "1.0")
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.group, consumerIdentifier.name, new DefaultMutableVersionConstraint(consumerIdentifier.version))
-        def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, null, [] as List, [], false, false, true, false)
+        def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, null, [] as List, [], false, false, true, false, null)
 
         consumer.selectConfigurations(attributes, immutable, schema)[0]
     }

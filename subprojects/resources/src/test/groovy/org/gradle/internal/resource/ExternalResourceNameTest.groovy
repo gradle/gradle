@@ -51,6 +51,17 @@ class ExternalResourceNameTest extends Specification {
         this.base.toURI().toString() | "a/b/c"                                            | "file:/"            | this.base.toURI().path + "/a/b/c"
     }
 
+    def "can construct a resource name from a file URI with host and a path"() {
+        expect:
+        def base = URI.create("file:////host/")
+        def name = new ExternalResourceName(base, "/a/b/c")
+        name.uri.toASCIIString() == new URI(base.scheme, null, base.host, base.port, "////host/a/b/c", null, null).toASCIIString()
+        name.path == "/a/b/c"
+        name.uri.path == "//host/a/b/c"
+        name.root.uri == URI.create("file:////host/" )
+        name.root == name.root.root
+    }
+
     def "can construct a resource name from a path"() {
         expect:
         def name = new ExternalResourceName(path)
@@ -119,6 +130,7 @@ class ExternalResourceNameTest extends Specification {
         expect:
         def name = new ExternalResourceName(uri)
         name.decoded == expectedDecoded
+        name.resolve("").decoded == expectedDecoded
 
         where:
         uri                              | expectedDecoded
@@ -162,6 +174,10 @@ class ExternalResourceNameTest extends Specification {
         "a/b/c"                  | "/"            | "/"
         "/"                      | "/a/b/c"       | "/a/b/c"
         ""                       | "/a/b/c"       | "/a/b/c"
+        "//host"                 | "/a/b//c"      | "//host/a/b/c"
+        "//host/a/b/c"           | "/z"           | "//host/z"
+        "file:////host"          | "/a/b//c"      | "file:////host/a/b/c"
+        "file:////host/a/b/c"    | "/z"           | "file:////host/z"
     }
 
     def "can resolve a relative path"() {
@@ -182,8 +198,13 @@ class ExternalResourceNameTest extends Specification {
         "http://host:8080/"      | "z/././//./../z/../d" | "http://host:8080/d"
         base.toURI().toString()  | "a/b/c"               | new File(base, "a/b/c").toURI().toString()
         "/a/b/c"                 | "z"                   | "/a/b/c/z"
+        "/a//b/c"                | "z"                   | "/a/b/c/z"
         "a/b/c"                  | "z"                   | "a/b/c/z"
         "/"                      | "z"                   | "/z"
         ""                       | "z"                   | "z"
+        "//host/a/b"             | "z"                   | "//host/a/b/z"
+        "//host/a//b"            | "z"                   | "//host/a/b/z"
+        "file:////host/a/b"      | "z"                   | "file:////host/a/b/z"
+        "file:////host//a//b"    | "z"                   | "file:////host/a/b/z"
     }
 }

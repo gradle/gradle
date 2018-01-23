@@ -27,7 +27,9 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
+import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.util.UsesNativeServices
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -251,6 +253,29 @@ class DefaultTaskOutputsTest extends Specification {
         then:
         GradleException e = thrown()
         e.message.contains("Could not evaluate spec for 'Exception is thrown'.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/4085")
+    @Unroll
+    def "can register more unnamed properties with method #method after properties have been queried"() {
+        outputs."$method"("output-1")
+        // Trigger naming properties
+        outputs.hasOutput
+        outputs."$method"("output-2")
+        def names = []
+
+        when:
+        outputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
+            @Override
+            void visitOutputFileProperty(TaskOutputFilePropertySpec property) {
+                names += property.propertyName
+            }
+        })
+        then:
+        names == ['$1', '$2']
+
+        where:
+        method << ["file", "dir", "files", "dirs"]
     }
 
     void canRegisterOutputFiles() {

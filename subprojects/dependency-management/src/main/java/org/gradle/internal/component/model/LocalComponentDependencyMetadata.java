@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -40,6 +41,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final boolean changing;
     private final boolean transitive;
     private final boolean pending;
+    private final String reason;
 
     private final AttributeContainer moduleAttributes;
 
@@ -49,7 +51,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                                             AttributeContainer moduleAttributes,
                                             String dependencyConfiguration,
                                             List<IvyArtifactName> artifactNames, List<ExcludeMetadata> excludes,
-                                            boolean force, boolean changing, boolean transitive, boolean pending) {
+                                            boolean force, boolean changing, boolean transitive, boolean pending,
+                                            String reason) {
         this.componentId = componentId;
         this.selector = selector;
         this.moduleConfiguration = moduleConfiguration;
@@ -61,6 +64,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         this.changing = changing;
         this.transitive = transitive;
         this.pending = pending;
+        this.reason = reason;
     }
 
     @Override
@@ -140,6 +144,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
+    public String getReason() {
+        return reason;
+    }
+
+    @Override
     public List<IvyArtifactName> getArtifacts() {
         return artifactNames;
     }
@@ -152,7 +161,19 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return copyWithTarget(target);
     }
 
+    @Override
+    public DependencyMetadata withReason(String reason) {
+        if (Objects.equal(reason, this.reason)) {
+            return this;
+        }
+        return copyWithReason(reason);
+    }
+
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
-        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending);
+        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
+    }
+
+    private LocalOriginDependencyMetadata copyWithReason(String reason) {
+        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
     }
 }

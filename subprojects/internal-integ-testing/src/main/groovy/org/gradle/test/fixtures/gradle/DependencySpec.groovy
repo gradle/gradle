@@ -27,8 +27,9 @@ class DependencySpec {
     String prefers
     List<String> rejects
     List<ExcludeSpec> exclusions = []
+    String reason
 
-    DependencySpec(String g, String m, String version, List<String> r, Collection<Map> e) {
+    DependencySpec(String g, String m, String version, List<String> r, Collection<Map> e, String reason) {
         group = g
         module = m
         prefers = version
@@ -40,5 +41,6 @@ class DependencySpec {
                 new ExcludeSpec(group, module)
             }
         }
+        this.reason = reason
     }
 }

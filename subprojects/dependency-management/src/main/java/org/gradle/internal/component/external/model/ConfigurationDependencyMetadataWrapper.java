@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -35,11 +36,17 @@ public class ConfigurationDependencyMetadataWrapper implements ModuleDependencyM
     private final ConfigurationMetadata configuration;
     private final ModuleComponentIdentifier componentId;
     private final ExternalDependencyDescriptor delegate;
+    private final String reason;
 
-    public ConfigurationDependencyMetadataWrapper(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor delegate) {
+    private ConfigurationDependencyMetadataWrapper(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor delegate, String reason) {
         this.configuration = configuration;
         this.componentId = componentId;
         this.delegate = delegate;
+        this.reason = reason;
+    }
+
+    public ConfigurationDependencyMetadataWrapper(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor delegate) {
+        this(configuration, componentId, delegate, null);
     }
 
     @Override
@@ -84,6 +91,14 @@ public class ConfigurationDependencyMetadataWrapper implements ModuleDependencyM
         return withRequested(newSelector);
     }
 
+    @Override
+    public ModuleDependencyMetadata withReason(String reason) {
+        if (Objects.equal(reason, this.getReason())) {
+            return this;
+        }
+        return new ConfigurationDependencyMetadataWrapper(configuration, componentId, delegate, reason);
+    }
+
     private ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {
         ExternalDependencyDescriptor newDelegate = delegate.withRequested(newSelector);
         return new ConfigurationDependencyMetadataWrapper(configuration, componentId, newDelegate);
@@ -107,5 +122,10 @@ public class ConfigurationDependencyMetadataWrapper implements ModuleDependencyM
     @Override
     public boolean isPending() {
         return delegate.isOptional();
+    }
+
+    @Override
+    public String getReason() {
+        return reason;
     }
 }

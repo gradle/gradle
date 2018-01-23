@@ -38,6 +38,7 @@ import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheSer
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.model.ObjectFactory;
@@ -223,7 +224,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     }
 
     DefaultImmutableAttributesFactory createImmutableAttributesFactory(IsolatableFactory isolatableFactory) {
-        return new DefaultImmutableAttributesFactory(isolatableFactory);
+        return new DefaultImmutableAttributesFactory(isolatableFactory, NamedObjectInstantiator.INSTANCE);
     }
 
     ResourceLockCoordinationService createWorkerLeaseCoordinationService() {

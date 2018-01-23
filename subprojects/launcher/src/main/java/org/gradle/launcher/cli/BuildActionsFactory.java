@@ -163,12 +163,12 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private Runnable runBuildAndCloseServices(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer, ServiceRegistry sharedServices, Object... stopBeforeSharedServices) {
-        BuildActionParameters parameters = createBuildActionParamters(startParameter, daemonParameters);
+        BuildActionParameters parameters = createBuildActionParameters(startParameter, daemonParameters);
         Stoppable stoppable = new CompositeStoppable().add(stopBeforeSharedServices).add(sharedServices);
         return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters, sharedServices, stoppable);
     }
 
-    private BuildActionParameters createBuildActionParamters(StartParameter startParameter, DaemonParameters daemonParameters) {
+    private BuildActionParameters createBuildActionParameters(StartParameter startParameter, DaemonParameters daemonParameters) {
         return new DefaultBuildActionParameters(
                 daemonParameters.getEffectiveSystemProperties(),
                 daemonParameters.getEnvironmentVariables(),

@@ -67,7 +67,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
     public static TaskProperties resolve(PropertyWalker propertyWalker, PathToFileResolver resolver, TaskInternal task) {
         String beanName = task.toString();
-        GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName);
+        GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor();
         GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor();
         GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor(beanName);
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, resolver);

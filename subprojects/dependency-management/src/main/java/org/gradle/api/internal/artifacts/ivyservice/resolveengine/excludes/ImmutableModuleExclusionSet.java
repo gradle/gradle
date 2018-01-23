@@ -34,7 +34,7 @@ final class ImmutableModuleExclusionSet implements Set<AbstractModuleExclusion> 
 
     // the following fields are used as optimizations, to avoid iterating on the whole set of exclusions
     private ImmutableSet<ModuleIdentifier> excludedModules;
-    private ImmutableList<AbstractModuleExclusion> otherExcludes;
+    private ImmutableList<AbstractModuleExclusion> moduleExcludes;
     private ImmutableList<AbstractModuleExclusion> artifactExcludes;
 
     ImmutableModuleExclusionSet(ImmutableSet<AbstractModuleExclusion> delegate) {
@@ -47,21 +47,23 @@ final class ImmutableModuleExclusionSet implements Set<AbstractModuleExclusion> 
         if (excludedModules != null) {
             return;
         }
-        ImmutableSet.Builder<ModuleIdentifier> modules = ImmutableSet.builder();
-        ImmutableList.Builder<AbstractModuleExclusion> other = ImmutableList.builder();
+        ImmutableSet.Builder<ModuleIdentifier> moduleIds = ImmutableSet.builder();
+        ImmutableList.Builder<AbstractModuleExclusion> modules = ImmutableList.builder();
         ImmutableList.Builder<AbstractModuleExclusion> artifacts = ImmutableList.builder();
         for (AbstractModuleExclusion exclusion : delegate) {
             if (exclusion instanceof ModuleIdExcludeSpec) {
-                modules.add(((ModuleIdExcludeSpec) exclusion).moduleId);
+                moduleIds.add(((ModuleIdExcludeSpec) exclusion).moduleId);
             } else {
-                other.add(exclusion);
-                if (exclusion instanceof ArtifactExcludeSpec || exclusion instanceof IvyPatternMatcherExcludeRuleSpec) {
+                if (!exclusion.excludesNoModules()) {
+                    modules.add(exclusion);
+                }
+                if (exclusion.mayExcludeArtifacts()) {
                     artifacts.add(exclusion);
                 }
             }
         }
-        excludedModules = modules.build();
-        otherExcludes = other.build();
+        excludedModules = moduleIds.build();
+        moduleExcludes = modules.build();
         artifactExcludes = artifacts.build();
     }
 
@@ -97,7 +99,7 @@ final class ImmutableModuleExclusionSet implements Set<AbstractModuleExclusion> 
         if (excludedModules.contains(id)) {
             return true;
         }
-        for (AbstractModuleExclusion excludeSpec : otherExcludes) {
+        for (AbstractModuleExclusion excludeSpec : moduleExcludes) {
             if (excludeSpec.excludeModule(id)) {
                 return true;
             }

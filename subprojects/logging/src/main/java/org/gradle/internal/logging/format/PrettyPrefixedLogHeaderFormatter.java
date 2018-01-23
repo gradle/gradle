@@ -24,12 +24,22 @@ import java.util.Collections;
 import java.util.List;
 
 public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
+    private final boolean spaceBefore;
+
+    public PrettyPrefixedLogHeaderFormatter(boolean spaceBefore) {
+        this.spaceBefore = spaceBefore;
+    }
+
     @Override
     public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, @Nullable String shortDescription, @Nullable String status, boolean failed) {
         final String message = header != null ? header : description;
         if (message != null) {
-            // Visually indicate group by adding surrounding lines
-            return Lists.newArrayList(header(message, failed), status(status, failed), eol());
+            // Visually indicate group by adding surrounding lines, if requested
+            final List<StyledTextOutputEvent.Span> result = Lists.newArrayList(header(message, failed), status(status, failed), eol());
+            if (spaceBefore) {
+                result.add(0, eol());
+            }
+            return result;
         } else {
             return Collections.emptyList();
         }
