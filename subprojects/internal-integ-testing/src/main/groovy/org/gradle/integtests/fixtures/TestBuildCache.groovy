@@ -73,10 +73,6 @@ class TestBuildCache {
         listCacheFiles().empty
     }
 
-    void assertEmpty() {
-        assert isEmpty()
-    }
-
     TestFile cacheArtifact(String cacheKey) {
         new TestFile(cacheDir, cacheKey)
     }

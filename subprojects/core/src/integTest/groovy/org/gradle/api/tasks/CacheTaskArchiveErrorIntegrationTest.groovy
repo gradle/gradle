@@ -56,7 +56,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds "customTask"
         output =~ /Failed to store cache entry .+ for task ':customTask'/
         output =~ /Could not pack property 'output'/
-        localCache.assertEmpty()
+        localCache.empty
         localCache.listCacheTempFiles().empty
 
         when:
@@ -97,7 +97,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         then:
         executer.withStackTraceChecksDisabled()
         succeeds "customTask"
-        remoteCache.assertEmpty()
+        remoteCache.empty
         output =~ /org.gradle.api.GradleException: Could not pack property 'output'/
     }
 
