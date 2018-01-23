@@ -16,29 +16,19 @@
 
 package org.gradle.initialization.definition;
 
-import org.gradle.api.initialization.definition.InjectedPluginDependency;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.plugin.management.internal.DefaultPluginRequest;
 
-import javax.annotation.Nullable;
+// TODO: Add context information
+public class SelfResolvingPluginRequest extends DefaultPluginRequest {
+    private final ClassLoaderScope classLoaderScope;
 
-public class DefaultInjectedPluginDependency implements InjectedPluginDependency {
-    private final String id;
-    private String version;
-
-    public DefaultInjectedPluginDependency(String id) {
-        this.id = id;
+    public SelfResolvingPluginRequest(String id, String version, ClassLoaderScope classLoaderScope) {
+        super(id, version, true, null, "injected plugin");
+        this.classLoaderScope = classLoaderScope;
     }
 
-    @Override
-    public InjectedPluginDependency version(@Nullable String version) {
-        this.version = version;
-        return this;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getVersion() {
-        return version;
+    public ClassLoaderScope getClassLoaderScope() {
+        return classLoaderScope;
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.definition.DefaultInjectedPluginDependencies;
 import org.gradle.vcs.VersionControlSpec;
 
@@ -29,10 +30,11 @@ import java.io.File;
 public abstract class AbstractVersionControlSpec implements VersionControlSpec {
     private String rootDir = "";
     private final StartParameter rootBuildStartParameter;
-    private final DefaultInjectedPluginDependencies pluginDependencies = new DefaultInjectedPluginDependencies();
+    private final DefaultInjectedPluginDependencies pluginDependencies;
 
-    protected AbstractVersionControlSpec(StartParameter rootBuildStartParameter) {
+    protected AbstractVersionControlSpec(StartParameter rootBuildStartParameter, ClassLoaderScope classLoaderScope) {
         this.rootBuildStartParameter = rootBuildStartParameter;
+        this.pluginDependencies = new DefaultInjectedPluginDependencies(classLoaderScope);
     }
 
     @Override

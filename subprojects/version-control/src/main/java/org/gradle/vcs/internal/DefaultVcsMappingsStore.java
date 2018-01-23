@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Actions;
 import org.gradle.util.CollectionUtils;
@@ -69,14 +70,22 @@ public class DefaultVcsMappingsStore implements VcsMappingsStore {
     }
 
     @Override
-    public void addRule(Action<? super VcsMapping> rule, Gradle gradle) {
+    public void addRule(final Action<? super VcsMapping> rule, final Gradle gradle) {
+        // TODO: Hacky hook to ensure we have the classloader scope from the appropriate Gradle instance.
+        Action<VcsMapping> classloaderWrapping = new Action<VcsMapping>() {
+            @Override
+            public void execute(VcsMapping vcsMapping) {
+                ((DefaultVcsMapping)vcsMapping).setClassLoaderScope(((GradleInternal)gradle).getSettings().getClassLoaderScope());
+                rule.execute(vcsMapping);
+            }
+        };
         if (gradle.getParent() == null) {
-            rootVcsMappings.add(rule);
+            rootVcsMappings.add(classloaderWrapping);
         } else {
             if (!vcsMappings.containsKey(gradle)) {
                 vcsMappings.put(gradle, Sets.<Action<? super VcsMapping>>newLinkedHashSet());
             }
-            vcsMappings.get(gradle).add(rule);
+            vcsMappings.get(gradle).add(classloaderWrapping);
         }
     }
 }
