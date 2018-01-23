@@ -1378,7 +1378,7 @@ foo:foo:1.0
                 constraints {
                     implementation('org:foo') {
                          version { $version }
-                         reason '$reason'
+                         because '$reason'
                     }
                 }
             }
@@ -1421,7 +1421,7 @@ org:foo: -> $selected
             dependencies {
                 implementation('org:foo') {
                    version { $version }
-                   reason '$reason'
+                   because '$reason'
                 }
             }
         """

@@ -116,7 +116,7 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     }
 
     @Override
-    public void setReason(String reason) {
+    public void because(String reason) {
         this.reason = reason;
     }
 }

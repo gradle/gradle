@@ -339,11 +339,11 @@ class TestVariant implements org.gradle.api.internal.component.SoftwareComponent
 
             dependencies {
                 implementation("org:foo:1.0") {
-                   reason 'version 1.0 is tested'                
+                   because 'version 1.0 is tested'                
                 }
                 constraints {                
                     implementation("org:bar:2.0") {
-                        reason 'because 2.0 is cool'
+                        because 'because 2.0 is cool'
                     }
                 }
             }

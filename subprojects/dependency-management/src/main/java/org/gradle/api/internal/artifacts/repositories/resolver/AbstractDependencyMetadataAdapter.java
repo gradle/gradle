@@ -68,7 +68,7 @@ public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMeta
     }
 
     @Override
-    public T reason(String reason) {
+    public T because(String reason) {
         updateMetadata(getOriginalMetadata().withReason(reason));
         return Cast.uncheckedCast(this);
     }

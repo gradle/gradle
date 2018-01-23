@@ -44,7 +44,7 @@ public abstract class AbstractDependency implements ResolvableDependency, Direct
     }
 
     @Override
-    public void setReason(String reason) {
+    public void because(String reason) {
         this.reason = reason;
     }
 }

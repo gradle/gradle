@@ -63,7 +63,7 @@ public abstract class AbstractDependencyImpl<T extends DirectDependencyMetadata>
     }
 
     @Override
-    public T reason(String reason) {
+    public T because(String reason) {
         this.reason = reason;
         return Cast.uncheckedCast(this);
     }
