@@ -1274,7 +1274,7 @@ h3.releaseinfo {
     font-style: italic;
     border-radius: 3px;
     display: inline-block;
-    padding: 0px 5px;
+    padding: 0 5px;
     margin-bottom: 8px;
 }
 
@@ -1283,11 +1283,11 @@ h3.releaseinfo {
 }
 
 table .caution {
-    float: left;
     font-size: 13px;
     margin-right: 6px;
     margin-top: 2px;
     margin-bottom: 0px;
+    display: inline;
     text-transform: lowercase;
 }
 
