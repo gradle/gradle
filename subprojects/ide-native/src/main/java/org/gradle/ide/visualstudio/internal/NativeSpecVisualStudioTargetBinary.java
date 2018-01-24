@@ -18,11 +18,17 @@ package org.gradle.ide.visualstudio.internal;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.Buildable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 import org.gradle.language.rc.WindowsResourceSet;
@@ -66,51 +72,57 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
 
     @Override
     public FileCollection getSourceFiles() {
-        Set<LanguageSourceSet> nonResourceSourceSets = filter(binary.getInputs(), new Spec<LanguageSourceSet>() {
+        Spec<LanguageSourceSet> filter = new Spec<LanguageSourceSet>() {
             @Override
             public boolean isSatisfiedBy(LanguageSourceSet sourceSet) {
                 return !(sourceSet instanceof WindowsResourceSet);
             }
-        });
-        return new UnionFileCollection(collect(nonResourceSourceSets, new Transformer<FileCollection, LanguageSourceSet>() {
+        };
+        Transformer<FileCollection, LanguageSourceSet> transform = new Transformer<FileCollection, LanguageSourceSet>() {
             @Override
             public FileCollection transform(LanguageSourceSet sourceSet) {
                 return sourceSet.getSource();
             }
-        }));
+        };
+
+        return new FileCollectionAdapter(new LanguageSourceSetCollectionAdapter(getComponentName() + " source files", binary.getInputs(), filter, transform));
     }
 
     @Override
     public FileCollection getResourceFiles() {
-        Set<LanguageSourceSet> resourceSourceSets = filter(binary.getInputs(), new Spec<LanguageSourceSet>() {
+        Spec<LanguageSourceSet> filter = new Spec<LanguageSourceSet>() {
             @Override
             public boolean isSatisfiedBy(LanguageSourceSet sourceSet) {
                 return sourceSet instanceof WindowsResourceSet;
             }
-        });
-        return new UnionFileCollection(collect(resourceSourceSets, new Transformer<FileCollection, LanguageSourceSet>() {
+        };
+        Transformer<FileCollection, LanguageSourceSet> transform = new Transformer<FileCollection, LanguageSourceSet>() {
             @Override
             public FileCollection transform(LanguageSourceSet sourceSet) {
                 return sourceSet.getSource();
             }
-        }));
+        };
+
+        return new FileCollectionAdapter(new LanguageSourceSetCollectionAdapter(getComponentName() + " resource files", binary.getInputs(), filter, transform));
     }
 
     @Override
     public FileCollection getHeaderFiles() {
-        Set<LanguageSourceSet> headerSourceSets = filter(binary.getInputs(), new Spec<LanguageSourceSet>() {
+        Spec<LanguageSourceSet> filter =  new Spec<LanguageSourceSet>() {
             @Override
             public boolean isSatisfiedBy(LanguageSourceSet sourceSet) {
                 return sourceSet instanceof HeaderExportingSourceSet;
             }
-        });
-        return new UnionFileCollection(collect(headerSourceSets, new Transformer<FileCollection, LanguageSourceSet>() {
+        };
+        Transformer<FileCollection, LanguageSourceSet> transform = new Transformer<FileCollection, LanguageSourceSet>() {
             @Override
             public FileCollection transform(LanguageSourceSet sourceSet) {
                 HeaderExportingSourceSet exportingSourceSet = (HeaderExportingSourceSet) sourceSet;
                 return exportingSourceSet.getExportedHeaders().plus(exportingSourceSet.getImplicitHeaders());
             }
-        }));
+        };
+
+        return new FileCollectionAdapter(new LanguageSourceSetCollectionAdapter(getComponentName() + " header files", binary.getInputs(), filter, transform));
     }
 
     @Override
@@ -243,5 +255,45 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
     @Override
     public int hashCode() {
         return binary.hashCode();
+    }
+
+    // TODO: There has to be a simpler way to do this.
+    // We want to create a buildable filecollection based on a filtered view of selected source directory sets
+    // in the binary inputs.
+    private static class LanguageSourceSetCollectionAdapter implements MinimalFileSet, Buildable {
+        private final String displayName;
+        private final Set<LanguageSourceSet> inputs;
+        private final Spec<LanguageSourceSet> filterSpec;
+        private final Transformer<FileCollection, LanguageSourceSet> transformer;
+
+        public LanguageSourceSetCollectionAdapter(String displayName, Set<LanguageSourceSet> inputs, Spec<LanguageSourceSet> filterSpec, Transformer<FileCollection, LanguageSourceSet> transformer) {
+            this.displayName = displayName;
+            this.inputs = inputs;
+            this.filterSpec = filterSpec;
+            this.transformer = transformer;
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            Set<LanguageSourceSet> filtered = filter(inputs, filterSpec);
+            return new UnionFileCollection(collect(filtered, transformer)).getFiles();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return new AbstractTaskDependency() {
+                @Override
+                public void visitDependencies(TaskDependencyResolveContext context) {
+                    for (LanguageSourceSet sourceSet : inputs) {
+                        context.add(sourceSet);
+                    }
+                }
+            };
+        }
     }
 }
