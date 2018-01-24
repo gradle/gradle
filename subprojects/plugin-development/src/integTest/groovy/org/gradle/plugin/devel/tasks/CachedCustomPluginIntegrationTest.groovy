@@ -22,50 +22,60 @@ import org.gradle.test.fixtures.file.TestFile
 
 class CachedCustomPluginIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    def setup() {
-        file("buildSrc/settings.gradle") << localCacheConfiguration()
+    def setupProjectInDirectory(TestFile projectDir) {
+        projectDir.with {
+            file("buildSrc/settings.gradle") << localCacheConfiguration()
+            file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
+            file("buildSrc/src/main/groovy/CustomPlugin.groovy") << """
+                import org.gradle.api.*
+    
+                class CustomPlugin implements Plugin<Project> {
+                    @Override
+                    void apply(Project project) {
+                        project.tasks.create("customTask", CustomTask) {
+                            inputFile = project.file("input.txt")
+                            outputFile = project.file("build/output.txt")
+                        }
+                    }
+                }
+            """
+            file("buildSrc/build.gradle") << """
+                apply plugin: "java-gradle-plugin"
+                
+                gradlePlugin {
+                    plugins {
+                        examplePlugin {
+                            id = "org.example.plugin"
+                            implementationClass = "CustomPlugin"
+                        }
+                    }
+                }
+            """
+            file("input.txt") << "input"
+            file("build.gradle") << """
+                apply plugin: "org.example.plugin"
+            """
+            file("settings.gradle") << localCacheConfiguration()
+        }
     }
 
     def "custom task is cached when java-gradle-plugin is used in buildSrc"() {
-        file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
-        file("buildSrc/src/main/groovy/CustomPlugin.groovy") << """
-            import org.gradle.api.*
+        def originalProjectDir = file("original")
+        def newProjectDir = file("new")
+        setupProjectInDirectory(originalProjectDir)
 
-            class CustomPlugin implements Plugin<Project> {
-                @Override
-                void apply(Project project) {
-                    project.tasks.create("customTask", CustomTask) {
-                        inputFile = project.file("input.txt")
-                        outputFile = project.file("build/output.txt")
-                    }
-                }
-            }
-        """
-        file("buildSrc/src/main/resources/META-INF/gradle-plugins/org.example.plugin.properties") << "implementation-class=CustomPlugin"
-        file("buildSrc/build.gradle") << """
-            apply plugin: "java-gradle-plugin"
-        """
-        file("input.txt") << "input"
-        buildFile << """
-            apply plugin: "org.example.plugin"
-        """
         when:
+        executer.inDirectory(originalProjectDir)
         withBuildCache().run "customTask"
         then:
         skippedTasks.empty
 
         when:
-        file("buildSrc/build").deleteDir()
-        file("buildSrc/.gradle").deleteDir()
-        cleanBuildDir()
-
+        setupProjectInDirectory(newProjectDir)
+        executer.inDirectory(newProjectDir)
         withBuildCache().run "customTask"
         then:
         skippedTasks.contains ":customTask"
-    }
-
-    private TestFile cleanBuildDir() {
-        file("build").assertIsDir().deleteDir()
     }
 
     private static String customGroovyTask(String suffix = "") {
@@ -75,7 +85,7 @@ class CachedCustomPluginIntegrationTest extends AbstractIntegrationSpec implemen
 
             @CacheableTask
             class CustomTask extends DefaultTask {
-                @InputFile File inputFile
+                @InputFile @PathSensitive(PathSensitivity.NONE) File inputFile
                 @OutputFile File outputFile
                 @TaskAction void doSomething() {
                     outputFile.text = inputFile.text + "$suffix"
