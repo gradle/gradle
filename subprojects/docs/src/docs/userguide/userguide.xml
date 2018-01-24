@@ -129,6 +129,7 @@
     </part>
     <part>
         <title>Glossary</title>
+        <xi:include href='../../../build/asciidoc/userguide/dependencyManagementTerminology.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/dependencyTypes.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/repositoryTypes.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/dependencyCache.xml'/>
