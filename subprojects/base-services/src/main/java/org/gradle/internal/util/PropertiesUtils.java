@@ -17,7 +17,6 @@
 package org.gradle.internal.util;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.output.ByteArrayOutputStream;
@@ -80,7 +79,11 @@ public class PropertiesUtils {
         }
 
         Collections.sort(nonCommentLines);
-        String contents = Joiner.on(lineSeparator).join(lines) + lineSeparator;
-        outputStream.write(contents.getBytes(charset));
+        StringBuilder builder = new StringBuilder();
+        for (String line : lines) {
+            builder.append(line);
+            builder.append(lineSeparator);
+        }
+        outputStream.write(builder.toString().getBytes(charset));
     }
 }

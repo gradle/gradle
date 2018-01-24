@@ -31,7 +31,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds "props"
         then:
-        file("output.properties").text == "\n"
+        file("output.properties").text == ""
     }
 
     def "empty properties with comment are written properly"() {

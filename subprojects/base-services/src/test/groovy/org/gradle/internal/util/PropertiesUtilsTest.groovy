@@ -25,7 +25,7 @@ import java.nio.charset.Charset
 class PropertiesUtilsTest extends Specification {
     def "empty properties are written properly"() {
         expect:
-        write([:]) == "\n"
+        write([:]) == ""
     }
 
     def "empty properties with comment are written properly"() {
