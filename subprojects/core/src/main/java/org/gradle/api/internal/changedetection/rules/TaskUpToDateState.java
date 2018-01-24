@@ -31,9 +31,10 @@ public class TaskUpToDateState {
     private final TaskStateChanges allTaskChanges;
     private final TaskStateChanges rebuildChanges;
     private final OutputFilePropertyNameTaskChanges outputFilePropertyNameChanges;
+    private final TaskStateChanges noHistoryState;
 
     public TaskUpToDateState(TaskExecution lastExecution, TaskExecution thisExecution, TaskInternal task) {
-        TaskStateChanges noHistoryState = new NoHistoryTaskStateChanges(lastExecution);
+        noHistoryState = new NoHistoryTaskStateChanges(lastExecution);
         TaskStateChanges previousSuccessState = new PreviousSuccessTaskStateChanges(lastExecution);
         TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task);
         TaskStateChanges inputPropertyNameChanges = new InputPropertyNameTaskStateChanges(lastExecution, thisExecution, task);
@@ -74,7 +75,7 @@ public class TaskUpToDateState {
      * Returns if any output files have been changed, added or removed.
      */
     public boolean hasAnyOutputFileChanges() {
-        return outputFilePropertyNameChanges.iterator().hasNext() || outputFileChanges.hasAnyChanges();
+        return noHistoryState.iterator().hasNext() || outputFilePropertyNameChanges.iterator().hasNext() || outputFileChanges.hasAnyChanges();
     }
 
     /**
