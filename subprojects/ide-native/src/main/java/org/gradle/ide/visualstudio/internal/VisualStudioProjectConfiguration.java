@@ -16,32 +16,21 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.PreprocessingTool;
-import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
+//TODO: collapse this and VisualStudioTargetBinary - there doesn't seem to be a meaningful distinction between these two classes
 public class VisualStudioProjectConfiguration {
     private final DefaultVisualStudioProject vsProject;
     private final String configurationName;
     private final String platformName;
-    private final NativeBinarySpecInternal binary;
-    private final String type = "Makefile";
+    private final VisualStudioTargetBinary binary;
 
-    public VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, NativeBinarySpec binary) {
+    public VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, VisualStudioTargetBinary binary) {
         this.vsProject = vsProject;
         this.configurationName = configurationName;
         this.platformName = platformName;
-        this.binary = (NativeBinarySpecInternal) binary;
+        this.binary = binary;
     }
 
     public String getName() {
@@ -57,72 +46,38 @@ public class VisualStudioProjectConfiguration {
     }
 
     public String getBuildTask() {
-        return binary.getTasks().getBuild().getPath();
+        return binary.getBuildTaskPath();
     }
 
     public String getCleanTask() {
-        return taskPath("clean");
-    }
-
-    private String taskPath(final String taskName) {
-        final String projectPath = binary.getComponent().getProjectPath();
-        if (":".equals(projectPath)) {
-            return ":" + taskName;
-        }
-
-        return projectPath + ":" + taskName;
+        return binary.getCleanTaskPath();
     }
 
     public File getOutputFile() {
-        return binary.getPrimaryOutput();
+        return binary.getOutputFile();
     }
 
     public boolean isDebug() {
-        return !"release".equals(binary.getBuildType().getName());
+        return binary.isDebuggable();
     }
 
     public List<String> getCompilerDefines() {
-        List<String> defines = new ArrayList<String>();
-        defines.addAll(getDefines("cCompiler"));
-        defines.addAll(getDefines("cppCompiler"));
-        defines.addAll(getDefines("rcCompiler"));
-        return defines;
-    }
-
-    private List<String> getDefines(String tool) {
-        PreprocessingTool rcCompiler = findCompiler(tool);
-        return rcCompiler == null ? new ArrayList() : new MacroArgsConverter().transform(rcCompiler.getMacros());
-    }
-
-    private PreprocessingTool findCompiler(String tool) {
-        return (PreprocessingTool) binary.getToolByName(tool);
+        return binary.getCompilerDefines();
     }
 
     public List<File> getIncludePaths() {
-        Set<File> includes = new LinkedHashSet<File>();
+        return binary.getIncludePaths();
+    }
 
-        for (LanguageSourceSet sourceSet : binary.getInputs()) {
-            if (sourceSet instanceof HeaderExportingSourceSet) {
-                includes.addAll(((HeaderExportingSourceSet) sourceSet).getExportedHeaders().getSrcDirs());
-            }
-        }
-
-        for (NativeDependencySet lib : binary.getLibs()) {
-            includes.addAll(lib.getIncludeRoots().getFiles());
-        }
-
-        return new ArrayList<File>(includes);
+    public final String getType() {
+        return "Makefile";
     }
 
     public DefaultVisualStudioProject getProject() {
         return vsProject;
     }
 
-    public final NativeBinarySpecInternal getBinary() {
-        return binary;
-    }
-
-    public final String getType() {
-        return type;
+    public Iterable<VisualStudioTargetBinary> getDependencyBinaries() {
+        return binary.getDependencies();
     }
 }

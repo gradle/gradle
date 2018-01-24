@@ -19,11 +19,8 @@ package org.gradle.ide.visualstudio.internal;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.nativeplatform.NativeExecutableBinarySpec;
-import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
@@ -38,35 +35,33 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         this.projectMapper = projectMapper;
     }
 
-    public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinarySpec nativeBinary) {
-        String projectName = projectName(nativeBinary);
-        return getByName(projectName).getConfiguration(nativeBinary);
+    public VisualStudioProjectConfiguration getProjectConfiguration(VisualStudioTargetBinary targetBinary) {
+        String projectName = projectName(targetBinary);
+        return getByName(projectName).getConfiguration(targetBinary);
     }
 
-    public VisualStudioProjectConfiguration addProjectConfiguration(NativeBinarySpec nativeBinary) {
+    public VisualStudioProjectConfiguration addProjectConfiguration(VisualStudioTargetBinary nativeBinary) {
         VisualStudioProjectMapper.ProjectConfigurationNames names = projectMapper.mapToConfiguration(nativeBinary);
-        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getComponent(), names.project);
-        VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(nativeBinary, project, names.configuration, names.platform);
+        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getProjectPath(), names.project, nativeBinary.getComponentName());
+        VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(project, nativeBinary, names.configuration, names.platform);
         project.addConfiguration(nativeBinary, configuration);
         return configuration;
     }
 
-    private VisualStudioProjectConfiguration createVisualStudioProjectConfiguration(NativeBinarySpec nativeBinary, DefaultVisualStudioProject project, String configuration, String platform) {
-        Class<? extends VisualStudioProjectConfiguration> type =
-                (nativeBinary instanceof NativeExecutableBinarySpec  || nativeBinary instanceof NativeTestSuiteBinarySpec)? ExecutableVisualStudioProjectConfiguration.class : VisualStudioProjectConfiguration.class;
-        return getInstantiator().newInstance(type, project, configuration, platform, nativeBinary);
+    private VisualStudioProjectConfiguration createVisualStudioProjectConfiguration(VisualStudioProject project, VisualStudioTargetBinary nativeBinary, String configuration, String platform) {
+        return getInstantiator().newInstance(VisualStudioProjectConfiguration.class, project, configuration, platform, nativeBinary);
     }
 
-    private DefaultVisualStudioProject getOrCreateProject(NativeComponentSpec nativeComponent, String vsProjectName) {
+    private DefaultVisualStudioProject getOrCreateProject(String projectPath, String vsProjectName, String componentName) {
         DefaultVisualStudioProject vsProject = findByName(vsProjectName);
         if (vsProject == null) {
-            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), vsProjectName), nativeComponent, fileResolver, getInstantiator());
+            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), vsProjectName), projectPath, componentName, fileResolver, getInstantiator());
             add(vsProject);
         }
         return vsProject;
     }
 
-    private String projectName(NativeBinarySpec nativeBinary) {
+    private String projectName(VisualStudioTargetBinary nativeBinary) {
         return projectMapper.mapToConfiguration(nativeBinary).project;
     }
 }

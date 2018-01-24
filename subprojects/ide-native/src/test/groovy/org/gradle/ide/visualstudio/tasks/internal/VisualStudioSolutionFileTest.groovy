@@ -21,10 +21,8 @@ import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
+import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.nativeplatform.NativeBinarySpec
-import org.gradle.nativeplatform.NativeComponentSpec
-import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -167,16 +165,14 @@ EndGlobal
     private DefaultVisualStudioProject createProject(String projectName) {
         final project1File = new File(projectName)
         fileResolver.resolve("${projectName}.vcxproj") >> project1File
-        return new DefaultVisualStudioProject(new DefaultComponentSpecIdentifier(":project", projectName), binary1.component, fileResolver, instantiator)
+        return new DefaultVisualStudioProject(new DefaultComponentSpecIdentifier(":project", projectName), binary1.projectPath, binary1.getComponentName(), fileResolver, instantiator)
     }
 
-    private NativeBinarySpec binary(def name) {
-        def component = Mock(NativeComponentSpec)
-        def binary = Mock(NativeBinarySpecInternal)
-        component.name >> "${name}Component"
-        component.projectPath >> "project-path"
+    private VisualStudioTargetBinary binary(def name) {
+        def binary = Mock(VisualStudioTargetBinary)
+        binary.componentName >> "${name}Component"
+        binary.projectPath >> "project-path"
         binary.name >> name
-        binary.component >> component
         return binary
     }
 

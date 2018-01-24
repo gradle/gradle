@@ -24,10 +24,6 @@ import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 import java.io.File;
@@ -53,8 +49,9 @@ public class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec 
         return solutionFile;
     }
 
-    public NativeComponentSpec getComponent() {
-        return rootProject.getComponent();
+    @Override
+    public String getComponentName() {
+        return rootProject.getComponentName();
     }
 
     public Set<VisualStudioProject> getProjects() {
@@ -81,12 +78,10 @@ public class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec 
     }
 
     private void addDependentConfigurations(Set configurations, VisualStudioProjectConfiguration configuration) {
-        for (NativeLibraryBinary library : configuration.getBinary().getDependentBinaries()) {
-            if (library instanceof NativeBinarySpecInternal) {
-                VisualStudioProjectConfiguration libraryConfiguration = vsProjectResolver.lookupProjectConfiguration((NativeBinarySpec) library);
-                if (configurations.add(libraryConfiguration)) {
-                    addDependentConfigurations(configurations, libraryConfiguration);
-                }
+        for (VisualStudioTargetBinary library : configuration.getDependencyBinaries()) {
+            VisualStudioProjectConfiguration libraryConfiguration = vsProjectResolver.lookupProjectConfiguration(library);
+            if (configurations.add(libraryConfiguration)) {
+                addDependentConfigurations(configurations, libraryConfiguration);
             }
         }
 

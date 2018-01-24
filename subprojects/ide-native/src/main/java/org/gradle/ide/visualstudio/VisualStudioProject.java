@@ -18,7 +18,6 @@ package org.gradle.ide.visualstudio;
 
 import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.Incubating;
-import org.gradle.nativeplatform.NativeComponentSpec;
 
 /**
  * A visual studio project, created from one or more {@link org.gradle.nativeplatform.NativeBinary} instances.
@@ -28,6 +27,7 @@ import org.gradle.nativeplatform.NativeComponentSpec;
  * The content and location of the generate project file can be modified by the supplied methods:
  *
  * <pre class='autoTested'>
+ *  apply plugin: "cpp"
  *  apply plugin: "visual-studio"
  *  model {
  *      visualStudio {
@@ -44,10 +44,6 @@ import org.gradle.nativeplatform.NativeComponentSpec;
  */
 @Incubating
 public interface VisualStudioProject extends BuildableComponentSpec {
-    /**
-     * The component that this project represents.
-     */
-    NativeComponentSpec getComponent();
 
     /**
      * Configuration for the generated project file.
@@ -58,4 +54,9 @@ public interface VisualStudioProject extends BuildableComponentSpec {
      * Configuration for the generated filters file.
      */
     XmlConfigFile getFiltersFile();
+
+    /**
+     * Returns the name of the component associated with this project
+     */
+    String getComponentName();
 }

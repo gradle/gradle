@@ -18,7 +18,6 @@ package org.gradle.ide.visualstudio;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.BuildableComponentSpec;
-import org.gradle.nativeplatform.NativeComponentSpec;
 
 import java.util.Set;
 
@@ -30,6 +29,7 @@ import java.util.Set;
  * The content and location of the generate solution file can be modified by the supplied methods:
  *
  * <pre class='autoTested'>
+ *  apply plugin: "cpp"
  *  apply plugin: "visual-studio"
  *  model {
  *      visualStudio {
@@ -52,9 +52,9 @@ public interface VisualStudioSolution extends BuildableComponentSpec {
     Set<VisualStudioProject> getProjects();
 
     /**
-     * The component that this solution represents.
+     * The name of the component associated with this solution.
      */
-    NativeComponentSpec getComponent();
+    String getComponentName();
 
     /**
      * Configuration for the generated solution file.
