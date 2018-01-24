@@ -46,7 +46,6 @@ public abstract class AbstractPropertyNameTaskStateChanges extends SimpleTaskSta
     @Override
     protected void addAllChanges(final List<TaskStateChange> changes) {
         if (previous == null) {
-            changes.add(new DescriptiveChange(title + " history is not available."));
             return;
         }
         DiffUtil.diff(getProperties(current).keySet(), getProperties(previous).keySet(), new ChangeListener<String>() {

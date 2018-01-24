@@ -53,7 +53,7 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
 
     protected Iterator<TaskStateChange> getFileChanges(final boolean includeAdded) {
         if (getPrevious() == null) {
-            return Iterators.<TaskStateChange>singletonIterator(new DescriptiveChange(title + " file history is not available."));
+            return Iterators.emptyIterator();
         }
         return Iterators.concat(Iterables.transform(getCurrent().entrySet(), new Function<Map.Entry<String, FileCollectionSnapshot>, Iterator<TaskStateChange>>() {
             @Override
