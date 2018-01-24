@@ -65,7 +65,8 @@ class ResolveIvyFactoryTest extends Specification {
         }
         buildCommencedTimeProvider = Mock(BuildCommencedTimeProvider)
         inMemoryCachedRepositoryFactory = Mock(InMemoryCachedRepositoryFactory) {
-            _ * cached(_) >> { ModuleComponentRepository repository -> repository }
+            _ * cacheLocalRepository(_) >> { ModuleComponentRepository repository -> repository }
+            _ * cacheRemoteRepository(_) >> { ModuleComponentRepository repository -> repository }
         }
         moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
         versionSelectorScheme = Mock(VersionSelectorScheme)
