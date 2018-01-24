@@ -59,7 +59,6 @@ class AcceptedApiChangesJsonFileManagerTest extends Specification {
     static String existingAcceptedApiChanges() {
         """
             {
-                "baseVersion": "4.1-20170714213039+0000",
                 "acceptedApiChanges": [
                     {
                         "type": "org.gradle.api.plugins.quality.Checkstyle",
@@ -80,7 +79,6 @@ class AcceptedApiChangesJsonFileManagerTest extends Specification {
 
     static String nonExistentAcceptedApiChanges() {
         """{
-    "baseVersion": "4.1-20170714213039+0000",
     "acceptedApiChanges": [
         
     ]
