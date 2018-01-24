@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal.spec;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.vcs.VersionControlSpec;
 
 import java.io.File;
@@ -25,8 +26,8 @@ import java.io.File;
 public class DirectoryRepositorySpec extends AbstractVersionControlSpec implements VersionControlSpec {
     private File sourceDir;
 
-    public DirectoryRepositorySpec(StartParameter rootBuildStartParameter) {
-        super(rootBuildStartParameter);
+    public DirectoryRepositorySpec(StartParameter rootBuildStartParameter, ClassLoaderScope classLoaderScope) {
+        super(rootBuildStartParameter, classLoaderScope);
     }
 
     @Override

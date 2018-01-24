@@ -50,7 +50,7 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void populate() {
-                    def spec = new DefaultGitVersionControlSpec()
+                    def spec = new DefaultGitVersionControlSpec(project.gradle.startParameter, project.gradle.classLoaderScope)
                     spec.url = url
                     def system = versionControlSystemFactory.create(spec)
                     def ref = system.getHead(spec)

@@ -15,6 +15,6 @@
  */
 
 /**
- * TODO
+ * Types related to the build definition for included builds.
  */
 package org.gradle.api.initialization.definition;

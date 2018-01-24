@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.initialization.definition;
+package org.gradle.initialization.definition;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.plugin.management.internal.DefaultPluginRequest;
 
-/**
- * Specification of a dependency on a plugin injected into an included build.
- *
- * @see InjectedPluginDependencies
- *
- * @since 4.6
- */
-@Incubating
-public interface InjectedPluginDependency {
+public class SelfResolvingPluginRequest extends DefaultPluginRequest {
+    private final ClassLoaderScope classLoaderScope;
 
+    public SelfResolvingPluginRequest(String id, ClassLoaderScope classLoaderScope) {
+        super(id, null, true, null, "injected plugin");
+        this.classLoaderScope = classLoaderScope;
+    }
+
+    public ClassLoaderScope getClassLoaderScope() {
+        return classLoaderScope;
+    }
 }
