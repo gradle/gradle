@@ -57,7 +57,7 @@ public interface VersionControlSpec extends Describable {
     /**
      * Configure injected plugins into this build.
      *
-     * @param configuration
+     * @param configuration the configuration action for adding injected plugins
      * @since 4.6
      */
     void plugins(Action<? super InjectedPluginDependencies> configuration);
