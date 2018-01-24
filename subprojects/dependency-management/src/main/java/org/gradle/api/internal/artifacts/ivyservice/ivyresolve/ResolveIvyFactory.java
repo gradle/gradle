@@ -105,16 +105,17 @@ public class ResolveIvyFactory {
             ModuleComponentRepository moduleComponentRepository = baseRepository;
             if (baseRepository.isLocal()) {
                 moduleComponentRepository = new LocalModuleComponentRepository(baseRepository, metadataProcessor);
+                moduleComponentRepository = inMemoryCache.cached(moduleComponentRepository);
             } else {
                 moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);
                 moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, artifactAtRepositoryCachedResolutionIndex,
                     cachePolicy, timeProvider, metadataProcessor, moduleIdentifierFactory);
+                moduleComponentRepository = inMemoryCache.cached(moduleComponentRepository);
             }
 
             if (baseRepository.isDynamicResolveMode()) {
                 moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository);
             }
-            moduleComponentRepository = inMemoryCache.cached(moduleComponentRepository);
             moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
 
             moduleResolver.add(moduleComponentRepository);

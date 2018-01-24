@@ -521,16 +521,13 @@ task resolveStaleThenFresh {
 
         and:
         // Should get the newer version when resolving 'fresh'
-//        expectGetDynamicRevision(projectA13)
+        expectGetDynamicRevision(projectA13)
 
         then:
         succeeds "resolveStaleThenFresh"
 
         and:
-        // Demonstrating gradle#3109
-        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.2.jar]")
-        // Should be:
-//        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.3.jar]")
+        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.3.jar]")
     }
 
     def "reuses cached version lists unless no matches"() {
