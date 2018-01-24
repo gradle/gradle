@@ -25,7 +25,7 @@ import java.nio.charset.Charset
 class PropertiesUtilsTest extends Specification {
     def "empty properties are written properly"() {
         expect:
-        write([:]) == ""
+        write([:]) == "\n"
     }
 
     def "empty properties with comment are written properly"() {
@@ -69,7 +69,7 @@ class PropertiesUtilsTest extends Specification {
             one=1
             three=three
             two=2
-        """).split("\n").join("EOL")
+        """).split("\n", -1).join("EOL")
     }
 
     private static String write(Map<?, ?> properties, String comment = null, Charset charset = Charsets.ISO_8859_1, String lineSeparator = "\n") {
@@ -81,6 +81,6 @@ class PropertiesUtilsTest extends Specification {
     }
 
     private static String normalize(String text) {
-        return text.stripIndent().trim()
+        return text.stripIndent().trim() + "\n"
     }
 }

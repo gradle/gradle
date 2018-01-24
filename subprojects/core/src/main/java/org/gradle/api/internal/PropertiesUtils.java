@@ -80,7 +80,7 @@ public class PropertiesUtils {
         }
 
         Collections.sort(nonCommentLines);
-        String contents = Joiner.on(lineSeparator).join(lines);
+        String contents = Joiner.on(lineSeparator).join(lines) + lineSeparator;
         outputStream.write(contents.getBytes(charset));
     }
 }

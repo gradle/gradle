@@ -16,16 +16,17 @@
 
 package org.gradle.plugin.devel.tasks;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.PropertiesUtils;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.plugin.devel.PluginDeclaration;
-import org.gradle.util.GUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -68,7 +69,11 @@ public class GeneratePluginDescriptors extends ConventionTask {
     private void writePropertiesTo(Properties properties, File descriptorFile) {
         try {
             OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(descriptorFile));
-            GUtil.savePropertiesNoDateComment(properties, outputStream);
+            try {
+                PropertiesUtils.store(properties, outputStream, null, Charsets.ISO_8859_1, "\n");
+            } finally {
+                outputStream.close();
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

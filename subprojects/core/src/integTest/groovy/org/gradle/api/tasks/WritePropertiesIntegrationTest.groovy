@@ -31,7 +31,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds "props"
         then:
-        file("output.properties").text == ""
+        file("output.properties").text == "\n"
     }
 
     def "empty properties with comment are written properly"() {
@@ -138,7 +138,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
             one=1
             three=three
             two=2
-        """).split("\n").join("EOL")
+        """).split("\n", -1).join("EOL")
     }
 
     @Unroll
@@ -159,6 +159,6 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private static String normalize(String text) {
-        return text.stripIndent().trim()
+        return text.stripIndent().trim() + '\n'
     }
 }
