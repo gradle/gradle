@@ -17,10 +17,16 @@
 package org.gradle.ide.visualstudio.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.plugins.AppliedPlugin;
+import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 import org.gradle.plugins.ide.internal.IdePlugin;
+
+import javax.inject.Inject;
 
 
 /**
@@ -30,6 +36,17 @@ import org.gradle.plugins.ide.internal.IdePlugin;
 public class VisualStudioPlugin extends IdePlugin {
     private static final String LIFECYCLE_TASK_NAME = "visualStudio";
 
+    private final Instantiator instantiator;
+    private final ProjectModelResolver projectModelResolver;
+    private final FileResolver fileResolver;
+
+    @Inject
+    public VisualStudioPlugin(Instantiator instantiator, ProjectModelResolver projectModelResolver, FileResolver fileResolver) {
+        this.instantiator = instantiator;
+        this.projectModelResolver = projectModelResolver;
+        this.fileResolver = fileResolver;
+    }
+
     @Override
     protected String getLifecycleTaskName() {
         return LIFECYCLE_TASK_NAME;
@@ -38,7 +55,9 @@ public class VisualStudioPlugin extends IdePlugin {
     @Override
     protected void onApply(Project target) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
-        
+
+        project.getExtensions().add("visualStudio", new DefaultVisualStudioExtension(target.getPath(), instantiator, projectModelResolver, fileResolver));
+
         project.getPluginManager().withPlugin("org.gradle.component-model-base", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {

@@ -18,14 +18,12 @@ package org.gradle.ide.visualstudio.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
-import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
 import org.gradle.ide.visualstudio.internal.NativeSpecVisualStudioTargetBinary;
 import org.gradle.ide.visualstudio.internal.VisualStudioExtensionInternal;
@@ -33,8 +31,6 @@ import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration;
 import org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
@@ -43,12 +39,8 @@ import org.gradle.platform.base.BinaryContainer;
 
 class VisualStudioPluginRules extends RuleSource {
     @Model
-    public static VisualStudioExtensionInternal visualStudio(ServiceRegistry serviceRegistry, ProjectIdentifier projectIdentifier) {
-        Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-        ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
-        FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
-
-        return instantiator.newInstance(DefaultVisualStudioExtension.class, projectIdentifier, instantiator, projectModelResolver, fileResolver);
+    public static VisualStudioExtensionInternal visualStudio(ExtensionContainer extensionContainer) {
+        return extensionContainer.getByType(VisualStudioExtensionInternal.class);
     }
 
     @Mutate

@@ -26,7 +26,7 @@ class VisualStudioProjectRegistryTest extends Specification {
     def fileResolver = Mock(FileResolver)
     def projectIdentifier = Stub(ProjectIdentifier)
     def visualStudioProjectMapper = Mock(VisualStudioProjectMapper)
-    def registry = new VisualStudioProjectRegistry(projectIdentifier, fileResolver, visualStudioProjectMapper, DirectInstantiator.INSTANCE)
+    def registry = new VisualStudioProjectRegistry(":", fileResolver, visualStudioProjectMapper, DirectInstantiator.INSTANCE)
 
     def "creates a matching visual studio project configuration for target binary"() {
         def executableBinary = targetBinary()

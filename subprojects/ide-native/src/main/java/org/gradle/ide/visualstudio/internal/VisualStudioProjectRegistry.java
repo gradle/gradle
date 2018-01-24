@@ -18,19 +18,18 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
-    private final ProjectIdentifier projectIdentifier;
+    private final String projectPath;
     private final FileResolver fileResolver;
     private final VisualStudioProjectMapper projectMapper;
 
-    public VisualStudioProjectRegistry(ProjectIdentifier projectIdentifier, FileResolver fileResolver, VisualStudioProjectMapper projectMapper, Instantiator instantiator) {
+    public VisualStudioProjectRegistry(String projectPath, FileResolver fileResolver, VisualStudioProjectMapper projectMapper, Instantiator instantiator) {
         super(DefaultVisualStudioProject.class, instantiator);
-        this.projectIdentifier = projectIdentifier;
+        this.projectPath = projectPath;
         this.fileResolver = fileResolver;
         this.projectMapper = projectMapper;
     }
@@ -55,7 +54,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     private DefaultVisualStudioProject getOrCreateProject(String projectPath, String vsProjectName, String componentName) {
         DefaultVisualStudioProject vsProject = findByName(vsProjectName);
         if (vsProject == null) {
-            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), vsProjectName), projectPath, componentName, fileResolver, getInstantiator());
+            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, new DefaultComponentSpecIdentifier(this.projectPath, vsProjectName), projectPath, componentName, fileResolver, getInstantiator());
             add(vsProject);
         }
         return vsProject;
