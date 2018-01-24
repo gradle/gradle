@@ -27,7 +27,7 @@ class SelfResolvingRequestPluginResolverTest extends Specification {
     def result = Mock(PluginResolutionResult)
 
     def "resolves self-resolving requests"() {
-        def pluginRequest = new SelfResolvingPluginRequest("id", "version", Mock(ClassLoaderScope))
+        def pluginRequest = new SelfResolvingPluginRequest("id", Mock(ClassLoaderScope))
         when:
         resolver.resolve(pluginRequest, result)
         then:
