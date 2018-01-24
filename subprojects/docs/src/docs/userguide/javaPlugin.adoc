@@ -178,6 +178,9 @@ _Compile time only dependencies, not used at runtime._
 `compileClasspath` extends `compile, compileOnly`::
 _Compile classpath, used when compiling source._ Used by task `compileJava`.
 
+`annotationProcessor`::
+_Annotation processors used during compilation._
+
 `runtime` extends `compile`::
 _Runtime dependencies._
 
@@ -221,6 +224,9 @@ _Compile time only dependencies for the given source set, not used at runtime._
 
 `__sourceSet__CompileClasspath` extends `compile__SourceSet__Java`::
 _Compile classpath, used when compiling source._ Used by `__sourceSet__Compile`, `__sourceSet__CompileOnly`.
+
+`__sourceSet__AnnotationProcessor`::
+_Annotation processors used during compilation of this source set._
 
 `__sourceSet__Runtime`::
 _Runtime dependencies for the given source set._ Used by `__sourceSet__Compile`.
@@ -329,10 +335,13 @@ _The directories to generate the classes of this source set into._ Default value
 _The directory to generate the resources of this source set into._ Default value: `__buildDir__/resources/__name__`
 
 `api:org.gradle.api.file.FileCollection[] compileClasspath`::
-_The classpath to use when compiling the source files of this source set._ Default value: `compile__SourceSet__` configuration.
+_The classpath to use when compiling the source files of this source set._ Default value: `__sourceSet__CompileClasspath` configuration.
+
+`api:org.gradle.api.file.FileCollection[] annotationProcessorPath`::
+_The processor path to use when compiling the source files of this source set._ Default value: `__sourceSet__AnnotationProcessor` configuration.
 
 `api:org.gradle.api.file.FileCollection[] runtimeClasspath`::
-_The classpath to use when executing the classes of this source set._ Default value: `output` + `runtime__SourceSet__` configuration.
+_The classpath to use when executing the classes of this source set._ Default value: `output` + `__sourceSet__RuntimeClasspath` configuration.
 
 `(read-only) api:org.gradle.api.file.SourceDirectorySet[] java`::
 _The Java source files of this source set. Contains only `.java` files found in the Java source directories, and excludes all other files._ Default value: Not null
@@ -513,7 +522,7 @@ Some of the types of changes that do not affect the public API and are ignored:
 * Renaming a parameter
 
 
-Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter. To better separate these concerns, it's recommended to declare annotation processors separately: the api:org.gradle.api.tasks.compile.CompileOptions[] for the api:org.gradle.api.tasks.compile.JavaCompile[] task type define a `annotationProcessorPath` property that can be used to declare annotation processors. It's recommended to use a distinct configuration for annotation processors:
+Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter. Annotation processors should be declared on the annotation processor path instead. Gradle 5.0 will ignore processors on the compile classpath.
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="annotationProcessing" dir="java/apt" title="Declaring annotation processors">
                 <sourcefile file="build.gradle" snippet="annotation-processing"/>
