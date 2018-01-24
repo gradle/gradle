@@ -14,7 +14,7 @@ base {
 dependencies {
     compileOnly(gradleKotlinDsl())
 
-    implementation(futureKotlin("stdlib-jre8"))
+    implementation(futureKotlin("stdlib-jdk8"))
     implementation(futureKotlin("gradle-plugin"))
     implementation(futureKotlin("sam-with-receiver"))
 

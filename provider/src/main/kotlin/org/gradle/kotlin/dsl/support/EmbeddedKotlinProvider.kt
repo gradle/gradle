@@ -58,15 +58,15 @@ val embeddedModules: List<EmbeddedModule> by lazy {
     // TODO:pm could be generated at build time
     val annotations = EmbeddedModule("org.jetbrains", "annotations", "13.0")
     val stdlib = embeddedKotlin("stdlib", listOf(annotations))
-    val stdlibJre7 = embeddedKotlin("stdlib-jre7", listOf(stdlib))
-    val stdlibJre8 = embeddedKotlin("stdlib-jre8", listOf(stdlibJre7))
+    val stdlibJdk7 = embeddedKotlin("stdlib-jdk7", listOf(stdlib))
+    val stdlibJdk8 = embeddedKotlin("stdlib-jdk8", listOf(stdlibJdk7))
     val reflect = embeddedKotlin("reflect", listOf(stdlib))
     val compilerEmbeddable = embeddedKotlin("compiler-embeddable")
     val scriptRuntime = embeddedKotlin("script-runtime")
     val samWithReceiverCompilerPlugin = embeddedKotlin("sam-with-receiver-compiler-plugin")
     listOf(
         annotations,
-        stdlib, stdlibJre7, stdlibJre8,
+        stdlib, stdlibJdk7, stdlibJdk8,
         reflect,
         compilerEmbeddable,
         scriptRuntime,

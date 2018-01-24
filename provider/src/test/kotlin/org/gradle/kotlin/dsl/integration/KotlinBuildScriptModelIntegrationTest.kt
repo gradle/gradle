@@ -265,7 +265,7 @@ class KotlinBuildScriptModelIntegrationTest : AbstractIntegrationTest() {
         assertSourcePathGiven(
             rootProjectScript,
             subProjectScript,
-            hasItems("kotlin-stdlib-jre8-$embeddedKotlinVersion-sources.jar"))
+            hasItems("kotlin-stdlib-jdk8-$embeddedKotlinVersion-sources.jar"))
     }
 
     private

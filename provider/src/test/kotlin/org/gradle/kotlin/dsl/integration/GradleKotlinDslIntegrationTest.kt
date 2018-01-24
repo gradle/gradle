@@ -410,13 +410,13 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `build script can use jre8 extensions`() {
+    fun `build script can use jdk8 extensions`() {
 
         assumeJavaLessThan9()
 
         withBuildScript("""
 
-            // without kotlin-stdlib-jre8 we get:
+            // without kotlin-stdlib-jdk8 we get:
             // > Retrieving groups by name is not supported on this platform.
 
             val regex = Regex("(?<bla>.*)")

@@ -50,7 +50,7 @@ tasks.withType<KotlinCompile> {
 dependencies {
     compile(gradleApi())
     compile(kotlin("gradle-plugin"))
-    compile(kotlin("stdlib-jre8"))
+    compile(kotlin("stdlib-jdk8"))
     compile(kotlin("reflect"))
     compile("org.ow2.asm:asm-all:5.1")
     testCompile("junit:junit:4.12")
