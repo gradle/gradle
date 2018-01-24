@@ -20,28 +20,23 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.util.ChangeListener;
-import org.gradle.util.DiffUtil;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
+@NonNullApi
 public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
     protected final TaskExecution previous;
     protected final TaskExecution current;
-    private final TaskInternal task;
     private final String title;
 
-    protected AbstractNamedFileSnapshotTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, String title) {
+    protected AbstractNamedFileSnapshotTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, String title) {
         this.previous = previous;
         this.current = current;
-        this.task = task;
         this.title = title;
     }
 
@@ -60,33 +55,15 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
         if (getPrevious() == null) {
             return Iterators.<TaskStateChange>singletonIterator(new DescriptiveChange(title + " file history is not available."));
         }
-        final List<TaskStateChange> propertyChanges = Lists.newLinkedList();
-        DiffUtil.diff(getCurrent().keySet(), getPrevious().keySet(), new ChangeListener<String>() {
-            @Override
-            public void added(String element) {
-                propertyChanges.add(new DescriptiveChange("%s property '%s' has been added for %s", title, element, task));
-            }
-
-            @Override
-            public void removed(String element) {
-                propertyChanges.add(new DescriptiveChange("%s property '%s' has been removed for %s", title, element, task));
-            }
-
-            @Override
-            public void changed(String element) {
-                // Won't happen
-                throw new AssertionError();
-            }
-        });
-        if (!propertyChanges.isEmpty()) {
-            return propertyChanges.iterator();
-        }
         return Iterators.concat(Iterables.transform(getCurrent().entrySet(), new Function<Map.Entry<String, FileCollectionSnapshot>, Iterator<TaskStateChange>>() {
             @Override
             public Iterator<TaskStateChange> apply(Map.Entry<String, FileCollectionSnapshot> entry) {
                 String propertyName = entry.getKey();
                 FileCollectionSnapshot currentSnapshot = entry.getValue();
                 FileCollectionSnapshot previousSnapshot = getPrevious().get(propertyName);
+                if (previousSnapshot == null) {
+                    return Iterators.emptyIterator();
+                }
                 String propertyTitle = title + " property '" + propertyName + "'";
                 return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle, includeAdded);
             }

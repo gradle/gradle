@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,22 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
 import javax.annotation.Nullable;
-import java.util.Iterator;
+import java.util.Map;
 
 @NonNullApi
-public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
-    public InputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current) {
-        super(previous, current, "Input");
+public class InputPropertyNameTaskStateChanges extends AbstractPropertyNameTaskStateChanges {
+
+    public InputPropertyNameTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, Task task) {
+        super(previous, current, "Input", task);
     }
 
     @Override
-    protected ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution) {
-        return execution.getInputFilesSnapshot();
-    }
-
-    @Override
-    public Iterator<TaskStateChange> iterator() {
-        return getFileChanges(true);
+    protected Map<String, ?> getProperties(TaskExecution execution) {
+        return execution.getInputProperties();
     }
 }

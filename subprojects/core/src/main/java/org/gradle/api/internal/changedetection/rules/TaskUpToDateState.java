@@ -30,20 +30,24 @@ public class TaskUpToDateState {
     private final OutputFilesTaskStateChanges outputFileChanges;
     private final TaskStateChanges allTaskChanges;
     private final TaskStateChanges rebuildChanges;
+    private final OutputFilePropertyNameTaskChanges outputFilePropertyNameChanges;
 
     public TaskUpToDateState(TaskExecution lastExecution, TaskExecution thisExecution, TaskInternal task) {
         TaskStateChanges noHistoryState = new NoHistoryTaskStateChanges(lastExecution);
         TaskStateChanges previousSuccessState = new PreviousSuccessTaskStateChanges(lastExecution);
         TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task);
-        TaskStateChanges inputPropertiesState = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task);
+        TaskStateChanges inputPropertyNameChanges = new InputPropertyNameTaskStateChanges(lastExecution, thisExecution, task);
+        TaskStateChanges inputPropertyValueChanges = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task);
 
         // Capture outputs state
-        OutputFilesTaskStateChanges uncachedOutputChanges = new OutputFilesTaskStateChanges(lastExecution, thisExecution, task);
+        this.outputFilePropertyNameChanges = new OutputFilePropertyNameTaskChanges(lastExecution, thisExecution, task);
+        OutputFilesTaskStateChanges uncachedOutputChanges = new OutputFilesTaskStateChanges(lastExecution, thisExecution);
         TaskStateChanges outputFileChanges = caching(uncachedOutputChanges);
         this.outputFileChanges = uncachedOutputChanges;
 
-        // Capture inputs state
-        InputFilesTaskStateChanges directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task);
+        // Capture input files state
+        InputFilePropertyNameTaskStateChanges inputFilePropertyNameChanges = new InputFilePropertyNameTaskStateChanges(lastExecution, thisExecution, task);
+        InputFilesTaskStateChanges directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution);
         TaskStateChanges inputFileChanges = caching(directInputFileChanges);
         this.inputFileChanges = new ErrorHandlingTaskStateChanges(task, inputFileChanges);
 
@@ -51,8 +55,8 @@ public class TaskUpToDateState {
         DiscoveredInputsTaskStateChanges discoveredChanges = new DiscoveredInputsTaskStateChanges(lastExecution, thisExecution);
         TaskStateChanges discoveredInputFilesChanges = caching(discoveredChanges);
 
-        this.allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, previousSuccessState, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges, inputFileChanges, discoveredInputFilesChanges));
-        this.rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(1, previousSuccessState, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges));
+        this.allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, previousSuccessState, noHistoryState, taskTypeState, inputPropertyNameChanges, inputPropertyValueChanges, outputFilePropertyNameChanges, outputFileChanges, inputFilePropertyNameChanges, inputFileChanges, discoveredInputFilesChanges));
+        this.rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(1, previousSuccessState, noHistoryState, taskTypeState, inputPropertyNameChanges, inputPropertyValueChanges, inputFilePropertyNameChanges, outputFilePropertyNameChanges, outputFileChanges));
     }
 
     private static TaskStateChanges caching(TaskStateChanges wrapped) {
@@ -70,7 +74,7 @@ public class TaskUpToDateState {
      * Returns if any output files have been changed, added or removed.
      */
     public boolean hasAnyOutputFileChanges() {
-        return outputFileChanges.hasAnyChanges();
+        return outputFilePropertyNameChanges.iterator().hasNext() || outputFileChanges.hasAnyChanges();
     }
 
     /**

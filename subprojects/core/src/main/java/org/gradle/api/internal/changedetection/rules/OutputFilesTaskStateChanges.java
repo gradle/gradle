@@ -17,17 +17,18 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
 
+@NonNullApi
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
 
-    public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, TaskInternal task) {
-        super(previous, current, task, "Output");
+    public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current) {
+        super(previous, current, "Output");
     }
 
     @Override
