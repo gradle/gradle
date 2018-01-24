@@ -57,6 +57,8 @@ public interface VisualStudioProject extends BuildableComponentSpec {
 
     /**
      * Returns the name of the component associated with this project
+     *
+     * @since 4.6
      */
     String getComponentName();
 }

@@ -53,6 +53,8 @@ public interface VisualStudioSolution extends BuildableComponentSpec {
 
     /**
      * The name of the component associated with this solution.
+     *
+     * @since 4.6
      */
     String getComponentName();
 
