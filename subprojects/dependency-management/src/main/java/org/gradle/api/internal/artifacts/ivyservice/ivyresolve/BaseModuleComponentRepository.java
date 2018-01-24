@@ -61,7 +61,7 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
 
     @Override
     public Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache() {
-        throw new UnsupportedOperationException();
+        return delegate.getArtifactCache();
     }
 
     public ComponentMetadataSupplier createMetadataSupplier() {
