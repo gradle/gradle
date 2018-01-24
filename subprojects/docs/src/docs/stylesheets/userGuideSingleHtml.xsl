@@ -33,7 +33,7 @@
     <xsl:param name="html.stylesheet">DUMMY</xsl:param>
     <xsl:template name="output.html.stylesheets">
         <meta name="robots" content="noindex"/>
-        <link href="https://fonts.googleapis.com/css?family=Lato:400,400i" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700" rel="stylesheet"/>
         <link rel="preconnect" href="//assets.gradle.com" crossorigin="crossorigin"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
         <link href="base.css" rel="stylesheet" type="text/css"/>

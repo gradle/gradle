@@ -6,9 +6,8 @@
     font-family: Lato;
     font-weight: 500;
     font-style: normal;
-    text-rendering: optimizeLegibility;
     src: url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff2") format("woff2"),
-    url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff") format("woff");
+         url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff") format("woff");
 }
 
 * {
@@ -81,9 +80,8 @@ th {
 /* typography */
 h1, h2, h3, h4, h5, h6 {
     margin-top: 0;
-    margin-bottom: .5rem;
+    margin-bottom: 1rem;
     font-weight: 500;
-    line-height: 1.2;
     color: #02303A;
     text-rendering: optimizeLegibility;
 }
@@ -93,12 +91,12 @@ h1 {
 }
 
 h2 {
-    margin-top: 1.5rem;
+    margin-top: 2.5rem;
     font-size: 1.5rem;
 }
 
 h3 {
-    margin-top: 1rem;
+    margin-top: 1.5rem;
     font-size: 1.125rem;
 }
 
@@ -111,28 +109,19 @@ p {
     font-size: 1rem;
     line-height: 1.6;
     margin-bottom: 1.25rem;
-    text-rendering: optimizeLegibility;
-}
-
-@media (min-width: 1200px) {
-    p {
-        font-size: 1.0625rem;
-    }
-}
-
-@media (min-width: 1400px) {
-    p {
-        font-size: 1.125rem;
-    }
 }
 
 dt {
-    font-weight: bold;
+    font-weight: 700;
 }
 
 dd {
-    margin-bottom: .5rem;
+    margin-bottom: 0.5rem;
     margin-left: 1.5em;
+}
+
+dd p {
+    margin-top: 0;
 }
 
 hr {
@@ -183,7 +172,7 @@ abbr[title], acronym[title] {
 }
 
 b, strong, dfn {
-    font-weight: 500;
+    font-weight: 700;
 }
 
 em, dfn {
@@ -265,7 +254,10 @@ blockquote p:last-child {
     .sidebar {
         display: none;
     }
-    .container, .appendix, .book, .chapter {
+    .container,
+    .main-content > .appendix,
+    .main-content > .book,
+    .main-content > .chapter {
         margin-top: 0;
         margin-bottom: 0;
     }
@@ -278,6 +270,12 @@ code, pre {
     font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
     font-size: 1em;
     font-style: normal;
+}
+
+.example-contents > p > code {
+    line-height: 1.0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 *:not(pre) > code {
@@ -535,10 +533,6 @@ h3.releaseinfo {
     color: #1DA2BD;
 }
 
-.site-header__navigation-item .site-header__navigation-link.active {
-    font-weight: 500;
-}
-
 /* Navigation submenu styles */
 .site-header__navigation-submenu-section {
     position: relative;
@@ -698,7 +692,6 @@ h3.releaseinfo {
     display: block;
     font-size: 1rem;
     line-height: 1.0;
-    opacity: 0.7;
 }
 
 .docs-navigation a code {
@@ -710,7 +703,6 @@ h3.releaseinfo {
 
 .docs-navigation a.active {
     color: #1BA8C4;
-    opacity: 1.0;
 }
 
 .docs-navigation ul {
@@ -749,12 +741,9 @@ h3.releaseinfo {
 
 .docs-navigation h3 {
     font-size: 1rem;
+    font-weight: 700;
     line-height: 1.5;
-    margin: 0;
-}
-
-.docs-navigation h3 {
-    margin-top: 1.5em;
+    margin: 1.5em 0 0;
 }
 
 @media screen and (min-width: 45rem) {
@@ -776,7 +765,9 @@ h3.releaseinfo {
         width: 13.75rem;
     }
 
-    .appendix, .chapter, .book {
+    .main-content > .appendix,
+    .main-content > .book,
+    .main-content > .chapter {
         flex: 0 0 45rem;
         margin: 0 20px;
     }
@@ -805,7 +796,7 @@ h3.releaseinfo {
 }
 
 /* Fixed intra-chapter navigation for desktops */
-@media screen and (min-width: 75rem) {
+@media screen and (min-width: 75rem) and (min-height: 48rem) {
     .appendix .toc,
     .book .home .toc,
     .chapter .toc {
@@ -824,7 +815,7 @@ h3.releaseinfo {
     .chapter .toc:before {
         content: "Contents";
         display: block;
-        font-weight: 500;
+        font-weight: 700;
         margin: 0.4rem 0 0.625rem 0;
     }
 
@@ -838,14 +829,12 @@ h3.releaseinfo {
     .book .home .toc a,
     .chapter .toc a {
         color: #02303A;
-        opacity: 0.7;
     }
 
     .appendix .toc a.active,
     .book .home .toc a.active,
     .chapter .toc a.active {
         color: #1BA8C4;
-        opacity: 1.0;
     }
 
     /*
@@ -872,29 +861,19 @@ h3.releaseinfo {
     }
 }
 
-@media screen and (min-width: 84.375rem) {
+@media screen and (min-width: 84.375rem) and (min-height: 48rem) {
     .appendix .toc,
     .book .home .toc,
     .chapter .toc {
         left: calc(50% + 26.25rem);
     }
-
-    .appendix, .book, .chapter {
-        flex-basis: 50rem;
-        max-width: 50rem;
-    }
 }
 
-@media screen and (min-width: 93.75rem) {
+@media screen and (min-width: 93.75rem) and (min-height: 48rem) {
     .appendix .toc,
     .book .home .toc,
     .chapter .toc {
         left: calc(50% + 31.25rem);
-    }
-
-    .appendix, .book, .chapter {
-        flex-basis: 60rem;
-        max-width: 60rem;
     }
 }
 
@@ -961,7 +940,6 @@ h3.releaseinfo {
 .site-footer__link-group {
     flex: 1 1 auto;
     flex-basis: 175px;
-    margin-bottom: 1rem;
 }
 
 .site-footer__link-group header {
@@ -1086,9 +1064,17 @@ h3.releaseinfo {
 }
 
 @media all and (max-width: 29.99rem) {
+    .site-footer__navigation {
+        margin: 0.5rem auto;
+    }
+
     .site-footer__rights,
     .site-footer-secondary__links {
         display: none;
+    }
+
+    .site-footer__link-group {
+        margin-bottom: 1rem;
     }
 
     .site-footer__logo {
@@ -1102,13 +1088,34 @@ h3.releaseinfo {
     }
 }
 
-@media screen and (min-width: 87.5rem) {
+/* Avoid the footer taking up much of the screen on short displays */
+@media all and (max-height: 56.25rem) {
     .site-footer__navigation {
-        max-width: 90rem;
+        margin: 1rem auto 1rem auto;
+        padding-top: 0;
+        padding-bottom: 0;
     }
+}
 
+@media screen and (min-width: 84.375rem) {
     .ui-logos .ui-logo {
         box-shadow: 0 6px 15px 1px rgba(0, 0, 0, 0.56);
+    }
+
+    .main-content > .appendix,
+    .main-content > .book,
+    .main-content > .chapter {
+        flex-basis: 50rem;
+        max-width: 50rem;
+    }
+}
+
+@media screen and (min-width: 93.75rem) {
+    .main-content > .appendix,
+    .main-content > .book,
+    .main-content > .chapter {
+        flex-basis: 60rem;
+        max-width: 60rem;
     }
 }
 
@@ -1251,7 +1258,7 @@ h3.releaseinfo {
     font-style: italic;
     border-radius: 3px;
     display: inline-block;
-    padding: 0px 5px;
+    padding: 0 5px;
     margin-bottom: 8px;
 }
 
@@ -1260,11 +1267,11 @@ h3.releaseinfo {
 }
 
 table .caution {
-    float: left;
     font-size: 13px;
     margin-right: 6px;
     margin-top: 2px;
     margin-bottom: 0px;
+    display: inline;
     text-transform: lowercase;
 }
 
