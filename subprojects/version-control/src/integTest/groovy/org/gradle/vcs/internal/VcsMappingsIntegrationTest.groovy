@@ -209,6 +209,79 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         assertRepoCheckedOut()
     }
 
+    def 'injected plugin can apply other plugins to source dependency build'() {
+        singleProjectBuild("buildSrc") {
+            file("src/main/groovy/MyProjectPlugin.groovy") << """
+                import org.gradle.api.*
+                
+                class MyProjectPlugin implements Plugin<Project> {
+                    void apply(Project project) {
+                        project.apply plugin: 'java'
+                        project.group = 'org.test'
+                        project.version = '1.0'
+                    }
+                }
+            """
+            file("src/main/resources/META-INF/gradle-plugins/com.example.MyPlugin.properties") << """
+                implementation-class=MyPlugin
+            """
+            file("src/main/groovy/MyPlugin.groovy") << """
+                import org.gradle.api.*
+                import org.gradle.api.initialization.*
+                
+                class MyPlugin implements Plugin<Settings> {
+                    void apply(Settings settings) {
+                        settings.gradle.allprojects {
+                            apply plugin: MyProjectPlugin
+                        }
+                    }
+                }
+            """
+            file("src/main/resources/META-INF/gradle-plugins/com.example.MyPlugin.properties") << """
+                implementation-class=MyPlugin
+            """
+        }
+
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from(DirectoryRepositorySpec) {
+                            sourceDir = file("dep")
+                            plugins {
+                                id "com.example.MyPlugin"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds('assemble')
+        assertRepoCheckedOut()
+    }
+
+    def 'produces reasonable message when injected plugin does not exist'() {
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from(DirectoryRepositorySpec) {
+                            sourceDir = file("dep")
+                            plugins {
+                                id "com.example.DoesNotExist"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        fails('assemble')
+        assertRepoCheckedOut()
+        result.error.contains("Plugin with id 'com.example.DoesNotExist' not found.")
+    }
+
     def 'can build from sub-directory of repository'() {
         file('repoRoot').mkdir()
         file('dep').renameTo(file('repoRoot/dep'))
