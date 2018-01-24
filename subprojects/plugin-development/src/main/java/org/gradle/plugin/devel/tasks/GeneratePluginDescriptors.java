@@ -16,23 +16,19 @@
 
 package org.gradle.plugin.devel.tasks;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.PropertiesUtils;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.plugin.devel.PluginDeclaration;
+import org.gradle.util.GUtil;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Properties;
 
@@ -54,26 +50,13 @@ public class GeneratePluginDescriptors extends ConventionTask {
             File descriptorFile = new File(getOutputDirectory(), declaration.getId() + ".properties");
             Properties properties = new Properties();
             properties.setProperty("implementation-class", declaration.getImplementationClass());
-            writePropertiesTo(properties, descriptorFile);
+            GUtil.savePropertiesNoDateComment(properties, descriptorFile);
         }
     }
 
     private void clearOutputDirectory() {
         try {
             FileUtils.cleanDirectory(getOutputDirectory());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private void writePropertiesTo(Properties properties, File descriptorFile) {
-        try {
-            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(descriptorFile));
-            try {
-                PropertiesUtils.store(properties, outputStream, null, Charsets.ISO_8859_1, "\n");
-            } finally {
-                outputStream.close();
-            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

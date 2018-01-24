@@ -22,8 +22,8 @@ import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.PropertiesUtils;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.util.PropertiesUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -76,7 +76,7 @@ public class WriteProperties extends DefaultTask {
                 propertiesBuilder.put(e.getKey(), e.getValue().call());
             }
         } catch (Exception e) {
-            UncheckedException.throwAsUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         return propertiesBuilder.build();
     }

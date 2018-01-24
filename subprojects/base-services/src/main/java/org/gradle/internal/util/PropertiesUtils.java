@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal.util;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
