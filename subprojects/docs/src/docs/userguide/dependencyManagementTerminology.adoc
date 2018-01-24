@@ -6,7 +6,7 @@ Dependency management comes with a wealth of terminology. Here you can find the 
 [[sub:terminology_configuration]]
 === Configuration
 
-A configuration is a named set of <<sub:terminology_dependency,dependencies>> grouped together for a specific goal: For example the implementation configuration represents the set of dependencies required to compile a project. Configurations provide access to the underlying, resolved <<sub:terminology_module,modules>> and their artifacts. For more information, see <<sub:scope_of_dependency_configurations>>.
+A configuration is a named set of <<sub:terminology_dependency,dependencies>> grouped together for a specific goal: For example the `implementation` configuration represents the set of dependencies required to compile a project. Configurations provide access to the underlying, resolved <<sub:terminology_module,modules>> and their artifacts. For more information, see <<sub:scope_of_dependency_configurations>>.
 
 [NOTE]
 ====
@@ -36,7 +36,7 @@ A module version represents a distinct set of changes of a released <<sub:termin
 [[sub:terminology_repository]]
 === Repository
 
-A repository hosts a set of <<sub:terminology_module,modules>> each of which may provide one or many releases indicated by a <<sub:terminology_module_version,module version>>. The repository can be based on a binary repository product (e.g. Artifactory or Nexus) or a directory structure in the filesystem. For more information, see <<declaring_repositories>>.
+A repository hosts a set of <<sub:terminology_module,modules>>, each of which may provide one or many releases indicated by a <<sub:terminology_module_version,module version>>. The repository can be based on a binary repository product (e.g. Artifactory or Nexus) or a directory structure in the filesystem. For more information, see <<declaring_repositories>>.
 
 [[sub:resolution_rule]]
 === Resolution rule
