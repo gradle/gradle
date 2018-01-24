@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.cached.ivy;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
@@ -35,11 +36,13 @@ import java.io.File;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact> implements CachedArtifactIndex {
     private static final ArtifactAtRepositoryKeySerializer KEY_SERIALIZER = keySerializer();
     private static final CachedArtifactSerializer VALUE_SERIALIZER = new CachedArtifactSerializer();
     private final BuildCommencedTimeProvider timeProvider;
+    private final Map<ArtifactAtRepositoryKey, CachedArtifact> inMemoryCache = Maps.newConcurrentMap();
 
     public ArtifactAtRepositoryCachedArtifactIndex(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         super(persistentCacheFile, KEY_SERIALIZER, VALUE_SERIALIZER, cacheLockingManager);
@@ -53,14 +56,14 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
         return new ArtifactAtRepositoryKeySerializer(serializerRegistry.build(ComponentArtifactIdentifier.class));
     }
 
-    private DefaultCachedArtifact createEntry(File artifactFile, BigInteger moduleDescriptorHash) {
-        return new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash);
-    }
-
     public void store(final ArtifactAtRepositoryKey key, final File artifactFile, BigInteger moduleDescriptorHash) {
         assertArtifactFileNotNull(artifactFile);
         assertKeyNotNull(key);
         storeInternal(key, createEntry(artifactFile, moduleDescriptorHash));
+    }
+
+    private DefaultCachedArtifact createEntry(File artifactFile, BigInteger moduleDescriptorHash) {
+        return new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash);
     }
 
     public void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, BigInteger descriptorHash) {
@@ -69,6 +72,27 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
 
     private CachedArtifact createMissingEntry(List<String> attemptedLocations, BigInteger descriptorHash) {
         return new DefaultCachedArtifact(attemptedLocations, timeProvider.getCurrentTime(), descriptorHash);
+    }
+
+    @Override
+    protected void storeInternal(ArtifactAtRepositoryKey key, CachedArtifact entry) {
+        inMemoryCache.put(key, entry);
+        super.storeInternal(key, entry);
+    }
+
+    @Override
+    public CachedArtifact lookup(ArtifactAtRepositoryKey key) {
+        CachedArtifact cachedArtifact = inMemoryCache.get(key);
+        if (cachedArtifact == null) {
+            cachedArtifact = super.lookup(key);
+        }
+        return cachedArtifact;
+    }
+
+    @Override
+    public void clear(ArtifactAtRepositoryKey key) {
+        super.clear(key);
+        inMemoryCache.remove(key);
     }
 
     private static class ArtifactAtRepositoryKeySerializer implements Serializer<ArtifactAtRepositoryKey> {

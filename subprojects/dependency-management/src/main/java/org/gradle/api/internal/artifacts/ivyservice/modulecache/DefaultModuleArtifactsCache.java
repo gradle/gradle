@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
@@ -34,11 +35,14 @@ import org.gradle.util.BuildCommencedTimeProvider;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
     private final BuildCommencedTimeProvider timeProvider;
     private final CacheLockingManager cacheLockingManager;
+
+    private final Map<ModuleArtifactsKey, ModuleArtifactsCacheEntry> inMemoryCache = Maps.newConcurrentMap();
     private PersistentIndexedCache<ModuleArtifactsKey, ModuleArtifactsCacheEntry> cache;
 
     public DefaultModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
@@ -60,13 +64,17 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
     public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, BigInteger descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
         ModuleArtifactsKey key = new ModuleArtifactsKey(repository.getId(), componentId, context);
         ModuleArtifactsCacheEntry entry = new ModuleArtifactsCacheEntry(ImmutableSet.copyOf(artifacts), timeProvider.getCurrentTime(), descriptorHash);
+        inMemoryCache.put(key, entry);
         getCache().put(key, entry);
         return createCacheArtifacts(entry);
     }
 
     public CachedArtifacts getCachedArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context) {
         ModuleArtifactsKey key = new ModuleArtifactsKey(repository.getId(), componentId, context);
-        ModuleArtifactsCacheEntry entry = getCache().get(key);
+        ModuleArtifactsCacheEntry entry = inMemoryCache.get(key);
+        if (entry == null) {
+            entry = getCache().get(key);
+        }
         if (entry == null) {
             return null;
         }

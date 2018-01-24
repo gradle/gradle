@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
@@ -37,6 +38,8 @@ import org.gradle.util.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleMetaDataCache.class);
 
@@ -45,6 +48,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
 
     private final ModuleMetadataStore moduleMetadataStore;
 
+    private Map<ModuleComponentAtRepositoryKey, CachedMetaData> inMemoryCache =  Maps.newConcurrentMap();;
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
 
     public DefaultModuleMetaDataCache(BuildCommencedTimeProvider timeProvider,
@@ -72,6 +76,11 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
 
     public CachedMetaData getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier componentId) {
         final ModuleComponentAtRepositoryKey key = createKey(repository, componentId);
+        CachedMetaData inMemory = inMemoryCache.get(key);
+        if (inMemory != null) {
+            return inMemory;
+        }
+
         final PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache = getCache();
         return cacheLockingManager.useCache(new Factory<CachedMetaData>() {
             @Override
@@ -96,9 +105,12 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
 
     public CachedMetaData cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
         LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", id, false);
+        ModuleComponentAtRepositoryKey key = createKey(repository, id);
         ModuleMetadataCacheEntry entry = ModuleMetadataCacheEntry.forMissingModule(timeProvider.getCurrentTime());
-        getCache().put(createKey(repository, id), entry);
-        return new DefaultCachedMetaData(entry, null, timeProvider);
+        getCache().put(key, entry);
+        DefaultCachedMetaData cachedMetaData = new DefaultCachedMetaData(entry, null, timeProvider);
+        inMemoryCache.put(key, cachedMetaData);
+        return cachedMetaData;
     }
 
     public CachedMetaData cacheMetaData(ModuleComponentRepository repository, final ModuleComponentResolveMetadata metadata) {
@@ -110,7 +122,9 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
                 moduleMetadataStore.putModuleDescriptor(key, metadata);
                 ModuleMetadataCacheEntry entry = createEntry(metadata);
                 getCache().put(key, entry);
-                return new DefaultCachedMetaData(entry, metadata, timeProvider);
+                DefaultCachedMetaData cachedMetaData = new DefaultCachedMetaData(entry, metadata, timeProvider);
+                inMemoryCache.put(key, cachedMetaData);
+                return cachedMetaData;
             }
         });
     }

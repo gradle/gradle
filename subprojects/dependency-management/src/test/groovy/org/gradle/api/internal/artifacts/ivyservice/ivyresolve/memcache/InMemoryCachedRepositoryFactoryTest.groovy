@@ -31,7 +31,7 @@ class InMemoryCachedRepositoryFactoryTest extends Specification {
         def repo = Mock(ModuleComponentRepository) { getId() >> "mavenCentral" }
 
         when:
-        def out = cache.cached(repo)
+        def out = cache.cacheLocalRepository(repo)
 
         then:
         out.is(repo)
@@ -43,9 +43,9 @@ class InMemoryCachedRepositoryFactoryTest extends Specification {
         def repo3 = Mock(ModuleComponentRepository) { getId() >> "mavenCentral" }
 
         when:
-        ModuleComponentRepository c1 = cache.cached(repo1)
-        ModuleComponentRepository c2 = cache.cached(repo2)
-        ModuleComponentRepository c3 = cache.cached(repo3)
+        ModuleComponentRepository c1 = cache.cacheLocalRepository(repo1)
+        ModuleComponentRepository c2 = cache.cacheLocalRepository(repo2)
+        ModuleComponentRepository c3 = cache.cacheLocalRepository(repo3)
 
         then:
         c1.delegate == repo1
@@ -65,7 +65,7 @@ class InMemoryCachedRepositoryFactoryTest extends Specification {
 
     def "cleans cache on close"() {
         when:
-        cache.cached(Mock(ModuleComponentRepository) { getId() >> "x"} )
+        cache.cacheLocalRepository(Mock(ModuleComponentRepository) { getId() >> "x"} )
         cache.stop()
 
         then:
