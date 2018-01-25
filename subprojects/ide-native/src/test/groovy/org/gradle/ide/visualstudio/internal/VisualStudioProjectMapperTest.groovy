@@ -70,10 +70,10 @@ class VisualStudioProjectMapperTest extends Specification {
 
     private VisualStudioTargetBinary targetBinary(Map<String, ?> values) {
         VisualStudioTargetBinary targetBinary = Mock(VisualStudioTargetBinary)
-        targetBinary.projectPath >> values.getOrDefault("projectPath", ":")
-        targetBinary.componentName >> values.getOrDefault("componentName", "exeName")
-        targetBinary.variantDimensions >> values.getOrDefault("variantDimensions", ['buildTypeOne'])
-        targetBinary.projectType >> values.getOrDefault("projectType", EXE)
+        targetBinary.projectPath >> values.get("projectPath", ":")
+        targetBinary.componentName >> values.get("componentName", "exeName")
+        targetBinary.variantDimensions >> values.get("variantDimensions", ['buildTypeOne'])
+        targetBinary.projectType >> values.get("projectType", EXE)
         return targetBinary
     }
 
