@@ -16,10 +16,6 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.util.List;
-
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
@@ -29,12 +25,7 @@ import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.*;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
@@ -47,6 +38,11 @@ import org.gradle.internal.resource.transport.http.HttpProxySettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
+
+@SuppressWarnings("deprecation")
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
 
@@ -89,7 +85,7 @@ public class S3Client {
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
             amazonS3Client.setEndpoint(endpoint.get().toString());
-            clientOptionsBuilder.setPathStyleAccess(true);
+            clientOptionsBuilder.setPathStyleAccess(true).disableChunkedEncoding();
         }
         amazonS3Client.setS3ClientOptions(clientOptionsBuilder.build());
     }
