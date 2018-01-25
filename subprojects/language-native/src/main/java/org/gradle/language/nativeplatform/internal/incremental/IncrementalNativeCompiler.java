@@ -28,6 +28,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -47,6 +48,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     private static final Logger LOGGER = Logging.getLogger(IncrementalNativeCompiler.class);
     private final Compiler<T> delegateCompiler;
     private final boolean importsAreIncludes;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final TaskInternal task;
     private final FileHasher hasher;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
@@ -54,13 +56,14 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
     private final CSourceParser sourceParser = new RegexBackedCSourceParser();
 
-    public IncrementalNativeCompiler(TaskInternal task, FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public IncrementalNativeCompiler(TaskInternal task, FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, DirectoryFileTreeFactory directoryFileTreeFactory, BuildOperationExecutor buildOperationExecutor) {
         this.task = task;
         this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.delegateCompiler = delegateCompiler;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.importsAreIncludes = Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -161,6 +164,6 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     private IncrementalCompileProcessor createProcessor(PersistentStateCache<CompilationState> compileStateCache, SourceIncludesParser sourceIncludesParser, Iterable<File> includes) {
         DefaultSourceIncludesResolver dependencyParser = new DefaultSourceIncludesResolver(CollectionUtils.toList(includes));
 
-        return new IncrementalCompileProcessor(compileStateCache, dependencyParser, sourceIncludesParser, hasher);
+        return new IncrementalCompileProcessor(compileStateCache, dependencyParser, sourceIncludesParser, hasher, buildOperationExecutor);
     }
 }

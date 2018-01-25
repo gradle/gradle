@@ -18,6 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
@@ -26,15 +27,17 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
     private final FileHasher hasher;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultIncrementalCompilerBuilder(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DefaultIncrementalCompilerBuilder(FileHasher hasher, CompilationStateCacheFactory compilationStateCacheFactory, DirectoryFileTreeFactory directoryFileTreeFactory, BuildOperationExecutor buildOperationExecutor) {
         this.hasher = hasher;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain) {
-        return new IncrementalNativeCompiler<T>(task, hasher, compilationStateCacheFactory, compiler, toolchain, directoryFileTreeFactory);
+        return new IncrementalNativeCompiler<T>(task, hasher, compilationStateCacheFactory, compiler, toolchain, directoryFileTreeFactory, buildOperationExecutor);
     }
 }

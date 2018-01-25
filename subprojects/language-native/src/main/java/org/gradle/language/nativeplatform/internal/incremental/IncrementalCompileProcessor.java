@@ -20,6 +20,10 @@ import com.google.common.collect.Sets;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,23 +43,50 @@ public class IncrementalCompileProcessor {
     private final SourceIncludesParser sourceIncludesParser;
     private final SourceIncludesResolver sourceIncludesResolver;
     private final FileHasher hasher;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public IncrementalCompileProcessor(PersistentStateCache<CompilationState> previousCompileStateCache, SourceIncludesResolver sourceIncludesResolver, SourceIncludesParser sourceIncludesParser, FileHasher hasher) {
+    public IncrementalCompileProcessor(PersistentStateCache<CompilationState> previousCompileStateCache, SourceIncludesResolver sourceIncludesResolver, SourceIncludesParser sourceIncludesParser, FileHasher hasher, BuildOperationExecutor buildOperationExecutor) {
         this.previousCompileStateCache = previousCompileStateCache;
         this.sourceIncludesResolver = sourceIncludesResolver;
         this.sourceIncludesParser = sourceIncludesParser;
         this.hasher = hasher;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public IncrementalCompilation processSourceFiles(Collection<File> sourceFiles) {
-        CompilationState previousCompileState = previousCompileStateCache.get();
-        final IncrementalCompileFiles result = new IncrementalCompileFiles(previousCompileState);
+    public IncrementalCompilation processSourceFiles(final Collection<File> sourceFiles) {
+        return buildOperationExecutor.call(new CallableBuildOperation<IncrementalCompilation>() {
+            @Override
+            public IncrementalCompilation call(BuildOperationContext context) {
+                CompilationState previousCompileState = previousCompileStateCache.get();
+                final IncrementalCompileFiles result = new IncrementalCompileFiles(previousCompileState);
 
-        for (File sourceFile : sourceFiles) {
-            result.processSource(sourceFile);
-        }
+                for (File sourceFile : sourceFiles) {
+                    result.processSource(sourceFile);
+                }
 
-        return new DefaultIncrementalCompilation(result.current.snapshot(), result.getModifiedSources(), result.getRemovedSources(), result.getDiscoveredInputs());
+                return new DefaultIncrementalCompilation(result.current.snapshot(), result.getModifiedSources(), result.getRemovedSources(), result.getDiscoveredInputs());
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                ProcessSourceFilesDetails operationDetails = new ProcessSourceFilesDetails(sourceFiles.size());
+                return BuildOperationDescriptor
+                    .displayName("Processing source files")
+                    .details(operationDetails);
+            }
+
+            class ProcessSourceFilesDetails {
+                private final int sourceFileCount;
+
+                ProcessSourceFilesDetails(int sourceFileCount) {
+                    this.sourceFileCount = sourceFileCount;
+                }
+
+                public int getSourceFileCount() {
+                    return sourceFileCount;
+                }
+            }
+        });
     }
 
     private class IncrementalCompileFiles {
