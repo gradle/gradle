@@ -35,7 +35,7 @@ dependencies {
     compile libraries.slf4j_api
     compile project(':internalIntegTesting')
     compile libraries.jatl
-    compile libraries.jgit
+    compile libraries.jgit, libraries.commons_httpclient, libraries.jsch
 
     runtime 'com.h2database:h2:1.4.192'
 }

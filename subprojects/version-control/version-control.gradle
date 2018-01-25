@@ -23,11 +23,11 @@ dependencies {
     api project(':coreApi')
 
     implementation project(':core')
-    implementation libraries.jgit
+    implementation libraries.jgit, libraries.commons_httpclient, libraries.jsch
 
     testFixturesImplementation project(":internalTesting")
     testFixturesImplementation project(":internalIntegTesting")
-    testFixturesCompile libraries.jgit
+    testFixturesCompile libraries.jgit, libraries.commons_httpclient, libraries.jsch
 }
 
 testFixtures {

@@ -26,7 +26,6 @@ dependencies {
     compile libraries.gson
     compile libraries.jcip
 
-    runtime libraries.xbean //maven3 classes dependency
     runtime libraries.bouncycastle_provider
     runtime project(":installationBeacon")
 

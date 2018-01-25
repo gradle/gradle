@@ -18,10 +18,14 @@ plugins {
 }
 
 dependencies {
-    compile libraries.groovy
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':wrapper')
+    implementation 'org.codehaus.plexus:plexus-container-default'
+    implementation 'org.apache.maven:maven-compat'
+    implementation 'org.apache.maven:maven-plugin-api'
+    implementation libraries.groovy
+
+    implementation project(':core')
+    implementation project(':plugins')
+    implementation project(':wrapper')
 
     testFixturesImplementation project(":internalTesting")
 

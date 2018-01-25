@@ -17,9 +17,9 @@
 dependencies {
     compile libraries.groovy
 
-    compile "org.mozilla:rhino:1.7R3"
+    compile libraries.rhino
     compile libraries.gson // used by JsHint
-    compile "org.simpleframework:simple:4.1.21" // used by http package in envjs
+    compile libraries.simple // used by http package in envjs
     compile project(':core'), project(":plugins"), project(':workers')
     compile libraries.inject
 

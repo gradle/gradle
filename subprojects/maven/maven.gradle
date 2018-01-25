@@ -25,9 +25,13 @@ dependencies {
     compile libraries.slf4j_api
 
     compile libraries.maven3
-    compile "org.sonatype.pmaven:pmaven-common:0.8-20100325@jar"
-    compile "org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar"
-    compile "org.codehaus.plexus:plexus-component-annotations:1.5.2@jar"
+    compile "org.sonatype.pmaven:pmaven-common"
+    compile "org.sonatype.pmaven:pmaven-groovy"
+
+    implementation 'org.apache.maven.wagon:wagon-file'
+    implementation 'org.apache.maven.wagon:wagon-http'
+    implementation 'org.codehaus.plexus:plexus-container-default'
+    implementation 'org.sonatype.aether:aether-connector-wagon:1.13.1'
 
     testCompile libraries.xmlunit
 

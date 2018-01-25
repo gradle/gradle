@@ -29,7 +29,21 @@ tasks.withType(CodeNarc) {
     reports.xml.enabled = true
 }
 
-configurations.codenarc.resolutionStrategy.force(libraries.groovy)
+dependencies {
+    codenarc 'org.codenarc:CodeNarc:1.0'
+    components {
+        withModule('org.codenarc:CodeNarc') {
+            allVariants {
+                withDependencies {
+                    it.removeAll { it.group == 'org.codehaus.groovy' }
+                    it.add("org.codehaus.groovy:groovy-all:2.4.12") {
+                        because 'We use groovy-all everywhere'
+                    }
+                }
+            }
+        }
+    }
+}
 
 plugins.withType(GroovyBasePlugin) {
     sourceSets.all { sourceSet ->

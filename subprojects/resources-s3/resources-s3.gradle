@@ -11,7 +11,9 @@ dependencies {
     implementation project(':resourcesHttp')
     implementation libraries.slf4j_api
     implementation libraries.guava
-    implementation libraries.awsS3
+    implementation libraries.awsS3_core, libraries.awsS3_s3, libraries.awsS3_kms
+    implementation libraries.jackson_core, libraries.jackson_annotations, libraries.jackson_databind
+    implementation libraries.commons_httpclient, libraries.joda
     implementation libraries.commons_lang
 }
 

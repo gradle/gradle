@@ -56,9 +56,7 @@ configurations {
 }
 
 dependencies {
-    asciidoctor 'org.asciidoctor:asciidoctorj:1.5.6'
-
-    userGuideTask 'xalan:xalan:2.7.1', libraries.xerces
+    userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
     userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
         dependency 'itext:itext:2.0.8@jar'
     }

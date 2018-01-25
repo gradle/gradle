@@ -21,7 +21,7 @@ dependencies {
     implementation libraries.commons_io
     implementation libraries.jcip
 
-    jmh libraries.bouncycastle_provider
+    jmh 'org.bouncycastle:bcprov-jdk15on:1.58'
 }
 
 testFixtures {

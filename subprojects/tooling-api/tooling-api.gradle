@@ -12,7 +12,7 @@ dependencies {
     compile project(':messaging')
     compile project(':wrapper')
     compile project(':baseServices')
-    publishCompile libraries.slf4j_api
+    publishCompile "${libraries.slf4j_api}:1.7.16"
     compile libraries.jcip
 
     testFixturesCompile project(':baseServicesGroovy')

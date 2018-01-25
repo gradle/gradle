@@ -30,7 +30,7 @@ dependencies {
     compile libraries.inject
 
     testCompile libraries.xmlunit
-    testCompile libraries.equalsVerifier
+    testCompile 'nl.jqno.equalsverifier:equalsverifier:2.1.6'
     testCompile project(':dependencyManagement')
 }
 

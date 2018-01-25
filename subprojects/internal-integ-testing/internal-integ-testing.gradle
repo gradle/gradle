@@ -25,7 +25,8 @@ dependencies {
         dependency "io.netty:netty-all:4.0.23.Final"
         dependency "org.apache.commons:commons-lang3:3.4"
     }
-    compile libraries.gcs
+    compile libraries.gcs, libraries.commons_httpclient, libraries.joda
+    compile libraries.jackson_core, libraries.jackson_annotations, libraries.jackson_databind
     compile libraries.ivy
     compile libraries.sshd
     compile libraries.gson
@@ -34,6 +35,7 @@ dependencies {
     compile libraries.jcifs
     compile libraries.jansi
     compile libraries.commons_collections
+    compile 'org.apache.mina:mina-core'
 
     implementation project(':dependencyManagement')
 

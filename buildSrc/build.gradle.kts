@@ -15,7 +15,9 @@
  */
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.File
 import java.util.Properties
+import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 plugins {
     groovy
@@ -69,17 +71,14 @@ dependencies {
     compile("org.ow2.asm:asm:6.0")
     compile("org.ow2.asm:asm-commons:6.0")
     compile(gradleApi())
-    compile("com.google.guava:guava-jdk5:14.0.1@jar")
-    compile("commons-lang:commons-lang:2.6@jar")
+    compile("com.google.guava:guava-jdk5:14.0.1")
+    compile("commons-lang:commons-lang:2.6")
     compile(localGroovy())
-    compile("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2") {
-        exclude(module = "groovy")
-        exclude(module = "xercesImpl")
-    }
-    testCompile("junit:junit:4.12@jar")
-    testCompile("org.spockframework:spock-core:1.0-groovy-2.4@jar")
+    compile("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2")
+    testCompile("junit:junit:4.12")
+    testCompile("org.spockframework:spock-core:1.0-groovy-2.4")
     testCompile("cglib:cglib-nodep:3.2.5")
-    testCompile("org.objenesis:objenesis:1.2")
+    testCompile("org.objenesis:objenesis:2.4")
     testCompile("org.hamcrest:hamcrest-core:1.3")
 
     compile("org.pegdown:pegdown:1.6.0")
@@ -87,6 +86,19 @@ dependencies {
     compile("me.champeau.gradle:japicmp-gradle-plugin:0.2.4")
     compile("org.asciidoctor:asciidoctor-gradle-plugin:1.5.6")
     compile("com.github.javaparser:javaparser-core:2.4.0")
+
+    constraints {
+        compile("org.codehaus.groovy:groovy-all:2.4.12")
+    }
+
+    components {
+        withModule("net.sourceforge.nekohtml:nekohtml") {
+            allVariants {
+                // Xerces on the runtime classpath is breaking some of our doc tasks
+                withDependencies { removeAll { it.group == "xerces" } }
+            }
+        }
+    }
 }
 
 // Allow Kotlin types to reference both Java and Groovy types
@@ -105,7 +117,6 @@ val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 
 apply {
     from("../gradle/compile.gradle")
-    from("../gradle/dependencies.gradle")
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {

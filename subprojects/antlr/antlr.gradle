@@ -19,7 +19,7 @@ dependencies {
     compile project(':plugins')
     compile project(':workers')
 
-    compileOnly "antlr:antlr:2.7.7@jar"
+    compileOnly "antlr:antlr:2.7.7"
 
     compile libraries.slf4j_api
 }
