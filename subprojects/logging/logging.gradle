@@ -27,8 +27,6 @@ dependencies {
     runtimeOnly libraries.jcl_to_slf4j.coordinate
 
     testImplementation project(":internalTesting")
-
-    integTestRuntime project(':testingJunitPlatform')
 }
 
 testFixtures {

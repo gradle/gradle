@@ -16,8 +16,12 @@
 
 package org.gradle.internal.logging.console.jvm
 
+import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
+
 import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.LATEST_JUPITER_VERSION
 
+@IgnoreIf({ TestPrecondition.JDK7_OR_EARLIER })
 class ConsoleJUnitPlatformTestWorkerFunctionalTest extends AbstractConsoleJvmTestWorkerFunctionalTest {
 
     @Override

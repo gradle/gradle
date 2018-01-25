@@ -31,7 +31,7 @@ if (java7Home) {
     javaGroovyCompileTasks.all {
         options.with {
             fork = true
-            if (project.name != 'testingJunitPlatform') {
+            if (!(project in rootProject.findProperty('projectsRequiresJava8'))) {
                 forkOptions.javaHome = jvmForCompilation.javaHome
             }
         }

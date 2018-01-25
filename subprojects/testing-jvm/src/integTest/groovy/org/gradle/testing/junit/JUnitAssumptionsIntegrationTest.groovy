@@ -16,13 +16,14 @@
 
 package org.gradle.testing.junit
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.testing.fixture.JUnitCoverage
 import org.junit.Rule
 
-@TargetCoverage({JUnitCoverage.ASSUMPTIONS})
+@TargetCoverage({ JavaVersion.current().isJava8Compatible() ? JUnitCoverage.ASSUMPTIONS + [JUnitCoverage.PLATFORM] : JUnitCoverage.ASSUMPTIONS })
 class JUnitAssumptionsIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)

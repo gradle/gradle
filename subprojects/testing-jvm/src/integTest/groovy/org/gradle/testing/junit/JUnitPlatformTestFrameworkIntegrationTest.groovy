@@ -19,7 +19,10 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter
+import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 
+@IgnoreIf({ TestPrecondition.JDK7_OR_EARLIER })
 class JUnitPlatformTestFrameworkIntegrationTest extends JUnitTestFrameworkIntegrationTest {
     @Override
     protected ExecutionResult succeeds(String... tasks) {
