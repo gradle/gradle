@@ -16,13 +16,16 @@
 
 package org.gradle.vcs.git.internal
 
+import org.gradle.StartParameter
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.vcs.git.GitVersionControlSpec
 import spock.lang.Specification
 
 class DefaultGitVersionControlSpecSpec extends Specification {
+    GitVersionControlSpec spec = new DefaultGitVersionControlSpec(Mock(StartParameter), Mock(ClassLoaderScope))
+
     def 'handles file urls'() {
         given:
-        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
         spec.url = new URI("file:/tmp/repos/foo")
 
         expect:
@@ -33,7 +36,6 @@ class DefaultGitVersionControlSpecSpec extends Specification {
 
     def 'handles urls which do not end in .git'() {
         given:
-        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
         spec.url = 'https://github.com/gradle/gradle-checksum'
 
         expect:
@@ -44,7 +46,6 @@ class DefaultGitVersionControlSpecSpec extends Specification {
 
     def 'handles urls which do end in .git'() {
         given:
-        GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
         spec.url = 'https://github.com/gradle/gradle-checksum.git'
 
         expect:

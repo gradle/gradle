@@ -24,7 +24,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
         runner.minimumVersion = '4.0'
-        runner.targetVersions = ["4.6-20180111105114+0000"]
+        runner.targetVersions = ["4.6-20180125002142+0000"]
     }
 
     @Unroll

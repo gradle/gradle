@@ -55,8 +55,9 @@ public interface VersionControlSpec extends Describable {
     void setRootDir(String rootDir);
 
     /**
-     * TODO
-     * @param configuration
+     * Configure injected plugins into this build.
+     *
+     * @param configuration the configuration action for adding injected plugins
      * @since 4.6
      */
     void plugins(Action<? super InjectedPluginDependencies> configuration);

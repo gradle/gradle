@@ -121,6 +121,25 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(4)
     }
 
+    def "cant ask for same plugin twice with other plugins applied"() {
+        given:
+        buildScript """
+            plugins {
+                id "base"
+                id "java"
+                id "java"
+            }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertThatDescription(startsWith("Plugin with id 'java' was already requested at line 4"))
+        failure.assertHasFileName("Build file '$buildFile.absolutePath'")
+        failure.assertHasLineNumber(5)
+    }
+
     def "can reapply core plugin applied via plugins block"() {
         when:
         buildScript """

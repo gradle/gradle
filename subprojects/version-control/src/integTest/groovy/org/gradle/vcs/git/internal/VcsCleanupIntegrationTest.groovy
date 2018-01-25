@@ -19,7 +19,7 @@ package org.gradle.vcs.git.internal
 import org.eclipse.jgit.revwalk.RevCommit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.internal.SourceDependencies
 import org.junit.Rule
 
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
 
 class VcsCleanupIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
     @Rule
-    GitRepository repo = new GitRepository("dep", testDirectory)
+    GitFileRepository repo = new GitFileRepository("dep", testDirectory)
 
     Map<String, RevCommit> commits = [:]
 

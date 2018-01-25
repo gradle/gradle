@@ -21,7 +21,7 @@
             <holder>Hans Dockter, Adam Murdoch</holder>
         </copyright>
         <legalnotice>
-            <para>Gradle user manual and DSL references are licensed under <ulink url="http://creativecommons.org/licenses/by-nc-sa/4.0/"><citetitle>Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</citetitle></ulink>.</para>
+            <para>Gradle build tool source code is open and licensed under the <ulink url="https://github.com/gradle/gradle/blob/master/LICENSE"><citetitle>Apache License 2.0</citetitle></ulink>. Gradle user manual and DSL references are licensed under <ulink url="http://creativecommons.org/licenses/by-nc-sa/4.0/"><citetitle>Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</citetitle></ulink>.</para>
         </legalnotice>
     </bookinfo>
     <!-- NOTE: Asciidoctor file names must match their declared URL paths, camel-cased -->
@@ -129,6 +129,7 @@
     </part>
     <part>
         <title>Glossary</title>
+        <xi:include href='../../../build/asciidoc/userguide/dependencyManagementTerminology.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/dependencyTypes.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/repositoryTypes.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/dependencyCache.xml'/>

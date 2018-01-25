@@ -24,6 +24,7 @@ dependencies {
     implementation libraries.jgit
 
     testFixturesImplementation project(":internalTesting")
+    testFixturesImplementation project(":internalIntegTesting")
     testFixturesCompile libraries.jgit
 }
 

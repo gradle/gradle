@@ -37,6 +37,9 @@ class CppGreeterFunction extends CppLibraryElement implements GreeterElement {
 
     CppGreeterFunction(String publicHeaderDir = "headers") {
         header = ofFile(sourceFile(publicHeaderDir, "greeter.h", """
+#ifndef GREETER_H
+#define GREETER_H
+
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
 #else
@@ -52,10 +55,20 @@ void sayGreeting();
 #ifdef __cplusplus
 }
 #endif
+
+#define DUMMY_STRING "dummy"
+extern const char* PUBLIC_DUMMY_STRING;
+
+#endif // GREETER_H
 """))
 
         privateHeader = ofFile(sourceFile("headers", "greeter_consts.h", """
+#ifndef GREETER_CONSTS_H
+#define GREETER_CONSTS_H
+
 #define GREETING "${HelloWorldApp.HELLO_WORLD}"
+
+#endif // GREETER_CONSTS_H
 """))
 
         source = ofFile(sourceFile("cpp", "greeter.cpp", """
@@ -66,6 +79,8 @@ void sayGreeting();
 void sayGreeting() {
     std::cout << GREETING << std::endl;
 }
+
+const char* PUBLIC_DUMMY_STRING = DUMMY_STRING;
 """))
     }
 

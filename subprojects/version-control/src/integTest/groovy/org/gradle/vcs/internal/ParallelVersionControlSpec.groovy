@@ -18,13 +18,13 @@ package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.git.internal.DefaultGitVersionControlSpec
 import org.junit.Rule
 
 class ParallelVersionControlSpec extends AbstractIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
-    @Rule GitRepository repo = new GitRepository(temporaryFolder.getTestDirectory())
+    @Rule GitFileRepository repo = new GitFileRepository(temporaryFolder.getTestDirectory())
 
     def projects = ['A', 'B', 'C', 'D']
 
@@ -50,7 +50,7 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void populate() {
-                    def spec = new DefaultGitVersionControlSpec()
+                    def spec = new DefaultGitVersionControlSpec(project.gradle.startParameter, project.gradle.classLoaderScope)
                     spec.url = url
                     def system = versionControlSystemFactory.create(spec)
                     def ref = system.getHead(spec)

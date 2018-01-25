@@ -19,6 +19,7 @@ package org.gradle.plugin.use.internal;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver;
@@ -39,14 +40,16 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
     private final VersionSelectorScheme versionSelectorScheme;
+    private final PluginInspector pluginInspector;
 
     public PluginResolverFactory(
         PluginRegistry pluginRegistry,
-        DocumentationRegistry documentationRegistry,
+        PluginInspector pluginInspector, DocumentationRegistry documentationRegistry,
         InjectedClasspathPluginResolver injectedClasspathPluginResolver,
         DependencyResolutionServices dependencyResolutionServices,
         VersionSelectorScheme versionSelectorScheme) {
         this.pluginRegistry = pluginRegistry;
+        this.pluginInspector = pluginInspector;
         this.documentationRegistry = documentationRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
         this.dependencyResolutionServices = dependencyResolutionServices;
@@ -84,7 +87,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
      */
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
-        resolvers.add(new SelfResolvingRequestPluginResolver());
+        resolvers.add(new SelfResolvingRequestPluginResolver(pluginInspector));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
 
         if (!injectedClasspathPluginResolver.isClasspathEmpty()) {

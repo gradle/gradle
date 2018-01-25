@@ -33,7 +33,7 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.runs = runs
         runner.tasksToRun = ['test']
         runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['test']))
-        runner.targetVersions = ["4.5-20171218235901+0000"]
+        runner.targetVersions = ["4.6-20180125002142+0000"]
 
         when:
         def result = runner.run()

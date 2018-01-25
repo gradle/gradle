@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.vcs.VersionControlSpec;
@@ -33,11 +34,11 @@ public class VersionControlSpecFactory {
         this.rootBuildStartParameter = rootBuildStartParameter;
     }
 
-    public <T extends VersionControlSpec> T create(Class<T> specType) {
+    public <T extends VersionControlSpec> T create(Class<T> specType, ClassLoaderScope classLoaderScope) {
         if (GitVersionControlSpec.class.isAssignableFrom(specType)) {
-            return Cast.uncheckedCast(instantiator.newInstance(DefaultGitVersionControlSpec.class, rootBuildStartParameter));
+            return Cast.uncheckedCast(instantiator.newInstance(DefaultGitVersionControlSpec.class, rootBuildStartParameter, classLoaderScope));
         } else if (DirectoryRepositorySpec.class.isAssignableFrom(specType)) {
-            return Cast.uncheckedCast(instantiator.newInstance(DirectoryRepositorySpec.class, rootBuildStartParameter));
+            return Cast.uncheckedCast(instantiator.newInstance(DirectoryRepositorySpec.class, rootBuildStartParameter, classLoaderScope));
         }
         throw new IllegalArgumentException(String.format("Do not know how to create an instance of %s.", specType.getName()));
     }
