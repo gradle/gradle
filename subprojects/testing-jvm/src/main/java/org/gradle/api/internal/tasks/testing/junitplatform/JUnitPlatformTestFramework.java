@@ -36,7 +36,7 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 
 public class JUnitPlatformTestFramework implements TestFramework {
-    private JUnitPlatformOptions options;
+    private final JUnitPlatformOptions options;
     private final JUnitPlatformDetector detector;
     private final DefaultTestFilter filter;
 
