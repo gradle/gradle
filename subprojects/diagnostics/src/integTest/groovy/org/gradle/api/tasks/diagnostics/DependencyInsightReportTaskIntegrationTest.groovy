@@ -1486,6 +1486,42 @@ org:foo:$displayVersion -> $selected
         "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'
     }
 
+    def "renders dependency from BOM as a constraint"() {
+        given:
+        def leaf = mavenRepo.module("org", "leaf", "1.0").publish()
+        def bom = mavenRepo.module('org', 'bom', '1.0')
+        bom.packaging = 'pom'
+        bom.dependencyConstraint(leaf)
+        bom.publish()
+
+        FeaturePreviewsFixture.enableAdvancedPomSupport(file('gradle.properties'))
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+            
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            
+            dependencies {
+                implementation 'org:bom:1.0'
+                implementation 'org:leaf'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf"
+
+        then:
+        output.contains """org:leaf:1.0 (via constraint)
+\\--- org:bom:1.0
+     \\--- compileClasspath
+
+org:leaf: -> 1.0
+\\--- compileClasspath
+"""
+    }
+
     def "shows published dependency reason"() {
         given:
         mavenRepo.with {
