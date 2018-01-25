@@ -119,6 +119,7 @@ data class CIBuildModel (
             GradleSubproject("testKit"),
             GradleSubproject("testingBase"),
             GradleSubproject("testingJvm"),
+            GradleSubproject("testingJunitPlatform"),
             GradleSubproject("testingNative"),
             GradleSubproject("toolingApi", crossVersionTests = true),
             GradleSubproject("toolingApiBuilders", functionalTests = false),
