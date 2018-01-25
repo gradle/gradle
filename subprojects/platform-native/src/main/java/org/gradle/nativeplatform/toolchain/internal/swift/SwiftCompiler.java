@@ -37,6 +37,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
@@ -47,7 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of is applies to SwiftCompiler)
+// TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of it applies to SwiftCompiler)
 class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final String objectFileExtension;
@@ -69,7 +70,6 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
         if (swiftCompilerVersion.getMajor() < spec.getSourceCompatibility().getVersion()) {
             throw new IllegalArgumentException(String.format("Swift compiler version '%s' doesn't support Swift language version '%d'", swiftCompilerVersion.toString(), spec.getSourceCompatibility().getVersion()));
         }
-
         return super.execute(spec);
     }
 
@@ -81,9 +81,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
             .withOutputBaseFolder(objectFileDir)
             .map(sourceFile);
         File outputDirectory = outputFile.getParentFile();
-        if (!outputDirectory.exists()) {
-            outputDirectory.mkdirs();
-        }
+        GFileUtils.mkdirs(outputDirectory);
         return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
     }
 
@@ -96,13 +94,16 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
 
                 OutputFileMap outputFileMap = new OutputFileMap();
+
+                outputFileMap.root().swiftDependenciesFile(new File(objectDir, "module.swiftdeps"));
+
                 for (File sourceFile : spec.getSourceFiles()) {
                     outputFileMap.newEntry(sourceFile.getAbsolutePath())
                         .dependencyFile(getOutputFileDir(sourceFile, objectDir, ".d"))
+                        .diagnosticsFile(getOutputFileDir(sourceFile, objectDir, ".dia"))
                         .objectFile(getOutputFileDir(sourceFile, objectDir, objectFileExtension))
                         .swiftModuleFile(getOutputFileDir(sourceFile, objectDir, "~partial.swiftmodule"))
-                        .swiftDependenciesFile(getOutputFileDir(sourceFile, objectDir, ".swiftdeps"))
-                        .diagnosticsFile(getOutputFileDir(sourceFile, objectDir, ".dia"));
+                        .swiftDependenciesFile(getOutputFileDir(sourceFile, objectDir, ".swiftdeps"));
                     genericArgs.add(sourceFile.getAbsolutePath());
                 }
                 if (null != spec.getModuleName()) {
@@ -111,7 +112,13 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                     genericArgs.add("-emit-module-path");
                     genericArgs.add(spec.getModuleFile().getAbsolutePath());
                 }
+
                 genericArgs.add("-v");
+
+                genericArgs.add("-incremental");
+                genericArgs.add("-driver-show-incremental");
+                genericArgs.add("-emit-dependencies");
+
                 genericArgs.add("-emit-object");
 
                 File outputFileMapFile = new File(spec.getObjectFileDir(), "output-file-map.json");
@@ -152,6 +159,10 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
     private static class OutputFileMap {
         private Map<String, Entry> entries = new HashMap<String, Entry>();
+
+        public Builder root() {
+            return newEntry("");
+        }
 
         public Builder newEntry(String name) {
             Entry entry = new Entry();

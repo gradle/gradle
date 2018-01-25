@@ -16,9 +16,11 @@
 
 package org.gradle.language.swift
 
+import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyExpectedOutputAppWithLib
@@ -325,6 +327,29 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         file("build/obj/main/debug").assertDoesNotExist()
     }
 
+    def 'recompiles only the Swift source files that have changed'() {
+        given:
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"))
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app'"
+        app.writeToProject(testDirectory)
+        def fileToModify = file("src/main/swift/main.swift").makeOlder()
+
+        buildFile << """
+            apply plugin: 'swift-application'
+         """
+        outputs.snapshot { succeeds("assemble", "-i") }
+        def moduleSwiftDeps = file("build/obj/main/debug/module.swiftdeps")
+
+        when:
+        fileToModify.replace("a: 5, b: 7", "a: 21, b: 21")
+        and:
+        succeeds("assemble", "-i")
+
+        then:
+        outputs.recompiledFiles([ fileToModify, moduleSwiftDeps, file("build/obj/main/debug/output-file-map.json") ])
+    }
+
     private List<String> expectIntermediateDescendants(SourceElement sourceElement) {
         List<String> result = new ArrayList<String>()
 
@@ -336,7 +361,10 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
             result.add(objectFileFor(swiftFile, intermediateFilesDirPath).relativizeFrom(intermediateFilesDir).path)
             result.add(swiftmoduleFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
             result.add(swiftdocFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
+            result.add(swiftDepsFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
+            result.add(dependFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
         }
+        result.add("module.swiftdeps")
         result.add("output-file-map.json")
         return result
     }
@@ -347,5 +375,13 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
     def swiftdocFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
         return intermediateFileFor(sourceFile, intermediateFilesDir, "~partial.swiftdoc")
+    }
+
+    def swiftDepsFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
+        return intermediateFileFor(sourceFile, intermediateFilesDir, ".swiftdeps")
+    }
+
+    def dependFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
+        return intermediateFileFor(sourceFile, intermediateFilesDir, ".d")
     }
 }

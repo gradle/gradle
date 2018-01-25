@@ -16,6 +16,8 @@
 
 package org.gradle.language.swift.tasks;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -36,6 +38,9 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.Actions;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.compile.CompilerVersion;
@@ -53,7 +58,9 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -270,18 +277,36 @@ public class SwiftCompile extends DefaultTask {
     }
 
     @TaskAction
-    void compile() {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
-        cleaner.setDestinationDir(getObjectFileDir().getAsFile().get());
-        cleaner.execute();
-
-        if (getSource().isEmpty()) {
-            setDidWork(cleaner.getDidWork());
-            return;
+    void compile(IncrementalTaskInputs inputs) {
+        final List<File> removedFiles = Lists.newArrayList();
+        if (inputs.isIncremental()) {
+            inputs.outOfDate(Actions.doNothing());
+            inputs.removed(new Action<InputFileDetails>() {
+                @Override
+                public void execute(InputFileDetails removed) {
+                    removedFiles.add(removed.getFile());
+                }
+            });
+        } else {
+            // Not incremental, so delete all old outputs
+            SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
+            cleaner.setDestinationDir(getObjectFileDir().getAsFile().get());
+            cleaner.execute();
         }
+        boolean isIncremental = inputs.isIncremental() && removedFiles.isEmpty();
 
         BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
 
+        SwiftCompileSpec spec = createSpec(operationLogger, isIncremental, removedFiles);
+
+        PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
+        Compiler<SwiftCompileSpec> baseCompiler = platformToolProvider.newCompiler(SwiftCompileSpec.class);
+        Compiler<SwiftCompileSpec> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(baseCompiler);
+        WorkResult result = loggingCompiler.execute(spec);
+        setDidWork(result.getDidWork());
+    }
+
+    private SwiftCompileSpec createSpec(BuildOperationLogger operationLogger, boolean isIncremental, Collection<File> removedFiles) {
         SwiftCompileSpec spec = new DefaultSwiftCompileSpec();
         spec.setModuleName(moduleName.getOrNull());
         spec.setModuleFile(moduleFile.get().getAsFile());
@@ -297,18 +322,14 @@ public class SwiftCompile extends DefaultTask {
         spec.setTempDir(getTemporaryDir());
         spec.setObjectFileDir(objectFileDir.get().getAsFile());
         spec.source(getSource());
+        spec.setRemovedSourceFiles(removedFiles);
         spec.setMacros(getMacros());
         spec.args(getCompilerArgs().get());
         spec.setDebuggable(isDebuggable());
         spec.setOptimized(isOptimized());
-        spec.setIncrementalCompile(false);
+        spec.setIncrementalCompile(isIncremental);
         spec.setOperationLogger(operationLogger);
         spec.setSourceCompatibility(sourceCompatibility.get());
-
-        PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
-        Compiler<SwiftCompileSpec> baseCompiler = platformToolProvider.newCompiler(SwiftCompileSpec.class);
-        Compiler<SwiftCompileSpec> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(baseCompiler);
-        WorkResult result = loggingCompiler.execute(spec);
-        setDidWork(result.getDidWork());
+        return spec;
     }
 }
