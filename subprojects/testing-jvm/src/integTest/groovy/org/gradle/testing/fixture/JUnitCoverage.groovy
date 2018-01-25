@@ -18,10 +18,12 @@ package org.gradle.testing.fixture;
 
 class JUnitCoverage {
     final static String NEWEST = '4.12'
+    final static String PLATFORM = '5.0'
     final static String[] LARGE_COVERAGE = ['4.0', '4.4', '4.8.2', NEWEST]
     final static String[] IGNORE_ON_CLASS = ['4.4', '4.8.2', NEWEST]
-    final static String[] ASSUMPTIONS = ['4.5', NEWEST]
+    final static String[] ASSUMPTIONS = ['4.5', NEWEST, PLATFORM]
     final static String[] CATEGORIES = ['4.8', NEWEST]
     final static String[] FILTER_JUNIT3_TESTS = ['3.8.1', '4.6', NEWEST]
-    final static String[] LOGGING = [NEWEST]
+    final static String[] LOGGING = [NEWEST, PLATFORM]
+    final static String[] JUNIT_BASIC = [NEWEST, PLATFORM]
 }

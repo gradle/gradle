@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
@@ -35,7 +36,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class JUnitTestClassExecutor {
+public class JUnitTestClassExecutor implements Action<String> {
     private final ClassLoader applicationClassLoader;
     private final RunListener listener;
     private final JUnitSpec options;
@@ -49,6 +50,7 @@ public class JUnitTestClassExecutor {
         this.executionListener = executionListener;
     }
 
+    @Override
     public void execute(String testClassName) {
         executionListener.testClassStarted(testClassName);
 
@@ -77,8 +79,8 @@ public class JUnitTestClassExecutor {
                 }
             };
             filters.add(new CategoryFilter(
-                    CollectionUtils.collect(options.getIncludeCategories(), transformer),
-                    CollectionUtils.collect(options.getExcludeCategories(), transformer)
+                CollectionUtils.collect(options.getIncludeCategories(), transformer),
+                CollectionUtils.collect(options.getExcludeCategories(), transformer)
             ));
         }
 

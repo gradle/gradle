@@ -18,20 +18,19 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitCoverage
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.is
 
-@TargetCoverage({JUnitCoverage.LOGGING})
-class JUnitLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec {
+@TargetCoverage({JUnitCoverage.JUNIT_BASIC})
+class JUnitLoggingOutputCaptureIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
     def setup() {
         buildFile << """
             apply plugin: "java"
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:$version' }
+            $dependencyDeclaration
             test {
                 reports.junitXml.outputPerTestCase = true
                 onOutput { test, event -> print "\$test -> \$event.message" }

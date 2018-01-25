@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,13 @@
  */
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Issue
 
 @Issue("GRADLE-1682")
-class JUnitJdkNavigationIntegrationTest extends AbstractIntegrationSpec {
+class JUnitJdkNavigationIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
 
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)

@@ -16,14 +16,14 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.testing.junit.JUnitBasicMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-class TestEnvironmentIntegrationTest extends AbstractIntegrationSpec {
+class TestEnvironmentIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
     def canRunTestsWithCustomSystemClassLoader() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
@@ -24,7 +23,7 @@ import org.junit.Rule
 import static org.hamcrest.Matchers.equalTo
 
 // cannot make assumptions about order in which test methods of JUnit4Test get executed
-class JUnitConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
+class JUnitConsoleLoggingIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
