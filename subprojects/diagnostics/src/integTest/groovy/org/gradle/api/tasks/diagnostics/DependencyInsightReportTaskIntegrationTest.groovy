@@ -1356,6 +1356,50 @@ foo:foo:1.0
 
 
     @Unroll
+    def "renders dependency constraint differently"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+        mavenRepo.module("org", "foo", "1.3").publish()
+        mavenRepo.module("org", "foo", "1.4").publish()
+        mavenRepo.module("org", "foo", "1.5").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+            
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            
+            dependencies {
+                implementation 'org:foo' // no version
+                constraints {
+                    implementation('org:foo') {
+                         version { $version }
+                    }
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "foo"
+
+        then:
+        output.contains """org:foo:$selected (via constraint)
+
+org:foo: -> $selected
+\\--- compileClasspath
+"""
+        where:
+        version                             | reason                                          | selected
+        "prefer '[1.0, 2.0)'"               | "foo v2+ has an incompatible API for project X" | '1.5'
+        "strictly '[1.1, 1.4]'"             | "versions of foo verified to run on platform Y" | '1.4'
+        "prefer '[1.0, 1.4]'; reject '1.4'" | "1.4 has a critical bug"                        | '1.3'
+    }
+
+    @Unroll
     def "renders custom dependency constraint reasons"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -1388,7 +1432,7 @@ foo:foo:1.0
         run "dependencyInsight", "--dependency", "foo"
 
         then:
-        output.contains """org:foo:$selected ($reason)
+        output.contains """org:foo:$selected (via constraint, $reason)
 
 org:foo: -> $selected
 \\--- compileClasspath

@@ -19,9 +19,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -79,9 +82,9 @@ class SelectorState implements DependencyGraphSelector {
             return selected.getSelectionReason();
         }
         if (dependencyState.getRuleDescriptor() == null) {
-            return VersionSelectionReasons.of(idResolveResult.getSelectionDescription());
+            return VersionSelectionReasons.of(doGetDescription());
         }
-        return VersionSelectionReasons.of(Lists.newArrayList(idResolveResult.getSelectionDescription(), dependencyState.getRuleDescriptor()));
+        return VersionSelectionReasons.of(Lists.newArrayList(doGetDescription(), dependencyState.getRuleDescriptor()));
     }
 
     public ComponentState getSelected() {
@@ -117,7 +120,7 @@ class SelectorState implements DependencyGraphSelector {
 
         selected = resolveState.getRevision(idResolveResult.getModuleVersionId());
         selected.selectedBy(this);
-        selected.addCause(idResolveResult.getSelectionDescription());
+        selected.addCause(doGetDescription());
         if (dependencyState.getRuleDescriptor() != null) {
             selected.addCause(dependencyState.getRuleDescriptor());
         }
@@ -126,6 +129,15 @@ class SelectorState implements DependencyGraphSelector {
         versionConstraint = idResolveResult.getResolvedVersionConstraint();
 
         return selected;
+    }
+
+    private ComponentSelectionDescriptorInternal doGetDescription() {
+        ComponentSelectionDescriptorInternal selectionDescription = idResolveResult.getSelectionDescription();
+        if (selectionDescription.getCause() ==  ComponentSelectionCause.REQUESTED && dependencyMetadata.isPending()) {
+            selectionDescription = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT,
+                selectionDescription.hasCustomDescription() ? selectionDescription.getDescription() : ComponentSelectionCause.CONSTRAINT.getDefaultReason());
+        }
+        return selectionDescription;
     }
 
     public void restart(ComponentState moduleRevision) {

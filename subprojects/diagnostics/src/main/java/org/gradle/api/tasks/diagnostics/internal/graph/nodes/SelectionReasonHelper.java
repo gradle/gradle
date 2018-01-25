@@ -20,7 +20,20 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 
 public abstract class SelectionReasonHelper {
     public static String getReasonDescription(ComponentSelectionReason reason) {
-        if (reason.isExpected() && !((ComponentSelectionReasonInternal) reason).hasCustomDescriptions()) {
+        ComponentSelectionReasonInternal r = (ComponentSelectionReasonInternal) reason;
+        String description = getReasonDescription(r);
+        if (reason.isConstrained()) {
+            if (description == null || !r.hasCustomDescriptions()) {
+                return "via constraint";
+            } else {
+                return "via constraint, " + description;
+            }
+        }
+        return description;
+    }
+
+    private static String getReasonDescription(ComponentSelectionReasonInternal reason) {
+        if (reason.isExpected() && !reason.hasCustomDescriptions()) {
             return null;
         }
         return reason.getDescription();
