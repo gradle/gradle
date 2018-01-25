@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,21 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import java.util.List;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
+import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-class NoHistoryTaskStateChanges extends SimpleTaskStateChanges {
+import java.util.Map;
+
+@NonNullApi
+public class InputPropertyTaskStateChanges extends AbstractPropertyNameTaskStateChanges {
+
+    public InputPropertyTaskStateChanges(TaskExecution previous, TaskExecution current, Task task) {
+        super(previous, current, "Input", task);
+    }
+
     @Override
-    protected void addAllChanges(List<TaskStateChange> changes) {
-        changes.add(new DescriptiveChange("No history is available."));
+    protected Map<String, ?> getProperties(TaskExecution execution) {
+        return execution.getInputProperties();
     }
 }

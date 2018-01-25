@@ -22,7 +22,6 @@ import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +33,7 @@ public abstract class AbstractPropertyNameTaskStateChanges extends SimpleTaskSta
     private final String title;
     private final Task task;
 
-    protected AbstractPropertyNameTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, String title, Task task) {
+    protected AbstractPropertyNameTaskStateChanges(TaskExecution previous, TaskExecution current, String title, Task task) {
         this.previous = previous;
         this.current = current;
         this.title = title;
@@ -45,9 +44,6 @@ public abstract class AbstractPropertyNameTaskStateChanges extends SimpleTaskSta
 
     @Override
     protected void addAllChanges(final List<TaskStateChange> changes) {
-        if (previous == null) {
-            return;
-        }
         DiffUtil.diff(getProperties(current).keySet(), getProperties(previous).keySet(), new ChangeListener<String>() {
             @Override
             public void added(String element) {

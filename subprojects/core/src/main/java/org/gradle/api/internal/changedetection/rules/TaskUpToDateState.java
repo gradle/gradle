@@ -27,37 +27,46 @@ public class TaskUpToDateState {
     public static final int MAX_OUT_OF_DATE_MESSAGES = 3;
 
     private final TaskStateChanges inputFileChanges;
-    private final OutputFilesTaskStateChanges outputFileChanges;
+    private final OutputFileTaskStateChanges outputFileChanges;
     private final TaskStateChanges allTaskChanges;
     private final TaskStateChanges rebuildChanges;
-    private final OutputFilePropertyNameTaskChanges outputFilePropertyNameChanges;
-    private final TaskStateChanges noHistoryState;
+    private final TaskStateChanges outputFilePropertyChanges;
+    private final boolean hasLastExecution;
 
     public TaskUpToDateState(TaskExecution lastExecution, TaskExecution thisExecution, TaskInternal task) {
-        noHistoryState = new NoHistoryTaskStateChanges(lastExecution);
-        TaskStateChanges previousSuccessState = new PreviousSuccessTaskStateChanges(lastExecution);
-        TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task);
-        TaskStateChanges inputPropertyNameChanges = new InputPropertyNameTaskStateChanges(lastExecution, thisExecution, task);
-        TaskStateChanges inputPropertyValueChanges = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task);
+        hasLastExecution = lastExecution != null;
+        if (!hasLastExecution) {
+            NoHistoryTaskStateChanges noHistoryState = new NoHistoryTaskStateChanges();
+            this.allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState);
+            this.rebuildChanges = new SummaryTaskStateChanges(1, noHistoryState);
+            this.inputFileChanges = null;
+            this.outputFileChanges = null;
+            this.outputFilePropertyChanges = null;
+        } else {
+            TaskStateChanges previousSuccessState = new PreviousSuccessTaskStateChanges(lastExecution);
+            TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task);
+            TaskStateChanges inputPropertyChanges = new InputPropertyTaskStateChanges(lastExecution, thisExecution, task);
+            TaskStateChanges inputPropertyValueChanges = new InputPropertyValueTaskStateChanges(lastExecution, thisExecution, task);
 
-        // Capture outputs state
-        this.outputFilePropertyNameChanges = new OutputFilePropertyNameTaskChanges(lastExecution, thisExecution, task);
-        OutputFilesTaskStateChanges uncachedOutputChanges = new OutputFilesTaskStateChanges(lastExecution, thisExecution);
-        TaskStateChanges outputFileChanges = caching(uncachedOutputChanges);
-        this.outputFileChanges = uncachedOutputChanges;
+            // Capture outputs state
+            this.outputFilePropertyChanges = new OutputFilePropertyTaskChanges(lastExecution, thisExecution, task);
+            OutputFileTaskStateChanges uncachedOutputChanges = new OutputFileTaskStateChanges(lastExecution, thisExecution);
+            TaskStateChanges outputFileChanges = caching(uncachedOutputChanges);
+            this.outputFileChanges = uncachedOutputChanges;
 
-        // Capture input files state
-        InputFilePropertyNameTaskStateChanges inputFilePropertyNameChanges = new InputFilePropertyNameTaskStateChanges(lastExecution, thisExecution, task);
-        InputFilesTaskStateChanges directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution);
-        TaskStateChanges inputFileChanges = caching(directInputFileChanges);
-        this.inputFileChanges = new ErrorHandlingTaskStateChanges(task, inputFileChanges);
+            // Capture input files state
+            TaskStateChanges inputFilePropertyChanges = new InputFilePropertyTaskStateChanges(lastExecution, thisExecution, task);
+            TaskStateChanges directInputFileChanges = new InputFileTaskStateChanges(lastExecution, thisExecution);
+            TaskStateChanges inputFileChanges = caching(directInputFileChanges);
+            this.inputFileChanges = new ErrorHandlingTaskStateChanges(task, inputFileChanges);
 
-        // Capture discovered inputs state from previous execution
-        DiscoveredInputsTaskStateChanges discoveredChanges = new DiscoveredInputsTaskStateChanges(lastExecution, thisExecution);
-        TaskStateChanges discoveredInputFilesChanges = caching(discoveredChanges);
+            // Capture discovered inputs state from previous execution
+            DiscoveredInputTaskStateChanges discoveredChanges = new DiscoveredInputTaskStateChanges(lastExecution, thisExecution);
+            TaskStateChanges discoveredInputFileChanges = caching(discoveredChanges);
 
-        this.allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, previousSuccessState, noHistoryState, taskTypeState, inputPropertyNameChanges, inputPropertyValueChanges, outputFilePropertyNameChanges, outputFileChanges, inputFilePropertyNameChanges, inputFileChanges, discoveredInputFilesChanges));
-        this.rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(1, previousSuccessState, noHistoryState, taskTypeState, inputPropertyNameChanges, inputPropertyValueChanges, inputFilePropertyNameChanges, outputFilePropertyNameChanges, outputFileChanges));
+            this.allTaskChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges, discoveredInputFileChanges));
+            this.rebuildChanges = new ErrorHandlingTaskStateChanges(task, new SummaryTaskStateChanges(1, previousSuccessState, taskTypeState, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
+        }
     }
 
     private static TaskStateChanges caching(TaskStateChanges wrapped) {
@@ -68,6 +77,9 @@ public class TaskUpToDateState {
      * Returns changes to input files only.
      */
     public TaskStateChanges getInputFilesChanges() {
+        if (inputFileChanges == null) {
+            throw new IllegalStateException("Input file changes can only be queried when the task has been executed before");
+        }
         return inputFileChanges;
     }
 
@@ -75,7 +87,7 @@ public class TaskUpToDateState {
      * Returns if any output files have been changed, added or removed.
      */
     public boolean hasAnyOutputFileChanges() {
-        return noHistoryState.iterator().hasNext() || outputFilePropertyNameChanges.iterator().hasNext() || outputFileChanges.hasAnyChanges();
+        return !hasLastExecution || outputFilePropertyChanges.iterator().hasNext() || outputFileChanges.hasAnyChanges();
     }
 
     /**

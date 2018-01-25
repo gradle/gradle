@@ -16,32 +16,25 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import javax.annotation.Nullable;
 import java.util.Iterator;
 
 @NonNullApi
-public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
+public class DiscoveredInputTaskStateChanges implements TaskStateChanges {
+    private final TaskExecution previous;
+    private final TaskExecution current;
 
-    public OutputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current) {
-        super(previous, current, "Output");
-    }
-
-    @Override
-    protected ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution) {
-        return execution.getOutputFilesSnapshot();
+    public DiscoveredInputTaskStateChanges(TaskExecution previous, TaskExecution current) {
+        this.previous = previous;
+        this.current = current;
     }
 
     @Override
     public Iterator<TaskStateChange> iterator() {
-        return getFileChanges(false);
-    }
-
-    public boolean hasAnyChanges() {
-        return getFileChanges(true).hasNext();
+        FileCollectionSnapshot previousDiscoveredInputs = previous.getDiscoveredInputFilesSnapshot();
+        return current.getDiscoveredInputFilesSnapshot().iterateContentChangesSince(previousDiscoveredInputs, "discovered input", true);
     }
 }

@@ -20,18 +20,17 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 @NonNullApi
-public class InputPropertyNameTaskStateChanges extends AbstractPropertyNameTaskStateChanges {
+public class InputFilePropertyTaskStateChanges extends AbstractPropertyNameTaskStateChanges {
 
-    public InputPropertyNameTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current, Task task) {
-        super(previous, current, "Input", task);
+    public InputFilePropertyTaskStateChanges(TaskExecution previous, TaskExecution current, Task task) {
+        super(previous, current, "Input file", task);
     }
 
     @Override
     protected Map<String, ?> getProperties(TaskExecution execution) {
-        return execution.getInputProperties();
+        return execution.getInputFilesSnapshot();
     }
 }

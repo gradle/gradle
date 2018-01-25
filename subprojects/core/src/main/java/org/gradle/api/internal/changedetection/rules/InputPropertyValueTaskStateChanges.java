@@ -21,18 +21,17 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class InputPropertiesTaskStateChanges extends SimpleTaskStateChanges {
+class InputPropertyValueTaskStateChanges extends SimpleTaskStateChanges {
     private final TaskInternal task;
     private final Set<String> changed;
 
-    public InputPropertiesTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
-        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
+    public InputPropertyValueTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
+        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution.getInputProperties();
         changed = new HashSet<String>();
         ImmutableSortedMap<String, ValueSnapshot> currentInputProperties = currentExecution.getInputProperties();
         for (Map.Entry<String, ValueSnapshot> entry : currentInputProperties.entrySet()) {

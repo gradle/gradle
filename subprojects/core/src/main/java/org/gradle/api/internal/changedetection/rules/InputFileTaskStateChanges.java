@@ -21,12 +21,11 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import javax.annotation.Nullable;
 import java.util.Iterator;
 
 @NonNullApi
-public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
-    public InputFilesTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current) {
+public class InputFileTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
+    public InputFileTaskStateChanges(TaskExecution previous, TaskExecution current) {
         super(previous, current, "Input");
     }
 
