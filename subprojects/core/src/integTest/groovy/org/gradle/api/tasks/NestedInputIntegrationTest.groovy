@@ -678,11 +678,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         def taskActionFile = file('configureTaskAction.gradle')
         taskActionFile << """
-            myTask.action = new Action() {
-                void execute(outputFile) {
-                    outputFile.text = "hello"
-                }
-            }
+            myTask.action = ${originalImplementation}
         """
         taskActionFile.makeOlder()
 
@@ -693,16 +689,27 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         taskActionFile.text = """
-            myTask.action = new Action() {
-                void execute(outputFile) {
-                    outputFile.text = "changed"
-                }
-            }
+            myTask.action = ${changedImplementation}
         """
         run 'myTask', '--info'
         then:
         executedAndNotSkipped(':myTask')
         file('build/tmp/myTask/output.txt').text == "changed"
+
+        where:
+        originalImplementation      | changedImplementation
+        """{ it.text = "hello" }""" | """{ it.text = "changed" }"""
+        """
+            new Action() {
+                void execute(outputFile) {
+                    outputFile.text = "hello"
+                }
+            }"""                    | """
+                                        new Action() {
+                                            void execute(outputFile) {
+                                                outputFile.text = "changed"
+                                            }
+                                        }"""
     }
 
     def "task with nested bean loaded with custom classloader is not cached"() {
