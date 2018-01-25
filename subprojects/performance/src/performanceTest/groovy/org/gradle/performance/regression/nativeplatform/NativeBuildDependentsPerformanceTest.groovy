@@ -23,7 +23,7 @@ import spock.lang.Unroll
 class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["4.5-20171218235901+0000"]
+        runner.targetVersions = ["4.5"]
     }
 
     @Ignore("FIXME wolfs: We need to understand what is going on here before we release 4.5.1")
