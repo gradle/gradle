@@ -32,12 +32,15 @@ task updateReleasedVersions(type: UpdateReleasedVersions) {
 }
 
 task updateReleasedVersionsToLatestNightly(type: UpdateReleasedVersions) {
-    def latestNightlyVersion = latestNightly()
-    onlyIf { latestNightlyVersion }
-    currentReleasedVersion = latestNightlyVersion
+    currentReleasedVersion = project.providers.provider { latestNightly() }
 }
 
 ReleasedVersion latestNightly() {
     def nightlyVersion = new JsonSlurper().parseText(new URL('https://services.gradle.org/versions/nightly').text)
-    nightlyVersion ? new ReleasedVersion(nightlyVersion.version, nightlyVersion.buildTime) : null
+
+    if (!nightlyVersion.empty) {
+        throw new GradleException('Released Gradle nightly version cannot be resolved')
+    }
+
+    new ReleasedVersion(nightlyVersion.version, nightlyVersion.buildTime)
 }
