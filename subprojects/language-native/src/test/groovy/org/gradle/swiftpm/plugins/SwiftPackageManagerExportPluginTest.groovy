@@ -16,6 +16,8 @@
 
 package org.gradle.swiftpm.plugins
 
+import org.gradle.swiftpm.internal.DefaultExecutableProduct
+import org.gradle.swiftpm.internal.DefaultLibraryProduct
 import org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -29,12 +31,95 @@ class SwiftPackageManagerExportPluginTest extends Specification {
     def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("testLib").build()
 
     def "adds generate task"() {
-        when:
+        given:
         project.pluginManager.apply(SwiftPackageManagerExportPlugin)
 
-        then:
+        expect:
         def generateManifest = project.tasks['generateSwiftPmManifest']
         generateManifest instanceof GenerateSwiftPackageManagerManifest
         generateManifest.manifestFile.get().asFile == project.file("Package.swift")
     }
+
+    def "adds an executable product for each project that produces a C++ application"() {
+        given:
+        def app1Project = ProjectBuilder.builder().withName("app1").withParent(project).build()
+        def app2Project = ProjectBuilder.builder().withName("app2").withParent(project).build()
+
+        project.pluginManager.apply(SwiftPackageManagerExportPlugin)
+
+        app1Project.pluginManager.apply("cpp-application")
+        app2Project.pluginManager.apply("cpp-application")
+
+        expect:
+        def generateManifest = project.tasks['generateSwiftPmManifest']
+        def products = generateManifest.products.get()
+        products.name == ["app1", "app2"]
+        products.every { it instanceof DefaultExecutableProduct }
+    }
+
+    def "adds a library product for each project that produces a C++ library"() {
+        given:
+        def app1Project = ProjectBuilder.builder().withName("lib1").withParent(project).build()
+        def app2Project = ProjectBuilder.builder().withName("lib2").withParent(project).build()
+
+        project.pluginManager.apply(SwiftPackageManagerExportPlugin)
+
+        app1Project.pluginManager.apply("cpp-library")
+        app2Project.pluginManager.apply("cpp-library")
+
+        expect:
+        def generateManifest = project.tasks['generateSwiftPmManifest']
+        def products = generateManifest.products.get()
+        products.name == ["lib1", "lib2"]
+        products.every { it instanceof DefaultLibraryProduct }
+    }
+
+    def "adds an executable product for each project that produces a Swift application"() {
+        given:
+        def app1Project = ProjectBuilder.builder().withName("app1").withParent(project).build()
+        def app2Project = ProjectBuilder.builder().withName("app2").withParent(project).build()
+
+        project.pluginManager.apply(SwiftPackageManagerExportPlugin)
+
+        app1Project.pluginManager.apply("swift-application")
+        app2Project.pluginManager.apply("swift-application")
+
+        expect:
+        def generateManifest = project.tasks['generateSwiftPmManifest']
+        def products = generateManifest.products.get()
+        products.name == ["App1", "App2"]
+        products.every { it instanceof DefaultExecutableProduct }
+    }
+
+    def "adds a library product for each project that produces a Swift library"() {
+        given:
+        def app1Project = ProjectBuilder.builder().withName("lib1").withParent(project).build()
+        def app2Project = ProjectBuilder.builder().withName("lib2").withParent(project).build()
+
+        project.pluginManager.apply(SwiftPackageManagerExportPlugin)
+
+        app1Project.pluginManager.apply("swift-library")
+        app2Project.pluginManager.apply("swift-library")
+
+        expect:
+        def generateManifest = project.tasks['generateSwiftPmManifest']
+        def products = generateManifest.products.get()
+        products.name == ["Lib1", "Lib2"]
+        products.every { it instanceof DefaultLibraryProduct }
+    }
+
+    def "ignores projects that do not define any C++ or Swift components"() {
+        given:
+        ProjectBuilder.builder().withName("app1").withParent(project).build()
+        ProjectBuilder.builder().withName("app2").withParent(project).build()
+
+        project.pluginManager.apply(SwiftPackageManagerExportPlugin)
+        project.pluginManager.apply("swift-library")
+
+        expect:
+        def generateManifest = project.tasks['generateSwiftPmManifest']
+        def products = generateManifest.products.get()
+        products.name == ["TestLib"]
+    }
+
 }

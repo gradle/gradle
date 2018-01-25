@@ -18,12 +18,51 @@ package org.gradle.swiftpm.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.provider.Provider;
+import org.gradle.language.ProductionComponent;
+import org.gradle.language.cpp.CppApplication;
+import org.gradle.language.cpp.CppLibrary;
+import org.gradle.language.swift.SwiftApplication;
+import org.gradle.language.swift.SwiftLibrary;
+import org.gradle.swiftpm.Product;
+import org.gradle.swiftpm.internal.DefaultExecutableProduct;
+import org.gradle.swiftpm.internal.DefaultLibraryProduct;
 import org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.concurrent.Callable;
 
 public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
     @Override
-    public void apply(Project project) {
+    public void apply(final Project project) {
         GenerateSwiftPackageManagerManifest manifestTask = project.getTasks().create("generateSwiftPmManifest", GenerateSwiftPackageManagerManifest.class);
         manifestTask.getManifestFile().set(project.getLayout().getProjectDirectory().file("Package.swift"));
+
+        Provider<Set<Product>> products = project.getProviders().provider(new Callable<Set<Product>>() {
+            @Override
+            public Set<Product> call() {
+                Set<Product> result = new LinkedHashSet<Product>();
+                for (Project p : project.getAllprojects()) {
+                    for (ProductionComponent component : p.getComponents().withType(ProductionComponent.class)) {
+                        if (component instanceof CppApplication) {
+                            CppApplication application = (CppApplication) component;
+                            result.add(new DefaultExecutableProduct(application.getBaseName().get()));
+                        } else if (component instanceof CppLibrary) {
+                            CppLibrary library = (CppLibrary) component;
+                            result.add(new DefaultLibraryProduct(library.getBaseName().get()));
+                        } else if (component instanceof SwiftApplication) {
+                            SwiftApplication application = (SwiftApplication) component;
+                            result.add(new DefaultExecutableProduct(application.getModule().get()));
+                        } else if (component instanceof SwiftLibrary) {
+                            SwiftLibrary library = (SwiftLibrary) component;
+                            result.add(new DefaultLibraryProduct(library.getModule().get()));
+                        }
+                    }
+                }
+                return result;
+            }
+        });
+        manifestTask.getProducts().set(products);
     }
 }

@@ -20,6 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.vcs.fixtures.GitFileRepository
 
 class SwiftPackageManagerExportIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        settingsFile << """rootProject.name = 'test'
+"""
+    }
+
     def "produces manifest for build with no native components"() {
         given:
         settingsFile << "include 'lib1', 'lib2'"
@@ -33,10 +38,23 @@ class SwiftPackageManagerExportIntegrationTest extends AbstractIntegrationSpec {
         run("generateSwiftPmManifest")
 
         then:
-        file("Package.swift").file
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+    ],
+    targets: [
+    ]
+)
+"""
     }
 
-    def "produces manifest for single project Swift build"() {
+    def "produces manifest for single project Swift library"() {
         given:
         buildFile << """
             plugins { 
@@ -49,10 +67,25 @@ class SwiftPackageManagerExportIntegrationTest extends AbstractIntegrationSpec {
         run("generateSwiftPmManifest")
 
         then:
-        file("Package.swift").file
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+        .library(name: "Test", targets: ["Test"]),
+    ],
+    targets: [
+        .target(name: "Test"),
+    ]
+)
+"""
     }
 
-    def "produces manifest for single project C++ build"() {
+    def "produces manifest for single project C++ library"() {
         given:
         buildFile << """
             plugins { 
@@ -65,10 +98,25 @@ class SwiftPackageManagerExportIntegrationTest extends AbstractIntegrationSpec {
         run("generateSwiftPmManifest")
 
         then:
-        file("Package.swift").file
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+        .library(name: "test", targets: ["test"]),
+    ],
+    targets: [
+        .target(name: "test"),
+    ]
+)
+"""
     }
 
-    def "produces manifest for multi project Swift build"() {
+    def "produces manifest for multi-project Swift build"() {
         given:
         settingsFile << "include 'lib1', 'lib2'"
         buildFile << """
@@ -85,7 +133,26 @@ class SwiftPackageManagerExportIntegrationTest extends AbstractIntegrationSpec {
         run("generateSwiftPmManifest")
 
         then:
-        file("Package.swift").file
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+        .executable(name: "Test", targets: ["Test"]),
+        .library(name: "Lib1", targets: ["Lib1"]),
+        .library(name: "Lib2", targets: ["Lib2"]),
+    ],
+    targets: [
+        .target(name: "Test"),
+        .target(name: "Lib1"),
+        .target(name: "Lib2"),
+    ]
+)
+"""
     }
 
     def "produces manifest for multi project C++ build"() {
@@ -105,7 +172,26 @@ class SwiftPackageManagerExportIntegrationTest extends AbstractIntegrationSpec {
         run("generateSwiftPmManifest")
 
         then:
-        file("Package.swift").file
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+        .executable(name: "test", targets: ["test"]),
+        .library(name: "lib1", targets: ["lib1"]),
+        .library(name: "lib2", targets: ["lib2"]),
+    ],
+    targets: [
+        .target(name: "test"),
+        .target(name: "lib1"),
+        .target(name: "lib2"),
+    ]
+)
+"""
     }
 
     def "produces manifest for Swift component with source dependencies"() {
@@ -144,6 +230,21 @@ class SwiftPackageManagerExportIntegrationTest extends AbstractIntegrationSpec {
         run("generateSwiftPmManifest")
 
         then:
-        file("Package.swift").file
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+        .library(name: "Test", targets: ["Test"]),
+    ],
+    targets: [
+        .target(name: "Test"),
+    ]
+)
+"""
     }
 }
