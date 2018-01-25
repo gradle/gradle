@@ -481,7 +481,43 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                         version(parentPom.version)
                     }
                 }
-                if (dependencies || !variants.dependencies.flatten().empty) {
+                boolean isBom = pomPackaging == 'pom' && !dependencies.isEmpty() && dependencies.findAll { it.optional }.size() == dependencies.size()
+
+                if (isBom) {
+                    dependencyManagement {
+                        dependencies {
+                            dependencies.each { dep ->
+                                dependency {
+                                    groupId(dep.groupId)
+                                    artifactId(dep.artifactId)
+                                    if (dep.version) {
+                                        version(dep.version)
+                                    }
+                                    // not sure if we need the following for a BOM
+                                    if (dep.type) {
+                                        type(dep.type)
+                                    }
+                                    if (dep.scope) {
+                                        scope(dep.scope)
+                                    }
+                                    if (dep.classifier) {
+                                        classifier(dep.classifier)
+                                    }
+                                    if (dep.exclusions) {
+                                        exclusions {
+                                            for (exc in dep.exclusions) {
+                                                exclusion {
+                                                    groupId(exc.group ?: '*')
+                                                    artifactId(exc.module ?: '*')
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else if (dependencies || !variants.dependencies.flatten().empty) {
                     dependencies {
                         dependencies.each { dep ->
                             dependency {
