@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
@@ -40,7 +41,7 @@ import org.gradle.platform.base.BinaryContainer;
 class VisualStudioPluginRules extends RuleSource {
     @Model
     public static VisualStudioExtensionInternal visualStudio(ExtensionContainer extensionContainer) {
-        return extensionContainer.getByType(VisualStudioExtensionInternal.class);
+        return (VisualStudioExtensionInternal) extensionContainer.getByType(VisualStudioExtension.class);
     }
 
     @Mutate

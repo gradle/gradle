@@ -20,6 +20,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.plugins.AppliedPlugin;
+import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -56,7 +57,7 @@ public class VisualStudioPlugin extends IdePlugin {
     protected void onApply(Project target) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
-        project.getExtensions().add("visualStudio", new DefaultVisualStudioExtension(target.getPath(), instantiator, projectModelResolver, fileResolver));
+        project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, target.getPath(), instantiator, projectModelResolver, fileResolver);
 
         project.getPluginManager().withPlugin("org.gradle.component-model-base", new Action<AppliedPlugin>() {
             @Override
