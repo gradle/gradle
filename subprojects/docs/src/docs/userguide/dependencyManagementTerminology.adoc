@@ -16,7 +16,7 @@ The word "configuration" is an overloaded term and has a different meaning outsi
 [[sub:terminology_dependency]]
 === Dependency
 
-A dependency is another piece of software required to build, test or run a <<sub:terminology_module,module>>. For more information, see <<declaring_dependencies>>.
+A dependency is a pointer to another piece of software required to build, test or run a <<sub:terminology_module,module>>. For more information, see <<declaring_dependencies>>.
 
 [[sub:terminology_module]]
 === Module
