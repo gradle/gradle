@@ -24,12 +24,14 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.swiftpm.Product;
-import org.gradle.swiftpm.internal.DefaultExecutableProduct;
+import org.gradle.swiftpm.internal.AbstractProduct;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class GenerateSwiftPackageManagerManifest extends DefaultTask {
     private final RegularFileProperty manifestFile = newOutputFile();
@@ -47,10 +49,11 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
 
     @TaskAction
     public void generate() {
-        File file = manifestFile.get().getAsFile();
-        file.getParentFile().mkdirs();
+        Path manifest = manifestFile.get().getAsFile().toPath();
         try {
-            PrintWriter writer = new PrintWriter(new FileWriter(file));
+            Path baseDir = manifest.getParent();
+            Files.createDirectories(baseDir);
+            PrintWriter writer = new PrintWriter(Files.newBufferedWriter(manifest, Charset.forName("utf-8")));
             try {
                 writer.println("// swift-tools-version:4.0");
                 writer.println("//");
@@ -61,8 +64,9 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                 writer.println("let package = Package(");
                 writer.println("    name: \"" + getProject().getName() + "\",");
                 writer.println("    products: [");
-                for (Product product : products.get()) {
-                    if (product instanceof DefaultExecutableProduct) {
+                for (Product p : products.get()) {
+                    AbstractProduct product = (AbstractProduct) p;
+                    if (product.isExecutable()) {
                         writer.print("        .executable(");
                     } else {
                         writer.print("        .library(");
@@ -75,11 +79,25 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                 }
                 writer.println("    ],");
                 writer.println("    targets: [");
-                for (Product product : products.get()) {
-                    writer.print("        .target(");
-                    writer.print("name: \"");
+                for (Product p : products.get()) {
+                    AbstractProduct product = (AbstractProduct) p;
+                    writer.println("        .target(");
+                    writer.print("            name: \"");
                     writer.print(product.getName());
-                    writer.println("\"),");
+                    writer.println("\",");
+                    writer.print("            path: \"");
+                    Path productPath = product.getPath().toPath();
+                    String relPath = baseDir.relativize(productPath).toString();
+                    writer.print(relPath.isEmpty() ? ".": relPath);
+                    writer.println("\",");
+                    writer.println("            sources: [");
+                    for (File sourceFile : product.getSourceFiles()) {
+                        writer.print("                \"");
+                        writer.print(productPath.relativize(sourceFile.toPath()));
+                        writer.println("\",");
+                    }
+                    writer.println("            ]");
+                    writer.println("        ),");
                 }
                 writer.println("    ]");
                 writer.println(")");
@@ -87,7 +105,7 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                 writer.close();
             }
         } catch (IOException e) {
-            throw new GradleException(String.format("Could not write manifest file %s.", file), e);
+            throw new GradleException(String.format("Could not write manifest file %s.", manifest), e);
         }
     }
 }
