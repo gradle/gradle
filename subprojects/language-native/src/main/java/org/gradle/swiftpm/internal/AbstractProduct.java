@@ -16,17 +16,37 @@
 
 package org.gradle.swiftpm.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
+import org.gradle.swiftpm.Product;
 
 import java.io.File;
+import java.io.Serializable;
+import java.util.Set;
 
-public class DefaultLibraryProduct extends AbstractProduct {
-    public DefaultLibraryProduct(String name, File path, FileCollection sourceFiles) {
-        super(name, path, sourceFiles);
+public abstract class AbstractProduct implements Product, Serializable {
+    private final String name;
+    private final File path;
+    private final Set<File> sourceFiles;
+
+    AbstractProduct(String name, File path, FileCollection sourceFiles) {
+        this.name = name;
+        this.path = path;
+        this.sourceFiles = ImmutableSet.copyOf(sourceFiles);
     }
 
     @Override
-    public boolean isExecutable() {
-        return false;
+    public String getName() {
+        return name;
     }
+
+    public File getPath() {
+        return path;
+    }
+
+    public Set<File> getSourceFiles() {
+        return sourceFiles;
+    }
+
+    public abstract boolean isExecutable();
 }

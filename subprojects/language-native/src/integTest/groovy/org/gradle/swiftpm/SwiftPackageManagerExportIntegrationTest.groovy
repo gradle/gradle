@@ -17,6 +17,10 @@
 package org.gradle.swiftpm
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
+import org.gradle.nativeplatform.fixtures.app.CppLib
+import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
+import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.vcs.fixtures.GitFileRepository
 
 class SwiftPackageManagerExportIntegrationTest extends AbstractIntegrationSpec {
@@ -62,6 +66,8 @@ let package = Package(
                 id 'swift-library'
             }
 """
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
 
         when:
         run("generateSwiftPmManifest")
@@ -79,7 +85,15 @@ let package = Package(
         .library(name: "Test", targets: ["Test"]),
     ],
     targets: [
-        .target(name: "Test"),
+        .target(
+            name: "Test",
+            path: ".",
+            sources: [
+                "src/main/swift/greeter.swift",
+                "src/main/swift/multiply.swift",
+                "src/main/swift/sum.swift",
+            ]
+        ),
     ]
 )
 """
@@ -93,6 +107,8 @@ let package = Package(
                 id 'cpp-library'
             }
 """
+        def lib = new CppLib()
+        lib.writeToProject(testDirectory)
 
         when:
         run("generateSwiftPmManifest")
@@ -110,7 +126,14 @@ let package = Package(
         .library(name: "test", targets: ["test"]),
     ],
     targets: [
-        .target(name: "test"),
+        .target(
+            name: "test",
+            path: ".",
+            sources: [
+                "src/main/cpp/greeter.cpp",
+                "src/main/cpp/sum.cpp",
+            ]
+        ),
     ]
 )
 """
@@ -128,6 +151,10 @@ let package = Package(
                 apply plugin: 'swift-library'
             }
 """
+        def app = new SwiftAppWithLibraries()
+        app.main.writeToProject(testDirectory)
+        app.library.writeToProject(file("lib1"))
+        app.logLibrary.writeToProject(file("lib2"))
 
         when:
         run("generateSwiftPmManifest")
@@ -147,9 +174,27 @@ let package = Package(
         .library(name: "Lib2", targets: ["Lib2"]),
     ],
     targets: [
-        .target(name: "Test"),
-        .target(name: "Lib1"),
-        .target(name: "Lib2"),
+        .target(
+            name: "Test",
+            path: ".",
+            sources: [
+                "src/main/swift/main.swift",
+            ]
+        ),
+        .target(
+            name: "Lib1",
+            path: "lib1",
+            sources: [
+                "src/main/swift/greeter.swift",
+            ]
+        ),
+        .target(
+            name: "Lib2",
+            path: "lib2",
+            sources: [
+                "src/main/swift/log.swift",
+            ]
+        ),
     ]
 )
 """
@@ -167,6 +212,10 @@ let package = Package(
                 apply plugin: 'cpp-library'
             }
 """
+        def app = new CppAppWithLibraries()
+        app.main.writeToProject(testDirectory)
+        app.greeterLib.writeToProject(file("lib1"))
+        app.loggerLib.writeToProject(file("lib2"))
 
         when:
         run("generateSwiftPmManifest")
@@ -186,9 +235,27 @@ let package = Package(
         .library(name: "lib2", targets: ["lib2"]),
     ],
     targets: [
-        .target(name: "test"),
-        .target(name: "lib1"),
-        .target(name: "lib2"),
+        .target(
+            name: "test",
+            path: ".",
+            sources: [
+                "src/main/cpp/main.cpp",
+            ]
+        ),
+        .target(
+            name: "lib1",
+            path: "lib1",
+            sources: [
+                "src/main/cpp/greeter.cpp",
+            ]
+        ),
+        .target(
+            name: "lib2",
+            path: "lib2",
+            sources: [
+                "src/main/cpp/logger.cpp",
+            ]
+        ),
     ]
 )
 """
@@ -225,6 +292,8 @@ let package = Package(
                 implementation "test:lib2:1.0"
             }
 """
+        def app = new SwiftAppWithLibraries()
+        app.library.writeToProject(testDirectory)
 
         when:
         run("generateSwiftPmManifest")
@@ -242,7 +311,13 @@ let package = Package(
         .library(name: "Test", targets: ["Test"]),
     ],
     targets: [
-        .target(name: "Test"),
+        .target(
+            name: "Test",
+            path: ".",
+            sources: [
+                "src/main/swift/greeter.swift",
+            ]
+        ),
     ]
 )
 """

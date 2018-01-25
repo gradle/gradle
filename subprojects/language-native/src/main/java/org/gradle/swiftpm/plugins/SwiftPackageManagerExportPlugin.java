@@ -47,16 +47,16 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                     for (ProductionComponent component : p.getComponents().withType(ProductionComponent.class)) {
                         if (component instanceof CppApplication) {
                             CppApplication application = (CppApplication) component;
-                            result.add(new DefaultExecutableProduct(application.getBaseName().get()));
+                            result.add(new DefaultExecutableProduct(application.getBaseName().get(), p.getProjectDir(), application.getCppSource()));
                         } else if (component instanceof CppLibrary) {
                             CppLibrary library = (CppLibrary) component;
-                            result.add(new DefaultLibraryProduct(library.getBaseName().get()));
+                            result.add(new DefaultLibraryProduct(library.getBaseName().get(), p.getProjectDir(), library.getCppSource()));
                         } else if (component instanceof SwiftApplication) {
                             SwiftApplication application = (SwiftApplication) component;
-                            result.add(new DefaultExecutableProduct(application.getModule().get()));
+                            result.add(new DefaultExecutableProduct(application.getModule().get(), p.getProjectDir(), application.getSwiftSource()));
                         } else if (component instanceof SwiftLibrary) {
                             SwiftLibrary library = (SwiftLibrary) component;
-                            result.add(new DefaultLibraryProduct(library.getModule().get()));
+                            result.add(new DefaultLibraryProduct(library.getModule().get(), p.getProjectDir(), library.getSwiftSource()));
                         }
                     }
                 }
