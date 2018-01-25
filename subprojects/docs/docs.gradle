@@ -467,7 +467,7 @@ tasks.addRule("view«Doc Task Name» - Opens entry point") { String taskName ->
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: defaultImports
 
-['test', 'java9Test'].each {
+['test', 'java9Test', 'java10Test'].each {
     tasks[it].configure {
         dependsOn releaseNotes
         inputs.files releaseNotesMarkdown.markdownFile withPropertyName "releaseNotesSource" withPathSensitivity PathSensitivity.NONE

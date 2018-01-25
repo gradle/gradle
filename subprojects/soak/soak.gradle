@@ -6,7 +6,7 @@ dependencies {
     testFixturesCompile project(':internalIntegTesting')
 }
 
-tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.all {
+tasks.matching { it.name in [ 'integTest', 'java9IntegTest', 'java10IntegTest'] }.all {
     options {
         excludeCategories 'org.gradle.soak.categories.SoakTest'
     }
