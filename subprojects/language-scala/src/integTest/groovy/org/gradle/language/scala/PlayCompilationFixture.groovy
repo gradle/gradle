@@ -17,10 +17,7 @@
 package org.gradle.language.scala
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import org.gradle.test.fixtures.file.TestFile
-
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 
 class PlayCompilationFixture {
     private final TestFile root
@@ -46,6 +43,7 @@ class PlayCompilationFixture {
         this.analysisFile = this.root.file("build/tmp/scala/compilerAnalysis/compilePlayBinaryScala.analysis")
         this.sourceSet = 'play'
         this.sourceDir = 'app/controller'
+
         basicClassSource = new ScalaClass(
             'Person',
             '''
@@ -62,11 +60,13 @@ class PlayCompilationFixture {
                  * Has a name, age and a height.
                  */
                 class Person(val name: String, val age: Int, val height: Int)'''.stripIndent())
+        this.sourceDir = 'app/models'
         classDependingOnBasicClassSource = new ScalaClass(
             'House',
             'class House(val owner: Person)',
             'class House(val owner: Person, val residents: List[Person])'
         )
+        this.sourceDir = 'app/views'
         independentClassSource = new ScalaClass(
             'Other',
             'class Other',
@@ -88,6 +88,23 @@ class PlayCompilationFixture {
         basicClassSource.create()
         classDependingOnBasicClassSource.create()
         independentClassSource.create()
+        this.root.with {
+            file('conf/application.conf').text = """
+            logger.root=ERROR
+            logger.play=INFO
+            logger.application=DEBUG
+        """
+
+            file('public/stylesheets/bootstrap.css').text = """
+            button,
+            input[type="button"],
+            input[type="reset"],
+            input[type="submit"] {
+              cursor: pointer;
+              -webkit-appearance: button;
+            }
+        """
+        }
     }
 
     List<ScalaClass> getAll() {

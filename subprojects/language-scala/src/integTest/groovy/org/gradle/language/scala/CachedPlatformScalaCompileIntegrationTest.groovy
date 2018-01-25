@@ -23,11 +23,11 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
 class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
+
     public static final String PLAY_REPOSITORIES = """
         repositories {
             ${RepoScriptBlockUtil.jcenterRepositoryDefinition()}
             ${RepoScriptBlockUtil.lightbendMavenRepositoryDefinition()}
-            ${RepoScriptBlockUtil.lightbendIvyRepositoryDefinition()}
         }
     """
 
@@ -42,19 +42,24 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
         project.with {
             file('settings.gradle') << localCacheConfiguration()
             file('build.gradle').text = """
-            plugins {
-                id 'play'
-            }
-            ${PLAY_REPOSITORIES}
-            """.stripIndent()
+                plugins {
+                    id 'play'
+                }
+                ${PLAY_REPOSITORIES}
+            """
 
             file('app/controller/Hello.scala').text = """
-            object Hello {
-                def main(args: Array[String]): Unit = {
-                    print("Hello!")
+                object Hello {
+                    def main(args: Array[String]): Unit = {
+                        print("Hello!")
+                    }
                 }
-            }
-        """.stripIndent()
+            """
+            file('conf/application.conf').text = """
+                logger.root=ERROR
+                logger.play=INFO
+                logger.application=DEBUG
+            """
         }
     }
 
