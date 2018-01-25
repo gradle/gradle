@@ -17,6 +17,7 @@
 package org.gradle.swiftpm.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -51,6 +52,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+/**
+ * A plugin that produces a Swift Package Manager manifests from the Gradle model.
+ *
+ * <p>This plugin should only be applied to the root project of a build.</p>
+ *
+ * @since 4.6
+ */
+@Incubating
 public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
     private final VcsMappingsStore vcsMappingsStore;
     private final VcsMappingFactory vcsMappingFactory;

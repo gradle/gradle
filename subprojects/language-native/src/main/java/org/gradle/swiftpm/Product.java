@@ -16,13 +16,16 @@
 
 package org.gradle.swiftpm;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A product in a Swift Package Manager package.
+ *
+ * @since 4.6
  */
-@HasInternalProtocol
+@HasInternalProtocol @Incubating
 public interface Product extends Named {
     /**
      * Returns the name of this product.

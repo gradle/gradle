@@ -14,22 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.swiftpm;
-
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
-
-import java.util.Set;
-
 /**
- * Represents a Swift Package Manager package.
- *
- * @since 4.6
+ * Model classes that describe a Swift Package Manager package.
  */
-@HasInternalProtocol @Incubating
-public interface Package {
-    /**
-     * Returns the products of this package.
-     */
-    Set<? extends Product> getProducts();
-}
+package org.gradle.swiftpm;
