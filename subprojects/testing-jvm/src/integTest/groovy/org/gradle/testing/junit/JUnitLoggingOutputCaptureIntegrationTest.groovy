@@ -18,13 +18,10 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitCoverage
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.is
 
-@TargetCoverage({JUnitCoverage.JUNIT_BASIC})
 class JUnitLoggingOutputCaptureIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
     def setup() {
         buildFile << """

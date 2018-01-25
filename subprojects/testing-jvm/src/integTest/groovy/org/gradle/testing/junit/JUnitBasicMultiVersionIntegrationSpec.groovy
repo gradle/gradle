@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -30,7 +31,7 @@ import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.L
  * Basic JUnit 4/5 tests which don't have Runner/Categories so they can share lots of code with a simple annotation replacement.
  * {@see org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter}
  */
-@TargetCoverage({ JUnitCoverage.JUNIT_BASIC })
+@TargetCoverage({ JavaVersion.current().isJava8Compatible() ? JUnitCoverage.JUNIT_BASIC : [JUnitCoverage.NEWEST] })
 class JUnitBasicMultiVersionIntegrationSpec extends MultiVersionIntegrationSpec {
     @Override
     protected ExecutionResult succeeds(String... tasks) {
@@ -62,5 +63,9 @@ dependencies {
 
     protected assumeNotJUnitPlatform() {
         Assume.assumeTrue(version != JUnitCoverage.PLATFORM)
+    }
+
+    private assumeJava8() {
+        Assume.assumeTrue(JavaVersion.current() >= JavaVersion.VERSION_1_8)
     }
 }

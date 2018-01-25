@@ -36,7 +36,7 @@ class JUnitPlatformTestRewriterTest extends Specification {
 dependencies { testCompile 'junit:junit:4.12' }
 '''
         when:
-        JUnitPlatformTestRewriter.rewriteBuildFile(temporaryFolder.testDirectory)
+        JUnitPlatformTestRewriter.rewriteBuildFileInDir(temporaryFolder.testDirectory)
 
         then:
         temporaryFolder.testDirectory.file('build.gradle').text.contains(

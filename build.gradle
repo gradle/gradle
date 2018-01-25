@@ -167,6 +167,10 @@ ext {
         project(':processServices'),
         project(':resources')
     ]
+
+    projectsRequiresJava8 = [
+        project(':testingJunitPlatform')
+    ]
 }
 
 apply from: "gradle/buildScanUserData.gradle"

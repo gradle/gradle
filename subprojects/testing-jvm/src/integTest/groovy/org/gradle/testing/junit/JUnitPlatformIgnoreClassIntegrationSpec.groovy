@@ -18,10 +18,13 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.LATEST_JUPITER_VERSION
 
+@IgnoreIf({ TestPrecondition.JDK7_OR_EARLIER })
 class JUnitPlatformIgnoreClassIntegrationSpec extends AbstractIntegrationSpec {
 
     @Rule
