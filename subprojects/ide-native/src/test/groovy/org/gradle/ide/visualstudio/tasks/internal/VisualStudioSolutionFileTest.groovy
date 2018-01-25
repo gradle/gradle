@@ -159,7 +159,7 @@ EndGlobal
     }
 
     private VisualStudioProjectConfiguration createProjectConfiguration(DefaultVisualStudioProject project1, String configName) {
-        return new VisualStudioProjectConfiguration(project1, configName, "Win32", binary1)
+        return new VisualStudioProjectConfiguration(project1, configName, binary1)
     }
 
     private DefaultVisualStudioProject createProject(String projectName) {

@@ -18,41 +18,31 @@ package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
     def fileResolver = Mock(FileResolver)
-    def projectIdentifier = Stub(ProjectIdentifier)
-    def visualStudioProjectMapper = Mock(VisualStudioProjectMapper)
-    def registry = new VisualStudioProjectRegistry(":", fileResolver, visualStudioProjectMapper, DirectInstantiator.INSTANCE)
+    def registry = new VisualStudioProjectRegistry(":", fileResolver, DirectInstantiator.INSTANCE)
 
     def "creates a matching visual studio project configuration for target binary"() {
-        def executableBinary = targetBinary()
+        def executableBinary = targetBinary("vsConfig")
         when:
-        visualStudioProjectMapper.mapToConfiguration(executableBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
-
-        and:
         registry.addProjectConfiguration(executableBinary)
 
         then:
         def vsConfig = registry.getProjectConfiguration(executableBinary)
         vsConfig.type == "Makefile"
-        vsConfig.project.name == "vsProject"
+        vsConfig.project.name == "mainExe"
         vsConfig.configurationName == "vsConfig"
-        vsConfig.platformName == "vsPlatform"
+        vsConfig.platformName == "Win32"
     }
 
     def "returns same visual studio project configuration for native binaries that share project name"() {
-        def executableBinary1 = targetBinary()
-        def executableBinary2 = targetBinary()
+        def executableBinary1 = targetBinary("vsConfig1")
+        def executableBinary2 = targetBinary("vsConfig2")
 
         when:
-        visualStudioProjectMapper.mapToConfiguration(executableBinary1) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig1", "vsPlatform")
-        visualStudioProjectMapper.mapToConfiguration(executableBinary2) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig2", "vsPlatform")
-
-        and:
         registry.addProjectConfiguration(executableBinary1)
         registry.addProjectConfiguration(executableBinary2)
 
@@ -63,29 +53,25 @@ class VisualStudioProjectRegistryTest extends Specification {
 
         and:
         vsConfig1.type == "Makefile"
-        vsConfig1.project.name == "vsProject"
+        vsConfig1.project.name == "mainExe"
         vsConfig1.configurationName == "vsConfig1"
-        vsConfig1.platformName == "vsPlatform"
+        vsConfig1.platformName == "Win32"
 
         and:
         vsConfig2.type == "Makefile"
-        vsConfig2.project.name == "vsProject"
+        vsConfig2.project.name == "mainExe"
         vsConfig2.configurationName == "vsConfig2"
-        vsConfig2.platformName == "vsPlatform"
+        vsConfig2.platformName == "Win32"
     }
 
     def "visual studio project contains sources for native binaries for all configurations"() {
         def sourceCommon = Mock(File)
         def source1 = Mock(File)
         def source2 = Mock(File)
-        def executableBinary1 = targetBinary(sourceCommon, source1)
-        def executableBinary2 = targetBinary(sourceCommon, source2)
+        def executableBinary1 = targetBinary("vsConfig1", sourceCommon, source1)
+        def executableBinary2 = targetBinary("vsConfig2", sourceCommon, source2)
 
         when:
-        visualStudioProjectMapper.mapToConfiguration(executableBinary1) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig1", "vsPlatform")
-        visualStudioProjectMapper.mapToConfiguration(executableBinary2) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig2", "vsPlatform")
-
-        and:
         registry.addProjectConfiguration(executableBinary1)
         registry.addProjectConfiguration(executableBinary2)
 
@@ -94,13 +80,15 @@ class VisualStudioProjectRegistryTest extends Specification {
         vsProject.sourceFiles == [sourceCommon, source1, source2] as Set
     }
 
-    private VisualStudioTargetBinary targetBinary(File... sources) {
+    private VisualStudioTargetBinary targetBinary(String variant, File... sources) {
         def targetBinary = Mock(VisualStudioTargetBinary)
         targetBinary.getSourceFiles() >> fileCollection(sources)
         targetBinary.getHeaderFiles() >> fileCollection()
         targetBinary.getResourceFiles() >> fileCollection()
         targetBinary.projectPath >> ":"
         targetBinary.componentName >> "main"
+        targetBinary.projectType >> VisualStudioTargetBinary.ProjectType.EXE
+        targetBinary.variantDimensions >> [variant]
         return targetBinary
     }
     private FileCollection fileCollection(File... files = []) {

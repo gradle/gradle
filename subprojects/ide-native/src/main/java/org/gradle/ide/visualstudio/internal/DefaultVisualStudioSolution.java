@@ -78,7 +78,7 @@ public class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec 
     }
 
     private void addDependentConfigurations(Set configurations, VisualStudioProjectConfiguration configuration) {
-        for (VisualStudioTargetBinary library : configuration.getDependencyBinaries()) {
+        for (VisualStudioTargetBinary library : configuration.getTargetBinary().getDependencies()) {
             VisualStudioProjectConfiguration libraryConfiguration = vsProjectResolver.lookupProjectConfiguration(library);
             if (configurations.add(libraryConfiguration)) {
                 addDependentConfigurations(configurations, libraryConfiguration);

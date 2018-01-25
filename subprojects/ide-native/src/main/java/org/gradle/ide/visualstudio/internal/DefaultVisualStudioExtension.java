@@ -27,8 +27,7 @@ public class DefaultVisualStudioExtension implements VisualStudioExtensionIntern
     private final VisualStudioSolutionRegistry solutionRegistry;
 
     public DefaultVisualStudioExtension(String projectPath, Instantiator instantiator, ProjectModelResolver projectModelResolver, FileResolver fileResolver) {
-        VisualStudioProjectMapper projectMapper = new VisualStudioProjectMapper();
-        projectRegistry = new VisualStudioProjectRegistry(projectPath, fileResolver, projectMapper, instantiator);
+        projectRegistry = new VisualStudioProjectRegistry(projectPath, fileResolver, instantiator);
         VisualStudioProjectResolver projectResolver = new VisualStudioProjectResolver(projectModelResolver);
         solutionRegistry = new VisualStudioSolutionRegistry(projectPath, fileResolver, projectResolver, instantiator);
     }

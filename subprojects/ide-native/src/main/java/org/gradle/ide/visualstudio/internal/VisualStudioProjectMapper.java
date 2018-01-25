@@ -18,16 +18,23 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
 
+import java.util.List;
+
 public class VisualStudioProjectMapper {
 
-    public ProjectConfigurationNames mapToConfiguration(VisualStudioTargetBinary nativeBinary) {
-        String projectName = projectPrefix(nativeBinary) + nativeBinary.getComponentName() + nativeBinary.getProjectType().getSuffix();
-        String configurationName = makeName(nativeBinary.getVariantDimensions());
-        return new ProjectConfigurationNames(projectName, configurationName, "Win32");
+    public static String getProjectName(VisualStudioTargetBinary targetBinary) {
+        return getProjectName(targetBinary.getProjectPath(), targetBinary.getComponentName(), targetBinary.getProjectType());
     }
 
-    private String projectPrefix(VisualStudioTargetBinary nativeBinary) {
-        String projectPath = nativeBinary.getProjectPath();
+    public static String getProjectName(String projectPath, String componentName, VisualStudioTargetBinary.ProjectType type) {
+        return projectPrefix(projectPath) + componentName + type.getSuffix();
+    }
+
+    public static String getConfigurationName(List<String> variantDimensions) {
+        return makeName(variantDimensions);
+    }
+
+    private static String projectPrefix(String projectPath) {
         if (":".equals(projectPath)) {
             return "";
         }
@@ -46,17 +53,5 @@ public class VisualStudioProjectMapper {
             }
         }
         return builder.toString();
-    }
-
-    static class ProjectConfigurationNames {
-        public final String project;
-        public final String configuration;
-        public final String platform;
-
-        ProjectConfigurationNames(String project, String configuration, String platform) {
-            this.project = project;
-            this.configuration = configuration;
-            this.platform = platform;
-        }
     }
 }

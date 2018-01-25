@@ -20,12 +20,11 @@ import spock.lang.Specification
 
 class VisualStudioProjectConfigurationTest extends Specification {
     def exeBinary = Mock(VisualStudioTargetBinary)
-    def configuration = new VisualStudioProjectConfiguration(null,"configName", "platformName", exeBinary)
+    def configuration = new VisualStudioProjectConfiguration(null,"configName", exeBinary)
 
     def "configuration has supplied names"() {
         expect:
         configuration.configurationName == "configName"
-        configuration.platformName == "platformName"
-        configuration.name == "configName|platformName"
+        configuration.name == "configName|Win32"
     }
 }

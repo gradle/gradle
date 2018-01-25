@@ -21,14 +21,12 @@ import spock.lang.Specification
 import static org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary.ProjectType.*
 
 class VisualStudioProjectMapperTest extends Specification {
-    def mapper = new VisualStudioProjectMapper()
-
     def "maps executable binary types to visual studio project"() {
         when:
         def targetBinary = targetBinary(componentName: "exeName", projectType: EXE)
 
         then:
-        checkNames targetBinary, "exeNameExe", 'buildTypeOne', 'Win32'
+        checkNames targetBinary, "exeNameExe", 'buildTypeOne'
     }
 
     def "maps library binary types to visual studio projects"() {
@@ -36,7 +34,7 @@ class VisualStudioProjectMapperTest extends Specification {
         def targetBinary = targetBinary(componentName: "libName", projectType: type)
 
         then:
-        checkNames targetBinary, exepectedName, 'buildTypeOne', 'Win32'
+        checkNames targetBinary, exepectedName, 'buildTypeOne'
 
         where:
         type | exepectedName
@@ -49,7 +47,7 @@ class VisualStudioProjectMapperTest extends Specification {
         def targetBinary = targetBinary(projectPath: ":subproject:name")
 
         then:
-        checkNames targetBinary, "subproject_name_exeNameExe", 'buildTypeOne', 'Win32'
+        checkNames targetBinary, "subproject_name_exeNameExe", 'buildTypeOne'
     }
 
     def "uses single variant dimension for configuration name where not empty"() {
@@ -57,7 +55,7 @@ class VisualStudioProjectMapperTest extends Specification {
         def targetBinary = targetBinary(variantDimensions: ["flavorOne"])
 
         then:
-        checkNames targetBinary, "exeNameExe", 'flavorOne', 'Win32'
+        checkNames targetBinary, "exeNameExe", 'flavorOne'
     }
 
     def "includes variant dimensions in configuration where component has multiple dimensions"() {
@@ -65,7 +63,7 @@ class VisualStudioProjectMapperTest extends Specification {
         def targetBinary = targetBinary(variantDimensions: ["platformOne", "buildTypeOne", "flavorOne"])
 
         then:
-        checkNames targetBinary, "exeNameExe", 'platformOneBuildTypeOneFlavorOne', 'Win32'
+        checkNames targetBinary, "exeNameExe", 'platformOneBuildTypeOneFlavorOne'
     }
 
     private VisualStudioTargetBinary targetBinary(Map<String, ?> values) {
@@ -77,11 +75,9 @@ class VisualStudioProjectMapperTest extends Specification {
         return targetBinary
     }
 
-    private checkNames(def binary, def projectName, def configurationName, def platformName) {
-        def names = mapper.mapToConfiguration(binary)
-        assert names.project == projectName
-        assert names.configuration == configurationName
-        assert names.platform == platformName
+    private static checkNames(VisualStudioTargetBinary binary, def projectName, def configurationName) {
+        assert VisualStudioProjectMapper.getProjectName(binary) == projectName
+        assert VisualStudioProjectMapper.getConfigurationName(binary.getVariantDimensions()) == configurationName
         true
     }
 }

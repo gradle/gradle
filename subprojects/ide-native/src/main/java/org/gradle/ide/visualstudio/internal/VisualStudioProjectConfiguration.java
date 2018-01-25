@@ -16,20 +16,15 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import java.io.File;
-import java.util.List;
-
-//TODO: collapse this and VisualStudioTargetBinary - there doesn't seem to be a meaningful distinction between these two classes
 public class VisualStudioProjectConfiguration {
     private final DefaultVisualStudioProject vsProject;
     private final String configurationName;
-    private final String platformName;
+    private final String platformName = "Win32";
     private final VisualStudioTargetBinary binary;
 
-    public VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, VisualStudioTargetBinary binary) {
+    public VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, VisualStudioTargetBinary binary) {
         this.vsProject = vsProject;
         this.configurationName = configurationName;
-        this.platformName = platformName;
         this.binary = binary;
     }
 
@@ -45,28 +40,8 @@ public class VisualStudioProjectConfiguration {
         return platformName;
     }
 
-    public String getBuildTask() {
-        return binary.getBuildTaskPath();
-    }
-
-    public String getCleanTask() {
-        return binary.getCleanTaskPath();
-    }
-
-    public File getOutputFile() {
-        return binary.getOutputFile();
-    }
-
-    public boolean isDebug() {
-        return binary.isDebuggable();
-    }
-
-    public List<String> getCompilerDefines() {
-        return binary.getCompilerDefines();
-    }
-
-    public List<File> getIncludePaths() {
-        return binary.getIncludePaths();
+    public VisualStudioTargetBinary getTargetBinary() {
+        return binary;
     }
 
     public final String getType() {
@@ -75,9 +50,5 @@ public class VisualStudioProjectConfiguration {
 
     public DefaultVisualStudioProject getProject() {
         return vsProject;
-    }
-
-    public Iterable<VisualStudioTargetBinary> getDependencyBinaries() {
-        return binary.getDependencies();
     }
 }
