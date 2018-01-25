@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import org.gradle.build.UpdateReleasedVersions
 import org.gradle.build.ReleasedVersion
-import groovy.json.JsonSlurper
+import org.gradle.build.UpdateReleasedVersions
+import org.gradle.build.remote.DefaultRemoteGradleVersionResolver
+import org.gradle.build.remote.VersionType
 
 ext {
     releasedVersionsJsonFile = file('released-versions.json')
@@ -32,15 +33,8 @@ task updateReleasedVersions(type: UpdateReleasedVersions) {
 }
 
 task updateReleasedVersionsToLatestNightly(type: UpdateReleasedVersions) {
-    currentReleasedVersion = project.providers.provider { latestNightly() }
-}
-
-ReleasedVersion latestNightly() {
-    def nightlyVersion = new JsonSlurper().parseText(new URL('https://services.gradle.org/versions/nightly').text)
-
-    if (!nightlyVersion.empty) {
-        throw new GradleException('Released Gradle nightly version cannot be resolved')
+    currentReleasedVersion = project.providers.provider {
+        def nightlyVersion = new DefaultRemoteGradleVersionResolver().getVersionAsJson(VersionType.NIGHTLY)
+        new ReleasedVersion(nightlyVersion.version, nightlyVersion.buildTime)
     }
-
-    new ReleasedVersion(nightlyVersion.version, nightlyVersion.buildTime)
 }
