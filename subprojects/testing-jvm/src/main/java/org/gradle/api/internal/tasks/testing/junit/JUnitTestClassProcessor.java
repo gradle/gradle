@@ -30,13 +30,12 @@ import org.slf4j.LoggerFactory;
 
 public class JUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestClassProcessor.class);
-    private final ActorFactory actorFactory;
-    private Action<String> executor;
-    private Actor resultProcessorActor;
-
     protected final JUnitSpec spec;
     protected final IdGenerator<?> idGenerator;
     protected final Clock clock;
+    private final ActorFactory actorFactory;
+    private Action<String> executor;
+    private Actor resultProcessorActor;
 
     public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         this.idGenerator = idGenerator;
