@@ -16,9 +16,28 @@
 
 import org.gradle.build.UpdateReleasedVersions
 import org.gradle.build.ReleasedVersion
+import groovy.json.JsonSlurper
+
+ext {
+    releasedVersionsJsonFile = file('released-versions.json')
+}
+
+tasks.withType(UpdateReleasedVersions) {
+    releasedVersionsFile = releasedVersionsJsonFile
+}
 
 task updateReleasedVersions(type: UpdateReleasedVersions) {
-    releasedVersionsFile = file('released-versions.json')
     def currentReleasedVersionProperty = project.findProperty('currentReleasedVersion')
     currentReleasedVersion = currentReleasedVersionProperty ? new ReleasedVersion(currentReleasedVersionProperty, project.findProperty('currentReleasedVersionBuildTimestamp')) : null
+}
+
+task updateReleasedVersionsToLatestNightly(type: UpdateReleasedVersions) {
+    def latestNightlyVersion = latestNightly()
+    onlyIf { latestNightlyVersion }
+    currentReleasedVersion = latestNightlyVersion
+}
+
+ReleasedVersion latestNightly() {
+    def nightlyVersion = new JsonSlurper().parseText(new URL('https://services.gradle.org/versions/nightly').text)
+    nightlyVersion ? new ReleasedVersion(nightlyVersion.version, nightlyVersion.buildTime) : null
 }
