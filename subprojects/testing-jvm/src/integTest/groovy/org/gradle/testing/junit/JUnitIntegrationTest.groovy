@@ -16,7 +16,6 @@
 package org.gradle.testing.junit
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
@@ -32,7 +31,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-class JUnitIntegrationTest extends AbstractIntegrationSpec {
+class JUnitIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 
@@ -60,6 +59,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
 
     def suitesOutputIsVisible() {
         when:
+        assumeNotJUnitPlatform()
         executer.withTasks('test').run()
 
         then:
@@ -79,6 +79,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
 
     def testClassesCanBeSharedByMultipleSuites() {
         when:
+        assumeNotJUnitPlatform()
         executer.withTasks('test').run()
 
         then:
@@ -90,6 +91,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
 
     def canRunTestsUsingJUnit3() {
         when:
+        assumeNotJUnitPlatform()
         resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
         executer.withTasks('check').run()
 
@@ -386,6 +388,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
 
     def canListenForTestResultsWhenJUnit3IsUsed() {
         given:
+        assumeNotJUnitPlatform()
         testDirectory.file('src/test/java/SomeTest.java').writelns(
                 "public class SomeTest extends junit.framework.TestCase {",
                 "public void testPass() { }",

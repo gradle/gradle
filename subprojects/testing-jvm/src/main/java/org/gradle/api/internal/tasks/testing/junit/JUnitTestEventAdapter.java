@@ -39,10 +39,10 @@ public class JUnitTestEventAdapter extends RunListener {
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)", Pattern.DOTALL);
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
-    private final IdGenerator<?> idGenerator;
+    protected final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
-    private final Map<Description, TestDescriptorInternal> executing = new HashMap<Description, TestDescriptorInternal>();
-    private final Set<Description> assumptionFailed = new HashSet<Description>();
+    private final Map<Object, TestDescriptorInternal> executing = new HashMap<Object, TestDescriptorInternal>();
+    private final Set<Object> assumptionFailed = new HashSet<Object>();
 
     public JUnitTestEventAdapter(TestResultProcessor resultProcessor, Clock clock,
                                  IdGenerator<?> idGenerator) {
@@ -54,28 +54,38 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testStarted(Description description) throws Exception {
-        TestDescriptorInternal descriptor = nullSafeDescriptor(idGenerator.generateId(), description);
+        testStarted(description, nullSafeDescriptor(idGenerator.generateId(), description));
+    }
+
+    protected void testStarted(Object identifier, TestDescriptorInternal descriptor) {
         synchronized (lock) {
-            TestDescriptorInternal oldTest = executing.put(description, descriptor);
-            assert oldTest == null : String.format("Unexpected start event for %s", description);
+            TestDescriptorInternal oldTest = executing.put(identifier, descriptor);
+            assert oldTest == null : String.format("Unexpected start event for %s", identifier);
         }
         resultProcessor.started(descriptor, startEvent());
     }
 
     @Override
     public void testFailure(Failure failure) throws Exception {
+        testFailure(failure.getDescription(), nullSafeDescriptor(idGenerator.generateId(), failure.getDescription()), failure.getException());
+    }
+
+    protected void testFailure(Object identifier, TestDescriptorInternal descriptor, Throwable exception) {
+        if (descriptor == null) {
+            return;
+        }
         TestDescriptorInternal testInternal;
         synchronized (lock) {
-            testInternal = executing.get(failure.getDescription());
+            testInternal = executing.get(identifier);
         }
         boolean needEndEvent = false;
         if (testInternal == null) {
             // This can happen when, for example, a @BeforeClass or @AfterClass method fails
             needEndEvent = true;
-            testInternal = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
+            testInternal = descriptor;
             resultProcessor.started(testInternal, startEvent());
         }
-        resultProcessor.failure(testInternal.getId(), failure.getException());
+        resultProcessor.failure(testInternal.getId(), exception);
         if (needEndEvent) {
             resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }
@@ -83,8 +93,12 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testAssumptionFailure(Failure failure) {
+        testAssumptionFailure(failure.getDescription());
+    }
+
+    protected void testAssumptionFailure(Object identifier){
         synchronized (lock) {
-            assumptionFailed.add(failure.getDescription());
+            assumptionFailed.add(identifier);
         }
     }
 
@@ -94,12 +108,14 @@ public class JUnitTestEventAdapter extends RunListener {
             // An @Ignored class, ignore the event. We don't get testIgnored events for each method, so we have
             // generate them on our own
             processIgnoredClass(description);
-            return;
+        } else {
+            testIgnored(descriptor(idGenerator.generateId(), description));
         }
+    }
 
-        TestDescriptorInternal testInternal = descriptor(idGenerator.generateId(), description);
-        resultProcessor.started(testInternal, startEvent());
-        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
+    protected void testIgnored(TestDescriptorInternal descriptor) {
+        resultProcessor.started(descriptor, startEvent());
+        resultProcessor.completed(descriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
     }
 
     private void processIgnoredClass(Description description) throws Exception {
@@ -112,18 +128,22 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testFinished(Description description) throws Exception {
+        testFinished((Object) description);
+    }
+
+    protected void testFinished(Object identifier) {
         long endTime = clock.getCurrentTime();
         TestDescriptorInternal testInternal;
         TestResult.ResultType resultType;
         synchronized (lock) {
-            testInternal = executing.remove(description);
+            testInternal = executing.remove(identifier);
             if (testInternal == null && executing.size() == 1) {
                 // Assume that test has renamed itself (this can actually happen)
                 testInternal = executing.values().iterator().next();
                 executing.clear();
             }
-            assert testInternal != null : String.format("Unexpected end event for %s", description);
-            resultType = assumptionFailed.remove(description) ? TestResult.ResultType.SKIPPED : null;
+            assert testInternal != null : String.format("Unexpected end event for %s", identifier);
+            resultType = assumptionFailed.remove(identifier) ? TestResult.ResultType.SKIPPED : null;
         }
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
     }

@@ -31,7 +31,9 @@ if (java7Home) {
     javaGroovyCompileTasks.all {
         options.with {
             fork = true
-            forkOptions.javaHome = jvmForCompilation.javaHome
+            if (project.name != 'testingJunitPlatform') {
+                forkOptions.javaHome = jvmForCompilation.javaHome
+            }
         }
     }
 }

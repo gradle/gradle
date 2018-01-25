@@ -21,8 +21,8 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-class JUnitTestClassDetector extends TestClassVisitor {
-    JUnitTestClassDetector(final TestFrameworkDetector detector) {
+public class JUnitTestClassDetector extends TestClassVisitor {
+    public JUnitTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
     }
 
@@ -56,6 +56,4 @@ class JUnitTestClassDetector extends TestClassVisitor {
             return null;
         }
     }
-
-
 }

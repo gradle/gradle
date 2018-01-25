@@ -15,12 +15,12 @@
  */
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.testing.junit.JUnitBasicMultiVersionIntegrationSpec
 import org.junit.Rule
 
-class IncrementalTestIntegrationTest extends AbstractIntegrationSpec {
+class IncrementalTestIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
 
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
 

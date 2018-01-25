@@ -15,15 +15,15 @@
  */
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.testing.junit.JUnitBasicMultiVersionIntegrationSpec
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
 
 @Issue("GRADLE-1009")
-public class TestOutputListenerIntegrationTest extends AbstractIntegrationSpec {
+public class TestOutputListenerIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
     @Before
@@ -169,6 +169,7 @@ test.testLogging {
     @Test
     def "shows standard stream also for testNG"() {
         given:
+        assumeNotJUnitPlatform()
         def test = file("src/test/java/SomeTest.java")
         test << """
 import org.testng.*;

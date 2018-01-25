@@ -16,8 +16,12 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.*
+import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.testing.junit.JUnitBasicMultiVersionIntegrationSpec
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -25,7 +29,7 @@ import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.*
 
-class TestReportIntegrationTest extends AbstractIntegrationSpec {
+class TestReportIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
     @Rule Sample sample = new Sample(temporaryFolder)
 
     def "report includes results of most recent invocation"() {
@@ -82,9 +86,10 @@ public class LoggingTest {
         htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from UtilTest.\n"))
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "merges report with duplicated classes and methods"() {
         given:
+        assumeNotJUnitPlatform()
         buildFile << """
 $junitSetup
 test {
