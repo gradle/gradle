@@ -136,6 +136,11 @@ public class VersionSelectionReasons {
         }
 
         @Override
+        public boolean isConstrained() {
+            return hasCause(ComponentSelectionCause.CONSTRAINT);
+        }
+
+        @Override
         public boolean hasCustomDescriptions() {
             for (ComponentSelectionDescriptorInternal description : descriptions) {
                 if (description.hasCustomDescription()) {

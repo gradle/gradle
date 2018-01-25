@@ -58,7 +58,12 @@ public enum ComponentSelectionCause {
     /**
      * This component was selected because another version was rejected by a rule
      */
-    REJECTION("rejection");
+    REJECTION("rejection"),
+
+    /**
+     * This component was selected because of a dependency constraint
+     */
+    CONSTRAINT("constraint");
 
     private final String defaultReason;
 
