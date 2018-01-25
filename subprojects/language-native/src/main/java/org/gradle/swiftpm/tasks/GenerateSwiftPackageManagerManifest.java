@@ -19,8 +19,12 @@ package org.gradle.swiftpm.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.swiftpm.Product;
+import org.gradle.swiftpm.internal.DefaultExecutableProduct;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -29,6 +33,12 @@ import java.io.PrintWriter;
 
 public class GenerateSwiftPackageManagerManifest extends DefaultTask {
     private final RegularFileProperty manifestFile = newOutputFile();
+    private final SetProperty<Product> products = getProject().getObjects().setProperty(Product.class);
+
+    @Input
+    public SetProperty<Product> getProducts() {
+        return products;
+    }
 
     @OutputFile
     public RegularFileProperty getManifestFile() {
@@ -49,7 +59,29 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                 writer.println("import PackageDescription");
                 writer.println();
                 writer.println("let package = Package(");
-                writer.println("  name: \"" + getProject().getName() + "\"");
+                writer.println("    name: \"" + getProject().getName() + "\",");
+                writer.println("    products: [");
+                for (Product product : products.get()) {
+                    if (product instanceof DefaultExecutableProduct) {
+                        writer.print("        .executable(");
+                    } else {
+                        writer.print("        .library(");
+                    }
+                    writer.print("name: \"");
+                    writer.print(product.getName());
+                    writer.print("\", targets: [\"");
+                    writer.print(product.getName());
+                    writer.println("\"]),");
+                }
+                writer.println("    ],");
+                writer.println("    targets: [");
+                for (Product product : products.get()) {
+                    writer.print("        .target(");
+                    writer.print("name: \"");
+                    writer.print(product.getName());
+                    writer.println("\"),");
+                }
+                writer.println("    ]");
                 writer.println(")");
             } finally {
                 writer.close();
