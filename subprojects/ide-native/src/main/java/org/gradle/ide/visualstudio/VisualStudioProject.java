@@ -16,8 +16,10 @@
 
 package org.gradle.ide.visualstudio;
 
-import org.gradle.api.BuildableComponentSpec;
+import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A visual studio project, created from one or more {@link org.gradle.nativeplatform.NativeBinary} instances.
@@ -43,8 +45,8 @@ import org.gradle.api.Incubating;
  * </pre>
  */
 @Incubating
-public interface VisualStudioProject extends BuildableComponentSpec {
-
+@HasInternalProtocol
+public interface VisualStudioProject extends Named, Buildable {
     /**
      * Configuration for the generated project file.
      */
@@ -54,11 +56,4 @@ public interface VisualStudioProject extends BuildableComponentSpec {
      * Configuration for the generated filters file.
      */
     XmlConfigFile getFiltersFile();
-
-    /**
-     * Returns the name of the component associated with this project
-     *
-     * @since 4.6
-     */
-    String getComponentName();
 }

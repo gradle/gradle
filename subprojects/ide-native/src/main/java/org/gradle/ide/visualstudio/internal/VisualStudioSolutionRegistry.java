@@ -18,16 +18,13 @@ package org.gradle.ide.visualstudio.internal;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 public class VisualStudioSolutionRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioSolution> {
-    private final String projectPath;
     private final FileResolver fileResolver;
     private final VisualStudioProjectResolver projectResolver;
 
-    public VisualStudioSolutionRegistry(String projectPath, FileResolver fileResolver, VisualStudioProjectResolver projectResolver, Instantiator instantiator) {
+    public VisualStudioSolutionRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver, Instantiator instantiator) {
         super(DefaultVisualStudioSolution.class, instantiator);
-        this.projectPath = projectPath;
         this.fileResolver = fileResolver;
         this.projectResolver = projectResolver;
     }
@@ -40,7 +37,7 @@ public class VisualStudioSolutionRegistry extends DefaultNamedDomainObjectSet<De
         }
 
         DefaultVisualStudioSolution solution = getInstantiator().newInstance(
-                DefaultVisualStudioSolution.class, new DefaultComponentSpecIdentifier(projectPath, visualStudioProject.getName()), visualStudioProject, fileResolver, projectResolver, getInstantiator());
+                DefaultVisualStudioSolution.class, visualStudioProject.getName(), visualStudioProject, fileResolver, projectResolver, getInstantiator());
         add(solution);
     }
 }

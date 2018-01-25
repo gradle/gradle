@@ -57,7 +57,7 @@ public class VisualStudioPlugin extends IdePlugin {
     protected void onApply(Project target) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
-        project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, target.getPath(), instantiator, projectModelResolver, fileResolver);
+        project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, projectModelResolver, fileResolver);
 
         project.getPluginManager().withPlugin("org.gradle.component-model-base", new Action<AppliedPlugin>() {
             @Override

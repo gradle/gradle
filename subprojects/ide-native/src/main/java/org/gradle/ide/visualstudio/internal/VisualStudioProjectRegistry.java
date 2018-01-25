@@ -20,18 +20,15 @@ import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 
 import static org.gradle.ide.visualstudio.internal.VisualStudioProjectMapper.getConfigurationName;
 import static org.gradle.ide.visualstudio.internal.VisualStudioProjectMapper.getProjectName;
 
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
-    private final String projectPath;
     private final FileResolver fileResolver;
 
-    public VisualStudioProjectRegistry(String projectPath, FileResolver fileResolver, Instantiator instantiator) {
+    public VisualStudioProjectRegistry(FileResolver fileResolver, Instantiator instantiator) {
         super(DefaultVisualStudioProject.class, instantiator);
-        this.projectPath = projectPath;
         this.fileResolver = fileResolver;
     }
 
@@ -54,7 +51,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     private DefaultVisualStudioProject getOrCreateProject(String projectPath, String vsProjectName, String componentName) {
         DefaultVisualStudioProject vsProject = findByName(vsProjectName);
         if (vsProject == null) {
-            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, new DefaultComponentSpecIdentifier(this.projectPath, vsProjectName), projectPath, componentName, fileResolver, getInstantiator());
+            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, vsProjectName, projectPath, componentName, fileResolver, getInstantiator());
             add(vsProject);
         }
         return vsProject;

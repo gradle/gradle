@@ -29,6 +29,8 @@ import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
 import org.gradle.ide.visualstudio.internal.NativeSpecVisualStudioTargetBinary;
 import org.gradle.ide.visualstudio.internal.VisualStudioExtensionInternal;
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration;
+import org.gradle.ide.visualstudio.internal.VisualStudioProjectInternal;
+import org.gradle.ide.visualstudio.internal.VisualStudioSolutionInternal;
 import org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask;
@@ -71,22 +73,22 @@ class VisualStudioPluginRules extends RuleSource {
     @Mutate
     public static void createTasksForVisualStudio(TaskContainer tasks, VisualStudioExtensionInternal visualStudioExtension) {
         for (VisualStudioProject vsProject : visualStudioExtension.getProjects()) {
-            vsProject.builtBy(createProjectsFileTask(tasks, vsProject));
-            vsProject.builtBy(createFiltersFileTask(tasks, vsProject));
+            ((VisualStudioProjectInternal)vsProject).builtBy(createProjectsFileTask(tasks, vsProject), createFiltersFileTask(tasks, vsProject));
         }
 
-        for (VisualStudioSolution vsSolution : visualStudioExtension.getSolutions()) {
+        for (VisualStudioSolution solution : visualStudioExtension.getSolutions()) {
+            VisualStudioSolutionInternal vsSolution = (VisualStudioSolutionInternal) solution;
+
             Task solutionTask = tasks.create(vsSolution.getName() + "VisualStudio");
             solutionTask.setDescription("Generates the '" + vsSolution.getName() + "' Visual Studio solution file.");
-            vsSolution.setBuildTask(solutionTask);
-            vsSolution.builtBy(createSolutionTask(tasks, vsSolution));
+            solutionTask.dependsOn(createSolutionTask(tasks, vsSolution));
+            vsSolution.builtBy(solutionTask);
 
             // Lifecycle task for component
             final Task lifecycleTask = tasks.maybeCreate(vsSolution.getComponentName() + "VisualStudio");
             lifecycleTask.dependsOn(vsSolution);
             lifecycleTask.setGroup("IDE");
             lifecycleTask.setDescription("Generates the Visual Studio solution for " + vsSolution.getName() + ".");
-
         }
 
         addCleanTask(tasks);

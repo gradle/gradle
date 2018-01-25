@@ -23,7 +23,6 @@ import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -165,7 +164,7 @@ EndGlobal
     private DefaultVisualStudioProject createProject(String projectName) {
         final project1File = new File(projectName)
         fileResolver.resolve("${projectName}.vcxproj") >> project1File
-        return new DefaultVisualStudioProject(new DefaultComponentSpecIdentifier(":project", projectName), binary1.projectPath, binary1.getComponentName(), fileResolver, instantiator)
+        return new DefaultVisualStudioProject(projectName, binary1.projectPath, binary1.getComponentName(), fileResolver, instantiator)
     }
 
     private VisualStudioTargetBinary binary(def name) {

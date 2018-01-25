@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.NativeComponentSpec
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultVisualStudioProjectTest extends Specification {
@@ -32,7 +31,7 @@ class DefaultVisualStudioProjectTest extends Specification {
     def vsProject = project("projectName")
 
     def project(String vsProjectName, NativeComponentSpec component = component) {
-        new DefaultVisualStudioProject(new DefaultComponentSpecIdentifier(":", vsProjectName), component.projectPath, component.getName(), fileResolver, instantiator)
+        new DefaultVisualStudioProject(vsProjectName, component.projectPath, component.getName(), fileResolver, instantiator)
     }
 
     def "names"() {

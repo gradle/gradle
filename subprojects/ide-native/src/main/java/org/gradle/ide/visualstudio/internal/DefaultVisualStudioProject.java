@@ -18,12 +18,11 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.internal.AbstractBuildableComponentSpec;
-import org.gradle.ide.visualstudio.VisualStudioProject;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.visualstudio.XmlConfigFile;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -38,16 +37,18 @@ import java.util.UUID;
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
-public class DefaultVisualStudioProject extends AbstractBuildableComponentSpec implements VisualStudioProject {
+public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     private final DefaultConfigFile projectFile;
     private final DefaultConfigFile filtersFile;
+    private final String name;
     private final String projectPath;
     private final String componentName;
     private final List<File> additionalFiles = new ArrayList<File>();
     private final Map<VisualStudioTargetBinary, VisualStudioProjectConfiguration> configurations = new LinkedHashMap<VisualStudioTargetBinary, VisualStudioProjectConfiguration>();
+    private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
 
-    public DefaultVisualStudioProject(ComponentSpecIdentifier componentIdentifier, String projectPath, String componentName, PathToFileResolver fileResolver, Instantiator instantiator) {
-        super(componentIdentifier, VisualStudioProject.class);
+    public DefaultVisualStudioProject(String name, String projectPath, String componentName, PathToFileResolver fileResolver, Instantiator instantiator) {
+        this.name = name;
         this.projectPath = projectPath;
         this.componentName = componentName;
         projectFile = instantiator.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj");
@@ -114,6 +115,21 @@ public class DefaultVisualStudioProject extends AbstractBuildableComponentSpec i
 
     public VisualStudioProjectConfiguration getConfiguration(VisualStudioTargetBinary nativeBinary) {
         return configurations.get(nativeBinary);
+    }
+
+    @Override
+    public void builtBy(Object... tasks) {
+        buildDependencies.add(tasks);
+    }
+
+    @Override
+    public TaskDependency getBuildDependencies() {
+        return buildDependencies;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     public static class DefaultConfigFile implements XmlConfigFile {

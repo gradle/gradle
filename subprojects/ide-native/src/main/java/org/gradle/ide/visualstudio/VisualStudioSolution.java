@@ -16,10 +16,10 @@
 
 package org.gradle.ide.visualstudio;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
-import org.gradle.api.BuildableComponentSpec;
-
-import java.util.Set;
+import org.gradle.api.Named;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A visual studio solution, representing one or more {@link org.gradle.nativeplatform.NativeBinarySpec} instances
@@ -45,19 +45,8 @@ import java.util.Set;
  * </pre>
  */
 @Incubating
-public interface VisualStudioSolution extends BuildableComponentSpec {
-    /**
-     * The set of projects included in this solution.
-     */
-    Set<VisualStudioProject> getProjects();
-
-    /**
-     * The name of the component associated with this solution.
-     *
-     * @since 4.6
-     */
-    String getComponentName();
-
+@HasInternalProtocol
+public interface VisualStudioSolution extends Named, Buildable {
     /**
      * Configuration for the generated solution file.
      */

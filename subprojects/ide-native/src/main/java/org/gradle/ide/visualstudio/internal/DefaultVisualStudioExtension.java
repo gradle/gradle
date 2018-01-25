@@ -26,10 +26,10 @@ public class DefaultVisualStudioExtension implements VisualStudioExtensionIntern
     private final VisualStudioProjectRegistry projectRegistry;
     private final VisualStudioSolutionRegistry solutionRegistry;
 
-    public DefaultVisualStudioExtension(String projectPath, Instantiator instantiator, ProjectModelResolver projectModelResolver, FileResolver fileResolver) {
-        projectRegistry = new VisualStudioProjectRegistry(projectPath, fileResolver, instantiator);
+    public DefaultVisualStudioExtension(Instantiator instantiator, ProjectModelResolver projectModelResolver, FileResolver fileResolver) {
+        projectRegistry = new VisualStudioProjectRegistry(fileResolver, instantiator);
         VisualStudioProjectResolver projectResolver = new VisualStudioProjectResolver(projectModelResolver);
-        solutionRegistry = new VisualStudioSolutionRegistry(projectPath, fileResolver, projectResolver, instantiator);
+        solutionRegistry = new VisualStudioSolutionRegistry(fileResolver, projectResolver, instantiator);
     }
 
     @Override
