@@ -24,9 +24,11 @@ import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.exceptions.LocationAwareException
 
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
+import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.compilerMessageFor
 
 import org.gradle.plugin.management.internal.PluginRequests
@@ -210,27 +212,41 @@ class KotlinBuildScriptCompiler(
 
     private
     fun compileBuildscriptBlock(buildscriptRange: IntRange, scriptTemplate: KClass<*>) =
-        kotlinCompiler.compileBuildscriptBlockOf(
-            scriptTemplate,
-            scriptPath,
-            script.linePreservingSubstring(buildscriptRange),
-            buildscriptBlockCompilationClassPath)
+        withKotlinCompiler {
+            compileBuildscriptBlockOf(
+                scriptTemplate,
+                scriptPath,
+                script.linePreservingSubstring(buildscriptRange),
+                buildscriptBlockCompilationClassPath)
+        }
 
     private
     fun compilePluginsBlock(pluginsRange: IntRange, scriptTemplate: KClass<*>) =
-        kotlinCompiler.compilePluginsBlockOf(
-            scriptTemplate,
-            scriptPath,
-            script.linePreservingSubstring_(pluginsRange),
-            pluginsBlockCompilationClassPath)
+        withKotlinCompiler {
+            compilePluginsBlockOf(
+                scriptTemplate,
+                scriptPath,
+                script.linePreservingSubstring_(pluginsRange),
+                pluginsBlockCompilationClassPath)
+        }
 
     private
     fun compileScriptFileFor(classPath: ClassPath) =
-        kotlinCompiler.compileGradleScript(
-            scriptTarget.scriptTemplate,
-            scriptPath,
-            script,
-            classPath)
+        withKotlinCompiler {
+            compileGradleScript(
+                scriptTarget.scriptTemplate,
+                scriptPath,
+                script,
+                classPath)
+        }
+
+    private
+    fun <T> withKotlinCompiler(action: CachingKotlinCompiler.() -> T): T =
+        try {
+            kotlinCompiler.action()
+        } catch (e: ScriptCompilationException) {
+            throw LocationAwareException(e, scriptSource, e.firstErrorLine)
+        }
 
     private
     fun classFrom(compiledScript: CachingKotlinCompiler.CompiledScript, scope: ClassLoaderScope): Class<*> =

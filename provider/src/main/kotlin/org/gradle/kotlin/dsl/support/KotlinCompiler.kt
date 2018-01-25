@@ -57,7 +57,7 @@ fun compileKotlinScriptToDirectory(
     scriptFile: File,
     scriptDef: KotlinScriptDefinition,
     classPath: List<File>,
-    messageCollector: MessageCollector): String =
+    messageCollector: LoggingMessageCollector): String =
 
     withRootDisposable { rootDisposable ->
 
@@ -74,8 +74,9 @@ fun compileKotlinScriptToDirectory(
             val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable).apply {
                 HasImplicitReceiverCompilerPlugin.apply(project)
             }
+
             compileBunchOfSources(environment)
-                || throw IllegalStateException("Internal error: unable to compile script, see log for details")
+                || throw ScriptCompilationException(messageCollector.errors)
 
             NameUtils.getScriptNameForFile(scriptFile.name).asString()
         }
@@ -204,44 +205,90 @@ fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposabl
 
 
 internal
-fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it }): MessageCollector =
+fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it }): LoggingMessageCollector =
+    LoggingMessageCollector(log, pathTranslation)
 
-    object : MessageCollector {
 
-        var errors = 0
+internal
+data class ScriptCompilationError(val message: String, val location: CompilerMessageLocation?)
 
-        override fun hasErrors() = errors > 0
 
-        override fun clear() { errors = 0 }
-
-        override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
-
-            fun msg() =
-                location?.run {
-                    path.let(pathTranslation).let { path ->
-                        when {
-                            line >= 0 && column >= 0 -> compilerMessageFor(path, line, column, message)
-                            else -> "$path: $message"
-                        }
-                    }
-                } ?: message
-
-            fun taggedMsg() =
-                "${severity.presentableName[0]}: ${msg()}"
-
-            when (severity) {
-                CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> {
-                    errors++
-                    log.error { taggedMsg() }
+internal
+data class ScriptCompilationException(val errors: List<ScriptCompilationError>) : RuntimeException() {
+    override val message: String?
+        get() {
+            val errorPlural = if (errors.size > 1) "errors" else "error"
+            val maxLineNumberLen = errors.mapNotNull { it.location?.line }.max().toString().length
+            return (listOf("Script compilation $errorPlural:") + errors.map { error ->
+                if (error.location != null) {
+                    "Line ${error.location.line.toString().padStart(maxLineNumberLen, '0')}: ${error.location.lineContent}\n" +
+                        "${" ".repeat(5 + maxLineNumberLen + 1 + error.location.column)}^- ${error.message}"
+                } else {
+                    error.message
                 }
-                in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
-                CompilerMessageSeverity.STRONG_WARNING -> log.info { taggedMsg() }
-                CompilerMessageSeverity.WARNING -> log.info { taggedMsg() }
-                CompilerMessageSeverity.INFO -> log.info { msg() }
-                else -> log.debug { taggedMsg() }
+            }.map { it.prependIndent("  ") } + "${errors.size} $errorPlural").joinToString("\n\n")
+        }
+
+    val firstErrorLine
+        get() = errors.firstOrNull { it.location != null }?.location!!.line
+}
+
+
+internal
+class LoggingMessageCollector(
+    private val log: Logger,
+    private val pathTranslation: (String) -> String) : MessageCollector {
+
+    val errors = arrayListOf<ScriptCompilationError>()
+
+    override fun hasErrors() =
+        synchronized(errors) {
+            errors.isNotEmpty()
+        }
+
+    override fun clear() =
+        synchronized(errors) {
+            errors.clear()
+        }
+
+    override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
+
+        fun msg() =
+            location?.run {
+                path.let(pathTranslation).let { path ->
+                    when {
+                        line >= 0 && column >= 0 -> compilerMessageFor(path, line, column, message)
+                        else -> "$path: $message"
+                    }
+                }
+            } ?: message
+
+        fun taggedMsg() =
+            "${severity.presentableName[0]}: ${msg()}"
+
+        when (severity) {
+            CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> {
+                recordError(message, location)
+                log.error { taggedMsg() }
             }
+            in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
+            CompilerMessageSeverity.STRONG_WARNING -> log.info { taggedMsg() }
+            CompilerMessageSeverity.WARNING -> log.info { taggedMsg() }
+            CompilerMessageSeverity.INFO -> log.info { msg() }
+            else -> log.debug { taggedMsg() }
         }
     }
+
+    /**
+     * Safely record a script compilation error.
+     * There'are no guarantee that `MessageCollector`s are not invoked concurrently.
+     */
+    private
+    fun recordError(message: String, location: CompilerMessageLocation?) =
+        synchronized(errors) {
+            errors += ScriptCompilationError(message, location)
+        }
+}
 
 
 internal

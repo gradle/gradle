@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.cache.CacheOpenException
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 
@@ -24,9 +25,10 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
 
-import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
+import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.messageCollectorFor
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
@@ -34,6 +36,7 @@ import org.jetbrains.kotlin.script.KotlinScriptDefinition
 import java.io.File
 
 import kotlin.reflect.KClass
+
 import kotlin.script.dependencies.Environment
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.experimental.dependencies.DependenciesResolver
@@ -126,12 +129,16 @@ class CachingKotlinCompiler(
         classPath: ClassPath,
         compilationSpecFor: (File) -> ScriptCompilationSpec): CompiledScript {
 
-        val cacheDir = cacheDirFor(cacheKeySpec + classPath) {
-            val scriptClassName =
-                compileScriptTo(classesDirOf(baseDir), compilationSpecFor(baseDir), classPath)
-            writeClassNameTo(baseDir, scriptClassName)
+        try {
+            val cacheDir = cacheDirFor(cacheKeySpec + classPath) {
+                val scriptClassName =
+                    compileScriptTo(classesDirOf(baseDir), compilationSpecFor(baseDir), classPath)
+                writeClassNameTo(baseDir, scriptClassName)
+            }
+            return CompiledScript(classesDirOf(cacheDir), readClassNameFrom(cacheDir))
+        } catch (e: CacheOpenException) {
+            throw e.cause as? ScriptCompilationException ?: e
         }
-        return CompiledScript(classesDirOf(cacheDir), readClassNameFrom(cacheDir))
     }
 
     data class ScriptCompilationSpec(

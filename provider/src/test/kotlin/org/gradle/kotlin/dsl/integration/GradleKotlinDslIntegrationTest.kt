@@ -13,6 +13,8 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.jetbrains.kotlin.preprocessor.convertLineSeparators
+
 import org.junit.Assert.assertNotEquals
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -583,6 +585,59 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         assertThat(
             build("-PprojectProperty=42").output,
             containsString("*42*"))
+    }
+
+    @Test
+    fun `script compilation error message`() {
+
+        val buildFile =
+            withBuildScript("foo")
+
+        assertThat(
+            buildFailureOutput().convertLineSeparators(),
+            containsString("""
+                FAILURE: Build failed with an exception.
+
+                * Where:
+                Build file '${buildFile.canonicalPath}' line: 1
+
+                * What went wrong:
+                Script compilation error:
+
+                  Line 1: foo
+                          ^- Unresolved reference: foo
+
+                1 error
+            """.replaceIndent())
+        )
+    }
+
+    @Test
+    fun `multiple script compilation errors message`() {
+        val buildFile = withBuildScript("println(foo)\n\n\n\n\nprintln(\"foo\").bar.bazar\n\n\n\nprintln(cathedral)")
+
+        assertThat(
+            buildFailureOutput().convertLineSeparators(),
+            containsString("""
+                FAILURE: Build failed with an exception.
+
+                * Where:
+                Build file '${buildFile.canonicalPath}' line: 1
+
+                * What went wrong:
+                Script compilation errors:
+
+                  Line 01: println(foo)
+                                   ^- Unresolved reference: foo
+
+                  Line 06: println("foo").bar.bazar
+                                          ^- Unresolved reference: bar
+
+                  Line 10: println(cathedral)
+                                   ^- Unresolved reference: cathedral
+
+                3 errors
+            """.replaceIndent()))
     }
 
     private
