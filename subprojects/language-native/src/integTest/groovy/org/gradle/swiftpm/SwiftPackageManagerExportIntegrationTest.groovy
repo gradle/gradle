@@ -85,7 +85,7 @@ import PackageDescription
 let package = Package(
     name: "test",
     products: [
-        .library(name: "Test", targets: ["Test"]),
+        .library(name: "test", targets: ["Test"]),
     ],
     targets: [
         .target(
@@ -180,9 +180,9 @@ import PackageDescription
 let package = Package(
     name: "test",
     products: [
-        .executable(name: "Test", targets: ["Test"]),
-        .library(name: "Lib1", targets: ["Lib1"]),
-        .library(name: "Lib2", targets: ["Lib2"]),
+        .executable(name: "test", targets: ["Test"]),
+        .library(name: "lib1", targets: ["Lib1"]),
+        .library(name: "lib2", targets: ["Lib2"]),
     ],
     targets: [
         .target(
@@ -320,7 +320,7 @@ let package = Package(
             }
             dependencies {
                 api "test:lib1:1.0"
-                implementation "test:lib2:1.0"
+                implementation "test:lib2:2.0"
             }
 """
         def app = new SwiftAppWithLibraries()
@@ -339,7 +339,11 @@ import PackageDescription
 let package = Package(
     name: "test",
     products: [
-        .library(name: "Test", targets: ["Test"]),
+        .library(name: "test", targets: ["Test"]),
+    ],
+    dependencies: [
+        .package(url: "repos/lib2", from: "2.0"),
+        .package(url: "repos/lib1", from: "1.0"),
     ],
     targets: [
         .target(

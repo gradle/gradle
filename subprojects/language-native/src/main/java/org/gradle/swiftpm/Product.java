@@ -17,10 +17,12 @@
 package org.gradle.swiftpm;
 
 import org.gradle.api.Named;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A product in a Swift Package Manager package.
  */
+@HasInternalProtocol
 public interface Product extends Named {
     /**
      * Returns the name of this product.

@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.swiftpm.internal;
+package org.gradle.swiftpm;
 
-import org.gradle.api.file.FileCollection;
+import org.gradle.internal.HasInternalProtocol;
 
-import java.io.File;
-import java.util.Collection;
+import java.util.Set;
 
-public class DefaultExecutableProduct extends AbstractProduct {
-    public DefaultExecutableProduct(String name, String targetName, File path, FileCollection sourceFiles, Collection<String> dependencies) {
-        super(name, targetName, path, sourceFiles, dependencies);
-    }
-
-    @Override
-    public boolean isExecutable() {
-        return true;
-    }
+/**
+ * Represents a Swift Package Manager package.
+ */
+@HasInternalProtocol
+public interface Package {
+    /**
+     * Returns the products of this package.
+     */
+    Set<? extends Product> getProducts();
 }

@@ -16,18 +16,23 @@
 
 package org.gradle.swiftpm.internal;
 
-import org.gradle.api.file.FileCollection;
+import java.io.Serializable;
+import java.net.URI;
 
-import java.io.File;
-import java.util.Collection;
+public class Dependency implements Serializable {
+    private final URI url;
+    private final String version;
 
-public class DefaultExecutableProduct extends AbstractProduct {
-    public DefaultExecutableProduct(String name, String targetName, File path, FileCollection sourceFiles, Collection<String> dependencies) {
-        super(name, targetName, path, sourceFiles, dependencies);
+    public Dependency(URI url, String version) {
+        this.url = url;
+        this.version = version;
     }
 
-    @Override
-    public boolean isExecutable() {
-        return true;
+    public URI getUrl() {
+        return url;
+    }
+
+    public String getVersion() {
+        return version;
     }
 }

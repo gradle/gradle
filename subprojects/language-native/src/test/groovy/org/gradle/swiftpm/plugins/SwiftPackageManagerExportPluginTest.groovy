@@ -52,7 +52,7 @@ class SwiftPackageManagerExportPluginTest extends Specification {
 
         expect:
         def generateManifest = project.tasks['generateSwiftPmManifest']
-        def products = generateManifest.products.get()
+        def products = generateManifest.package.get().products
         products.name == ["app1", "app2"]
         products.every { it instanceof DefaultExecutableProduct }
     }
@@ -69,8 +69,9 @@ class SwiftPackageManagerExportPluginTest extends Specification {
 
         expect:
         def generateManifest = project.tasks['generateSwiftPmManifest']
-        def products = generateManifest.products.get()
+        def products = generateManifest.package.get().products
         products.name == ["lib1", "lib2"]
+        products.targetName == ["lib1", "lib2"]
         products.every { it instanceof DefaultLibraryProduct }
     }
 
@@ -86,8 +87,9 @@ class SwiftPackageManagerExportPluginTest extends Specification {
 
         expect:
         def generateManifest = project.tasks['generateSwiftPmManifest']
-        def products = generateManifest.products.get()
-        products.name == ["App1", "App2"]
+        def products = generateManifest.package.get().products
+        products.name == ["app1", "app2"]
+        products.targetName == ["App1", "App2"]
         products.every { it instanceof DefaultExecutableProduct }
     }
 
@@ -103,8 +105,9 @@ class SwiftPackageManagerExportPluginTest extends Specification {
 
         expect:
         def generateManifest = project.tasks['generateSwiftPmManifest']
-        def products = generateManifest.products.get()
-        products.name == ["Lib1", "Lib2"]
+        def products = generateManifest.package.get().products
+        products.name == ["lib1", "lib2"]
+        products.targetName == ["Lib1", "Lib2"]
         products.every { it instanceof DefaultLibraryProduct }
     }
 
@@ -118,8 +121,8 @@ class SwiftPackageManagerExportPluginTest extends Specification {
 
         expect:
         def generateManifest = project.tasks['generateSwiftPmManifest']
-        def products = generateManifest.products.get()
-        products.name == ["TestLib"]
+        def products = generateManifest.package.get().products
+        products.name == ["testLib"]
     }
 
 }
