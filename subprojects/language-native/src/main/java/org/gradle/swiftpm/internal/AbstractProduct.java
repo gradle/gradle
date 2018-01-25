@@ -22,17 +22,19 @@ import org.gradle.swiftpm.Product;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Set;
+import java.util.Collection;
 
 public abstract class AbstractProduct implements Product, Serializable {
     private final String name;
     private final File path;
-    private final Set<File> sourceFiles;
+    private final Collection<File> sourceFiles;
+    private final Collection<String> dependencies;
 
-    AbstractProduct(String name, File path, FileCollection sourceFiles) {
+    AbstractProduct(String name, File path, FileCollection sourceFiles, Collection<String> dependencies) {
         this.name = name;
         this.path = path;
         this.sourceFiles = ImmutableSet.copyOf(sourceFiles);
+        this.dependencies = dependencies;
     }
 
     @Override
@@ -44,8 +46,12 @@ public abstract class AbstractProduct implements Product, Serializable {
         return path;
     }
 
-    public Set<File> getSourceFiles() {
+    public Collection<File> getSourceFiles() {
         return sourceFiles;
+    }
+
+    public Collection<String> getDependencies() {
+        return dependencies;
     }
 
     public abstract boolean isExecutable();

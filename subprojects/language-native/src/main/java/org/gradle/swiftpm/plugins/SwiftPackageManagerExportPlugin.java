@@ -16,11 +16,14 @@
 
 package org.gradle.swiftpm.plugins;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.ProductionComponent;
 import org.gradle.language.cpp.CppApplication;
+import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftLibrary;
@@ -29,7 +32,9 @@ import org.gradle.swiftpm.internal.DefaultExecutableProduct;
 import org.gradle.swiftpm.internal.DefaultLibraryProduct;
 import org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -44,25 +49,37 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
             public Set<Product> call() {
                 Set<Product> result = new LinkedHashSet<Product>();
                 for (Project p : project.getAllprojects()) {
-                    for (ProductionComponent component : p.getComponents().withType(ProductionComponent.class)) {
-                        if (component instanceof CppApplication) {
-                            CppApplication application = (CppApplication) component;
-                            result.add(new DefaultExecutableProduct(application.getBaseName().get(), p.getProjectDir(), application.getCppSource()));
-                        } else if (component instanceof CppLibrary) {
-                            CppLibrary library = (CppLibrary) component;
-                            result.add(new DefaultLibraryProduct(library.getBaseName().get(), p.getProjectDir(), library.getCppSource()));
-                        } else if (component instanceof SwiftApplication) {
-                            SwiftApplication application = (SwiftApplication) component;
-                            result.add(new DefaultExecutableProduct(application.getModule().get(), p.getProjectDir(), application.getSwiftSource()));
-                        } else if (component instanceof SwiftLibrary) {
-                            SwiftLibrary library = (SwiftLibrary) component;
-                            result.add(new DefaultLibraryProduct(library.getModule().get(), p.getProjectDir(), library.getSwiftSource()));
-                        }
+                    for (CppApplication application : p.getComponents().withType(CppApplication.class)) {
+                        result.add(new DefaultExecutableProduct(application.getBaseName().get(), p.getProjectDir(), application.getCppSource(), mapDependencies(application.getImplementationDependencies())));
+                    }
+                    for (CppLibrary library : p.getComponents().withType(CppLibrary.class)) {
+                        result.add(new DefaultLibraryProduct(library.getBaseName().get(), p.getProjectDir(), library.getCppSource(), mapDependencies(library.getImplementationDependencies())));
+                    }
+                    for (SwiftApplication application : p.getComponents().withType(SwiftApplication.class)) {
+                        result.add(new DefaultExecutableProduct(application.getModule().get(), p.getProjectDir(), application.getSwiftSource(), mapDependencies(application.getImplementationDependencies())));
+                    }
+                    for (SwiftLibrary library : p.getComponents().withType(SwiftLibrary.class)) {
+                        result.add(new DefaultLibraryProduct(library.getModule().get(), p.getProjectDir(), library.getSwiftSource(), mapDependencies(library.getImplementationDependencies())));
                     }
                 }
                 return result;
             }
         });
         manifestTask.getProducts().set(products);
+    }
+
+    private List<String> mapDependencies(Configuration configuration) {
+        // TODO - should use publication service to do this lookup, deal with ambiguous reference
+        DomainObjectSet<ProjectDependency> dependencies = configuration.getAllDependencies().withType(ProjectDependency.class);
+        List<String> result = new ArrayList<String>();
+        for (ProjectDependency dependency : dependencies) {
+            for (SwiftLibrary library : dependency.getDependencyProject().getComponents().withType(SwiftLibrary.class)) {
+                result.add(library.getModule().get());
+            }
+            for (CppLibrary library : dependency.getDependencyProject().getComponents().withType(CppComponent.class).withType(CppLibrary.class)) {
+                result.add(library.getBaseName().get());
+            }
+        }
+        return result;
     }
 }

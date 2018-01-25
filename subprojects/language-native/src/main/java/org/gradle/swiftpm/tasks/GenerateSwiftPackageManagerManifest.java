@@ -32,6 +32,8 @@ import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class GenerateSwiftPackageManagerManifest extends DefaultTask {
     private final RegularFileProperty manifestFile = newOutputFile();
@@ -85,15 +87,28 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                     writer.print("            name: \"");
                     writer.print(product.getName());
                     writer.println("\",");
+                    if (!product.getDependencies().isEmpty()) {
+                        writer.println("            dependencies: [");
+                        for (String dep : product.getDependencies()) {
+                            writer.print("                .target(name: \"");
+                            writer.print(dep);
+                            writer.println("\"),");
+                        }
+                        writer.println("            ],");
+                    }
                     writer.print("            path: \"");
                     Path productPath = product.getPath().toPath();
                     String relPath = baseDir.relativize(productPath).toString();
                     writer.print(relPath.isEmpty() ? ".": relPath);
                     writer.println("\",");
                     writer.println("            sources: [");
+                    Set<String> sorted = new TreeSet<String>();
                     for (File sourceFile : product.getSourceFiles()) {
+                        sorted.add(productPath.relativize(sourceFile.toPath()).toString());
+                    }
+                    for (String sourcePath : sorted) {
                         writer.print("                \"");
-                        writer.print(productPath.relativize(sourceFile.toPath()));
+                        writer.print(sourcePath);
                         writer.println("\",");
                     }
                     writer.println("            ]");

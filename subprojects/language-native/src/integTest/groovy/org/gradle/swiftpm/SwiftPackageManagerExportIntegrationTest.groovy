@@ -21,8 +21,11 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.vcs.fixtures.GitFileRepository
 
+@Requires(TestPrecondition.NOT_WINDOWS)
 class SwiftPackageManagerExportIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """rootProject.name = 'test'
@@ -150,6 +153,14 @@ let package = Package(
             subprojects {
                 apply plugin: 'swift-library'
             }
+            dependencies {
+                implementation project(':lib1')
+            }
+            project(':lib1') {
+                dependencies {
+                    implementation project(':lib2')
+                }
+            }
 """
         def app = new SwiftAppWithLibraries()
         app.main.writeToProject(testDirectory)
@@ -176,6 +187,9 @@ let package = Package(
     targets: [
         .target(
             name: "Test",
+            dependencies: [
+                .target(name: "Lib1"),
+            ],
             path: ".",
             sources: [
                 "src/main/swift/main.swift",
@@ -183,6 +197,9 @@ let package = Package(
         ),
         .target(
             name: "Lib1",
+            dependencies: [
+                .target(name: "Lib2"),
+            ],
             path: "lib1",
             sources: [
                 "src/main/swift/greeter.swift",
@@ -211,6 +228,14 @@ let package = Package(
             subprojects {
                 apply plugin: 'cpp-library'
             }
+            dependencies {
+                implementation project(':lib1')
+            }
+            project(':lib1') {
+                dependencies {
+                    implementation project(':lib2')
+                }
+            }
 """
         def app = new CppAppWithLibraries()
         app.main.writeToProject(testDirectory)
@@ -237,6 +262,9 @@ let package = Package(
     targets: [
         .target(
             name: "test",
+            dependencies: [
+                .target(name: "lib1"),
+            ],
             path: ".",
             sources: [
                 "src/main/cpp/main.cpp",
@@ -244,6 +272,9 @@ let package = Package(
         ),
         .target(
             name: "lib1",
+            dependencies: [
+                .target(name: "lib2"),
+            ],
             path: "lib1",
             sources: [
                 "src/main/cpp/greeter.cpp",
