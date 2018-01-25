@@ -3,6 +3,11 @@
   <name>Master - Sanity Check</name>
   <description>Compilation and test execution of buildSrc</description>
   <settings>
+    <options>
+      <option name="checkoutMode" value="ON_SERVER" />
+      <option name="cleanBuild" value="true" />
+      <option name="showDependenciesChanges" value="true" />
+    </options>
     <parameters />
     <build-runners />
     <vcs-settings>
