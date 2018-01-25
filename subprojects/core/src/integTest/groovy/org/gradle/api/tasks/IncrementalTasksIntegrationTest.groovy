@@ -363,7 +363,7 @@ ext.added = ['file3.txt', 'file4.txt']
         buildFile << "incremental.inputs.file('new-input.txt')"
 
         then:
-        executesWithRebuildContext("changed += ['new-input.txt']")
+        executesWithRebuildContext("ext.changed += ['new-input.txt']")
     }
 
     def "incremental task is informed that all input files are 'out-of-date' when input file property has been removed"() {
