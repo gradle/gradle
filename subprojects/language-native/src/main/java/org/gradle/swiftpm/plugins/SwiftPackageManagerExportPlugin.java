@@ -16,68 +16,106 @@
 
 package org.gradle.swiftpm.plugins;
 
-import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftLibrary;
-import org.gradle.swiftpm.Product;
+import org.gradle.swiftpm.Package;
+import org.gradle.swiftpm.internal.AbstractProduct;
 import org.gradle.swiftpm.internal.DefaultExecutableProduct;
 import org.gradle.swiftpm.internal.DefaultLibraryProduct;
+import org.gradle.swiftpm.internal.DefaultPackage;
+import org.gradle.swiftpm.internal.Dependency;
 import org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest;
+import org.gradle.vcs.VcsMapping;
+import org.gradle.vcs.VersionControlSpec;
+import org.gradle.vcs.git.GitVersionControlSpec;
+import org.gradle.vcs.internal.VcsMappingFactory;
+import org.gradle.vcs.internal.VcsMappingInternal;
+import org.gradle.vcs.internal.VcsMappingsStore;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
+    private final VcsMappingsStore vcsMappingsStore;
+    private final VcsMappingFactory vcsMappingFactory;
+
+    @Inject
+    public SwiftPackageManagerExportPlugin(VcsMappingsStore vcsMappingsStore, VcsMappingFactory vcsMappingFactory) {
+        this.vcsMappingsStore = vcsMappingsStore;
+        this.vcsMappingFactory = vcsMappingFactory;
+    }
+
     @Override
     public void apply(final Project project) {
         GenerateSwiftPackageManagerManifest manifestTask = project.getTasks().create("generateSwiftPmManifest", GenerateSwiftPackageManagerManifest.class);
         manifestTask.getManifestFile().set(project.getLayout().getProjectDirectory().file("Package.swift"));
 
-        Provider<Set<Product>> products = project.getProviders().provider(new Callable<Set<Product>>() {
+        Provider<Package> products = project.getProviders().provider(new Callable<Package>() {
             @Override
-            public Set<Product> call() {
-                Set<Product> result = new LinkedHashSet<Product>();
+            public Package call() {
+                Set<AbstractProduct> products = new LinkedHashSet<AbstractProduct>();
+                List<Dependency> dependencies = new ArrayList<Dependency>();
                 for (Project p : project.getAllprojects()) {
                     for (CppApplication application : p.getComponents().withType(CppApplication.class)) {
-                        result.add(new DefaultExecutableProduct(application.getBaseName().get(), p.getProjectDir(), application.getCppSource(), mapDependencies(application.getImplementationDependencies())));
+                        products.add(new DefaultExecutableProduct(p.getName(), application.getBaseName().get(), p.getProjectDir(), application.getCppSource(), collectDependencies(application.getImplementationDependencies(), dependencies)));
                     }
                     for (CppLibrary library : p.getComponents().withType(CppLibrary.class)) {
-                        result.add(new DefaultLibraryProduct(library.getBaseName().get(), p.getProjectDir(), library.getCppSource(), mapDependencies(library.getImplementationDependencies())));
+                        products.add(new DefaultLibraryProduct(p.getName(), library.getBaseName().get(), p.getProjectDir(), library.getCppSource(), collectDependencies(library.getImplementationDependencies(), dependencies)));
                     }
                     for (SwiftApplication application : p.getComponents().withType(SwiftApplication.class)) {
-                        result.add(new DefaultExecutableProduct(application.getModule().get(), p.getProjectDir(), application.getSwiftSource(), mapDependencies(application.getImplementationDependencies())));
+                        products.add(new DefaultExecutableProduct(p.getName(), application.getModule().get(), p.getProjectDir(), application.getSwiftSource(), collectDependencies(application.getImplementationDependencies(), dependencies)));
                     }
                     for (SwiftLibrary library : p.getComponents().withType(SwiftLibrary.class)) {
-                        result.add(new DefaultLibraryProduct(library.getModule().get(), p.getProjectDir(), library.getSwiftSource(), mapDependencies(library.getImplementationDependencies())));
+                        products.add(new DefaultLibraryProduct(p.getName(), library.getModule().get(), p.getProjectDir(), library.getSwiftSource(), collectDependencies(library.getImplementationDependencies(), dependencies)));
                     }
                 }
-                return result;
+                return new DefaultPackage(products, dependencies);
             }
         });
-        manifestTask.getProducts().set(products);
+        manifestTask.getPackage().set(products);
     }
 
-    private List<String> mapDependencies(Configuration configuration) {
-        // TODO - should use publication service to do this lookup, deal with ambiguous reference
-        DomainObjectSet<ProjectDependency> dependencies = configuration.getAllDependencies().withType(ProjectDependency.class);
-        List<String> result = new ArrayList<String>();
-        for (ProjectDependency dependency : dependencies) {
-            for (SwiftLibrary library : dependency.getDependencyProject().getComponents().withType(SwiftLibrary.class)) {
-                result.add(library.getModule().get());
-            }
-            for (CppLibrary library : dependency.getDependencyProject().getComponents().withType(CppComponent.class).withType(CppLibrary.class)) {
-                result.add(library.getBaseName().get());
+    private Collection<String> collectDependencies(Configuration configuration, Collection<Dependency> dependencies) {
+        // TODO - should use publication service to do this lookup, deal with ambiguous reference and caching of the mappings
+        Action<VcsMapping> mappingRule = vcsMappingsStore.getVcsMappingRule();
+        Set<String> result = new LinkedHashSet<String>();
+        for (org.gradle.api.artifacts.Dependency dependency : configuration.getAllDependencies()) {
+            if (dependency instanceof ProjectDependency) {
+                ProjectDependency projectDependency = (ProjectDependency) dependency;
+                for (SwiftLibrary library : projectDependency.getDependencyProject().getComponents().withType(SwiftLibrary.class)) {
+                    result.add(library.getModule().get());
+                }
+                for (CppLibrary library : projectDependency.getDependencyProject().getComponents().withType(CppComponent.class).withType(CppLibrary.class)) {
+                    result.add(library.getBaseName().get());
+                }
+            } else if (dependency instanceof ExternalModuleDependency) {
+                ExternalModuleDependency externalDependency = (ExternalModuleDependency) dependency;
+                VcsMappingInternal mapping = vcsMappingFactory.create(DefaultModuleComponentSelector.newSelector(externalDependency));
+                mappingRule.execute(mapping);
+                VersionControlSpec vcsSpec = mapping.getRepository();
+                if (vcsSpec == null || !(vcsSpec instanceof GitVersionControlSpec)) {
+                    continue;
+                }
+                // TODO - need to map version selector to Swift PM selector
+                String versionSelector = externalDependency.getVersion();
+                GitVersionControlSpec gitSpec = (GitVersionControlSpec) vcsSpec;
+                dependencies.add(new Dependency(gitSpec.getUrl(), versionSelector));
             }
         }
         return result;

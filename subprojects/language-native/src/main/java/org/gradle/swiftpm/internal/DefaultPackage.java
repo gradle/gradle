@@ -16,18 +16,27 @@
 
 package org.gradle.swiftpm.internal;
 
-import org.gradle.api.file.FileCollection;
+import org.gradle.swiftpm.Package;
 
-import java.io.File;
-import java.util.Collection;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 
-public class DefaultExecutableProduct extends AbstractProduct {
-    public DefaultExecutableProduct(String name, String targetName, File path, FileCollection sourceFiles, Collection<String> dependencies) {
-        super(name, targetName, path, sourceFiles, dependencies);
+public class DefaultPackage implements Package, Serializable {
+    private final Set<AbstractProduct> products;
+    private final List<Dependency> dependencies;
+
+    public DefaultPackage(Set<AbstractProduct> products, List<Dependency> dependencies) {
+        this.products = products;
+        this.dependencies = dependencies;
+    }
+
+    public List<Dependency> getDependencies() {
+        return dependencies;
     }
 
     @Override
-    public boolean isExecutable() {
-        return true;
+    public Set<AbstractProduct> getProducts() {
+        return products;
     }
 }

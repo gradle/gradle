@@ -26,12 +26,14 @@ import java.util.Collection;
 
 public abstract class AbstractProduct implements Product, Serializable {
     private final String name;
+    private final String targetName;
     private final File path;
     private final Collection<File> sourceFiles;
     private final Collection<String> dependencies;
 
-    AbstractProduct(String name, File path, FileCollection sourceFiles, Collection<String> dependencies) {
+    AbstractProduct(String name, String targetName, File path, FileCollection sourceFiles, Collection<String> dependencies) {
         this.name = name;
+        this.targetName = targetName;
         this.path = path;
         this.sourceFiles = ImmutableSet.copyOf(sourceFiles);
         this.dependencies = dependencies;
@@ -40,6 +42,10 @@ public abstract class AbstractProduct implements Product, Serializable {
     @Override
     public String getName() {
         return name;
+    }
+
+    public String getTargetName() {
+        return targetName;
     }
 
     public File getPath() {
