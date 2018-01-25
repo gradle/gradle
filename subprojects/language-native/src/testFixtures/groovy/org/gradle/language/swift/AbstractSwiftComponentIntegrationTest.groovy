@@ -118,7 +118,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
 
         then:
         failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
-        failure.assertHasCause("swiftc compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT4.version}'")
+        failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT4.version}'")
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
