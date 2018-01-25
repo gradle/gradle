@@ -37,9 +37,9 @@ import java.util.regex.Pattern;
 
 public class JUnitTestEventAdapter extends RunListener {
     private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)", Pattern.DOTALL);
+    protected final IdGenerator<?> idGenerator;
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
-    protected final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
     private final Map<Object, TestDescriptorInternal> executing = new HashMap<Object, TestDescriptorInternal>();
     private final Set<Object> assumptionFailed = new HashSet<Object>();
