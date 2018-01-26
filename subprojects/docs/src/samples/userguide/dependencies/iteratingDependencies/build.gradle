@@ -13,6 +13,8 @@ dependencies {
 
 //START SNIPPET iteration-task
 task iterateScmDependencies {
+    dependsOn configurations.scm
+
     doLast {
         configurations.scm.dependencies.each {
             println "$it.group:$it.name:$it.version"

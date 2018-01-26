@@ -10,6 +10,8 @@ dependencies {
 }
 
 task printGuavaMetadata {
+    dependsOn configurations.compileClasspath
+
     doLast {
         def resolutionResult = configurations.compileClasspath.incoming.resolutionResult
         def componentIds = resolutionResult.allDependencies.collect { it.selected.id }
