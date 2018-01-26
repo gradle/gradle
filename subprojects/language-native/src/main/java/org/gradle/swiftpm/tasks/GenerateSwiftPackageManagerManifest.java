@@ -110,10 +110,15 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                     writer.print("            name: \"");
                     writer.print(product.getTargetName());
                     writer.println("\",");
-                    if (!product.getDependencies().isEmpty()) {
+                    if (!product.getRequiredTargets().isEmpty() || !product.getRequiredProducts().isEmpty()) {
                         writer.println("            dependencies: [");
-                        for (String dep : product.getDependencies()) {
+                        for (String dep : product.getRequiredTargets()) {
                             writer.print("                .target(name: \"");
+                            writer.print(dep);
+                            writer.println("\"),");
+                        }
+                        for (String dep : product.getRequiredProducts()) {
+                            writer.print("                .product(name: \"");
                             writer.print(dep);
                             writer.println("\"),");
                         }

@@ -29,14 +29,16 @@ public abstract class AbstractProduct implements Product, Serializable {
     private final String targetName;
     private final File path;
     private final Collection<File> sourceFiles;
-    private final Collection<String> dependencies;
+    private final Collection<String> requiredTargets;
+    private final Collection<String> requiredProducts;
 
-    AbstractProduct(String name, String targetName, File path, FileCollection sourceFiles, Collection<String> dependencies) {
+    AbstractProduct(String name, String targetName, File path, FileCollection sourceFiles, Collection<String> requiredTargets, Collection<String> requiredProducts) {
         this.name = name;
         this.targetName = targetName;
         this.path = path;
         this.sourceFiles = ImmutableSet.copyOf(sourceFiles);
-        this.dependencies = dependencies;
+        this.requiredTargets = requiredTargets;
+        this.requiredProducts = requiredProducts;
     }
 
     @Override
@@ -56,8 +58,12 @@ public abstract class AbstractProduct implements Product, Serializable {
         return sourceFiles;
     }
 
-    public Collection<String> getDependencies() {
-        return dependencies;
+    public Collection<String> getRequiredTargets() {
+        return requiredTargets;
+    }
+
+    public Collection<String> getRequiredProducts() {
+        return requiredProducts;
     }
 
     public abstract boolean isExecutable();

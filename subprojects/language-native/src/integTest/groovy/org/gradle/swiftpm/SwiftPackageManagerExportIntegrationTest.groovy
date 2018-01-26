@@ -348,6 +348,10 @@ let package = Package(
     targets: [
         .target(
             name: "Test",
+            dependencies: [
+                .product(name: "lib2"),
+                .product(name: "lib1"),
+            ],
             path: ".",
             sources: [
                 "src/main/swift/greeter.swift",
