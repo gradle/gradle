@@ -1,10 +1,26 @@
-/**
- * Tests tasks to allow the gradual introduction of JDK 9 support
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-String jdkVarName = 'JAVA_9'
 
-task java9IntegTest(type: org.gradle.testing.IntegrationTest) {
-    description "Run integTests with Java9 and forking executer"
+/**
+ * Tests tasks to allow the gradual introduction of JDK 10 support
+ */
+String jdkVarName = 'JAVA_10'
+
+task java10IntegTest(type: org.gradle.testing.IntegrationTest) {
+    description "Run integTests with Java10 and forking executer"
     excludes = [
         // TODO requires investigation
         "DaemonGroovyCompilerIntegrationTest",
@@ -26,14 +42,14 @@ task java9IntegTest(type: org.gradle.testing.IntegrationTest) {
         "JavaConfigurabilityCrossVersionSpec", // "customized java args are reflected in the inputArguments and the build model", "tooling api provided jvm args take precedence over gradle.properties"
         "GradlePropertiesToolingApiCrossVersionSpec", // "tooling api honours jvm args specified in gradle.properties"
 
-        // Add a dedicated Findbugs test for Java 9
+        // Add a dedicated Findbugs test for Java 10
         "FindBugsIntegrationTest",
         "FindBugsRelocationIntegrationTest",
 
         // Osgi is broken with a NPE in Processor - need to investigate
         "OsgiPluginIntegrationSpec",
 
-        // Attempts to run Gradle 2.8 on Java 9
+        // Attempts to run Gradle 2.8 on Java 10
         "HeterogeneousCompositeBuildCrossVersionSpec",
 
         // Broken scala and twirl compilation
@@ -100,14 +116,14 @@ task java9IntegTest(type: org.gradle.testing.IntegrationTest) {
         // Sample attempts to set max perm space
         "SamplesScalaZincIntegrationTest",
 
-        // Cannot build Gradle with Java 9, compiler bug
+        // Cannot build Gradle with Java 10, compiler bug
         "SrcDistributionIntegrationSpec",
 
         // Test compiles for Java 5
         "ToolingApiUnsupportedClientJvmCrossVersionSpec",
         "MavenConversionIntegrationTest",
 
-        // Jetty version does not work on Java 9
+        // Jetty version does not work on Java 10
         "SamplesWebQuickstartIntegrationTest",
 
         // Missing class javax/xml/bind/DatatypeConverter on PUT to S3
@@ -137,7 +153,7 @@ task java9IntegTest(type: org.gradle.testing.IntegrationTest) {
         "EnvJsPluginIntegrationTest",
 
         /*
-         Uses bytebuddy in a test which uses asm which cannot read Java 9 classfiles
+         Uses bytebuddy in a test which uses asm which cannot read Java 10 classfiles
          */
         "DirectoryScanningIntegTest",
 
@@ -148,13 +164,13 @@ task java9IntegTest(type: org.gradle.testing.IntegrationTest) {
     ].collect { "**/*${it}*" }
 }
 
-task java9Test(type: Test) {
+task java10Test(type: Test) {
 }
 
-tasks.withType(Test).matching { it.name.startsWith("java9") }.all {
-    def java9Home = System.getenv('JAVA_9')
-    executable = "${java9Home}/bin/java"
-    environment['JAVA_HOME'] = java9Home
+tasks.withType(Test).matching { it.name.startsWith("java10") }.all {
+    def java10Home = System.getenv('JAVA_10')
+    executable = "${java10Home}/bin/java"
+    environment['JAVA_HOME'] = java10Home
     reports.junitXml.destination = file("${project.testResultsDir}/$name")
     reports.html.destination = file("${project.reporting.baseDir}/$name")
     if (name.contains('IntegTest')) {
@@ -162,15 +178,15 @@ tasks.withType(Test).matching { it.name.startsWith("java9") }.all {
     }
 }
 
-if (!gradle.hasProperty("haveInstalledJava9Guard")) {
+if (!gradle.hasProperty("haveInstalledJava10Guard")) {
     gradle.taskGraph.whenReady { graph ->
-        if (gradle.taskGraph.allTasks.any { it.name.startsWith("java9") }) {
+        if (gradle.taskGraph.allTasks.any { it.name.startsWith("java10") }) {
             // Ideally, this would be a validate rule but it's not convenient to express this in the DSL yet
             if (!System.getenv(jdkVarName)) {
                 throw new GradleException("A '$jdkVarName' environment variable, " +
-                    "pointing to a java 9 JDK image, is required to run java9 tests!")
+                    "pointing to a java 10 JDK image, is required to run java10 tests!")
             }
         }
     }
-    gradle.ext.haveInstalledJava9Guard = true
+    gradle.ext.haveInstalledJava10Guard = true
 }

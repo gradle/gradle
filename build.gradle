@@ -114,6 +114,15 @@ buildTypes {
         tasks "java9IntegTest"
     }
 
+    //Initial smoke test for java 10
+    java10Build {
+        tasks "java10Test", "java10IntegTest"
+    }
+
+    java10SmokeTest {
+        tasks "java10IntegTest"
+    }
+
     soakTest {
         tasks "soak:soakTest"
         projectProperties testAllVersions: true
@@ -219,6 +228,7 @@ subprojects {
         apply from: "$rootDir/gradle/groovyProject.gradle"
         apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
         apply from: "$rootDir/gradle/java9.gradle"
+        apply from: "$rootDir/gradle/java10.gradle"
         check.dependsOn ":docs:checkstyleApi"
         check.dependsOn "codeQuality"
     }
