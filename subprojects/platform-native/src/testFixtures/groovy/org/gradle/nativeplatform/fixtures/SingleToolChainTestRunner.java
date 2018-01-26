@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
 import java.util.List;
 
 public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
-    private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.cpp.toolChains";
+    private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.native.toolChains";
 
     public SingleToolChainTestRunner(Class<? extends AbstractInstalledToolChainIntegrationSpec> target) {
         super(target);

@@ -42,7 +42,7 @@ distributionTestTasks.all { DistributionTest task ->
         systemProperties['org.gradle.integtest.versions'] = 'latest'
     }
 
-    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") && project.testAllPlatforms ? 'all' : 'default'
+    systemProperties['org.gradle.integtest.native.toolChains'] = project.hasProperty("testAllPlatforms") && project.testAllPlatforms ? 'all' : 'default'
 
     systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
 

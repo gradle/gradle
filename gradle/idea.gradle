@@ -188,6 +188,7 @@ idea {
 
         def docsProject = project(":docs")
         def defaultTestVmParams = [
+                "-ea",
                 "-Dorg.gradle.docs.releasenotes.source=${docsProject.releaseNotesMarkdown.markdownFile}",
                 "-Dorg.gradle.docs.releasenotes.rendered=${new File(docsProject.releaseNotes.destinationDir, docsProject.releaseNotes.fileName)}",
                 "-DintegTest.gradleHomeDir=\$MODULE_DIR\$/build/integ test",
@@ -195,13 +196,13 @@ idea {
                 "-DintegTest.libsRepo=${rootProject.file('build/repo').absolutePath}",
                 "-Dorg.gradle.integtest.daemon.registry=${rootProject.file('build/daemon').absolutePath}",
                 "-DintegTest.distsDir=${rootProject.distsDir.absolutePath}",
-                "-Dorg.gradle.integtest.executer=embedded",
-                "-Dorg.gradle.integtest.versions=latest",
-                "-Dorg.gradle.integtest.multiversion=default",
-                "-Dorg.gradle.integtest.testkit.compatibility=current",
                 "-Dorg.gradle.public.api.includes=${publicApiIncludes.join(':')}",
                 "-Dorg.gradle.public.api.excludes=${publicApiExcludes.join(':')}",
-                "-ea",
+                "-Dorg.gradle.integtest.executer=embedded",
+                "-Dorg.gradle.integtest.versions=latest",
+                "-Dorg.gradle.integtest.native.toolChains=default",
+                "-Dorg.gradle.integtest.multiversion=default",
+                "-Dorg.gradle.integtest.testkit.compatibility=current",
                 "-Xmx512m"
         ]
 
