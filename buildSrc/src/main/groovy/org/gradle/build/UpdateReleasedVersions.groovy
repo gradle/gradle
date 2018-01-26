@@ -23,7 +23,6 @@ import groovy.json.JsonSlurper
 import org.gradle.api.DefaultTask
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.GradleVersion
@@ -41,14 +40,6 @@ class UpdateReleasedVersions extends DefaultTask {
     @Inject
     UpdateReleasedVersions(ObjectFactory objectFactory) {
         currentReleasedVersion = objectFactory.property(ReleasedVersion)
-    }
-
-    void setReleasedVersion(Provider<ReleasedVersion> provider) {
-        currentReleasedVersion.set(provider)
-    }
-
-    void setReleasedVersion(ReleasedVersion releasedVersion) {
-        currentReleasedVersion.set(releasedVersion)
     }
 
     @TaskAction
