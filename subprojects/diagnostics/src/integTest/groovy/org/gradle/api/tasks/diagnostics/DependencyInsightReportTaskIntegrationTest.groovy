@@ -1393,10 +1393,10 @@ org:foo: -> $selected
 \\--- compileClasspath
 """
         where:
-        version                             | reason                                          | selected
-        "prefer '[1.0, 2.0)'"               | "foo v2+ has an incompatible API for project X" | '1.5'
-        "strictly '[1.1, 1.4]'"             | "versions of foo verified to run on platform Y" | '1.4'
-        "prefer '[1.0, 1.4]'; reject '1.4'" | "1.4 has a critical bug"                        | '1.3'
+        version                             | selected
+        "prefer '[1.0, 2.0)'"               | '1.5'
+        "strictly '[1.1, 1.4]'"             | '1.4'
+        "prefer '[1.0, 1.4]'; reject '1.4'" | '1.3'
     }
 
     @Unroll
