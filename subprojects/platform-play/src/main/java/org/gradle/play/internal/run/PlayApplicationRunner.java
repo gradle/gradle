@@ -35,7 +35,7 @@ import java.util.Set;
 public class PlayApplicationRunner {
     private final WorkerProcessFactory workerFactory;
     private final VersionedPlayRunAdapter adapter;
-    private ClasspathSnapshotter snapshotter;
+    private final ClasspathSnapshotter snapshotter;
 
     public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, ClasspathSnapshotter snapshotter) {
         this.workerFactory = workerFactory;
@@ -56,10 +56,10 @@ public class PlayApplicationRunner {
     }
 
     private class PlayClassloaderMonitorDeploymentDecorator implements Deployment {
-        private Deployment delegate;
-        private FileCollection applicationClasspath;
+        private final Deployment delegate;
+        private final FileCollection applicationClasspath;
+        private final boolean isPlay22;
         private HashCode snapshot;
-        private boolean isPlay22;
 
         private PlayClassloaderMonitorDeploymentDecorator(Deployment delegate, PlayRunSpec runSpec, VersionedPlayRunAdapter adapter) {
             this.delegate = delegate;
@@ -86,9 +86,7 @@ public class PlayApplicationRunner {
                 return delegateStatus;
             }
 
-            HashCode oldSnapshot = updateSnapshot();
-
-            if (!snapshot.equals(oldSnapshot)) {
+            if (applicationClasspathChanged()) {
                 return delegateStatus;
             } else {
                 return new Status() {
@@ -105,10 +103,10 @@ public class PlayApplicationRunner {
             }
         }
 
-        private HashCode updateSnapshot() {
+        private boolean applicationClasspathChanged() {
             HashCode oldSnapshot = snapshot;
             snapshot = snapshotter.snapshot(applicationClasspath, InputPathNormalizationStrategy.NONE, InputNormalizationStrategy.NOT_CONFIGURED).getHash();
-            return oldSnapshot;
+            return !snapshot.equals(oldSnapshot);
         }
     }
 
