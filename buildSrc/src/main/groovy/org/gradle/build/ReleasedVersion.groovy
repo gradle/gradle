@@ -23,7 +23,7 @@ import org.gradle.util.GradleVersion
 import java.text.SimpleDateFormat
 
 @Canonical
-class ReleasedVersion implements Serializable {
+class ReleasedVersion {
     private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat('yyyyMMddHHmmssZ')
     static {
         TIMESTAMP_FORMAT.timeZone = TimeZone.getTimeZone("UTC")
