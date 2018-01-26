@@ -221,7 +221,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         """
         expect:
         succeeds "jar"
-        def descriptorHash = file("build", "resources", "main", "META-INF", "gradle-plugins", "test-plugin.properties").md5Hash
+        def descriptorHash = file("build/resources/main/META-INF/gradle-plugins/test-plugin.properties").md5Hash
         descriptorHash == "0698dda8ffafedc3b054c5fe3aae95f1"
     }
 
@@ -266,8 +266,8 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         expect:
 
         succeeds "jar"
-        file("build", "pluginDescriptors").listFiles().size() == 1
-        file("build", "resources", "main", "META-INF", "gradle-plugins").listFiles().size() == 1
+        file("build/pluginDescriptors").listFiles().size() == 1
+        file("build/resources/main/META-INF/gradle-plugins").listFiles().size() == 1
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1061")
