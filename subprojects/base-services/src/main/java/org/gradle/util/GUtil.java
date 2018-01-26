@@ -21,13 +21,13 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.io.LineBufferingOutputStream;
+import org.gradle.internal.io.SkipFirstTextStream;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.internal.util.PropertiesUtils;
+import org.gradle.internal.io.WriterTextStream;
 
 import javax.annotation.Nullable;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -235,7 +236,11 @@ public class GUtil {
     public static void saveProperties(Properties properties, File propertyFile) {
         try {
             FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile);
-            saveProperties(properties, propertiesFileOutputStream);
+            try {
+                properties.store(propertiesFileOutputStream, null);
+            } finally {
+                propertiesFileOutputStream.close();
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -253,10 +258,13 @@ public class GUtil {
         }
     }
 
-
+    /**
+     * @deprecated This does not produce reproducible property files. Use {@link org.gradle.internal.util.PropertiesUtils} instead.
+     */
+    @Deprecated
     public static void savePropertiesNoDateComment(Properties properties, File propertyFile) {
         try {
-            BufferedOutputStream propertiesFileOutputStream = new BufferedOutputStream(new FileOutputStream(propertyFile));
+            FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile);
             try {
                 savePropertiesNoDateComment(properties, propertiesFileOutputStream);
             } finally {
@@ -267,14 +275,20 @@ public class GUtil {
         }
     }
 
+    /**
+     * @deprecated This does not produce reproducible property files. Use {@link org.gradle.internal.util.PropertiesUtils} instead.
+     */
+    @Deprecated
     public static void savePropertiesNoDateComment(Properties properties, OutputStream outputStream) {
-        try {
-            PropertiesUtils.store(properties, outputStream, null, Charsets.ISO_8859_1, "\n");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } finally {
-            IoActions.closeQuietly(outputStream);
-        }
+        saveProperties(properties,
+            new LineBufferingOutputStream(
+                new SkipFirstTextStream(
+                    new WriterTextStream(
+                        new OutputStreamWriter(outputStream, Charsets.ISO_8859_1)
+                    )
+                )
+            )
+        );
     }
 
     public static Map map(Object... objects) {

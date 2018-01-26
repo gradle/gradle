@@ -28,13 +28,10 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.util.GUtil;
+import org.gradle.internal.util.PropertiesUtils;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Properties;
 
@@ -107,8 +104,7 @@ public class PluginUnderTestMetadata extends DefaultTask {
 
     private void saveProperties(Properties properties, File outputFile) {
         try {
-            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
-            GUtil.savePropertiesNoDateComment(properties, outputStream);
+            PropertiesUtils.store(properties, outputFile);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

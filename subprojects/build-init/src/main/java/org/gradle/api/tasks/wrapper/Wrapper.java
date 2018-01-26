@@ -20,20 +20,21 @@ import com.google.common.io.ByteStreams;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
-import org.gradle.api.tasks.options.Option;
-import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.options.Option;
+import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.DistributionLocator;
-import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.WrapUtil;
 import org.gradle.wrapper.GradleWrapperMain;
@@ -182,7 +183,11 @@ public class Wrapper extends DefaultTask {
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
-        GUtil.savePropertiesNoDateComment(wrapperProperties, propertiesFileDestination);
+        try {
+            PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /**

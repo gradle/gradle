@@ -24,8 +24,8 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.plugin.devel.PluginDeclaration;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,13 +50,21 @@ public class GeneratePluginDescriptors extends ConventionTask {
             File descriptorFile = new File(getOutputDirectory(), declaration.getId() + ".properties");
             Properties properties = new Properties();
             properties.setProperty("implementation-class", declaration.getImplementationClass());
-            GUtil.savePropertiesNoDateComment(properties, descriptorFile);
+            writePropertiesTo(properties, descriptorFile);
         }
     }
 
     private void clearOutputDirectory() {
         try {
             FileUtils.cleanDirectory(getOutputDirectory());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private void writePropertiesTo(Properties properties, File descriptorFile) {
+        try {
+            PropertiesUtils.store(properties, descriptorFile);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
