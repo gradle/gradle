@@ -201,11 +201,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private TaskUpToDateState getStates() {
             if (states == null) {
                 HistoricalTaskExecution previousExecution = history.getPreviousExecution();
+                CurrentTaskExecution currentExecution = history.getCurrentExecution();
                 if (previousExecution == null) {
                     states = NoHistoryTaskUpToDateState.INSTANCE;
                 } else {
                     // Calculate initial state - note this is potentially expensive
-                    CurrentTaskExecution currentExecution = history.getCurrentExecution();
                     states = new DefaultTaskUpToDateState(previousExecution, currentExecution, task);
                 }
             }
