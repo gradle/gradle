@@ -173,4 +173,42 @@ org:leaf:1.0
 """
     }
 
+    def "shows missing attributes when the target variant doesn't have any of its own"() {
+        given:
+        def leaf = mavenRepo.module('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "top").dependsOn(leaf).publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    attributes.attribute(Attribute.of('usage', String), 'dummy')
+                }
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                setDependencySpec { it.requested.module == 'leaf' }
+                configuration = configurations.conf
+                showVariantDetails = true
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains """org:leaf:1.0
+   variant "runtime" [
+      Requested attributes not found in the selected variant:
+         usage = dummy
+   ]
+\\--- org:top:1.0
+     \\--- conf
+"""
+    }
+
 }

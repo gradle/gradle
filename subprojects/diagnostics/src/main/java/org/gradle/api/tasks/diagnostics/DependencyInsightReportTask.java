@@ -327,44 +327,58 @@ public class DependencyInsightReportTask extends DefaultTask {
                 out.println();
                 out.withStyle(Description).text("   variant \"" + resolvedVariant.getDisplayName() + "\"");
                 AttributeContainer attributes = resolvedVariant.getAttributes();
-                if (!attributes.isEmpty()) {
-                    out.withStyle(Description).text(" [");
-                    out.println();
-                    AttributeContainerInternal requested = (AttributeContainerInternal) configuration.getAttributes();
-                    int maxAttributeLen = computeAttributePadding(attributes, requested);
-                    Set<Attribute<?>> matchedAttributes = Sets.newLinkedHashSet();
-                    for (Attribute<?> attribute : attributes.keySet()) {
-                        Object actualValue = attributes.getAttribute(attribute);
-                        AttributeMatchDetails match = match(attribute, actualValue, requested);
-                        out.withStyle(Description).text("      " + StringUtils.rightPad(attribute.getName(), maxAttributeLen) + " = " + actualValue);
-                        Attribute<?> requestedAttribute = match.requested;
-                        if (requestedAttribute != null) {
-                            matchedAttributes.add(requestedAttribute);
-                        }
-                        switch (match.matchType) {
-                            case requested:
-                                break;
-                            case different_value:
-                                out.withStyle(Info).text(" (compatible with: " + match.requestedValue + ")");
-                                break;
-                            case not_requested:
-                                out.withStyle(Info).text(" (not requested)");
-                                break;
-                        }
-                        out.println();
-                    }
-                    Sets.SetView<Attribute<?>> missing = Sets.difference(requested.keySet(), matchedAttributes);
-                    if (!missing.isEmpty()) {
-                        out.println();
-                        out.withStyle(Description).text("      Requested attributes not found in the selected variant:");
-                        out.println();
-                        for (Attribute<?> missingAttribute : missing) {
-                            out.withStyle(Description).text("         " + StringUtils.rightPad(missingAttribute.getName(), maxAttributeLen) + " = " + requested.getAttribute(missingAttribute));
-                            out.println();
-                        }
-                    }
-                    out.withStyle(Description).text("   ]");
+                AttributeContainerInternal requested = (AttributeContainerInternal) configuration.getAttributes();
+                if (!attributes.isEmpty() || !requested.isEmpty()) {
+                    writeAttributeBlock(out, attributes, requested);
                 }
+            }
+        }
+
+        private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainerInternal requested) {
+            out.withStyle(Description).text(" [");
+            out.println();
+            int maxAttributeLen = computeAttributePadding(attributes, requested);
+            Set<Attribute<?>> matchedAttributes = Sets.newLinkedHashSet();
+            writeFoundAttributes(out, attributes, requested, maxAttributeLen, matchedAttributes);
+            Sets.SetView<Attribute<?>> missing = Sets.difference(requested.keySet(), matchedAttributes);
+            if (!missing.isEmpty()) {
+                writeMissingAttributes(out, requested, maxAttributeLen, missing);
+            }
+            out.withStyle(Description).text("   ]");
+        }
+
+        private void writeMissingAttributes(StyledTextOutput out, AttributeContainerInternal requested, int maxAttributeLen, Sets.SetView<Attribute<?>> missing) {
+            if (missing.size() != requested.keySet().size()) {
+                out.println();
+            }
+            out.withStyle(Description).text("      Requested attributes not found in the selected variant:");
+            out.println();
+            for (Attribute<?> missingAttribute : missing) {
+                out.withStyle(Description).text("         " + StringUtils.rightPad(missingAttribute.getName(), maxAttributeLen) + " = " + requested.getAttribute(missingAttribute));
+                out.println();
+            }
+        }
+
+        private void writeFoundAttributes(StyledTextOutput out, AttributeContainer attributes, AttributeContainerInternal requested, int maxAttributeLen, Set<Attribute<?>> matchedAttributes) {
+            for (Attribute<?> attribute : attributes.keySet()) {
+                Object actualValue = attributes.getAttribute(attribute);
+                AttributeMatchDetails match = match(attribute, actualValue, requested);
+                out.withStyle(Description).text("      " + StringUtils.rightPad(attribute.getName(), maxAttributeLen) + " = " + actualValue);
+                Attribute<?> requestedAttribute = match.requested;
+                if (requestedAttribute != null) {
+                    matchedAttributes.add(requestedAttribute);
+                }
+                switch (match.matchType) {
+                    case requested:
+                        break;
+                    case different_value:
+                        out.withStyle(Info).text(" (compatible with: " + match.requestedValue + ")");
+                        break;
+                    case not_requested:
+                        out.withStyle(Info).text(" (not requested)");
+                        break;
+                }
+                out.println();
             }
         }
 
