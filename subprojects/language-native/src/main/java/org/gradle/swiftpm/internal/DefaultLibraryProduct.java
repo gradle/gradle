@@ -22,8 +22,8 @@ import java.io.File;
 import java.util.Collection;
 
 public class DefaultLibraryProduct extends AbstractProduct {
-    public DefaultLibraryProduct(String name, String targetName, File path, FileCollection sourceFiles, Collection<String> dependencies) {
-        super(name, targetName, path, sourceFiles, dependencies);
+    public DefaultLibraryProduct(String name, String targetName, File path, FileCollection sourceFiles, Collection<String> requiredTargets, Collection<String> requiredProducts) {
+        super(name, targetName, path, sourceFiles, requiredTargets, requiredProducts);
     }
 
     @Override

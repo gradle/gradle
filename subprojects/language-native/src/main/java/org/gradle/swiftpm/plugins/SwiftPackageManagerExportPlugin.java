@@ -82,16 +82,28 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                 List<Dependency> dependencies = new ArrayList<Dependency>();
                 for (Project p : project.getAllprojects()) {
                     for (CppApplication application : p.getComponents().withType(CppApplication.class)) {
-                        products.add(new DefaultExecutableProduct(p.getName(), application.getBaseName().get(), p.getProjectDir(), application.getCppSource(), collectDependencies(application.getImplementationDependencies(), dependencies)));
+                        List<String> requiredTargets = new ArrayList<String>();
+                        List<String> requiredProducts = new ArrayList<String>();
+                        collectDependencies(application.getImplementationDependencies(), dependencies, requiredTargets, requiredProducts);
+                        products.add(new DefaultExecutableProduct(p.getName(), application.getBaseName().get(), p.getProjectDir(), application.getCppSource(), requiredTargets, requiredProducts));
                     }
                     for (CppLibrary library : p.getComponents().withType(CppLibrary.class)) {
-                        products.add(new DefaultLibraryProduct(p.getName(), library.getBaseName().get(), p.getProjectDir(), library.getCppSource(), collectDependencies(library.getImplementationDependencies(), dependencies)));
+                        List<String> requiredTargets = new ArrayList<String>();
+                        List<String> requiredProducts = new ArrayList<String>();
+                        collectDependencies(library.getImplementationDependencies(), dependencies, requiredTargets, requiredProducts);
+                        products.add(new DefaultLibraryProduct(p.getName(), library.getBaseName().get(), p.getProjectDir(), library.getCppSource(), requiredTargets, requiredProducts));
                     }
                     for (SwiftApplication application : p.getComponents().withType(SwiftApplication.class)) {
-                        products.add(new DefaultExecutableProduct(p.getName(), application.getModule().get(), p.getProjectDir(), application.getSwiftSource(), collectDependencies(application.getImplementationDependencies(), dependencies)));
+                        List<String> requiredTargets = new ArrayList<String>();
+                        List<String> requiredProducts = new ArrayList<String>();
+                        collectDependencies(application.getImplementationDependencies(), dependencies, requiredTargets, requiredProducts);
+                        products.add(new DefaultExecutableProduct(p.getName(), application.getModule().get(), p.getProjectDir(), application.getSwiftSource(), requiredTargets, requiredProducts));
                     }
                     for (SwiftLibrary library : p.getComponents().withType(SwiftLibrary.class)) {
-                        products.add(new DefaultLibraryProduct(p.getName(), library.getModule().get(), p.getProjectDir(), library.getSwiftSource(), collectDependencies(library.getImplementationDependencies(), dependencies)));
+                        List<String> requiredTargets = new ArrayList<String>();
+                        List<String> requiredProducts = new ArrayList<String>();
+                        collectDependencies(library.getImplementationDependencies(), dependencies, requiredTargets, requiredProducts);
+                        products.add(new DefaultLibraryProduct(p.getName(), library.getModule().get(), p.getProjectDir(), library.getSwiftSource(), requiredTargets, requiredProducts));
                     }
                 }
                 return new DefaultPackage(products, dependencies);
@@ -100,18 +112,17 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
         manifestTask.getPackage().set(products);
     }
 
-    private Collection<String> collectDependencies(Configuration configuration, Collection<Dependency> dependencies) {
+    private void collectDependencies(Configuration configuration, Collection<Dependency> dependencies, Collection<String> requiredTargets, Collection<String> requiredProducts) {
         // TODO - should use publication service to do this lookup, deal with ambiguous reference and caching of the mappings
         Action<VcsMapping> mappingRule = vcsMappingsStore.getVcsMappingRule();
-        Set<String> result = new LinkedHashSet<String>();
         for (org.gradle.api.artifacts.Dependency dependency : configuration.getAllDependencies()) {
             if (dependency instanceof ProjectDependency) {
                 ProjectDependency projectDependency = (ProjectDependency) dependency;
                 for (SwiftLibrary library : projectDependency.getDependencyProject().getComponents().withType(SwiftLibrary.class)) {
-                    result.add(library.getModule().get());
+                    requiredTargets.add(library.getModule().get());
                 }
                 for (CppLibrary library : projectDependency.getDependencyProject().getComponents().withType(CppComponent.class).withType(CppLibrary.class)) {
-                    result.add(library.getBaseName().get());
+                    requiredTargets.add(library.getBaseName().get());
                 }
             } else if (dependency instanceof ExternalModuleDependency) {
                 ExternalModuleDependency externalDependency = (ExternalModuleDependency) dependency;
@@ -125,8 +136,8 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                 String versionSelector = externalDependency.getVersion();
                 GitVersionControlSpec gitSpec = (GitVersionControlSpec) vcsSpec;
                 dependencies.add(new Dependency(gitSpec.getUrl(), versionSelector));
+                requiredProducts.add(externalDependency.getName());
             }
         }
-        return result;
     }
 }
