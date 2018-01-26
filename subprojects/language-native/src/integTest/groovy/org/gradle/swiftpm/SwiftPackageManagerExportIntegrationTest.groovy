@@ -135,7 +135,8 @@ let package = Package(
             sources: [
                 "src/main/cpp/greeter.cpp",
                 "src/main/cpp/sum.cpp",
-            ]
+            ],
+            publicHeadersPath: "src/main/public"
         ),
     ]
 )
@@ -278,14 +279,16 @@ let package = Package(
             path: "lib1",
             sources: [
                 "src/main/cpp/greeter.cpp",
-            ]
+            ],
+            publicHeadersPath: "src/main/public"
         ),
         .target(
             name: "lib2",
             path: "lib2",
             sources: [
                 "src/main/cpp/logger.cpp",
-            ]
+            ],
+            publicHeadersPath: "src/main/public"
         ),
     ]
 )

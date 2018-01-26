@@ -19,11 +19,10 @@ package org.gradle.swiftpm.internal;
 import org.gradle.api.file.FileCollection;
 
 import java.io.File;
-import java.util.Collection;
 
 public class DefaultLibraryProduct extends AbstractProduct {
-    public DefaultLibraryProduct(String name, String targetName, File path, FileCollection sourceFiles, Collection<String> requiredTargets, Collection<String> requiredProducts) {
-        super(name, targetName, path, sourceFiles, requiredTargets, requiredProducts);
+    public DefaultLibraryProduct(String name, String targetName, File path, FileCollection sourceFiles) {
+        super(name, targetName, path, sourceFiles);
     }
 
     @Override

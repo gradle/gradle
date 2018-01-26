@@ -54,6 +54,8 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         def generateManifest = project.tasks['generateSwiftPmManifest']
         def products = generateManifest.package.get().products
         products.name == ["app1", "app2"]
+        products.targetName == ["app1", "app2"]
+        products.publicHeaderDir == [null, null]
         products.every { it instanceof DefaultExecutableProduct }
     }
 
@@ -72,6 +74,7 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         def products = generateManifest.package.get().products
         products.name == ["lib1", "lib2"]
         products.targetName == ["lib1", "lib2"]
+        products.publicHeaderDir == [app1Project.file("src/main/public"), app2Project.file("src/main/public")]
         products.every { it instanceof DefaultLibraryProduct }
     }
 
@@ -90,6 +93,7 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         def products = generateManifest.package.get().products
         products.name == ["app1", "app2"]
         products.targetName == ["App1", "App2"]
+        products.publicHeaderDir == [null, null]
         products.every { it instanceof DefaultExecutableProduct }
     }
 
@@ -108,6 +112,7 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         def products = generateManifest.package.get().products
         products.name == ["lib1", "lib2"]
         products.targetName == ["Lib1", "Lib2"]
+        products.publicHeaderDir == [null, null]
         products.every { it instanceof DefaultLibraryProduct }
     }
 

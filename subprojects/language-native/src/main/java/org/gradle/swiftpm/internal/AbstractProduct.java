@@ -20,25 +20,27 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.swiftpm.Product;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public abstract class AbstractProduct implements Product, Serializable {
     private final String name;
     private final String targetName;
     private final File path;
     private final Collection<File> sourceFiles;
-    private final Collection<String> requiredTargets;
-    private final Collection<String> requiredProducts;
+    private final List<String> requiredTargets = new ArrayList<String>();
+    private final List<String> requiredProducts = new ArrayList<String>();
+    private File publicHeaderDir;
 
-    AbstractProduct(String name, String targetName, File path, FileCollection sourceFiles, Collection<String> requiredTargets, Collection<String> requiredProducts) {
+    AbstractProduct(String name, String targetName, File path, FileCollection sourceFiles) {
         this.name = name;
         this.targetName = targetName;
         this.path = path;
         this.sourceFiles = ImmutableSet.copyOf(sourceFiles);
-        this.requiredTargets = requiredTargets;
-        this.requiredProducts = requiredProducts;
     }
 
     @Override
@@ -56,6 +58,15 @@ public abstract class AbstractProduct implements Product, Serializable {
 
     public Collection<File> getSourceFiles() {
         return sourceFiles;
+    }
+
+    @Nullable
+    public File getPublicHeaderDir() {
+        return publicHeaderDir;
+    }
+
+    public void setPublicHeaderDir(File publicHeaderDir) {
+        this.publicHeaderDir = publicHeaderDir;
     }
 
     public Collection<String> getRequiredTargets() {

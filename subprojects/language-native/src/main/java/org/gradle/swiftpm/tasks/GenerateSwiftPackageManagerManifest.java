@@ -139,7 +139,15 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                         writer.print(sourcePath);
                         writer.println("\",");
                     }
-                    writer.println("            ]");
+                    writer.print("            ]");
+                    if (product.getPublicHeaderDir() != null) {
+                        writer.println(",");
+                        writer.print("            publicHeadersPath: \"");
+                        writer.print(productPath.relativize(product.getPublicHeaderDir().toPath()));
+                        writer.println("\"");
+                    } else {
+                        writer.println();
+                    }
                     writer.println("        ),");
                 }
                 writer.println("    ]");
