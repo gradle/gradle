@@ -35,7 +35,7 @@ class UpdateReleasedVersions extends DefaultTask {
     File releasedVersionsFile
 
     @Internal
-    Property<ReleasedVersion> currentReleasedVersion
+    final Property<ReleasedVersion> currentReleasedVersion
 
     @Inject
     UpdateReleasedVersions(ObjectFactory objectFactory) {
