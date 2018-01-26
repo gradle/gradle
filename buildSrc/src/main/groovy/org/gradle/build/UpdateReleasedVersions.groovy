@@ -21,9 +21,13 @@ import com.google.common.base.Preconditions
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import org.gradle.api.DefaultTask
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.GradleVersion
+
+import javax.inject.Inject
 
 class UpdateReleasedVersions extends DefaultTask {
 
@@ -31,14 +35,19 @@ class UpdateReleasedVersions extends DefaultTask {
     File releasedVersionsFile
 
     @Internal
-    ReleasedVersion currentReleasedVersion
+    final Property<ReleasedVersion> currentReleasedVersion
+
+    @Inject
+    UpdateReleasedVersions(ObjectFactory objectFactory) {
+        currentReleasedVersion = objectFactory.property(ReleasedVersion)
+    }
 
     @TaskAction
     void updateVersions() {
+        ReleasedVersion currentReleasedVersionValue = currentReleasedVersion.get()
         Preconditions.checkNotNull(releasedVersionsFile, "File to update not specified")
-        Preconditions.checkNotNull(currentReleasedVersion, "No currentReleasedVersion property set")
         def releasedVersions = new JsonSlurper().parse(releasedVersionsFile, Charsets.UTF_8.name())
-        def newReleasedVersions = updateReleasedVersions(currentReleasedVersion, releasedVersions)
+        def newReleasedVersions = updateReleasedVersions(currentReleasedVersionValue, releasedVersions)
 
         releasedVersionsFile.withWriter(Charsets.UTF_8.name()) { writer ->
             writer.append(new JsonBuilder(newReleasedVersions).toPrettyString())
