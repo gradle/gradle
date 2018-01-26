@@ -55,7 +55,6 @@ class UpdateReleasedVersions extends DefaultTask {
     void updateVersions() {
         ReleasedVersion currentReleasedVersionValue = currentReleasedVersion.get()
         Preconditions.checkNotNull(releasedVersionsFile, "File to update not specified")
-        Preconditions.checkNotNull(currentReleasedVersionValue, "No currentReleasedVersion property set")
         def releasedVersions = new JsonSlurper().parse(releasedVersionsFile, Charsets.UTF_8.name())
         def newReleasedVersions = updateReleasedVersions(currentReleasedVersionValue, releasedVersions)
 
