@@ -39,7 +39,7 @@ public class ScriptCacheKey {
 
         ScriptCacheKey key = (ScriptCacheKey) o;
 
-        return classLoader.get() != null
+        return classLoader.get() != null && key.classLoader.get() != null
             && classLoader.get().equals(key.classLoader.get())
             && className.equals(key.className)
             && dslId.equals(key.dslId);
