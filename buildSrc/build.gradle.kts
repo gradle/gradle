@@ -116,6 +116,7 @@ tasks {
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 
 apply {
+    from("../gradle/dependenciesVersions.gradle")
     from("../gradle/compile.gradle")
 }
 

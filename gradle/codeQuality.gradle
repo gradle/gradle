@@ -36,7 +36,8 @@ dependencies {
             allVariants {
                 withDependencies {
                     it.removeAll { it.group == 'org.codehaus.groovy' }
-                    it.add("org.codehaus.groovy:groovy-all:2.4.12") {
+                    it.add("org.codehaus.groovy:groovy-all") {
+                        version { prefer versions.groovy }
                         because 'We use groovy-all everywhere'
                     }
                 }

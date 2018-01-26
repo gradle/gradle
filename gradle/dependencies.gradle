@@ -15,12 +15,10 @@
  */
 
 ext {
-    versions = [:]
     libraries = [:]
 }
 
-versions.gradle_kotlin_dsl = '0.15.4'
-
+libraries.aether_connector =    'org.sonatype.aether:aether-connector-wagon'
 libraries.ant =                 'org.apache.ant:ant'
 libraries.asm =                 'org.ow2.asm:asm'
 libraries.asm_commons =         'org.ow2.asm:asm-commons'
@@ -61,10 +59,15 @@ libraries.jsr305 =              'com.google.code.findbugs:jsr305'
 libraries.junit =               'junit:junit'
 libraries.kryo =                'com.esotericsoftware.kryo:kryo'
 libraries.maven3 =              'org.apache.maven:maven-core'
+libraries.maven3_wagon_file =   'org.apache.maven.wagon:wagon-file'
+libraries.maven3_wagon_http =   'org.apache.maven.wagon:wagon-http'
 libraries.nativePlatform =      'net.rubygrapefruit:native-platform'
 libraries.nekohtml =            'net.sourceforge.nekohtml:nekohtml'
 libraries.objenesis =           'org.objenesis:objenesis'
+libraries.plexus_container =    'org.codehaus.plexus:plexus-container-default'
 libraries.plist =               'com.googlecode.plist:dd-plist' // for XCode IDE integration support
+libraries.pmaven_common =       'org.sonatype.pmaven:pmaven-common'
+libraries.pmaven_groovy =       'org.sonatype.pmaven:pmaven-groovy'
 libraries.rhino =               'org.mozilla:rhino'
 libraries.simple =              'org.simpleframework:simple'
 libraries.testng =              'org.testng:testng'
@@ -82,34 +85,35 @@ subprojects { project -> if (project.name in ['baseServices', 'cli']) {
             dependencies {
                 constraints {
                     // lock dependencies that are part of the Gradle distribution
-                    compile(libraries.ant) { version { strictly '1.9.9' } }
-                    compile(libraries.asm) { version { strictly '6.0' } }
-                    compile(libraries.asm_commons) { version { strictly '6.0' } }
-                    compile(libraries.asm_tree) { version { strictly '6.0' } }
-                    compile(libraries.awsS3_core) { version { strictly '1.11.6' } }
-                    compile(libraries.awsS3_kms) { version { strictly '1.11.6' } }
-                    compile(libraries.awsS3_s3) { version { strictly '1.11.6' } }
-                    compile(libraries.bouncycastle_provider) { version { strictly '1.58' } }
-                    compile(libraries.bouncycastle_pgp) { version { strictly '1.58' } }
+                    compile(libraries.aether_connector) { version { strictly versions.aether } }
+                    compile(libraries.ant) { version { strictly versions.ant } }
+                    compile(libraries.asm) { version { strictly versions.asm } }
+                    compile(libraries.asm_commons) { version { strictly versions.asm } }
+                    compile(libraries.asm_tree) { version { strictly versions.asm } }
+                    compile(libraries.awsS3_core) { version { strictly versions.aws } }
+                    compile(libraries.awsS3_kms) { version { strictly versions.aws } }
+                    compile(libraries.awsS3_s3) { version { strictly versions.aws } }
+                    compile(libraries.bouncycastle_provider) { version { strictly versions.bouncycastle } }
+                    compile(libraries.bouncycastle_pgp) { version { strictly versions.bouncycastle } }
                     compile(libraries.bndlib) { version { strictly '3.4.0' } }
                     compile(libraries.bsh) { version { strictly '2.0b6' } }
                     compile(libraries.commons_cli) { version { strictly '1.2' } }
                     compile(libraries.commons_codec) { version { strictly '1.9' } }
                     compile(libraries.commons_collections) { version { strictly '3.2.2' } }
-                    compile(libraries.commons_compress) { version { strictly '1.14' } }
+                    compile(libraries.commons_compress) { version { strictly versions.commons_compress } }
                     compile(libraries.commons_httpclient) { version { strictly '4.5.2' } }
                     compile(libraries.commons_io) { version { strictly '2.4' } }
                     compile(libraries.commons_lang) { version { strictly '2.6' } }
                     compile(libraries.fastutil) { version { strictly '7.2.1' } }
                     compile(libraries.gcs) { version { strictly 'v1-rev116-1.23.0' } }
-                    compile(libraries.groovy) { version { strictly '2.4.12' } }
+                    compile(libraries.groovy) { version { strictly versions.groovy } }
                     compile(libraries.gson) { version { strictly '2.7' } }
                     compile(libraries.guava) { version { strictly '17.0' } }
                     compile(libraries.inject) { version { strictly '1' } }
                     compile(libraries.ivy) { version { strictly '2.2.0' } }
-                    compile(libraries.jackson_annotations) { version { strictly '2.8.11' } }
-                    compile(libraries.jackson_core) { version { strictly '2.8.11' } }
-                    compile(libraries.jackson_databind) { version { strictly '2.8.11' } }
+                    compile(libraries.jackson_annotations) { version { strictly versions.jackson } }
+                    compile(libraries.jackson_core) { version { strictly versions.jackson } }
+                    compile(libraries.jackson_databind) { version { strictly versions.jackson } }
                     compile(libraries.jansi) { version { strictly '1.14' } }
                     compile(libraries.jatl) { version { strictly '0.2.2' } }
                     compile(libraries.jcifs) { version { strictly '1.3.17' } }
@@ -120,31 +124,35 @@ subprojects { project -> if (project.name in ['baseServices', 'cli']) {
                     compile(libraries.jsr305) { version { strictly '2.0.1' } }
                     compile(libraries.junit) { version { strictly '4.12' } }
                     compile(libraries.kryo) { version { strictly '2.20' } }
-                    compile(libraries.maven3) { version { strictly '3.0.4' } }
+                    compile(libraries.maven3_wagon_file) { version { strictly versions.maven_wagon } }
+                    compile(libraries.maven3_wagon_http) { version { strictly versions.maven_wagon } }
+                    compile(libraries.maven3) { version { strictly versions.maven } }
                     compile(libraries.nativePlatform) { version { strictly '0.14' } }
                     compile(libraries.nekohtml) { version { strictly '1.9.20' } }
                     compile(libraries.objenesis) { version { strictly '1.2' } }
+                    compile(libraries.plexus_container) { version { strictly '1.5.5' } }
                     compile(libraries.plist) { version { strictly '1.20' } }
+                    compile(libraries.pmaven_common) { version { strictly versions.maven_polyglot } }
+                    compile(libraries.pmaven_groovy) { version { strictly versions.maven_polyglot } }
                     compile(libraries.rhino) { version { strictly '1.7R3' } }
                     compile(libraries.simple) { version { strictly '4.1.21' } }
                     compile(libraries.testng) { version { strictly '6.3.1' } }
                     compile(libraries.xerces) { version { strictly '2.11.0' } }
                     compile(libraries.xmlApis) { version { strictly '1.4.01' }; because 'Do not upgrade to 2.0.x, which has a POM with relocation Gradle does not handle well' }
-                    compile(libraries.slf4j_api) { version { strictly '1.7.16' } }
-                    compile(libraries.jcl_to_slf4j) { version { strictly '1.7.10' } }
-                    compile(libraries.jul_to_slf4j) { version { strictly '1.7.10' } }
-                    compile(libraries.log4j_to_slf4j) { version { strictly '1.7.16' } }
+                    compile(libraries.slf4j_api) { version { strictly versions.slf4j } }
+                    compile(libraries.jcl_to_slf4j) { version { strictly versions.slf4j } }
+                    compile(libraries.jul_to_slf4j) { version { strictly versions.slf4j } }
+                    compile(libraries.log4j_to_slf4j) { version { strictly versions.slf4j } }
 
                     // lock transitive dependencies that are part of the Gradle distribution
                     compile('org.jetbrains:annotations') { version { strictly '13.0' } }
-                    compile('org.apache.ant:ant-launcher') { version { strictly '1.9.9' } }
-                    compile('org.ow2.asm:asm-util') { version { strictly '6.0' } }
+                    compile('org.apache.ant:ant-launcher') { version { strictly versions.ant } }
+                    compile('org.ow2.asm:asm-util') { version { strictly versions.asm } }
                     compile('com.esotericsoftware.minlog:minlog') { version { strictly '1.2' } }
-                    compile('org.sonatype.aether:aether-api') { version { strictly '1.13.1' } }
-                    compile('org.sonatype.aether:aether-connector-wagon') { version { strictly '1.13.1' } }
-                    compile('org.sonatype.aether:aether-impl') { version { strictly '1.13.1' } }
-                    compile('org.sonatype.aether:aether-spi') { version { strictly '1.13.1' } }
-                    compile('org.sonatype.aether:aether-util') { version { strictly '1.13.1' } }
+                    compile('org.sonatype.aether:aether-api') { version { strictly versions.aether } }
+                    compile('org.sonatype.aether:aether-impl') { version { strictly versions.aether } }
+                    compile('org.sonatype.aether:aether-spi') { version { strictly versions.aether } }
+                    compile('org.sonatype.aether:aether-util') { version { strictly versions.aether } }
                     compile('com.google.api-client:google-api-client') { version { strictly '1.23.0' } }
                     compile('com.google.http-client:google-http-client') { version { strictly '1.23.0' } }
                     compile('com.google.http-client:google-http-client-jackson2') { version { strictly '1.23.0' } }
@@ -152,29 +160,24 @@ subprojects { project -> if (project.name in ['baseServices', 'cli']) {
                     compile('org.hamcrest:hamcrest-core') { version { strictly '1.3' } }
                     compile('org.apache.httpcomponents:httpcore') { version { strictly '4.4.9' } }
                     compile('com.beust:jcommander') { version { strictly '1.47' } }
-                    compile('org.apache.maven:maven-aether-provider') { version { strictly '3.0.4' } }
-                    compile('org.apache.maven:maven-artifact') { version { strictly '3.0.4' } }
-                    compile('org.apache.maven:maven-compat') { version { strictly '3.0.4' } }
-                    compile('org.apache.maven:maven-model') { version { strictly '3.0.4' } }
-                    compile('org.apache.maven:maven-model-builder') { version { strictly '3.0.4' } }
-                    compile('org.apache.maven:maven-plugin-api') { version { strictly '3.0.4' } }
-                    compile('org.apache.maven:maven-repository-metadata') { version { strictly '3.0.4' } }
-                    compile('org.apache.maven:maven-settings') { version { strictly '3.0.4' } }
-                    compile('org.apache.maven:maven-settings-builder') { version { strictly '3.0.4' } }
+                    compile('org.apache.maven:maven-aether-provider') { version { strictly versions.maven } }
+                    compile('org.apache.maven:maven-artifact') { version { strictly versions.maven } }
+                    compile('org.apache.maven:maven-compat') { version { strictly versions.maven } }
+                    compile('org.apache.maven:maven-model') { version { strictly versions.maven } }
+                    compile('org.apache.maven:maven-model-builder') { version { strictly versions.maven } }
+                    compile('org.apache.maven:maven-plugin-api') { version { strictly versions.maven } }
+                    compile('org.apache.maven:maven-repository-metadata') { version { strictly versions.maven } }
+                    compile('org.apache.maven:maven-settings') { version { strictly versions.maven } }
+                    compile('org.apache.maven:maven-settings-builder') { version { strictly versions.maven } }
                     compile('org.sonatype.plexus:plexus-cipher') { version { strictly '1.7' } }
                     compile('org.codehaus.plexus:plexus-classworlds') { version { strictly '2.4' } }
                     compile('org.codehaus.plexus:plexus-component-annotations') { version { strictly '1.5.5' } }
-                    compile('org.codehaus.plexus:plexus-container-default') { version { strictly '1.5.5' } }
                     compile('org.codehaus.plexus:plexus-interpolation') { version { strictly '1.14' } }
                     compile('org.codehaus.plexus:plexus-sec-dispatcher') { version { strictly '1.3' } }
                     compile('org.codehaus.plexus:plexus-utils') { version { strictly '3.0.8' } }
-                    compile('org.sonatype.pmaven:pmaven-common') { version { strictly '0.8-20100325' } }
-                    compile('org.sonatype.pmaven:pmaven-groovy') { version { strictly '0.8-20100325' } }
                     compile('org.yaml:snakeyaml:1.6') { version { strictly '1.6' } } //added by testng, could be avoided with newer TestNG version
-                    compile('org.apache.maven.wagon:wagon-file') { version { strictly '2.4' } }
-                    compile('org.apache.maven.wagon:wagon-http') { version { strictly '2.4' } }
-                    compile('org.apache.maven.wagon:wagon-http-shared4') { version { strictly '2.4' } }
-                    compile('org.apache.maven.wagon:wagon-provider-api') { version { strictly '2.4' } }
+                    compile('org.apache.maven.wagon:wagon-http-shared4') { version { strictly versions.maven_wagon } }
+                    compile('org.apache.maven.wagon:wagon-provider-api') { version { strictly versions.maven_wagon } }
                     compile('org.apache.xbean:xbean-reflect') { version { strictly '3.4' } }
 
                     // Reject dependencies we do not want completely

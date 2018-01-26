@@ -171,6 +171,7 @@ ext {
 apply from: "gradle/buildScanUserData.gradle"
 apply from: "gradle/taskCacheBuildScanUserData.gradle"
 apply from: "gradle/versioning.gradle"
+apply from: "gradle/dependenciesVersions.gradle"
 apply from: "gradle/dependencies.gradle"
 apply from: "gradle/minifiedDependencies.gradle"
 apply from: "gradle/testDependencies.gradle"
