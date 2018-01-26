@@ -686,22 +686,22 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Value of input property 'action.class' has changed for task ':myTask'"
 
         where:
-        originalImplementation      | changedImplementation
-        """{ it.text = "hello" }""" | """{ it.text = "changed" }"""
+        originalImplementation                  | changedImplementation
+        '{ it.text = "hello" }'                 | '{ it.text = "changed" }'
+        wrapAction('outputFile.text = "hello"') | wrapAction('outputFile.text = "changed"')
+    }
+
+    private static String wrapAction(String body) {
         """
             new Action() {
                 void execute(outputFile) {
-                    outputFile.text = "hello"
+                    ${body}
                 }
-            }"""                    | """
-                                        new Action() {
-                                            void execute(outputFile) {
-                                                outputFile.text = "changed"
-                                            }
-                                        }"""
+            }
+        """
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
+    @Requires(TestPrecondition.KOTLIN_SCRIPT)
     def "implementations in nested property in Kotlin build script is tracked"() {
         setupTaskClassWithNestedAction()
         def buildFile = file("build.gradle.kts")
