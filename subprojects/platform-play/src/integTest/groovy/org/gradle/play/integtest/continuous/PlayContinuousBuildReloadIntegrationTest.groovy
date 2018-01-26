@@ -74,7 +74,7 @@ class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegra
         then:
         println "CHECKING ERROR PAGE"
         errorPageHasTaskFailure("compilePlayBinaryScala")
-        serverStartCount() == 1
+        serverStartCount == 1
         !executedTasks.contains('runPlayBinary')
 
         when:
@@ -106,7 +106,7 @@ alert message
 
         def testJs = runningApp.playUrl('assets/javascripts/test.js').text
         def testMinJs = runningApp.playUrl('assets/javascripts/test.min.js').text
-        serverNotRestart()
+        noServerRestart()
 
         then:
         testJs.contains('Hello coffeescript')
@@ -128,7 +128,7 @@ var message = "Hello JS";
 
         def helloworldJs = runningApp.playUrl('assets/javascripts/helloworld.js').text
         def helloworldMinJs = runningApp.playUrl('assets/javascripts/helloworld.min.js').text
-        serverNotRestart()
+        noServerRestart()
 
         then:
         helloworldJs.contains('Hello JS')

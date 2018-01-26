@@ -24,17 +24,17 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 abstract class AbstractMultiVersionPlayReloadIntegrationTest extends AbstractMultiVersionPlayContinuousBuildIntegrationTest {
     protected serverRestart() {
         ConcurrentTestUtil.poll {
-            assert serverStartCount() > 1
+            assert serverStartCount > 1
         }
     }
 
-    protected serverNotRestart() {
+    protected noServerRestart() {
         if (!versionNumber.toString().startsWith("2.2")) {
-            assert serverStartCount() == 1
+            assert serverStartCount == 1
         }
     }
 
-    protected serverStartCount() {
+    protected getServerStartCount() {
         gradle.standardOutput.count('play - Application started')
     }
 }
