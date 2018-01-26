@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.PropertiesUtils
 import java.util.Properties
 
 plugins {
