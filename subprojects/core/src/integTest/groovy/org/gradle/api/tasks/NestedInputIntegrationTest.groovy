@@ -738,7 +738,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 `kotlin-dsl`
             }
         """
-        file("buildSrc/src/main/kotlin/TaskWithNestedAction.kt") << """
+        file("buildSrc/src/main/kotlin/TaskWithNestedLambda.kt") << """
             import org.gradle.api.DefaultTask
             import org.gradle.api.tasks.Nested
             import org.gradle.api.tasks.OutputFile
