@@ -19,7 +19,7 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.internal.SourceDependencies
 import org.junit.Rule
 
@@ -27,7 +27,7 @@ import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
 class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeIntegrationSpec implements SourceDependencies {
     @Rule
-    GitRepository repo = new GitRepository('greeter', temporaryFolder.getTestDirectory())
+    GitFileRepository repo = new GitFileRepository('greeter', temporaryFolder.getTestDirectory())
     BuildTestFile depProject
 
     def "adds source dependencies C++ headers of main component to Xcode indexer search path"() {

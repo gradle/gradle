@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.fixtures;
+package org.gradle.initialization.definition;
 
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.plugin.management.internal.DefaultPluginRequest;
 
-import java.net.URI;
+public class SelfResolvingPluginRequest extends DefaultPluginRequest {
+    private final ClassLoaderScope classLoaderScope;
 
-public interface GitRepository {
-    URI getUrl();
+    public SelfResolvingPluginRequest(String id, ClassLoaderScope classLoaderScope) {
+        super(id, null, true, null, "injected plugin");
+        this.classLoaderScope = classLoaderScope;
+    }
 
-    Ref createBranch(String branchName) throws GitAPIException;
-
-    Ref checkout(String branchName) throws GitAPIException;
-
-    Ref createLightWeightTag(String tagName) throws GitAPIException;
-
-    TestFile getWorkTree();
-
-    TestFile file(Object... path);
-
-    RevCommit commit(String message) throws GitAPIException;
+    public ClassLoaderScope getClassLoaderScope() {
+        return classLoaderScope;
+    }
 }

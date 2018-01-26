@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 
 import java.util.Collections;
@@ -47,6 +48,11 @@ public class RenderableUnresolvedDependencyResult implements RenderableDependenc
 
     @Override
     public String getDescription() {
+        return null;
+    }
+
+    @Override
+    public ResolvedVariantResult getResolvedVariant() {
         return null;
     }
 

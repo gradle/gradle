@@ -60,7 +60,7 @@ Projects with tens or hundreds of declared dependencies can easily suffer from d
 
 Gradle takes your dependency declarations and repository definitions and attempts to download all of your dependencies by a process called _dependency resolution_. Below is a brief outline of how this process works.
 
-* Given a required dependency, Gradle first attempts to resolve the _module_ the dependency points at. Each repository is inspected in order, searching first for a _module descriptor_ file (POM or Ivy file) that indicates the presence of that module. If no module descriptor is found, Gradle will search for the presence of the primary _module artifact_ file indicating that the module exists in the repository.
+* Given a required dependency, Gradle attempts to resolve the dependency by searching for the module the dependency points at. Each repository is inspected in order. Depending on the type of repository, Gradle looks for metadata files describing the module (`.module`, `.pom` or `ivy.xml` file) or directly for artifact files.
 
 ** If the dependency is declared as a dynamic version (like `1.+`), Gradle will resolve this to the highest available concrete version (like `1.2`) in the repository. For Maven repositories, this is done using the `maven-metadata.xml` file, while for Ivy repositories this is done by directory listing.
 
@@ -70,11 +70,11 @@ Gradle takes your dependency declarations and repository definitions and attempt
 
 ** For a dynamic version, a 'higher' concrete version is preferred over a 'lower' version.
 
-** Modules declared by a module descriptor file (Ivy or POM file) are preferred over modules that have an artifact file only.
+** Modules declared by a module metadata file (`.module`, `.pom` or `ivy.xml` file) are preferred over modules that have an artifact file only.
 
 ** Modules from earlier repositories are preferred over modules in later repositories.
 
-** When the dependency is declared by a concrete version and a module descriptor file is found in a repository, there is no need to continue searching later repositories and the remainder of the process is short-circuited.
+** When the dependency is declared by a concrete version and a module metadata file is found in a repository, there is no need to continue searching later repositories and the remainder of the process is short-circuited.
 
 * All of the artifacts for the module are then requested from the _same repository_ that was chosen in the process above.
 

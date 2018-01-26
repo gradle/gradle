@@ -19,17 +19,22 @@ package org.gradle.vcs.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
 import spock.lang.Unroll
 
 class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
-    GitRepository repo = new GitRepository('dep', temporaryFolder.getTestDirectory())
+    BlockingHttpServer httpsServer = new BlockingHttpServer()
+    @Rule
+    GitHttpRepository repo = new GitHttpRepository(httpsServer, 'dep', temporaryFolder.getTestDirectory())
+
     TestFile repoSettingsFile
     def fixture = new ResolveTestFixture(buildFile)
 
     def setup() {
+        httpsServer.start()
         settingsFile << """
             rootProject.name = 'consumer'
             gradle.rootProject {
@@ -73,6 +78,8 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         repo.commit("v2")
 
         when:
+        repo.expectListVersions()
+        repo.expectCloneHead()
         run('checkDeps')
 
         then:
@@ -87,6 +94,8 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '3.0'")
         repo.commit("v3")
+        repo.expectListVersions()
+        repo.expectCloneHead()
         run('checkDeps')
 
         then:
@@ -104,7 +113,9 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         repoSettingsFile.replace("version = '3.0'", "version = 'ignore'")
         repo.commit("v4")
         repo.checkout("master")
-
+        repo.expectListVersions()
+        // TODO - should not need this
+        repo.expectCloneHead()
         run('checkDeps')
 
         then:
@@ -132,6 +143,23 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         repo.createLightWeightTag("3.0")
 
         when:
+        repo.expectListVersions()
+        repo.expectCloneHead()
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test:2.0", "project :test", "test:test:2.0") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+
+        when:
+        // TODO - shouldn't require either of these
+        repo.expectListVersions()
+        repo.expectListVersions()
         run('checkDeps')
 
         then:
@@ -160,6 +188,8 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         repo.createLightWeightTag("2.0")
 
         when:
+        repo.expectListVersions()
+        repo.expectCloneHead()
         run('checkDeps')
 
         then:
@@ -175,6 +205,8 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         repoSettingsFile.replace("version = '2.0'", "version = '1.2'")
         repo.commit("v4")
         repo.createLightWeightTag("1.2")
+        repo.expectListVersions()
+        repo.expectCloneHead()
         run('checkDeps')
 
         then:
@@ -200,6 +232,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         """
         repo.commit("v1")
         repo.createBranch("release")
+        repo.expectListVersions()
 
         when:
         fails('checkDeps')

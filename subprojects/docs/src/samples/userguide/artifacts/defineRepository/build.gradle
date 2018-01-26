@@ -217,6 +217,18 @@ repositories {
 }
 //END SNIPPET ivy-repo-with-custom-pattern
 
+//START SNIPPET maven-repo-with-metadata-sources
+repositories {
+    maven {
+        url "http://repo.mycompany.com/repo"
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
+    }
+}
+//END SNIPPET maven-repo-with-metadata-sources
+
 //START SNIPPET authenticated-ivy-repo
 repositories {
     ivy {

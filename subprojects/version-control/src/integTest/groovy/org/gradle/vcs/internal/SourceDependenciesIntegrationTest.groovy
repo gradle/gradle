@@ -18,18 +18,18 @@ package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
 class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
     @Rule
-    GitRepository first = new GitRepository('first', testDirectory)
+    GitFileRepository first = new GitFileRepository('first', testDirectory)
     @Rule
-    GitRepository second = new GitRepository('second', testDirectory)
+    GitFileRepository second = new GitFileRepository('second', testDirectory)
     @Rule
-    GitRepository third = new GitRepository('third', testDirectory)
+    GitFileRepository third = new GitFileRepository('third', testDirectory)
     @Rule
-    GitRepository fourth = new GitRepository('fourth', testDirectory)
+    GitFileRepository fourth = new GitFileRepository('fourth', testDirectory)
 
     def setup() {
         buildFile << """
@@ -306,7 +306,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    void dependency(GitRepository consumer, String target) {
+    void dependency(GitFileRepository consumer, String target) {
         consumer.file("build.gradle") << """
             dependencies {
                 runtime '${target}:latest.integration'
@@ -315,7 +315,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         consumer.commit("Create dependency on ${target}", "build.gradle")
     }
 
-    void shouldResolve(GitRepository... targets) {
+    void shouldResolve(GitFileRepository... targets) {
         targets.each { target ->
             buildFile << """
                 resolve.dependencies << "${target.workTree.name}"
@@ -328,7 +328,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void changeMessage(String message, GitRepository... repos) {
+    void changeMessage(String message, GitFileRepository... repos) {
         buildFile << """
             resolve.message = "$message"
         """
@@ -354,11 +354,11 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    void vcsMapping(String module, GitRepository repo) {
+    void vcsMapping(String module, GitFileRepository repo) {
         vcsMapping(settingsFile, module, repo.getWorkTree().name)
     }
 
-    void nestedVcsMapping(GitRepository repo, String module, GitRepository target) {
+    void nestedVcsMapping(GitFileRepository repo, String module, GitFileRepository target) {
         vcsMapping(repo.file('settings.gradle'), module, TextUtil.normaliseFileSeparators(file(target.workTree.name).absolutePath))
         repo.commit("add source mapping", 'settings.gradle')
     }

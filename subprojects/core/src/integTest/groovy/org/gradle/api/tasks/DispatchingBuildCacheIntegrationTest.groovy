@@ -73,7 +73,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(cacheableTask)
         populatedCache(localCache)
-        remoteCache.assertEmpty()
+        remoteCache.empty
 
         when:
         pullOnly()
@@ -82,7 +82,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         then:
         skippedTasks.contains(cacheableTask)
         populatedCache(localCache)
-        remoteCache.assertEmpty()
+        remoteCache.empty
 
     }
 
@@ -95,7 +95,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(cacheableTask)
         populatedCache(remoteCache)
-        localCache.assertEmpty()
+        localCache.empty
 
         when:
         pullOnly()
@@ -104,7 +104,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         then:
         skippedTasks.contains(cacheableTask)
         populatedCache(remoteCache)
-        localCache.assertEmpty()
+        localCache.empty
 
     }
 
@@ -118,7 +118,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(cacheableTask)
         populatedCache(remoteCache)
-        localCache.assertEmpty()
+        localCache.empty
 
         when:
         settingsFile.text = localCache.localCacheConfiguration()
@@ -158,7 +158,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         populatedCache(localCache)
-        remoteCache.assertEmpty()
+        remoteCache.empty
     }
 
     def 'push to local and remote'() {

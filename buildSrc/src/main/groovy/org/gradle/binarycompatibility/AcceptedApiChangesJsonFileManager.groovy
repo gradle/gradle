@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-    id 'java-library'
+
+package org.gradle.binarycompatibility
+
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+
+class AcceptedApiChangesJsonFileManager {
+
+    void emptyAcceptedApiChanges(File jsonFile) {
+        def slurped = new JsonSlurper().parse(jsonFile)
+        JsonBuilder jsonBuilder = new JsonBuilder(slurped)
+        jsonBuilder.content.acceptedApiChanges = []
+        jsonFile.write(jsonBuilder.toPrettyString())
+    }
 }
-
-dependencies {
-    api project(':coreApi')
-
-    implementation project(':core')
-    implementation libraries.jgit
-
-    testFixturesImplementation project(":internalTesting")
-    testFixturesImplementation project(":internalIntegTesting")
-    testFixturesCompile libraries.jgit
-}
-
-useTestFixtures()
-useClassycle()
-strictCompile()

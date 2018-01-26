@@ -14,27 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.fixtures;
+package org.gradle.binarycompatibility
 
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.TaskAction
 
-import java.net.URI;
+/**
+ * A task used for cleaning up all accepted API changes. The functionality is called whenever the release process initiates "branching".
+ */
+class CleanAcceptedApiChanges extends DefaultTask {
 
-public interface GitRepository {
-    URI getUrl();
+    @InputFile
+    File jsonFile
 
-    Ref createBranch(String branchName) throws GitAPIException;
-
-    Ref checkout(String branchName) throws GitAPIException;
-
-    Ref createLightWeightTag(String tagName) throws GitAPIException;
-
-    TestFile getWorkTree();
-
-    TestFile file(Object... path);
-
-    RevCommit commit(String message) throws GitAPIException;
+    @TaskAction
+    void clean() {
+        AcceptedApiChangesJsonFileManager jsonFileManager = new AcceptedApiChangesJsonFileManager()
+        jsonFileManager.emptyAcceptedApiChanges(jsonFile)
+    }
 }

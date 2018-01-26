@@ -16,15 +16,29 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.plugins.PluginInspector;
+import org.gradle.initialization.definition.SelfResolvingPluginRequest;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 
 public class SelfResolvingRequestPluginResolver implements PluginResolver {
+    private static final Factory<ClassPath> EMPTY_CLASSPATH_FACTORY = Factories.constant(ClassPath.EMPTY);
+    private final PluginInspector pluginInspector;
+
+    public SelfResolvingRequestPluginResolver(PluginInspector pluginInspector) {
+        this.pluginInspector = pluginInspector;
+    }
+
     @Override
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         if (pluginRequest instanceof SelfResolvingPluginRequest) {
-            // TODO: Make found
-            throw new UnsupportedOperationException("not implemented");
+            ClassLoaderScope classLoaderScope = ((SelfResolvingPluginRequest) pluginRequest).getClassLoaderScope();
+            PluginResolution pluginResolution = new ClassPathPluginResolution(pluginRequest.getId(), classLoaderScope, EMPTY_CLASSPATH_FACTORY, pluginInspector);
+            result.found("injected from outer build", pluginResolution);
         }
     }
 }

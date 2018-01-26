@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,6 +49,11 @@ public class UnresolvableConfigurationResult implements RenderableDependency {
     @Override
     public String getDescription() {
         return configuration.getDescription() + "(n)";
+    }
+
+    @Override
+    public ResolvedVariantResult getResolvedVariant() {
+        return null;
     }
 
     @Override
@@ -82,6 +88,11 @@ public class UnresolvableConfigurationResult implements RenderableDependency {
 
                 @Override
                 public String getDescription() {
+                    return null;
+                }
+
+                @Override
+                public ResolvedVariantResult getResolvedVariant() {
                     return null;
                 }
 

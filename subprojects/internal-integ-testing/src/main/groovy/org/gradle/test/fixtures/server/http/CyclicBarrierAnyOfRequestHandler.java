@@ -158,7 +158,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
 
     @Override
     public void release(String path) {
-        path = new SendFixedContent(path).getPath();
+        path = new ExpectGetAndSendFixedContent(path).getPath();
         lock.lock();
         try {
             if (!received.contains(path)) {

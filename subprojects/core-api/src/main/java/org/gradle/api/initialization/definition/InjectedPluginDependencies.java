@@ -19,15 +19,20 @@ package org.gradle.api.initialization.definition;
 import org.gradle.api.Incubating;
 
 /**
- * TODO
+ * The DSL for declaring plugins to inject into an included build.
+ *
+ * TODO: Plugins need to be located in this build's buildSrc.
+ *
  * @since 4.6
  */
 @Incubating
 public interface InjectedPluginDependencies {
     /**
-     * TODO
-     * @param id
-     * @return
+     * Add a dependency on the plugin with the given id.
+     *
+     * @param id the id of the plugin to depend on
+     *
+     * @return a mutable injected plugin dependency that can be used to further refine the dependency
      */
     InjectedPluginDependency id(String id);
 }
