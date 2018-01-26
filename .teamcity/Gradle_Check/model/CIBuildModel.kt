@@ -48,6 +48,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8),
                             TestCoverage(TestType.platform, OS.macos, JvmVersion.java8)),
+                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java10)
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
             Stage("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions",
