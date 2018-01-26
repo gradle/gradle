@@ -15,11 +15,11 @@
 [[working_with_dependencies]]
 == Working with Dependencies
 
-Gradle provides an extensive API for navigating, inspecting and post-processing dependencies and artifacts of resolved modules. With this API at hand, you can implement more complex requirements to your build requiring a "runtime view" of dependencies.
+Gradle provides an extensive API for navigating, inspecting and post-processing post-processing metadata and artifacts of resolved dependencies. With this API at hand, you can implement more complex requirements to your build requiring a "runtime view" of dependencies.
 
 === Iterating over dependencies assigned to a configuration
 
-The <<sec:listing_dependencies,dependencies report>> is a built-in task that comes with every project independent of the applied plugins. Sometimes you'll want to implement logic based on the resolved dependencies of a project e.g. for building a plugin that visualizes the dependency graph as an image. The api:org.gradle.api.artifacts.Configuration[] API provides a wealth of methods to navigate and inspect dependencies assigned to a configuration.
+Sometimes you'll want to implement logic based on the resolved dependencies of a project e.g. for building a plugin that visualizes the dependency graph as an image. The api:org.gradle.api.artifacts.Configuration[] API provides a wealth of methods to navigate and inspect dependencies assigned to a configuration.
 
 You can iterate over complete set of dependencies assigned to a configuration with the help of the method api:org.gradle.api.artifacts.Configuration#getDependencies()[].
 
@@ -31,7 +31,7 @@ You can iterate over complete set of dependencies assigned to a configuration wi
 
 === Iterating over artifacts resolved for a module
 
-None of the <<inspecting_dependencies,dependency reporting>> helps you with inspecting or further processing the underlying, resolved artifacts of a module. A typical use case for wanting to access the artifacts is to copy them into a specific directory or filter out files of interest based on a specific file extension.
+None of the <<inspecting_dependencies,dependency reporting>> helps you with inspecting or further processing the underlying, resolved artifacts of a module. A typical use case for accessing the artifacts is to copy them into a specific directory or filter out files of interest based on a specific file extension.
 
 You can iterate over the complete set of artifacts resolved for a module with the help of the method api:org.gradle.api.file.FileCollection#getFiles()[]. Using this method on a `Configuration` instance is possible as the interface extends `FileCollection`.
 
@@ -46,9 +46,9 @@ You can iterate over the complete set of artifacts resolved for a module with th
 Iterating over the artifacts of a module automatically resolves the configuration. A resolved configuration becomes immutable and cannot add or remove dependencies. If needed you can copy a configuration for further modification via api:org.gradle.api.artifacts.Configuration#copy()[].
 ====
 
-=== Accessing a module's metadata artifact
+=== Accessing a module’s metadata file
 
-As part of the dependency resolution process, Gradle downloads the main artifact and the metadata file for a module and stores them in the dependency cache. The initial download requires a active connection to the repositories declared in the build. Some organizations enforce strong restrictions on accessing repositories outside of internal network. Instead of downloading artifacts, those organizations prefer to provide an "installable" Gradle cache with all artifacts contained in it to fulfill the build's dependency requirements.
+As part of the dependency resolution process, Gradle downloads the metadata file of a module and stores it in the dependency cache. Some organizations enforce strong restrictions on accessing repositories outside of internal network. Instead of downloading artifacts, those organizations prefer to provide an "installable" Gradle cache with all artifacts contained in it to fulfill the build's dependency requirements.
 
 The artifact query API provides access to the raw files of a module. Currently, it allows getting a handle to the metadata file and some selected, additional artifacts (e.g. a JVM-based module's source and Javadoc files). The main API entry point is api:org.gradle.api.artifacts.query.ArtifactResolutionQuery[].
 
