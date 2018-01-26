@@ -19,11 +19,10 @@ package org.gradle.api.internal.changedetection.rules;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.util.ChangeListener;
-import org.gradle.util.DiffUtil;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @NonNullApi
 public abstract class AbstractPropertyNameTaskStateChanges extends SimpleTaskStateChanges {
@@ -44,22 +43,18 @@ public abstract class AbstractPropertyNameTaskStateChanges extends SimpleTaskSta
 
     @Override
     protected void addAllChanges(final List<TaskStateChange> changes) {
-        DiffUtil.diff(getProperties(current).keySet(), getProperties(previous).keySet(), new ChangeListener<String>() {
-            @Override
-            public void added(String element) {
-                changes.add(new DescriptiveChange("%s property '%s' has been added for %s", title, element, task));
-            }
+        Set<String> currentNames = getProperties(current).keySet();
+        Set<String> previousNames = getProperties(previous).keySet();
 
-            @Override
-            public void removed(String element) {
-                changes.add(new DescriptiveChange("%s property '%s' has been removed for %s", title, element, task));
+        for (String name : currentNames) {
+            if (!previousNames.contains(name)) {
+                changes.add(new DescriptiveChange("%s property '%s' has been added for %s", title, name, task));
             }
-
-            @Override
-            public void changed(String element) {
-                // Won't happen
-                throw new AssertionError();
+        }
+        for (String name : previousNames) {
+            if (!currentNames.contains(name)) {
+                changes.add(new DescriptiveChange("%s property '%s' has been removed for %s", title, name, task));
             }
-        });
+        }
     }
 }
