@@ -38,7 +38,7 @@ import java.util.Properties;
 public class PropertiesUtils {
 
     /**
-     * Writes a {@link java.util.Properties} in a way that the results can be expected to be reproducible.
+     * Writes {@link java.util.Properties} in a way that the results can be expected to be reproducible.
      *
      * Uses defaults for the arguments of {@link PropertiesUtils#store(Properties, File, String, Charset, String)}:
      * <ul>
@@ -52,7 +52,7 @@ public class PropertiesUtils {
     }
 
     /**
-     * Writes a {@link java.util.Properties} in a way that the results can be expected to be reproducible.
+     * Writes {@link java.util.Properties} in a way that the results can be expected to be reproducible.
      *
      * See {@link #store(Properties, OutputStream, String, Charset, String)} for more details.
      */
@@ -66,7 +66,7 @@ public class PropertiesUtils {
     }
 
     /**
-     * Writes a {@link java.util.Properties} in a way that the results can be expected to be reproducible.
+     * Writes {@link java.util.Properties} in a way that the results can be expected to be reproducible.
      *
      * <p>There are a number of differences compared to {@link java.util.Properties#store(java.io.Writer, String)}:</p>
      * <ul>
