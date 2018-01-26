@@ -57,7 +57,7 @@ public abstract class IdePlugin implements Plugin<Project> {
         String lifecycleTaskName = getLifecycleTaskName();
         lifecycleTask = target.task(lifecycleTaskName);
         lifecycleTask.setGroup("IDE");
-        cleanTask = target.task(cleanName(lifecycleTaskName));
+        cleanTask = target.getTasks().create(cleanName(lifecycleTaskName), Delete.class);
         cleanTask.setGroup("IDE");
         onApply(target);
     }

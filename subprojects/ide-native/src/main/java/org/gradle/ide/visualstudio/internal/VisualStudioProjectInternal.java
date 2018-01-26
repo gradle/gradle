@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.internal
+package org.gradle.ide.visualstudio.internal;
 
-import spock.lang.Specification
+import org.gradle.ide.visualstudio.VisualStudioProject;
 
-class VisualStudioProjectConfigurationTest extends Specification {
-    def exeBinary = Mock(VisualStudioTargetBinary)
-    def configuration = new VisualStudioProjectConfiguration(null,"configName", exeBinary)
+public interface VisualStudioProjectInternal extends VisualStudioProject {
+    /**
+     * Returns the name of the component associated with this project
+     */
+    String getComponentName();
 
-    def "configuration has supplied names"() {
-        expect:
-        configuration.configurationName == "configName"
-        configuration.name == "configName|Win32"
-    }
+    /**
+     * Adds tasks required to build this component.
+     */
+    void builtBy(Object... tasks);
 }

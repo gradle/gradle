@@ -18,6 +18,7 @@ package org.gradle.ide.visualstudio.tasks.internal
 import org.gradle.api.Transformer
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
+import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -101,10 +102,12 @@ class VisualStudioProjectFileTest extends Specification {
             getName() >> "${configName}|${platformName}"
             getConfigurationName() >> configName
             getPlatformName() >> platformName
-            getBuildTask() >> "${configName}Build"
-            getCleanTask() >> "${configName}Clean"
-            getCompilerDefines() >> defines
-            getIncludePaths() >> includes.collect { file(it) }
+            getTargetBinary() >> Stub(VisualStudioTargetBinary) {
+                getBuildTaskPath() >> "${configName}Build"
+                getCleanTaskPath() >> "${configName}Clean"
+                getCompilerDefines() >> defines
+                getIncludePaths() >> includes.collect { file(it) }
+            }
         }
     }
 
