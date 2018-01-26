@@ -18,6 +18,23 @@ The new metadata format is still under active development, but it can already be
 ### Example new and noteworthy
 -->
 
+### Specifying metadata sources for repositories
+
+Gradle now allows you to explicitly state for [which metadata files](userguide/repository_types.html#sub:supported_metadata_sources) it should search in a repository. Use the following to configure Gradle to fail-fast resolving a dependency if a POM file is not found first.
+
+    repositories {
+         mavenCentral {
+             metadataSources {
+                 mavenPom() // Look for Maven '.pom' files
+                 // artifact() - Do not look for artifacts without metadata file
+             }
+         }
+    }
+
+This avoids a 2nd request for the JAR file when the POM is missing, making dependency resolution from Maven repositories faster in this case.
+
+You can also use this to programmatically opt-in to using the new Gradle metadata format for one repository using `metadataSources { gradleMetadata() }`.
+
 ### Default JaCoCo version upgraded to 0.8.0
 
 [The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.0](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
@@ -28,30 +45,28 @@ Sometimes a user wants to declare the value of an exposed task property on the c
 
 The following examples exposes a command line parameter `--url` for the custom task type `UrlVerify`. Let's assume you wanted to pass a URL to a task of this type named `verifyUrl`. The invocation looks as such: `gradle verifyUrl --url=https://gradle.org/`. You can find more information about this feature in the [user guide](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options).
 
-```
-import org.gradle.api.tasks.options.Option;
-
-public class UrlVerify extends DefaultTask {
-    private String url;
-
-    @Option(option = "url", description = "Configures the URL to be verified.")
-    public void setUrl(String url) {
-        this.url = url;
+    import org.gradle.api.tasks.options.Option;
+    
+    public class UrlVerify extends DefaultTask {
+        private String url;
+    
+        @Option(option = "url", description = "Configures the URL to be verified.")
+        public void setUrl(String url) {
+            this.url = url;
+        }
+    
+        @Input
+        public String getUrl() {
+            return url;
+        }
+    
+        @TaskAction
+        public void verify() {
+            getLogger().quiet("Verifying URL '{}'", url);
+    
+            // verify URL by making a HTTP call
+        }
     }
-
-    @Input
-    public String getUrl() {
-        return url;
-    }
-
-    @TaskAction
-    public void verify() {
-        getLogger().quiet("Verifying URL '{}'", url);
-
-        // verify URL by making a HTTP call
-    }
-}
-```
 
 ## Promoted features
 
