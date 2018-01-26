@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import java.util.Set;
 
@@ -32,6 +33,8 @@ public interface DependencyEdge {
     ComponentIdentifier getFrom();
 
     ComponentSelectionReason getReason();
+
+    ResolvedVariantResult getSelectedVariant();
 
     Set<? extends RenderableDependency> getChildren();
 }

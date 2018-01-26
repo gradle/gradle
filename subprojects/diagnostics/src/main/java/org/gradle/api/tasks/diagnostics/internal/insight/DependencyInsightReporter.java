@@ -20,6 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -39,6 +40,7 @@ import java.util.List;
 import static org.gradle.api.tasks.diagnostics.internal.graph.nodes.SelectionReasonHelper.getReasonDescription;
 
 public class DependencyInsightReporter {
+
     public Collection<RenderableDependency> prepare(Collection<DependencyResult> input, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
         LinkedList<RenderableDependency> out = new LinkedList<RenderableDependency>();
         List<DependencyEdge> dependencies = CollectionUtils.collect(input, new Transformer<DependencyEdge, DependencyResult>() {
@@ -58,19 +60,20 @@ public class DependencyInsightReporter {
         RequestedVersion current = null;
 
         for (DependencyEdge dependency : sorted) {
+            ResolvedVariantResult selectedVariant = dependency.getSelectedVariant();
             //add description only to the first module
             if (annotated.add(dependency.getActual())) {
                 //add a heading dependency with the annotation if the dependency does not exist in the graph
                 if (!dependency.getRequested().matchesStrictly(dependency.getActual())) {
-                    out.add(new DependencyReportHeader(dependency));
-                    current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null);
+                    out.add(new DependencyReportHeader(dependency, selectedVariant));
+                    current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, selectedVariant);
                     out.add(current);
                 } else {
-                    current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), getReasonDescription(dependency.getReason()));
+                    current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), getReasonDescription(dependency.getReason()), selectedVariant);
                     out.add(current);
                 }
             } else if (!current.getRequested().equals(dependency.getRequested())) {
-                current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null);
+                current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, selectedVariant);
                 out.add(current);
             }
 

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
@@ -55,6 +56,11 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
     @Override
     public ComponentSelectionReason getReason() {
         return dependency.getAttemptedReason();
+    }
+
+    @Override
+    public ResolvedVariantResult getSelectedVariant() {
+        return null;
     }
 
     @Override

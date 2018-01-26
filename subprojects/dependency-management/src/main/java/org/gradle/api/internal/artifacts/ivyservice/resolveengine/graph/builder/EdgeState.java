@@ -165,6 +165,11 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
+    public boolean contributesArtifacts() {
+        return !dependencyMetadata.isPending();
+    }
+
+    @Override
     public ComponentSelector getRequested() {
         return dependencyMetadata.getSelector();
     }

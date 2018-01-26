@@ -43,19 +43,7 @@ trait DirectoryBuildCacheFixture {
         buildCache.gcFile()
     }
 
-    List<TestFile> listCacheTempFiles() {
-        buildCache.listCacheTempFiles()
-    }
-
     List<TestFile> listCacheFiles() {
         buildCache.listCacheFiles()
-    }
-
-    List<TestFile> listCacheFailedFiles() {
-        buildCache.listCacheFailedFiles()
-    }
-
-    TestFile cacheArtifact(String cacheKey) {
-        buildCache.cacheArtifact(cacheKey)
     }
 }

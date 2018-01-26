@@ -29,6 +29,9 @@ class CppAlternateHeaderGreeterFunction extends CppGreeterFunction {
     CppAlternateHeaderGreeterFunction(String publicHeaderDir = "headers") {
         super(publicHeaderDir)
         header = ofFile(sourceFile(publicHeaderDir, "greeter.h", """
+#ifndef GREETER_H
+#define GREETER_H
+
 #ifdef _WIN32
 #define EXPORT_FUNC __declspec(dllexport)
 #else
@@ -45,7 +48,10 @@ void sayGreeting();
 }
 #endif
 
-#define SOMETHING
+#define DUMMY_STRING "alternative dummy"
+extern const char* PUBLIC_DUMMY_STRING;
+
+#endif // GREETER_H
 """))
     }
 

@@ -16,6 +16,10 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.cache.PersistentStateCache;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.progress.BuildOperationDescriptor;
 
 import java.io.File;
 import java.util.Collection;
@@ -23,19 +27,46 @@ import java.util.Collection;
 public class IncrementalCompileProcessor {
     private final PersistentStateCache<CompilationState> previousCompileStateCache;
     private final IncrementalCompileFilesFactory incrementalCompileFilesFactory;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public IncrementalCompileProcessor(PersistentStateCache<CompilationState> previousCompileStateCache, IncrementalCompileFilesFactory incrementalCompileFilesFactory) {
+    public IncrementalCompileProcessor(PersistentStateCache<CompilationState> previousCompileStateCache, IncrementalCompileFilesFactory incrementalCompileFilesFactory, BuildOperationExecutor buildOperationExecutor) {
         this.previousCompileStateCache = previousCompileStateCache;
         this.incrementalCompileFilesFactory = incrementalCompileFilesFactory;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public IncrementalCompilation processSourceFiles(Collection<File> sourceFiles) {
-        CompilationState previousCompileState = previousCompileStateCache.get();
-        IncementalCompileSourceProcessor processor = incrementalCompileFilesFactory.filesFor(previousCompileState);
-        for (File sourceFile : sourceFiles) {
-            processor.processSource(sourceFile);
-        }
-        return processor.getResult();
+    public IncrementalCompilation processSourceFiles(final Collection<File> sourceFiles) {
+        return buildOperationExecutor.call(new CallableBuildOperation<IncrementalCompilation>() {
+            @Override
+            public IncrementalCompilation call(BuildOperationContext context) {
+                CompilationState previousCompileState = previousCompileStateCache.get();
+                IncementalCompileSourceProcessor processor = incrementalCompileFilesFactory.filesFor(previousCompileState);
+                for (File sourceFile : sourceFiles) {
+                    processor.processSource(sourceFile);
+                }
+                return processor.getResult();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                ProcessSourceFilesDetails operationDetails = new ProcessSourceFilesDetails(sourceFiles.size());
+                return BuildOperationDescriptor
+                    .displayName("Processing source files")
+                    .details(operationDetails);
+            }
+
+            class ProcessSourceFilesDetails {
+                private final int sourceFileCount;
+
+                ProcessSourceFilesDetails(int sourceFileCount) {
+                    this.sourceFileCount = sourceFileCount;
+                }
+
+                public int getSourceFileCount() {
+                    return sourceFileCount;
+                }
+            }
+        });
     }
 
 }

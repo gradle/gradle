@@ -20,6 +20,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
@@ -90,7 +91,6 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
         this.children = children;
     }
 
-
     @Override
     public Object getId() {
         return id;
@@ -105,6 +105,12 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
     public String getDescription() {
         return description;
     }
+
+    @Override
+    public ResolvedVariantResult getResolvedVariant() {
+        return null;
+    }
+
 
     @Override
     public ResolutionState getResolutionState() {
