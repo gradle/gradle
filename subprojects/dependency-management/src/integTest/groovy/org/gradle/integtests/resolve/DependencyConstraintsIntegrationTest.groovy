@@ -361,4 +361,63 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
             }
         }
     }
+
+    void "dependency constraints should not pull in additional artifacts"() {
+        given:
+        mavenRepo.module("org", "foo", '1.0').artifact(classifier: 'shaded').publish()
+        mavenRepo.module("org", "foo", '1.1').artifact(classifier: 'shaded').publish()
+
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.0:shaded'
+                constraints {
+                    conf 'org:foo:1.1'
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0","org:foo:1.1")
+                module("org:foo:1.1") {
+                    artifact(classifier: 'shaded')
+                }
+            }
+        }
+    }
+
+    void "dependency constraints should not pull in additional artifacts for transitive dependencies"() {
+        given:
+        def foo11 = mavenRepo.module("org", "foo", '1.0').artifact(classifier: 'shaded').publish()
+        mavenRepo.module("org", "foo", '1.1').artifact(classifier: 'shaded').publish()
+        mavenRepo.module("org", "bar", '1.0').dependsOn(classifier: 'shaded', foo11).publish()
+
+        buildFile << """
+            dependencies {
+                conf 'org:bar:1.0'
+                constraints {
+                    conf 'org:foo:1.1'
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:foo:1.1") {
+                    artifact(classifier: 'shaded')
+                }
+                module("org:bar:1.0") {
+                    edge("org:foo:1.0","org:foo:1.1")
+                }
+            }
+        }
+    }
 }

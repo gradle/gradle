@@ -34,6 +34,8 @@ public interface DependencyGraphEdge extends DependencyResult {
 
     ModuleExclusion getExclusions();
 
+    boolean contributesArtifacts();
+
     List<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata targetConfiguration);
 
     Iterable<? extends DependencyGraphNode> getTargets();
