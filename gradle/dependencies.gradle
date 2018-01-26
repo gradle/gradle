@@ -75,7 +75,8 @@ libraries.jcl_to_slf4j =        'org.slf4j:jcl-over-slf4j'
 libraries.jul_to_slf4j =        'org.slf4j:jul-to-slf4j'
 libraries.log4j_to_slf4j =      'org.slf4j:log4j-over-slf4j'
 
-allprojects {
+// the 'if' condition here is a configuration time performance optimization, that applied the constraints only to root projects of the subproject dependencies tree
+subprojects { project -> if (project.name in ['baseServices', 'cli']) {
     configurations.whenObjectAdded {
         if (name == 'compile') {
             dependencies {
@@ -128,7 +129,7 @@ allprojects {
                     compile(libraries.simple) { version { strictly '4.1.21' } }
                     compile(libraries.testng) { version { strictly '6.3.1' } }
                     compile(libraries.xerces) { version { strictly '2.11.0' } }
-                    compile(libraries.xmlApis) { version { strictly '1.4.01'}; because 'Do not upgrade to 2.0.x, which has a POM with relocation Gradle does not handle well' }
+                    compile(libraries.xmlApis) { version { strictly '1.4.01' }; because 'Do not upgrade to 2.0.x, which has a POM with relocation Gradle does not handle well' }
                     compile(libraries.slf4j_api) { version { strictly '1.7.16' } }
                     compile(libraries.jcl_to_slf4j) { version { strictly '1.7.10' } }
                     compile(libraries.jul_to_slf4j) { version { strictly '1.7.10' } }
@@ -197,7 +198,9 @@ allprojects {
             }
         }
     }
+}}
 
+subprojects {
     dependencies {
         components { handler ->
             // Gradle distribution - minify: remove unused transitive dependencies
