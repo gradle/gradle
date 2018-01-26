@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
     }
 
     @Unroll
-    def "correct implementation #type coerced to Action is tracked"() {
+    def "correct implementation for #type coerced to Action is tracked"() {
         expect:
         DefaultPropertyWalker.getImplementationClass(implementation as Action) == implementation.getClass()
 
