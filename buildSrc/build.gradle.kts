@@ -103,17 +103,6 @@ normalization {
         ignore("plugin-under-test-metadata.properties")
     }
 }
-
-tasks.withType<GeneratePluginDescriptors> {
-    doLast {
-        outputDirectory.listFiles().forEach { descriptorFile ->
-            val descriptorContents = readProperties(descriptorFile)
-            descriptorFile.outputStream().use {
-                PropertiesUtils.store(descriptorContents, it, null, Charsets.ISO_8859_1, "\n")
-            }
-        }
-    }
-}
 // ^^^^^
 
 tasks {
