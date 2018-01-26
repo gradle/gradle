@@ -112,7 +112,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
     }
 
     @Unroll
-    def "correct implementation class for #type is discovered"() {
+    def "correct implementation #type coerced to Action is tracked"() {
         expect:
         DefaultPropertyWalker.getImplementationClass(implementation as Action) == implementation.getClass()
 

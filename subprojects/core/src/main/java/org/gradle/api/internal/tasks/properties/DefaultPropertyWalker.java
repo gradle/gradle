@@ -116,6 +116,9 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     @VisibleForTesting
     static Class<?> getImplementationClass(Object bean) {
+        // When Groovy coerces a Closure into an SAM type, then it creates a Proxy which is backed by the Closure.
+        // We want to track the implementation of the Closure, since the class name and classloader of the proxy will not change.
+        // Java and Kotlin Lambdas are coerced to SAM types at compile time, so no unpacking is necessary there.
         if (Proxy.isProxyClass(bean.getClass())) {
             InvocationHandler invocationHandler = Proxy.getInvocationHandler(bean);
             if (invocationHandler instanceof ConvertedClosure) {
