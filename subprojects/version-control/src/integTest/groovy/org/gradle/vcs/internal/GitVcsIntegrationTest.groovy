@@ -429,7 +429,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
 
         when:
         gitCheckout.file('foo').text = "baz"
-        succeeds('assemble')
+        succeeds('assemble', "-i")
 
         then:
         gitCheckout.file('foo').text == "bar"

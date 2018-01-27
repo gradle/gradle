@@ -64,22 +64,22 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         defaultProps + {
             PropertyGroup(Label: "Configuration", Condition: configCondition) {
                 ConfigurationType(configuration.type)
-                UseDebugLibraries(configuration.debug)
+                UseDebugLibraries(configuration.targetBinary.debuggable)
                 OutDir(vsOutputDir)
                 IntDir(vsOutputDir)
             }
         }
 
-        final includePath = toPath(configuration.includePaths).join(";")
+        final includePath = toPath(configuration.targetBinary.includePaths).join(";")
         Node userMacros = xml.PropertyGroup.find({ it.'@Label' == 'UserMacros'}) as Node
         userMacros + {
             PropertyGroup(Label: "NMakeConfiguration", Condition: configCondition) {
-                NMakeBuildCommandLine("${gradleCommand} ${configuration.buildTask}")
-                NMakeCleanCommandLine("${gradleCommand} ${configuration.cleanTask}")
-                NMakeReBuildCommandLine("${gradleCommand} ${configuration.cleanTask} ${configuration.buildTask}")
-                NMakePreprocessorDefinitions(configuration.compilerDefines.join(";"))
+                NMakeBuildCommandLine("${gradleCommand} ${configuration.targetBinary.buildTaskPath}")
+                NMakeCleanCommandLine("${gradleCommand} ${configuration.targetBinary.cleanTaskPath}")
+                NMakeReBuildCommandLine("${gradleCommand} ${configuration.targetBinary.cleanTaskPath} ${configuration.targetBinary.buildTaskPath}")
+                NMakePreprocessorDefinitions(configuration.targetBinary.compilerDefines.join(";"))
                 NMakeIncludeSearchPath(includePath)
-                NMakeOutput(toPath(configuration.outputFile))
+                NMakeOutput(toPath(configuration.targetBinary.outputFile))
             }
         }
     }

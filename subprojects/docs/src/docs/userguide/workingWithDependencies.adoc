@@ -15,73 +15,47 @@
 [[working_with_dependencies]]
 == Working with Dependencies
 
-For the examples below we have the following dependencies setup:
+Gradle provides an extensive API for navigating, inspecting and post-processing post-processing metadata and artifacts of resolved dependencies. With this API at hand, you can implement more complex requirements to your build requiring a "runtime view" of dependencies.
+
+=== Iterating over dependencies assigned to a configuration
+
+Sometimes you'll want to implement logic based on the resolved dependencies of a project e.g. for building a plugin that visualizes the dependency graph as an image. The api:org.gradle.api.artifacts.Configuration[] API provides a wealth of methods to navigate and inspect dependencies assigned to a configuration.
+
+You can iterate over complete set of dependencies assigned to a configuration with the help of the method api:org.gradle.api.artifacts.Configuration#getDependencies()[].
 
 ++++
-<sample id="configurationHandlingSetup" dir="userguide/artifacts/configurationHandling" title="Configuration.copy">
-            <sourcefile file="build.gradle" snippet="setup"/>
-        </sample>
+<sample id="iterating-dependencies" dir="userguide/dependencies/iteratingDependencies" title="Iterating over the dependencies assigned to a configuration">
+    <sourcefile file="build.gradle" snippet="iteration-task" />
+</sample>
 ++++
 
-The dependencies have the following transitive dependencies:
+=== Iterating over artifacts resolved for a module
 
-shark-1.0 -&gt; seal-2.0, tuna-1.0
+None of the <<inspecting_dependencies,dependency reporting>> helps you with inspecting or further processing the underlying, resolved artifacts of a module. A typical use case for accessing the artifacts is to copy them into a specific directory or filter out files of interest based on a specific file extension.
 
-orca-1.0 -&gt; seal-1.0
-
-tuna-1.0 -&gt; herring-1.0
-
-You can use the configuration to access the declared dependencies or a subset of those:
+You can iterate over the complete set of artifacts resolved for a module with the help of the method api:org.gradle.api.file.FileCollection#getFiles()[]. Using this method on a `Configuration` instance is possible as the interface extends `FileCollection`.
 
 ++++
-<sample id="configurationHandlingDependencies" dir="userguide/artifacts/configurationHandling" title="Accessing declared dependencies">
-            <sourcefile file="build.gradle" snippet="dependencies"/>
-            <output args="-q dependencies"/>
-        </sample>
+<sample id="iterating-artifacts" dir="userguide/dependencies/iteratingArtifacts" title="Iterating over the artifacts resolved for a module">
+    <sourcefile file="build.gradle" snippet="iteration-task" />
+</sample>
 ++++
 
-The `dependencies` task returns only the dependencies belonging explicitly to the configuration. The `allDependencies` task includes the dependencies from extended configurations.
+[NOTE]
+====
+Iterating over the artifacts of a module automatically resolves the configuration. A resolved configuration becomes immutable and cannot add or remove dependencies. If needed you can copy a configuration for further modification via api:org.gradle.api.artifacts.Configuration#copy()[].
+====
 
-To get the library files of the configuration dependencies you can do:
+=== Accessing a module’s metadata file
 
-++++
-<sample id="configurationHandlingAllFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.files">
-            <sourcefile file="build.gradle" snippet="allFiles"/>
-            <output args="-q allFiles"/>
-        </sample>
-++++
+As part of the dependency resolution process, Gradle downloads the metadata file of a module and stores it in the dependency cache. Some organizations enforce strong restrictions on accessing repositories outside of internal network. Instead of downloading artifacts, those organizations prefer to provide an "installable" Gradle cache with all artifacts contained in it to fulfill the build's dependency requirements.
 
-Sometimes you want the library files of a subset of the configuration dependencies (e.g. of a single dependency).
+The artifact query API provides access to the raw files of a module. Currently, it allows getting a handle to the metadata file and some selected, additional artifacts (e.g. a JVM-based module's source and Javadoc files). The main API entry point is api:org.gradle.api.artifacts.query.ArtifactResolutionQuery[].
 
-++++
-<sample id="configurationHandlingFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.files with spec">
-            <sourcefile file="build.gradle" snippet="files"/>
-            <output args="-q files"/>
-        </sample>
-++++
-
-The `Configuration.files` method always retrieves all artifacts of the _whole_ configuration. It then filters the retrieved files by specified dependencies. As you can see in the example, transitive dependencies are included.
-
-You can also copy a configuration. You can optionally specify that only a subset of dependencies from the original configuration should be copied. The copying methods come in two flavors. The `copy` method copies only the dependencies belonging explicitly to the configuration. The `copyRecursive` method copies all the dependencies, including the dependencies from extended configurations.
+Let's say you wanted to post-process the metadata file of a Maven module. Given a configuration, you filter the component identifiers. Those component identifiers serve as input to the artifact resolution query. After executing the query, you get a handle to all components that match the criteria and their underlying files. Additionally, it's very easy to post-process the metadata file. The example code uses Groovy's link:http://docs.groovy-lang.org/latest/html/api/groovy/util/XmlSlurper.html[XmlSlurper] to ask for POM element values.
 
 ++++
-<sample id="configurationHandlingCopy" dir="userguide/artifacts/configurationHandling" title="Configuration.copy">
-            <sourcefile file="build.gradle" snippet="copy"/>
-            <output args="-q copy"/>
-        </sample>
+<sample id="accessingMetadataArtifact" dir="userguide/dependencies/accessingMetadataArtifact" title="Accessing a Maven module's metadata artifact">
+    <sourcefile file="build.gradle" snippet="accessing-metadata-artifact" />
+</sample>
 ++++
-
-It is important to note that the returned files of the copied configuration are often but not always the same than the returned files of the dependency subset of the original configuration. In case of version conflicts between dependencies of the subset and dependencies not belonging to the subset the resolve result might be different.
-
-++++
-<sample id="configurationHandlingCopyVsFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.copy vs. Configuration.files">
-            <sourcefile file="build.gradle" snippet="copyVsFiles"/>
-            <output args="-q copyVsFiles"/>
-        </sample>
-++++
-
-In the example above, `orca` has a dependency on `seal-1.0` whereas `shark` has a dependency on `seal-2.0`. The original configuration has therefore a version conflict which is resolved to the newer `seal-2.0` version. The `files` method therefore returns `seal-2.0` as a transitive dependency of `orca`. The copied configuration only has `orca` as a dependency and therefore there is no version conflict and `seal-1.0` is returned as a transitive dependency.
-
-Once a configuration is resolved it is immutable. Changing its state or the state of one of its dependencies will cause an exception. You can always copy a resolved configuration. The copied configuration is in the unresolved state and can be freshly resolved.
-
-To learn more about the API of the configuration class see the API documentation: api:org.gradle.api.artifacts.Configuration[].

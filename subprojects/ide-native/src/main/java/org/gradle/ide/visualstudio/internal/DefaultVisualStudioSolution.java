@@ -17,18 +17,13 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.AbstractBuildableComponentSpec;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.visualstudio.TextConfigFile;
 import org.gradle.ide.visualstudio.TextProvider;
 import org.gradle.ide.visualstudio.VisualStudioProject;
-import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,25 +31,32 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec implements VisualStudioSolution {
-
+public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal {
+    private final String name;
     private final DefaultVisualStudioProject rootProject;
     private final SolutionFile solutionFile;
     private final VisualStudioProjectResolver vsProjectResolver;
+    private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
 
-    public DefaultVisualStudioSolution(ComponentSpecIdentifier componentIdentifier, DefaultVisualStudioProject rootProject, PathToFileResolver fileResolver, VisualStudioProjectResolver vsProjectResolver, Instantiator instantiator) {
-        super(componentIdentifier, VisualStudioSolution.class);
+    public DefaultVisualStudioSolution(String name, DefaultVisualStudioProject rootProject, PathToFileResolver fileResolver, VisualStudioProjectResolver vsProjectResolver, Instantiator instantiator) {
+        this.name = name;
         this.rootProject = rootProject;
         this.vsProjectResolver = vsProjectResolver;
         this.solutionFile = instantiator.newInstance(SolutionFile.class, fileResolver, getName() + ".sln");
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     public SolutionFile getSolutionFile() {
         return solutionFile;
     }
 
-    public NativeComponentSpec getComponent() {
-        return rootProject.getComponent();
+    @Override
+    public String getComponentName() {
+        return rootProject.getComponentName();
     }
 
     public Set<VisualStudioProject> getProjects() {
@@ -81,12 +83,10 @@ public class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec 
     }
 
     private void addDependentConfigurations(Set configurations, VisualStudioProjectConfiguration configuration) {
-        for (NativeLibraryBinary library : configuration.getBinary().getDependentBinaries()) {
-            if (library instanceof NativeBinarySpecInternal) {
-                VisualStudioProjectConfiguration libraryConfiguration = vsProjectResolver.lookupProjectConfiguration((NativeBinarySpec) library);
-                if (configurations.add(libraryConfiguration)) {
-                    addDependentConfigurations(configurations, libraryConfiguration);
-                }
+        for (VisualStudioTargetBinary library : configuration.getTargetBinary().getDependencies()) {
+            VisualStudioProjectConfiguration libraryConfiguration = vsProjectResolver.lookupProjectConfiguration(library);
+            if (configurations.add(libraryConfiguration)) {
+                addDependentConfigurations(configurations, libraryConfiguration);
             }
         }
 
@@ -94,6 +94,16 @@ public class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec 
 
     public final DefaultVisualStudioProject getRootProject() {
         return rootProject;
+    }
+
+    @Override
+    public void builtBy(Object... tasks) {
+        buildDependencies.add(tasks);
+    }
+
+    @Override
+    public TaskDependency getBuildDependencies() {
+        return buildDependencies;
     }
 
     public static class SolutionFile implements TextConfigFile {
