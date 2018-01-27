@@ -20,6 +20,8 @@ if (testJavaHome) {
                 "CommandLineJavaCompilerIntegrationTest",
                 "CommandLineJavaCompilerForExecutableIntegrationTest",
                 "JavadocIntegrationTest",
+                "JacocoPluginMultiVersionIntegrationTest",
+                "JacocoPluginCoverageVerificationIntegrationTest",
 
                 // Caused by: java.lang.IncompatibleClassChangeError: Method Person.getName()Ljava/lang/String; must be InterfaceMethodref constant
                 // Fail since build 125
