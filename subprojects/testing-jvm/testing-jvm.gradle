@@ -30,7 +30,7 @@ dependencies {
 
 }
 
-configure([test, java9Test]) {
+test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
     exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
 }

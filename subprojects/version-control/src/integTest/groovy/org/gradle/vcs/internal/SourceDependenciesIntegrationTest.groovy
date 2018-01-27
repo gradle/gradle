@@ -222,6 +222,61 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
+    def "prefers a source mapping defined in the root build to one defined in a nested build when they differ only by plugins"() {
+        given:
+        singleProjectBuild("buildSrc") {
+            file("src/main/groovy/MyPlugin.groovy") << """
+                import org.gradle.api.*
+                import org.gradle.api.initialization.*
+                
+                class MyPlugin implements Plugin<Settings> {
+                    void apply(Settings settings) {
+                        settings.gradle.allprojects {
+                            println "Hello from root build's plugin"
+                        }
+                    }
+                }
+            """
+            file("src/main/resources/META-INF/gradle-plugins/com.example.MyPlugin.properties") << """
+                implementation-class=MyPlugin
+            """
+        }
+
+        vcsMapping('org.test:first', first)
+        // root build applies a plugin to second
+        vcsMapping('org.test:second', second, ['com.example.MyPlugin'])
+        // first build does not inject a plugin in second
+        nestedVcsMapping(first, 'org.test:second', second)
+
+        dependency(first, "org.test:second")
+        shouldResolve(first, second)
+
+        when:
+        succeeds("resolve")
+
+        then:
+        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
+        result.output.contains("Hello from root build's plugin")
+    }
+
+    def "prefers a source mapping defined in the root build to one defined in a nested build when the nested build requests plugins"() {
+        given:
+        vcsMapping('org.test:first', first)
+        // root build does not inject any plugins to second
+        vcsMapping('org.test:second', second)
+        // first build injects a plugin in second
+        nestedVcsMapping(first, 'org.test:second', second, ['com.example.DoesNotExist'])
+
+        dependency(first, "org.test:second")
+        shouldResolve(first, second)
+
+        when:
+        succeeds("resolve")
+
+        then:
+        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
+    }
+
     def "can use a source mapping defined similarly in two nested builds"() {
         given:
         vcsMapping('org.test:first', first)
@@ -340,13 +395,18 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void vcsMapping(File settings, String module, String location) {
+    void vcsMapping(File settings, String module, String location, List<String> plugins) {
+        String pluginsAsString = plugins.collect { "id '$it'" }.join('\n')
+
         settings << """
             sourceControl {
                 vcsMappings {
                     withModule('${module}') {
                         from(GitVersionControlSpec) {
                             url = file('${location}').toURI()
+                            plugins {
+                                ${pluginsAsString}
+                            }
                         }
                     }
                 }
@@ -354,12 +414,12 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    void vcsMapping(String module, GitFileRepository repo) {
-        vcsMapping(settingsFile, module, repo.getWorkTree().name)
+    void vcsMapping(String module, GitFileRepository repo, List<String> plugins=[]) {
+        vcsMapping(settingsFile, module, repo.getWorkTree().name, plugins)
     }
 
-    void nestedVcsMapping(GitFileRepository repo, String module, GitFileRepository target) {
-        vcsMapping(repo.file('settings.gradle'), module, TextUtil.normaliseFileSeparators(file(target.workTree.name).absolutePath))
+    void nestedVcsMapping(GitFileRepository repo, String module, GitFileRepository target, List<String> plugins=[]) {
+        vcsMapping(repo.file('settings.gradle'), module, TextUtil.normaliseFileSeparators(file(target.workTree.name).absolutePath), plugins)
         repo.commit("add source mapping", 'settings.gradle')
     }
 }

@@ -15,142 +15,69 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-import org.gradle.nativeplatform.BuildType
-import org.gradle.nativeplatform.Flavor
-import org.gradle.nativeplatform.NativeExecutableSpec
-import org.gradle.nativeplatform.NativeLibrarySpec
-import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
-import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
-import org.gradle.nativeplatform.internal.SharedLibraryBinarySpecInternal
-import org.gradle.nativeplatform.internal.StaticLibraryBinarySpecInternal
-import org.gradle.nativeplatform.platform.NativePlatform
-import org.gradle.nativeplatform.platform.internal.Architectures
-import org.gradle.nativeplatform.test.NativeTestSuiteSpec
-import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal
-import org.gradle.platform.base.internal.BinaryNamingScheme
+
 import spock.lang.Specification
 
+import static org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary.ProjectType.*
+
 class VisualStudioProjectMapperTest extends Specification {
-    def mapper = new VisualStudioProjectMapper()
-
-    def executable = Mock(NativeExecutableSpec)
-    def library = Mock(NativeLibrarySpec)
-    def namingScheme = Mock(BinaryNamingScheme)
-    NativeExecutableBinarySpecInternal executableBinary
-
-    def flavorOne = Mock(Flavor)
-    def buildTypeOne = Mock(BuildType)
-    def buildTypeTwo = Mock(BuildType)
-    def platformOne = Mock(NativePlatform)
-
-    def setup() {
-        executableBinary = createExecutableBinary("exeBinaryName", buildTypeOne, platformOne)
-        executableBinary.namingScheme >> namingScheme
-
-        executable.name >> "exeName"
-        library.name >> "libName"
-
-        flavorOne.name >> "flavorOne"
-        buildTypeOne.name >> "buildTypeOne"
-        buildTypeTwo.name >> "buildTypeTwo"
-        platformOne.name >> "platformOne"
-        platformOne.architecture >> Architectures.forInput("i386")
-    }
-
-    def "maps executable binary to visual studio project"() {
+    def "maps executable binary types to visual studio project"() {
         when:
-        executable.projectPath >> ":"
-        namingScheme.variantDimensions >> []
+        def targetBinary = targetBinary(componentName: "exeName", projectType: EXE)
 
         then:
-        checkNames executableBinary, "exeNameExe", 'buildTypeOne', 'Win32'
+        checkNames targetBinary, "exeNameExe", 'buildTypeOne'
     }
 
     def "maps library binary types to visual studio projects"() {
         when:
-        def sharedLibraryBinary = libraryBinary(SharedLibraryBinarySpecInternal)
-        def staticLibraryBinary = libraryBinary(StaticLibraryBinarySpecInternal)
-
-        library.projectPath >> ":"
-        namingScheme.variantDimensions >> []
+        def targetBinary = targetBinary(componentName: "libName", projectType: type)
 
         then:
-        checkNames sharedLibraryBinary, "libNameDll", 'buildTypeOne', 'Win32'
-        checkNames staticLibraryBinary, "libNameLib", 'buildTypeOne', 'Win32'
-    }
+        checkNames targetBinary, exepectedName, 'buildTypeOne'
 
-    def "maps test binary to visual studio project"() {
-        def testExecutable = Mock(NativeTestSuiteSpec)
-        def binary = Mock(NativeTestSuiteBinarySpecInternal)
-
-        when:
-        testExecutable.name >> "testSuiteName"
-        testExecutable.projectPath >> ":"
-        binary.component >> testExecutable
-        binary.buildType >> buildTypeOne
-        binary.flavor >> flavorOne
-        binary.targetPlatform >> platformOne
-        binary.namingScheme >> namingScheme
-        namingScheme.variantDimensions >> []
-
-        then:
-        checkNames binary, "testSuiteNameExe", 'buildTypeOne', 'Win32'
+        where:
+        type | exepectedName
+        DLL  | "libNameDll"
+        LIB  | "libNameLib"
     }
 
     def "includes project path in visual studio project name"() {
         when:
-        executable.projectPath >> ":subproject:name"
-
-        and:
-        namingScheme.variantDimensions >> []
+        def targetBinary = targetBinary(projectPath: ":subproject:name")
 
         then:
-        checkNames executableBinary, "subproject_name_exeNameExe", 'buildTypeOne', 'Win32'
+        checkNames targetBinary, "subproject_name_exeNameExe", 'buildTypeOne'
     }
 
     def "uses single variant dimension for configuration name where not empty"() {
         when:
-        executable.projectPath >> ":"
-        namingScheme.variantDimensions >> ["flavorOne"]
+        def targetBinary = targetBinary(variantDimensions: ["flavorOne"])
 
         then:
-        checkNames executableBinary, "exeNameExe", 'flavorOne', 'Win32'
+        checkNames targetBinary, "exeNameExe", 'flavorOne'
     }
 
     def "includes variant dimensions in configuration where component has multiple dimensions"() {
         when:
-        executable.projectPath >> ":"
-        namingScheme.variantDimensions >> ["platformOne", "buildTypeOne", "flavorOne"]
+        def targetBinary = targetBinary(variantDimensions: ["platformOne", "buildTypeOne", "flavorOne"])
 
         then:
-        checkNames executableBinary, "exeNameExe", 'platformOneBuildTypeOneFlavorOne', 'Win32'
+        checkNames targetBinary, "exeNameExe", 'platformOneBuildTypeOneFlavorOne'
     }
 
-    private def createExecutableBinary(String binaryName, def buildType, def platform) {
-        def binary = Mock(NativeExecutableBinarySpecInternal)
-        binary.name >> binaryName
-        binary.component >> executable
-        binary.buildType >> buildType
-        binary.flavor >> flavorOne
-        binary.targetPlatform >> platform
-        return binary
+    private VisualStudioTargetBinary targetBinary(Map<String, ?> values) {
+        VisualStudioTargetBinary targetBinary = Mock(VisualStudioTargetBinary)
+        targetBinary.projectPath >> values.get("projectPath", ":")
+        targetBinary.componentName >> values.get("componentName", "exeName")
+        targetBinary.variantDimensions >> values.get("variantDimensions", ['buildTypeOne'])
+        targetBinary.projectType >> values.get("projectType", EXE)
+        return targetBinary
     }
 
-    private checkNames(def binary, def projectName, def configurationName, def platformName) {
-        def names = mapper.mapToConfiguration(binary)
-        assert names.project == projectName
-        assert names.configuration == configurationName
-        assert names.platform == platformName
+    private static checkNames(VisualStudioTargetBinary binary, def projectName, def configurationName) {
+        assert VisualStudioProjectMapper.getProjectName(binary) == projectName
+        assert VisualStudioProjectMapper.getConfigurationName(binary.getVariantDimensions()) == configurationName
         true
-    }
-
-    private libraryBinary(Class<? extends NativeBinarySpecInternal> type) {
-        def binary = Mock(type)
-        binary.component >> library
-        binary.flavor >> flavorOne
-        binary.targetPlatform >> platformOne
-        binary.buildType >> buildTypeOne
-        binary.namingScheme >> namingScheme
-        return binary
     }
 }

@@ -55,7 +55,7 @@ apply plugin: 'swift-application'
         succeeds("cleanXcode")
 
         then:
-        executedAndNotSkipped(":cleanXcode")
+        executedAndNotSkipped(":cleanXcodeProject")
 
         project.projectFile.getFile().assertDoesNotExist()
         project.schemeFiles*.file*.assertDoesNotExist()

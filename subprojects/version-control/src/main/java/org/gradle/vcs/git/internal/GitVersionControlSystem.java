@@ -28,6 +28,8 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.GradleException;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.internal.VersionControlSystem;
@@ -45,12 +47,18 @@ import java.util.Set;
  * A Git {@link VersionControlSystem} implementation.
  */
 public class GitVersionControlSystem implements VersionControlSystem {
+
+    private static final Logger LOGGER = Logging.getLogger(GitVersionControlSystem.class);
+
     @Override
     public File populate(File versionDir, VersionRef ref, VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
         File workingDir = new File(versionDir, gitSpec.getRepoName());
 
         File dbDir = new File(workingDir, ".git");
+
+        LOGGER.info("Populating VCS workingDir {}/{} with ref {}", versionDir.getName(), workingDir.getName(), ref);
+
         if (dbDir.exists() && dbDir.isDirectory()) {
             updateRepo(workingDir, gitSpec, ref);
         } else {

@@ -1,0 +1,33 @@
+//START SNIPPET accessing-metadata-artifact
+apply plugin: 'java-library'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.guava:guava:18.0'
+}
+
+task printGuavaMetadata {
+    dependsOn configurations.compileClasspath
+
+    doLast {
+        def resolutionResult = configurations.compileClasspath.incoming.resolutionResult
+        def componentIds = resolutionResult.allDependencies.collect { it.selected.id }
+
+        def result = dependencies.createArtifactResolutionQuery().forComponents(componentIds)
+            .withArtifacts(MavenModule, MavenPomArtifact)
+            .execute()
+
+        for(component in result.resolvedComponents) {
+            def mavenPomArtifacts = component.getArtifacts(MavenPomArtifact)
+            def guavaPomArtifact = mavenPomArtifacts.find { it.file.name == 'guava-18.0.pom' }
+            def xml = new XmlSlurper().parse(guavaPomArtifact.file)
+            println guavaPomArtifact.file
+            println xml.name
+            println xml.description
+        }
+    }
+}
+//END SNIPPET accessing-metadata-artifact
