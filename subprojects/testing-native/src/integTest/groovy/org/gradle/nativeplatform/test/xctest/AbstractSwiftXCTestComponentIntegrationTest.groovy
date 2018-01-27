@@ -16,12 +16,20 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.AbstractSwiftComponentIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.Swift3XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift4XCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
+import org.junit.Assume
 
 abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwiftComponentIntegrationTest {
+
+    def setup() {
+        // TODO: Temporarily disable XCTests with Swift3 on macOS
+        Assume.assumeFalse(OperatingSystem.current().isMacOsX() && toolChain.version.major == 3)
+    }
+
     @Override
     protected String getComponentUnderTestDsl() {
         return "xctest"

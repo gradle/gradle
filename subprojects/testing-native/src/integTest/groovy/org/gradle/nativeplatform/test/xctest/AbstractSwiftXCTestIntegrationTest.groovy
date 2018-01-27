@@ -16,14 +16,21 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
+import org.junit.Assume
 import spock.lang.Unroll
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 abstract class AbstractSwiftXCTestIntegrationTest extends AbstractNativeUnitTestIntegrationTest implements XCTestExecutionResult {
+    def setup() {
+        // TODO: Temporarily disable XCTests with Swift3 on macOS
+        Assume.assumeFalse(OperatingSystem.current().isMacOsX() && toolChain.version.major == 3)
+    }
+
     @Unroll
     def "runs tests when #task lifecycle task executes"() {
         given:
