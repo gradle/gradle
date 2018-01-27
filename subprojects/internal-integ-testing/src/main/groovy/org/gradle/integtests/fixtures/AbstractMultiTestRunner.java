@@ -54,12 +54,19 @@ import java.util.Set;
 public abstract class AbstractMultiTestRunner extends Runner implements Filterable {
     protected final Class<?> target;
     private final List<Execution> executions = new ArrayList<Execution>();
+    private final boolean runAllExecutions;
     private Description description;
     private Description templateDescription;
     private boolean executionsInitialized;
+    private boolean stopExecution;
 
     protected AbstractMultiTestRunner(Class<?> target) {
+        this(target, false);
+    }
+
+    protected AbstractMultiTestRunner(Class<?> target, boolean runAllExecutions) {
         this.target = target;
+        this.runAllExecutions = runAllExecutions;
     }
 
     @Override
@@ -71,8 +78,12 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
     @Override
     public void run(RunNotifier notifier) {
         initDescription();
+
         for (Execution execution : executions) {
             execution.run(notifier);
+            if (!runAllExecutions && execution.hasAnyEnabledTests()) {
+                break;
+            }
         }
     }
 
@@ -181,10 +192,11 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             for (Runner child : getChildren()) {
                 if (child instanceof Sputnik && SPEC_METHOD != null) {
                     try {
-                        child.getDescription();
+                        Description childDescription = child.getDescription();
                         SpecInfo spec = (SpecInfo) SPEC_METHOD.invoke(child);
                         List<FeatureInfo> allFeatures = spec.getAllFeatures();
                         for (FeatureInfo feature : allFeatures) {
+                            feature.setSkipped(feature.isSkipped() || !execution.isTestEnabled(new TestDescriptionBackedTestDetails(childDescription, feature.getDescription())));
                             final NameProvider<IterationInfo> provider = feature.getIterationNameProvider();
                             if (provider!=null) {
                                 feature.setIterationNameProvider(new NameProvider<IterationInfo>() {
@@ -212,6 +224,10 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         private final Set<Description> enabledTests = new LinkedHashSet<Description>();
         private final Set<Description> disabledTests = new LinkedHashSet<Description>();
         private final List<Filter> filters = new LinkedList<Filter>();
+
+        final boolean hasAnyEnabledTests() {
+            return !enabledTests.isEmpty();
+        }
 
         final void init(Class<?> target, Description templateDescription) {
             this.target = target;

@@ -139,7 +139,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
 
         when:
         succeeds "verifyBinariesSwiftVersion"
-        succeeds taskNameToAssembleDevelopmentBinary
+        succeeds taskNameToAssembleDevelopmentBinary, '-i'
 
         then:
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
