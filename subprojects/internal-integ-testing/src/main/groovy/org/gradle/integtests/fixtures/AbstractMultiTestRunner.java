@@ -58,10 +58,9 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
     private Description description;
     private Description templateDescription;
     private boolean executionsInitialized;
-    private boolean stopExecution;
 
     protected AbstractMultiTestRunner(Class<?> target) {
-        this(target, false);
+        this(target, true);
     }
 
     protected AbstractMultiTestRunner(Class<?> target, boolean runAllExecutions) {
