@@ -554,6 +554,19 @@ allprojects {
         }
 
         /**
+         * Defines a dependency on a unique snapshot module.
+         */
+        NodeBuilder snapshot(String moduleVersionId, String timestamp) {
+            def id = moduleVersionId + ":" + timestamp
+            def parts = moduleVersionId.split(':')
+            assert parts.length == 3
+            def attrs = [group: parts[0], module: parts[1], version: parts[2]]
+            def node = graph.node(id, moduleVersionId, attrs)
+            deps << new EdgeBuilder(this, moduleVersionId, node)
+            return node
+        }
+
+        /**
          * Defines a dependency on the given project. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
         NodeBuilder project(String path, String value, @DelegatesTo(NodeBuilder) Closure cl) {
