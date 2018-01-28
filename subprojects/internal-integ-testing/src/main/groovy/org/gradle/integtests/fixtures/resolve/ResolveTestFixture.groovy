@@ -274,10 +274,10 @@ allprojects {
         StringBuilder matched = new StringBuilder()
         expectedSorted.each { node ->
             def actualNode = actualSorted.find { it.id == node.id }
+
             if (!actualNode) {
                 errors.append("Expected to find node ${node.id} but wasn't present in result\n")
-            }
-            if (!node.diff(actualNode, errors)) {
+            } else if (!node.diff(actualNode, errors)) {
                 matched.append("   - $node\n")
             }
         }
