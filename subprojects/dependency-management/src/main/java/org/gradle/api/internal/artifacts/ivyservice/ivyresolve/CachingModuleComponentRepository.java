@@ -377,7 +377,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 case Resolved:
                     ModuleComponentResolveMetadata metaData = result.getMetaData();
                     ModuleSource moduleSource = metaData.getSource();
-                    moduleMetaDataCache.cacheMetaData(delegate, metaData);
+                    moduleMetaDataCache.cacheMetaData(delegate, moduleComponentIdentifier, metaData);
                     metaData = metadataProcessor.processMetadata(metaData);
                     moduleSource = new CachingModuleSource(metaData.getContentHash().asBigInteger(), requestMetaData.isChanging() || metaData.isChanging(), moduleSource);
                     metaData = metaData.withSource(moduleSource);

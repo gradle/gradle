@@ -419,19 +419,14 @@ task resolveStaleThenFresh {
         snapshotModule.publishWithChangedContent()
 
         // Should get the newer snapshot when resolving 'fresh'
-//        expectChangedModuleServed(snapshotModule)
+        expectChangedModuleServed(snapshotModule)
 
         and:
         run 'resolveStaleThenFresh'
 
         then:
-        // Demonstrates gradle#3109
-        file('stale/unique-1.0-SNAPSHOT.jar').assertContentsHaveNotChangedSince(firstStaleVersion)
-        file('fresh/unique-1.0-SNAPSHOT.jar').assertContentsHaveNotChangedSince(firstFreshVersion)
-
-        // Should be:
-//        file('fresh/unique-1.0-SNAPSHOT.jar').assertContentsHaveChangedSince(firstFreshVersion)
-//        file('fresh/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile)
+        file('fresh/unique-1.0-SNAPSHOT.jar').assertContentsHaveChangedSince(firstFreshVersion)
+        file('fresh/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile)
     }
 
     def "does not download snapshot artifacts after expiry when snapshot has not changed"() {
