@@ -16,6 +16,8 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
@@ -54,11 +56,19 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     }
 
     private SettingsLoader defaultSettingsLoader() {
-        return new DefaultSettingsLoader(
+        final DefaultSettingsLoader delegate = new DefaultSettingsLoader(
             settingsFinder,
             settingsProcessor,
             buildSourceBuilder
         );
+        return new SettingsLoader() {
+            @Override
+            public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
+                SettingsInternal settings = delegate.findAndLoadSettings(gradle);
+                gradle.setSettings(settings);
+                return settings;
+            }
+        };
     }
 
 }
