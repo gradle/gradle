@@ -100,7 +100,7 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
 
     @Override
     public LocalOriginDependencyMetadata withTarget(ComponentSelector target) {
-        return delegate.withTarget(target);
+        return new DslOriginDependencyMetadataWrapper(delegate.withTarget(target), source);
     }
 
     @Override
