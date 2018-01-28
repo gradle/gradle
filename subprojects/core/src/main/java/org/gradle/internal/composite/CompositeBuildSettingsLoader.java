@@ -21,9 +21,9 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildRegistry;
+import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
-import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 
 import java.io.File;
