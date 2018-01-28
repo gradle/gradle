@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.caching.internal;
 
-import org.gradle.caching.internal.OutputType;
+import javax.annotation.Nullable;
+import java.io.File;
 
-public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
+public interface OutputPropertySpec extends PropertySpec {
+    /**
+     * Returns the root of the output for this property.
+     */
+    @Nullable
+    File getOutputRoot();
+
+    /**
+     * Returns the type of the output.
+     */
     OutputType getOutputType();
 }

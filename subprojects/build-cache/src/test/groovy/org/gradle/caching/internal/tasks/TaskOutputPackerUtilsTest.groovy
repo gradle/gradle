@@ -21,8 +21,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.tasks.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.OutputType.FILE
+import static org.gradle.caching.internal.OutputType.DIRECTORY
+import static org.gradle.caching.internal.OutputType.FILE
 import static org.gradle.caching.internal.tasks.TaskOutputPackerUtils.ensureDirectoryForProperty
 
 @CleanupTestDirectory

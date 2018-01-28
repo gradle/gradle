@@ -30,9 +30,9 @@ import org.gradle.api.internal.changedetection.state.FileSystemMirror
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
-import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener
+import org.gradle.caching.internal.OutputType
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.time.Timer
@@ -41,8 +41,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
 
-import static org.gradle.api.internal.tasks.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.OutputType.FILE
+import static OutputType.DIRECTORY
+import static OutputType.FILE
 
 @CleanupTestDirectory
 class TaskOutputCacheCommandFactoryTest extends Specification {

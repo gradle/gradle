@@ -21,8 +21,8 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DirContentSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot
-import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
+import org.gradle.caching.internal.OutputType
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
 import org.gradle.internal.hash.DefaultStreamHasher
@@ -39,8 +39,8 @@ import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
-import static org.gradle.api.internal.tasks.OutputType.DIRECTORY
-import static org.gradle.api.internal.tasks.OutputType.FILE
+import static OutputType.DIRECTORY
+import static OutputType.FILE
 
 @CleanupTestDirectory
 class TarTaskOutputPackerTest extends Specification {

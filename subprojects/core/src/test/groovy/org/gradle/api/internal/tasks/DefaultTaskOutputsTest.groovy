@@ -35,8 +35,8 @@ import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
-import static OutputType.DIRECTORY
-import static OutputType.FILE
+import static org.gradle.caching.internal.OutputType.DIRECTORY
+import static org.gradle.caching.internal.OutputType.FILE
 
 @UsesNativeServices
 class DefaultTaskOutputsTest extends Specification {

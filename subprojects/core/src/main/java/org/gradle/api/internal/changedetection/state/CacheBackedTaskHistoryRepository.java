@@ -376,7 +376,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         for (TaskOutputFilePropertySpec propertySpec : fileProperties) {
             if (propertySpec instanceof CacheableTaskOutputFilePropertySpec) {
                 CacheableTaskOutputFilePropertySpec cacheablePropertySpec = (CacheableTaskOutputFilePropertySpec) propertySpec;
-                if (cacheablePropertySpec.getOutputFile() != null) {
+                if (cacheablePropertySpec.getOutputRoot() != null) {
                     outputPropertyNames.add(propertySpec.getPropertyName());
                 }
             }
