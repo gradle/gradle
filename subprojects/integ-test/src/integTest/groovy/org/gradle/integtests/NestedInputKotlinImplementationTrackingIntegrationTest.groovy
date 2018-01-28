@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.KOTLIN_SCRIPT)
+@Requires([TestPrecondition.KOTLIN_SCRIPT, TestPrecondition.NOT_WINDOWS])
 class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractIntegrationSpec {
 
     @Override
