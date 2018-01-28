@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.test.fixtures.file.TestFile
 
@@ -39,6 +40,11 @@ class JvmLibraryArtifactResolveTestFixture {
 
     JvmLibraryArtifactResolveTestFixture withComponentVersion(String group, String module, String version) {
         this.id = DefaultModuleComponentIdentifier.newId(group, module, version)
+        this
+    }
+
+    JvmLibraryArtifactResolveTestFixture withSnapshotTimestamp(String timestamp) {
+        this.id = new MavenUniqueSnapshotComponentIdentifier(id.group, id.module, id.version, timestamp)
         this
     }
 
