@@ -113,9 +113,9 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return cachedMetaData;
     }
 
-    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, final ModuleComponentResolveMetadata metadata) {
+    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, final ModuleComponentIdentifier id, final ModuleComponentResolveMetadata metadata) {
         LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", metadata.getComponentId(), metadata.isChanging());
-        final ModuleComponentAtRepositoryKey key = createKey(repository, metadata.getComponentId());
+        final ModuleComponentAtRepositoryKey key = createKey(repository, id);
         return cacheLockingManager.useCache(new Factory<CachedMetaData>() {
             @Override
             public CachedMetaData create() {

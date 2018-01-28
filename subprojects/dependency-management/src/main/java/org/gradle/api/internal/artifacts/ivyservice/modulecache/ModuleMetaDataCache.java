@@ -24,7 +24,7 @@ import org.gradle.internal.component.model.ModuleSource;
 public interface ModuleMetaDataCache {
     CachedMetaData cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id);
 
-    CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetadata metaData);
+    CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metaData);
 
     CachedMetaData getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier id);
 
