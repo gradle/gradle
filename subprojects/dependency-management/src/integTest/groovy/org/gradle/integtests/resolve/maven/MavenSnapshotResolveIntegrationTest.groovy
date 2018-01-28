@@ -16,10 +16,48 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
 
 class MavenSnapshotResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def "can resolve unique and non-unique snapshots"() {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    maven { url "${mavenHttpRepo.uri}" }
+}
+configurations {
+    compile
+}
+dependencies {
+    compile "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
+}
+"""
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
+        def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
+        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+
+        and:
+        expectModuleServed(uniqueVersionModule)
+        expectModuleServed(nonUniqueVersionModule)
+
+        and:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                snapshot("org.gradle.integtests.resolve:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)
+                module("org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT")
+            }
+        }
+    }
 
     def "can find and cache snapshots in multiple Maven HTTP repositories"() {
         def repo1 = mavenHttpRepo("repo1")
@@ -745,7 +783,7 @@ task retrieve(type: Sync) {
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT).
+        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
 
@@ -756,7 +794,7 @@ Searched in the following locations:
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT).
+        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
     }

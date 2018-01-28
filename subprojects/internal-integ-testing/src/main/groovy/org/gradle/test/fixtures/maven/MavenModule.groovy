@@ -127,6 +127,8 @@ interface MavenModule extends Module {
 
     boolean getUniqueSnapshots()
 
+    String getUniqueSnapshotVersion()
+
     /**
      * Asserts pom and module files have not been published.
      */
