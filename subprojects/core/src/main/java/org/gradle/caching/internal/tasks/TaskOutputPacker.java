@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
-import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
+import org.gradle.caching.internal.OutputPropertySpec;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 
@@ -39,7 +39,7 @@ public interface TaskOutputPacker {
     // - any major changes of the layout of a cache entry
     int CACHE_ENTRY_FORMAT = 1;
 
-    PackResult pack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException;
+    PackResult pack(SortedSet<? extends OutputPropertySpec> propertySpecs, Map<String, Map<String, FileContentSnapshot>> outputSnapshots, OutputStream output, TaskOutputOriginWriter writeOrigin) throws IOException;
 
     class PackResult {
         private final long entries;
@@ -53,7 +53,7 @@ public interface TaskOutputPacker {
         }
     }
 
-    UnpackResult unpack(SortedSet<ResolvedTaskOutputFilePropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin) throws IOException;
+    UnpackResult unpack(SortedSet<? extends OutputPropertySpec> propertySpecs, InputStream input, TaskOutputOriginReader readOrigin) throws IOException;
 
     class UnpackResult {
         private final OriginTaskExecutionMetadata originMetadata;

@@ -20,6 +20,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.caching.internal.OutputType;
+import org.gradle.caching.internal.PropertySpec;
 
 import java.io.File;
 import java.util.Collections;
@@ -28,13 +30,13 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     private final CompositeTaskOutputPropertySpec parentProperty;
     private final String propertySuffix;
     private final FileCollection files;
-    private final File file;
+    private final File root;
 
-    public CacheableTaskOutputCompositeFilePropertyElementSpec(CompositeTaskOutputPropertySpec parentProperty, String propertySuffix, File file) {
+    public CacheableTaskOutputCompositeFilePropertyElementSpec(CompositeTaskOutputPropertySpec parentProperty, String propertySuffix, File root) {
         this.parentProperty = parentProperty;
         this.propertySuffix = propertySuffix;
-        this.files = new SimpleFileCollection(Collections.singleton(file));
-        this.file = file;
+        this.files = new SimpleFileCollection(Collections.singleton(root));
+        this.root = root;
     }
 
     @Override
@@ -48,8 +50,8 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     }
 
     @Override
-    public File getOutputFile() {
-        return file;
+    public File getOutputRoot() {
+        return root;
     }
 
     @Override
@@ -68,7 +70,7 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     }
 
     @Override
-    public int compareTo(TaskPropertySpec o) {
+    public int compareTo(PropertySpec o) {
         return getPropertyName().compareTo(o.getPropertyName());
     }
 

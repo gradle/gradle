@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-import javax.annotation.Nullable;
-import java.io.File;
+import org.gradle.caching.internal.OutputPropertySpec;
 
-public interface CacheableTaskOutputFilePropertySpec extends TaskOutputFilePropertySpec {
-    @Nullable
-    File getOutputFile();
+public interface CacheableTaskOutputFilePropertySpec extends TaskOutputFilePropertySpec, OutputPropertySpec {
 }

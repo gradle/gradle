@@ -21,9 +21,6 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
-import org.apache.commons.io.FileUtils;
-import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskInternal;
@@ -44,6 +41,7 @@ import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.OutputPropertySpec;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
@@ -90,51 +88,16 @@ public class TaskOutputCacheCommandFactory {
         return new StoreCommand(cacheKey, outputProperties, outputSnapshots, task, taskExecutionTime);
     }
 
-    private class LoadCommand implements BuildCacheLoadCommand<OriginTaskExecutionMetadata> {
+    private class LoadCommand extends AbstractLoadCommand<InputStream, TaskOutputPacker.UnpackResult> implements BuildCacheLoadCommand<OriginTaskExecutionMetadata> {
 
-        private final TaskOutputCachingBuildCacheKey cacheKey;
-        private final SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties;
-        private final TaskInternal task;
-        private final FileCollection localStateFiles;
-        private final TaskOutputChangesListener taskOutputChangesListener;
-        private final TaskArtifactState taskArtifactState;
-
-        private LoadCommand(TaskOutputCachingBuildCacheKey cacheKey, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, FileCollection localStateFiles, TaskOutputChangesListener taskOutputChangesListener, TaskArtifactState taskArtifactState) {
-            this.cacheKey = cacheKey;
-            this.outputProperties = outputProperties;
-            this.task = task;
-            this.localStateFiles = localStateFiles;
-            this.taskOutputChangesListener = taskOutputChangesListener;
-            this.taskArtifactState = taskArtifactState;
+        private LoadCommand(TaskOutputCachingBuildCacheKey key, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, FileCollection localStateFiles, TaskOutputChangesListener taskOutputChangesListener, TaskArtifactState taskArtifactState) {
+            super(key, outputProperties, task, localStateFiles, taskOutputChangesListener, taskArtifactState);
         }
 
         @Override
-        public BuildCacheKey getKey() {
-            return cacheKey;
-        }
-
-        @Override
-        public BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata> load(InputStream input) {
-            taskOutputChangesListener.beforeTaskOutputChanged();
-            final TaskOutputPacker.UnpackResult unpackResult;
-            try {
-                unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
-                updateSnapshots(unpackResult.getSnapshots(), unpackResult.getOriginMetadata());
-            } catch (Exception e) {
-                LOGGER.warn("Cleaning outputs for {} after failed load from cache.", task);
-                try {
-                    cleanupOutputsAfterUnpackFailure();
-                    taskArtifactState.afterOutputsRemovedBeforeTask();
-                } catch (Exception eCleanup) {
-                    LOGGER.warn("Unrecoverable error during cleaning up after task output unpack failure", eCleanup);
-                    throw new UnrecoverableTaskOutputUnpackingException(String.format("Failed to unpack outputs for %s, and then failed to clean up; see log above for details", task), e);
-                }
-                throw new GradleException(String.format("Failed to unpack outputs for %s", task), e);
-            } finally {
-                cleanLocalState();
-            }
+        public Result<OriginTaskExecutionMetadata> load(InputStream inputStream) {
             LOGGER.info("Unpacked output for {} from cache.", task);
-
+            final TaskOutputPacker.UnpackResult unpackResult = performLoad(inputStream);
             return new BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata>() {
                 @Override
                 public long getArtifactEntryCount() {
@@ -148,11 +111,18 @@ public class TaskOutputCacheCommandFactory {
             };
         }
 
-        private void updateSnapshots(ImmutableListMultimap<String, FileSnapshot> propertiesFileSnapshots, OriginTaskExecutionMetadata originMetadata) {
+        @Override
+        protected TaskOutputPacker.UnpackResult performLoad(InputStream input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskArtifactState taskArtifactState) throws IOException {
+            TaskOutputPacker.UnpackResult unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
+            updateSnapshots(unpackResult.getSnapshots(), unpackResult.getOriginMetadata(), outputProperties, taskArtifactState);
+            return unpackResult;
+        }
+
+        private void updateSnapshots(ImmutableListMultimap<String, FileSnapshot> propertiesFileSnapshots, OriginTaskExecutionMetadata originMetadata, SortedSet<? extends OutputPropertySpec> outputProperties, TaskArtifactState taskArtifactState) {
             ImmutableSortedMap.Builder<String, FileCollectionSnapshot> propertySnapshotsBuilder = ImmutableSortedMap.naturalOrder();
-            for (ResolvedTaskOutputFilePropertySpec property : outputProperties) {
+            for (OutputPropertySpec property : outputProperties) {
                 String propertyName = property.getPropertyName();
-                File outputFile = property.getOutputFile();
+                File outputFile = property.getOutputRoot();
                 if (outputFile == null) {
                     propertySnapshotsBuilder.put(propertyName, EmptyFileCollectionSnapshot.INSTANCE);
                     continue;
@@ -186,37 +156,6 @@ public class TaskOutputCacheCommandFactory {
                 }
             }
             taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build(), originMetadata);
-        }
-
-        private void cleanLocalState() {
-            for (File localStateFile : localStateFiles) {
-                try {
-                    remove(localStateFile);
-                } catch (IOException ex) {
-                    throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", task, localStateFile), ex);
-                }
-            }
-        }
-
-        private void cleanupOutputsAfterUnpackFailure() {
-            for (ResolvedTaskOutputFilePropertySpec outputProperty : outputProperties) {
-                File outputFile = outputProperty.getOutputFile();
-                try {
-                    remove(outputFile);
-                } catch (IOException ex) {
-                    throw new UncheckedIOException(String.format("Failed to clean up files for output property '%s' of %s: %s", outputProperty.getPropertyName(), task, outputFile), ex);
-                }
-            }
-        }
-
-        private void remove(File file) throws IOException {
-            if (file != null && file.exists()) {
-                if (file.isDirectory()) {
-                    FileUtils.cleanDirectory(file);
-                } else {
-                    FileUtils.forceDelete(file);
-                }
-            }
         }
     }
 

@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.caching.internal.OutputType;
 
 import javax.annotation.Nullable;
 

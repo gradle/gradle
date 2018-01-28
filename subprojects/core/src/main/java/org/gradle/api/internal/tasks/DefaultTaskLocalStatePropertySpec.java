@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.caching.internal.PropertySpec;
 
 import javax.annotation.Nullable;
 
@@ -43,7 +44,7 @@ public class DefaultTaskLocalStatePropertySpec implements TaskLocalStateProperty
     }
 
     @Override
-    public int compareTo(TaskPropertySpec other) {
+    public int compareTo(PropertySpec other) {
         return getPropertyName().compareTo(other.getPropertyName());
     }
 }

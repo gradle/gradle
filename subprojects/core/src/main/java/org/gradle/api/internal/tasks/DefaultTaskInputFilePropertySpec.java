@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.caching.internal.PropertySpec;
 
 import static org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy.ABSOLUTE;
 
@@ -135,7 +136,7 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     }
 
     @Override
-    public int compareTo(TaskPropertySpec o) {
+    public int compareTo(PropertySpec o) {
         return getPropertyName().compareTo(o.getPropertyName());
     }
 

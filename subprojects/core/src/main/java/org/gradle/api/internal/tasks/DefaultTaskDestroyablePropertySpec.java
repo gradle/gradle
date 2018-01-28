@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.caching.internal.PropertySpec;
 
 import javax.annotation.Nullable;
 
@@ -42,7 +43,7 @@ public class DefaultTaskDestroyablePropertySpec implements TaskDestroyableProper
     }
 
     @Override
-    public int compareTo(TaskPropertySpec o) {
+    public int compareTo(PropertySpec o) {
         return propertyName.compareTo(o.getPropertyName());
     }
 }

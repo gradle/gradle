@@ -17,7 +17,7 @@
 package org.gradle.caching.internal.tasks;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.internal.tasks.OutputType;
+import org.gradle.caching.internal.OutputType;
 
 import java.io.File;
 import java.io.IOException;

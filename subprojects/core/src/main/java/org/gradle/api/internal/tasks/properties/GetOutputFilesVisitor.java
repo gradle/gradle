@@ -41,8 +41,8 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
             Iterators.addAll(specs, ((CompositeTaskOutputPropertySpec) outputFileProperty).resolveToOutputProperties());
         } else {
             if (outputFileProperty instanceof CacheableTaskOutputFilePropertySpec) {
-                File outputFile = ((CacheableTaskOutputFilePropertySpec) outputFileProperty).getOutputFile();
-                if (outputFile == null) {
+                File outputRoot = ((CacheableTaskOutputFilePropertySpec) outputFileProperty).getOutputRoot();
+                if (outputRoot == null) {
                     return;
                 }
             }
