@@ -49,23 +49,15 @@ class JUnitBasicMultiVersionIntegrationSpec extends MultiVersionIntegrationSpec 
         super.fails(*tasks)
     }
 
-    protected getDependencyDeclaration() {
+    protected getDependencyNotation() {
         if (version == JUnitCoverage.PLATFORM) {
-            return """
-dependencies {
-    testCompile 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'
-}
-"""
+            return "'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'"
         } else {
-            return "dependencies { testCompile 'junit:junit:${version}' }"
+            return "'junit:junit:${version}'"
         }
     }
 
     protected assumeNotJUnitPlatform() {
         Assume.assumeTrue(version != JUnitCoverage.PLATFORM)
-    }
-
-    private assumeJava8() {
-        Assume.assumeTrue(JavaVersion.current() >= JavaVersion.VERSION_1_8)
     }
 }

@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit
+package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter
+import org.gradle.testing.junit.JUnitTestFrameworkIntegrationTest
+import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ TestPrecondition.JDK7_OR_EARLIER })
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class JUnitPlatformTestFrameworkIntegrationTest extends JUnitTestFrameworkIntegrationTest {
     @Override
     protected ExecutionResult succeeds(String... tasks) {

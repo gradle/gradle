@@ -55,7 +55,9 @@ public class JUnitPlatformTestFramework implements TestFramework {
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
         return new Action<WorkerProcessBuilder>() {
             public void execute(WorkerProcessBuilder workerProcessBuilder) {
-                workerProcessBuilder.sharedPackages("org.junit.platform");
+                workerProcessBuilder.sharedPackages("org.junit.platform.engine");
+                workerProcessBuilder.sharedPackages("org.junit.platform.commons");
+                workerProcessBuilder.sharedPackages("org.junit.platform.launcher.core");
             }
         };
     }

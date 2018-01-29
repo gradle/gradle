@@ -27,7 +27,9 @@ class JUnitLoggingOutputCaptureIntegrationTest extends JUnitBasicMultiVersionInt
         buildFile << """
             apply plugin: "java"
             ${mavenCentralRepository()}
-            $dependencyDeclaration
+            dependencies {
+                testCompile $dependencyNotation
+            }
             test {
                 reports.junitXml.outputPerTestCase = true
                 onOutput { test, event -> print "\$test -> \$event.message" }
