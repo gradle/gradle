@@ -22,4 +22,5 @@ dependencies {
     compile project(':testingBase')
     compile project(':testingJvm')
     compile libraries.junitPlatform
+    compile libraries.apiguardian
 }
