@@ -33,7 +33,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
                 '17'()
             }
             'org:bar:1.0' {
-                dependsOn(group: 'org', artifact: 'foo', version: '15', rejects: [']15,)'])
+                dependsOn(group: 'org', artifact: 'foo', version: '15', rejects: [']15,)'], reason: 'what not')
             }
         }
 
@@ -58,7 +58,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
    Dependency path ':test:unspecified' --> 'org:foo' prefers '17'
-   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' prefers '15', rejects ']15,)'""")
+   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' prefers '15', rejects ']15,)' because of the following reason: what not""")
 
     }
 
@@ -320,7 +320,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:b' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b' prefers '1.0', rejects ']1.0,)'
+   Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b' prefers '1.0', rejects ']1.0,)' because of the following reason: Not following semantic versioning
    Dependency path ':test:unspecified' --> 'org:c:1.0' --> 'org:b' prefers '1.1'""")
 
         and: // assertHasCause is a "contains" so we need to make sure there's not an additional line
@@ -377,7 +377,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:b' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b' prefers '1.0', rejects ']1.0,)'
+   Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b' prefers '1.0', rejects ']1.0,)' because of the following reason: Not following semantic versioning
    Dependency path ':test:unspecified' --> 'org:c:1.0' --> 'org:b' prefers '1.1'""")
 
         and: // assertHasCause is a "contains" so we need to make sure there's not an additional line
