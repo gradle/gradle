@@ -215,6 +215,11 @@ data class ScriptCompilationError(val message: String, val location: CompilerMes
 
 internal
 data class ScriptCompilationException(val errors: List<ScriptCompilationError>) : RuntimeException() {
+
+    init {
+        require(errors.isNotEmpty())
+    }
+
     override val message: String?
         get() {
             val errorPlural = if (errors.size > 1) "errors" else "error"
