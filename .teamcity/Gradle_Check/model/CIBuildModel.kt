@@ -56,7 +56,7 @@ data class CIBuildModel (
                             PerformanceTestType.historical)),
             Stage("Experimental", "On demand: Run experimental tests",
                     trigger = Trigger.never,
-                    performanceTests = listOf(
+                    functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java10))))
     ) {
 
