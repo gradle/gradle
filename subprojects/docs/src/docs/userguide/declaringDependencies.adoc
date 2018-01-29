@@ -31,6 +31,7 @@ Modern software projects rarely build code in isolation. Projects reference exte
 </figure>
 +++++
 
+[[sub:declaring_dependency_with_version]]
 ==== Declaring a concrete version of a dependency
 
 A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework]. The following code snippet declares a compile-time dependency on the Spring web module by its coordinates: `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the dependency including its transitive dependencies from the link:https://search.maven.org/[Maven Central repository] and uses it to compile Java source code. The version attribute of the dependency coordinates points to a _concrete version_ indicating that the underlying artifacts don't change over time. The use of concrete versions ensures reproducibility for the aspect of dependency resolution.
