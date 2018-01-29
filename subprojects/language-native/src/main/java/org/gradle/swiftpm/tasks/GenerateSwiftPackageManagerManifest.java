@@ -156,13 +156,19 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                         writer.println(",");
                         writer.print("            publicHeadersPath: \"");
                         writer.print(productPath.relativize(target.getPublicHeaderDir().toPath()));
-                        writer.println("\"");
-                    } else {
-                        writer.println();
+                        writer.print("\"");
                     }
+                    writer.println();
                     writer.println("        ),");
                 }
-                writer.println("    ]");
+                writer.print("    ]");
+                if (srcPackage.getSwiftLanguageVersion() != null) {
+                    writer.println(",");
+                    writer.print("    swiftLanguageVersions: [");
+                    writer.print(srcPackage.getSwiftLanguageVersion().getVersion());
+                    writer.print("]");
+                }
+                writer.println();
                 writer.println(")");
             } finally {
                 writer.close();
