@@ -140,7 +140,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
 
     private List<String> pathTo(ComponentStateWithDependents component) {
         List<List<ComponentStateWithDependents>> acc = Lists.newArrayListWithExpectedSize(1);
-        pathTo(component, Lists.<ComponentStateWithDependents>newArrayList(), acc);
+        pathTo(component, Lists.<ComponentStateWithDependents>newArrayList(), acc, Sets.<ComponentStateWithDependents>newHashSet());
         List<String> result = Lists.newArrayListWithCapacity(acc.size());
         for (List<ComponentStateWithDependents> path : acc) {
             ComponentStateWithDependents target = Iterators.getLast(path.iterator());
@@ -150,7 +150,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
             } else {
                 sb.append("Dependency path ");
             }
-            for (Iterator<ComponentStateWithDependents> iterator = path.iterator(); iterator.hasNext();) {
+            for (Iterator<ComponentStateWithDependents> iterator = path.iterator(); iterator.hasNext(); ) {
                 ComponentStateWithDependents e = iterator.next();
                 ModuleVersionIdentifier id = e.getId();
                 if (iterator.hasNext()) {
@@ -166,19 +166,21 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         return result;
     }
 
-    private void pathTo(ComponentStateWithDependents component, List<ComponentStateWithDependents> currentPath, List<List<ComponentStateWithDependents>> accumulator) {
-        currentPath.add(0, component);
-        Collection<ComponentState> dependents = component.getDependents();
-        List<ComponentState> unattachedDependencies = component.getUnattachedDependencies();
-        Set<ComponentState> allDependents = Sets.newLinkedHashSet();
-        allDependents.addAll(dependents);
-        allDependents.addAll(unattachedDependencies);
-        for (ComponentStateWithDependents dependent : allDependents) {
-            List<ComponentStateWithDependents> otherPath = Lists.newArrayList(currentPath);
-            pathTo(dependent, otherPath, accumulator);
-        }
-        if (allDependents.isEmpty()) {
-            accumulator.add(currentPath);
+    private void pathTo(ComponentStateWithDependents component, List<ComponentStateWithDependents> currentPath, List<List<ComponentStateWithDependents>> accumulator, Set<ComponentStateWithDependents> alreadySeen) {
+        if (alreadySeen.add(component)) {
+            currentPath.add(0, component);
+            Collection<ComponentState> dependents = component.getDependents();
+            List<ComponentState> unattachedDependencies = component.getUnattachedDependencies();
+            Set<ComponentState> allDependents = Sets.newLinkedHashSet();
+            allDependents.addAll(dependents);
+            allDependents.addAll(unattachedDependencies);
+            for (ComponentStateWithDependents dependent : allDependents) {
+                List<ComponentStateWithDependents> otherPath = Lists.newArrayList(currentPath);
+                pathTo(dependent, otherPath, accumulator, alreadySeen);
+            }
+            if (allDependents.isEmpty()) {
+                accumulator.add(currentPath);
+            }
         }
     }
 
