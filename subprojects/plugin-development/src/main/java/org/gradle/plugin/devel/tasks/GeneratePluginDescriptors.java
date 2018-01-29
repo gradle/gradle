@@ -24,14 +24,11 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.plugin.devel.PluginDeclaration;
-import org.gradle.util.GUtil;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Properties;
 
@@ -67,8 +64,7 @@ public class GeneratePluginDescriptors extends ConventionTask {
 
     private void writePropertiesTo(Properties properties, File descriptorFile) {
         try {
-            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(descriptorFile));
-            GUtil.savePropertiesNoDateComment(properties, outputStream);
+            PropertiesUtils.store(properties, descriptorFile);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
