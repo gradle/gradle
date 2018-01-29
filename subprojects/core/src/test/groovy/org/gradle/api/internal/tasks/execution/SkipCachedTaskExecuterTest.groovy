@@ -53,7 +53,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def buildCacheCommandFactory = Mock(TaskOutputCacheCommandFactory)
     def outputContentSnapshots = [:]
 
-    def executer = new SkipCachedTaskExecuter(buildCacheController, taskOutputGenerationListener, buildCacheCommandFactory, delegate)
+    def executer = new SkipCachedTaskExecuter(buildCacheController, null, taskOutputGenerationListener, buildCacheCommandFactory, delegate)
 
     def "skip task when cached results exist"() {
         def originId = UniqueId.generate()
