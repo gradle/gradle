@@ -36,26 +36,26 @@ class UpToDatePlatformScalaCompileIntegrationTest extends AbstractIntegrationSpe
         def jdk7 = AvailableJavaHomes.getJdk(VERSION_1_7)
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
 
-        def playFixture = new PlayCompilationFixture(temporaryFolder.testDirectory)
-        playFixture.baseline()
-        buildFile << playFixture.buildScript()
+        def scalaFixture = new LanuageScalaCompilationFixture(temporaryFolder.testDirectory)
+        scalaFixture.baseline()
+        buildFile << scalaFixture.buildScript()
         when:
         executer.withJavaHome(jdk7.javaHome)
-        run 'compilePlayBinaryScala'
+        run 'compileMainJarMainScala'
 
         then:
-        executedAndNotSkipped(':compilePlayBinaryScala')
+        executedAndNotSkipped(':compileMainJarMainScala')
 
         when:
         executer.withJavaHome(jdk7.javaHome)
-        run 'compilePlayBinaryScala'
+        run 'compileMainJarMainScala'
         then:
-        skipped ':compilePlayBinaryScala'
+        skipped ':compileMainJarMainScala'
 
         when:
         executer.withJavaHome(jdk8.javaHome)
-        run 'compilePlayBinaryScala', '--info'
+        run 'compileMainJarMainScala'
         then:
-        executedAndNotSkipped(':compilePlayBinaryScala')
+        executedAndNotSkipped(':compileMainJarMainScala')
     }
 }

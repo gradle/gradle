@@ -19,105 +19,65 @@ package org.gradle.language.scala
 import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.language.scala.PlayCompilationFixture.PLAY_REPOSITORIES
-
 class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
 
-    String compilationTask = ':compilePlayBinaryScala'
-    String compiledFile = "build/playBinary/classes/Person.class"
+    String compilationTask = ':compileMainJarMainScala'
+    String compiledFile = "build/classes/main/jar/Person.class"
 
     @Override
     def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
         project.with {
             file('settings.gradle') << localCacheConfiguration()
-            def playFixture = new PlayCompilationFixture(project)
-            playFixture.baseline()
-            file('build.gradle').text = playFixture.buildScript()
+            def scalaFixture = new LanuageScalaCompilationFixture(project)
+            scalaFixture.baseline()
+            file('build.gradle').text = scalaFixture.buildScript()
         }
     }
 
-    def "joint Java and Scala compilation can be cached"() {
+    def "joint Java and Scala compilation cannot be cached due to overlapping outputs"() {
         given:
         buildScript """
             plugins {
-                id 'play'
-                id 'java'
+                id 'jvm-component'
+                id 'java-lang'
+                id 'scala-lang'
             }
-          
-            ${PLAY_REPOSITORIES}
+            
+            ${mavenCentralRepository()}
+
+            model {
+                components {
+                    main(JvmLibrarySpec)
+                }
+            }
         """
-        file('app/controller/RequiredByScala.java') << """
+        file('src/main/java/RequiredByScala.java') << """
             public class RequiredByScala {
                 public static void printSomething() {
                     java.lang.System.out.println("Hello from Java");
                 }
             }
         """
-        file('app/controller/RequiredByScala.java').makeOlder()
+        file('src/main/java/RequiredByScala.java').makeOlder()
 
-        file('app/controller/UsesJava.scala') << """
+        file('src/main/scala/UsesJava.scala') << """
             class UsesJava {
                 def printSomething(): Unit = {
                     RequiredByScala.printSomething()
                 }
             }
         """
-        file('app/controller/UsesJava.scala').makeOlder()
-        def compiledJavaClass = file('/build/playBinary/classes/RequiredByScala.class')
-        def compiledScalaClass = file('/build/playBinary/classes/UsesJava.class')
+        file('src/main/scala/UsesJava.scala').makeOlder()
+        def compiledJavaClass = file('/build/classes/main/jar/RequiredByScala.class')
+        def compiledScalaClass = file('/build/classes/main/jar/UsesJava.class')
 
         when:
-        withBuildCache().succeeds ':compileJava', compilationTask
+        withBuildCache().succeeds 'compileMainJarMainJava', compilationTask, '--info'
 
         then:
         compiledJavaClass.exists()
         compiledScalaClass.exists()
-
-        when:
-        withBuildCache().succeeds ':clean', ':compileJava'
-
-        then:
-        skipped ':compileJava'
-
-        when:
-        // This line is crucial to expose the bug
-        // When doing this and then loading the classes for
-        // compileScala from the cache the compiled java
-        // classes are replaced and recorded as changed
-        def javaClassRequiredByScala = file('/build/playBinary/classes/RequiredByScala.class')
-        if(javaClassRequiredByScala.lastModified() == 0){
-            javaClassRequiredByScala.setLastModified(Calendar.getInstance().getTime().minus(1).seconds)
-        } else {
-            javaClassRequiredByScala.setLastModified(javaClassRequiredByScala.lastModified() - 2000L)
-        }
-        withBuildCache().succeeds compilationTask
-
-        then:
-        skipped compilationTask
-
-        when:
-        file('app/controller/RequiredByScala.java').text = """
-            public class RequiredByScala {
-                public static void printSomethingNew() {
-                    java.lang.System.out.println("Hello from Java");
-                    // Different
-                }
-            }
-        """
-        file('app/controller/UsesJava.scala').text = """
-            class UsesJava {
-                def printSomething(): Unit = {
-                    RequiredByScala.printSomethingNew()
-                    // Some comment
-                }
-            }
-        """
-
-        withBuildCache().succeeds compilationTask
-
-        then:
-        compiledJavaClass.exists()
-        compiledScalaClass.exists()
+        output.contains "Caching disabled for task ':compileMainJarMainScala': Gradle does not know how file 'build"
     }
 
     def "incremental compilation works with caching"() {
@@ -125,7 +85,7 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
         setupProjectInDirectory(warmupDir)
         warmupDir.file('settings.gradle') << localCacheConfiguration()
 
-        def classes = new PlayCompilationFixture(warmupDir)
+        def classes = new LanuageScalaCompilationFixture(warmupDir)
         classes.baseline()
         classes.classDependingOnBasicClassSource.change()
 
@@ -148,7 +108,7 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
         warmupDir.deleteDir()
         setupProjectInDirectory(testDirectory)
         executer.inDirectory(testDirectory)
-        classes = new PlayCompilationFixture(testDirectory)
+        classes = new LanuageScalaCompilationFixture(testDirectory)
         classes.baseline()
         withBuildCache().succeeds compilationTask
 

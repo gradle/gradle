@@ -16,10 +16,10 @@
 
 package org.gradle.language.scala
 
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
-class PlayCompilationFixture {
+class LanuageScalaCompilationFixture {
     private final TestFile root
     final ScalaClass basicClassSource
     final ScalaClass classDependingOnBasicClassSource
@@ -30,17 +30,11 @@ class PlayCompilationFixture {
     String sourceDir
     TestFile analysisFile
 
-    public static final String PLAY_REPOSITORIES = """
-        repositories {
-            ${RepoScriptBlockUtil.jcenterRepositoryDefinition()}
-            ${RepoScriptBlockUtil.lightbendMavenRepositoryDefinition()}
-        }"""
-
-    PlayCompilationFixture(File root) {
+    LanuageScalaCompilationFixture(File root) {
         this.root = new TestFile(root)
-        this.analysisFile = this.root.file("build/tmp/scala/compilerAnalysis/compilePlayBinaryScala.analysis")
-        this.sourceSet = 'play'
-        this.sourceDir = 'app/controller'
+        this.analysisFile = this.root.file("build/tmp/scala/compilerAnalysis/compileMainJarMainScala.analysis")
+        this.sourceSet = 'main'
+        this.sourceDir = 'src/main/scala'
 
         basicClassSource = new ScalaClass(
             'Person',
@@ -58,12 +52,12 @@ class PlayCompilationFixture {
                  * Has a name, age and a height.
                  */
                 class Person(val name: String, val age: Int, val height: Int)''')
-        classDependingOnBasicClassSource = new ScalaClass('app/models',
+        classDependingOnBasicClassSource = new ScalaClass(
             'House',
             'class House(val owner: Person)',
             'class House(val owner: Person, val residents: List[Person])'
         )
-        independentClassSource = new ScalaClass('app/views',
+        independentClassSource = new ScalaClass(
             'Other',
             'class Other',
             'class Other(val some: String)'
@@ -72,11 +66,18 @@ class PlayCompilationFixture {
 
     String buildScript() {
         """
-             plugins {
-                id 'play'
+            plugins {
+                id 'jvm-component'
+                id 'scala-lang'
             }
-          
-            ${PLAY_REPOSITORIES}
+        
+            ${AbstractIntegrationSpec.mavenCentralRepository()}
+        
+            model {
+                components {
+                    main(JvmLibrarySpec)
+                }
+            }
         """
     }
 
@@ -84,23 +85,6 @@ class PlayCompilationFixture {
         basicClassSource.create()
         classDependingOnBasicClassSource.create()
         independentClassSource.create()
-        this.root.with {
-            file('conf/application.conf').text = """
-            logger.root=ERROR
-            logger.play=INFO
-            logger.application=DEBUG
-        """
-
-            file('public/stylesheets/bootstrap.css').text = """
-            button,
-            input[type="button"],
-            input[type="reset"],
-            input[type="submit"] {
-              cursor: pointer;
-              -webkit-appearance: button;
-            }
-        """
-        }
     }
 
     List<ScalaClass> getAll() {
@@ -118,11 +102,11 @@ class PlayCompilationFixture {
         final String changedText
         final String javadocLocation
 
-        ScalaClass(String sourceDir = PlayCompilationFixture.this.sourceDir, String path, String originalText, String changedText) {
+        ScalaClass(String sourceDir = LanuageScalaCompilationFixture.this.sourceDir, String path, String originalText, String changedText) {
             this.changedText = changedText
             this.originalText = originalText
             source = root.file("${sourceDir}/${path}.scala")
-            compiledClass = root.file("build/playBinary/classes/${path}.class")
+            compiledClass = root.file("build/classes/main/jar/${path}.class")
             javadocLocation = root.file("build/docs/scaladoc/${path}.html")
         }
 
