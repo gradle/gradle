@@ -30,7 +30,11 @@ class JUnitAssumptionsIntegrationTest extends JUnitBasicMultiVersionIntegrationS
 
     def supportsAssumptions() {
         executer.noExtraLogging()
-        buildFile << dependencyDeclaration
+        buildFile << """
+dependencies {
+    testCompile $dependencyNotation
+}
+"""
 
         when:
         run('check')
