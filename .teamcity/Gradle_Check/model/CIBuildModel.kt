@@ -53,7 +53,11 @@ data class CIBuildModel (
             Stage("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions",
                     trigger = Trigger.weekly,
                     performanceTests = listOf(
-                            PerformanceTestType.historical)))
+                            PerformanceTestType.historical)),
+            Stage("Experimental", "On demand: Run experimental tests",
+                    trigger = Trigger.never,
+                    performanceTests = listOf(
+                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java10))))
     ) {
 
     val subProjects = listOf(
@@ -188,7 +192,7 @@ enum class OS(val agentRequirement: String, val ignoredSubprojects: List<String>
 }
 
 enum class JvmVersion {
-    java7, java8, java9
+    java7, java8, java9, java10
 }
 
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
