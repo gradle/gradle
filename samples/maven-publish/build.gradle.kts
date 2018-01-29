@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.bundling.Jar
 
 plugins {
-    kotlin("jvm") version "1.2.20"
+    kotlin("jvm") version "1.2.21"
     `maven-publish`
 }
 
