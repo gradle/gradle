@@ -50,6 +50,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private TestResultProcessor resultProcessor;
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
     private DocumentationRegistry documentationRegistry;
+    private volatile boolean stoppedNow;
 
     public ForkingTestClassProcessor(WorkerLeaseRegistry.WorkerLease parentWorkerLease, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, DocumentationRegistry documentationRegistry) {
         this.currentWorkerLease = parentWorkerLease;
@@ -131,10 +132,12 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                 remoteProcessor.stop();
                 workerProcess.waitForStop();
             } catch (ExecException e) {
-                throw new ExecException(e.getMessage()
-                    + "\nThis problem might be caused by incorrect test process configuration."
-                    + "\nPlease refer to the test execution section in the user guide at "
-                    + documentationRegistry.getDocumentationFor("java_plugin", "sec:test_execution"), e.getCause());
+                if (!stoppedNow) {
+                    throw new ExecException(e.getMessage()
+                        + "\nThis problem might be caused by incorrect test process configuration."
+                        + "\nPlease refer to the test execution section in the user guide at "
+                        + documentationRegistry.getDocumentationFor("java_plugin", "sec:test_execution"), e.getCause());
+                }
             } finally {
                 completion.leaseFinish();
             }
@@ -143,6 +146,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stopNow() {
+        stoppedNow = true;
         if (remoteProcessor != null) {
             workerProcess.stopNow();
         }

@@ -27,6 +27,7 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
     private long testCount;
     private TestClassProcessor processor;
     private TestResultProcessor resultProcessor;
+    private volatile boolean stoppedNow;
 
     public RestartEveryNTestClassProcessor(Factory<TestClassProcessor> factory, long restartEvery) {
         this.factory = factory;
@@ -40,6 +41,10 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
+        if (stoppedNow) {
+            return;
+        }
+
         if (processor == null) {
             processor = factory.create();
             processor.startProcessing(resultProcessor);
@@ -60,6 +65,7 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stopNow() {
+        stoppedNow = true;
         if (processor != null) {
             processor.stopNow();
         }
