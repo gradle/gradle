@@ -116,7 +116,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     @Override
     protected Compiler<CppCompileSpec> createCppCompiler() {
         CommandLineToolInvocationWorker commandLineTool = tool("C++ compiler", visualCpp.getCompiler(targetPlatform));
-        CppCompiler cppCompiler = new CppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addDefinitions(CppCompileSpec.class), getObjectFileExtension(), true, workerLeaseService);
+        CppCompiler cppCompiler = new CppCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, context(commandLineToolConfigurations.get(ToolType.CPP_COMPILER)), addIncludePathAndDefinitions(CppCompileSpec.class), getObjectFileExtension(), true, workerLeaseService);
         OutputCleaningCompiler<CppCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
         return versionAwareCompiler(outputCleaningCompiler);
     }
@@ -132,7 +132,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     @Override
     protected Compiler<CCompileSpec> createCCompiler() {
         CommandLineToolInvocationWorker commandLineTool = tool("C compiler", visualCpp.getCompiler(targetPlatform));
-        CCompiler cCompiler = new CCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addDefinitions(CCompileSpec.class), getObjectFileExtension(), true, workerLeaseService);
+        CCompiler cCompiler = new CCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, context(commandLineToolConfigurations.get(ToolType.C_COMPILER)), addIncludePathAndDefinitions(CCompileSpec.class), getObjectFileExtension(), true, workerLeaseService);
         OutputCleaningCompiler<CCompileSpec> outputCleaningCompiler = new OutputCleaningCompiler<CCompileSpec>(cCompiler, compilerOutputFileNamingSchemeFactory, getObjectFileExtension());
         return versionAwareCompiler(outputCleaningCompiler);
     }
@@ -152,7 +152,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     @Override
     protected Compiler<AssembleSpec> createAssembler() {
         CommandLineToolInvocationWorker commandLineTool = tool("Assembler", visualCpp.getAssembler(targetPlatform));
-        return new Assembler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, context(commandLineToolConfigurations.get(ToolType.ASSEMBLER)), addDefinitions(AssembleSpec.class), getObjectFileExtension(), false, workerLeaseService);
+        return new Assembler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, context(commandLineToolConfigurations.get(ToolType.ASSEMBLER)), addIncludePathAndDefinitions(AssembleSpec.class), getObjectFileExtension(), false, workerLeaseService);
     }
 
     @Override
@@ -169,7 +169,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     protected Compiler<WindowsResourceCompileSpec> createWindowsResourceCompiler() {
         CommandLineToolInvocationWorker commandLineTool = tool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
         String objectFileExtension = ".res";
-        WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, context(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addDefinitions(WindowsResourceCompileSpec.class), objectFileExtension, false, workerLeaseService);
+        WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(buildOperationExecutor, compilerOutputFileNamingSchemeFactory, commandLineTool, context(commandLineToolConfigurations.get(ToolType.WINDOW_RESOURCES_COMPILER)), addIncludePathAndDefinitions(WindowsResourceCompileSpec.class), objectFileExtension, false, workerLeaseService);
         return new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, compilerOutputFileNamingSchemeFactory, objectFileExtension);
     }
 
@@ -220,7 +220,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
             public T transform(T original) {
                 List<Transformer<T, T>> transformers = Lists.newArrayList();
                 transformers.add(PCHUtils.getHeaderToSourceFileTransformer(type));
-                transformers.add(addDefinitions(type));
+                transformers.add(addIncludePathAndDefinitions(type));
 
                 T next = original;
                 for (Transformer<T, T> transformer :  transformers) {
@@ -234,18 +234,23 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider impleme
     @Override
     public List<File> getSystemIncludes(ToolType compilerType) {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
-        builder.add(visualCpp.getIncludePath(targetPlatform));
-        builder.add(sdk.getIncludeDirs());
-        if (ucrt != null) {
-            builder.add(ucrt.getIncludeDirs());
-        }
+//        builder.add(visualCpp.getIncludePath(targetPlatform));
+//        builder.add(sdk.getIncludeDirs());
+//        if (ucrt != null) {
+//            builder.add(ucrt.getIncludeDirs());
+//        }
 
         return builder.build();
     }
 
-    private <T extends NativeCompileSpec> Transformer<T, T> addDefinitions(Class<T> type) {
+    private <T extends NativeCompileSpec> Transformer<T, T> addIncludePathAndDefinitions(Class<T> type) {
         return new Transformer<T, T>() {
             public T transform(T original) {
+                original.include(visualCpp.getIncludePath(targetPlatform));
+                original.include(sdk.getIncludeDirs());
+                if (ucrt != null) {
+                    original.include(ucrt.getIncludeDirs());
+                }
                 for (Map.Entry<String, String> definition : visualCpp.getDefinitions(targetPlatform).entrySet()) {
                     original.define(definition.getKey(), definition.getValue());
                 }

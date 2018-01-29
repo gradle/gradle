@@ -233,10 +233,10 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider implements Sy
 
     @Override
     public List<File> getSystemIncludes(ToolType compilerType) {
-        GccMetadata gccMetadata = getGccMetadata(compilerType);
-        if (gccMetadata.isAvailable()) {
-            return gccMetadata.getSystemIncludes();
-        }
+//        GccMetadata gccMetadata = getGccMetadata(compilerType);
+//        if (gccMetadata.isAvailable()) {
+//            return gccMetadata.getSystemIncludes();
+//        }
         return ImmutableList.of();
     }
 
