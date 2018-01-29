@@ -35,7 +35,6 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor<JUn
 
     @Override
     public void stopNow() {
-        // TODO(adamb): do nothing?  This method should *never* be called?
-        resultProcessorActor.stop();
+        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
     }
 }

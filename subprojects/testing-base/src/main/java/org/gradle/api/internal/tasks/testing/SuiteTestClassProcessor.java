@@ -69,7 +69,6 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stopNow() {
-        // TODO(adamb): do nothing?  This method should *never* be called?
-        processor.stopNow();
+        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
     }
 }

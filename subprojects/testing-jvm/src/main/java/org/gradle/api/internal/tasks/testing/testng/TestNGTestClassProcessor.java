@@ -93,7 +93,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void stopNow() {
-        // TODO(adamb): do nothing?  This method should *never* be called?
+        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
     }
 
     private void runTests() {
