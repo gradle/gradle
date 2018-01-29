@@ -207,7 +207,8 @@ public class AvailableToolChains {
         if (compilerExe.isFile()) {
             SwiftcMetadata version = versionDeterminer.getCompilerMetaData(compilerExe, Collections.<String>emptyList());
             if (version.isAvailable()) {
-                return new InstalledSwiftc(version.getVersion()).inPath(compilerExe.getParentFile(), new File("/usr/bin"));
+                File binDir = compilerExe.getParentFile();
+                return new InstalledSwiftc(binDir, version.getVersion()).inPath(binDir, new File("/usr/bin"));
             }
         }
 
@@ -217,10 +218,11 @@ public class AvailableToolChains {
             for (File candidate : swiftcCandidates) {
                 SwiftcMetadata version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
                 if (version.isAvailable()) {
-                    InstalledSwiftc swiftc = new InstalledSwiftc(version.getVersion());
+                    File binDir = candidate.getParentFile();
+                    InstalledSwiftc swiftc = new InstalledSwiftc(binDir, version.getVersion());
                     if (!candidate.equals(firstInPath)) {
                         // Not the first swiftc in the path, needs the path variable updated
-                        swiftc.inPath(candidate.getParentFile());
+                        swiftc.inPath(binDir);
                     }
                     return swiftc;
                 }
@@ -475,11 +477,17 @@ public class AvailableToolChains {
     }
 
     public static class InstalledSwiftc extends InstalledToolChain {
+        private final File binDir;
         private final VersionNumber compilerVersion;
 
-        public InstalledSwiftc(VersionNumber compilerVersion) {
+        public InstalledSwiftc(File binDir, VersionNumber compilerVersion) {
             super("swiftc " + compilerVersion);
+            this.binDir = binDir;
             this.compilerVersion = compilerVersion;
+        }
+
+        public File tool(String name) {
+            return new File(binDir, name);
         }
 
         /**

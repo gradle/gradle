@@ -17,16 +17,20 @@
 package org.gradle.swiftpm
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.language.swift.SwiftPmRunner
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.vcs.fixtures.GitFileRepository
 
-@Requires(TestPrecondition.NOT_WINDOWS)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
 class SwiftPackageManagerExportIntegrationTest extends AbstractIntegrationSpec {
+    def swiftc = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_4)
+
     def setup() {
         settingsFile << """rootProject.name = 'test'
 """
@@ -59,6 +63,7 @@ let package = Package(
     ]
 )
 """
+        swiftPmBuildSucceeds()
     }
 
     def "produces manifest for single project Swift library"() {
@@ -100,6 +105,7 @@ let package = Package(
     ]
 )
 """
+        swiftPmBuildSucceeds()
     }
 
     def "produces manifest for single project C++ library"() {
@@ -111,7 +117,9 @@ let package = Package(
             }
 """
         def lib = new CppLib()
-        lib.writeToProject(testDirectory)
+        lib.sources.writeToProject(testDirectory)
+        lib.privateHeaders.writeToSourceDir(testDirectory.file("src/main/cpp"))
+        lib.publicHeaders.writeToProject(testDirectory)
 
         when:
         run("generateSwiftPmManifest")
@@ -141,11 +149,12 @@ let package = Package(
     ]
 )
 """
+        swiftPmBuildSucceeds()
     }
 
     def "produces manifest for multi-project Swift build"() {
         given:
-        settingsFile << "include 'lib1', 'lib2'"
+        settingsFile << "include 'hello', 'log'"
         buildFile << """
             plugins { 
                 id 'swiftpm-export' 
@@ -155,18 +164,18 @@ let package = Package(
                 apply plugin: 'swift-library'
             }
             dependencies {
-                implementation project(':lib1')
+                implementation project(':hello')
             }
-            project(':lib1') {
+            project(':hello') {
                 dependencies {
-                    implementation project(':lib2')
+                    implementation project(':log')
                 }
             }
 """
         def app = new SwiftAppWithLibraries()
-        app.main.writeToProject(testDirectory)
-        app.library.writeToProject(file("lib1"))
-        app.logLibrary.writeToProject(file("lib2"))
+        app.application.writeToProject(testDirectory)
+        app.library.writeToProject(file("hello"))
+        app.logLibrary.writeToProject(file("log"))
 
         when:
         run("generateSwiftPmManifest")
@@ -182,14 +191,14 @@ let package = Package(
     name: "test",
     products: [
         .executable(name: "test", targets: ["Test"]),
-        .library(name: "lib1", targets: ["Lib1"]),
-        .library(name: "lib2", targets: ["Lib2"]),
+        .library(name: "hello", targets: ["Hello"]),
+        .library(name: "log", targets: ["Log"]),
     ],
     targets: [
         .target(
             name: "Test",
             dependencies: [
-                .target(name: "Lib1"),
+                .target(name: "Hello"),
             ],
             path: ".",
             sources: [
@@ -197,18 +206,18 @@ let package = Package(
             ]
         ),
         .target(
-            name: "Lib1",
+            name: "Hello",
             dependencies: [
-                .target(name: "Lib2"),
+                .target(name: "Log"),
             ],
-            path: "lib1",
+            path: "hello",
             sources: [
                 "src/main/swift/greeter.swift",
             ]
         ),
         .target(
-            name: "Lib2",
-            path: "lib2",
+            name: "Log",
+            path: "log",
             sources: [
                 "src/main/swift/log.swift",
             ]
@@ -216,6 +225,7 @@ let package = Package(
     ]
 )
 """
+        swiftPmBuildSucceeds()
     }
 
     def "produces manifest for multi project C++ build"() {
@@ -240,7 +250,9 @@ let package = Package(
 """
         def app = new CppAppWithLibraries()
         app.main.writeToProject(testDirectory)
-        app.greeterLib.writeToProject(file("lib1"))
+        app.greeterLib.sources.writeToProject(file("lib1"))
+        app.greeterLib.publicHeaders.writeToProject(file("lib1"))
+        app.greeterLib.privateHeaders.writeToSourceDir(file("lib1/src/main/cpp"))
         app.loggerLib.writeToProject(file("lib2"))
 
         when:
@@ -293,13 +305,47 @@ let package = Package(
     ]
 )
 """
+        swiftPmBuildSucceeds()
     }
 
     def "produces manifest for Swift component with source dependencies"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repos/lib1"))
-        def lib2Repo = GitFileRepository.init(testDirectory.file("repos/lib2"))
+        lib1Repo.file("build.gradle") << """
+            plugins {
+                id 'swift-library'
+                id 'swiftpm-export'
+            }
+        """
+        lib1Repo.file("settings.gradle") << "rootProject.name = 'lib1'"
+        lib1Repo.file("src/main/swift/Lib1.swift") << """
+            public class Lib1 {
+                public class func thing() { }
+            }
+"""
+        executer.inDirectory(lib1Repo.workTree).withTasks("generateSwiftPmManifest").run()
+        lib1Repo.commit("v1")
+        lib1Repo.createLightWeightTag("1.0.0")
 
+        and:
+        def lib2Repo = GitFileRepository.init(testDirectory.file("repos/lib2"))
+        lib2Repo.file("build.gradle") << """
+            plugins {
+                id 'swift-library'
+                id 'swiftpm-export'
+            }
+        """
+        lib2Repo.file("settings.gradle") << "rootProject.name = 'lib2'"
+        lib2Repo.file("src/main/swift/Lib2.swift") << """
+            public class Lib2 {
+                public class func thing() { }
+            }
+        """
+        executer.inDirectory(lib2Repo.workTree).withTasks("generateSwiftPmManifest").run()
+        lib2Repo.commit("v2")
+        lib2Repo.createLightWeightTag("2.0.0")
+
+        and:
         settingsFile << """
             sourceControl {
                 vcsMappings {
@@ -322,12 +368,20 @@ let package = Package(
                 id 'swiftpm-export'
             }
             dependencies {
-                api "test:lib1:1.0"
-                implementation "test:lib2:2.0"
+                api "test:lib1:1.0.0"
+                implementation "test:lib2:2.0.0"
             }
 """
-        def app = new SwiftAppWithLibraries()
-        app.library.writeToProject(testDirectory)
+        file("src/main/swift/Lib.swift") << """
+            import Lib1
+            import Lib2
+            class Lib {
+                init() {
+                    Lib1.thing()
+                    Lib2.thing()
+                }
+            }
+        """
 
         when:
         run("generateSwiftPmManifest")
@@ -345,8 +399,8 @@ let package = Package(
         .library(name: "test", targets: ["Test"]),
     ],
     dependencies: [
-        .package(url: "repos/lib2", from: "2.0"),
-        .package(url: "repos/lib1", from: "1.0"),
+        .package(url: "repos/lib2", from: "2.0.0"),
+        .package(url: "repos/lib1", from: "1.0.0"),
     ],
     targets: [
         .target(
@@ -357,11 +411,24 @@ let package = Package(
             ],
             path: ".",
             sources: [
-                "src/main/swift/greeter.swift",
+                "src/main/swift/Lib.swift",
             ]
         ),
     ]
 )
 """
+        swiftPmBuildSucceeds()
+
+        cleanup:
+        lib1Repo?.close()
+        lib2Repo?.close()
     }
+
+    void swiftPmBuildSucceeds() {
+        SwiftPmRunner.create(swiftc)
+            .withProjectDir(testDirectory)
+            .withArguments("build")
+            .build()
+    }
+
 }
