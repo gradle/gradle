@@ -77,10 +77,11 @@ public class AvailableToolChains {
      * @return null if there is no such tool chain.
      */
     @Nullable
-    public static ToolChainCandidate getToolChain(ToolChainRequirement requirement) {
+    public static InstalledToolChain getToolChain(ToolChainRequirement requirement) {
         for (ToolChainCandidate toolChainCandidate : getToolChains()) {
             if (toolChainCandidate.meets(requirement)) {
-                return toolChainCandidate;
+                assert toolChainCandidate.isAvailable();
+                return (InstalledToolChain) toolChainCandidate;
             }
         }
         return null;
