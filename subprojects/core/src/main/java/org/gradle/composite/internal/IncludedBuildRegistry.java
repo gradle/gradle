@@ -21,22 +21,21 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
 
-import java.io.File;
 import java.util.Collection;
-import java.util.Map;
 
 public interface IncludedBuildRegistry {
     boolean hasIncludedBuilds();
-    Map<File, IncludedBuild> getIncludedBuilds();
+    Collection<IncludedBuild> getIncludedBuilds();
     IncludedBuild getBuild(BuildIdentifier name);
     Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getModuleToProjectMapping(IncludedBuild includedBuild);
 
     void validateExplicitIncludedBuilds(SettingsInternal settings);
 
-    ConfigurableIncludedBuild addExplicitBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory);
-    ConfigurableIncludedBuild addImplicitBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory);
+    ConfigurableIncludedBuild addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+    ConfigurableIncludedBuild addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 }

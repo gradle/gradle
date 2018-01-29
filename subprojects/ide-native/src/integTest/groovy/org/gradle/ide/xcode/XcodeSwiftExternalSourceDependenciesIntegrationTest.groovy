@@ -20,7 +20,7 @@ import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.internal.SourceDependencies
 import org.junit.Rule
 
@@ -28,10 +28,10 @@ import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
 class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeIntegrationSpec implements SourceDependencies {
     @Rule
-    GitRepository repo = new GitRepository('greeter', temporaryFolder.getTestDirectory())
+    GitFileRepository repo = new GitFileRepository('greeter', temporaryFolder.getTestDirectory())
 
     def setup() {
-        useSwiftCompiler()
+        requireSwiftToolChain()
     }
 
     def "adds source dependencies Swift module of main component to Xcode indexer search path"() {
@@ -52,7 +52,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             sourceControl {
                 vcsMappings {
                     withModule("org.test:greeter") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -101,7 +101,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             sourceControl {
                 vcsMappings {
                     withModule("org.test:greeter") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -151,7 +151,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             sourceControl {
                 vcsMappings {
                     withModule("org.test:greeter") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -202,7 +202,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             sourceControl {
                 vcsMappings {
                     withModule("org.test:greeter") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -265,7 +265,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             sourceControl {
                 vcsMappings {
                     withModule("org.test:greeter") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }
@@ -323,7 +323,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             sourceControl {
                 vcsMappings {
                     withModule("org.test:greeter") {
-                        from vcs(GitVersionControlSpec) {
+                        from(GitVersionControlSpec) {
                             url = "${repo.url}"
                         }
                     }

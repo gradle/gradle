@@ -18,11 +18,13 @@ package org.gradle.vcs.git.internal
 
 import com.google.common.collect.Maps
 import org.eclipse.jgit.revwalk.RevCommit
+import org.gradle.StartParameter
 import org.gradle.api.GradleException
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.vcs.VersionRef
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.git.GitVersionControlSpec
+import org.gradle.vcs.internal.VersionRef
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import spock.lang.Specification
@@ -35,10 +37,10 @@ class GitVersionControlSystemSpec extends Specification {
     private RevCommit c2
 
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    GitRepository repo = new GitRepository(tmpDir.getTestDirectory())
-    GitRepository repo2 = new GitRepository(tmpDir.getTestDirectory().file('other'))
-    GitRepository submoduleRepo = new GitRepository("submodule", tmpDir.testDirectory)
-    GitRepository submoduleRepo2 = new GitRepository("submodule2", tmpDir.testDirectory)
+    GitFileRepository repo = new GitFileRepository(tmpDir.getTestDirectory())
+    GitFileRepository repo2 = new GitFileRepository(tmpDir.getTestDirectory().file('other'))
+    GitFileRepository submoduleRepo = new GitFileRepository("submodule", tmpDir.testDirectory)
+    GitFileRepository submoduleRepo2 = new GitFileRepository("submodule2", tmpDir.testDirectory)
 
     // Directory clean up needs to happen after all of the repos have closed
     @Rule
@@ -58,7 +60,7 @@ class GitVersionControlSystemSpec extends Specification {
         anotherSource << 'Goodbye world!'
         c2 = repo.commit('Second Commit')
         repoHead = GitVersionRef.from(repo.head)
-        repoSpec = new DefaultGitVersionControlSpec()
+        repoSpec = new DefaultGitVersionControlSpec(Mock(StartParameter), Mock(ClassLoaderScope))
         repoSpec.url = repo.url
 
         submoduleRepo.workTree.file("foo.txt") << "hello from submodule"
@@ -222,7 +224,7 @@ class GitVersionControlSystemSpec extends Specification {
         e.cause.cause.message.contains('URI not supported: https://notarepo.invalid')
     }
 
-    def 'can get versions'() {
+    def 'treats tags as the available versions and ignores other references'() {
         given:
         def versions = gitVcs.getAvailableVersions(repoSpec)
         HashMap<String, String> versionMap = Maps.newHashMap()
@@ -231,12 +233,17 @@ class GitVersionControlSystemSpec extends Specification {
         }
 
         expect:
-        versions.size() == 6
-        versionMap['release'] == c1.id.name
+        versions.size() == 2
         versionMap['1.0.1'] == c1.id.name
         versionMap['v1.0.1'] == c1.id.name
-        versionMap['HEAD'] == c2.id.name
-        versionMap['latest.integration'] == c2.id.name
-        versionMap['master'] == c2.id.name
+    }
+
+    def 'can get HEAD of repository'() {
+        given:
+        def version = gitVcs.getHead(repoSpec)
+
+        expect:
+        version.version == 'HEAD'
+        version.canonicalId == c2.id.name
     }
 }

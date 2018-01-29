@@ -87,9 +87,9 @@ public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDepe
     SwiftPlatform getTargetPlatform();
 
     /**
-     * Returns the Swift language version of this component.
+     * Returns the Swift language level to use to compile the source files.
      *
-     * @since 4.5
+     * @since 4.6
      */
-    SwiftLanguageVersion getSwiftLanguageVersion();
+    Provider<SwiftVersion> getSourceCompatibility();
 }

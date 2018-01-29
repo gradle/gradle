@@ -22,6 +22,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.binarycompatibility.rules.*
 import org.gradle.binarycompatibility.transforms.*
 import org.gradle.binarycompatibility.AcceptedApiChanges
+import org.gradle.binarycompatibility.CleanAcceptedApiChanges
 
 repositories {
     ['distributions', 'distributions-snapshots'].each { distUrl ->
@@ -37,7 +38,8 @@ repositories {
 }
 
 ext {
-    acceptedViolations = AcceptedApiChanges.parse(project.file("src/changes/accepted-public-api-changes.json").text)
+    apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
+    acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
     compatibilityBaselineVersion = releasedVersions.mostRecentRelease
     foldersWithAPISources = publicGroovyProjects.sourceSets.main.allJava.srcDirs.flatten()
 }
@@ -130,6 +132,11 @@ task checkBinaryCompatibility(type: JapicmpTask) {
     }
 }
 check.dependsOn(checkBinaryCompatibility)
+
+task cleanAcceptedApiChanges(type: CleanAcceptedApiChanges) {
+    description = 'Cleans up all existing accepted API changes.'
+    jsonFile = apiChangesJsonFile
+}
 
 static List<String> toPatterns(List<String> packages) {
     def patterns = packages.collect {

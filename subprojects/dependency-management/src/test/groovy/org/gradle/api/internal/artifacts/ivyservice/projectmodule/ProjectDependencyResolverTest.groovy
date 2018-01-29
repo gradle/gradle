@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
 import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -43,7 +44,6 @@ class ProjectDependencyResolverTest extends Specification {
         def dependencyMetaData = Stub(DependencyMetadata) {
             getSelector() >> selector
         }
-        def targetModuleId = Stub(ModuleIdentifier)
         def id = newProjectId(":project")
 
         when:
@@ -53,6 +53,8 @@ class ProjectDependencyResolverTest extends Specification {
         1 * componentIdentifierFactory.createProjectComponentIdentifier(selector) >> id
         1 * registry.getComponent(id) >> componentMetaData
         1 * result.resolved(componentMetaData)
+        1 * result.getSelectionDescription() >> Mock(ComponentSelectionDescriptorInternal)
+        1 * result.setSelectionDescription(_)
         0 * result._
     }
 

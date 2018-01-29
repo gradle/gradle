@@ -60,7 +60,7 @@ public class ExecuteBuild extends BuildCommandOnly {
                 buildRequestContext.getCancellationToken().addCallback(new Runnable() {
                     @Override
                     public void run() {
-                        LOGGER.warn(DaemonMessages.CANCELED_BUILD);
+                        LOGGER.info(DaemonMessages.CANCELED_BUILD);
                     }
                 });
             }

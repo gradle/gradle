@@ -1,0 +1,24 @@
+repositories {
+    jcenter()
+}
+
+configurations {
+    scm
+}
+
+dependencies {
+    scm 'org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r'
+    scm 'commons-codec:commons-codec:1.7'
+}
+
+//START SNIPPET iteration-task
+task iterateScmArtifacts {
+    dependsOn configurations.scm
+
+    doLast {
+        configurations.scm.files.each {
+            println it.absolutePath
+        }
+    }
+}
+//END SNIPPET iteration-task

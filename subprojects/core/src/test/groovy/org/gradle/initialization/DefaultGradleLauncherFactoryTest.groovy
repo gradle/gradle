@@ -16,6 +16,7 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.BuildDefinition
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -82,7 +83,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         parent.buildListener.buildStarted(parent.gradle)
 
         expect:
-        def launcher = parent.gradle.services.get(NestedBuildFactory).nestedInstance(startParameter)
+        def launcher = parent.gradle.services.get(NestedBuildFactory).nestedInstance(BuildDefinition.fromStartParameter(startParameter))
         launcher.gradle.parent == parent.gradle
 
         def request = launcher.gradle.services.get(BuildRequestMetaData)

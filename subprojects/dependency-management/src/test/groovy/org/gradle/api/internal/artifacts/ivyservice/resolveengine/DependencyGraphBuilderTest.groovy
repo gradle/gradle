@@ -1081,7 +1081,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
         def dependencyMetaData = new LocalComponentDependencyMetadata(from.componentId, componentSelector,
             "default", null, "default", [] as List<IvyArtifactName>,
-            excludeRules, force, false, transitive, false)
+            excludeRules, force, false, transitive, false, null)
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency))
         from.getConfiguration("default").addDependency(dependencyMetaData)
         return dependencyMetaData

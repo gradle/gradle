@@ -19,6 +19,8 @@ package org.gradle.plugin.management.internal.autoapply;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
@@ -33,11 +35,10 @@ import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOpti
  * A hardcoded {@link AutoAppliedPluginRegistry} that only knows about the build-scan plugin for now.
  */
 public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
+    private final BuildDefinition buildDefinition;
 
-    private final StartParameter startParameter;
-
-    public DefaultAutoAppliedPluginRegistry(StartParameter startParameter) {
-        this.startParameter = startParameter;
+    public DefaultAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
+        this.buildDefinition = buildDefinition;
     }
 
     @Override
@@ -48,7 +49,13 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
         return DefaultPluginRequests.EMPTY;
     }
 
+    @Override
+    public PluginRequests getAutoAppliedPlugins(Settings target) {
+        return buildDefinition.getInjectedPluginRequests();
+    }
+
     private boolean shouldApplyScanPlugin(Project target) {
+        StartParameter startParameter = buildDefinition.getStartParameter();
         return startParameter.isBuildScan() && target.getParent() == null && target.getGradle().getParent() == null;
     }
 

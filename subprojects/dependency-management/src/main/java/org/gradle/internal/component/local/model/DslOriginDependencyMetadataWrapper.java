@@ -22,6 +22,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
@@ -88,13 +89,23 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
+    public String getReason() {
+        return delegate.getReason();
+    }
+
+    @Override
     public List<IvyArtifactName> getArtifacts() {
         return delegate.getArtifacts();
     }
 
     @Override
     public LocalOriginDependencyMetadata withTarget(ComponentSelector target) {
-        return delegate.withTarget(target);
+        return new DslOriginDependencyMetadataWrapper(delegate.withTarget(target), source);
+    }
+
+    @Override
+    public DependencyMetadata withReason(String reason) {
+        return delegate.withReason(reason);
     }
 
     @Override

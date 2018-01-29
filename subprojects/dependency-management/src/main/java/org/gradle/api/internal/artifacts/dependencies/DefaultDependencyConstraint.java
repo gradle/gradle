@@ -30,6 +30,8 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     private final String name;
     private final MutableVersionConstraint versionConstraint;
 
+    private String reason;
+
     public DefaultDependencyConstraint(String group, String name, String version) {
         this.group = group;
         this.name = name;
@@ -93,7 +95,9 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
 
     @Override
     public DependencyConstraint copy() {
-        return new DefaultDependencyConstraint(group, name, versionConstraint);
+        DefaultDependencyConstraint constraint = new DefaultDependencyConstraint(group, name, versionConstraint);
+        constraint.reason = reason;
+        return constraint;
     }
 
     @Override
@@ -104,5 +108,15 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     @Override
     public VersionConstraint getVersionConstraint() {
         return versionConstraint;
+    }
+
+    @Override
+    public String getReason() {
+        return reason;
+    }
+
+    @Override
+    public void because(String reason) {
+        this.reason = reason;
     }
 }

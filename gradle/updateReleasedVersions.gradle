@@ -14,11 +14,27 @@
  * limitations under the License.
  */
 
-import org.gradle.build.UpdateReleasedVersions
 import org.gradle.build.ReleasedVersion
+import org.gradle.build.UpdateReleasedVersions
+import org.gradle.build.remote.DefaultRemoteGradleVersionResolver
+import org.gradle.build.remote.VersionType
+
+ext {
+    releasedVersionsJsonFile = file('released-versions.json')
+}
+
+tasks.withType(UpdateReleasedVersions) {
+    releasedVersionsFile = releasedVersionsJsonFile
+}
 
 task updateReleasedVersions(type: UpdateReleasedVersions) {
-    releasedVersionsFile = file('released-versions.json')
     def currentReleasedVersionProperty = project.findProperty('currentReleasedVersion')
     currentReleasedVersion = currentReleasedVersionProperty ? new ReleasedVersion(currentReleasedVersionProperty, project.findProperty('currentReleasedVersionBuildTimestamp')) : null
+}
+
+task updateReleasedVersionsToLatestNightly(type: UpdateReleasedVersions) {
+    currentReleasedVersion = project.providers.provider {
+        def nightlyVersion = new DefaultRemoteGradleVersionResolver().getVersionAsJson(VersionType.NIGHTLY)
+        new ReleasedVersion(nightlyVersion.version, nightlyVersion.buildTime)
+    }
 }

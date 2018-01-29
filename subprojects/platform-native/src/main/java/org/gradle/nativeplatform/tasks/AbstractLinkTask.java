@@ -29,6 +29,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Cast;
@@ -168,6 +169,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * The source object files to be passed to the linker.
      */
     @InputFiles
+    @SkipWhenEmpty
     public ConfigurableFileCollection getSource() {
         return source;
     }

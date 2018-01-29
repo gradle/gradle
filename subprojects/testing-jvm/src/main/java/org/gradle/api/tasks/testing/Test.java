@@ -25,10 +25,10 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
-import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -46,6 +46,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
@@ -530,7 +531,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
                 getServices().get(WorkerLeaseRegistry.class),
                 getServices().get(BuildOperationExecutor.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount(),
-                getServices().get(Clock.class));
+                getServices().get(Clock.class),
+                getServices().get(DocumentationRegistry.class));
         } else {
             return testExecuter;
         }

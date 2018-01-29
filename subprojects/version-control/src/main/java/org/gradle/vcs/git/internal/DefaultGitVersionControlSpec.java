@@ -16,6 +16,8 @@
 
 package org.gradle.vcs.git.internal;
 
+import org.gradle.StartParameter;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.UncheckedException;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
@@ -25,6 +27,10 @@ import java.net.URISyntaxException;
 
 public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec implements GitVersionControlSpec {
     private URI url;
+
+    public DefaultGitVersionControlSpec(StartParameter rootBuildStartParameter, ClassLoaderScope classLoaderScope) {
+        super(rootBuildStartParameter, classLoaderScope);
+    }
 
     @Override
     public URI getUrl() {
@@ -38,6 +44,7 @@ public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec imp
 
     @Override
     public void setUrl(String url) {
+        // TODO - should use a resolver so that this method is consistent with Project.uri(string)
         try {
             setUrl(new URI(url));
         } catch (URISyntaxException e) {

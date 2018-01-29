@@ -28,7 +28,6 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.util.SingleMessageLogger;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -54,7 +53,6 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
             }
         } finally {
             buildController.stop();
-            SingleMessageLogger.reportSuppressedDeprecations();
         }
     }
 

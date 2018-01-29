@@ -772,4 +772,145 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         "dependencies"           | false
         "dependency constraints" | true
     }
+
+    def "a rule can provide a custom selection reason thanks to dependency reason"() {
+        given:
+        repository {
+            'org.test:moduleA:1.0' {
+                dependsOn group:'org.test', artifact:'moduleB', version:'1.0', reason: 'will be overwritten by rule'
+            }
+            'org.test:moduleB:1.0'()
+        }
+
+        when:
+        buildFile << """
+            dependencies {
+                components {
+                    withModule('org.test:moduleA') {
+                        withVariant('$variantToTest') {
+                            withDependencies {
+                                it.each {
+                                    it.because 'can set a custom reason in a rule'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def expectedVariant = variantToTest
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org.test:moduleA:1.0:$expectedVariant") {
+                    module("org.test:moduleB:1.0").byReason('can set a custom reason in a rule')
+                }
+            }
+        }
+
+    }
+
+    def "a rule can provide a custom selection reason thanks to dependency constraint reason"() {
+        given:
+        repository {
+            'org.test:moduleA:1.0' {
+                dependsOn group:'org.test', artifact:'moduleB', version:'1.0', reason: 'will be overwritten by rule'
+                constraint group:'org.test', artifact:'moduleC', version:'1.0', reason: 'will be overwritten by rule'
+            }
+            'org.test:moduleB:1.0' {
+                dependsOn 'org.test:moduleC:1.0'
+            }
+            'org.test:moduleC:1.0'()
+            'org.test:moduleC:1.1'()
+        }
+
+        when:
+        buildFile << """
+            dependencies {
+                components {
+                    withModule('org.test:moduleA') {
+                        withVariant('$variantToTest') {
+                            withDependencies {
+                                it.each {
+                                    it.because 'can set a custom reason in a rule'
+                                }
+                            }
+                            withDependencyConstraints {
+                                it.each {
+                                    it.version { prefer '1.1' }
+                                    it.because '1.0 is buggy'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        boolean constraintsUnsupported = !gradleMetadataEnabled && useIvy()
+
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleC'() {
+                '1.0' {
+                    expectGetMetadata()
+                    if (constraintsUnsupported) {
+                        expectGetArtifact()
+                    }
+                }
+                if (!constraintsUnsupported) {
+                    '1.1' {
+                        expectResolve()
+                    }
+                }
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def expectedVariant = variantToTest
+        if (constraintsUnsupported) {
+            resolve.expectGraph {
+                root(':', ':test:') {
+                    module("org.test:moduleA:1.0:$expectedVariant") {
+                        module("org.test:moduleB:1.0") {
+                            module("org.test:moduleC:1.0")
+                            byReason('can set a custom reason in a rule')
+                        }
+
+                    }
+                }
+            }
+        } else {
+            resolve.expectGraph {
+                root(':', ':test:') {
+                    module("org.test:moduleA:1.0:$expectedVariant") {
+                        module("org.test:moduleB:1.0") {
+                            edge("org.test:moduleC:1.0", "org.test:moduleC:1.1")
+                            byReason('can set a custom reason in a rule')
+                        }
+                        module("org.test:moduleC:1.1").byConflictResolution()
+                    }
+                }
+            }
+        }
+    }
 }

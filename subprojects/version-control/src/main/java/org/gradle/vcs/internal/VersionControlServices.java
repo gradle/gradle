@@ -16,6 +16,8 @@
 
 package org.gradle.vcs.internal;
 
+import org.gradle.StartParameter;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CleanupActionFactory;
@@ -50,13 +52,15 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlGlobalServices {
-        VcsMappingFactory createVcsMappingFactory() {
-            return new DefaultVcsMappingFactory();
-        }
     }
 
     private static class VersionControlBuildTreeServices {
-        protected VcsMappingsStore createVcsMappingsStore(Instantiator instantiator) {
+        VcsMappingFactory createVcsMappingFactory(InstantiatorFactory instantiatorFactory, StartParameter startParameter) {
+            Instantiator decoratingInstantiator = instantiatorFactory.decorate();
+            return new DefaultVcsMappingFactory(decoratingInstantiator, new VersionControlSpecFactory(decoratingInstantiator, startParameter));
+        }
+
+        VcsMappingsStore createVcsMappingsStore() {
             return new DefaultVcsMappingsStore();
         }
     }
@@ -72,7 +76,7 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
 
     private static class VersionControlSettingsServices {
         VcsMappings createVcsMappings(Instantiator instantiator, VcsMappingsStore vcsMappingsStore, Gradle gradle) {
-            return instantiator.newInstance(DefaultVcsMappings.class, instantiator, vcsMappingsStore, gradle);
+            return instantiator.newInstance(DefaultVcsMappings.class, vcsMappingsStore, gradle);
         }
 
         protected SourceControl createSourceControl(Instantiator instantiator, VcsMappings vcsMappings) {

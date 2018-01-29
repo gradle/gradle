@@ -18,7 +18,7 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -29,7 +29,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ComponentResolveMetadata metaData;
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
-    private ComponentSelectionReason selectionReason;
+    private ComponentSelectionDescriptorInternal selectionDescription;
     private ResolvedVersionConstraint versionConstraint;
 
     public boolean hasResult() {
@@ -50,12 +50,14 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         return moduleVersionId;
     }
 
-    public ComponentSelectionReason getSelectionReason() {
-        return selectionReason;
+    @Override
+    public void setSelectionDescription(ComponentSelectionDescriptorInternal reason) {
+        this.selectionDescription = reason;
     }
 
-    public void setSelectionReason(ComponentSelectionReason reason) {
-        this.selectionReason = reason;
+    @Override
+    public ComponentSelectionDescriptorInternal getSelectionDescription() {
+        return selectionDescription;
     }
 
     public ComponentResolveMetadata getMetaData() {
@@ -93,7 +95,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         metaData = null;
         id = null;
         moduleVersionId = null;
-        selectionReason = VersionSelectionReasons.REQUESTED;
+        selectionDescription = VersionSelectionReasons.REQUESTED;
         versionConstraint = null;
     }
 

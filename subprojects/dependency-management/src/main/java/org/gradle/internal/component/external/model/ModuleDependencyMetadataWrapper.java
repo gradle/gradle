@@ -48,6 +48,11 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
+    public ModuleDependencyMetadata withReason(String reason) {
+        return new ModuleDependencyMetadataWrapper(delegate.withReason(reason));
+    }
+
+    @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         return delegate.withTarget(target);
     }
@@ -80,5 +85,10 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     @Override
     public boolean isPending() {
         return delegate.isPending();
+    }
+
+    @Override
+    public String getReason() {
+        return delegate.getReason();
     }
 }

@@ -269,13 +269,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         }
 
         @Override
-        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes) {
-            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes));
+        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason) {
+            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason));
         }
 
         @Override
-        public void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint) {
-            dependencyConstraints.add(new DependencyConstraintImpl(group, module, versionConstraint));
+        public void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason) {
+            dependencyConstraints.add(new DependencyConstraintImpl(group, module, versionConstraint, reason));
         }
 
         @Override
@@ -332,12 +332,14 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         private final String module;
         private final VersionConstraint versionConstraint;
         private final ImmutableList<ExcludeMetadata> excludes;
+        private final String reason;
 
-        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes) {
+        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
             this.excludes = ImmutableList.copyOf(excludes);
+            this.reason = reason;
         }
 
         @Override
@@ -361,6 +363,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         }
 
         @Override
+        public String getReason() {
+            return reason;
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -373,12 +380,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             return Objects.equal(group, that.group)
                 && Objects.equal(module, that.module)
                 && Objects.equal(versionConstraint, that.versionConstraint)
-                && Objects.equal(excludes, that.excludes);
+                && Objects.equal(excludes, that.excludes)
+                && Objects.equal(reason, that.reason);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, excludes);
+            return Objects.hashCode(group, module, versionConstraint, excludes, reason);
         }
     }
 
@@ -386,11 +394,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         private final String group;
         private final String module;
         private final VersionConstraint versionConstraint;
+        private final String reason;
 
-        DependencyConstraintImpl(String group, String module, VersionConstraint versionConstraint) {
+        DependencyConstraintImpl(String group, String module, VersionConstraint versionConstraint, String reason) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
+            this.reason = reason;
         }
 
         @Override
@@ -409,6 +419,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         }
 
         @Override
+        public String getReason() {
+            return reason;
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -420,12 +435,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             DependencyConstraintImpl that = (DependencyConstraintImpl) o;
             return Objects.equal(group, that.group)
                 && Objects.equal(module, that.module)
-                && Objects.equal(versionConstraint, that.versionConstraint);
+                && Objects.equal(versionConstraint, that.versionConstraint)
+                && Objects.equal(reason, that.reason);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint);
+            return Objects.hashCode(group, module, versionConstraint, reason);
         }
     }
 

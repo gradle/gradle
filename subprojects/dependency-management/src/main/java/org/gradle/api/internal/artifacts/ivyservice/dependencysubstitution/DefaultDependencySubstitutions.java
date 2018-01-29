@@ -25,14 +25,14 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -50,7 +50,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private final Set<Action<? super DependencySubstitution>> substitutionRules;
     private final NotationParser<Object, ComponentSelector> moduleSelectorNotationParser;
     private final NotationParser<Object, ComponentSelector> projectSelectorNotationParser;
-    private final ComponentSelectionReason reason;
+    private final ComponentSelectionDescriptor reason;
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private boolean hasDependencySubstitutionRule;
@@ -78,11 +78,11 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         return new DefaultDependencySubstitutions(VersionSelectionReasons.COMPOSITE_BUILD, projectSelectorNotationParser, moduleIdentifierFactory);
     }
 
-    private DefaultDependencySubstitutions(ComponentSelectionReason reason, NotationParser<Object, ComponentSelector> projectSelectorNotationParser, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason, NotationParser<Object, ComponentSelector> projectSelectorNotationParser, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this(reason, new LinkedHashSet<Action<? super DependencySubstitution>>(), moduleSelectorNotationConverter(moduleIdentifierFactory), projectSelectorNotationParser);
     }
 
-    private DefaultDependencySubstitutions(ComponentSelectionReason reason,
+    private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
                                            Set<Action<? super DependencySubstitution>> substitutionRules,
                                            NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                            NotationParser<Object, ComponentSelector> projectSelectorNotationParser) {
@@ -133,7 +133,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     @Override
     public Substitution substitute(final ComponentSelector substituted) {
         return new Substitution() {
-            ComponentSelectionReasonInternal substitutionReason = (ComponentSelectionReasonInternal) reason;
+            ComponentSelectionDescriptorInternal substitutionReason = (ComponentSelectionDescriptorInternal) reason;
             @Override
             public Substitution because(String description) {
                 substitutionReason = substitutionReason.withReason(description);
@@ -205,11 +205,11 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     private static class ExactMatchDependencySubstitutionAction implements Action<DependencySubstitution> {
-        private final ComponentSelectionReasonInternal selectionReason;
+        private final ComponentSelectionDescriptorInternal selectionReason;
         private final ComponentSelector substituted;
         private final ComponentSelector substitute;
 
-        public ExactMatchDependencySubstitutionAction(ComponentSelectionReasonInternal selectionReason, ComponentSelector substituted, ComponentSelector substitute) {
+        public ExactMatchDependencySubstitutionAction(ComponentSelectionDescriptorInternal selectionReason, ComponentSelector substituted, ComponentSelector substitute) {
             this.selectionReason = selectionReason;
             this.substituted = substituted;
             this.substitute = substitute;
@@ -224,11 +224,11 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     private static class ModuleMatchDependencySubstitutionAction implements Action<DependencySubstitution> {
-        private final ComponentSelectionReasonInternal selectionReason;
+        private final ComponentSelectionDescriptorInternal selectionReason;
         private final ModuleIdentifier moduleId;
         private final ComponentSelector substitute;
 
-        public ModuleMatchDependencySubstitutionAction(ComponentSelectionReasonInternal selectionReason, ModuleIdentifier moduleId, ComponentSelector substitute) {
+        public ModuleMatchDependencySubstitutionAction(ComponentSelectionDescriptorInternal selectionReason, ModuleIdentifier moduleId, ComponentSelector substitute) {
             this.selectionReason = selectionReason;
             this.moduleId = moduleId;
             this.substitute = substitute;

@@ -151,7 +151,7 @@ class GradleModuleMetadata {
             if (dependencies == null) {
                 dependencies = (values.dependencies ?: []).collect {
                     def exclusions = it.excludes ? it.excludes.collect { "${it.group}:${it.module}" } : []
-                    new Dependency(it.group, it.module, it.version?.prefers, it.version?.rejects ?: [], exclusions)
+                    new Dependency(it.group, it.module, it.version?.prefers, it.version?.rejects ?: [], exclusions, it.reason)
                 }
             }
             dependencies
@@ -168,7 +168,7 @@ class GradleModuleMetadata {
         List<DependencyConstraint> getDependencyConstraints() {
             if (dependencyConstraints == null) {
                 dependencyConstraints = (values.dependencyConstraints ?: []).collect {
-                    new DependencyConstraint(it.group, it.module, it.version.prefers, it.version.rejects ?: [])
+                    new DependencyConstraint(it.group, it.module, it.version.prefers, it.version.rejects ?: [], it.reason)
                 }
             }
             dependencyConstraints
@@ -199,7 +199,7 @@ class GradleModuleMetadata {
             view
         }
 
-        DependencyConstraintView constraint(String notation, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = {}) {
+        DependencyConstraintView constraint(String notation, @DelegatesTo(value=DependencyConstraintView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = {}) {
             def (String group, String module, String version) = notation.split(':') as List
             constraint(group, module, version, action)
         }
@@ -250,6 +250,12 @@ class GradleModuleMetadata {
                 Set<String> actualRejects = find()?.rejectsVersion
                 Set<String> expectedRejects = rejections as Set
                 assert actualRejects == expectedRejects
+                this
+            }
+
+            DependencyView hasReason(String reason) {
+                assert find()?.reason == reason
+                this
             }
         }
 
@@ -279,6 +285,12 @@ class GradleModuleMetadata {
                 Set<String> actualRejects = find()?.rejectsVersion
                 Set<String> expectedRejects = rejections as Set
                 assert actualRejects == expectedRejects
+                this
+            }
+
+            DependencyConstraintView hasReason(String reason) {
+                assert find()?.reason == reason
+                this
             }
         }
     }
@@ -288,12 +300,14 @@ class GradleModuleMetadata {
         final String module
         final String version
         final List<String> rejectsVersion
+        final String reason
 
-        Coords(String group, String module, String version, List<String> rejectsVersion = []) {
+        Coords(String group, String module, String version, List<String> rejectsVersion = [], String reason = null) {
             this.group = group
             this.module = module
             this.version = version
             this.rejectsVersion = rejectsVersion
+            this.reason = reason
         }
 
         String getCoords() {
@@ -320,8 +334,8 @@ class GradleModuleMetadata {
 
     static class Dependency extends Coords {
         final List<String> excludes
-        Dependency(String group, String module, String version, List<String> rejectedVersions, List<String> excludes) {
-            super(group, module, version, rejectedVersions)
+        Dependency(String group, String module, String version, List<String> rejectedVersions, List<String> excludes, String reason) {
+            super(group, module, version, rejectedVersions, reason)
             this.excludes = excludes*.toString()
         }
 
@@ -335,8 +349,8 @@ class GradleModuleMetadata {
     }
 
     static class DependencyConstraint extends Coords {
-        DependencyConstraint(String group, String module, String version, List<String> rejectedVersions) {
-            super(group, module, version, rejectedVersions)
+        DependencyConstraint(String group, String module, String version, List<String> rejectedVersions, String reason) {
+            super(group, module, version, rejectedVersions, reason)
         }
     }
 

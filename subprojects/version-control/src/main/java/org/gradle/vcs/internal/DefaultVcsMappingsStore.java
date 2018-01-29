@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Actions;
 import org.gradle.util.CollectionUtils;
@@ -31,8 +32,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultVcsMappingsStore implements VcsMappingsStore {
-    private final Set<Action<VcsMapping>> rootVcsMappings = Sets.newLinkedHashSet();
-    private final Map<Gradle, Set<Action<VcsMapping>>> vcsMappings = Maps.newHashMap();
+    private final Set<Action<? super VcsMapping>> rootVcsMappings = Sets.newLinkedHashSet();
+    private final Map<Gradle, Set<Action<? super VcsMapping>>> vcsMappings = Maps.newHashMap();
 
     @Override
     public Action<VcsMapping> getVcsMappingRule() {
@@ -69,14 +70,24 @@ public class DefaultVcsMappingsStore implements VcsMappingsStore {
     }
 
     @Override
-    public void addRule(Action<VcsMapping> rule, Gradle gradle) {
+    public void addRule(final Action<? super VcsMapping> rule, final Gradle gradle) {
+        // TODO: Hacky hook to ensure we have the classloader scope from the appropriate Gradle instance.
+        // Detangle the "build definition" part of the VcsMapping from the rule itself so this classloader can
+        // be carried around by it.
+        Action<VcsMapping> classloaderWrapping = new Action<VcsMapping>() {
+            @Override
+            public void execute(VcsMapping vcsMapping) {
+                ((DefaultVcsMapping)vcsMapping).setClassLoaderScope(((GradleInternal)gradle).getSettings().getClassLoaderScope());
+                rule.execute(vcsMapping);
+            }
+        };
         if (gradle.getParent() == null) {
-            rootVcsMappings.add(rule);
+            rootVcsMappings.add(classloaderWrapping);
         } else {
             if (!vcsMappings.containsKey(gradle)) {
-                vcsMappings.put(gradle, Sets.<Action<VcsMapping>>newLinkedHashSet());
+                vcsMappings.put(gradle, Sets.<Action<? super VcsMapping>>newLinkedHashSet());
             }
-            vcsMappings.get(gradle).add(rule);
+            vcsMappings.get(gradle).add(classloaderWrapping);
         }
     }
 }

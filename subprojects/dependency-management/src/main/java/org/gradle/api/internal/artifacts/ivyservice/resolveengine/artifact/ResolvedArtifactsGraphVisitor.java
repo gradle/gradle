@@ -65,9 +65,11 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     @Override
     public void visitEdges(DependencyGraphNode node) {
         for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
-            DependencyGraphNode parent = dependency.getFrom();
-            ArtifactsForNode artifacts = getArtifacts(dependency, node);
-            artifactResults.visitArtifacts(parent, node, artifacts.artifactSetId, artifacts.artifactSet);
+            if (dependency.contributesArtifacts()) {
+                DependencyGraphNode parent = dependency.getFrom();
+                ArtifactsForNode artifacts = getArtifacts(dependency, node);
+                artifactResults.visitArtifacts(parent, node, artifacts.artifactSetId, artifacts.artifactSet);
+            }
         }
         for (LocalFileDependencyMetadata fileDependency : node.getOutgoingFileEdges()) {
             int id = nextId++;

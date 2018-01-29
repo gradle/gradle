@@ -152,7 +152,9 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 conf 'org:bar:1.0'
                 constraints {
-                    conf 'org:foo:[1.0,1.1]'
+                    conf('org:foo:[1.0,1.1]') {
+                        because 'tested versions'
+                    }
                 }
             }
         """
@@ -164,9 +166,9 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:bar:1.0") {
-                    edge("org:foo:[1.0,1.2]", "org:foo:1.1")
+                    edge("org:foo:[1.0,1.2]", "org:foo:1.1").byReason('tested versions')
                 }
-                edge("org:foo:[1.0,1.1]", "org:foo:1.1")
+                edge("org:foo:[1.0,1.1]", "org:foo:1.1").byReason('tested versions')
             }
         }
     }
@@ -289,7 +291,9 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                 }
                 dependencies {
                     constraints {
-                        conf 'org:foo:1.1'
+                        conf('org:foo:1.1') {
+                            because 'transitive dependency constraint'
+                        }
                     }
                 }
             }
@@ -301,11 +305,11 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution()
+                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution().byReason('transitive dependency constraint')
                 project(":b", "test:b:") {
                     configuration = "conf"
                     noArtifacts()
-                    module("org:foo:1.1")
+                    module("org:foo:1.1").byReason('transitive dependency constraint')
                 }
             }
         }
@@ -354,6 +358,65 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
                     noArtifacts()
                     module("org:foo:1.1:runtime")
                 }.compositeSubstitute()
+            }
+        }
+    }
+
+    void "dependency constraints should not pull in additional artifacts"() {
+        given:
+        mavenRepo.module("org", "foo", '1.0').artifact(classifier: 'shaded').publish()
+        mavenRepo.module("org", "foo", '1.1').artifact(classifier: 'shaded').publish()
+
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.0:shaded'
+                constraints {
+                    conf 'org:foo:1.1'
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0","org:foo:1.1")
+                module("org:foo:1.1") {
+                    artifact(classifier: 'shaded')
+                }
+            }
+        }
+    }
+
+    void "dependency constraints should not pull in additional artifacts for transitive dependencies"() {
+        given:
+        def foo11 = mavenRepo.module("org", "foo", '1.0').artifact(classifier: 'shaded').publish()
+        mavenRepo.module("org", "foo", '1.1').artifact(classifier: 'shaded').publish()
+        mavenRepo.module("org", "bar", '1.0').dependsOn(classifier: 'shaded', foo11).publish()
+
+        buildFile << """
+            dependencies {
+                conf 'org:bar:1.0'
+                constraints {
+                    conf 'org:foo:1.1'
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:foo:1.1") {
+                    artifact(classifier: 'shaded')
+                }
+                module("org:bar:1.0") {
+                    edge("org:foo:1.0","org:foo:1.1")
+                }
             }
         }
     }

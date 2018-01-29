@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
@@ -24,9 +25,12 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
@@ -36,6 +40,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.LegendRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
+import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -51,10 +56,10 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 /**
  * Generates a report that attempts to answer questions like:
  * <ul>
- *  <li>Why is this dependency in the dependency graph?</li>
- *  <li>Exactly which dependencies are pulling this dependency into the graph?</li>
- *  <li>What is the actual version (i.e. *selected* version) of the dependency that will be used? Is it the same as what was *requested*?</li>
- *  <li>Why is the *selected* version of a dependency different to the *requested*?</li>
+ * <li>Why is this dependency in the dependency graph?</li>
+ * <li>Exactly which dependencies are pulling this dependency into the graph?</li>
+ * <li>What is the actual version (i.e. *selected* version) of the dependency that will be used? Is it the same as what was *requested*?</li>
+ * <li>Why is the *selected* version of a dependency different to the *requested*?</li>
  * </ul>
  *
  * Use this task to get insight into a particular dependency (or dependencies)
@@ -79,6 +84,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 public class DependencyInsightReportTask extends DefaultTask {
 
     private Configuration configuration;
+    private boolean showVariantDetails;
     private Spec<DependencyResult> dependencySpec;
 
     /**
@@ -113,6 +119,34 @@ public class DependencyInsightReportTask extends DefaultTask {
         this.dependencySpec = parser.parseNotation(dependencyInsightNotation);
     }
 
+    /**
+     * Configures the report to show variant matching details. When this flag is set to true, the report will also
+     * display the variant details, in particular variant attributes and how they were matched.
+     *
+     * <p>
+     * This method is exposed to the command line interface. Example usage:
+     * <pre>gradle dependencyInsight --configuration compileClasspath --dependency slf4j --variant-details</pre>
+     *
+     * @param showDetails if set to true, display selected variant details
+     *
+     * @since 4.6
+     */
+    @Option(option = "show-variant-details", description = "Shows the details of variant matching")
+    public void setShowVariantDetails(boolean showDetails) {
+        this.showVariantDetails = showDetails;
+    }
+
+    /**
+     * Determine if variant details need to be displayed.
+     *
+     * @return true if variant details need to be displayed
+     *
+     * @since 4.6
+     */
+    @Internal
+    public boolean isShowVariantDetails() {
+        return showVariantDetails;
+    }
 
     /**
      * Configuration to look the dependency in
@@ -160,17 +194,17 @@ public class DependencyInsightReportTask extends DefaultTask {
         final Configuration configuration = getConfiguration();
         if (configuration == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
-                    + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
+                + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
         }
 
         if (dependencySpec == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the dependency to show was not specified."
-                    + "\nIt can be specified from the command line, e.g: '" + getPath() + " --dependency someDep'");
+                + "\nIt can be specified from the command line, e.g: '" + getPath() + " --dependency someDep'");
         }
 
 
         StyledTextOutput output = getTextOutputFactory().create(getClass());
-        GraphRenderer renderer = new GraphRenderer(output);
+        final GraphRenderer renderer = new GraphRenderer(output);
 
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
 
@@ -206,28 +240,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
         int i = 1;
         for (final RenderableDependency dependency : sortedDeps) {
-            renderer.visit(new Action<StyledTextOutput>() {
-                public void execute(StyledTextOutput out) {
-                    out.withStyle(Identifier).text(dependency.getName());
-
-                    if (StringUtils.isNotEmpty(dependency.getDescription())) {
-                        out.withStyle(Description).text(" (" + dependency.getDescription() + ")");
-                    }
-
-                    switch (dependency.getResolutionState()) {
-                        case FAILED:
-                            out.withStyle(Failure).text(" FAILED");
-                            break;
-                        case RESOLVED:
-                            break;
-                        case UNRESOLVED:
-                            out.withStyle(Failure).text(" (n)");
-                            break;
-                    }
-
-                }
-
-            }, true);
+            renderer.visit(new RenderDependencyAction(dependency, configuration, showVariantDetails), true);
             dependencyGraphRenderer.render(dependency);
             boolean last = i++ == sortedDeps.size();
             if (!last) {
@@ -236,7 +249,149 @@ public class DependencyInsightReportTask extends DefaultTask {
 
         }
 
-
         legendRenderer.printLegend();
+    }
+
+    private static AttributeMatchDetails match(Attribute<?> actualAttribute, Object actualValue, AttributeContainerInternal requestedAttributes) {
+        for (Attribute<?> requested : requestedAttributes.keySet()) {
+            Object requestedValue = requestedAttributes.getAttribute(requested);
+            if (requested.getName().equals(actualAttribute.getName())) {
+                // found an attribute with the same name, but they do not necessarily have the same type
+                if (requested.equals(actualAttribute)) {
+                    if (actualValue.equals(requestedValue)) {
+                        return new AttributeMatchDetails(MatchType.requested, requested, requestedValue);
+                    }
+                    return new AttributeMatchDetails(MatchType.different_value, requested, requestedValue);
+                } else {
+                    // maybe it matched through coercion
+                    if (actualValue.toString().equals(requestedValue.toString())) {
+                        return new AttributeMatchDetails(MatchType.requested, requested, requestedValue);
+                    }
+                    return new AttributeMatchDetails(MatchType.different_value, requested, requestedValue);
+                }
+            }
+        }
+        return new AttributeMatchDetails(MatchType.not_requested, null, null);
+    }
+
+    private static class AttributeMatchDetails {
+        private final MatchType matchType;
+        private final Attribute<?> requested;
+        private final Object requestedValue;
+
+        private AttributeMatchDetails(MatchType matchType, Attribute<?> requested, Object requestedValue) {
+            this.matchType = matchType;
+            this.requested = requested;
+            this.requestedValue = requestedValue;
+        }
+    }
+
+    private enum MatchType {
+        requested,
+        different_value,
+        not_requested
+    }
+
+    private static class RenderDependencyAction implements Action<StyledTextOutput> {
+        private final RenderableDependency dependency;
+        private final Configuration configuration;
+        private final boolean showVariantDetails;
+
+        public RenderDependencyAction(RenderableDependency dependency, Configuration configuration, boolean showVariantDetails) {
+            this.dependency = dependency;
+            this.configuration = configuration;
+            this.showVariantDetails = showVariantDetails;
+        }
+
+        public void execute(StyledTextOutput out) {
+            out.withStyle(Identifier).text(dependency.getName());
+            if (StringUtils.isNotEmpty(dependency.getDescription())) {
+                out.withStyle(Description).text(" (" + dependency.getDescription() + ")");
+            }
+            printVariantDetails(out);
+            switch (dependency.getResolutionState()) {
+                case FAILED:
+                    out.withStyle(Failure).text(" FAILED");
+                    break;
+                case RESOLVED:
+                    break;
+                case UNRESOLVED:
+                    out.withStyle(Failure).text(" (n)");
+                    break;
+            }
+        }
+
+        private void printVariantDetails(StyledTextOutput out) {
+            ResolvedVariantResult resolvedVariant = dependency.getResolvedVariant();
+            if (resolvedVariant != null && showVariantDetails) {
+                out.println();
+                out.withStyle(Description).text("   variant \"" + resolvedVariant.getDisplayName() + "\"");
+                AttributeContainer attributes = resolvedVariant.getAttributes();
+                AttributeContainerInternal requested = (AttributeContainerInternal) configuration.getAttributes();
+                if (!attributes.isEmpty() || !requested.isEmpty()) {
+                    writeAttributeBlock(out, attributes, requested);
+                }
+            }
+        }
+
+        private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainerInternal requested) {
+            out.withStyle(Description).text(" [");
+            out.println();
+            int maxAttributeLen = computeAttributePadding(attributes, requested);
+            Set<Attribute<?>> matchedAttributes = Sets.newLinkedHashSet();
+            writeFoundAttributes(out, attributes, requested, maxAttributeLen, matchedAttributes);
+            Sets.SetView<Attribute<?>> missing = Sets.difference(requested.keySet(), matchedAttributes);
+            if (!missing.isEmpty()) {
+                writeMissingAttributes(out, requested, maxAttributeLen, missing);
+            }
+            out.withStyle(Description).text("   ]");
+        }
+
+        private void writeMissingAttributes(StyledTextOutput out, AttributeContainerInternal requested, int maxAttributeLen, Sets.SetView<Attribute<?>> missing) {
+            if (missing.size() != requested.keySet().size()) {
+                out.println();
+            }
+            out.withStyle(Description).text("      Requested attributes not found in the selected variant:");
+            out.println();
+            for (Attribute<?> missingAttribute : missing) {
+                out.withStyle(Description).text("         " + StringUtils.rightPad(missingAttribute.getName(), maxAttributeLen) + " = " + requested.getAttribute(missingAttribute));
+                out.println();
+            }
+        }
+
+        private void writeFoundAttributes(StyledTextOutput out, AttributeContainer attributes, AttributeContainerInternal requested, int maxAttributeLen, Set<Attribute<?>> matchedAttributes) {
+            for (Attribute<?> attribute : attributes.keySet()) {
+                Object actualValue = attributes.getAttribute(attribute);
+                AttributeMatchDetails match = match(attribute, actualValue, requested);
+                out.withStyle(Description).text("      " + StringUtils.rightPad(attribute.getName(), maxAttributeLen) + " = " + actualValue);
+                Attribute<?> requestedAttribute = match.requested;
+                if (requestedAttribute != null) {
+                    matchedAttributes.add(requestedAttribute);
+                }
+                switch (match.matchType) {
+                    case requested:
+                        break;
+                    case different_value:
+                        out.withStyle(Info).text(" (compatible with: " + match.requestedValue + ")");
+                        break;
+                    case not_requested:
+                        out.withStyle(Info).text(" (not requested)");
+                        break;
+                }
+                out.println();
+            }
+        }
+
+        private int computeAttributePadding(AttributeContainer attributes, AttributeContainerInternal requested) {
+            int maxAttributeLen = 0;
+            for (Attribute<?> attribute : requested.keySet()) {
+                maxAttributeLen = Math.max(maxAttributeLen, attribute.getName().length());
+            }
+            for (Attribute<?> attribute : attributes.keySet()) {
+                maxAttributeLen = Math.max(maxAttributeLen, attribute.getName().length());
+            }
+            return maxAttributeLen;
+        }
+
     }
 }

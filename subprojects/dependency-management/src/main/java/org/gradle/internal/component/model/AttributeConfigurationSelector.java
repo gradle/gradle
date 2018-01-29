@@ -24,7 +24,7 @@ import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
 
 import java.util.List;
 
-public abstract class AttributeConfigurationSelector implements DependencyMetadata {
+public abstract class AttributeConfigurationSelector {
 
     public static ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         List<? extends ConfigurationMetadata> consumableConfigurations = targetComponent.getVariantsForGraphTraversal();

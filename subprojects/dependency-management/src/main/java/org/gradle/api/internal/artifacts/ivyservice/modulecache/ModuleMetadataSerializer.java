@@ -132,6 +132,7 @@ public class ModuleMetadataSerializer {
             encoder.writeSmallInt(constraints.size());
             for (ComponentVariant.DependencyConstraint constraint : constraints) {
                 COMPONENT_SELECTOR_SERIALIZER.write(encoder, constraint.getGroup(), constraint.getModule(), constraint.getVersionConstraint());
+                encoder.writeNullableString(constraint.getReason());
             }
         }
 
@@ -139,6 +140,7 @@ public class ModuleMetadataSerializer {
             encoder.writeSmallInt(dependencies.size());
             for (ComponentVariant.Dependency dependency : dependencies) {
                 COMPONENT_SELECTOR_SERIALIZER.write(encoder, dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint());
+                encoder.writeNullableString(dependency.getReason());
                 writeVariantDependencyExcludes(dependency.getExcludes());
             }
         }
@@ -416,8 +418,9 @@ public class ModuleMetadataSerializer {
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
                 ModuleComponentSelector selector = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
+                String reason = decoder.readNullableString();
                 ImmutableList<ExcludeMetadata> excludes = readVariantDependencyExcludes();
-                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes);
+                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason);
             }
         }
 
@@ -425,7 +428,8 @@ public class ModuleMetadataSerializer {
             int count = decoder.readSmallInt();
             for (int i = 0; i < count; i++) {
                 ModuleComponentSelector selector = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
-                variant.addDependencyConstraint(selector.getGroup(), selector.getModule(), selector.getVersionConstraint());
+                String reason = decoder.readNullableString();
+                variant.addDependencyConstraint(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), reason);
             }
         }
 

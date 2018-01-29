@@ -27,7 +27,7 @@ If you are looking for documentation on the original Ivy publishing support usin
 
 This chapter describes how to publish build artifacts in the http://ant.apache.org/ivy/[Apache Ivy] format, usually to a repository for consumption by other builds or projects. What is published is one or more artifacts created by the build, and an Ivy _module descriptor_ (normally `ivy.xml`) that describes the artifacts and the dependencies of the artifacts, if any.
 
-A published Ivy module can be consumed by Gradle (see <<dependency_management>>) and other tools that understand the Ivy format.
+A published Ivy module can be consumed by Gradle (see <<declaring_dependencies>>) and other tools that understand the Ivy format.
 
 
 [[publishing_ivy:plugin]]

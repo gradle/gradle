@@ -51,7 +51,7 @@ class CachingDependencyResultFactoryTest extends Specification {
 
     def "creates and caches resolved dependencies with attributes"() {
         def fromModule = newModule('from')
-        def selectedModule = newModule('selected', 'a', '1', VersionSelectionReasons.SELECTED_BY_RULE, newVariant('custom', [attr1: 'foo', attr2: 'bar']))
+        def selectedModule = newModule('selected', 'a', '1', selectedByRule(), newVariant('custom', [attr1: 'foo', attr2: 'bar']))
 
         when:
         def dep = factory.createResolvedDependency(selector('requested'), fromModule, selectedModule)
@@ -93,5 +93,9 @@ class CachingDependencyResultFactoryTest extends Specification {
 
     def moduleVersionSelector(String group='a', String module='a', String version='1') {
         newSelector(group, module, new DefaultMutableVersionConstraint(version))
+    }
+
+    private static ComponentSelectionReason selectedByRule() {
+        VersionSelectionReasons.of([VersionSelectionReasons.SELECTED_BY_RULE])
     }
 }

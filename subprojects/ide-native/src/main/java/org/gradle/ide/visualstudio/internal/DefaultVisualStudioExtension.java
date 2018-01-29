@@ -17,7 +17,6 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
@@ -27,11 +26,10 @@ public class DefaultVisualStudioExtension implements VisualStudioExtensionIntern
     private final VisualStudioProjectRegistry projectRegistry;
     private final VisualStudioSolutionRegistry solutionRegistry;
 
-    public DefaultVisualStudioExtension(ProjectIdentifier projectIdentifier, Instantiator instantiator, ProjectModelResolver projectModelResolver, FileResolver fileResolver) {
-        VisualStudioProjectMapper projectMapper = new VisualStudioProjectMapper();
-        projectRegistry = new VisualStudioProjectRegistry(projectIdentifier, fileResolver, projectMapper, instantiator);
+    public DefaultVisualStudioExtension(Instantiator instantiator, ProjectModelResolver projectModelResolver, FileResolver fileResolver) {
+        projectRegistry = new VisualStudioProjectRegistry(fileResolver, instantiator);
         VisualStudioProjectResolver projectResolver = new VisualStudioProjectResolver(projectModelResolver);
-        solutionRegistry = new VisualStudioSolutionRegistry(projectIdentifier, fileResolver, projectResolver, instantiator);
+        solutionRegistry = new VisualStudioSolutionRegistry(fileResolver, projectResolver, instantiator);
     }
 
     @Override

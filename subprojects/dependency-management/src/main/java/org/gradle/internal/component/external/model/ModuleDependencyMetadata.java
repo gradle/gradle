@@ -27,4 +27,7 @@ public interface ModuleDependencyMetadata extends DependencyMetadata {
      * Returns a copy of this dependency with the given requested version.
      */
     ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion);
+
+    @Override
+    ModuleDependencyMetadata withReason(String reason);
 }

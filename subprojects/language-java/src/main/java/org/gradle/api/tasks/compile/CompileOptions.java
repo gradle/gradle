@@ -438,7 +438,7 @@ public class CompileOptions extends AbstractOptions {
     /**
      * informs whether to use incremental compilation feature. See {@link #setIncremental(boolean)}
      */
-    @Input
+    @Internal
     public boolean isIncremental() {
         return incremental;
     }
@@ -478,13 +478,12 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery. The default value is {@code null}, which means use the compile classpath.
+     * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery. If set to {@code null}, it means use the compile classpath.
      *
-     * @return The annotation processor path, or {@code null} to use the default.
+     * @return The annotation processor path, or {@code null} to use the compile classpath.
      * @since 3.4
      */
     @Optional
-    @Incubating
     @Internal // Handled on the compile task
     @Nullable
     public FileCollection getAnnotationProcessorPath() {
@@ -494,10 +493,9 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery. The value can be {@code null}, which means use the compile classpath.
      *
-     * @param annotationProcessorPath The annotation processor path, or {@code null} to use the default.
+     * @param annotationProcessorPath The annotation processor path, or {@code null} to use the compile classpath.
      * @since 3.4
      */
-    @Incubating
     public void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath) {
         this.annotationProcessorPath = annotationProcessorPath;
     }

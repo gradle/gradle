@@ -33,7 +33,7 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
     }
 
     @Override
-    protected String getDevelopmentBinaryCompileTask() {
+    String getDevelopmentBinaryCompileTask() {
         return ":compileDebugSwift"
     }
 

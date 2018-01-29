@@ -81,9 +81,9 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         succeeds "all", "-i"
 
         and:
-        i1Cache.assertEmpty()
-        i1BuildSrcCache.assertEmpty()
-        i2Cache.assertEmpty()
+        i1Cache.empty
+        i1BuildSrcCache.empty
+        i2Cache.empty
         mainCache.listCacheFiles().size() == 4 // root, i1, i1BuildSrc, i2
 
         buildSrcCache.listCacheFiles().size() == 1

@@ -86,7 +86,7 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
         buildScript helloWorldTask()
 
         when:
-        def runner = runner('helloWorld')
+        def runner = runner('helloWorld', '--warning-mode=none')
         runner.buildAndFail()
 
         then:

@@ -237,6 +237,13 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         d5.versionConstraint >> prefersAndRejects('', ['1.0'])
         d5.transitive >> true
 
+        def d6 = Stub(ExternalDependency)
+        d6.group >> "g6"
+        d6.name >> "m6"
+        d6.versionConstraint >> prefers('1.0')
+        d6.transitive >> true
+        d6.reason >> 'custom reason'
+
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
@@ -245,7 +252,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
-        v2.dependencies >> [d2, d3, d4, d5]
+        v2.dependencies >> [d2, d3, d4, d5, d6]
 
         component.usages >> [v1, v2]
 
@@ -339,6 +346,14 @@ class ModuleMetadataFileGeneratorTest extends Specification {
               "1.0"
             ]
           }
+        },
+        {
+          "group": "g6",
+          "module": "m6",
+          "version": {
+            "prefers": "1.0"
+          },
+          "reason": "custom reason"
         }
       ]
     }

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
@@ -86,8 +86,8 @@ public class DefaultConflictHandler implements ConflictHandler {
             if (replacement != null) {
                 String reason = replacement.getReason();
                 if (reason != null) {
-                    ComponentSelectionReason selectionReason = selected.getSelectionReason();
-                    selected.setSelectionReason(((ComponentSelectionReasonInternal) selectionReason).withReason(reason));
+                    ComponentSelectionReasonInternal selectionReason = selected.getSelectionReason();
+                    selectionReason.addCause(ComponentSelectionCause.CONFLICT_RESOLUTION, reason);
                 }
             }
         }

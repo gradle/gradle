@@ -379,17 +379,17 @@ Group
 BUILD SUCCESSFUL"""
     }
 
-    def "sortsOptionsBySpecifiedOrder"() {
+    def "sortsOptionsInAlphabeticOrder"() {
         when:
         run "help", "--task", "hello"
 
         then:
         output.contains """
 Options
-     --valueC     descC
+     --valueA     descA
 
      --valueB     descB
 
-     --valueA     descA"""
+     --valueC     descC"""
     }
 }

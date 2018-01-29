@@ -17,6 +17,9 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+
+import javax.annotation.Nullable;
 
 /**
  * Describes a metadata about a dependency - direct dependency or dependency constraint - declared in a resolved component's metadata.
@@ -52,4 +55,25 @@ public interface DependencyMetadata<SELF extends DependencyMetadata> {
      * @since 4.5
      */
     SELF version(Action<? super MutableVersionConstraint> configureAction);
+
+    /**
+     * Returns the reason why this dependency should be selected.
+     *
+     * @return the reason, or null if no reason is found in metadata.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    @Nullable
+    String getReason();
+
+    /**
+     * Adjust the reason why this dependency should be selected.
+     *
+     * @param reason modified reason
+     *
+     * @since 4.6
+     */
+    @Incubating
+    SELF because(String reason);
 }

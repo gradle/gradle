@@ -32,7 +32,7 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTes
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
         runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
-        runner.targetVersions = ["4.5-20171218235901+0000"]
+        runner.targetVersions = ["4.6-20180125002142+0000"]
 
         when:
         def result = runner.run()

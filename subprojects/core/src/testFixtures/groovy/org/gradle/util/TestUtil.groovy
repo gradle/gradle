@@ -77,7 +77,7 @@ class TestUtil {
     }
 
     static ImmutableAttributesFactory attributesFactory() {
-        return new DefaultImmutableAttributesFactory(valueSnapshotter())
+        return new DefaultImmutableAttributesFactory(valueSnapshotter(), NamedObjectInstantiator.INSTANCE)
     }
 
     static NamedObjectInstantiator objectInstantiator() {

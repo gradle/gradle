@@ -112,7 +112,7 @@ public class ResolveIvyFactory {
             }
 
             if (baseRepository.isDynamicResolveMode()) {
-                moduleComponentRepository = IvyDynamicResolveModuleComponentRepositoryAccess.wrap(moduleComponentRepository);
+                moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository);
             }
             moduleComponentRepository = inMemoryCache.cached(moduleComponentRepository);
             moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);

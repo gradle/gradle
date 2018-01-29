@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -56,6 +57,11 @@ public class SimpleDependency implements RenderableDependency {
 
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public ResolvedVariantResult getResolvedVariant() {
+        return null;
     }
 
     public Set<RenderableDependency> getChildren() {

@@ -35,7 +35,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
@@ -106,12 +105,12 @@ public class DependencyGraphBuilder {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(resolveContext, rootModule);
 
-        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, moduleReplacementsData, componentSelectorConverter, attributesFactory);
+        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, moduleReplacementsData, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator);
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.getRoot().getComponent()));
 
         traverseGraph(resolveState);
 
-        resolveState.getRoot().getComponent().setSelectionReason(VersionSelectionReasons.ROOT);
+        resolveState.getRoot().getComponent().setRoot();
 
         assembleResult(resolveState, modelVisitor);
 
@@ -126,7 +125,7 @@ public class DependencyGraphBuilder {
         final List<EdgeState> dependenciesMissingLocalMetadata = Lists.newArrayList();
         final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMap();
 
-        final PendingDependenciesHandler pendingDependenciesHandler = new DefaultPendingDependenciesHandler(componentSelectorConverter, dependencySubstitutionApplicator);
+        final PendingDependenciesHandler pendingDependenciesHandler = new DefaultPendingDependenciesHandler();
 
         while (resolveState.peek() != null || conflictHandler.hasConflicts()) {
             if (resolveState.peek() != null) {

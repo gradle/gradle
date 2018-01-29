@@ -17,12 +17,14 @@
 package org.gradle.internal.composite;
 
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildRegistry;
+import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
-import org.gradle.initialization.IncludedBuildSpec;
+import org.gradle.plugin.management.internal.DefaultPluginRequests;
 
 import java.io.File;
 import java.util.List;
@@ -46,14 +48,16 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();
         if (!includedBuilds.isEmpty()) {
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
-                ConfigurableIncludedBuild includedBuild = includedBuildRegistry.addExplicitBuild(includedBuildSpec.rootDir, nestedBuildFactory);
+                // TODO: Allow builds to inject into explicitly included builds
+                ConfigurableIncludedBuild includedBuild = includedBuildRegistry.addExplicitBuild(BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), includedBuildSpec.rootDir, DefaultPluginRequests.EMPTY), nestedBuildFactory);
                 includedBuildSpec.configurer.execute(includedBuild);
             }
         }
 
         // Add all included builds from the command-line
-        for (File file : gradle.getStartParameter().getIncludedBuilds()) {
-            includedBuildRegistry.addExplicitBuild(file, nestedBuildFactory);
+        for (File rootDir : gradle.getStartParameter().getIncludedBuilds()) {
+            // TODO: Allow builds to inject into explicitly included builds
+            includedBuildRegistry.addExplicitBuild(BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), rootDir, DefaultPluginRequests.EMPTY), nestedBuildFactory);
         }
 
         // Lock-in explicitly included builds

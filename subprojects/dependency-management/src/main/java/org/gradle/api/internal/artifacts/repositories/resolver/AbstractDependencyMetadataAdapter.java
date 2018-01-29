@@ -68,6 +68,17 @@ public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMeta
     }
 
     @Override
+    public T because(String reason) {
+        updateMetadata(getOriginalMetadata().withReason(reason));
+        return Cast.uncheckedCast(this);
+    }
+
+    @Override
+    public String getReason() {
+        return getOriginalMetadata().getReason();
+    }
+
+    @Override
     public String toString() {
         return getGroup() + ":" + getName() + ":" + getVersionConstraint();
     }

@@ -17,11 +17,7 @@
 package org.gradle.nativeplatform.fixtures;
 
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
-import org.gradle.util.Requires;
-import org.gradle.util.TestPrecondition;
 
-import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
 
 public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
@@ -40,12 +36,12 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
                 if (!toolChain.isAvailable()) {
                     throw new RuntimeException(String.format("Tool chain %s is not available.", toolChain.getDisplayName()));
                 }
-                add(new ToolChainExecution(toolChain, isRespectingSwiftConstraint(toolChain)));
+                add(new ToolChainExecution(toolChain, isRespectsInstalledConstraint(toolChain)));
             }
         } else {
             boolean hasEnabled = false;
             for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-                if (!hasEnabled && toolChain.isAvailable() && isRespectingSwiftConstraint(toolChain)) {
+                if (!hasEnabled && toolChain.isAvailable() && isRespectsInstalledConstraint(toolChain)) {
                     add(new ToolChainExecution(toolChain, true));
                     hasEnabled = true;
                 } else {
@@ -55,20 +51,9 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         }
     }
 
-    private boolean isRespectingSwiftConstraint(AvailableToolChains.ToolChainCandidate toolChain) {
-        return getRequirements(target).contains(TestPrecondition.SWIFT_SUPPORT) == toolChain instanceof AvailableToolChains.InstalledSwiftc;
-    }
-
-    private static EnumSet<TestPrecondition> getRequirements(Class<?> target) {
-        return toTestPrecondition(target.getAnnotation(Requires.class));
-    }
-
-    private static EnumSet<TestPrecondition> toTestPrecondition(Requires requirements) {
-        if (requirements == null) {
-            return EnumSet.of(TestPrecondition.NULL_REQUIREMENT);
-        }
-
-        return EnumSet.copyOf(Arrays.asList(requirements.value()));
+    private boolean isRespectsInstalledConstraint(AvailableToolChains.ToolChainCandidate toolChain) {
+        RequiresInstalledToolChain toolChainRequirement = target.getAnnotation(RequiresInstalledToolChain.class);
+        return toolChain.meets(toolChainRequirement == null ? ToolChainRequirement.AVAILABLE : toolChainRequirement.value());
     }
 
     private static class ToolChainExecution extends Execution {

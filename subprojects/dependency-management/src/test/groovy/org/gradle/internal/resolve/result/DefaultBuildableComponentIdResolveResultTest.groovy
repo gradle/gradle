@@ -38,7 +38,7 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         result.hasResult()
         result.id == id
         result.moduleVersionId == mvId
-        result.selectionReason == VersionSelectionReasons.REQUESTED
+        result.selectionDescription == VersionSelectionReasons.REQUESTED
         result.metaData == null
         result.failure == null
     }
@@ -49,10 +49,10 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
 
         when:
         result.resolved(id, mvId)
-        result.selectionReason = VersionSelectionReasons.CONFLICT_RESOLUTION
+        result.selectionDescription = VersionSelectionReasons.CONFLICT_RESOLUTION
 
         then:
-        result.selectionReason == VersionSelectionReasons.CONFLICT_RESOLUTION
+        result.selectionDescription == VersionSelectionReasons.CONFLICT_RESOLUTION
     }
 
     def "can resolve using meta-data"() {
@@ -71,7 +71,7 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         result.id == id
         result.moduleVersionId == mvId
         result.metaData == metaData
-        result.selectionReason == VersionSelectionReasons.REQUESTED
+        result.selectionDescription == VersionSelectionReasons.REQUESTED
         result.failure == null
     }
 
@@ -91,6 +91,6 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         then:
         ModuleVersionResolveException e = thrown()
         e == failure
-        result.selectionReason == VersionSelectionReasons.REQUESTED
+        result.selectionDescription == VersionSelectionReasons.REQUESTED
     }
 }

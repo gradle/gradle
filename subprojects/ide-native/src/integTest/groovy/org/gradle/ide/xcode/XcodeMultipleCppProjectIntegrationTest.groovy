@@ -165,6 +165,91 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:stripSymbolsRelease', ':deck:_xcode___Deck_Release')
     }
 
+    def "can create xcode project for C++ executable with binary-specific dependencies"() {
+        def app = new CppAppWithLibrariesWithApiDependencies()
+
+        given:
+        settingsFile.text =  """
+            include 'app', 'deck', 'card', 'shuffle'
+            rootProject.name = "${rootProjectName}"
+        """
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-application'
+                dependencies {
+                    implementation project(':deck')
+                }
+            }
+            project(':deck') {
+                apply plugin: 'cpp-library'
+                dependencies {
+                    api project(':card')
+                }
+                library {
+                    binaries.configureEach {
+                        dependencies {
+                            if (targetPlatform.operatingSystem.macOsX) {
+                                implementation project(':shuffle')
+                            }
+                        }
+                    }
+                }
+            }
+            project(':card') {
+                apply plugin: 'cpp-library'
+            }
+            project(':shuffle') {
+                apply plugin: 'cpp-library'
+            }
+        """
+        app.deck.writeToProject(file("deck"))
+        app.card.writeToProject(file("card"))
+        app.shuffle.writeToProject(file("shuffle"))
+        app.main.writeToProject(file("app"))
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
+            ":deck:xcodeProject", ":deck:xcodeProjectWorkspaceSettings", ":deck:xcodeScheme", ":deck:xcode",
+            ":card:xcodeProject", ":card:xcodeProjectWorkspaceSettings", ":card:xcodeScheme", ":card:xcode",
+            ":shuffle:xcodeProject", ":shuffle:xcodeProjectWorkspaceSettings", ":shuffle:xcodeScheme", ":shuffle:xcode",
+            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+
+        rootXcodeWorkspace.contentFile
+            .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'deck/deck.xcodeproj', 'card/card.xcodeproj', 'shuffle/shuffle.xcodeproj')
+
+        def appProject = xcodeProject("app/app.xcodeproj").projectFile
+        appProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("deck/src/main/public"), file("card/src/main/public"))
+        def deckProject = xcodeProject("deck/deck.xcodeproj").projectFile
+        deckProject.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("deck/src/main/public"), file("deck/src/main/headers"), file("card/src/main/public"), file("shuffle/src/main/public"))
+
+        when:
+        def resultDebugApp = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('App')
+            .succeeds()
+
+        then:
+        resultDebugApp.assertTasksExecuted(':shuffle:compileDebugCpp', ':shuffle:linkDebug',
+            ':card:compileDebugCpp', ':card:linkDebug',
+            ':deck:compileDebugCpp', ':deck:linkDebug',
+            ':app:compileDebugCpp', ':app:linkDebug', ':app:_xcode___App_Debug')
+
+        when:
+        def resultReleaseHello = xcodebuild
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('Deck')
+            .withConfiguration(DefaultXcodeProject.BUILD_RELEASE)
+            .succeeds()
+
+        then:
+        resultReleaseHello.assertTasksExecuted(':shuffle:compileReleaseCpp', ':shuffle:linkRelease', ':shuffle:stripSymbolsRelease',
+            ':card:compileReleaseCpp', ':card:linkRelease', ':card:stripSymbolsRelease',
+            ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:stripSymbolsRelease', ':deck:_xcode___Deck_Release')
+    }
+
     def "can create xcode project for C++ executable inside composite build"() {
         given:
         settingsFile.text = """

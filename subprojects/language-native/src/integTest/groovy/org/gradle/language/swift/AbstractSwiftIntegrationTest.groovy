@@ -16,11 +16,14 @@
 
 package org.gradle.language.swift
 
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.fixtures.app.SourceElement
+import org.gradle.nativeplatform.fixtures.app.Swift3
+import org.gradle.nativeplatform.fixtures.app.Swift4
 import org.gradle.util.Matchers
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegrationTest {
     def "skip assemble tasks when no source"() {
         given:
@@ -49,5 +52,28 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
 
     protected abstract List<String> getTasksToAssembleDevelopmentBinary()
 
-    protected abstract String getDevelopmentBinaryCompileTask()
+    @Override
+    SourceElement getSwift3Component() {
+        return new Swift3('project')
+    }
+
+    @Override
+    SourceElement getSwift4Component() {
+        return new Swift4('project')
+    }
+
+    @Override
+    String getTaskNameToAssembleDevelopmentBinary() {
+        return "assemble"
+    }
+
+    @Override
+    String getDevelopmentBinaryCompileTask() {
+        return ":compileDebugSwift"
+    }
+
+    @Override
+    List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
+        return getTasksToAssembleDevelopmentBinary()
+    }
 }

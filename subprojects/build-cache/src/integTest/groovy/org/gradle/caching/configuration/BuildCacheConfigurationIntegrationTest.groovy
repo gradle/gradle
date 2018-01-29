@@ -24,16 +24,6 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     String cacheDir = temporaryFolder.file("cache-dir").createDir().absoluteFile.toURI().toString()
     def localBuildCache = new TestBuildCache(new File(new URI(cacheDir).path))
 
-    def setup() {
-        buildFile << """
-            task assertLocalCacheConfigured {
-                doLast {
-                    assert gradle.services.get(BuildCacheConfiguration).local.directory == "$cacheDir"
-                }
-            }
-        """
-    }
-
     def "can configure with settings.gradle"() {
         settingsFile << """
             buildCache {
@@ -48,12 +38,11 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.withBuildCacheEnabled()
         succeeds("customTask")
-        assertCacheNotEmpty()
+        !localBuildCache.empty
     }
 
     def "can configure with init script"() {
         def initScript = file("initBuildCache.gradle") << """
-            println "1"
             gradle.settingsEvaluated { settings ->
                 settings.buildCache {
                     local(DirectoryBuildCache) {
@@ -63,14 +52,11 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         buildFile << customTaskCode()
-        settingsFile << """
-println "2"
-    """
 
         expect:
         executer.withBuildCacheEnabled().usingInitScript(initScript)
         succeeds("customTask")
-        assertCacheNotEmpty()
+        !localBuildCache.empty
     }
 
     def "configuration in init script wins over settings.gradle"() {
@@ -90,9 +76,12 @@ println "2"
                 }
             }
         """
+        buildFile << customTaskCode()
+
         expect:
-        executer.usingInitScript(initScript)
-        succeeds("assertLocalCacheConfigured")
+        executer.withBuildCacheEnabled().usingInitScript(initScript)
+        succeeds("customTask")
+        !localBuildCache.empty
     }
 
     @Unroll
@@ -217,7 +206,7 @@ println "2"
         then:
         result.assertOutputContains("Task output caching is enabled, but no build caches are configured or enabled.")
         and:
-        file("local-cache").assertDoesNotExist()
+        localBuildCache.empty
     }
 
     def "does not populate the build cache when we cannot push to it"() {
@@ -238,7 +227,7 @@ println "2"
         then:
         result.assertOutputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}, removeUnusedEntriesAfter = 7 days).")
         and:
-        !file("local-cache").listFiles().any { it.name ==~ /\p{XDigit}{32}/ }
+        localBuildCache.empty
     }
 
     private static String customTaskCode() {
@@ -256,11 +245,6 @@ println "2"
 
             task customTask(type: CustomTask)
         """
-    }
-
-    void assertCacheNotEmpty() {
-        def cacheFiles = localBuildCache.listCacheFiles()
-        assert !cacheFiles.empty
     }
 
 }

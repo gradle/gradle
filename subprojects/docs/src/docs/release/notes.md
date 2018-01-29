@@ -18,9 +18,67 @@ The new metadata format is still under active development, but it can already be
 ### Example new and noteworthy
 -->
 
+### Specifying metadata sources for repositories
+
+Gradle now allows you to explicitly state for [which metadata files](userguide/repository_types.html#sub:supported_metadata_sources) it should search in a repository. Use the following to configure Gradle to fail-fast resolving a dependency if a POM file is not found first.
+
+    repositories {
+         mavenCentral {
+             metadataSources {
+                 mavenPom() // Look for Maven '.pom' files
+                 // artifact() - Do not look for artifacts without metadata file
+             }
+         }
+    }
+
+This avoids a 2nd request for the JAR file when the POM is missing, making dependency resolution from Maven repositories faster in this case.
+
+You can also use this to programmatically opt-in to using the new Gradle metadata format for one repository using `metadataSources { gradleMetadata() }`.
+
 ### Default JaCoCo version upgraded to 0.8.0
 
 [The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.0](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
+
+### Annotation processor configurations
+
+It is now even easier to add annotation processors to your Java projects. Simply add them to the `annotationProcessor` configuration.
+
+```
+dependencies {
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.8'
+    implementation 'com.google.dagger:dagger:2.8'
+}
+
+```
+
+### Public API for defining command line options for tasks
+
+Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. Being able to pass in property values on the command line is particularly helpful if they change more frequently. With this version of Gradle, the task API now supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime. All you need to do is to annotate a setter method of a property with [Option](dsl/org.gradle.api.tasks.options.Option.html).
+
+The following examples exposes a command line parameter `--url` for the custom task type `UrlVerify`. Let's assume you wanted to pass a URL to a task of this type named `verifyUrl`. The invocation looks as such: `gradle verifyUrl --url=https://gradle.org/`. You can find more information about this feature in the [user guide](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options).
+
+    import org.gradle.api.tasks.options.Option;
+    
+    public class UrlVerify extends DefaultTask {
+        private String url;
+    
+        @Option(option = "url", description = "Configures the URL to be verified.")
+        public void setUrl(String url) {
+            this.url = url;
+        }
+    
+        @Input
+        public String getUrl() {
+            return url;
+        }
+    
+        @TaskAction
+        public void verify() {
+            getLogger().quiet("Verifying URL '{}'", url);
+    
+            // verify URL by making a HTTP call
+        }
+    }
 
 ## Promoted features
 
@@ -36,6 +94,10 @@ The following are the features that have been promoted in this Gradle release.
 ### TestKit becomes public feature
 
 TestKit was first introduced in Gradle 2.6 to support developers with writing and executing functional tests for plugins. In the course of the Gradle 2.x releases, a lot of new functionality was added. This version of Gradle removes the incubating status and makes TestKit a public feature.
+
+### `CompileOptions.annotationProcessorPath` property
+
+The `CompileOptions.annotationProcessorPath` property has been promoted and is now stable.
 
 ## Fixed issues
 
@@ -66,7 +128,15 @@ buildCache {
 }
 ```
 
+### Putting annotation processors on the compile classpath or explicit `-processorpath` compiler argument
+
+Putting processors on the compile classpath or using an explicit `-processorpath` compiler argument has been deprecated and will be removed in Gradle 5.0. Annotation processors should be added to the `annotationProcessor` configuration instead. If you don't want any processing, but your compile classpath contains a processor unintentionally (e.g. as part of some library you use), use the `-proc:none` compiler argument to ignore it.
+
 ## Potential breaking changes
+
+### Added annotationProcessor configurations
+
+The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` configuration for each source set. This might break when the user already defined such a configuration. We recommend removing your own and using the configuration provided by `java-base`. 
 
 <!--
 ### Example breaking change
@@ -79,6 +149,8 @@ We would like to thank the following community members for making contributions 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
+ - [Thomas Broyer](https://github.com/tbroyer) - Add annotationProcessor configuration for each source set (gradle/gradle#3786)
+ - [Sergei Dryganets](https://github.com/dryganets) - Improved gpg instructions in signing plugin documentation (gradle/gradle#4023)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

@@ -15,8 +15,10 @@
  */
 package org.gradle.vcs;
 
+import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
+import org.gradle.api.initialization.definition.InjectedPluginDependencies;
 
 /**
  * Captures user-provided information about a version control system.
@@ -51,4 +53,12 @@ public interface VersionControlSpec extends Describable {
      * @since 4.5
      */
     void setRootDir(String rootDir);
+
+    /**
+     * Configure injected plugins into this build.
+     *
+     * @param configuration the configuration action for adding injected plugins
+     * @since 4.6
+     */
+    void plugins(Action<? super InjectedPluginDependencies> configuration);
 }

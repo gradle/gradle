@@ -17,6 +17,7 @@
 package org.gradle.language.swift.plugins
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.provider.LockableProperty
 import org.gradle.api.internal.provider.Providers
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.nativeplatform.internal.Names
@@ -35,8 +36,13 @@ import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
+
+import static org.gradle.language.swift.SwiftVersion.SWIFT3
+import static org.gradle.language.swift.SwiftVersion.SWIFT4
 
 class SwiftBasePluginTest extends Specification {
     @Rule
@@ -50,6 +56,7 @@ class SwiftBasePluginTest extends Specification {
         binary.names >> Names.of(name)
         binary.module >> project.objects.property(String)
         binary.targetPlatform >> Stub(SwiftPlatformInternal)
+        binary.sourceCompatibility >> Stub(LockableProperty) { getType() >> null }
 
         when:
         project.pluginManager.apply(SwiftBasePlugin)
@@ -77,6 +84,7 @@ class SwiftBasePluginTest extends Specification {
         executable.baseName >> Providers.of("test_app")
         executable.executableFile >> executableFile
         executable.targetPlatform >> Stub(SwiftPlatformInternal)
+        executable.sourceCompatibility >> Stub(LockableProperty) { getType() >> null }
         executable.platformToolProvider >> new TestPlatformToolProvider()
 
         when:
@@ -107,6 +115,7 @@ class SwiftBasePluginTest extends Specification {
         library.module >> Providers.of("TestLib")
         library.baseName >> Providers.of("test_lib")
         library.targetPlatform >> Stub(SwiftPlatformInternal)
+        library.sourceCompatibility >> Stub(LockableProperty) { getType() >> null }
         library.platformToolProvider >> new TestPlatformToolProvider()
         library.implementationDependencies >> Stub(ConfigurationInternal)
 
@@ -125,6 +134,33 @@ class SwiftBasePluginTest extends Specification {
         "mainDebug" | "linkDebug"     | "main/debug/"
         "test"      | "linkTest"      | "test/"
         "testDebug" | "linkTestDebug" | "test/debug/"
+    }
+
+    @Unroll
+    def "can associate the compiler version #compilerVersion to #languageVersion language version"() {
+        expect:
+        SwiftBasePlugin.toSwiftVersion(VersionNumber.parse(compilerVersion)) == languageVersion
+
+        where:
+        // See https://swift.org/download
+        compilerVersion | languageVersion
+        '4.0.3'         | SWIFT4
+        '4.0.2'         | SWIFT4
+        '4.0'           | SWIFT4
+        '3.1.1'         | SWIFT3
+        '3.1'           | SWIFT3
+        '3.0.2'         | SWIFT3
+        '3.0.1'         | SWIFT3
+        '3.0'           | SWIFT3
+    }
+
+    def "throws exception when Swift language is unknown for specified compiler version"() {
+        when:
+        SwiftBasePlugin.toSwiftVersion(VersionNumber.parse("99.0.1"))
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == 'Swift language version is unknown for the specified Swift compiler version (99.0.1)'
     }
 
     interface SwiftPlatformInternal extends SwiftPlatform, NativePlatformInternal {}

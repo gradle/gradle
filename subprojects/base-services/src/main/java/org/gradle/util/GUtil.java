@@ -258,7 +258,10 @@ public class GUtil {
         }
     }
 
-
+    /**
+     * @deprecated This does not produce reproducible property files. Use {@link org.gradle.internal.util.PropertiesUtils} instead.
+     */
+    @Deprecated
     public static void savePropertiesNoDateComment(Properties properties, File propertyFile) {
         try {
             FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile);
@@ -272,6 +275,10 @@ public class GUtil {
         }
     }
 
+    /**
+     * @deprecated This does not produce reproducible property files. Use {@link org.gradle.internal.util.PropertiesUtils} instead.
+     */
+    @Deprecated
     public static void savePropertiesNoDateComment(Properties properties, OutputStream outputStream) {
         saveProperties(properties,
             new LineBufferingOutputStream(

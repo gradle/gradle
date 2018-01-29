@@ -20,8 +20,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
-import org.gradle.vcs.VersionControlSystem;
-import org.gradle.vcs.VersionRef;
 import org.gradle.vcs.internal.spec.DirectoryRepositorySpec;
 
 import java.io.File;
@@ -31,7 +29,12 @@ import java.util.Set;
 public class SimpleVersionControlSystem implements VersionControlSystem {
     @Override
     public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
-        return Sets.<VersionRef>newHashSet(new DefaultVersionRef());
+        return Sets.newHashSet(getHead(spec));
+    }
+
+    @Override
+    public VersionRef getHead(VersionControlSpec spec) {
+        return new DefaultVersionRef();
     }
 
     @Override

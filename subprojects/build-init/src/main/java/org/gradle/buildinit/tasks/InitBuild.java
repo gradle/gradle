@@ -22,17 +22,17 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.options.Option;
-import org.gradle.api.internal.tasks.options.OptionValues;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.api.tasks.options.Option;
+import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds;
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.io.File;
 import java.util.List;
@@ -117,7 +117,7 @@ public class InitBuild extends DefaultTask {
         initDescriptor.generate(dsl, testFramework);
     }
 
-    @Option(option = "type", description = "Set type of build to create.", order = 0)
+    @Option(option = "type", description = "Set type of build to create.")
     public void setType(String type) {
         this.type = type;
     }
@@ -134,7 +134,7 @@ public class InitBuild extends DefaultTask {
      * @since 4.5
      */
     @Incubating
-    @Option(option = "dsl", description = "Set alternative build script DSL to be used.", order = 1)
+    @Option(option = "dsl", description = "Set alternative build script DSL to be used.")
     public void setDsl(String dsl) {
         this.dsl = dsl;
     }
@@ -151,7 +151,7 @@ public class InitBuild extends DefaultTask {
         return BuildInitDsl.listSupported();
     }
 
-    @Option(option = "test-framework", description = "Set alternative test framework to be used.", order = 2)
+    @Option(option = "test-framework", description = "Set alternative test framework to be used.")
     public void setTestFramework(String testFramework) {
         this.testFramework = testFramework;
     }

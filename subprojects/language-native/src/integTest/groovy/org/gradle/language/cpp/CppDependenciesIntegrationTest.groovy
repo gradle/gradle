@@ -59,9 +59,9 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
 
             sourceControl {
                 vcsMappings {
-                    addRule("org.gradle.cpp VCS rule") { details ->
+                    all { details ->
                         if (details.requested.group == "org.gradle.cpp") {
-                            from vcs(DirectoryRepositorySpec) {
+                            from(DirectoryRepositorySpec) {
                                 sourceDir = file(details.requested.module)
                             }
                         }

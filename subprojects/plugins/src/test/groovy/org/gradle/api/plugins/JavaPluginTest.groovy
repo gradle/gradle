@@ -111,6 +111,16 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         compileClasspath.transitive
 
         when:
+        def annotationProcessor = project.configurations.getByName(JavaPlugin.ANNOTATION_PROCESSOR_CONFIGURATION_NAME)
+
+        then:
+        annotationProcessor.extendsFrom == [] as Set
+        !annotationProcessor.visible
+        annotationProcessor.transitive
+        !annotationProcessor.canBeConsumed
+        annotationProcessor.canBeResolved
+
+        when:
         def testCompile = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
 
         then:
@@ -159,6 +169,16 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testCompileClasspath.extendsFrom == toSet(testCompileOnly, testImplementation)
         !testCompileClasspath.visible
         testCompileClasspath.transitive
+
+        when:
+        def testAnnotationProcessor = project.configurations.getByName(JavaPlugin.TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME)
+
+        then:
+        testAnnotationProcessor.extendsFrom == [] as Set
+        !testAnnotationProcessor.visible
+        testAnnotationProcessor.transitive
+        !testAnnotationProcessor.canBeConsumed
+        testAnnotationProcessor.canBeResolved
 
         when:
         def testRuntimeClasspath = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)
@@ -228,6 +248,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.java.srcDirs == toLinkedSet(project.file('src/main/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
         set.compileClasspath.is(project.configurations.compileClasspath)
+        set.annotationProcessorPath.is(project.configurations.annotationProcessor)
         set.java.outputDir == new File(project.buildDir, 'classes/java/main')
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.CLASSES_TASK_NAME ]
@@ -242,6 +263,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.resources.srcDirs == toLinkedSet(project.file('src/test/resources'))
         set.compileClasspath.sourceCollections.contains(project.configurations.testCompileClasspath)
         set.compileClasspath.contains(new File(project.buildDir, 'classes/java/main'))
+        set.annotationProcessorPath.is(project.configurations.testAnnotationProcessor)
         set.java.outputDir == new File(project.buildDir, 'classes/java/test')
         set.output.resourcesDir == new File(project.buildDir, 'resources/test')
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.TEST_CLASSES_TASK_NAME ]
@@ -261,6 +283,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
         set.compileClasspath.is(project.configurations.customCompileClasspath)
+        set.annotationProcessorPath.is(project.configurations.customAnnotationProcessor)
         set.java.outputDir == new File(project.buildDir, 'classes/java/custom')
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ 'customClasses' ]
         Assert.assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntimeClasspath))
@@ -290,6 +313,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof JavaCompile
         task dependsOn()
         task.classpath.is(project.sourceSets.main.compileClasspath)
+        task.options.annotationProcessorPath.processorPath.is(project.sourceSets.main.annotationProcessorPath)
         task.destinationDir == project.sourceSets.main.java.outputDir
         task.source.files == project.sourceSets.main.java.files
 
@@ -316,6 +340,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof JavaCompile
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
         task.classpath.is(project.sourceSets.test.compileClasspath)
+        task.options.annotationProcessorPath.processorPath.is(project.sourceSets.test.annotationProcessorPath)
         task.destinationDir == project.sourceSets.test.java.outputDir
         task.source.files == project.sourceSets.test.java.files
 

@@ -72,4 +72,15 @@ public interface DependencyMetadata {
      * by another dependency? ("Optional" dependencies are "constraints")
      */
     boolean isPending();
+
+    /**
+     * An optional human readable reason why this dependency is used.
+     * @return if not null, a description why this dependency is used.
+     */
+    String getReason();
+
+    /**
+     * Returns a copy of this dependency with the given selection reason.
+     */
+    DependencyMetadata withReason(String reason);
 }

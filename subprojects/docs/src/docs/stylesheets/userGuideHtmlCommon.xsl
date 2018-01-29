@@ -40,7 +40,7 @@
     <!-- Use custom style sheet content -->
     <xsl:param name="html.stylesheet">DUMMY</xsl:param>
     <xsl:template name="output.html.stylesheets">
-        <link href="https://fonts.googleapis.com/css?family=Lato:400,400i" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700" rel="stylesheet"/>
         <link rel="preconnect" href="//assets.gradle.com" crossorigin="crossorigin"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
         <link href="base.css" rel="stylesheet" type="text/css"/>
@@ -178,10 +178,10 @@
                     <div class="site-footer__link-group">
                         <header><strong>Docs</strong></header>
                         <ul class="site-footer__links-list">
-                            <li itemprop="name"><a href="https://docs.gradle.org/userguide/userguide.html" itemprop="url">User Manual</a></li>
-                            <li itemprop="name"><a href="https://docs.gradle.org/current/dsl/" itemprop="url">DSL Reference</a></li>
-                            <li itemprop="name"><a href="https://docs.gradle.org/current/release-notes.html" itemprop="url">Release Notes</a></li>
-                            <li itemprop="name"><a href="https://docs.gradle.org/current/javadoc/" itemprop="url">Javadoc</a></li>
+                            <li itemprop="name"><a href="/userguide/userguide.html" itemprop="url">User Manual</a></li>
+                            <li itemprop="name"><a href="/dsl/" itemprop="url">DSL Reference</a></li>
+                            <li itemprop="name"><a href="/release-notes.html" itemprop="url">Release Notes</a></li>
+                            <li itemprop="name"><a href="/javadoc/" itemprop="url">Javadoc</a></li>
                         </ul>
                     </div>
                     <div class="site-footer__link-group">

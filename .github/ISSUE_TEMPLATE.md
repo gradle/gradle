@@ -23,5 +23,5 @@
 
 ### Your Environment
 <!--- Include as many relevant details about the environment you experienced the bug in -->
-<!--- A build scan `https://gradle.com/scans/get-started` is ideal -->
+<!--- A build scan `https://scans.gradle.com/get-started` is ideal -->
  * Build scan URL: 

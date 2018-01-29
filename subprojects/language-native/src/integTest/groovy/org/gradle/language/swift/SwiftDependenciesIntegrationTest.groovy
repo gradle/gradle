@@ -17,12 +17,12 @@
 package org.gradle.language.swift
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.fixtures.GitFileRepository
 
-@Requires(TestPrecondition.SWIFT_SUPPORT)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new SwiftAppWithLibraries()
 
@@ -58,10 +58,10 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
 
             sourceControl {
                 vcsMappings {
-                    addRule("org.gradle.swift VCS rule") { details ->
+                    all { details ->
                         if (details.requested.group == "org.gradle.swift") {
-                            from vcs(GitVersionControlSpec) {
-                                url = file(details.requested.module).toURI()
+                            from(GitVersionControlSpec) {
+                                url = uri(details.requested.module)
                             }
                         }
                     }
@@ -113,7 +113,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
 
     private writeHelloLibrary() {
         def libraryPath = file("hello")
-        def libraryRepo = GitRepository.init(libraryPath)
+        def libraryRepo = GitFileRepository.init(libraryPath)
         app.library.writeToProject(libraryPath)
         libraryPath.file("build.gradle") << """
             apply plugin: 'swift-library'
@@ -131,7 +131,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
 
     private writeLogLibrary() {
         def logPath = file("log")
-        def logRepo = GitRepository.init(logPath)
+        def logRepo = GitFileRepository.init(logPath)
         app.logLibrary.writeToProject(logPath)
         logPath.file("build.gradle") << """
             apply plugin: 'swift-library'

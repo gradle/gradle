@@ -230,7 +230,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         return testSuite;
     }
 
-    private void configureTestSuiteWithTestedComponentWhenAvailable(final Project project, DefaultSwiftXCTestSuite testSuite, final DefaultSwiftXCTestBinary testExecutable) {
+    private void configureTestSuiteWithTestedComponentWhenAvailable(final Project project, final DefaultSwiftXCTestSuite testSuite, final DefaultSwiftXCTestBinary testExecutable) {
         SwiftComponent target = testSuite.getTestedComponent().getOrNull();
         if (!(target instanceof ProductionSwiftComponent)) {
             return;
@@ -243,6 +243,11 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             public void execute(SwiftBinary testedBinary) {
                 if (testedBinary != testedComponent.getDevelopmentBinary().get()) {
                     return;
+                }
+
+                // If nothing was configured for the test suite source compatibility, use the tested component one.
+                if (testSuite.getSourceCompatibility().getOrNull() == null) {
+                    testExecutable.getSourceCompatibility().set(testedBinary.getSourceCompatibility());
                 }
 
                 // Configure test suite link task from tested component compiled objects

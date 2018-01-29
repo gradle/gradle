@@ -75,6 +75,9 @@ class GradleFileModuleAdapter {
                                 prefers d.prefers
                                 rejects d.rejects
                             }
+                            if (d.reason) {
+                                reason d.reason
+                            }
                             if (d.exclusions) {
                                 excludes(d.exclusions.collect { e ->
                                     { ->
@@ -96,6 +99,9 @@ class GradleFileModuleAdapter {
                                 if (dc.rejects) {
                                     rejects dc.rejects
                                 }
+                            }
+                            if (dc.reason) {
+                                reason dc.reason
                             }
                         }
                     })

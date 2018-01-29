@@ -17,10 +17,38 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.language.swift.AbstractSwiftComponentIntegrationTest
+import org.gradle.nativeplatform.fixtures.app.Swift3XCTest
+import org.gradle.nativeplatform.fixtures.app.Swift4XCTest
+import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 
 abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwiftComponentIntegrationTest {
     @Override
     protected String getComponentUnderTestDsl() {
         return "xctest"
+    }
+
+    @Override
+    String getTaskNameToAssembleDevelopmentBinary() {
+        return "test"
+    }
+
+    @Override
+    String getDevelopmentBinaryCompileTask() {
+        return ":compileTestSwift"
+    }
+
+    @Override
+    XCTestSourceElement getSwift3Component() {
+        return new Swift3XCTest('project')
+    }
+
+    @Override
+    XCTestSourceElement getSwift4Component() {
+        return new Swift4XCTest('project')
+    }
+
+    @Override
+    List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
+        return [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental
 import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.changedetection.state.TestFileSnapshotter
 import org.gradle.cache.PersistentStateCache
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.IncludeType
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
@@ -36,7 +37,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def dependencyResolver = Mock(SourceIncludesResolver)
     def fileSystemSnapshotter = new TestFileSnapshotter()
     def stateCache = new DummyPersistentStateCache()
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyResolver, fileSystemSnapshotter))
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyResolver, fileSystemSnapshotter), new TestBuildOperationExecutor())
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")

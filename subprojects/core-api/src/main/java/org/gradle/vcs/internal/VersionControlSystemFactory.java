@@ -17,7 +17,6 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.vcs.VersionControlSpec;
-import org.gradle.vcs.VersionControlSystem;
 
 public interface VersionControlSystemFactory {
     VersionControlSystem create(VersionControlSpec spec);

@@ -44,147 +44,79 @@ The Java plugin defines two standard source sets, called `main` and `test`. The 
 
 The Java plugin adds a number of tasks to your project, as shown below.
 
-.Java plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`compileJava(type: api:org.gradle.api.tasks.compile.JavaCompile[])`::
+_Compiles production Java source files using javac._ Depends on all tasks which produce the compile classpath. This includes the `jar` task for project dependencies included in the `compile` configuration.
 
-| `compileJava`
-| All tasks which produce the compile classpath. This includes the `jar` task for project dependencies included in the `compile` configuration.
-| api:org.gradle.api.tasks.compile.JavaCompile[]
-| Compiles production Java source files using javac.
+`processResources(type: api:org.gradle.api.tasks.Copy[])`::
+_Copies production resources into the production resources directory._
 
-| `processResources`
-| -
-| api:org.gradle.api.tasks.Copy[]
-| Copies production resources into the production resources directory.
+`classes(type: api:org.gradle.api.Task[])`::
+_Assembles the production classes and resources directories._
 
-| `classes`
-| The `compileJava` task and the `processResources` task. Some plugins add additional compilation tasks.
-| api:org.gradle.api.Task[]
-| Assembles the production classes and resources directories.
+`compileTestJava(type: api:org.gradle.api.tasks.compile.JavaCompile[])`::
+_Compiles test Java source files using javac._ Depends on `compile`, plus all tasks which produce the test compile classpath.
 
-| `compileTestJava`
-| `compile`, plus all tasks which produce the test compile classpath.
-| api:org.gradle.api.tasks.compile.JavaCompile[]
-| Compiles test Java source files using javac.
+`processTestResources(type: api:org.gradle.api.tasks.Copy[])`::
+_Copies test resources into the test resources directory._
 
-| `processTestResources`
-| -
-| api:org.gradle.api.tasks.Copy[]
-| Copies test resources into the test resources directory.
+`testClasses(type: api:org.gradle.api.Task[])`::
+_Assembles the test classes and resources directories._ Depends on `compileTestJava` task and `processTestResources` task. Some plugins add additional test compilation tasks.
 
-| `testClasses`
-| `compileTestJava` task and `processTestResources` task. Some plugins add additional test compilation tasks.
-| api:org.gradle.api.Task[]
-| Assembles the test classes and resources directories.
+`jar(type: api:org.gradle.api.tasks.bundling.Jar[])`::
+_Assembles the JAR file._ Depends on `compile`.
 
-| `jar`
-| `compile`
-| api:org.gradle.api.tasks.bundling.Jar[]
-| Assembles the JAR file
+`javadoc(type: api:org.gradle.api.tasks.javadoc.Javadoc[])`::
+_Generates API documentation for the production Java source, using Javadoc_. Depends on `compile`.
 
-| `javadoc`
-| `compile`
-| api:org.gradle.api.tasks.javadoc.Javadoc[]
-| Generates API documentation for the production Java source, using Javadoc
+`test(type: api:org.gradle.api.tasks.testing.Test[])`::
+_Runs the unit tests using JUnit or TestNG._ Depends on `compile`, `compileTest`, plus all tasks which produce the test runtime classpath.
 
-| `test`
-| `compile`, `compileTest`, plus all tasks which produce the test runtime classpath.
-| api:org.gradle.api.tasks.testing.Test[]
-| Runs the unit tests using JUnit or TestNG.
+`uploadArchives(type: api:org.gradle.api.tasks.Upload[])`::
+_Uploads artifacts in the `archives` configuration, including the JAR file._ Depends on the tasks which produce the artifacts in the `archives` configuration, including `jar`.
 
-| `uploadArchives`
-| The tasks which produce the artifacts in the `archives` configuration, including `jar`.
-| api:org.gradle.api.tasks.Upload[]
-| Uploads artifacts in the `archives` configuration, including the JAR file.
+`clean(type: api:org.gradle.api.tasks.Delete[])`::
+_Deletes the project build directory._
 
-| `clean`
-| -
-| api:org.gradle.api.tasks.Delete[]
-| Deletes the project build directory.
-
-| `clean__TaskName__`
-| -
-| api:org.gradle.api.tasks.Delete[]
-| Deletes files created by specified task. `cleanJar` will delete the JAR file created by the `jar` task, and `cleanTest` will delete the test results created by the `test` task.
-|===
+`clean__TaskName__(type: api:org.gradle.api.tasks.Delete[])`::
+_Deletes files created by specified task. `cleanJar` will delete the JAR file created by the `jar` task, and `cleanTest` will delete the test results created by the `test` task._
 
 For each source set you add to the project, the Java plugin adds the following compilation tasks:
 
 [[java_source_set_tasks]]
-.Java plugin - source set tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+==== SourceSet Tasks
 
-| `compile__SourceSet__Java`
-| All tasks which produce the source set's compile classpath.
-| api:org.gradle.api.tasks.compile.JavaCompile[]
-| Compiles the given source set's Java source files using javac.
+`compile__SourceSet__Java(type: api:org.gradle.api.tasks.compile.JavaCompile[])`::
+_Compiles the given source set's Java source files using javac._ Depends on all tasks which produce the source set's compile classpath.
 
-| `process__SourceSet__Resources`
-| -
-| api:org.gradle.api.tasks.Copy[]
-| Copies the given source set's resources into the resources directory.
+`process__SourceSet__Resources(type: api:org.gradle.api.tasks.Copy[])`::
+_Copies the given source set's resources into the resources directory._
 
-| `__sourceSet__Classes`
-| The `compile__SourceSet__Java` task and the `process__SourceSet__Resources` task. Some plugins add additional compilation tasks for the source set.
-| api:org.gradle.api.Task[]
-| Assembles the given source set's classes and resources directories.
-|===
+`__sourceSet__Classes(type: api:org.gradle.api.Task[])`::
+_Assembles the given source set's classes and resources directories._ Depends on the `compile__SourceSet__Java` task and the `process__SourceSet__Resources` task. Some plugins add additional compilation tasks for the source set.
 
+==== Lifecycle Tasks
 The Java plugin also adds a number of tasks which form a lifecycle for the project:
 
-.Java plugin - lifecycle tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`assemble(type: api:org.gradle.api.Task[])`::
+_Assembles all the archives in the project._ Depends on all archive tasks in the project, including `jar`. Some plugins add additional archive tasks to the project.
 
-| `assemble`
-| All archive tasks in the project, including `jar`. Some plugins add additional archive tasks to the project.
-| api:org.gradle.api.Task[]
-| Assembles all the archives in the project.
+`check(type: api:org.gradle.api.Task[])`::
+_Performs all verification tasks in the project._ Depends on all verification tasks in the project, including `test`. Some plugins add additional verification tasks to the project.
 
-| `check`
-| All verification tasks in the project, including `test`. Some plugins add additional verification tasks to the project.
-| api:org.gradle.api.Task[]
-| Performs all verification tasks in the project.
+`build(type: api:org.gradle.api.Task[])`::
+_Performs a full build of the project._ Depends on `check` and `assemble`.
 
-| `build`
-| `check` and `assemble`
-| api:org.gradle.api.Task[]
-| Performs a full build of the project.
+`buildNeeded(type: api:org.gradle.api.Task[])`::
+_Performs a full build of the project and all projects it depends on._ Depends on `build` and `buildNeeded` tasks in all project lib dependencies of the `testRuntime` configuration.
 
-| `buildNeeded`
-| `build` and `buildNeeded` tasks in all project lib dependencies of the `testRuntime` configuration.
-| api:org.gradle.api.Task[]
-| Performs a full build of the project and all projects it depends on.
+`buildDependents(type: api:org.gradle.api.Task[])`::
+_Performs a full build of the project and all projects which depend on it._ Depends on `build` and `buildDependents` tasks in all projects with a project lib dependency on this project in a `testRuntime` configuration.
 
-| `buildDependents`
-| `build` and `buildDependents` tasks in all projects with a project lib dependency on this project in a `testRuntime` configuration.
-| api:org.gradle.api.Task[]
-| Performs a full build of the project and all projects which depend on it.
+`build__ConfigName__(type: api:org.gradle.api.Task[])`::
+_Assembles the artifacts in the specified configuration. The task is added by the Base plugin which is implicitly applied by the Java plugin._ Depends on the tasks which produce the artifacts in configuration __ConfigName__.
 
-| `build__ConfigName__`
-| The tasks which produce the artifacts in configuration __ConfigName__.
-| api:org.gradle.api.Task[]
-| Assembles the artifacts in the specified configuration. The task is added by the Base plugin which is implicitly applied by the Java plugin.
-
-| `upload__ConfigName__`
-| The tasks which uploads the artifacts in configuration __ConfigName__.
-| api:org.gradle.api.tasks.Upload[]
-| Assembles and uploads the artifacts in the specified configuration. The task is added by the Base plugin which is implicitly applied by the Java plugin.
-|===
+`upload__ConfigName__(type: api:org.gradle.api.tasks.Upload[])`::
+_Assembles and uploads the artifacts in the specified configuration. The task is added by the Base plugin which is implicitly applied by the Java plugin._ Depends on the tasks which uploads the artifacts in configuration __ConfigName__.
 
 The following diagram shows the relationships between these tasks.
 
@@ -235,64 +167,40 @@ You configure the project layout by configuring the appropriate source set. This
 The Java plugin adds a number of dependency configurations to your project, as shown below. It assigns those configurations to tasks such as `compileJava` and `test`.
 
 [[tab:configurations]]
-.Java plugin - dependency configurations
-[cols="a,a,a,a", options="header"]
-|===
-| Name
-| Extends
-| Used by tasks
-| Meaning
+==== Dependency configurations
 
-| compile
-| -
-| -
-| Compile time dependencies
+`compile`::
+_Compile time dependencies._
 
-| compileOnly
-| -
-| -
-| Compile time only dependencies, not used at runtime
+`compileOnly`::
+_Compile time only dependencies, not used at runtime._
 
-| compileClasspath
-| compile, compileOnly
-| compileJava
-| Compile classpath, used when compiling source
+`compileClasspath` extends `compile, compileOnly`::
+_Compile classpath, used when compiling source._ Used by task `compileJava`.
 
-| runtime
-| compile
-| -
-| Runtime dependencies
+`annotationProcessor`::
+_Annotation processors used during compilation._
 
-| testCompile
-| compile
-| -
-| Additional dependencies for compiling tests
+`runtime` extends `compile`::
+_Runtime dependencies._
 
-| testCompileOnly
-| -
-| -
-| Additional dependencies only for compiling tests, not used at runtime
+`testCompile` extends `compile`::
+_Additional dependencies for compiling tests._
 
-| testCompileClasspath
-| testCompile, testCompileOnly
-| compileTestJava
-| Test compile classpath, used when compiling test sources
+`testCompileOnly`::
+_Additional dependencies only for compiling tests, not used at runtime._
 
-| testRuntime
-| runtime, testCompile
-| test
-| Additional dependencies for running tests only
+`testCompileClasspath` extends `testCompile, testCompileOnly`::
+_Test compile classpath, used when compiling test sources._ Used by task `compileTestJava`.
 
-| archives
-| -
-| uploadArchives
-| Artifacts (e.g. jars) produced by this project
+`testRuntime` extends `runtime, testCompile`::
+_Additional dependencies for running tests only._ Used by task `test`.
 
-| default
-| runtime
-| -
-| The default configuration used by a project dependency on this project. Contains the artifacts and dependencies required by this project at runtime.
-|===
+`archives`::
+Artifacts (e.g. jars) produced by this project. Used by tasks `uploadArchives`.
+
+`default` extends `runtime`::
+_The default configuration used by a project dependency on this project._ Contains the artifacts and dependencies required by this project at runtime.
 
 ++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -306,34 +214,22 @@ The Java plugin adds a number of dependency configurations to your project, as s
 For each source set you add to the project, the Java plugins adds the following dependency configurations:
 
 [[java_source_set_configurations]]
-.Java plugin - source set dependency configurations
-[cols="a,a,a,a", options="header"]
-|===
-| Name
-| Extends
-| Used by tasks
-| Meaning
+==== SourceSet dependency configurations
 
-| `__sourceSet__Compile`
-| -
-| -
-| Compile time dependencies for the given source set
+`__sourceSet__Compile`::
+_Compile time dependencies for the given source set._
 
-| `__sourceSet__CompileOnly`
-| -
-| -
-| Compile time only dependencies for the given source set, not used at runtime
+`__sourceSet__CompileOnly`::
+_Compile time only dependencies for the given source set, not used at runtime._
 
-| `__sourceSet__CompileClasspath`
-| `__sourceSet__Compile`, `__sourceSet__CompileOnly`
-| `compile__SourceSet__Java`
-| Compile classpath, used when compiling source
+`__sourceSet__CompileClasspath` extends `compile__SourceSet__Java`::
+_Compile classpath, used when compiling source._ Used by `__sourceSet__Compile`, `__sourceSet__CompileOnly`.
 
-| `__sourceSet__Runtime`
-| `__sourceSet__Compile`
-| -
-| Runtime dependencies for the given source set
-|===
+`__sourceSet__AnnotationProcessor`::
+_Annotation processors used during compilation of this source set._
+
+`__sourceSet__Runtime`::
+_Runtime dependencies for the given source set._ Used by `__sourceSet__Compile`.
 
 
 [[sec:java_convention_properties]]
@@ -341,106 +237,63 @@ For each source set you add to the project, the Java plugins adds the following 
 
 The Java plugin adds a number of convention properties to the project, shown below. You can use these properties in your build script as though they were properties of the project object.
 
-[[javaconventionDir]]
-.Java plugin - directory properties
-[cols="a,a,a,a", options="header"]
-|===
-| Property name
-| Type
-| Default value
-| Description
+==== Directory properties
 
-include::reportingBasePluginProperties.adoc[]
-| `testResultsDirName`
-| `String`
-| `test-results`
-| The name of the directory to generate test result .xml files into, relative to the build directory.
+`String reportsDirName`::
+_The name of the directory to generate reports into, relative to the build directory._ Default value: `reports`
 
-| `testResultsDir`
-| `File` (read-only)
-| `__buildDir__/__testResultsDirName__`
-| The directory to generate test result .xml files into.
+`(read-only) File reportsDir`::
+_The directory to generate reports into._ Default value: `__buildDir__/__reportsDirName__`
 
-| `testReportDirName`
-| `String`
-| `tests`
-| The name of the directory to generate the test report into, relative to the reports directory.
+`String testResultsDirName`::
+_The name of the directory to generate test result .xml files into, relative to the build directory._ Default value: `test-results`
 
-| `testReportDir`
-| `File` (read-only)
-| `__reportsDir__/`testReportDirName``
-| The directory to generate the test report into.
+`(read-only) File testResultsDir`::
+_The directory to generate test result .xml files into._ Default value: `__buildDir__/__testResultsDirName__`
 
-| `libsDirName`
-| `String`
-| `libs`
-| The name of the directory to generate libraries into, relative to the build directory.
+`String testReportDirName`::
+_The name of the directory to generate the test report into, relative to the reports directory._ Default value: `tests`
 
-| `libsDir`
-| `File` (read-only)
-| `__buildDir__/__libsDirName__`
-| The directory to generate libraries into.
+`(read-only) File testReportDir`::
+_The directory to generate the test report into._ Default value: `__reportsDir__/testReportDirName`
 
-| `distsDirName`
-| `String`
-| `distributions`
-| The name of the directory to generate distributions into, relative to the build directory.
+`String libsDirName`::
+_The name of the directory to generate libraries into, relative to the build directory._ Default value: `libs`
 
-| `distsDir`
-| `File` (read-only)
-| `__buildDir__/__distsDirName__`
-| The directory to generate distributions into.
+`(read-only) File libsDir`::
+_The directory to generate libraries into._ Default value: `__buildDir__/__libsDirName__`
 
-| `docsDirName`
-| `String`
-| `docs`
-| The name of the directory to generate documentation into, relative to the build directory.
+`String distsDirName`::
+_The name of the directory to generate distributions into, relative to the build directory._ Default value: `distributions`
 
-| `docsDir`
-| `File` (read-only)
-| `__buildDir__/__docsDirName__`
-| The directory to generate documentation into.
+`(read-only) File distsDir`::
+_The directory to generate distributions into._ Default value: `__buildDir__/__distsDirName__`
 
-| `dependencyCacheDirName`
-| `String`
-| `dependency-cache`
-| The name of the directory to use to cache source dependency information, relative to the build directory.
-|===
+`String docsDirName`:
+:_The name of the directory to generate documentation into, relative to the build directory._ Default value: `docs`
 
-[[javaconventionNonDir]]
-.Java plugin - other properties
-[cols="a,a,a,a", options="header"]
-|===
-| Property name
-| Type
-| Default value
-| Description
+`(read-only) File docsDir`::
+_The directory to generate documentation into._ Default value: `__buildDir__/__docsDirName__`
 
-| `sourceSets`
-| api:org.gradle.api.tasks.SourceSetContainer[] (read-only)
-| Not null
-| Contains the project's source sets.
+`String dependencyCacheDirName`::
+_The name of the directory to use to cache source dependency information, relative to the build directory._ Default value: `dependency-cache`
 
-| `sourceCompatibility`
-| api:org.gradle.api.JavaVersion[]. Can also set using a String or a Number, e.g. `'1.5'` or `1.5`.
-| version of the current JVM in use
-| Java version compatibility to use when compiling Java source.
+==== Other convention properties
 
-| `targetCompatibility`
-| api:org.gradle.api.JavaVersion[]. Can also set using a String or Number, e.g. `'1.5'` or `1.5`.
-| `__sourceCompatibility__`
-| Java version to generate classes for.
+`(read-only) api:org.gradle.api.tasks.SourceSetContainer[] sourceSets`::
+_Contains the project's source sets._ Default value: Not null api:org.gradle.api.tasks.SourceSetContainer[]
 
-| `archivesBaseName`
-| `String`
-| `__projectName__`
-| The basename to use for archives, such as JAR or ZIP files.
+`api:org.gradle.api.JavaVersion[] sourceCompatibility`::
+_Java version compatibility to use when compiling Java source._ Default value: version of the current JVM in use api:org.gradle.api.JavaVersion[]. Can also set using a String or a Number, e.g. `'1.5'` or `1.5`.
 
-| `manifest`
-| api:org.gradle.api.java.archives.Manifest[]
-| an empty manifest
-| The manifest to include in all JAR files.
-|===
+`api:org.gradle.api.JavaVersion[] targetCompatibility`::
+_Java version to generate classes for._ Default value: `__sourceCompatibility__`. Can also set using a String or Number, e.g. `'1.5'` or `1.5`.
+
+`String archivesBaseName`::
+_The basename to use for archives, such as JAR or ZIP files._ Default value: `__projectName__`
+
+`api:org.gradle.api.java.archives.Manifest[] manifest`::
+_The manifest to include in all JAR files._ Default value: an empty manifest.
 
 These properties are provided by convention objects of type api:org.gradle.api.plugins.JavaPluginConvention[], and api:org.gradle.api.plugins.BasePluginConvention[].
 
@@ -469,79 +322,47 @@ To configure an existing source set, you simply use one of the above access meth
 
 The following table lists some of the important properties of a source set. You can find more details in the API documentation for api:org.gradle.api.tasks.SourceSet[].
 
-.Java plugin - source set properties
-[cols="a,a,a,a", options="header"]
-|===
-| Property name
-| Type
-| Default value
-| Description
+`(read-only) String name`::
+_The name of the source set, used to identify it._ Default value: Not null
 
-| `name`
-| `String` (read-only)
-| Not null
-| The name of the source set, used to identify it.
+`(read-only) api:org.gradle.api.tasks.SourceSetOutput[] output`::
+_The output files of the source set, containing its compiled classes and resources._ Default value: Not null
 
-| `output`
-| api:org.gradle.api.tasks.SourceSetOutput[] (read-only)
-| Not null
-| The output files of the source set, containing its compiled classes and resources.
+`api:org.gradle.api.file.FileCollection[] output.classesDirs`::
+_The directories to generate the classes of this source set into._ Default value: Not null
 
-| `output.classesDirs`
-| api:org.gradle.api.file.FileCollection[]
-| Not null
-| The directories to generate the classes of this source set into.
+`File output.resourcesDir`::
+_The directory to generate the resources of this source set into._ Default value: `__buildDir__/resources/__name__`
 
-| `output.resourcesDir`
-| `File`
-| `__buildDir__/resources/__name__`
-| The directory to generate the resources of this source set into.
+`api:org.gradle.api.file.FileCollection[] compileClasspath`::
+_The classpath to use when compiling the source files of this source set._ Default value: `__sourceSet__CompileClasspath` configuration.
 
-| `compileClasspath`
-| api:org.gradle.api.file.FileCollection[]
-| `compile__SourceSet__` configuration.
-| The classpath to use when compiling the source files of this source set.
+`api:org.gradle.api.file.FileCollection[] annotationProcessorPath`::
+_The processor path to use when compiling the source files of this source set._ Default value: `__sourceSet__AnnotationProcessor` configuration.
 
-| `runtimeClasspath`
-| api:org.gradle.api.file.FileCollection[]
-| `output` + `runtime__SourceSet__` configuration.
-| The classpath to use when executing the classes of this source set.
+`api:org.gradle.api.file.FileCollection[] runtimeClasspath`::
+_The classpath to use when executing the classes of this source set._ Default value: `output` + `__sourceSet__RuntimeClasspath` configuration.
 
-| `java`
-| api:org.gradle.api.file.SourceDirectorySet[] (read-only)
-| Not null
-| The Java source files of this source set. Contains only `.java` files found in the Java source directories, and excludes all other files.
+`(read-only) api:org.gradle.api.file.SourceDirectorySet[] java`::
+_The Java source files of this source set. Contains only `.java` files found in the Java source directories, and excludes all other files._ Default value: Not null
 
-| `java.srcDirs`
-| `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `[__projectDir__/src/__name__/java]`
-| The source directories containing the Java source files of this source set.
+`Set&lt;File&gt; java.srcDirs`::
+_The source directories containing the Java source files of this source set._ Default value: `[__projectDir__/src/__name__/java]`. Can set using anything described in <<sec:specifying_multiple_files>>.
 
-| `java.outputDir`
-| `File`. Can set using anything described in <<sec:locating_files>>.
-| `__buildDir__/classes/java/__sourceSetName__`
-| The directory to generate compiled Java sources into.
+`File java.outputDir`::
+_The directory to generate compiled Java sources into._ Default value: `__buildDir__/classes/java/__sourceSetName__`. Can set using anything described in <<sec:locating_files>>.
 
-| `resources`
-| api:org.gradle.api.file.SourceDirectorySet[] (read-only)
-| Not null
-| The resources of this source set. Contains only resources, and excludes any `.java` files found in the resource source directories. Other plugins, such as the Groovy plugin, exclude additional types of files from this collection.
+`(read-only) api:org.gradle.api.file.SourceDirectorySet[] resources`::
+_The resources of this source set. Contains only resources, and excludes any `.java` files found in the resource source directories. Other plugins, such as the Groovy plugin, exclude additional types of files from this collection._ Default value: Not null
 
-| `resources.srcDirs`
-| `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `[__projectDir__/src/__name__/resources]`
-| The source directories containing the resources of this source set.
+`Set&lt;File&gt; resources.srcDirs`::
+_The source directories containing the resources of this source set._ Default value: `[__projectDir__/src/__name__/resources]`. Can set using anything described in <<sec:specifying_multiple_files>>.
 
-| `allJava`
-| api:org.gradle.api.file.SourceDirectorySet[] (read-only)
-| `java`
-| All `.java` files of this source set. Some plugins, such as the Groovy plugin, add additional Java source files to this collection.
+`(read-only) api:org.gradle.api.file.SourceDirectorySet[] allJava`::
+_All `.java` files of this source set. Some plugins, such as the Groovy plugin, add additional Java source files to this collection._ Default value: `java`
 
-| `allSource`
-| api:org.gradle.api.file.SourceDirectorySet[] (read-only)
-| `resources + java`
-| All source files of this source set. This include all resource files and all Java source files. Some plugins, such as the Groovy plugin, add additional source files to this collection.
-|===
+`(read-only) api:org.gradle.api.file.SourceDirectorySet[] allSource`::
+_All source files of this source set. This include all resource files and all Java source files. Some plugins, such as the Groovy plugin, add additional source files to this collection._ Default value: `resources + java`
 
 
 [[sec:defining_new_source_sets]]
@@ -605,47 +426,29 @@ Adding a test suite to run the tests in a source set:
 
 The `javadoc` task is an instance of api:org.gradle.api.tasks.javadoc.Javadoc[]. It supports the core Javadoc options and the options of the standard doclet described in the http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html[reference documentation] of the Javadoc executable. For a complete list of supported Javadoc options consult the API documentation of the following classes: api:org.gradle.external.javadoc.CoreJavadocOptions[] and api:org.gradle.external.javadoc.StandardJavadocDocletOptions[].
 
-.Java plugin - Javadoc properties
-[cols="a,a,a", options="header"]
-|===
-| Task Property
-| Type
-| Default Value
+==== Javadoc properties
 
-| `classpath`
-| api:org.gradle.api.file.FileCollection[]
-| `sourceSets.main.output` + `sourceSets.main.compileClasspath`
+`api:org.gradle.api.file.FileCollection[] classpath`::
+Default value: `sourceSets.main.output` + `sourceSets.main.compileClasspath`
 
-| `source`
-| api:org.gradle.api.file.FileTree[]. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `sourceSets.main.allJava`
+`api:org.gradle.api.file.FileTree[] source`::
+Default value: `sourceSets.main.allJava`. Can set using anything described in <<sec:specifying_multiple_files>>.
 
-| `destinationDir`
-| `File`
-| `__docsDir__/javadoc`
+`File destinationDir`::
+Default value: `__docsDir__/javadoc`
 
-| `title`
-| `String`
-| The name and version of the project
-|===
-
+`String title`::
+Default value: The name and version of the project
 
 [[sec:clean]]
 === Clean
 
 The `clean` task is an instance of api:org.gradle.api.tasks.Delete[]. It simply removes the directory denoted by its `dir` property.
 
-.Java plugin - Clean properties
-[cols="a,a,a", options="header"]
-|===
-| Task Property
-| Type
-| Default Value
+==== Clean properties
 
-| `dir`
-| `File`
-| `__buildDir__`
-|===
+`File dir`::
+Default value: `__buildDir__`
 
 
 [[sec:java_resources]]
@@ -653,21 +456,13 @@ The `clean` task is an instance of api:org.gradle.api.tasks.Delete[]. It simply 
 
 The Java plugin uses the api:org.gradle.api.tasks.Copy[] task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<sec:copying_files>>.
 
-.Java plugin - ProcessResources properties
-[cols="a,a,a", options="header"]
-|===
-| Task Property
-| Type
-| Default Value
+==== ProcessResources properties
 
-| `srcDirs`
-| `Object`. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `__sourceSet__.resources`
+`Object srcDirs`::
+Default value: `__sourceSet__.resources`. Can set using anything described in <<sec:specifying_multiple_files>>.
 
-| `destinationDir`
-| `File`. Can set using anything described in <<sec:locating_files>>.
-| `__sourceSet__.output.resourcesDir`
-|===
+`File destinationDir`::
+Default value: `__sourceSet__.output.resourcesDir`. Can set using anything described in <<sec:locating_files>>.
 
 
 [[sec:compile]]
@@ -675,25 +470,16 @@ The Java plugin uses the api:org.gradle.api.tasks.Copy[] task for resource handl
 
 The Java plugin adds a api:org.gradle.api.tasks.compile.JavaCompile[] instance for each source set in the project. Some of the most common configuration options are shown below.
 
-.Java plugin - Compile properties
-[cols="a,a,a", options="header"]
-|===
-| Task Property
-| Type
-| Default Value
+==== Compile properties
 
-| `classpath`
-| api:org.gradle.api.file.FileCollection[]
-| `__sourceSet__.compileClasspath`
+`api:org.gradle.api.file.FileCollection[] classpath`::
+Default value: `__sourceSet__.compileClasspath`
 
-| `source`
-| api:org.gradle.api.file.FileTree[]. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `__sourceSet__.java`
+`api:org.gradle.api.file.FileTree[] source`::
+Default value: `__sourceSet__.java`. Can set using anything described in <<sec:specifying_multiple_files>>.
 
-| `destinationDir`
-| `File`.
-| `__sourceSet__.java.outputDir`
-|===
+`File destinationDir`::
+Default value: `__sourceSet__.java.outputDir`
 
 By default, the Java compiler runs in the Gradle process. Setting `options.fork` to `true` causes compilation to occur in a separate process. In the case of the Ant javac task, this means that a new process will be forked for each compile task, which can slow down compilation. Conversely, Gradle's direct compiler integration (see above) will reuse the same compiler process as much as possible. In both cases, all fork options specified with `options.forkOptions` will be honored.
 
@@ -736,7 +522,7 @@ Some of the types of changes that do not affect the public API and are ignored:
 * Renaming a parameter
 
 
-Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter. To better separate these concerns, it's recommended to declare annotation processors separately: the api:org.gradle.api.tasks.compile.CompileOptions[] for the api:org.gradle.api.tasks.compile.JavaCompile[] task type define a `annotationProcessorPath` property that can be used to declare annotation processors. It's recommended to use a distinct configuration for annotation processors:
+Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter. Annotation processors should be declared on the annotation processor path instead. Gradle 5.0 will ignore processors on the compile classpath.
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="annotationProcessing" dir="java/apt" title="Declaring annotation processors">
                 <sourcefile file="build.gradle" snippet="annotation-processing"/>
@@ -756,6 +542,16 @@ The `test` task is an instance of api:org.gradle.api.tasks.testing.Test[]. It au
 Tests are executed in a separate JVM, isolated from the main build process. The api:org.gradle.api.tasks.testing.Test[] task's API allows you some control over how this happens.
 
 There are a number of properties which control how the test process is launched. This includes things such as system properties, JVM arguments, and the Java executable to use.
+
+[NOTE]
+====
+
+The test process can exit unexpectedly if configured incorrectly. For instance, if the Java executable does not exist or an invalid JVM argument is provided, the test process will fail to start.
+Similarly, if a test makes programmatic changes to the test process, this can also cause unexpected failures.  For example, issues may occur if a https://docs.oracle.com/javase/8/docs/api/java/lang/SecurityManager.html[SecurityManager] is modified in a test because
+Gradle's internal messaging depends on reflection and socket communication, which may be disrupted if the permissions on the security manager change. (In this case, you should restore the original `SecurityManager` after the test so that the
+gradle test worker process can continue to function.)
+
+====
 
 You can specify whether or not to execute your tests in parallel. Gradle provides parallel test execution by running multiple test processes concurrently. Each test process executes only a single test at a time, so you generally don't need to do anything special to your tests to take advantage of this. The `maxParallelForks` property specifies the maximum number of test processes to run at any given time. The default is 1, that is, do not execute the tests in parallel.
 
@@ -787,9 +583,9 @@ Starting with Gradle 1.10, it is possible to include only specific tests, based 
 
 Test filtering feature has following characteristic:
 
-* Fully qualified class name or fully qualified method name is supported, e.g. “org.gradle.SomeTest”, “org.gradle.SomeTest.someMethod”
+* Fully qualified class name or fully qualified method name is supported, e.g. ???org.gradle.SomeTest???, ???org.gradle.SomeTest.someMethod???
 * Wildcard '*' is supported for matching any characters
-* Command line option “--tests” is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple “--tests” options and tests matching any of those patterns will be included.
+* Command line option ???--tests??? is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple ???--tests??? options and tests matching any of those patterns will be included.
 * Gradle tries to filter the tests given the limitations of the test framework API. Some advanced, synthetic tests may not be fully compatible with filtering. However, the vast majority of tests and use cases should be handled neatly.
 * Test filtering supersedes the file-based test selection. The latter may be completely replaced in future. We will grow the test filtering API and add more kinds of filters.
 
@@ -833,7 +629,7 @@ gradle test --continuous --tests "com.mypackage.foo.*"
 This mechanism has been superseded by 'Test Filtering', described above.
 ====
 
-Setting a system property of __taskName.single__ = __testNamePattern__ will only execute tests that match the specified __testNamePattern__. The __taskName__ can be a full multi-project path like “:sub1:sub2:test” or just the task name. The __testNamePattern__ will be used to form an include pattern of “\**/testNamePattern*.class”. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples:
+Setting a system property of __taskName.single__ = __testNamePattern__ will only execute tests that match the specified __testNamePattern__. The __taskName__ can be a full multi-project path like ???:sub1:sub2:test??? or just the task name. The __testNamePattern__ will be used to form an include pattern of ???\**/testNamePattern*.class???. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples:
 
 * `gradle -Dtest.single=ThisUniquelyNamedTest test`
 * `gradle -Dtest.single=a/b/ test`
@@ -858,7 +654,7 @@ When using TestNG, we scan for methods annotated with `@Test`.
 
 Note that abstract classes are not executed. Gradle also scans up the inheritance tree into jar files on the test classpath.
 
-If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are “`\**/*Tests.class`”, “`*\*/*Test.class`” and “`*\*/Abstract*.class`” for include and exclude, respectively.
+If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are ???`\**/*Tests.class`???, ???`*\*/*Test.class`??? and ???`*\*/Abstract*.class`??? for include and exclude, respectively.
 
 [[test_grouping]]
 ==== Test grouping
@@ -932,33 +728,16 @@ TestNG supports http://testng.org/doc/documentation-main.html#parameters[paramet
 Given a parameterized test method named `aTestMethod` that takes two parameters, it will be reported with the name: `aTestMethod(toStringValueOfParam1, toStringValueOfParam2)`. This makes identifying the parameter values for a particular iteration easy.
 
 [[sec:convention_values]]
-==== Convention values
+==== Test convention values
 
-
-.Java plugin - test properties
-[cols="a,a,a", options="header"]
-|===
-| Task Property
-| Type
-| Default Value
-
-| `testClassesDirs`
-| `File`
-| `sourceSets.test.output.classesDirs`
-
-| `classpath`
-| api:org.gradle.api.file.FileCollection[]
-| `sourceSets.test.runtimeClasspath`
-
-| `testResultsDir`
-| `File`
-| `testResultsDir`
-
-| `testReportDir`
-| `File`
-| `testReportDir`
-|===
-
+`File testClassesDirs`::
+Default value: `sourceSets.test.output.classesDirs`
+`api:org.gradle.api.file.FileCollection[] classpath`::
+Default value: `sourceSets.test.runtimeClasspath`
+`File testResultsDir`::
+Default value: `testResultsDir`
+`File testReportDir`::
+Default value: `testReportDir`
 
 [[sec:jar]]
 === Jar
@@ -1010,7 +789,7 @@ You can easily write a manifest to disk.
 How to upload your archives is described in <<artifact_management>>.
 
 [[sec:java_cross_compilation]]
-=== Compiling and testing for Java 6 or Java7
+=== Compiling and testing Java 6/7
 
 Gradle can only run on Java version 7 or higher. However, support for running Gradle on Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0. There are two reasons for deprecating support for Java 7:
 

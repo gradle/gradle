@@ -21,7 +21,7 @@
             <holder>Hans Dockter, Adam Murdoch</holder>
         </copyright>
         <legalnotice>
-            <para>Gradle user manual and DSL references are licensed under <ulink url="http://creativecommons.org/licenses/by-nc-sa/4.0/"><citetitle>Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</citetitle></ulink>.</para>
+            <para>Gradle build tool source code is open and licensed under the <ulink url="https://github.com/gradle/gradle/blob/master/LICENSE"><citetitle>Apache License 2.0</citetitle></ulink>. Gradle user manual and DSL references are licensed under <ulink url="http://creativecommons.org/licenses/by-nc-sa/4.0/"><citetitle>Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</citetitle></ulink>.</para>
         </legalnotice>
     </bookinfo>
     <!-- NOTE: Asciidoctor file names must match their declared URL paths, camel-cased -->
@@ -56,7 +56,6 @@
         <xi:include href='../../../build/asciidoc/userguide/ant.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildLifecycle.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/logging.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/dependencyManagement.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/multiProjectBuilds.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/plugins.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/standardPlugins.xml'/>
@@ -71,6 +70,17 @@
         <xi:include href='../../../build/asciidoc/userguide/distributionPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/announcePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/buildAnnouncementsPlugin.xml'/>
+    </part>
+    <part>
+        <title>Dependency management</title>
+        <xi:include href='../../../build/asciidoc/userguide/introductionDependencyManagement.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/declaringDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/declaringRepositories.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/inspectingDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/managingTransitiveDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/workingWithDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/customizingDependencyResolutionBehavior.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/troubleshootingDependencyResolution.xml'/>
     </part>
     <part>
         <title>Extending the build</title>
@@ -119,8 +129,10 @@
     </part>
     <part>
         <title>Glossary</title>
+        <xi:include href='../../../build/asciidoc/userguide/dependencyManagementTerminology.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/dependencyTypes.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/repositoryTypes.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/dependencyCache.xml'/>
     </part>
     <part>
         <title>Appendix</title>

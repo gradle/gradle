@@ -25,7 +25,8 @@
                 { "module": "m3", "group": "g3", "version": { "prefers": "v3" }},
                 { "module": "m4", "version": { "prefers": "v4", "rejects": ["v5"] }, "group": "g4"},
                 { "module": "m5", "version": { "prefers": "v5", "rejects": ["v6", "v7"] }, "group": "g5"},
-                { "module": "m6", "version": { "rejects": ["v8"] }, "group": "g6"}
+                { "module": "m6", "version": { "rejects": ["v8"] }, "group": "g6"},
+                { "module": "m7", "version": { "rejects": ["v7"] }, "group": "g7", "reason": "v7 is buggy"}
             ],
             "name": "runtime"
         }

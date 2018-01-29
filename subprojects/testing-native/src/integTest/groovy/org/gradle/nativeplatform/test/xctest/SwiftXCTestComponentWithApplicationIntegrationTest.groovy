@@ -16,12 +16,22 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-class SwiftXCTestComponentWithApplicationIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest {
+class SwiftXCTestComponentWithApplicationIntegrationTest extends AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest {
     @Override
     protected void makeSingleProject() {
         buildFile << """
             apply plugin: 'xctest'
             apply plugin: 'swift-application'
         """
+    }
+
+    @Override
+    List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
+        return [":compileDebugSwift", ":relocateMainForTest"] + super.getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
+    }
+
+    @Override
+    String getTestedComponentDsl() {
+        return "application"
     }
 }

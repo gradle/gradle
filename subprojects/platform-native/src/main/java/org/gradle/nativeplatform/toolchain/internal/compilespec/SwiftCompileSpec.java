@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.compilespec;
 
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
@@ -26,4 +27,7 @@ public interface SwiftCompileSpec extends NativeCompileSpec {
 
     File getModuleFile();
     void setModuleFile(File file);
+
+    SwiftVersion getSourceCompatibility();
+    void setSourceCompatibility(SwiftVersion sourceCompatibility);
 }

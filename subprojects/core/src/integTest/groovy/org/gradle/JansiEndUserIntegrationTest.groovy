@@ -81,7 +81,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
         buildFile << annotationProcessorDependency(annotationProcessorPublisher.repoDir, annotationProcessorPublisher.dependencyCoordinates)
         buildFile << """
             compileJava {
-                options.compilerArgs += ['-processorpath', configurations.customAnnotation.asPath]
+                options.annotationProcessorPath = configurations.customAnnotation
             }
         """
 
@@ -117,7 +117,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
 
             compileGroovy {
                 groovyOptions.javaAnnotationProcessing = true
-                options.compilerArgs += ['-processorpath', configurations.customAnnotation.asPath]
+                options.annotationProcessorPath = configurations.customAnnotation
             }
         """
 

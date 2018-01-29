@@ -123,7 +123,7 @@ try {
         buildFile << 'task doStuff'
 
         when:
-        executer.usingInitScript(initScript1).usingInitScript(initScript2)
+        executer.usingInitScript(initScript1).usingInitScript(initScript2).withTasks('doStuff').run()
 
         then:
         notThrown(Throwable)

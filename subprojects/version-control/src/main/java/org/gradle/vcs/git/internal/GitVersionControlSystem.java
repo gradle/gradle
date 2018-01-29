@@ -28,10 +28,12 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.GradleException;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.vcs.VersionControlSpec;
-import org.gradle.vcs.VersionControlSystem;
-import org.gradle.vcs.VersionRef;
 import org.gradle.vcs.git.GitVersionControlSpec;
+import org.gradle.vcs.internal.VersionControlSystem;
+import org.gradle.vcs.internal.VersionRef;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,12 +47,18 @@ import java.util.Set;
  * A Git {@link VersionControlSystem} implementation.
  */
 public class GitVersionControlSystem implements VersionControlSystem {
+
+    private static final Logger LOGGER = Logging.getLogger(GitVersionControlSystem.class);
+
     @Override
     public File populate(File versionDir, VersionRef ref, VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
         File workingDir = new File(versionDir, gitSpec.getRepoName());
 
         File dbDir = new File(workingDir, ".git");
+
+        LOGGER.info("Populating VCS workingDir {}/{} with ref {}", versionDir.getName(), workingDir.getName(), ref);
+
         if (dbDir.exists() && dbDir.isDirectory()) {
             updateRepo(workingDir, gitSpec, ref);
         } else {
@@ -64,7 +72,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
         GitVersionControlSpec gitSpec = cast(spec);
         Collection<Ref> refs;
         try {
-            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).call();
+            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).setTags(true).call();
         } catch (URISyntaxException e) {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         } catch (GitAPIException e) {
@@ -74,13 +82,27 @@ public class GitVersionControlSystem implements VersionControlSystem {
         for (Ref ref : refs) {
             GitVersionRef gitRef = GitVersionRef.from(ref);
             versions.add(gitRef);
-            // The HEAD reference in a Git Repository is a logical choice if the user is looking
-            // for the 'latest.integration' version of a dependency.
-            if (gitRef.getVersion().equals("HEAD")) {
-                versions.add(GitVersionRef.from("latest.integration", gitRef.getCanonicalId()));
-            }
         }
         return versions;
+    }
+
+    @Override
+    public VersionRef getHead(VersionControlSpec spec) {
+        GitVersionControlSpec gitSpec = cast(spec);
+        Collection<Ref> refs;
+        try {
+            refs = Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).call();
+        } catch (URISyntaxException e) {
+            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
+        } catch (GitAPIException e) {
+            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
+        }
+        for (Ref ref : refs) {
+            if (ref.getName().equals("HEAD")) {
+                return GitVersionRef.from(ref);
+            }
+        }
+        throw new UnsupportedOperationException("Git repository has no HEAD reference");
     }
 
     private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {

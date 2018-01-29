@@ -49,7 +49,7 @@ Many long-form options, have short option equivalents. The following are equival
 Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed. See the <<sec:gradle_configuration_properties, configuring build environment guide>> for details.
 ====
 
-The following sections describe use of the Gradle command-line interface, grouped roughly by user goal. Some plugins also add their own command line options, for example <<test_filtering,`--tests` for Java test filtering>>.
+The following sections describe use of the Gradle command-line interface, grouped roughly by user goal. Some plugins also add their own command line options, for example <<test_filtering,`--tests` for Java test filtering>>. For more information on exposing command line options for your own tasks, see <<sec:declaring_and_using_command_line_options>>.
 
 [[sec:command_line_executing_tasks]]
 === Executing tasks
@@ -245,7 +245,7 @@ This will give you a link to a web-based report, where you can find dependency i
 
 image::img/gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
 
-Learn more in <<sec:inspecting_dependencies>>.
+Learn more in <<inspecting_dependencies>>.
 
 ==== Listing project dependencies
 
@@ -255,7 +255,7 @@ Running `gradle dependencies` gives you a list of the dependencies of the select
 ❯ gradle dependencies
 ----
 
-Concrete examples of build scripts and output available in the <<dependency_management, dependency management chapter>>.
+Concrete examples of build scripts and output available in the <<inspecting_dependencies>>.
 
 Running `gradle buildEnvironment` visualises the buildscript dependencies of the selected project, similarly to how `gradle dependencies` visualizes the dependencies of the software being built.
 
@@ -416,11 +416,12 @@ Set to `rich` to enable color and other rich output in the console output, regar
 +
 Set to `verbose` to enable color and other rich output like the `rich`, but output task names and outcomes at the lifecycle log level, as is done by default in Gradle 3.5 and earlier.
 
+[[sec:command_line_warnings]]
 ==== Showing or hiding warnings
 By default, Gradle won't display all warnings (e.g. deprecation warnings). Instead, Gradle will collect them and render a summary at the end of the build like:
 
 ----
-There are <number> deprecation warnings, which may break the build in Gradle 5.0. Please run with --warning-mode=all to see them.
+Deprecated Gradle API and/or features were used in this build, making it incompatible with Gradle 5.0.
 ----
 
 You can control the verbosity of warnings on the console with the following options:

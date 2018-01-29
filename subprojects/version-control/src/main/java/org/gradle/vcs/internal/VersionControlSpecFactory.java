@@ -16,6 +16,8 @@
 
 package org.gradle.vcs.internal;
 
+import org.gradle.StartParameter;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.vcs.VersionControlSpec;
@@ -23,22 +25,21 @@ import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.git.internal.DefaultGitVersionControlSpec;
 import org.gradle.vcs.internal.spec.DirectoryRepositorySpec;
 
-import javax.annotation.Nullable;
-
 public class VersionControlSpecFactory {
     private final Instantiator instantiator;
+    private final StartParameter rootBuildStartParameter;
 
-    public VersionControlSpecFactory(Instantiator instantiator) {
+    public VersionControlSpecFactory(Instantiator instantiator, StartParameter rootBuildStartParameter) {
         this.instantiator = instantiator;
+        this.rootBuildStartParameter = rootBuildStartParameter;
     }
 
-    @Nullable
-    public <T extends VersionControlSpec> T create(Class<T> specType) {
+    public <T extends VersionControlSpec> T create(Class<T> specType, ClassLoaderScope classLoaderScope) {
         if (GitVersionControlSpec.class.isAssignableFrom(specType)) {
-            return Cast.uncheckedCast(instantiator.newInstance(DefaultGitVersionControlSpec.class));
+            return Cast.uncheckedCast(instantiator.newInstance(DefaultGitVersionControlSpec.class, rootBuildStartParameter, classLoaderScope));
         } else if (DirectoryRepositorySpec.class.isAssignableFrom(specType)) {
-            return Cast.uncheckedCast(instantiator.newInstance(DirectoryRepositorySpec.class));
+            return Cast.uncheckedCast(instantiator.newInstance(DirectoryRepositorySpec.class, rootBuildStartParameter, classLoaderScope));
         }
-        return null;
+        throw new IllegalArgumentException(String.format("Do not know how to create an instance of %s.", specType.getName()));
     }
 }

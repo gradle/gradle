@@ -16,12 +16,13 @@
 package org.gradle.util
 
 import com.google.common.base.Charsets
+import spock.lang.Specification
 
 import java.nio.CharBuffer
 
 import static org.gradle.util.GUtil.*
 
-public class GUtilTest extends spock.lang.Specification {
+class GUtilTest extends Specification {
     static sep = File.pathSeparator
 
     def convertStringToCamelCase() {

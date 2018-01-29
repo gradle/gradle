@@ -18,6 +18,7 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.provider.LockableProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.Cast;
@@ -27,6 +28,7 @@ import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
+import org.gradle.language.swift.SwiftVersion;
 
 import java.util.Collections;
 
@@ -36,12 +38,14 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     private final Property<String> module;
     private final String name;
     private final Names names;
+    private final LockableProperty<SwiftVersion> sourceCompatibility;
 
     public DefaultSwiftComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
         super(fileOperations);
         this.name = name;
         swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
         module = objectFactory.property(String.class);
+        sourceCompatibility = new LockableProperty<SwiftVersion>(objectFactory.property(SwiftVersion.class));
 
         names = Names.of(name);
         binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, SwiftBinary.class));
@@ -70,5 +74,10 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     @Override
     public DefaultBinaryCollection<SwiftBinary> getBinaries() {
         return binaries;
+    }
+
+    @Override
+    public LockableProperty<SwiftVersion> getSourceCompatibility() {
+        return sourceCompatibility;
     }
 }

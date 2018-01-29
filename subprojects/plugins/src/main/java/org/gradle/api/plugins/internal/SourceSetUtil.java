@@ -17,10 +17,15 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
+import org.gradle.api.internal.tasks.compile.DefaultProcessorPath;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Cast;
 
 import java.io.File;
@@ -32,14 +37,31 @@ public class SourceSetUtil {
     public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {
         compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
         compile.setSource(sourceSet.getJava());
-
         compile.getConventionMapping().map("classpath", new Callable<Object>() {
             public Object call() throws Exception {
                 return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDir()));
             }
         });
-
         configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, compile, target);
+    }
+
+    public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, CompileOptions options, final Project target) {
+        configureForSourceSet(sourceSet, sourceDirectorySet, compile, target);
+        configureAnnotationProcessorPath(sourceSet, options, target);
+    }
+
+    public static void configureAnnotationProcessorPath(final SourceSet sourceSet, CompileOptions options, final Project target) {
+        new DslObject(options).getConventionMapping().map("annotationProcessorPath", new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                FileCollection processorPath = sourceSet.getAnnotationProcessorPath();
+                if (processorPath == target.getConfigurations().getByName(sourceSet.getAnnotationProcessorConfigurationName())) {
+                    return new DefaultProcessorPath((Configuration) processorPath);
+                } else {
+                    return processorPath;
+                }
+            }
+        });
     }
 
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {

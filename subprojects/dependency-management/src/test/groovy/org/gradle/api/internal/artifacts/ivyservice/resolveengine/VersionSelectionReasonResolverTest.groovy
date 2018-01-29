@@ -48,8 +48,7 @@ class VersionSelectionReasonResolverTest extends Specification {
         1 * delegate.select(_) >> { args ->
             args[0].select(candidate2)
         }
-        1 * candidate2.getSelectionReason() >> VersionSelectionReasons.REQUESTED
-        1 * candidate2.setSelectionReason(VersionSelectionReasons.CONFLICT_RESOLUTION)
+        1 * candidate2.addCause(VersionSelectionReasons.CONFLICT_RESOLUTION)
         0 * _._
     }
 }
