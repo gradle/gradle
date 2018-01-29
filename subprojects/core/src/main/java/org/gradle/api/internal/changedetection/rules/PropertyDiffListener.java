@@ -16,22 +16,10 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.Task;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
+public interface PropertyDiffListener<K, V> {
+    void removed(K previousProperty);
 
-import java.util.SortedMap;
+    void added(K currentProperty);
 
-@NonNullApi
-public class OutputPropertyTaskChanges extends AbstractPropertyTaskStateChanges<FileCollectionSnapshot> {
-
-    public OutputPropertyTaskChanges(TaskExecution previous, TaskExecution current, Task task) {
-        super(previous, current, "Output", task);
-    }
-
-    @Override
-    protected SortedMap<String, FileCollectionSnapshot> getProperties(TaskExecution execution) {
-        return execution.getOutputFilesSnapshot();
-    }
+    void maybeChanged(K property, V previous, V current);
 }

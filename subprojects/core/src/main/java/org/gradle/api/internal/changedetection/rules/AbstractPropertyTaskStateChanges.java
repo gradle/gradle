@@ -21,11 +21,10 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.SortedMap;
 
 @NonNullApi
-public abstract class AbstractPropertyTaskStateChanges extends SimpleTaskStateChanges {
+public abstract class AbstractPropertyTaskStateChanges<V> extends SimpleTaskStateChanges {
 
     private final TaskExecution previous;
     private final TaskExecution current;
@@ -39,22 +38,25 @@ public abstract class AbstractPropertyTaskStateChanges extends SimpleTaskStateCh
         this.task = task;
     }
 
-    protected abstract Map<String, ?> getProperties(TaskExecution execution);
+    protected abstract SortedMap<String, V> getProperties(TaskExecution execution);
 
     @Override
     protected void addAllChanges(final List<TaskStateChange> changes) {
-        Set<String> currentNames = getProperties(current).keySet();
-        Set<String> previousNames = getProperties(previous).keySet();
+        SortedMapDiffUtil.diff(getProperties(previous), getProperties(current), new PropertyDiffListener<String, V>() {
+            @Override
+            public void removed(String previousProperty) {
+                changes.add(new DescriptiveChange("%s property '%s' has been removed for %s", title, previousProperty, task));
+            }
 
-        for (String name : currentNames) {
-            if (!previousNames.contains(name)) {
-                changes.add(new DescriptiveChange("%s property '%s' has been added for %s", title, name, task));
+            @Override
+            public void added(String currentProperty) {
+                changes.add(new DescriptiveChange("%s property '%s' has been added for %s", title, currentProperty, task));
             }
-        }
-        for (String name : previousNames) {
-            if (!currentNames.contains(name)) {
-                changes.add(new DescriptiveChange("%s property '%s' has been removed for %s", title, name, task));
+
+            @Override
+            public void maybeChanged(String property, V previous, V current) {
+                // Ignore
             }
-        }
+        });
     }
 }

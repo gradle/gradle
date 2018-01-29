@@ -19,18 +19,19 @@ package org.gradle.api.internal.changedetection.rules;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 
-import java.util.Map;
+import java.util.SortedMap;
 
 @NonNullApi
-public class InputPropertyTaskStateChanges extends AbstractPropertyTaskStateChanges {
+public class InputPropertyTaskStateChanges extends AbstractPropertyTaskStateChanges<ValueSnapshot> {
 
     public InputPropertyTaskStateChanges(TaskExecution previous, TaskExecution current, Task task) {
         super(previous, current, "Input", task);
     }
 
     @Override
-    protected Map<String, ?> getProperties(TaskExecution execution) {
+    protected SortedMap<String, ValueSnapshot> getProperties(TaskExecution execution) {
         return execution.getInputProperties();
     }
 }
