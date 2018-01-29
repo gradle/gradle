@@ -30,6 +30,7 @@ dependencies {
     implementation project(":logging")
 
     implementation libraries.commons_io.coordinates
+    implementation libraries.cfuture.coordinates
 
     jmh (libraries.ant.coordinates) { version { prefer libraries.ant.version } }
     jmh (libraries.commons_compress.coordinates) { version { prefer libraries.commons_compress.version } }
