@@ -40,6 +40,23 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         generateManifest.manifestFile.get().asFile == project.file("Package.swift")
     }
 
+    def "attaches a swift pm package model to the generate task"() {
+        when:
+        project.pluginManager.apply(SwiftPackageManagerExportPlugin)
+        def generateManifest = project.tasks['generateSwiftPmManifest']
+
+        then:
+        !generateManifest.package.present
+
+        when:
+        project.evaluate()
+
+        then:
+        def p = generateManifest.package.get()
+        p != null
+        p == generateManifest.package.get()
+    }
+
     def "adds an executable product for each project that produces a C++ application"() {
         given:
         def app1Project = ProjectBuilder.builder().withName("app1").withParent(project).build()
@@ -49,6 +66,8 @@ class SwiftPackageManagerExportPluginTest extends Specification {
 
         app1Project.pluginManager.apply("cpp-application")
         app2Project.pluginManager.apply("cpp-application")
+
+        project.evaluate()
 
         expect:
         def generateManifest = project.tasks['generateSwiftPmManifest']
@@ -69,6 +88,8 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         app1Project.pluginManager.apply("cpp-library")
         app2Project.pluginManager.apply("cpp-library")
 
+        project.evaluate()
+
         expect:
         def generateManifest = project.tasks['generateSwiftPmManifest']
         def products = generateManifest.package.get().products
@@ -87,6 +108,8 @@ class SwiftPackageManagerExportPluginTest extends Specification {
 
         app1Project.pluginManager.apply("swift-application")
         app2Project.pluginManager.apply("swift-application")
+
+        project.evaluate()
 
         expect:
         def generateManifest = project.tasks['generateSwiftPmManifest']
@@ -107,6 +130,8 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         app1Project.pluginManager.apply("swift-library")
         app2Project.pluginManager.apply("swift-library")
 
+        project.evaluate()
+
         expect:
         def generateManifest = project.tasks['generateSwiftPmManifest']
         def products = generateManifest.package.get().products
@@ -123,6 +148,8 @@ class SwiftPackageManagerExportPluginTest extends Specification {
 
         project.pluginManager.apply(SwiftPackageManagerExportPlugin)
         project.pluginManager.apply("swift-library")
+
+        project.evaluate()
 
         expect:
         def generateManifest = project.tasks['generateSwiftPmManifest']
