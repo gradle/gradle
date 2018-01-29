@@ -16,31 +16,17 @@
 
 package org.gradle.swiftpm.internal;
 
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.file.FileCollection;
 import org.gradle.swiftpm.Product;
 
-import javax.annotation.Nullable;
-import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public abstract class AbstractProduct implements Product, Serializable {
     private final String name;
-    private final String targetName;
-    private final File path;
-    private final Collection<File> sourceFiles;
-    private final List<String> requiredTargets = new ArrayList<String>();
-    private final List<String> requiredProducts = new ArrayList<String>();
-    private File publicHeaderDir;
+    private final DefaultTarget target;
 
-    AbstractProduct(String name, String targetName, File path, FileCollection sourceFiles) {
+    AbstractProduct(String name, DefaultTarget target) {
         this.name = name;
-        this.targetName = targetName;
-        this.path = path;
-        this.sourceFiles = ImmutableSet.copyOf(sourceFiles);
+        this.target = target;
     }
 
     @Override
@@ -48,33 +34,8 @@ public abstract class AbstractProduct implements Product, Serializable {
         return name;
     }
 
-    public String getTargetName() {
-        return targetName;
-    }
-
-    public File getPath() {
-        return path;
-    }
-
-    public Collection<File> getSourceFiles() {
-        return sourceFiles;
-    }
-
-    @Nullable
-    public File getPublicHeaderDir() {
-        return publicHeaderDir;
-    }
-
-    public void setPublicHeaderDir(File publicHeaderDir) {
-        this.publicHeaderDir = publicHeaderDir;
-    }
-
-    public Collection<String> getRequiredTargets() {
-        return requiredTargets;
-    }
-
-    public Collection<String> getRequiredProducts() {
-        return requiredProducts;
+    public DefaultTarget getTarget() {
+        return target;
     }
 
     public abstract boolean isExecutable();

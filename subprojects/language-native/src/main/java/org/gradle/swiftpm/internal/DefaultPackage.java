@@ -25,9 +25,11 @@ import java.util.Set;
 public class DefaultPackage implements Package, Serializable {
     private final Set<AbstractProduct> products;
     private final List<Dependency> dependencies;
+    private final List<DefaultTarget> targets;
 
-    public DefaultPackage(Set<AbstractProduct> products, List<Dependency> dependencies) {
+    public DefaultPackage(Set<AbstractProduct> products, List<DefaultTarget> targets, List<Dependency> dependencies) {
         this.products = products;
+        this.targets = targets;
         this.dependencies = dependencies;
     }
 
@@ -38,5 +40,9 @@ public class DefaultPackage implements Package, Serializable {
     @Override
     public Set<AbstractProduct> getProducts() {
         return products;
+    }
+
+    public List<DefaultTarget> getTargets() {
+        return targets;
     }
 }

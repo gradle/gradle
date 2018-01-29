@@ -46,7 +46,7 @@ import PackageDescription
 let package = Package(
     name: "test",
     products: [
-        .library(name: "test", targets: ["Test"]),
+        .library(name: "test", type: .dynamic, targets: ["Test"]),
     ],
     targets: [
         .target(
@@ -103,8 +103,8 @@ let package = Package(
     name: "test",
     products: [
         .executable(name: "test", targets: ["Test"]),
-        .library(name: "hello", targets: ["Hello"]),
-        .library(name: "log", targets: ["Log"]),
+        .library(name: "hello", type: .dynamic, targets: ["Hello"]),
+        .library(name: "log", type: .dynamic, targets: ["Log"]),
     ],
     targets: [
         .target(
@@ -132,6 +132,52 @@ let package = Package(
             path: "log",
             sources: [
                 "src/main/swift/log.swift",
+            ]
+        ),
+    ]
+)
+"""
+        swiftPmBuildSucceeds()
+    }
+
+    def "produces manifest for Swift library with shared and static linkage"() {
+        given:
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+                id 'swift-library'
+            }
+            library {
+                linkage = [Linkage.SHARED, Linkage.STATIC]
+            }
+"""
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
+
+        when:
+        run("generateSwiftPmManifest")
+
+        then:
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+        .library(name: "test", type: .dynamic, targets: ["Test"]),
+        .library(name: "testStatic", type: .static, targets: ["Test"]),
+    ],
+    targets: [
+        .target(
+            name: "Test",
+            path: ".",
+            sources: [
+                "src/main/swift/greeter.swift",
+                "src/main/swift/multiply.swift",
+                "src/main/swift/sum.swift",
             ]
         ),
     ]
@@ -187,8 +233,8 @@ let package = Package(
     name: "test",
     products: [
         .executable(name: "test", targets: ["Test"]),
-        .library(name: "lib1", targets: ["Hello"]),
-        .library(name: "lib2", targets: ["Log"]),
+        .library(name: "lib1", type: .dynamic, targets: ["Hello"]),
+        .library(name: "lib2", type: .dynamic, targets: ["Log"]),
     ],
     targets: [
         .target(
@@ -312,7 +358,7 @@ import PackageDescription
 let package = Package(
     name: "test",
     products: [
-        .library(name: "test", targets: ["Test"]),
+        .library(name: "test", type: .dynamic, targets: ["Test"]),
     ],
     dependencies: [
         .package(url: "repos/lib2", from: "2.0.0"),

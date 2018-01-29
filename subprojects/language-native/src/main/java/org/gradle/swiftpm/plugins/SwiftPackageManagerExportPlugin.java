@@ -30,11 +30,13 @@ import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftLibrary;
+import org.gradle.nativeplatform.Linkage;
 import org.gradle.swiftpm.Package;
 import org.gradle.swiftpm.internal.AbstractProduct;
 import org.gradle.swiftpm.internal.DefaultExecutableProduct;
 import org.gradle.swiftpm.internal.DefaultLibraryProduct;
 import org.gradle.swiftpm.internal.DefaultPackage;
+import org.gradle.swiftpm.internal.DefaultTarget;
 import org.gradle.swiftpm.internal.Dependency;
 import org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest;
 import org.gradle.vcs.VcsMapping;
@@ -115,51 +117,68 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
         @Override
         public Package call() {
             Set<AbstractProduct> products = new LinkedHashSet<AbstractProduct>();
+            List<DefaultTarget> targets = new ArrayList<DefaultTarget>();
             List<Dependency> dependencies = new ArrayList<Dependency>();
             for (Project p : project.getAllprojects()) {
                 for (CppApplication application : p.getComponents().withType(CppApplication.class)) {
-                    DefaultExecutableProduct product = new DefaultExecutableProduct(p.getName(), application.getBaseName().get(), p.getProjectDir(), application.getCppSource());
-                    collectDependencies(application.getImplementationDependencies(), dependencies, product);
+                    DefaultTarget target = new DefaultTarget(application.getBaseName().get(), p.getProjectDir(), application.getCppSource());
+                    collectDependencies(application.getImplementationDependencies(), dependencies, target);
+                    DefaultExecutableProduct product = new DefaultExecutableProduct(p.getName(), target);
                     // TODO - set header dir for applications
                     products.add(product);
+                    targets.add(target);
                 }
                 for (CppLibrary library : p.getComponents().withType(CppLibrary.class)) {
-                    DefaultLibraryProduct product = new DefaultLibraryProduct(p.getName(), library.getBaseName().get(), p.getProjectDir(), library.getCppSource());
-                    collectDependencies(library.getImplementationDependencies(), dependencies, product);
+                    DefaultTarget target = new DefaultTarget(library.getBaseName().get(), p.getProjectDir(), library.getCppSource());
+                    collectDependencies(library.getImplementationDependencies(), dependencies, target);
                     Set<File> headerDirs = library.getPublicHeaderDirs().getFiles();
                     if (!headerDirs.isEmpty()) {
                         // TODO - deal with more than one directory
-                        product.setPublicHeaderDir(headerDirs.iterator().next());
+                        target.setPublicHeaderDir(headerDirs.iterator().next());
                     }
-                    // TODO - linkage
-                    products.add(product);
+                    targets.add(target);
+
+                    if (library.getLinkage().get().contains(Linkage.SHARED)) {
+                        products.add(new DefaultLibraryProduct(p.getName(), target, Linkage.SHARED));
+                    }
+                    if (library.getLinkage().get().contains(Linkage.STATIC)) {
+                        products.add(new DefaultLibraryProduct(p.getName() + "Static", target, Linkage.STATIC));
+                    }
                 }
                 for (SwiftApplication application : p.getComponents().withType(SwiftApplication.class)) {
-                    DefaultExecutableProduct product = new DefaultExecutableProduct(p.getName(), application.getModule().get(), p.getProjectDir(), application.getSwiftSource());
-                    collectDependencies(application.getImplementationDependencies(), dependencies, product);
+                    DefaultTarget target = new DefaultTarget(application.getModule().get(), p.getProjectDir(), application.getSwiftSource());
+                    collectDependencies(application.getImplementationDependencies(), dependencies, target);
+                    DefaultExecutableProduct product = new DefaultExecutableProduct(p.getName(), target);
                     products.add(product);
+                    targets.add(target);
                 }
                 for (SwiftLibrary library : p.getComponents().withType(SwiftLibrary.class)) {
-                    DefaultLibraryProduct product = new DefaultLibraryProduct(p.getName(), library.getModule().get(), p.getProjectDir(), library.getSwiftSource());
-                    collectDependencies(library.getImplementationDependencies(), dependencies, product);
-                    // TODO - linkage
-                    products.add(product);
+                    DefaultTarget target = new DefaultTarget(library.getModule().get(), p.getProjectDir(), library.getSwiftSource());
+                    collectDependencies(library.getImplementationDependencies(), dependencies, target);
+                    targets.add(target);
+
+                    if (library.getLinkage().get().contains(Linkage.SHARED)) {
+                        products.add(new DefaultLibraryProduct(p.getName(), target, Linkage.SHARED));
+                    }
+                    if (library.getLinkage().get().contains(Linkage.STATIC)) {
+                        products.add(new DefaultLibraryProduct(p.getName() + "Static", target, Linkage.STATIC));
+                    }
                 }
             }
-            return new DefaultPackage(products, dependencies);
+            return new DefaultPackage(products, targets, dependencies);
         }
 
-        private void collectDependencies(Configuration configuration, Collection<Dependency> dependencies, AbstractProduct product) {
+        private void collectDependencies(Configuration configuration, Collection<Dependency> dependencies, DefaultTarget target) {
             // TODO - should use publication service to do this lookup, deal with ambiguous reference and caching of the mappings
             Action<VcsMapping> mappingRule = vcsMappingsStore.getVcsMappingRule();
             for (org.gradle.api.artifacts.Dependency dependency : configuration.getAllDependencies()) {
                 if (dependency instanceof ProjectDependency) {
                     ProjectDependency projectDependency = (ProjectDependency) dependency;
                     for (SwiftLibrary library : projectDependency.getDependencyProject().getComponents().withType(SwiftLibrary.class)) {
-                        product.getRequiredTargets().add(library.getModule().get());
+                        target.getRequiredTargets().add(library.getModule().get());
                     }
                     for (CppLibrary library : projectDependency.getDependencyProject().getComponents().withType(CppComponent.class).withType(CppLibrary.class)) {
-                        product.getRequiredTargets().add(library.getBaseName().get());
+                        target.getRequiredTargets().add(library.getBaseName().get());
                     }
                 } else if (dependency instanceof ExternalModuleDependency) {
                     ExternalModuleDependency externalDependency = (ExternalModuleDependency) dependency;
@@ -173,7 +192,7 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                     String versionSelector = externalDependency.getVersion();
                     GitVersionControlSpec gitSpec = (GitVersionControlSpec) vcsSpec;
                     dependencies.add(new Dependency(gitSpec.getUrl(), versionSelector));
-                    product.getRequiredProducts().add(externalDependency.getName());
+                    target.getRequiredProducts().add(externalDependency.getName());
                 }
             }
         }
