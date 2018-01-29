@@ -85,6 +85,8 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  * test {
  *   // enable TestNG support (default is JUnit)
  *   useTestNG()
+ *   // enable JUnit Platform and JUnit Jupiter Engine (a.k.a. JUnit 5) support
+ *   // useJUnitPlatform()
  *
  *   // set a system property for the test JVM(s)
  *   systemProperty 'some.prop', 'value'
@@ -769,7 +771,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns test framework specific options. Make sure to call {@link #useJUnit()} or {@link #useTestNG()} before using this method.
+     * Returns test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
      *
      * @return The test framework options.
      */
@@ -781,7 +783,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Configures test framework specific options. Make sure to call {@link #useJUnit()} or {@link #useTestNG()} before using this method.
+     * Configures test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
      *
      * @return The test framework options.
      */
@@ -790,7 +792,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Configures test framework specific options. Make sure to call {@link #useJUnit()} or {@link #useTestNG()} before using this method.
+     * Configures test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
      *
      * @return The test framework options.
      * @since 3.5
@@ -848,7 +850,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Specifies that JUnit platform should be used to execute the tests. <p> To configure JUnit platform specific options, see {@link #useJUnitPlatform(Action)}.
+     * Specifies that JUnit Platform and JUnit Jupiter Engine (a.k.a. JUnit 5) should be used to execute the tests. <p> To configure JUnit platform specific options, see {@link #useJUnitPlatform(Action)}.
      *
      * @since 4.6
      */
@@ -858,7 +860,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Specifies that JUnit platform should be used to execute the tests, configuring JUnit platform specific options. <p> The supplied action configures an instance of {@link
+     * Specifies that JUnit Platform and JUnit Jupiter Engine (a.k.a. JUnit 5) should be used to execute the tests, configuring JUnit platform specific options. <p> The supplied action configures an instance of {@link
      * org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions}, which can be used to configure how JUnit platform runs.
      *
      * @param testFrameworkConfigure An action used to configure the JUnit platform options.
