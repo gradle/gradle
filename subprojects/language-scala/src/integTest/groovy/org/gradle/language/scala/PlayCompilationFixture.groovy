@@ -26,7 +26,6 @@ class PlayCompilationFixture {
     final ScalaClass independentClassSource
     final String sourceSet
     String scalaVersion
-    String zincVersion
     String sourceCompatibility
     String sourceDir
     TestFile analysisFile
@@ -35,7 +34,6 @@ class PlayCompilationFixture {
         repositories {
             ${RepoScriptBlockUtil.jcenterRepositoryDefinition()}
             ${RepoScriptBlockUtil.lightbendMavenRepositoryDefinition()}
-            ${RepoScriptBlockUtil.lightbendIvyRepositoryDefinition()}
         }"""
 
     PlayCompilationFixture(File root) {
@@ -52,36 +50,34 @@ class PlayCompilationFixture {
                  * Can live in a house.
                  * Has a name and an age.
                  */
-                class Person(val name: String, val age: Int)'''.stripIndent(),
+                class Person(val name: String, val age: Int)''',
             '''                 
                 /**
                  * A person.
                  * Can live in a house.
                  * Has a name, age and a height.
                  */
-                class Person(val name: String, val age: Int, val height: Int)'''.stripIndent())
-        this.sourceDir = 'app/models'
-        classDependingOnBasicClassSource = new ScalaClass(
+                class Person(val name: String, val age: Int, val height: Int)''')
+        classDependingOnBasicClassSource = new ScalaClass('app/models',
             'House',
             'class House(val owner: Person)',
             'class House(val owner: Person, val residents: List[Person])'
         )
-        this.sourceDir = 'app/views'
-        independentClassSource = new ScalaClass(
+        independentClassSource = new ScalaClass('app/views',
             'Other',
             'class Other',
             'class Other(val some: String)'
         )
     }
 
-    def buildScript() {
-        return """
+    String buildScript() {
+        """
              plugins {
                 id 'play'
             }
           
             ${PLAY_REPOSITORIES}
-        """.stripIndent()
+        """
     }
 
     void baseline() {
@@ -122,7 +118,7 @@ class PlayCompilationFixture {
         final String changedText
         final String javadocLocation
 
-        ScalaClass(String path, String originalText, String changedText) {
+        ScalaClass(String sourceDir = PlayCompilationFixture.this.sourceDir, String path, String originalText, String changedText) {
             this.changedText = changedText
             this.originalText = originalText
             source = root.file("${sourceDir}/${path}.scala")

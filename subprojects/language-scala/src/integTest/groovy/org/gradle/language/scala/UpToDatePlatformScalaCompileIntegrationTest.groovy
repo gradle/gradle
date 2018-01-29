@@ -18,7 +18,6 @@ package org.gradle.language.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.util.Requires
 import spock.lang.Unroll
 
@@ -27,12 +26,6 @@ import static org.gradle.api.JavaVersion.VERSION_1_8
 
 @Unroll
 class UpToDatePlatformScalaCompileIntegrationTest extends AbstractIntegrationSpec {
-    public static final String PLAY_REPOSITORIES = """
-        repositories {
-            ${RepoScriptBlockUtil.jcenterRepositoryDefinition()}
-            ${RepoScriptBlockUtil.lightbendMavenRepositoryDefinition()}
-        }
-    """
 
     def setup() {
         file('app/controller/Person.scala') << "class Person(name: String)"
@@ -43,7 +36,9 @@ class UpToDatePlatformScalaCompileIntegrationTest extends AbstractIntegrationSpe
         def jdk7 = AvailableJavaHomes.getJdk(VERSION_1_7)
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
 
-        buildScript(playProjectBuildScript('0.3.13', '2.11.8'))
+        def playFixture = new PlayCompilationFixture(temporaryFolder.testDirectory)
+        playFixture.baseline()
+        buildFile << playFixture.buildScript()
         when:
         executer.withJavaHome(jdk7.javaHome)
         run 'compilePlayBinaryScala'
@@ -63,14 +58,4 @@ class UpToDatePlatformScalaCompileIntegrationTest extends AbstractIntegrationSpe
         then:
         executedAndNotSkipped(':compilePlayBinaryScala')
     }
-
-    def playProjectBuildScript(String zincVersion, String scalaVersion) {
-        return """
-            plugins {
-                    id 'play'
-            }
-            ${PLAY_REPOSITORIES}
-        """.stripIndent()
-    }
-
 }

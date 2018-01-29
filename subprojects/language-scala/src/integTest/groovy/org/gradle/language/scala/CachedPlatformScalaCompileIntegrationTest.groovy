@@ -17,49 +17,22 @@
 package org.gradle.language.scala
 
 import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Rule
+
+import static org.gradle.language.scala.PlayCompilationFixture.PLAY_REPOSITORIES
 
 class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
 
-    public static final String PLAY_REPOSITORIES = """
-        repositories {
-            ${RepoScriptBlockUtil.jcenterRepositoryDefinition()}
-            ${RepoScriptBlockUtil.lightbendMavenRepositoryDefinition()}
-        }
-    """
-
     String compilationTask = ':compilePlayBinaryScala'
-    String compiledFile = "build/playBinary/classes/Hello.class"
-
-    @Rule
-    public final TestResources resources = new TestResources(temporaryFolder)
+    String compiledFile = "build/playBinary/classes/Person.class"
 
     @Override
     def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
         project.with {
             file('settings.gradle') << localCacheConfiguration()
-            file('build.gradle').text = """
-                plugins {
-                    id 'play'
-                }
-                ${PLAY_REPOSITORIES}
-            """
-
-            file('app/controller/Hello.scala').text = """
-                object Hello {
-                    def main(args: Array[String]): Unit = {
-                        print("Hello!")
-                    }
-                }
-            """
-            file('conf/application.conf').text = """
-                logger.root=ERROR
-                logger.play=INFO
-                logger.application=DEBUG
-            """
+            def playFixture = new PlayCompilationFixture(project)
+            playFixture.baseline()
+            file('build.gradle').text = playFixture.buildScript()
         }
     }
 
@@ -111,11 +84,11 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
         // When doing this and then loading the classes for
         // compileScala from the cache the compiled java
         // classes are replaced and recorded as changed
-        def file1 = file('/build/playBinary/classes/RequiredByScala.class')
-        if(file1.lastModified() == 0){
-            file1.setLastModified(Calendar.getInstance().getTime().minus(1).seconds)
-        }else {
-            file1.setLastModified(file1.lastModified() - 2000L)
+        def javaClassRequiredByScala = file('/build/playBinary/classes/RequiredByScala.class')
+        if(javaClassRequiredByScala.lastModified() == 0){
+            javaClassRequiredByScala.setLastModified(Calendar.getInstance().getTime().minus(1).seconds)
+        } else {
+            javaClassRequiredByScala.setLastModified(javaClassRequiredByScala.lastModified() - 2000L)
         }
         withBuildCache().succeeds compilationTask
 

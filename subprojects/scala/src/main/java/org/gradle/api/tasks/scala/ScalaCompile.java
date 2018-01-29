@@ -18,8 +18,6 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.CacheableTask;
@@ -87,7 +85,6 @@ public class ScalaCompile extends AbstractScalaCompile {
     protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
         assertScalaClasspathIsNonEmpty();
         if (compiler == null) {
-            ProjectInternal projectInternal = (ProjectInternal) getProject();
             WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);
             FileResolver fileResolver = getServices().get(FileResolver.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
@@ -97,12 +94,6 @@ public class ScalaCompile extends AbstractScalaCompile {
         }
         return compiler;
     }
-
-    @Override
-    protected void configureIncrementalCompilation(ScalaCompileSpec spec) {
-        super.configureIncrementalCompilation(spec);
-    }
-
 
     protected void assertScalaClasspathIsNonEmpty() {
         if (getScalaClasspath().isEmpty()) {
