@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import org.gradle.build.DefaultJavaInstallation
 
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
@@ -9,7 +25,7 @@ if (testJavaHome) {
         .checkJdk(new File(testJavaHome))
         .configure(testJavaInstallation)
 
-    if (testJavaInstallation.javaVersion.java9) {
+    if (testJavaInstallation.javaVersion.java10) {
 
         tasks.withType(org.gradle.testing.IntegrationTest) {
             [
@@ -35,14 +51,14 @@ if (testJavaHome) {
                 "JavaConfigurabilityCrossVersionSpec", // "customized java args are reflected in the inputArguments and the build model", "tooling api provided jvm args take precedence over gradle.properties"
                 "GradlePropertiesToolingApiCrossVersionSpec", // "tooling api honours jvm args specified in gradle.properties"
 
-                // Add a dedicated Findbugs test for Java 9
+                // Add a dedicated Findbugs test for Java 10
                 "FindBugsIntegrationTest",
                 "FindBugsRelocationIntegrationTest",
 
                 // Osgi is broken with a NPE in Processor - need to investigate
                 "OsgiPluginIntegrationSpec",
 
-                // Attempts to run Gradle 2.8 on Java 9
+                // Attempts to run Gradle 2.8 on Java 10
                 "HeterogeneousCompositeBuildCrossVersionSpec",
 
                 // Broken scala and twirl compilation
@@ -109,7 +125,7 @@ if (testJavaHome) {
                 // Sample attempts to set max perm space
                 "SamplesScalaZincIntegrationTest",
 
-                // Cannot build Gradle with Java 9, compiler bug
+                // Cannot build Gradle with Java 10, compiler bug
                 "SrcDistributionIntegrationSpec",
 
                 // Test compiles for Java 5
@@ -143,7 +159,7 @@ if (testJavaHome) {
                 "EnvJsPluginIntegrationTest",
 
                 /*
-                 Uses bytebuddy in a test which uses asm which cannot read Java 9 classfiles
+                 Uses bytebuddy in a test which uses asm which cannot read Java 10 classfiles
                  */
                 "DirectoryScanningIntegTest",
 
