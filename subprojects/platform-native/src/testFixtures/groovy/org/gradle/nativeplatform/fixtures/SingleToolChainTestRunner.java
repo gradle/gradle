@@ -41,21 +41,22 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         }
     }
 
-    // TODO: This exists because we detect all available native tool chains on a system (clang, gcc, swiftc, msvc)
+    // TODO: This exists because we detect all available native tool chains on a system (clang, gcc, swiftc, msvc).
+    //
     // Many of our old tests assume that available tool chains can compile many/most languages, so they do not try to
     // restrict the required set of tool chains.
-    // The swiftc tool chain can build _only_ Swift, so tests must opt-in to see the swiftc tool chain.
-    // Our multi-test runner is smart enough to disable tests that do not meet our requirements, but since many
-    // of the old tests do not have requirements, we need to remove tool chains that do not meet the test classes
-    // requirements (if there are any) early.
-    // In the future... we want to either split apart the swiftc tool chain into a separate test runner/tool chain
-    // detector or go back to old tests and annotate them with tool chains requirements (like NOT_SWIFTC) or
-    // something more involved like declaring which features are needed for the test (I need a tool chain for
-    // C and a runtime like such-and-such).
+    //
+    // The swiftc tool chain can build _only_ Swift, so tests that expect to use the swiftc tool chain properly annotate
+    // their requirements with ToolChainRequirement.SWIFTC (or a version-specific requirement).
+    //
+    // Our multi-test runner is smart enough to disable tests that do not meet the test's requirements, but since many
+    // of the old tests do not have requirements, we assume the tests require a "C" like tool chain (GCC, Clang, MSVC).
+    //
+    // In the future... we want to go back to old tests and annotate them with tool chains requirements.
     private boolean canUseToolChain(AvailableToolChains.ToolChainCandidate toolChain) {
         if (toolChain.meets(ToolChainRequirement.SWIFTC)) {
             RequiresInstalledToolChain toolChainRequirement = target.getAnnotation(RequiresInstalledToolChain.class);
-            return toolChainRequirement!=null && toolChain.meets(toolChainRequirement.value());
+            return toolChainRequirement!=null;
         }
         return true;
     }
