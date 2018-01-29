@@ -19,6 +19,8 @@ With [dependency constraints](userguide/managing_transitive_dependencies.html#se
         }
     }
 
+In the example, the version of `commons-codec` that is brought in transitively is `1.9`. With the constraint, we express that we need at lease `1.11` and Gradle will now pick that version during dependency resolution.
+
 ### Advanced POM support (preview)
 
 Gradle now supports [additional features for modules with POM metadata](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc). This includes support for _optional dependencies_, _BOM import_ and _compile/runtime scope separation_. 
