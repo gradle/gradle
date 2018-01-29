@@ -17,9 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
-import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 
 import java.util.List;
 
@@ -29,15 +26,6 @@ import java.util.List;
  */
 public class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
     private final PendingDependenciesState pendingDependencies = new PendingDependenciesState();
-    private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
-    private final ComponentSelectorConverter componentSelectorConverter;
-
-    public DefaultPendingDependenciesHandler(ComponentSelectorConverter componentSelectorConverter,
-                                             DependencySubstitutionApplicator dependencySubstitutionApplicator) {
-
-        this.componentSelectorConverter = componentSelectorConverter;
-        this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
-    }
 
     @Override
     public Visitor start() {
@@ -48,9 +36,8 @@ public class DefaultPendingDependenciesHandler implements PendingDependenciesHan
         private List<PendingDependencies> noLongerPending;
 
         public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
-            ModuleIdentifier key = lookupModuleIdentifier(dependencyState);
-
-            boolean isOptionalDependency = dependencyState.getDependencyMetadata().isPending();
+            ModuleIdentifier key = dependencyState.getModuleIdentifier();
+            boolean isOptionalDependency = dependencyState.getDependency().isPending();
             if (!isOptionalDependency) {
                 // Mark as not pending. If we saw pending dependencies before, mark them as no longer pending
                 PendingDependencies priorPendingDependencies = pendingDependencies.notPending(key);
@@ -75,15 +62,6 @@ public class DefaultPendingDependenciesHandler implements PendingDependenciesHan
             // No hard dependency, queue up pending dependency in case we see a hard dependency later.
             pendingDependencies.addNode(node);
             return true;
-        }
-
-        private ModuleIdentifier lookupModuleIdentifier(DependencyState dependencyState) {
-            DependencySubstitutionApplicator.SubstitutionResult substitutionResult = dependencySubstitutionApplicator.apply(dependencyState.getDependencyMetadata());
-            DependencySubstitutionInternal details = substitutionResult.getResult();
-            if (details != null && details.isUpdated()) {
-                return componentSelectorConverter.getModule(details.getTarget());
-            }
-            return dependencyState.getModuleIdentifier();
         }
 
         public void complete() {

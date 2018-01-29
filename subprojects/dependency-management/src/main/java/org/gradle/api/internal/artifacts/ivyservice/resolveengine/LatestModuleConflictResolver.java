@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.CompositeVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
@@ -28,6 +30,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentStateWithDependents;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import java.util.ArrayList;
@@ -140,7 +144,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
 
     private List<String> pathTo(ComponentStateWithDependents component) {
         List<List<ComponentStateWithDependents>> acc = Lists.newArrayListWithExpectedSize(1);
-        pathTo(component, Lists.<ComponentStateWithDependents>newArrayList(), acc);
+        pathTo(component, Lists.<ComponentStateWithDependents>newArrayList(), acc, Sets.<ComponentStateWithDependents>newHashSet());
         List<String> result = Lists.newArrayListWithCapacity(acc.size());
         for (List<ComponentStateWithDependents> path : acc) {
             ComponentStateWithDependents target = Iterators.getLast(path.iterator());
@@ -159,6 +163,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
                 } else {
                     sb.append('\'').append(id.getGroup()).append(':').append(id.getName()).append('\'');
                     sb.append(" ").append(renderVersionConstraint(e.getVersionConstraint()));
+                    renderReason(sb, e);
                 }
             }
             result.add(sb.toString());
@@ -166,19 +171,41 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         return result;
     }
 
-    private void pathTo(ComponentStateWithDependents component, List<ComponentStateWithDependents> currentPath, List<List<ComponentStateWithDependents>> accumulator) {
-        currentPath.add(0, component);
-        Collection<ComponentState> dependents = component.getDependents();
-        List<ComponentState> unattachedDependencies = component.getUnattachedDependencies();
-        Set<ComponentState> allDependents = Sets.newLinkedHashSet();
-        allDependents.addAll(dependents);
-        allDependents.addAll(unattachedDependencies);
-        for (ComponentStateWithDependents dependent : allDependents) {
-            List<ComponentStateWithDependents> otherPath = Lists.newArrayList(currentPath);
-            pathTo(dependent, otherPath, accumulator);
+    private void renderReason(StringBuilder sb, ComponentStateWithDependents e) {
+        ComponentSelectionReasonInternal selectionReason = e.getSelectionReason();
+        if (selectionReason.hasCustomDescriptions()) {
+            sb.append(" because of the following reason");
+            List<String> reasons = Lists.newArrayListWithExpectedSize(1);
+            for (ComponentSelectionDescriptor componentSelectionDescriptor : selectionReason.getDescriptions()) {
+                ComponentSelectionDescriptorInternal next = (ComponentSelectionDescriptorInternal) componentSelectionDescriptor;
+                if (next.hasCustomDescription()) {
+                    reasons.add(next.getDescription());
+                }
+            }
+            if (reasons.size() == 1) {
+                sb.append(": ").append(reasons.get(0));
+            } else {
+                sb.append("s: ");
+                Joiner.on(", ").appendTo(sb, reasons);
+            }
         }
-        if (allDependents.isEmpty()) {
-            accumulator.add(currentPath);
+    }
+
+    private void pathTo(ComponentStateWithDependents component, List<ComponentStateWithDependents> currentPath, List<List<ComponentStateWithDependents>> accumulator, Set<ComponentStateWithDependents> alreadySeen) {
+        if (alreadySeen.add(component)) {
+            currentPath.add(0, component);
+            Collection<ComponentState> dependents = component.getDependents();
+            List<ComponentState> unattachedDependencies = component.getUnattachedDependencies();
+            Set<ComponentState> allDependents = Sets.newLinkedHashSet();
+            allDependents.addAll(dependents);
+            allDependents.addAll(unattachedDependencies);
+            for (ComponentStateWithDependents dependent : allDependents) {
+                List<ComponentStateWithDependents> otherPath = Lists.newArrayList(currentPath);
+                pathTo(dependent, otherPath, accumulator, alreadySeen);
+            }
+            if (allDependents.isEmpty()) {
+                accumulator.add(currentPath);
+            }
         }
     }
 
