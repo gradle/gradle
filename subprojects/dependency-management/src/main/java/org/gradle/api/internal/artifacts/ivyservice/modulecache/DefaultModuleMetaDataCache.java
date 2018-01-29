@@ -76,11 +76,21 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
 
     public CachedMetaData getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier componentId) {
         final ModuleComponentAtRepositoryKey key = createKey(repository, componentId);
-        CachedMetaData inMemory = inMemoryCache.get(key);
+        final CachedMetaData inMemory = inMemoryCache.get(key);
         if (inMemory != null) {
             return inMemory;
         }
 
+        CachedMetaData cachedMetaData = loadCachedMetadata(key);
+        if (cachedMetaData != null) {
+            inMemoryCache.put(key, cachedMetaData);
+            return cachedMetaData;
+        }
+
+        return null;
+    }
+
+    private CachedMetaData loadCachedMetadata(final ModuleComponentAtRepositoryKey key) {
         final PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache = getCache();
         return cacheLockingManager.useCache(new Factory<CachedMetaData>() {
             @Override

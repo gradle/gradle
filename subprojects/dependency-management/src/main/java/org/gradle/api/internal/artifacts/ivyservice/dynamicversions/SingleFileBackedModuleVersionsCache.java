@@ -69,13 +69,22 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
 
     public CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository repository, ModuleIdentifier moduleId) {
         ModuleKey key = createKey(repository, moduleId);
-        ModuleVersionsCacheEntry moduleVersionsCacheEntry = inMemoryCache.get(key);
-        if (moduleVersionsCacheEntry == null) {
-            moduleVersionsCacheEntry = getCache().get(key);
+
+        ModuleVersionsCacheEntry inMemoryEntry = inMemoryCache.get(key);
+        if (inMemoryEntry != null) {
+            return versionList(inMemoryEntry);
         }
-        if (moduleVersionsCacheEntry == null) {
-            return null;
+
+        ModuleVersionsCacheEntry cachedEntry = getCache().get(key);
+        if (cachedEntry != null) {
+            inMemoryCache.put(key, cachedEntry);
+            return versionList(cachedEntry);
         }
+
+        return null;
+    }
+
+    private CachedModuleVersionList versionList(ModuleVersionsCacheEntry moduleVersionsCacheEntry) {
         return new DefaultCachedModuleVersionList(moduleVersionsCacheEntry, timeProvider);
     }
 

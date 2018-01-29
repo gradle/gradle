@@ -71,14 +71,18 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
 
     public CachedArtifacts getCachedArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context) {
         ModuleArtifactsKey key = new ModuleArtifactsKey(repository.getId(), componentId, context);
-        ModuleArtifactsCacheEntry entry = inMemoryCache.get(key);
-        if (entry == null) {
-            entry = getCache().get(key);
+        ModuleArtifactsCacheEntry inMemoryEntry = inMemoryCache.get(key);
+        if (inMemoryEntry != null) {
+            return createCacheArtifacts(inMemoryEntry);
         }
-        if (entry == null) {
-            return null;
+
+        ModuleArtifactsCacheEntry cachedEntry = getCache().get(key);
+        if (cachedEntry != null) {
+            inMemoryCache.put(key, cachedEntry);
+            return createCacheArtifacts(cachedEntry);
         }
-        return createCacheArtifacts(entry);
+
+        return null;
     }
 
     private CachedArtifacts createCacheArtifacts(ModuleArtifactsCacheEntry entry) {

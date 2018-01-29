@@ -82,11 +82,18 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
 
     @Override
     public CachedArtifact lookup(ArtifactAtRepositoryKey key) {
-        CachedArtifact cachedArtifact = inMemoryCache.get(key);
-        if (cachedArtifact == null) {
-            cachedArtifact = super.lookup(key);
+        CachedArtifact inMemoryCachedArtifact = inMemoryCache.get(key);
+        if (inMemoryCachedArtifact != null) {
+            return inMemoryCachedArtifact;
         }
-        return cachedArtifact;
+
+        CachedArtifact cachedArtifact = super.lookup(key);
+        if (cachedArtifact != null) {
+            inMemoryCache.put(key, cachedArtifact);
+            return cachedArtifact;
+        }
+
+        return null;
     }
 
     @Override
