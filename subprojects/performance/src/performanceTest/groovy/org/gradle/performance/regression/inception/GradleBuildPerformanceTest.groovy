@@ -29,7 +29,6 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -48,7 +47,6 @@ import spock.lang.Unroll
  * - be careful when rebasing/squashing/merging
  */
 @Category(PerformanceRegressionTest)
-@Ignore("Ignore till PR https://github.com/gradle/gradle/pull/4138 is merged to master")
 class GradleBuildPerformanceTest extends Specification {
 
     @Rule
