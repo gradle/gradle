@@ -73,75 +73,108 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        GenerateSwiftPackageManagerManifest manifestTask = project.getTasks().create("generateSwiftPmManifest", GenerateSwiftPackageManagerManifest.class);
+        final GenerateSwiftPackageManagerManifest manifestTask = project.getTasks().create("generateSwiftPmManifest", GenerateSwiftPackageManagerManifest.class);
         manifestTask.getManifestFile().set(project.getLayout().getProjectDirectory().file("Package.swift"));
 
-        Provider<Package> products = project.getProviders().provider(new Callable<Package>() {
+        // Defer attaching the model until all components have been (most likely) configured
+        // TODO - make this relationship explicit to make this more reliable and offer better diagnostics
+        project.afterEvaluate(new Action<Project>() {
             @Override
-            public Package call() {
-                Set<AbstractProduct> products = new LinkedHashSet<AbstractProduct>();
-                List<Dependency> dependencies = new ArrayList<Dependency>();
-                for (Project p : project.getAllprojects()) {
-                    for (CppApplication application : p.getComponents().withType(CppApplication.class)) {
-                        DefaultExecutableProduct product = new DefaultExecutableProduct(p.getName(), application.getBaseName().get(), p.getProjectDir(), application.getCppSource());
-                        collectDependencies(application.getImplementationDependencies(), dependencies, product);
-                        // TODO - set header dir for applications
-                        products.add(product);
-                    }
-                    for (CppLibrary library : p.getComponents().withType(CppLibrary.class)) {
-                        DefaultLibraryProduct product = new DefaultLibraryProduct(p.getName(), library.getBaseName().get(), p.getProjectDir(), library.getCppSource());
-                        collectDependencies(library.getImplementationDependencies(), dependencies, product);
-                        Set<File> headerDirs = library.getPublicHeaderDirs().getFiles();
-                        if (!headerDirs.isEmpty()) {
-                            // TODO - deal with more than one directory
-                            product.setPublicHeaderDir(headerDirs.iterator().next());
-                        }
-                        // TODO - linkage
-                        products.add(product);
-                    }
-                    for (SwiftApplication application : p.getComponents().withType(SwiftApplication.class)) {
-                        DefaultExecutableProduct product = new DefaultExecutableProduct(p.getName(), application.getModule().get(), p.getProjectDir(), application.getSwiftSource());
-                        collectDependencies(application.getImplementationDependencies(), dependencies, product);
-                        products.add(product);
-                    }
-                    for (SwiftLibrary library : p.getComponents().withType(SwiftLibrary.class)) {
-                        DefaultLibraryProduct product = new DefaultLibraryProduct(p.getName(), library.getModule().get(), p.getProjectDir(), library.getSwiftSource());
-                        collectDependencies(library.getImplementationDependencies(), dependencies, product);
-                        // TODO - linkage
-                        products.add(product);
-                    }
-                }
-                return new DefaultPackage(products, dependencies);
+            public void execute(Project project) {
+                Provider<Package> products = project.getProviders().provider(new MemoizingCallable(new PackageFactory(project)));
+                manifestTask.getPackage().set(products);
             }
         });
-        manifestTask.getPackage().set(products);
     }
 
-    private void collectDependencies(Configuration configuration, Collection<Dependency> dependencies, AbstractProduct product) {
-        // TODO - should use publication service to do this lookup, deal with ambiguous reference and caching of the mappings
-        Action<VcsMapping> mappingRule = vcsMappingsStore.getVcsMappingRule();
-        for (org.gradle.api.artifacts.Dependency dependency : configuration.getAllDependencies()) {
-            if (dependency instanceof ProjectDependency) {
-                ProjectDependency projectDependency = (ProjectDependency) dependency;
-                for (SwiftLibrary library : projectDependency.getDependencyProject().getComponents().withType(SwiftLibrary.class)) {
-                    product.getRequiredTargets().add(library.getModule().get());
+    private static class MemoizingCallable implements Callable<Package> {
+        private Package result;
+        private Callable<Package> delegate;
+
+        MemoizingCallable(Callable<Package> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Package call() throws Exception {
+            if (result == null) {
+                result = delegate.call();
+                delegate = null;
+            }
+            return result;
+        }
+    }
+
+    private class PackageFactory implements Callable<Package> {
+        private final Project project;
+
+        PackageFactory(Project project) {
+            this.project = project;
+        }
+
+        @Override
+        public Package call() {
+            Set<AbstractProduct> products = new LinkedHashSet<AbstractProduct>();
+            List<Dependency> dependencies = new ArrayList<Dependency>();
+            for (Project p : project.getAllprojects()) {
+                for (CppApplication application : p.getComponents().withType(CppApplication.class)) {
+                    DefaultExecutableProduct product = new DefaultExecutableProduct(p.getName(), application.getBaseName().get(), p.getProjectDir(), application.getCppSource());
+                    collectDependencies(application.getImplementationDependencies(), dependencies, product);
+                    // TODO - set header dir for applications
+                    products.add(product);
                 }
-                for (CppLibrary library : projectDependency.getDependencyProject().getComponents().withType(CppComponent.class).withType(CppLibrary.class)) {
-                    product.getRequiredTargets().add(library.getBaseName().get());
+                for (CppLibrary library : p.getComponents().withType(CppLibrary.class)) {
+                    DefaultLibraryProduct product = new DefaultLibraryProduct(p.getName(), library.getBaseName().get(), p.getProjectDir(), library.getCppSource());
+                    collectDependencies(library.getImplementationDependencies(), dependencies, product);
+                    Set<File> headerDirs = library.getPublicHeaderDirs().getFiles();
+                    if (!headerDirs.isEmpty()) {
+                        // TODO - deal with more than one directory
+                        product.setPublicHeaderDir(headerDirs.iterator().next());
+                    }
+                    // TODO - linkage
+                    products.add(product);
                 }
-            } else if (dependency instanceof ExternalModuleDependency) {
-                ExternalModuleDependency externalDependency = (ExternalModuleDependency) dependency;
-                VcsMappingInternal mapping = vcsMappingFactory.create(DefaultModuleComponentSelector.newSelector(externalDependency));
-                mappingRule.execute(mapping);
-                VersionControlSpec vcsSpec = mapping.getRepository();
-                if (vcsSpec == null || !(vcsSpec instanceof GitVersionControlSpec)) {
-                    continue;
+                for (SwiftApplication application : p.getComponents().withType(SwiftApplication.class)) {
+                    DefaultExecutableProduct product = new DefaultExecutableProduct(p.getName(), application.getModule().get(), p.getProjectDir(), application.getSwiftSource());
+                    collectDependencies(application.getImplementationDependencies(), dependencies, product);
+                    products.add(product);
                 }
-                // TODO - need to map version selector to Swift PM selector
-                String versionSelector = externalDependency.getVersion();
-                GitVersionControlSpec gitSpec = (GitVersionControlSpec) vcsSpec;
-                dependencies.add(new Dependency(gitSpec.getUrl(), versionSelector));
-                product.getRequiredProducts().add(externalDependency.getName());
+                for (SwiftLibrary library : p.getComponents().withType(SwiftLibrary.class)) {
+                    DefaultLibraryProduct product = new DefaultLibraryProduct(p.getName(), library.getModule().get(), p.getProjectDir(), library.getSwiftSource());
+                    collectDependencies(library.getImplementationDependencies(), dependencies, product);
+                    // TODO - linkage
+                    products.add(product);
+                }
+            }
+            return new DefaultPackage(products, dependencies);
+        }
+
+        private void collectDependencies(Configuration configuration, Collection<Dependency> dependencies, AbstractProduct product) {
+            // TODO - should use publication service to do this lookup, deal with ambiguous reference and caching of the mappings
+            Action<VcsMapping> mappingRule = vcsMappingsStore.getVcsMappingRule();
+            for (org.gradle.api.artifacts.Dependency dependency : configuration.getAllDependencies()) {
+                if (dependency instanceof ProjectDependency) {
+                    ProjectDependency projectDependency = (ProjectDependency) dependency;
+                    for (SwiftLibrary library : projectDependency.getDependencyProject().getComponents().withType(SwiftLibrary.class)) {
+                        product.getRequiredTargets().add(library.getModule().get());
+                    }
+                    for (CppLibrary library : projectDependency.getDependencyProject().getComponents().withType(CppComponent.class).withType(CppLibrary.class)) {
+                        product.getRequiredTargets().add(library.getBaseName().get());
+                    }
+                } else if (dependency instanceof ExternalModuleDependency) {
+                    ExternalModuleDependency externalDependency = (ExternalModuleDependency) dependency;
+                    VcsMappingInternal mapping = vcsMappingFactory.create(DefaultModuleComponentSelector.newSelector(externalDependency));
+                    mappingRule.execute(mapping);
+                    VersionControlSpec vcsSpec = mapping.getRepository();
+                    if (vcsSpec == null || !(vcsSpec instanceof GitVersionControlSpec)) {
+                        continue;
+                    }
+                    // TODO - need to map version selector to Swift PM selector
+                    String versionSelector = externalDependency.getVersion();
+                    GitVersionControlSpec gitSpec = (GitVersionControlSpec) vcsSpec;
+                    dependencies.add(new Dependency(gitSpec.getUrl(), versionSelector));
+                    product.getRequiredProducts().add(externalDependency.getName());
+                }
             }
         }
     }

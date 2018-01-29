@@ -47,4 +47,78 @@ let package = Package(
 """
         swiftPmBuildSucceeds()
     }
+
+    def "can configure the location of the generated manifest file"() {
+        given:
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+                id 'swift-library'
+            }
+            tasks.generateSwiftPmManifest.manifestFile = file('generated/thing.swift')
+"""
+
+        when:
+        run("generateSwiftPmManifest")
+
+        then:
+        file("generated/thing.swift").assertIsFile()
+        file("Package.swift").assertDoesNotExist()
+    }
+
+    def "can exclude certain products from the generated file"() {
+        given:
+        settingsFile << "include 'lib1', 'lib2', 'app'"
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+            }
+            
+            afterEvaluate {
+                generateSwiftPmManifest.package.get().products.removeAll { p -> p.name == 'app' }
+            }
+            
+            project(':lib1') { apply plugin: 'swift-library' }
+            project(':lib2') { apply plugin: 'swift-library' }
+            project(':app') { 
+                apply plugin: 'swift-application' 
+                dependencies {
+                    implementation project(':lib1')
+                }
+            }
+"""
+
+        when:
+        run("generateSwiftPmManifest")
+
+        then:
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+        .library(name: "lib1", targets: ["Lib1"]),
+        .library(name: "lib2", targets: ["Lib2"]),
+    ],
+    targets: [
+        .target(
+            name: "Lib1",
+            path: "lib1",
+            sources: [
+            ]
+        ),
+        .target(
+            name: "Lib2",
+            path: "lib2",
+            sources: [
+            ]
+        ),
+    ]
+)
+"""
+    }
 }
