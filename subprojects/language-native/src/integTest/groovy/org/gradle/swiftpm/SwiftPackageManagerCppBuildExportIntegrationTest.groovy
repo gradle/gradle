@@ -143,4 +143,92 @@ let package = Package(
 """
         swiftPmBuildSucceeds()
     }
+
+    def "honors customization of component basename"() {
+        given:
+        settingsFile << "include 'lib1', 'lib2'"
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+                id 'cpp-application' 
+            }
+            subprojects {
+                apply plugin: 'cpp-library'
+            }
+            dependencies {
+                implementation project(':lib1')
+            }
+            project(':lib1') {
+                library {
+                    baseName = 'hello'
+                    dependencies {
+                        implementation project(':lib2')
+                    }
+                }
+            }
+            project('lib2') {
+                library {
+                    baseName = 'log'
+                }
+            }
+"""
+        def app = new CppAppWithLibraries()
+        app.main.writeToProject(testDirectory)
+        app.greeterLib.sources.writeToProject(file("lib1"))
+        app.greeterLib.publicHeaders.writeToProject(file("lib1"))
+        app.greeterLib.privateHeaders.writeToSourceDir(file("lib1/src/main/cpp"))
+        app.loggerLib.writeToProject(file("lib2"))
+
+        when:
+        run("generateSwiftPmManifest")
+
+        then:
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+        .executable(name: "test", targets: ["test"]),
+        .library(name: "lib1", targets: ["hello"]),
+        .library(name: "lib2", targets: ["log"]),
+    ],
+    targets: [
+        .target(
+            name: "test",
+            dependencies: [
+                .target(name: "hello"),
+            ],
+            path: ".",
+            sources: [
+                "src/main/cpp/main.cpp",
+            ]
+        ),
+        .target(
+            name: "hello",
+            dependencies: [
+                .target(name: "log"),
+            ],
+            path: "lib1",
+            sources: [
+                "src/main/cpp/greeter.cpp",
+            ],
+            publicHeadersPath: "src/main/public"
+        ),
+        .target(
+            name: "log",
+            path: "lib2",
+            sources: [
+                "src/main/cpp/logger.cpp",
+            ],
+            publicHeadersPath: "src/main/public"
+        ),
+    ]
+)
+"""
+        swiftPmBuildSucceeds()
+    }
 }

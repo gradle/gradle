@@ -140,6 +140,90 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
+    def "honors customizations to Swift module name"() {
+        given:
+        settingsFile << "include 'lib1', 'lib2'"
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+                id 'swift-application' 
+            }
+            subprojects {
+                apply plugin: 'swift-library'
+            }
+            dependencies {
+                implementation project(':lib1')
+            }
+            project(':lib1') {
+                library {
+                    module = 'Hello'
+                    dependencies {
+                        implementation project(':lib2')
+                    }
+                }
+            }
+            project(':lib2') {
+                library {
+                    module = 'Log'
+                }
+            }
+"""
+        def app = new SwiftAppWithLibraries()
+        app.application.writeToProject(testDirectory)
+        app.library.writeToProject(file("lib1"))
+        app.logLibrary.writeToProject(file("lib2"))
+
+        when:
+        run("generateSwiftPmManifest")
+
+        then:
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+        .executable(name: "test", targets: ["Test"]),
+        .library(name: "lib1", targets: ["Hello"]),
+        .library(name: "lib2", targets: ["Log"]),
+    ],
+    targets: [
+        .target(
+            name: "Test",
+            dependencies: [
+                .target(name: "Hello"),
+            ],
+            path: ".",
+            sources: [
+                "src/main/swift/main.swift",
+            ]
+        ),
+        .target(
+            name: "Hello",
+            dependencies: [
+                .target(name: "Log"),
+            ],
+            path: "lib1",
+            sources: [
+                "src/main/swift/greeter.swift",
+            ]
+        ),
+        .target(
+            name: "Log",
+            path: "lib2",
+            sources: [
+                "src/main/swift/log.swift",
+            ]
+        ),
+    ]
+)
+"""
+        swiftPmBuildSucceeds()
+    }
+
     def "produces manifest for Swift component with source dependencies"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repos/lib1"))
