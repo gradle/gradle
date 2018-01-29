@@ -195,7 +195,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 return sourceSet.getCompileClasspath();
             }
         });
-
+        SourceSetUtil.configureAnnotationProcessorPath(sourceSet, compileTask.getOptions(), target);
         SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, compileTask, target);
     }
 
@@ -250,6 +250,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         String runtimeOnlyConfigurationName = sourceSet.getRuntimeOnlyConfigurationName();
         String compileOnlyConfigurationName = sourceSet.getCompileOnlyConfigurationName();
         String compileClasspathConfigurationName = sourceSet.getCompileClasspathConfigurationName();
+        String annotationProcessorConfigurationName = sourceSet.getAnnotationProcessorConfigurationName();
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
@@ -280,6 +281,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.setCanBeConsumed(false);
         compileClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
 
+        Configuration annotationProcessorConfiguration = configurations.maybeCreate(annotationProcessorConfigurationName);
+        annotationProcessorConfiguration.setVisible(false);
+        annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
+        annotationProcessorConfiguration.setCanBeConsumed(false);
+        annotationProcessorConfiguration.setCanBeResolved(true);
+
         Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setVisible(false);
         runtimeOnlyConfiguration.setCanBeConsumed(false);
@@ -296,7 +303,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
-
+        sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
     }
 
     @Deprecated

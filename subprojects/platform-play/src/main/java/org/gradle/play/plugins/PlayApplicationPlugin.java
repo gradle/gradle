@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -254,7 +255,9 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             tasks.withType(PlatformScalaCompile.class).afterEach(new Action<PlatformScalaCompile>() {
                 @Override
                 public void execute(PlatformScalaCompile scalaCompile) {
-                    scalaCompile.setClasspath(((PlayApplicationBinarySpecInternal) binary).getClasspath());
+                    FileCollection classpath = ((PlayApplicationBinarySpecInternal) binary).getClasspath();
+                    scalaCompile.setClasspath(classpath);
+                    scalaCompile.getOptions().setAnnotationProcessorPath(classpath);
                 }
             });
         }

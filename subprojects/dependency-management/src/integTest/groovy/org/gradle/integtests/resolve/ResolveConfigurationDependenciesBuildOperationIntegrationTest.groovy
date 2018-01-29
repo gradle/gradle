@@ -330,6 +330,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             dependencies {
                 compile 'org.foo:app-dep:1.0'
             }
+            
+            tasks.withType(JavaCompile) {
+                options.annotationProcessorPath = files()
+            }
         """
         file("my-composite-app/settings.gradle") << "rootProject.name = 'my-composite-app'"
 
