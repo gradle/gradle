@@ -227,16 +227,12 @@ public class AvailableToolChains {
 
         List<File> swiftcCandidates = OperatingSystem.current().findAllInPath("swiftc");
         if (!swiftcCandidates.isEmpty()) {
-            File firstInPath = swiftcCandidates.iterator().next();
             for (File candidate : swiftcCandidates) {
                 SwiftcMetadata version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
                 if (version.isAvailable()) {
                     File binDir = candidate.getParentFile();
                     InstalledSwiftc swiftc = new InstalledSwiftc(binDir, version.getVersion());
-                    if (!candidate.equals(firstInPath)) {
-                        // Not the first swiftc in the path, needs the path variable updated
-                        swiftc.inPath(binDir);
-                    }
+                    swiftc.inPath(binDir, new File("/usr/bin"));
                     toolChains.add(swiftc);
                 }
             }
