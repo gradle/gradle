@@ -54,7 +54,7 @@ public class SortedMapDiffUtil {
                         break;
                     }
                 } else {
-                    diffListener.maybeChanged(previousProperty, previousEntry.getValue(), currentEntry.getValue());
+                    diffListener.updated(previousProperty, previousEntry.getValue(), currentEntry.getValue());
                     if (previousEntries.hasNext() && currentEntries.hasNext()) {
                         previousEntry = previousEntries.next();
                         currentEntry = currentEntries.next();

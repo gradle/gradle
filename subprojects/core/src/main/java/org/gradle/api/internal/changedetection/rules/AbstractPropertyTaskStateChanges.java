@@ -54,7 +54,7 @@ public abstract class AbstractPropertyTaskStateChanges<V> extends SimpleTaskStat
             }
 
             @Override
-            public void maybeChanged(String property, V previous, V current) {
+            public void updated(String property, V previous, V current) {
                 // Ignore
             }
         });

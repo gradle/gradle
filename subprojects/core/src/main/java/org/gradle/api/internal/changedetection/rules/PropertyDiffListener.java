@@ -21,5 +21,5 @@ public interface PropertyDiffListener<K, V> {
 
     void added(K currentProperty);
 
-    void maybeChanged(K property, V previous, V current);
+    void updated(K property, V previous, V current);
 }

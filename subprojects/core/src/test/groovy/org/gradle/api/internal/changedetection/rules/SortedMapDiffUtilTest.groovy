@@ -18,27 +18,34 @@ package org.gradle.api.internal.changedetection.rules
 
 import com.google.common.collect.ImmutableSortedMap
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class SortedMapDiffUtilTest extends Specification {
 
-    def "property changes are detected"() {
+    @Unroll
+    def "diff #previous and #current"() {
         expect:
-        diff(['a', 'b', 'c'], ['b', 'c', 'd']) == [added: ['d'], removed: ['a'], same: ['b', 'c']]
-        diff(['a'], ['a']) == [added: [], removed: [], same: ['a']]
-        diff(['a'], []) == [added: [], removed: ['a'], same: []]
-        diff([], ['b']) == [added: ['b'], removed: [], same: []]
-        diff(['a'], ['b']) == [added: ['b'], removed: ['a'], same: []]
-        diff(['b'], ['a']) == [added: ['a'], removed: ['b'], same: []]
-        diff(['a', 'b', 'd'], ['c', 'e', 'f', 'g']) == [added: ['c', 'e', 'f', 'g'], removed: ['a', 'b', 'd'], same: []]
-        diff(['a', 'b', 'd', 'e'], ['c', 'e', 'f', 'g']) == [added: ['c', 'f', 'g'], removed: ['a', 'b', 'd'], same: ['e']]
-        diff(['c', 'e', 'f', 'g'], ['a', 'b', 'd']) == [added: ['a', 'b', 'd'], removed: ['c', 'e', 'f', 'g'], same: []]
+        diff(previous, current) == [removed: removed, updated: updated, added: added]
+
+        where:
+        previous             | current              | removed              | updated    | added
+        ['a', 'b', 'c']      | ['b', 'c', 'd']      | ['a']                | ['b', 'c'] | ['d']
+        ['a']                | ['a']                | []                   | ['a']      | []
+        ['a']                | []                   | ['a']                | []         | []
+        []                   | ['b']                | []                   | []         | ['b']
+        ['b']                | ['a']                | ['b']                | []         | ['a']
+        ['a']                | ['b']                | ['a']                | []         | ['b']
+        ['a', 'b', 'd']      | ['c', 'e', 'f', 'g'] | ['a', 'b', 'd']      | []         | ['c', 'e', 'f', 'g']
+        ['a', 'b', 'd', 'e'] | ['c', 'e', 'f', 'g'] | ['a', 'b', 'd']      | ['e']      | ['c', 'f', 'g']
+        ['c', 'e', 'f', 'g'] | ['a', 'b', 'd']      | ['c', 'e', 'f', 'g'] | []         | ['a', 'b', 'd']
+
     }
 
     private static Map diff(List<String> previous, List<String> current) {
         SortedMap<String, String> previousMap = ImmutableSortedMap.copyOf(previous.collectEntries { [(it): 'previous' + it] })
         SortedMap<String, String> currentMap = ImmutableSortedMap.copyOf(current.collectEntries { [(it): 'current' + it] })
 
-        Map result = [added: [], removed: [], same: []]
+        Map result = [added: [], removed: [], updated: []]
         SortedMapDiffUtil.diff(previousMap, currentMap, new PropertyDiffListener<String, String>() {
             @Override
             void removed(String previousProperty) {
@@ -51,8 +58,8 @@ class SortedMapDiffUtilTest extends Specification {
             }
 
             @Override
-            void maybeChanged(String property, String previousValue, String currentValue) {
-                result.same.add(property)
+            void updated(String property, String previousValue, String currentValue) {
+                result.updated.add(property)
             }
         })
         return result

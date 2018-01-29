@@ -49,7 +49,7 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
     protected abstract ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution);
 
     protected Iterator<TaskStateChange> getFileChanges(final boolean includeAdded) {
-        final List<Iterator<TaskStateChange>> changes = new ArrayList<Iterator<TaskStateChange>>();
+        final List<Iterator<TaskStateChange>> iterators = new ArrayList<Iterator<TaskStateChange>>();
         SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionSnapshot>() {
             @Override
             public void removed(String previousProperty) {
@@ -60,12 +60,12 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
             }
 
             @Override
-            public void maybeChanged(String property, FileCollectionSnapshot previousSnapshot, FileCollectionSnapshot currentSnapshot) {
+            public void updated(String property, FileCollectionSnapshot previousSnapshot, FileCollectionSnapshot currentSnapshot) {
                 String propertyTitle = title + " property '" + property + "'";
-                changes.add(currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle, includeAdded));
+                iterators.add(currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle, includeAdded));
             }
         });
 
-        return Iterators.concat(changes.iterator());
+        return Iterators.concat(iterators.iterator());
     }
 }
