@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
@@ -28,6 +29,7 @@ import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
@@ -48,6 +50,9 @@ public class JUnitPlatformTestFramework implements TestFramework {
 
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
+        if (!JavaVersion.current().isJava8Compatible()) {
+            throw new UnsupportedJavaRuntimeException("Running JUnit platform requires Java 8+, please configure your test java executable with Java 8 or higher.");
+        }
         return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(filter.getIncludePatterns(), filter.getCommandLineIncludePatterns()));
     }
 
