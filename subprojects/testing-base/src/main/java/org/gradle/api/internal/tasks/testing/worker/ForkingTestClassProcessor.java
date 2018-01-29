@@ -140,4 +140,11 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             }
         }
     }
+
+    @Override
+    public void stopNow() {
+        if (remoteProcessor != null) {
+            workerProcess.stopNow();
+        }
+    }
 }

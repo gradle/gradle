@@ -58,6 +58,13 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
         }
     }
 
+    @Override
+    public void stopNow() {
+        if (processor != null) {
+            processor.stopNow();
+        }
+    }
+
     private void endBatch() {
         try {
             processor.stop();

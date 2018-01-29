@@ -64,6 +64,15 @@ public class DefaultWorkerProcess implements WorkerProcess {
         }
     }
 
+    @Override
+    public void stopNow() {
+        try {
+            execHandle.abort();
+        } finally {
+            cleanup();
+        }
+    }
+
     public void setExecHandle(ExecHandle execHandle) {
         this.execHandle = execHandle;
         execHandle.addListener(new ExecHandleListener() {

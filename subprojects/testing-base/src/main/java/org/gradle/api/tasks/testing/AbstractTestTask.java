@@ -106,6 +106,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final DirectoryProperty binaryResultsDirectory;
     private TestReporter testReporter;
     private boolean ignoreFailures;
+    private boolean failFast;
 
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
@@ -458,6 +459,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         TestExecuter testExecuter = createTestExecuter();
 
+        if (failFast) {
+            addTestListener(new FailFastTestListener(testExecuter));
+        }
+
         try {
             testExecuter.execute(createTestExecutionSpec(), resultProcessor);
         } finally {
@@ -541,6 +546,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @Incubating
     public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
         filter.setCommandLineIncludePatterns(testNamePattern);
+        return this;
+    }
+
+    @Option(option = "fail-fast", description = "Stops test execution after the first failed test")
+    public AbstractTestTask setFailFast(boolean failFast) {
+        this.failFast = failFast;
         return this;
     }
 

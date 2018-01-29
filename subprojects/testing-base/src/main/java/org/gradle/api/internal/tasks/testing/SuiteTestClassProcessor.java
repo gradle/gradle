@@ -66,4 +66,10 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
             resultProcessor.completed(suiteDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }
     }
+
+    @Override
+    public void stopNow() {
+        // TODO(adamb): do nothing?  This method should *never* be called?
+        processor.stopNow();
+    }
 }

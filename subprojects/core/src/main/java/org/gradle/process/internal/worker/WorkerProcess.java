@@ -35,4 +35,6 @@ public interface WorkerProcess {
     ExecResult waitForStop();
 
     JvmMemoryStatus getJvmMemoryStatus();
+
+    void stopNow();
 }

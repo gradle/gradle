@@ -28,6 +28,7 @@ import org.gradle.internal.dispatch.DispatchException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Manages a set of parallel TestClassProcessors. Uses a simple round-robin algorithm to assign test classes to
@@ -37,6 +38,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     private final int maxProcessors;
     private final Factory<TestClassProcessor> factory;
     private final ActorFactory actorFactory;
+    private final ReentrantLock processorsLock = new ReentrantLock();
     private TestResultProcessor resultProcessor;
     private int pos;
     private List<TestClassProcessor> processors = new ArrayList<TestClassProcessor>();
@@ -64,7 +66,12 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
             Actor actor = actorFactory.createActor(processor);
             processor = actor.getProxy(TestClassProcessor.class);
             actors.add(actor);
-            processors.add(processor);
+            processorsLock.lock();
+            try {
+                processors.add(processor);
+            } finally {
+                processorsLock.unlock();
+            }
             processor.startProcessing(resultProcessor);
         } else {
             processor = processors.get(pos);
@@ -76,9 +83,29 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     @Override
     public void stop() {
         try {
-            CompositeStoppable.stoppable(processors).add(actors).add(resultProcessorActor).stop();
+            CompositeStoppable stoppable;
+            processorsLock.lock();
+            try {
+                stoppable = CompositeStoppable.stoppable(processors);
+                processors.clear();
+            } finally {
+                processorsLock.unlock();
+            }
+            stoppable.add(actors).add(resultProcessorActor).stop();
         } catch (DispatchException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
+        }
+    }
+
+    @Override
+    public void stopNow() {
+        processorsLock.lock();
+        try {
+            for (TestClassProcessor processor : processors) {
+                processor.stopNow();
+            }
+        } finally {
+            processorsLock.unlock();
         }
     }
 }

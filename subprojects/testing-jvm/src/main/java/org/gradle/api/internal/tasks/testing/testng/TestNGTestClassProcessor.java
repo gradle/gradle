@@ -91,6 +91,11 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         }
     }
 
+    @Override
+    public void stopNow() {
+        // TODO(adamb): do nothing?  This method should *never* be called?
+    }
+
     private void runTests() {
         TestNG testNg = new TestNG();
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());

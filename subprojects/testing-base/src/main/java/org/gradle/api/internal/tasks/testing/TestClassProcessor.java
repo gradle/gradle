@@ -44,4 +44,6 @@ public interface TestClassProcessor extends Stoppable {
      */
     @Override
     void stop();
+
+    void stopNow();
 }
