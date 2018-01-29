@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,22 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.Iterators;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 
-import java.util.Iterator;
+import java.util.SortedMap;
 
 @NonNullApi
-public class PreviousSuccessTaskStateChanges implements TaskStateChanges {
-    private static final TaskStateChange PREVIOUS_FAILURE = new DescriptiveChange("Task has failed previously.");
-    private final TaskExecution previousExecution;
+public class InputPropertyTaskStateChanges extends AbstractPropertyTaskStateChanges<ValueSnapshot> {
 
-    public PreviousSuccessTaskStateChanges(TaskExecution previousExecution) {
-        this.previousExecution = previousExecution;
+    public InputPropertyTaskStateChanges(TaskExecution previous, TaskExecution current, Task task) {
+        super(previous, current, "Input", task);
     }
 
     @Override
-    public Iterator<TaskStateChange> iterator() {
-        if (previousExecution.isSuccessful()) {
-            return Iterators.emptyIterator();
-        } else {
-            return Iterators.singletonIterator(PREVIOUS_FAILURE);
-        }
+    protected SortedMap<String, ValueSnapshot> getProperties(TaskExecution execution) {
+        return execution.getInputProperties();
     }
 }

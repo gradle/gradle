@@ -21,32 +21,24 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class InputPropertiesTaskStateChanges extends SimpleTaskStateChanges {
+class InputPropertyValueTaskStateChanges extends SimpleTaskStateChanges {
     private final TaskInternal task;
-    private final Set<String> removed;
     private final Set<String> changed;
-    private final Set<String> added;
 
-    public InputPropertiesTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
-        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : previousExecution.getInputProperties();
-        removed = new HashSet<String>(previousInputProperties.keySet());
+    public InputPropertyValueTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
+        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecution.getInputProperties();
         changed = new HashSet<String>();
-        added = new HashSet<String>();
         ImmutableSortedMap<String, ValueSnapshot> currentInputProperties = currentExecution.getInputProperties();
         for (Map.Entry<String, ValueSnapshot> entry : currentInputProperties.entrySet()) {
             String propertyName = entry.getKey();
             ValueSnapshot currentSnapshot = entry.getValue();
-            removed.remove(propertyName);
             ValueSnapshot previousSnapshot = previousInputProperties.get(propertyName);
-            if (previousSnapshot == null) {
-                added.add(propertyName);
-            } else {
+            if (previousSnapshot != null) {
                 if (!currentSnapshot.equals(previousSnapshot)) {
                     changed.add(propertyName);
                 }
@@ -59,12 +51,6 @@ class InputPropertiesTaskStateChanges extends SimpleTaskStateChanges {
     protected void addAllChanges(final List<TaskStateChange> changes) {
         for (String propertyName : changed) {
             changes.add(new DescriptiveChange("Value of input property '%s' has changed for %s", propertyName, task));
-        }
-        for (String propertyName : added) {
-            changes.add(new DescriptiveChange("Input property '%s' has been added for %s", propertyName, task));
-        }
-        for (String propertyName : removed) {
-            changes.add(new DescriptiveChange("Input property '%s' has been removed for %s", propertyName, task));
         }
     }
 }

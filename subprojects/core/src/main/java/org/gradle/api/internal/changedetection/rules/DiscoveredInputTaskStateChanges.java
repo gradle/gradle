@@ -16,28 +16,25 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.Iterators;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import javax.annotation.Nullable;
 import java.util.Iterator;
 
-public class DiscoveredInputsTaskStateChanges implements TaskStateChanges {
+@NonNullApi
+public class DiscoveredInputTaskStateChanges implements TaskStateChanges {
     private final TaskExecution previous;
     private final TaskExecution current;
 
-    public DiscoveredInputsTaskStateChanges(@Nullable TaskExecution previous, TaskExecution current) {
+    public DiscoveredInputTaskStateChanges(TaskExecution previous, TaskExecution current) {
         this.previous = previous;
         this.current = current;
     }
 
     @Override
     public Iterator<TaskStateChange> iterator() {
-        FileCollectionSnapshot previousDiscoveredInputs = previous != null ? previous.getDiscoveredInputFilesSnapshot() : null;
-        if (previousDiscoveredInputs == null) {
-            return Iterators.<TaskStateChange>singletonIterator(new DescriptiveChange("Discovered input file history is not available."));
-        }
+        FileCollectionSnapshot previousDiscoveredInputs = previous.getDiscoveredInputFilesSnapshot();
         return current.getDiscoveredInputFilesSnapshot().iterateContentChangesSince(previousDiscoveredInputs, "discovered input", true);
     }
 }
