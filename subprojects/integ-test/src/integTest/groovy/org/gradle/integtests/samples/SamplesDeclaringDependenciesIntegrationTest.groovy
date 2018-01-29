@@ -43,6 +43,17 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
         sample.dir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
     }
 
+    @UsesSample("userguide/dependencies/declaringBinaryDependenciesWithoutVersion")
+    def "can use declare and resolve binary dependency without version"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        sample.dir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
+    }
+
     @UsesSample("userguide/dependencies/declaringBinaryDependenciesWithDynamicVersion")
     def "can use declare and resolve binary dependency with dynamic version"() {
         executer.inDirectory(sample.dir)
