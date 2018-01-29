@@ -31,6 +31,7 @@ import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftLibrary;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.swiftpm.Package;
 import org.gradle.swiftpm.internal.AbstractProduct;
@@ -120,6 +121,7 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
             Set<AbstractProduct> products = new LinkedHashSet<AbstractProduct>();
             List<DefaultTarget> targets = new ArrayList<DefaultTarget>();
             List<Dependency> dependencies = new ArrayList<Dependency>();
+            SwiftVersion swiftLanguageVersion = null;
             for (Project p : project.getAllprojects()) {
                 for (CppApplication application : p.getComponents().withType(CppApplication.class)) {
                     DefaultTarget target = new DefaultTarget(application.getBaseName().get(), p.getProjectDir(), application.getCppSource());
@@ -148,6 +150,7 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                 }
                 for (SwiftApplication application : p.getComponents().withType(SwiftApplication.class)) {
                     DefaultTarget target = new DefaultTarget(application.getModule().get(), p.getProjectDir(), application.getSwiftSource());
+                    swiftLanguageVersion = max(swiftLanguageVersion, application.getSourceCompatibility().getOrNull());
                     collectDependencies(application.getImplementationDependencies(), dependencies, target);
                     DefaultExecutableProduct product = new DefaultExecutableProduct(p.getName(), target);
                     products.add(product);
@@ -155,6 +158,7 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                 }
                 for (SwiftLibrary library : p.getComponents().withType(SwiftLibrary.class)) {
                     DefaultTarget target = new DefaultTarget(library.getModule().get(), p.getProjectDir(), library.getSwiftSource());
+                    swiftLanguageVersion = max(swiftLanguageVersion, library.getSourceCompatibility().getOrNull());
                     collectDependencies(library.getImplementationDependencies(), dependencies, target);
                     targets.add(target);
 
@@ -166,7 +170,20 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                     }
                 }
             }
-            return new DefaultPackage(products, targets, dependencies);
+            return new DefaultPackage(products, targets, dependencies, swiftLanguageVersion);
+        }
+
+        private SwiftVersion max(SwiftVersion v1, SwiftVersion v2) {
+            if (v1 == null) {
+                return v2;
+            }
+            if (v2 == null) {
+                return v1;
+            }
+            if (v1.compareTo(v2) > 0) {
+                return v1;
+            }
+            return v2;
         }
 
         private void collectDependencies(Configuration configuration, Collection<Dependency> dependencies, DefaultTarget target) {

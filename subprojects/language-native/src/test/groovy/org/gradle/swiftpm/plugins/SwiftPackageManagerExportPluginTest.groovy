@@ -16,6 +16,7 @@
 
 package org.gradle.swiftpm.plugins
 
+import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.Linkage
 import org.gradle.swiftpm.internal.DefaultExecutableProduct
 import org.gradle.swiftpm.internal.DefaultLibraryProduct
@@ -182,6 +183,66 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         products.name == ["lib1", "lib1Static"]
         products.target == [targets.first(), targets.first()]
         products.every { it instanceof DefaultLibraryProduct }
+    }
+
+    def "includes swift language version"() {
+        given:
+        def lib1Project = ProjectBuilder.builder().withName("lib1").withParent(project).build()
+
+        project.pluginManager.apply(SwiftPackageManagerExportPlugin)
+
+        lib1Project.pluginManager.apply("swift-application")
+        lib1Project.application.sourceCompatibility = SwiftVersion.SWIFT4
+
+        project.evaluate()
+
+        expect:
+        def generateManifest = project.tasks['generateSwiftPmManifest']
+        def pkg = generateManifest.package.get()
+        pkg.swiftLanguageVersion == SwiftVersion.SWIFT4
+    }
+
+    def "does not include a swift language version if not explicitly declared"() {
+        given:
+        def lib1Project = ProjectBuilder.builder().withName("lib1").withParent(project).build()
+        def lib2Project = ProjectBuilder.builder().withName("lib2").withParent(project).build()
+
+        project.pluginManager.apply(SwiftPackageManagerExportPlugin)
+
+        lib1Project.pluginManager.apply("swift-application")
+        lib2Project.pluginManager.apply("swift-library")
+
+        project.evaluate()
+
+        expect:
+        def generateManifest = project.tasks['generateSwiftPmManifest']
+        def pkg = generateManifest.package.get()
+        pkg.swiftLanguageVersion == null
+    }
+
+    def "uses max swift language version"() {
+        given:
+        def lib1Project = ProjectBuilder.builder().withName("lib1").withParent(project).build()
+        def lib2Project = ProjectBuilder.builder().withName("lib2").withParent(project).build()
+        def lib3Project = ProjectBuilder.builder().withName("lib3").withParent(project).build()
+
+        project.pluginManager.apply(SwiftPackageManagerExportPlugin)
+
+        project.pluginManager.apply("swift-application")
+        lib1Project.pluginManager.apply("swift-library")
+        lib2Project.pluginManager.apply("swift-library")
+        lib3Project.pluginManager.apply("swift-library")
+
+        project.application.sourceCompatibility = SwiftVersion.SWIFT3
+        lib1Project.library.sourceCompatibility = SwiftVersion.SWIFT4
+        lib2Project.library.sourceCompatibility = SwiftVersion.SWIFT3
+
+        project.evaluate()
+
+        expect:
+        def generateManifest = project.tasks['generateSwiftPmManifest']
+        def pkg = generateManifest.package.get()
+        pkg.swiftLanguageVersion == SwiftVersion.SWIFT4
     }
 
     def "ignores projects that do not define any C++ or Swift components"() {

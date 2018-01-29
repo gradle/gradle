@@ -186,6 +186,50 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
+    def "produces manifest for Swift component with declared Swift language version"() {
+        given:
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+                id 'swift-library'
+            }
+            library.sourceCompatibility = SwiftVersion.SWIFT3
+"""
+        def lib = new SwiftLib()
+        lib.writeToProject(testDirectory)
+
+        when:
+        run("generateSwiftPmManifest")
+
+        then:
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+        .library(name: "test", type: .dynamic, targets: ["Test"]),
+    ],
+    targets: [
+        .target(
+            name: "Test",
+            path: ".",
+            sources: [
+                "src/main/swift/greeter.swift",
+                "src/main/swift/multiply.swift",
+                "src/main/swift/sum.swift",
+            ]
+        ),
+    ],
+    swiftLanguageVersions: [3]
+)
+"""
+        swiftPmBuildSucceeds()
+    }
+
     def "honors customizations to Swift module name"() {
         given:
         settingsFile << "include 'lib1', 'lib2'"
