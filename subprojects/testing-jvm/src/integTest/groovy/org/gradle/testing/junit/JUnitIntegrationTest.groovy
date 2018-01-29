@@ -109,23 +109,23 @@ class JUnitIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted(
-            'org.gradle.ClassWithBrokenRunner',
-            'org.gradle.CustomException',
-            'org.gradle.BrokenTest',
-            'org.gradle.BrokenBefore',
-            'org.gradle.BrokenAfter',
-            'org.gradle.BrokenBeforeClass',
-            'org.gradle.BrokenAfterClass',
-            'org.gradle.BrokenBeforeAndAfter',
-            'org.gradle.BrokenConstructor',
-            'org.gradle.BrokenException',
-            'org.gradle.Unloadable',
-            'org.gradle.UnserializableException')
+                'org.gradle.ClassWithBrokenRunner',
+                'org.gradle.CustomException',
+                'org.gradle.BrokenTest',
+                'org.gradle.BrokenBefore',
+                'org.gradle.BrokenAfter',
+                'org.gradle.BrokenBeforeClass',
+                'org.gradle.BrokenAfterClass',
+                'org.gradle.BrokenBeforeAndAfter',
+                'org.gradle.BrokenConstructor',
+                'org.gradle.BrokenException',
+                'org.gradle.Unloadable',
+                'org.gradle.UnserializableException')
         result.testClass('org.gradle.ClassWithBrokenRunner').assertTestFailed('initializationError', equalTo('java.lang.UnsupportedOperationException: broken'))
         result.testClass('org.gradle.BrokenTest')
-            .assertTestCount(2, 2, 0)
-            .assertTestFailed('failure', equalTo('java.lang.AssertionError: failed'))
-            .assertTestFailed('broken', equalTo('java.lang.IllegalStateException: html: <> cdata: ]]>'))
+                .assertTestCount(2, 2, 0)
+                .assertTestFailed('failure', equalTo('java.lang.AssertionError: failed'))
+                .assertTestFailed('broken', equalTo('java.lang.IllegalStateException: html: <> cdata: ]]>'))
         result.testClass('org.gradle.BrokenBeforeClass').assertTestFailed('classMethod', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenAfterClass').assertTestFailed('classMethod', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
@@ -258,26 +258,26 @@ class JUnitIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
     def runsAllTestsInTheSameForkedJvm() {
         given:
         testDirectory.file('build.gradle').writelns(
-            "apply plugin: 'java'",
-            mavenCentralRepository(),
-            "dependencies { compile 'junit:junit:4.12' }"
+                "apply plugin: 'java'",
+                mavenCentralRepository(),
+                "dependencies { compile 'junit:junit:4.12' }"
         )
         testDirectory.file('src/test/java/org/gradle/AbstractTest.java').writelns(
-            "package org.gradle;",
-            "public abstract class AbstractTest {",
-            "    @org.junit.Test public void ok() {",
-            "        long time = java.lang.management.ManagementFactory.getRuntimeMXBean().getStartTime();",
-            "        System.out.println(String.format(\"VM START TIME = %s\", time));",
-            "    }",
-            "}")
+                "package org.gradle;",
+                "public abstract class AbstractTest {",
+                "    @org.junit.Test public void ok() {",
+                "        long time = java.lang.management.ManagementFactory.getRuntimeMXBean().getStartTime();",
+                "        System.out.println(String.format(\"VM START TIME = %s\", time));",
+                "    }",
+                "}")
         testDirectory.file('src/test/java/org/gradle/SomeTest.java').writelns(
-            "package org.gradle;",
-            "public class SomeTest extends AbstractTest {",
-            "}")
+                "package org.gradle;",
+                "public class SomeTest extends AbstractTest {",
+                "}")
         testDirectory.file('src/test/java/org/gradle/SomeTest2.java').writelns(
-            "package org.gradle;",
-            "public class SomeTest2 extends AbstractTest {",
-            "}")
+                "package org.gradle;",
+                "public class SomeTest2 extends AbstractTest {",
+                "}")
 
         when:
         executer.withTasks('test').run()
@@ -293,27 +293,27 @@ class JUnitIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
     def canSpecifyMaximumNumberOfTestClassesToExecuteInAForkedJvm() {
         given:
         testDirectory.file('build.gradle').writelns(
-            "apply plugin: 'java'",
-            mavenCentralRepository(),
-            "dependencies { compile 'junit:junit:4.12' }",
-            "test.forkEvery = 1"
+                "apply plugin: 'java'",
+                mavenCentralRepository(),
+                "dependencies { compile 'junit:junit:4.12' }",
+                "test.forkEvery = 1"
         )
         testDirectory.file('src/test/java/org/gradle/AbstractTest.java').writelns(
-            "package org.gradle;",
-            "public abstract class AbstractTest {",
-            "    @org.junit.Test public void ok() {",
-            "        long time = java.lang.management.ManagementFactory.getRuntimeMXBean().getStartTime();",
-            "        System.out.println(String.format(\"VM START TIME = %s\", time));",
-            "    }",
-            "}")
+                "package org.gradle;",
+                "public abstract class AbstractTest {",
+                "    @org.junit.Test public void ok() {",
+                "        long time = java.lang.management.ManagementFactory.getRuntimeMXBean().getStartTime();",
+                "        System.out.println(String.format(\"VM START TIME = %s\", time));",
+                "    }",
+                "}")
         testDirectory.file('src/test/java/org/gradle/SomeTest.java').writelns(
-            "package org.gradle;",
-            "public class SomeTest extends AbstractTest {",
-            "}")
+                "package org.gradle;",
+                "public class SomeTest extends AbstractTest {",
+                "}")
         testDirectory.file('src/test/java/org/gradle/SomeTest2.java').writelns(
-            "package org.gradle;",
-            "public class SomeTest2 extends AbstractTest {",
-            "}")
+                "package org.gradle;",
+                "public class SomeTest2 extends AbstractTest {",
+                "}")
 
         when:
         executer.withTasks('test').run()
@@ -324,26 +324,26 @@ class JUnitIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
         results1.assertIsFile()
         results2.assertIsFile()
         assertThat(results1.linesThat(containsString('VM START TIME =')).get(0), not(equalTo(results2.linesThat(
-            containsString('VM START TIME =')).get(0))))
+                containsString('VM START TIME =')).get(0))))
     }
 
     def canListenForTestResults() {
         given:
         testDirectory.file('src/main/java/AppException.java').writelns(
-            "public class AppException extends Exception { }"
+                "public class AppException extends Exception { }"
         )
 
         testDirectory.file('src/test/java/SomeTest.java').writelns(
-            "public class SomeTest {",
-            "@org.junit.Test public void fail() { org.junit.Assert.fail(\"message\"); }",
-            "@org.junit.Test public void knownError() { throw new RuntimeException(\"message\"); }",
-            "@org.junit.Test public void unknownError() throws AppException { throw new AppException(); }",
-            "}"
+                "public class SomeTest {",
+                "@org.junit.Test public void fail() { org.junit.Assert.fail(\"message\"); }",
+                "@org.junit.Test public void knownError() { throw new RuntimeException(\"message\"); }",
+                "@org.junit.Test public void unknownError() throws AppException { throw new AppException(); }",
+                "}"
         )
         testDirectory.file('src/test/java/SomeOtherTest.java').writelns(
-            "public class SomeOtherTest {",
-            "@org.junit.Test public void pass() { }",
-            "}"
+                "public class SomeOtherTest {",
+                "@org.junit.Test public void pass() { }",
+                "}"
         )
 
         testDirectory.file('build.gradle') << """
@@ -390,11 +390,11 @@ class JUnitIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
         given:
         assumeNotJUnitPlatform()
         testDirectory.file('src/test/java/SomeTest.java').writelns(
-            "public class SomeTest extends junit.framework.TestCase {",
-            "public void testPass() { }",
-            "public void testFail() { junit.framework.Assert.fail(\"message\"); }",
-            "public void testError() { throw new RuntimeException(\"message\"); }",
-            "}"
+                "public class SomeTest extends junit.framework.TestCase {",
+                "public void testPass() { }",
+                "public void testFail() { junit.framework.Assert.fail(\"message\"); }",
+                "public void testError() { throw new RuntimeException(\"message\"); }",
+                "}"
         )
 
         testDirectory.file('build.gradle') << """
@@ -458,5 +458,4 @@ class JUnitIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#setup"))
         result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#teardown"))
     }
-
 }
