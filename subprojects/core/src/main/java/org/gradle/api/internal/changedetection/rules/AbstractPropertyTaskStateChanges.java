@@ -25,14 +25,14 @@ import java.util.Map;
 import java.util.Set;
 
 @NonNullApi
-public abstract class AbstractPropertyNameTaskStateChanges extends SimpleTaskStateChanges {
+public abstract class AbstractPropertyTaskStateChanges extends SimpleTaskStateChanges {
 
     private final TaskExecution previous;
     private final TaskExecution current;
     private final String title;
     private final Task task;
 
-    protected AbstractPropertyNameTaskStateChanges(TaskExecution previous, TaskExecution current, String title, Task task) {
+    protected AbstractPropertyTaskStateChanges(TaskExecution previous, TaskExecution current, String title, Task task) {
         this.previous = previous;
         this.current = current;
         this.title = title;

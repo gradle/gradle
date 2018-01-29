@@ -23,7 +23,7 @@ import org.gradle.api.internal.changedetection.state.TaskExecution;
 import java.util.Map;
 
 @NonNullApi
-public class OutputPropertyTaskChanges extends AbstractPropertyNameTaskStateChanges {
+public class OutputPropertyTaskChanges extends AbstractPropertyTaskStateChanges {
 
     public OutputPropertyTaskChanges(TaskExecution previous, TaskExecution current, Task task) {
         super(previous, current, "Output", task);
