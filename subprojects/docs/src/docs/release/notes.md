@@ -21,6 +21,40 @@ With [dependency constraints](userguide/managing_transitive_dependencies.html#se
 
 In the example, the version of `commons-codec` that is brought in transitively is `1.9`. With the constraint, we express that we need at lease `1.11` and Gradle will now pick that version during dependency resolution.
 
+### JUnit Platform and JUnit Jupiter Engine (a.k.a. JUnit 5) support
+
+[JUnit 5](http://junit.org/junit5/docs/current/user-guide) is the latest version of well-known `JUnit` test framework. JUnit 5 is composed of several modules:
+
+    JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
+    
+Gradle now supports `JUnit Jupiter Engine` on top of `JUnit Platform`. To enable JUnit Platform support, you just need to add one line into your `build.gradle`:
+
+    test {
+        useJUnitPlatform()
+    }
+    
+And add `JUnit Jupiter` dependencies:
+
+    dependencies {
+        testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.3', 'org.junit.jupiter:junit-jupiter-engine:5.0.3'
+    }      
+
+Put your first JUnit 5 test into `src/test/java/foo/bar`:
+
+    package foo.bar;
+    
+    import org.junit.jupiter.api.Test;
+    
+    public class JUnitJupiterTest {
+        @Test
+        public void ok() { 
+        }
+    }
+    
+Now you can run `gradle test` to see the results of your JUnit 5 tests! 
+
+You can find a sample of test with JUnit Jupiter at `samples/testing/junitplatform/jupiter` in the '-all' distribution of Gradle.
+
 ### Support for optional dependencies in POM consumption
 
 Gradle now creates a dependency constraint for each dependency declaration in a POM file with `<optional>true</optional>`. This constraint will produce the expected result for an optional dependency: if the dependency module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that dependency (e.g., if the optional dependency defines a higher version, that one is chosen).

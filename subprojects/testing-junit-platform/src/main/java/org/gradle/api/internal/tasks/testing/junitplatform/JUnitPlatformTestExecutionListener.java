@@ -22,8 +22,8 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestEventAdapter;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestExecutionListener;
@@ -48,9 +48,7 @@ public class JUnitPlatformTestExecutionListener extends JUnitTestEventAdapter im
     @Override
     public void executionSkipped(TestIdentifier testIdentifier, String reason) {
         if (isClass(testIdentifier)) {
-            for (TestIdentifier childIdentifier : currentTestPlan.getChildren(testIdentifier)) {
-                testIgnored(getDescriptor(childIdentifier));
-            }
+            currentTestPlan.getChildren(testIdentifier).forEach(child -> executionSkipped(child, reason));
         } else if (isMethod(testIdentifier)) {
             testIgnored(getDescriptor(testIdentifier));
         }
@@ -58,7 +56,7 @@ public class JUnitPlatformTestExecutionListener extends JUnitTestEventAdapter im
 
     @Override
     public void executionStarted(TestIdentifier testIdentifier) {
-        if (!isMethod(testIdentifier)) {
+        if (!isLeafMethod(testIdentifier)) {
             return;
         }
         testStarted(testIdentifier.getUniqueId(), getDescriptor(testIdentifier));
@@ -66,47 +64,57 @@ public class JUnitPlatformTestExecutionListener extends JUnitTestEventAdapter im
 
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        if (!isMethod(testIdentifier)) {
-            return;
+        if (isLeafMethodOrFailedClassMethod(testIdentifier, testExecutionResult)) {
+            switch (testExecutionResult.getStatus()) {
+                case SUCCESSFUL:
+                    testFinished(testIdentifier.getUniqueId());
+                    break;
+                case FAILED:
+                    testFailure(testIdentifier.getUniqueId(), getDescriptor(testIdentifier), testExecutionResult.getThrowable().get());
+                    testFinished(testIdentifier.getUniqueId());
+                    break;
+                case ABORTED:
+                    testAssumptionFailure(testIdentifier.getUniqueId());
+                    testFinished(testIdentifier.getUniqueId());
+                    break;
+                default:
+                    throw new AssertionError("Invalid Status: " + testExecutionResult.getStatus());
+            }
         }
-        switch (testExecutionResult.getStatus()) {
-            case SUCCESSFUL:
-                testFinished(testIdentifier.getUniqueId());
-                break;
-            case FAILED:
-                testFailure(testIdentifier.getUniqueId(), getDescriptor(testIdentifier), testExecutionResult.getThrowable().get());
-                testFinished(testIdentifier.getUniqueId());
-                break;
-            case ABORTED:
-                testAssumptionFailure(testIdentifier.getUniqueId());
-                testFinished(testIdentifier.getUniqueId());
-                break;
-            default:
-                throw new AssertionError("Invalid Status: " + testExecutionResult.getStatus());
+    }
+
+    private boolean isLeafMethodOrFailedClassMethod(TestIdentifier testIdentifier, TestExecutionResult result) {
+        // Generally, there're 4 kinds of identifier:
+        // 1. JUnit test engine, which we don't consider at all
+        // 2. A class. Class identifier is not tracked when it succeeds, otherwise every class will have a "classMethod" method.
+        // 3. A container method. Its children will be tracked, but itself won't.
+        // 4. A test "leaf" method. It's always tracked.
+        if (isClass(testIdentifier)) {
+            return result.getStatus() != TestExecutionResult.Status.SUCCESSFUL;
+        } else {
+            return isLeafMethod(testIdentifier);
         }
     }
 
     private TestDescriptorInternal getDescriptor(final TestIdentifier test) {
-        if (!isMethod(test)) {
-            return null;
+        if (isMethod(test)) {
+            String className = MethodSource.class.cast(test.getSource().get()).getClassName();
+            return new DefaultTestDescriptor(idGenerator.generateId(), className, test.getDisplayName());
+        } else if (isClass(test)) {
+            String className = ClassSource.class.cast(test.getSource().get()).getClassName();
+            return new DefaultTestDescriptor(idGenerator.generateId(), className, "classMethod");
         } else {
-            return new DefaultTestDescriptor(idGenerator.generateId(), className(test.getSource().get()), methodName(test.getSource().get()));
+            return null;
         }
-    }
-
-    private String methodName(TestSource testSource) {
-        return MethodSource.class.cast(testSource).getMethodName();
-    }
-
-    private String className(TestSource testSource) {
-        return MethodSource.class.cast(testSource).getClassName();
     }
 
     private boolean isMethod(TestIdentifier test) {
-        if (test.isContainer()) {
-            return false;
-        }
         return test.getSource().isPresent() && test.getSource().get() instanceof MethodSource;
+    }
+
+    private boolean isLeafMethod(TestIdentifier test) {
+        // e.g. an iteration in a method annotated with @RepeatedTest
+        return isMethod(test) && test.getType() == TestDescriptor.Type.TEST;
     }
 
     private boolean isClass(TestIdentifier test) {
