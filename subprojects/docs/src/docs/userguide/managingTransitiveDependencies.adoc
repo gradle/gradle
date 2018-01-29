@@ -32,9 +32,6 @@ In the example, all versions are omitted from the dependency declaration. Instea
 
 Dependency constraints can have different scopes defined by configurations <<sub:scope_of_dependency_configurations,in the same way as dependencies>>.
 
-In case you are building and publishing a library, for example a <<java_library_plugin,Java library>>, the dependency constraints are published when the https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md[Gradle module metadata format] is used.
-
-
 [[sec:excluding_transitive_module_dependencies]]
 === Excluding transitive module dependencies
 
