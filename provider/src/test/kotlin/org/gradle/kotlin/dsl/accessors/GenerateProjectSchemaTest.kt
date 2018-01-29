@@ -32,8 +32,10 @@ class GenerateProjectSchemaTest : AbstractIntegrationTest() {
                             "base" to "org.gradle.api.plugins.BasePluginConvention",
                             "java" to "org.gradle.api.plugins.JavaPluginConvention"),
                         configurations = listOf(
+                            "annotationProcessor",
                             "apiElements", "archives", "compile", "compileClasspath", "compileOnly", "default",
                             "implementation", "runtime", "runtimeClasspath", "runtimeElements", "runtimeOnly",
+                            "testAnnotationProcessor",
                             "testCompile", "testCompileClasspath", "testCompileOnly", "testImplementation",
                             "testRuntime", "testRuntimeClasspath", "testRuntimeOnly")))
 
