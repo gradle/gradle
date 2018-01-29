@@ -46,7 +46,7 @@ import PackageDescription
 let package = Package(
     name: "test",
     products: [
-        .library(name: "test", targets: ["test"]),
+        .library(name: "test", type: .dynamic, targets: ["test"]),
     ],
     targets: [
         .target(
@@ -105,8 +105,8 @@ let package = Package(
     name: "test",
     products: [
         .executable(name: "test", targets: ["test"]),
-        .library(name: "lib1", targets: ["lib1"]),
-        .library(name: "lib2", targets: ["lib2"]),
+        .library(name: "lib1", type: .dynamic, targets: ["lib1"]),
+        .library(name: "lib2", type: .dynamic, targets: ["lib2"]),
     ],
     targets: [
         .target(
@@ -135,6 +135,52 @@ let package = Package(
             path: "lib2",
             sources: [
                 "src/main/cpp/logger.cpp",
+            ],
+            publicHeadersPath: "src/main/public"
+        ),
+    ]
+)
+"""
+        swiftPmBuildSucceeds()
+    }
+
+    def "produces manifest for C++ library with shared and static linkage"() {
+        given:
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+                id 'cpp-library'
+            }
+            library.linkage = [Linkage.SHARED, Linkage.STATIC]
+"""
+        def lib = new CppLib()
+        lib.sources.writeToProject(testDirectory)
+        lib.privateHeaders.writeToSourceDir(testDirectory.file("src/main/cpp"))
+        lib.publicHeaders.writeToProject(testDirectory)
+
+        when:
+        run("generateSwiftPmManifest")
+
+        then:
+        file("Package.swift").text == """// swift-tools-version:4.0
+//
+// GENERATED FILE - do not edit
+//
+import PackageDescription
+
+let package = Package(
+    name: "test",
+    products: [
+        .library(name: "test", type: .dynamic, targets: ["test"]),
+        .library(name: "testStatic", type: .static, targets: ["test"]),
+    ],
+    targets: [
+        .target(
+            name: "test",
+            path: ".",
+            sources: [
+                "src/main/cpp/greeter.cpp",
+                "src/main/cpp/sum.cpp",
             ],
             publicHeadersPath: "src/main/public"
         ),
@@ -193,8 +239,8 @@ let package = Package(
     name: "test",
     products: [
         .executable(name: "test", targets: ["test"]),
-        .library(name: "lib1", targets: ["hello"]),
-        .library(name: "lib2", targets: ["log"]),
+        .library(name: "lib1", type: .dynamic, targets: ["hello"]),
+        .library(name: "lib2", type: .dynamic, targets: ["log"]),
     ],
     targets: [
         .target(

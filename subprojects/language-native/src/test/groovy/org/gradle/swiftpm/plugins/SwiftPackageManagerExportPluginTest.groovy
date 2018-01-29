@@ -16,6 +16,7 @@
 
 package org.gradle.swiftpm.plugins
 
+import org.gradle.nativeplatform.Linkage
 import org.gradle.swiftpm.internal.DefaultExecutableProduct
 import org.gradle.swiftpm.internal.DefaultLibraryProduct
 import org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest
@@ -73,20 +74,20 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         def generateManifest = project.tasks['generateSwiftPmManifest']
         def products = generateManifest.package.get().products
         products.name == ["app1", "app2"]
-        products.targetName == ["app1", "app2"]
-        products.publicHeaderDir == [null, null]
+        products.target.name == ["app1", "app2"]
+        products.target.publicHeaderDir == [null, null]
         products.every { it instanceof DefaultExecutableProduct }
     }
 
     def "adds a library product for each project that produces a C++ library"() {
         given:
-        def app1Project = ProjectBuilder.builder().withName("lib1").withParent(project).build()
-        def app2Project = ProjectBuilder.builder().withName("lib2").withParent(project).build()
+        def lib1Project = ProjectBuilder.builder().withName("lib1").withParent(project).build()
+        def lib2Project = ProjectBuilder.builder().withName("lib2").withParent(project).build()
 
         project.pluginManager.apply(SwiftPackageManagerExportPlugin)
 
-        app1Project.pluginManager.apply("cpp-library")
-        app2Project.pluginManager.apply("cpp-library")
+        lib1Project.pluginManager.apply("cpp-library")
+        lib2Project.pluginManager.apply("cpp-library")
 
         project.evaluate()
 
@@ -94,8 +95,29 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         def generateManifest = project.tasks['generateSwiftPmManifest']
         def products = generateManifest.package.get().products
         products.name == ["lib1", "lib2"]
-        products.targetName == ["lib1", "lib2"]
-        products.publicHeaderDir == [app1Project.file("src/main/public"), app2Project.file("src/main/public")]
+        products.target.name == ["lib1", "lib2"]
+        products.target.publicHeaderDir == [lib1Project.file("src/main/public"), lib2Project.file("src/main/public")]
+        products.every { it instanceof DefaultLibraryProduct }
+    }
+
+    def "adds a library product for each linkage of a C++ library"() {
+        given:
+        def lib1Project = ProjectBuilder.builder().withName("lib1").withParent(project).build()
+
+        project.pluginManager.apply(SwiftPackageManagerExportPlugin)
+
+        lib1Project.pluginManager.apply("cpp-library")
+        lib1Project.library.linkage = [Linkage.SHARED, Linkage.STATIC]
+
+        project.evaluate()
+
+        expect:
+        def generateManifest = project.tasks['generateSwiftPmManifest']
+        def targets = generateManifest.package.get().targets
+        targets.name == ["lib1"]
+        def products = generateManifest.package.get().products
+        products.name == ["lib1", "lib1Static"]
+        products.target == [targets.first(), targets.first()]
         products.every { it instanceof DefaultLibraryProduct }
     }
 
@@ -115,20 +137,20 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         def generateManifest = project.tasks['generateSwiftPmManifest']
         def products = generateManifest.package.get().products
         products.name == ["app1", "app2"]
-        products.targetName == ["App1", "App2"]
-        products.publicHeaderDir == [null, null]
+        products.target.name == ["App1", "App2"]
+        products.target.publicHeaderDir == [null, null]
         products.every { it instanceof DefaultExecutableProduct }
     }
 
     def "adds a library product for each project that produces a Swift library"() {
         given:
-        def app1Project = ProjectBuilder.builder().withName("lib1").withParent(project).build()
-        def app2Project = ProjectBuilder.builder().withName("lib2").withParent(project).build()
+        def lib1Project = ProjectBuilder.builder().withName("lib1").withParent(project).build()
+        def lib2Project = ProjectBuilder.builder().withName("lib2").withParent(project).build()
 
         project.pluginManager.apply(SwiftPackageManagerExportPlugin)
 
-        app1Project.pluginManager.apply("swift-library")
-        app2Project.pluginManager.apply("swift-library")
+        lib1Project.pluginManager.apply("swift-library")
+        lib2Project.pluginManager.apply("swift-library")
 
         project.evaluate()
 
@@ -136,8 +158,29 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         def generateManifest = project.tasks['generateSwiftPmManifest']
         def products = generateManifest.package.get().products
         products.name == ["lib1", "lib2"]
-        products.targetName == ["Lib1", "Lib2"]
-        products.publicHeaderDir == [null, null]
+        products.target.name == ["Lib1", "Lib2"]
+        products.target.publicHeaderDir == [null, null]
+        products.every { it instanceof DefaultLibraryProduct }
+    }
+
+    def "adds a library product for each linkage of a Swift library"() {
+        given:
+        def lib1Project = ProjectBuilder.builder().withName("lib1").withParent(project).build()
+
+        project.pluginManager.apply(SwiftPackageManagerExportPlugin)
+
+        lib1Project.pluginManager.apply("swift-library")
+        lib1Project.library.linkage = [Linkage.SHARED, Linkage.STATIC]
+
+        project.evaluate()
+
+        expect:
+        def generateManifest = project.tasks['generateSwiftPmManifest']
+        def targets = generateManifest.package.get().targets
+        targets.name == ["Lib1"]
+        def products = generateManifest.package.get().products
+        products.name == ["lib1", "lib1Static"]
+        products.target == [targets.first(), targets.first()]
         products.every { it instanceof DefaultLibraryProduct }
     }
 

@@ -101,10 +101,19 @@ import PackageDescription
 let package = Package(
     name: "test",
     products: [
-        .library(name: "lib1", targets: ["Lib1"]),
-        .library(name: "lib2", targets: ["Lib2"]),
+        .library(name: "lib1", type: .dynamic, targets: ["Lib1"]),
+        .library(name: "lib2", type: .dynamic, targets: ["Lib2"]),
     ],
     targets: [
+        .target(
+            name: "App",
+            dependencies: [
+                .target(name: "Lib1"),
+            ],
+            path: "app",
+            sources: [
+            ]
+        ),
         .target(
             name: "Lib1",
             path: "lib1",
