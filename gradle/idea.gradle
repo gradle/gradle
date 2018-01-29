@@ -1,10 +1,11 @@
-allprojects {
+allprojects { project ->
     apply plugin: "idea"
 
     idea {
         module {
+            def ideaLanguageLevel = (project in rootProject.findProperty('projectsRequiresJava8')) ? '1.8' : '1.6'
             // Force everything to Java 6, pending detangling some int test cycles or switching to project-per-source-set mapping
-            languageLevel = new org.gradle.plugins.ide.idea.model.IdeaLanguageLevel("1.6")
+            languageLevel = new org.gradle.plugins.ide.idea.model.IdeaLanguageLevel(ideaLanguageLevel)
             targetBytecodeVersion = JavaVersion.VERSION_1_6
 
             iml {
