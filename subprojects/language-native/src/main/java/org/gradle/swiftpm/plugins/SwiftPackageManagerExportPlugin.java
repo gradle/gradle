@@ -18,6 +18,7 @@ package org.gradle.swiftpm.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -186,7 +187,7 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                     mappingRule.execute(mapping);
                     VersionControlSpec vcsSpec = mapping.getRepository();
                     if (vcsSpec == null || !(vcsSpec instanceof GitVersionControlSpec)) {
-                        continue;
+                        throw new InvalidUserDataException(String.format("Cannot determine the Git URL for dependency on %s:%s.", dependency.getGroup(), dependency.getName()));
                     }
                     // TODO - need to map version selector to Swift PM selector
                     String versionSelector = externalDependency.getVersion();

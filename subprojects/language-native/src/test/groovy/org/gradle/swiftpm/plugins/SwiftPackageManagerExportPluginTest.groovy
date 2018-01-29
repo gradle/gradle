@@ -200,4 +200,22 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         products.name == ["testLib"]
     }
 
+    def "maps project dependency to a target in referenced project"() {
+        given:
+        def lib1 = ProjectBuilder.builder().withName("lib1").withParent(project).build()
+
+        project.pluginManager.apply(SwiftPackageManagerExportPlugin)
+        project.pluginManager.apply("swift-library")
+        lib1.pluginManager.apply("swift-library")
+
+        project.dependencies.add("implementation", lib1)
+
+        project.evaluate()
+
+        expect:
+        def generateManifest = project.tasks["generateSwiftPmManifest"]
+        def targets = generateManifest.package.get().targets
+        def target = targets.find { it.name == "TestLib" }
+        target.requiredTargets == ["Lib1"]
+    }
 }
