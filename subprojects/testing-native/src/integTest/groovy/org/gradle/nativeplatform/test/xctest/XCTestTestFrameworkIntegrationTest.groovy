@@ -29,7 +29,7 @@ import static org.junit.Assume.assumeTrue
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
         def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
-        assumeTrue(toolChain != null && toolChain.isAvailable())
+        assumeTrue(toolChain != null)
 
         File initScript = file("init.gradle") << """
 allprojects { p ->

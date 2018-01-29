@@ -156,7 +156,7 @@ Actual: ${actual[key]}
     // TODO: Use AbstractInstalledToolChainIntegrationSpec instead once Xcode test are sorted out
     void requireSwiftToolChain() {
         toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
-        assumeTrue(toolChain != null && toolChain.isAvailable())
+        assumeTrue(toolChain != null)
 
         File initScript = file("init.gradle") << """
             allprojects { p ->
