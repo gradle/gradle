@@ -58,7 +58,7 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('Gradle Test Executor 1').assertExecutionFailedWithCause(containsString('consider adding an engine implementation JAR to the classpath'))
+        result.testClassStartsWith('Gradle Test Executor').assertExecutionFailedWithCause(containsString('consider adding an engine implementation JAR to the classpath'))
     }
 
     def 'can handle class level ignored tests'() {
