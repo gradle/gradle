@@ -79,6 +79,11 @@ The following examples exposes a command line parameter `--url` for the custom t
             // verify URL by making a HTTP call
         }
     }
+    
+### Caching for Scala compilation when using the `play` plugin
+
+The task `PlatformScalaCompile` is now cacheable.
+This means that [Play projects](userguide/play_plugin.html) now also benefit from the [build cache](userguide/build_cache.html)!
 
 ## Promoted features
 

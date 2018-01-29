@@ -142,6 +142,7 @@ Currently, the following built-in Gradle tasks are cacheable:
     api:org.gradle.api.tasks.javadoc.Groovydoc[]
 * Scala toolchain:
     api:org.gradle.api.tasks.scala.ScalaCompile[],
+    api:org.gradle.language.scala.tasks.PlatformScalaCompile[],
     api:org.gradle.api.tasks.scala.ScalaDoc[]
 * Native toolchain:
     api:org.gradle.language.cpp.tasks.CppCompile[],
