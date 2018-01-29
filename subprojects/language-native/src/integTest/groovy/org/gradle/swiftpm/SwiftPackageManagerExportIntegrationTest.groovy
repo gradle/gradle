@@ -130,4 +130,24 @@ let package = Package(
 )
 """
     }
+
+    def "fails when external dependency cannot be mapped to a git url"() {
+        given:
+        buildFile << """
+            plugins { 
+                id 'swiftpm-export' 
+                id 'swift-library'
+            }
+            dependencies {
+                implementation 'dep:dep:1.0'
+            }
+"""
+
+        when:
+        fails("generateSwiftPmManifest")
+
+        then:
+        failure.assertHasCause("Cannot determine the Git URL for dependency on dep:dep.")
+    }
+
 }
