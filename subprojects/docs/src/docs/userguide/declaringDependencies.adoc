@@ -18,44 +18,44 @@
 Gradle builds can declare dependencies on external binaries, raw files and other Gradle projects. You can find examples for common scenarios in this section. For more information, see the <<dependency_types,full reference on all types of dependencies>>.
 
 [[sec:declaring_binary_dependency]]
-=== Declaring a binary dependency
+=== Declaring a dependency to a module
 
-Modern software projects rarely build code in isolation. Projects reference external libraries for the purpose of reusing existing and proven functionality, so-called _binary dependencies_. Upon resolution binary dependencies are downloaded from dedicated repositories and stored in a cache to avoid unnecessary network traffic.
+Modern software projects rarely build code in isolation. Projects reference external modules for the purpose of reusing existing and proven functionality. Upon resolution, selected versions of external modules are downloaded from dedicated repositories and stored in a cache to avoid unnecessary network traffic.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Resolving binary dependencies from remote repositories</title>
+    <title>Resolving dependencies from remote repositories</title>
     <imageobject>
         <imagedata fileref="img/dependency-management-binary-dependencies.png" width="150mm" />
     </imageobject>
 </figure>
 +++++
 
-==== Declaring a concrete version of a binary dependency
+==== Declaring a concrete version of a dependency
 
 A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework]. The following code snippet declares a compile-time dependency on the Spring web module by its coordinates: `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the dependency including its transitive dependencies from the link:https://search.maven.org/[Maven Central repository] and uses it to compile Java source code. The version attribute of the dependency coordinates points to a _concrete version_ indicating that the underlying artifacts don't change over time. The use of concrete versions ensures reproducibility for the aspect of dependency resolution.
 
 ++++
-<sample id="binary-dependencies-concrete-version" dir="userguide/dependencies/declaringBinaryDependenciesWithConcreteVersion" title="Declaring a binary dependencies with a concrete version">
+<sample id="binary-dependencies-concrete-version" dir="userguide/dependencies/declaringBinaryDependenciesWithConcreteVersion" title="Declaring a dependencies with a concrete version">
     <sourcefile file="build.gradle" snippet="binary-dependencies"/>
 </sample>
 ++++
 
-A Gradle project can define other types of repositories hosting binary dependencies. You can learn more about the syntax and API in the section on <<sec:declaring_repositories,declaring repositories>>. Refer to <<java_plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for binary dependencies declarations is <<sec:customizing_dependencies,highly customizable>>.
+A Gradle project can define other types of repositories hosting modules. You can learn more about the syntax and API in the section on <<sec:declaring_repositories,declaring repositories>>. Refer to <<java_plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for dependencies is <<sec:customizing_dependencies,highly customizable>>.
 
-==== Declaring a binary dependency without version
+==== Declaring a dependency without version
 
 A recommended practice for larger projects is to declare dependencies without versions and use <<sec:dependency_constraints,dependency constraints>> for version declaration. The advantage is that dependency constrains allow you to manage versions of all dependencies, including transitive ones, in one place.
 
 ++++
-<sample id="binary-dependencies-without-version" dir="userguide/dependencies/declaringBinaryDependenciesWithoutVersion" title="Declaring a binary dependencies without version">
+<sample id="binary-dependencies-without-version" dir="userguide/dependencies/declaringBinaryDependenciesWithoutVersion" title="Declaring a dependencies without version">
     <sourcefile file="build.gradle" snippet="binary-dependencies-without-version"/>
 </sample>
 ++++
 
-==== Declaring a dynamic version of a binary dependency
+==== Declaring a dynamic versions
 
-Projects might adopt a more aggressive approach for consuming binary dependencies. For example you might want to always integrate the latest version of a dependency to consume cutting edge features at any given time. A _dynamic version_ allows for resolving the latest version or the latest version of a version range for a given dependency.
+Projects might adopt a more aggressive approach for consuming dependencies to modules. For example you might want to always integrate the latest version of a dependency to consume cutting edge features at any given time. A _dynamic version_ allows for resolving the latest version or the latest version of a version range for a given dependency.
 
 [NOTE]
 ====
@@ -63,7 +63,7 @@ Using dynamic versions in a build bears the risk of potentially breaking it. As 
 ====
 
 ++++
-<sample id="binary-dependencies-dynamic-version" dir="userguide/dependencies/declaringBinaryDependenciesWithDynamicVersion" title="Declaring a binary dependencies with a dynamic version">
+<sample id="binary-dependencies-dynamic-version" dir="userguide/dependencies/declaringBinaryDependenciesWithDynamicVersion" title="Declaring a dependencies with a dynamic version">
     <sourcefile file="build.gradle" snippet="binary-dependencies"/>
 </sample>
 ++++
@@ -81,14 +81,14 @@ A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic d
 
 By default, Gradle caches dynamic versions of dependencies for 24 hours. The <<sec:controlling_caching,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
 
-==== Declaring a changing version of a binary dependency
+==== Declaring a changing version
 
 A team might decide to implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early and often is to release a so-called _changing version_. A changing version indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
 
 In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version[snapshot versions]. Snapshot versions contain the suffix `-SNAPSHOT`. The following example demonstrates how to declare a snapshot version on the Spring dependency.
 
 ++++
-<sample id="binary-dependencies-changing-version" dir="userguide/dependencies/declaringBinaryDependenciesWithChangingVersion" title="Declaring a binary dependencies with a changing version">
+<sample id="binary-dependencies-changing-version" dir="userguide/dependencies/declaringBinaryDependenciesWithChangingVersion" title="Declaring a dependencies with a changing version">
     <sourcefile file="build.gradle" snippet="binary-dependencies"/>
 </sample>
 ++++
