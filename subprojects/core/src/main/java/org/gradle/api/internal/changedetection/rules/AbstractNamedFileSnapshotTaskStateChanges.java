@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 
 @NonNullApi
 public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
@@ -50,18 +49,23 @@ public abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskS
     protected abstract ImmutableSortedMap<String, FileCollectionSnapshot> getSnapshot(TaskExecution execution);
 
     protected Iterator<TaskStateChange> getFileChanges(final boolean includeAdded) {
-        return Iterators.concat(Iterables.transform(getCurrent().entrySet(), new Function<Map.Entry<String, FileCollectionSnapshot>, Iterator<TaskStateChange>>() {
+        final List<Iterator<TaskStateChange>> changes = new ArrayList<Iterator<TaskStateChange>>();
+        SortedMapDiffUtil.diff(getPrevious(), getCurrent(), new PropertyDiffListener<String, FileCollectionSnapshot>() {
             @Override
-            public Iterator<TaskStateChange> apply(Map.Entry<String, FileCollectionSnapshot> entry) {
-                String propertyName = entry.getKey();
-                FileCollectionSnapshot currentSnapshot = entry.getValue();
-                FileCollectionSnapshot previousSnapshot = getPrevious().get(propertyName);
-                if (previousSnapshot == null) {
-                    return Iterators.emptyIterator();
-                }
-                String propertyTitle = title + " property '" + propertyName + "'";
-                return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle, includeAdded);
+            public void removed(String previousProperty) {
             }
-        }).iterator());
+
+            @Override
+            public void added(String currentProperty) {
+            }
+
+            @Override
+            public void maybeChanged(String property, FileCollectionSnapshot previousSnapshot, FileCollectionSnapshot currentSnapshot) {
+                String propertyTitle = title + " property '" + property + "'";
+                changes.add(currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle, includeAdded));
+            }
+        });
+
+        return Iterators.concat(changes.iterator());
     }
 }
