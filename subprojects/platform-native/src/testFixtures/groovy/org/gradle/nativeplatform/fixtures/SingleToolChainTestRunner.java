@@ -21,48 +21,51 @@ import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
 import java.util.List;
 
 public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
-    private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.cpp.toolChains";
+    private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.native.toolChains";
 
     public SingleToolChainTestRunner(Class<? extends AbstractInstalledToolChainIntegrationSpec> target) {
-        super(target);
+        super(target, "all".equals(System.getProperty(TOOLCHAINS_SYSPROP_NAME, "default")));
     }
 
     @Override
     protected void createExecutions() {
-        boolean enableAllToolChains = "all".equals(System.getProperty(TOOLCHAINS_SYSPROP_NAME, "default"));
         List<AvailableToolChains.ToolChainCandidate> toolChains = AvailableToolChains.getToolChains();
-        if (enableAllToolChains) {
-            for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-                if (!toolChain.isAvailable()) {
-                    throw new RuntimeException(String.format("Tool chain %s is not available.", toolChain.getDisplayName()));
-                }
-                add(new ToolChainExecution(toolChain, isRespectsInstalledConstraint(toolChain)));
+
+        for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
+            if (!toolChain.isAvailable()) {
+                throw new RuntimeException(String.format("Tool chain %s is not available.", toolChain.getDisplayName()));
             }
-        } else {
-            boolean hasEnabled = false;
-            for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
-                if (!hasEnabled && toolChain.isAvailable() && isRespectsInstalledConstraint(toolChain)) {
-                    add(new ToolChainExecution(toolChain, true));
-                    hasEnabled = true;
-                } else {
-                    add(new ToolChainExecution(toolChain, false));
-                }
+            if (canUseToolChain(toolChain)) {
+                add(new ToolChainExecution(toolChain));
             }
         }
     }
 
-    private boolean isRespectsInstalledConstraint(AvailableToolChains.ToolChainCandidate toolChain) {
-        RequiresInstalledToolChain toolChainRequirement = target.getAnnotation(RequiresInstalledToolChain.class);
-        return toolChain.meets(toolChainRequirement == null ? ToolChainRequirement.AVAILABLE : toolChainRequirement.value());
+    // TODO: This exists because we detect all available native tool chains on a system (clang, gcc, swiftc, msvc).
+    //
+    // Many of our old tests assume that available tool chains can compile many/most languages, so they do not try to
+    // restrict the required set of tool chains.
+    //
+    // The swiftc tool chain can build _only_ Swift, so tests that expect to use the swiftc tool chain properly annotate
+    // their requirements with ToolChainRequirement.SWIFTC (or a version-specific requirement).
+    //
+    // Our multi-test runner is smart enough to disable tests that do not meet the test's requirements, but since many
+    // of the old tests do not have requirements, we assume the tests require a "C" like tool chain (GCC, Clang, MSVC).
+    //
+    // In the future... we want to go back to old tests and annotate them with tool chains requirements.
+    private boolean canUseToolChain(AvailableToolChains.ToolChainCandidate toolChain) {
+        if (toolChain.meets(ToolChainRequirement.SWIFTC)) {
+            RequiresInstalledToolChain toolChainRequirement = target.getAnnotation(RequiresInstalledToolChain.class);
+            return toolChainRequirement!=null;
+        }
+        return true;
     }
 
     private static class ToolChainExecution extends Execution {
         private final AvailableToolChains.ToolChainCandidate toolChain;
-        private final boolean enabled;
 
-        public ToolChainExecution(AvailableToolChains.ToolChainCandidate toolChain, boolean enabled) {
+        public ToolChainExecution(AvailableToolChains.ToolChainCandidate toolChain) {
             this.toolChain = toolChain;
-            this.enabled = enabled;
         }
 
         @Override
@@ -72,12 +75,8 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
 
         @Override
         protected boolean isTestEnabled(TestDetails testDetails) {
-            if (enabled) {
-                RequiresInstalledToolChain toolChainRestriction = testDetails.getAnnotation(RequiresInstalledToolChain.class);
-                return toolChainRestriction == null
-                        || toolChain.meets(toolChainRestriction.value());
-            }
-            return false;
+            RequiresInstalledToolChain toolChainRestriction = testDetails.getAnnotation(RequiresInstalledToolChain.class);
+            return toolChainRestriction == null || toolChain.meets(toolChainRestriction.value());
         }
 
         @Override

@@ -47,7 +47,7 @@ tasks.withType<DistributionTest> {
     fun ifProperty(name: String, then: String): String? =
         then.takeIf { hasProperty(name) && property(name).toString().isNotEmpty() }
 
-    systemProperties["org.gradle.integtest.cpp.toolChains"] =
+    systemProperties["org.gradle.integtest.native.toolChains"] =
         ifProperty("testAllPlatforms", "all") ?: "default"
 
     systemProperties["org.gradle.integtest.multiversion"] =

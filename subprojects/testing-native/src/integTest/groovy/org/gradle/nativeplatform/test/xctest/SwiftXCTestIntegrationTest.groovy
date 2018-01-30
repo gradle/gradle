@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -34,6 +35,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftSingleFileLibWithSingleXCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
+import org.junit.Assume
 import spock.lang.Unroll
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
@@ -42,6 +44,8 @@ class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         buildFile << """
 apply plugin: 'xctest'
 """
+        // TODO: Temporarily disable XCTests with Swift3 on macOS
+        Assume.assumeFalse(OperatingSystem.current().isMacOsX() && toolChain.version.major == 3)
     }
 
     def "fails when test cases fail"() {
