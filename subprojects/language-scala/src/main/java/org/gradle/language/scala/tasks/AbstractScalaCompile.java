@@ -178,7 +178,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
     /**
      * The Java major version of the JVM the Scala compiler is running on.
      *
-     * @since 4.1
+     * @since 4.6
      */
     @Incubating
     @Input
