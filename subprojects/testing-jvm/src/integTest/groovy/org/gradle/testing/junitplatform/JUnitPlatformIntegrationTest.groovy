@@ -61,6 +61,11 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can work with junit-platform-runner'() {
         given:
+        buildFile << """
+        dependencies {
+            testCompile 'org.junit.platform:junit-platform-runner:1.0.3'
+        }
+        """
         createSimpleJupiterTest()
 
         expect:
