@@ -23,7 +23,7 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
     String compilationTask = ':compileJava'
     String compiledFile = "build/classes/java/main/Hello.class"
 
-    def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
+    def setupProjectInDirectory(TestFile project) {
         project.with {
             file('settings.gradle') << localCacheConfiguration()
             file('build.gradle').text = """

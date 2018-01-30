@@ -1,9 +1,13 @@
-
-useTestFixtures()
-useClassycle()
+plugins {
+    id 'classycle'
+}
 
 dependencies {
     testFixturesCompile project(':internalIntegTesting')
+}
+
+testFixtures {
+    from(':core')
 }
 
 tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.all {

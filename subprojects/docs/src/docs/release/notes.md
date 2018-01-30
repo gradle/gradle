@@ -2,6 +2,25 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Dependency constraints
+
+With [dependency constraints](userguide/managing_transitive_dependencies.html#sec:dependency_constraints), Gradle adds a mechanism to express constraints over transitive dependencies which are used during dependency resolution. In addition, dependency constraints are published when the Gradle module metadata format is used (see below). This means that, as a library author, you can share these constraints with your library's consumers - making them an appealing alternative to other existing mechanisms for managing transitive dependencies in Gradle.
+
+    dependencies {
+        implementation 'org.apache.httpcomponents:httpclient'  
+    }
+    
+    dependencies {
+        constraints {
+            // declare versions for my dependencies in a central place
+            implementation 'org.apache.httpcomponents:httpclient:4.5.3'
+            // declare versions for transitive dependencies
+            implementation 'commons-codec:commons-codec:1.11'
+        }
+    }
+
+In the example, the version of `commons-codec` that is brought in transitively is `1.9`. With the constraint, we express that we need at lease `1.11` and Gradle will now pick that version during dependency resolution.
+
 ### Advanced POM support (preview)
 
 Gradle now supports [additional features for modules with POM metadata](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc). This includes support for _optional dependencies_, _BOM import_ and _compile/runtime scope separation_. 
@@ -79,6 +98,11 @@ The following examples exposes a command line parameter `--url` for the custom t
             // verify URL by making a HTTP call
         }
     }
+    
+### Caching for Scala compilation when using the `play` plugin
+
+The task `PlatformScalaCompile` is now cacheable.
+This means that [Play projects](userguide/play_plugin.html) now also benefit from the [build cache](userguide/build_cache.html)!
 
 ## Promoted features
 
@@ -151,6 +175,8 @@ We would like to thank the following community members for making contributions 
 -->
  - [Thomas Broyer](https://github.com/tbroyer) - Add annotationProcessor configuration for each source set (gradle/gradle#3786)
  - [Sergei Dryganets](https://github.com/dryganets) - Improved gpg instructions in signing plugin documentation (gradle/gradle#4023)
+ - [Kevin Macksamie](https://github.com/k-mack) - Fix xref id to java-gradle-plugin section of user guide (gradle/gradle#4179)
+ - [Devi Sridharan](https://github.com/devishree90) - Make `PlatformScalaCompile` cacheable (gradle/gradle#3804)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

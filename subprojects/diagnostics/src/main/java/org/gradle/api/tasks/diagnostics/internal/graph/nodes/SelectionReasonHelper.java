@@ -15,14 +15,40 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import com.google.common.collect.Iterables;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 
 public abstract class SelectionReasonHelper {
     public static String getReasonDescription(ComponentSelectionReason reason) {
-        if (reason.isExpected() && !((ComponentSelectionReasonInternal) reason).hasCustomDescriptions()) {
-            return null;
+        ComponentSelectionReasonInternal r = (ComponentSelectionReasonInternal) reason;
+        String description = getReasonDescription(r);
+        if (reason.isConstrained()) {
+            if (!r.hasCustomDescriptions()) {
+                return "via constraint";
+            } else {
+                return "via constraint, " + description;
+            }
         }
-        return reason.getDescription();
+        return description;
+    }
+
+    private static String getReasonDescription(ComponentSelectionReasonInternal reason) {
+        if (!reason.hasCustomDescriptions()) {
+            return reason.isExpected() ? null : Iterables.getLast(reason.getDescriptions()).getDescription();
+        }
+        return getLastCustomReason(reason);
+    }
+
+    private static String getLastCustomReason(ComponentSelectionReasonInternal reason) {
+        String lastCustomReason = null;
+        for (ComponentSelectionDescriptor descriptor : reason.getDescriptions()) {
+            if (((ComponentSelectionDescriptorInternal)descriptor).hasCustomDescription()) {
+                lastCustomReason = descriptor.getDescription();
+            }
+        }
+        return lastCustomReason;
     }
 }

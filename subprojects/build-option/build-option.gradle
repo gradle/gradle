@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'classycle'
 }
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
@@ -9,5 +10,3 @@ dependencies {
     api libraries.jsr305
     implementation 'commons-lang:commons-lang:2.6'
 }
-
-useClassycle()

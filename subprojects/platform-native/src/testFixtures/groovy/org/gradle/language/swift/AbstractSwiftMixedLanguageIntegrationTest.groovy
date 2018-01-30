@@ -32,12 +32,12 @@ import static org.junit.Assume.assumeTrue
 class AbstractSwiftMixedLanguageIntegrationTest extends AbstractIntegrationSpec {
     public static final String SHARED = "SHARED"
     public static final String STATIC = "STATIC"
-    def swiftToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC) as AvailableToolChains.InstalledToolChain
-    def cppToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.CLANG) as AvailableToolChains.InstalledToolChain
+    def swiftToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
+    def cppToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.CLANG)
 
     def setup() {
-        assumeTrue(swiftToolChain != null && swiftToolChain.isAvailable())
-        assumeTrue(cppToolChain != null && cppToolChain.isAvailable())
+        assumeTrue(swiftToolChain != null)
+        assumeTrue(cppToolChain != null)
 
         File initScript = file("init.gradle") << """
         allprojects { p ->        

@@ -17,6 +17,10 @@
 /*
     Provides generally useful test utilities, used for unit and integration testing.
 */
+plugins {
+    id 'classycle'
+}
+
 dependencies {
     compile libraries.groovy
 
@@ -34,7 +38,5 @@ dependencies {
     compile libraries.spock
     compile libraries.jsoup
 }
-
-useClassycle()
 
 apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"

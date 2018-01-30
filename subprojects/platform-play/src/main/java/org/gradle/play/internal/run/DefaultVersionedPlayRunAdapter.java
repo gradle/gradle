@@ -37,8 +37,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Queue;
@@ -59,6 +57,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     protected abstract Class<?> getDocHandlerFactoryClass(ClassLoader classLoader) throws ClassNotFoundException;
 
     protected abstract Class<?> getBuildDocHandlerClass(ClassLoader docsClassLoader) throws ClassNotFoundException;
+
+    protected abstract ClassLoader createAssetsClassLoader(File assetsJar, Iterable<File> assetsDirs, ClassLoader classLoader);
 
     @Override
     public Object getBuildLink(final ClassLoader classLoader, final Reloader reloader, final File projectPath, final File applicationJar, final Iterable<File> changingClasspath, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
@@ -102,14 +102,6 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                 return null;
             }
         });
-    }
-
-    protected ClassLoader createAssetsClassLoader(File assetsJar, Iterable<File> assetsDirs, ClassLoader classLoader) {
-        try {
-            return new URLClassLoader(new URL[]{assetsJar.toURI().toURL()}, classLoader);
-        } catch (MalformedURLException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 
     private void storeClassLoader(ClassLoader classLoader) {

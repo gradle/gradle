@@ -1,3 +1,8 @@
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
+
 dependencies {
     compile project(':core')
     compile project(':testingJvm')
@@ -6,5 +11,6 @@ dependencies {
     compile project(':compositeBuilds')
 }
 
-useClassycle()
-strictCompileIgnoreDeprecations()
+strictCompile {
+    ignoreDeprecations = true
+}

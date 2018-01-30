@@ -1,3 +1,8 @@
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
+
 dependencies {
     compile project(':resources')
     compile project(':resourcesHttp')
@@ -8,8 +13,8 @@ dependencies {
     testCompile libraries.groovy
 }
 
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":ivy")
-useTestFixtures(project: ":maven")
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':dependencyManagement')
+    from(':ivy')
+    from(':maven')
+}

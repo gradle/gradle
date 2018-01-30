@@ -16,13 +16,14 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 public class PlayApplicationRunnerFactory {
-    public static PlayApplicationRunner create(PlayPlatform playPlatform, WorkerProcessFactory workerFactory) {
-        return new PlayApplicationRunner(workerFactory, createPlayRunAdapter(playPlatform));
+    public static PlayApplicationRunner create(PlayPlatform playPlatform, WorkerProcessFactory workerFactory, ClasspathSnapshotter snapshotter) {
+        return new PlayApplicationRunner(workerFactory, createPlayRunAdapter(playPlatform), snapshotter);
     }
 
     public static VersionedPlayRunAdapter createPlayRunAdapter(PlayPlatform playPlatform) {

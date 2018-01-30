@@ -31,11 +31,13 @@ dependencies {
     integTestRuntime project(":toolingApiBuilders")
 }
 
+testFixtures {
+    from(':core')
+}
+
 processResources {
     into "org/gradle/api/plugins/buildcomparison/render/internal/html", {
         from { project(":docs").css }
         include "base.css"
     }
 }
-
-useTestFixtures()

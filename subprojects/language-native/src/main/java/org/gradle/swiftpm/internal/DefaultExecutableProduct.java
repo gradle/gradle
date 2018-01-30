@@ -16,13 +16,9 @@
 
 package org.gradle.swiftpm.internal;
 
-import org.gradle.api.file.FileCollection;
-
-import java.io.File;
-
 public class DefaultExecutableProduct extends AbstractProduct {
-    public DefaultExecutableProduct(String name, String targetName, File path, FileCollection sourceFiles) {
-        super(name, targetName, path, sourceFiles);
+    public DefaultExecutableProduct(String name, DefaultTarget target) {
+        super(name, target);
     }
 
     @Override

@@ -22,10 +22,10 @@ import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
-        setupProjectInDirectory()
+        setupProjectInDirectory(temporaryFolder.testDirectory)
     }
 
-    abstract setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory)
+    abstract setupProjectInDirectory(TestFile project)
     abstract String getCompilationTask()
     abstract String getCompiledFile()
 
@@ -37,7 +37,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         compileIsNotCached()
 
         when:
-        withBuildCache().run 'clean', 'run'
+        withBuildCache().succeeds 'clean', compilationTask
 
         then:
         compileIsCached()

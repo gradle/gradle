@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'classycle'
 }
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
@@ -11,5 +12,6 @@ dependencies {
     implementation libraries.kryo
 }
 
-useTestFixtures()
-useClassycle()
+testFixtures {
+    from(':core')
+}

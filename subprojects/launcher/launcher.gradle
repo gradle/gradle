@@ -1,5 +1,9 @@
 import org.gradle.build.GradleStartScriptGenerator
 
+plugins {
+    id 'classycle'
+}
+
 // Main entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
@@ -30,10 +34,12 @@ dependencies {
     testFixturesCompile project(':internalIntegTesting')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':languageJava')
-useTestFixtures(project: ':messaging')
-useTestFixtures(project: ":logging")
+testFixtures {
+    from(':core')
+    from(':languageJava')
+    from(':messaging')
+    from(':logging')
+}
 
 integTestTasks.all {
     maxParallelForks = Math.min(3, rootProject.maxParallelForks)
@@ -55,7 +61,5 @@ task startScripts(type: GradleStartScriptGenerator) {
     startScriptsDir = new File("$buildDir/startScripts")
     launcherJar = jar.outputs.files
 }
-
-useClassycle()
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

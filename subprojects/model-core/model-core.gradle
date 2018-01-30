@@ -19,6 +19,8 @@
  */
 plugins {
     id 'java-library'
+    id 'strict-compile'
+    id 'classycle'
 }
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
@@ -42,13 +44,18 @@ dependencies {
     testFixturesImplementation project(':core')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':diagnostics', sourceSet: 'testFixtures')
-useClassycle(exclude: [
-    'org/gradle/model/internal/core/**',
-    'org/gradle/model/internal/inspect/**',
-    'org/gradle/model/internal/manage/schema/**',
-    'org/gradle/model/internal/type/**'
-])
-strictCompileIgnoreDeprecations()
+testFixtures {
+    from(':core')
+    from(':diagnostics', 'testFixtures')
+}
 
+strictCompile {
+    ignoreDeprecations = true
+}
+
+classycle {
+    excludePatterns = ['org/gradle/model/internal/core/**',
+                       'org/gradle/model/internal/inspect/**',
+                       'org/gradle/model/internal/manage/schema/**',
+                       'org/gradle/model/internal/type/**']
+}

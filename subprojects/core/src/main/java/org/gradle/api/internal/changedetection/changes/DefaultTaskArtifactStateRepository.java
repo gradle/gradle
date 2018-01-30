@@ -28,6 +28,8 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
+import org.gradle.api.internal.changedetection.rules.DefaultTaskUpToDateState;
+import org.gradle.api.internal.changedetection.rules.NoHistoryTaskUpToDateState;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
@@ -200,8 +202,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (states == null) {
                 HistoricalTaskExecution previousExecution = history.getPreviousExecution();
                 // Calculate initial state - note this is potentially expensive
+                // We need to evaluate this even if we have no history, since every input property should be evaluated before the task executes
                 CurrentTaskExecution currentExecution = history.getCurrentExecution();
-                states = new TaskUpToDateState(previousExecution, currentExecution, task);
+                if (previousExecution == null) {
+                    states = NoHistoryTaskUpToDateState.INSTANCE;
+                } else {
+                    states = new DefaultTaskUpToDateState(previousExecution, currentExecution, task);
+                }
             }
             return states;
         }

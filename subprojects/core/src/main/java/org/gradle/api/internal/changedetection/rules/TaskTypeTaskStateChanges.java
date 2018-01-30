@@ -21,7 +21,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
@@ -29,7 +28,7 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
     private final TaskExecution currentExecution;
     private final TaskInternal task;
 
-    public TaskTypeTaskStateChanges(@Nullable TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
+    public TaskTypeTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task) {
         this.previousExecution = previousExecution;
         this.currentExecution = currentExecution;
         this.task = task;

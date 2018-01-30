@@ -24,4 +24,6 @@ dependencies {
     compile libraries.bouncycastle_pgp
 }
 
-useTestFixtures()
+testFixtures {
+    from(':core')
+}

@@ -34,29 +34,19 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             repositories { maven { url "${mavenHttpRepo.uri}" } }
             configurations { compile }
         """
-        bom = mavenHttpRepo.module('group', 'bom', '1.0').hasType("pom").allowAll().publish()
-        bom.pomFile.text = bom.pomFile.text.replace("</project>", '''
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>group</groupId>
-                        <artifactId>moduleA</artifactId>
-                        <version>2.0</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>group</groupId>
-                        <artifactId>moduleB</artifactId>
-                        <version>2.0</version>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
-        </project>
-        ''')
         moduleA = mavenHttpRepo.module('group', 'moduleA', '2.0').allowAll().publish()
+        bom = mavenHttpRepo.module('group', 'bom', '1.0')
+            .hasType("pom")
+            .allowAll()
+    }
+
+    MavenModule bomDependency(String artifact, List<Map<String, String>> exclusions = null) {
+        bom.dependencyConstraint(mavenHttpRepo.module('group', artifact, '2.0'), exclusions: exclusions)
     }
 
     def "can use a bom to select a version"() {
         given:
+        bomDependency('moduleA').publish()
         buildFile << """
             dependencies {
                 compile "group:moduleA"
@@ -81,6 +71,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     def "can import a bom transitively"() {
         given:
+        bomDependency('moduleA').publish()
         mavenHttpRepo.module('group', 'main', '5.0').allowAll().dependsOn(bom).publish()
 
         buildFile << """
@@ -110,15 +101,8 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
     def "a bom can declare excludes"() {
         given:
         moduleA.dependsOn(mavenHttpRepo.module("group", "moduleC", "1.0").allowAll().publish()).publish()
-        bom.pomFile.text = bom.pomFile.text.replace("<version>2.0</version>", '''
-                        <version>2.0</version>
-                        <exclusions>
-                            <exclusion>
-                                <groupId>group</groupId>
-                                <artifactId>moduleC</artifactId>
-                            </exclusion>
-                        </exclusions>
-        ''')
+        bomDependency('moduleA', [[group: 'group', module: 'moduleC']])
+        bomDependency('moduleB', [[group: 'group', module: 'moduleC']]).publish()
 
         buildFile << """
             dependencies {
@@ -165,6 +149,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
     def "a bom can declare dependencies"() {
         given:
         mavenHttpRepo.module('group', 'moduleC', '1.0').allowAll().publish()
+        bomDependency('moduleA')
+        bomDependency('moduleB')
+        bom.publish()
         bom.pomFile.text = bom.pomFile.text.replace("</project>", '''
                 <dependencies>
                     <dependency>
@@ -201,6 +188,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     def "a parent pom is not a bom"() {
         mavenHttpRepo.module('group', 'main', '5.0').allowAll().parent(bom.group, bom.artifactId, bom.version).publish()
+        bomDependency('moduleA')
+        bomDependency('moduleB')
+        bom.publish()
 
         buildFile << """
             dependencies {
@@ -219,6 +209,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
     def "a parent pom with dependency entries without versions does not fail the build"() {
         given:
         mavenHttpRepo.module('group', 'main', '5.0').allowAll().parent(bom.group, bom.artifactId, bom.version).publish()
+        bomDependency('moduleA')
+        bomDependency('moduleB')
+        bom.publish()
         bom.pomFile.text = bom.pomFile.text.replace("<version>2.0</version>", "")
 
         buildFile << """
@@ -242,6 +235,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     def "does not fail for unused dependency entries without version"() {
         given:
+        bomDependency('moduleA')
+        bomDependency('moduleB')
+        bom.publish()
         bom.pomFile.text = bom.pomFile.text.replace("<version>2.0</version>", "")
         buildFile << """
             dependencies {
@@ -262,6 +258,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     def "fails late for dependency entries that fail to provide a missing version"() {
         given:
+        bomDependency('moduleA')
+        bomDependency('moduleB')
+        bom.publish()
         bom.pomFile.text = bom.pomFile.text.replace("<version>2.0</version>", "")
         buildFile << """
             dependencies {

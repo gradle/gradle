@@ -3,6 +3,7 @@
  */
 plugins {
     id 'java-library'
+    id 'classycle'
 }
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
@@ -28,6 +29,10 @@ dependencies {
     testImplementation project(":internalTesting")
 }
 
-useTestFixtures()
+testFixtures {
+    from(':core')
+}
 
-useClassycle(exclude: ["org/gradle/internal/featurelifecycle/**"])
+classycle {
+    excludePatterns = ['org/gradle/internal/featurelifecycle/**']
+}

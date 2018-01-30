@@ -138,6 +138,7 @@ No dependencies matching given input were found in configuration ':conf'
         then:
         output.contains """
 org:leaf2:1.0
+   variant "runtime"
 +--- org:middle:1.0
 |    \\--- org:top:1.0
 |         \\--- conf
@@ -186,10 +187,12 @@ org:leaf2:1.0
         then:
         output.contains """
 org:leaf2:2.5 (conflict resolution)
+   variant "runtime"
 \\--- org:toplevel3:1.0
      \\--- conf
 
 org:leaf2:1.0 -> 2.5
+   variant "runtime"
 +--- org:middle1:1.0
 |    \\--- org:toplevel:1.0
 |         \\--- conf
@@ -198,6 +201,7 @@ org:leaf2:1.0 -> 2.5
           \\--- conf
 
 org:leaf2:1.5 -> 2.5
+   variant "runtime"
 \\--- org:toplevel2:1.0
      \\--- conf
 """
@@ -234,10 +238,12 @@ org:leaf2:1.5 -> 2.5
         then:
         output.contains """
 org:leaf:1.0 (forced)
+   variant "runtime"
 \\--- org:foo:1.0
      \\--- conf
 
 org:leaf:2.0 -> 1.0
+   variant "runtime"
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -281,16 +287,19 @@ org:leaf:2.0 -> 1.0
         then:
         output.contains """
 org:leaf:1.0
+   variant "runtime"
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
 
 org:leaf:[1.0,2.0] -> 1.0
+   variant "runtime"
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
 
 org:leaf:latest.integration -> 1.0
+   variant "runtime"
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
@@ -329,10 +338,12 @@ org:leaf:latest.integration -> 1.0
         then:
         output.contains """
 org:leaf:1.0 (selected by rule)
+   variant "runtime"
 \\--- org:foo:1.0
      \\--- conf
 
 org:leaf:2.0 -> 1.0
+   variant "runtime"
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -383,16 +394,21 @@ org:leaf:2.0 -> 1.0
         then:
         output.contains """
 org.test:bar:2.0 (why not?)
+   variant "default"
 
 org:bar:1.0 -> org.test:bar:2.0
+   variant "default"
 \\--- conf
 
 org:baz:1.0 (selected by rule)
+   variant "default"
 \\--- conf
 
 org:foo:2.0 (because I am in control)
+   variant "default"
 
 org:foo:1.0 -> 2.0
+   variant "default"
 \\--- conf
 """
     }
@@ -430,8 +446,10 @@ org:foo:1.0 -> 2.0
 
         then:
         output.contains """org:bar:1.0 (foo superceded by bar)
+   variant "default"
 
 org:foo:1.0 -> org:bar:1.0
+   variant "default"
 \\--- conf
 """
     }
@@ -470,12 +488,15 @@ org:foo:1.0 -> org:bar:1.0
         then:
         output.contains """
 org:new-leaf:77 (selected by rule)
+   variant "runtime"
 
 org:leaf:1.0 -> org:new-leaf:77
+   variant "runtime"
 \\--- org:foo:2.0
      \\--- conf
 
 org:leaf:2.0 -> org:new-leaf:77
+   variant "runtime"
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -515,13 +536,17 @@ org:leaf:2.0 -> org:new-leaf:77
         then:
         output.contains """
 org:bar:2.0 (I am not sure I want to explain)
+   variant "default"
 
 org:bar:1.0 -> 2.0
+   variant "default"
 \\--- conf
 
 org:foo:2.0 (I want to)
+   variant "default"
 
 org:foo:1.0 -> 2.0
+   variant "default"
 \\--- conf
 """
     }
@@ -557,16 +582,20 @@ org:foo:1.0 -> 2.0
         then:
         output.contains """
 org:leaf:1.6
+   variant "runtime"
 
 org:leaf:1.+ -> 1.6
+   variant "runtime"
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:[1.5,1.9] -> 1.6
+   variant "runtime"
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:latest.integration -> 1.6
+   variant "runtime"
 \\--- org:top:1.0
      \\--- conf
 """
@@ -603,10 +632,12 @@ org:leaf:latest.integration -> 1.6
         then:
         output.contains """
 org:leaf:2.0 (forced)
+   variant "runtime"
 \\--- org:bar:1.0
      \\--- conf
 
 org:leaf:1.0 -> 2.0
+   variant "runtime"
 \\--- org:foo:1.0
      \\--- conf
 """
@@ -644,12 +675,15 @@ org:leaf:1.0 -> 2.0
         then:
         output.contains """
 org:leaf:1.5 (forced)
+   variant "runtime"
 
 org:leaf:1.0 -> 1.5
+   variant "runtime"
 \\--- org:foo:1.0
      \\--- conf
 
 org:leaf:2.0 -> 1.5
+   variant "runtime"
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -688,11 +722,13 @@ org:leaf:2.0 -> 1.5
         then:
         output.contains """
 org:leaf:1.0 (forced)
+   variant "default"
 +--- conf
 \\--- org:foo:1.0
      \\--- conf
 
 org:leaf:2.0 -> 1.0
+   variant "default"
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -1019,6 +1055,7 @@ org:leaf:[1.5,2.0] FAILED
         then:
         output.contains """
 org:leaf2:1.0
+   variant "runtime"
 \\--- org:leaf1:1.0
      +--- conf
      \\--- org:leaf2:1.0 (*)
@@ -1056,6 +1093,7 @@ org:leaf2:1.0
         then:
         output.contains """
 project :
+   variant "compile"
 \\--- project :impl
      \\--- project : (*)
 """
@@ -1098,6 +1136,7 @@ project :
         then:
         output.contains """
 org:leaf2:1.0
+   variant "runtime"
 \\--- org:leaf1:1.0
      \\--- project :impl
           \\--- compile
@@ -1141,6 +1180,9 @@ org:leaf2:1.0
         then:
         output.contains """
 project :impl
+   variant "runtimeElements" [
+      org.gradle.usage = java-runtime-jars (not requested)
+   ]
 \\--- compile
 """
     }
@@ -1185,6 +1227,10 @@ project :impl
         then:
         output.contains """
 org:leaf4:1.0
+   variant "default" [
+      Requested attributes not found in the selected variant:
+         org.gradle.usage = java-api
+   ]
 \\--- project :impl
      \\--- compileClasspath
 """
@@ -1212,6 +1258,10 @@ org:leaf4:1.0
         then:
         output.contains """
 org:leaf1:1.0
+   variant "default" [
+      Requested attributes not found in the selected variant:
+         org.gradle.usage = java-api
+   ]
 \\--- compileClasspath
 """
 
@@ -1221,6 +1271,10 @@ org:leaf1:1.0
         then:
         output.contains """
 org:leaf2:1.0
+   variant "default" [
+      Requested attributes not found in the selected variant:
+         org.gradle.usage = java-api
+   ]
 \\--- compileClasspath
 """
     }
@@ -1265,6 +1319,9 @@ org:leaf2:1.0
         then:
         output.contains """
 project :api
+   variant "apiElements" [
+      org.gradle.usage = java-api
+   ]
 \\--- project :impl
      \\--- compileClasspath
 """
@@ -1309,6 +1366,10 @@ project :api
         then:
         output.contains """
 org:leaf3:1.0
+   variant "runtime" [
+      Requested attributes not found in the selected variant:
+         org.gradle.usage = java-api
+   ]
 \\--- org:leaf2:1.0
      +--- project :api
      |    \\--- project :impl
@@ -1348,12 +1409,66 @@ org:leaf3:1.0
         then:
         output.contains """:dependencyInsight
 foo:bar:2.0
+   variant "default"
 \\--- compile
 
 foo:foo:1.0
+   variant "default"
 \\--- compile"""
     }
 
+
+    @Unroll
+    def "renders dependency constraint differently"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+        mavenRepo.module("org", "foo", "1.3").publish()
+        mavenRepo.module("org", "foo", "1.4").publish()
+        mavenRepo.module("org", "foo", "1.5").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+            
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            
+            dependencies {
+                implementation 'org:foo' // no version
+                constraints {
+                    implementation('org:foo') {
+                         version { $version }
+                    }
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "foo"
+
+        then:
+        output.contains """org:foo:$selected (via constraint)
+   variant "default" [
+      Requested attributes not found in the selected variant:
+         org.gradle.usage = java-api
+   ]
+
+org:foo: -> $selected
+   variant "default" [
+      Requested attributes not found in the selected variant:
+         org.gradle.usage = java-api
+   ]
+\\--- compileClasspath
+"""
+        where:
+        version                             | selected
+        "prefer '[1.0, 2.0)'"               | '1.5'
+        "strictly '[1.1, 1.4]'"             | '1.4'
+        "prefer '[1.0, 1.4]'; reject '1.4'" | '1.3'
+    }
 
     @Unroll
     def "renders custom dependency constraint reasons"() {
@@ -1388,9 +1503,17 @@ foo:foo:1.0
         run "dependencyInsight", "--dependency", "foo"
 
         then:
-        output.contains """org:foo:$selected ($reason)
+        output.contains """org:foo:$selected (via constraint, $reason)
+   variant "default" [
+      Requested attributes not found in the selected variant:
+         org.gradle.usage = java-api
+   ]
 
 org:foo: -> $selected
+   variant "default" [
+      Requested attributes not found in the selected variant:
+         org.gradle.usage = java-api
+   ]
 \\--- compileClasspath
 """
         where:
@@ -1431,8 +1554,16 @@ org:foo: -> $selected
 
         then:
         output.contains """org:foo:$selected ($reason)
+   variant "default" [
+      Requested attributes not found in the selected variant:
+         org.gradle.usage = java-api
+   ]
 
 org:foo:$displayVersion -> $selected
+   variant "default" [
+      Requested attributes not found in the selected variant:
+         org.gradle.usage = java-api
+   ]
 \\--- compileClasspath
 """
         where:
@@ -1440,6 +1571,48 @@ org:foo:$displayVersion -> $selected
         "prefer '[1.0, 2.0)'"               | '[1.0, 2.0)'   | "foo v2+ has an incompatible API for project X" | '1.5'
         "strictly '[1.1, 1.4]'"             | '[1.1, 1.4]'   | "versions of foo verified to run on platform Y" | '1.4'
         "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'
+    }
+
+    def "renders dependency from BOM as a constraint"() {
+        given:
+        def leaf = mavenRepo.module("org", "leaf", "1.0").publish()
+        def bom = mavenRepo.module('org', 'bom', '1.0')
+        bom.packaging = 'pom'
+        bom.dependencyConstraint(leaf)
+        bom.publish()
+
+        FeaturePreviewsFixture.enableAdvancedPomSupport(file('gradle.properties'))
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+            
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            
+            dependencies {
+                implementation 'org:bom:1.0'
+                implementation 'org:leaf'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf"
+
+        then:
+        output.contains """org:leaf:1.0 (via constraint)
+   variant "compile" [
+      org.gradle.usage = java-api
+   ]
+\\--- org:bom:1.0
+     \\--- compileClasspath
+
+org:leaf: -> 1.0
+   variant "compile" [
+      org.gradle.usage = java-api
+   ]
+\\--- compileClasspath
+"""
     }
 
     def "shows published dependency reason"() {
@@ -1471,6 +1644,10 @@ org:foo:$displayVersion -> $selected
 
         then:
         output.contains """org.test:leaf:1.0 (first reason)
+   variant "default" [
+      Requested attributes not found in the selected variant:
+         org.gradle.usage = java-api
+   ]
 \\--- org.test:a:1.0
      \\--- compileClasspath"""
     }

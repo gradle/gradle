@@ -563,7 +563,7 @@ Annotations are inherited from all parent types including implemented interfaces
 
 Annotations on a property declared in a type override similar annotations declared by the superclass and in any implemented interfaces. Superclass annotations take precedence over annotations declared in implemented interfaces.
 
-The api:org.gradle.api.tasks.Console[] and api:org.gradle.api.tasks.Internal[] annotations in the table are special cases as they don’t declare either task inputs or task outputs. So why use them? It's so that you can take advantage of the <<javaGradle_plugin,Java Gradle Plugin Development plugin>> to help you develop and publish your own plugins. This plugin checks whether any properties of your custom task classes lack an incremental build annotation. This protects you from forgetting to add an appropriate annotation during development.
+The api:org.gradle.api.tasks.Console[] and api:org.gradle.api.tasks.Internal[] annotations in the table are special cases as they don’t declare either task inputs or task outputs. So why use them? It's so that you can take advantage of the <<java_gradle_plugin,Java Gradle Plugin Development plugin>> to help you develop and publish your own plugins. This plugin checks whether any properties of your custom task classes lack an incremental build annotation. This protects you from forgetting to add an appropriate annotation during development.
 
 [[sec:task_input_using_classpath_annotations]]
 ====== Using the classpath annotations

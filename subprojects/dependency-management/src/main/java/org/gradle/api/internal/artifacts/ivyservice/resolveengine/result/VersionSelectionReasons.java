@@ -34,6 +34,7 @@ public class VersionSelectionReasons {
     public static final ComponentSelectionDescriptorInternal CONFLICT_RESOLUTION = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONFLICT_RESOLUTION);
     public static final ComponentSelectionDescriptorInternal SELECTED_BY_RULE = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.SELECTED_BY_RULE);
     public static final ComponentSelectionDescriptorInternal COMPOSITE_BUILD = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.COMPOSITE_BUILD);
+    public static final ComponentSelectionDescriptorInternal CONSTRAINT = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT);
 
     public static ComponentSelectionReasonInternal requested() {
         return new DefaultComponentSelectionReason(REQUESTED);
@@ -133,6 +134,11 @@ public class VersionSelectionReasons {
         @Override
         public List<ComponentSelectionDescriptor> getDescriptions() {
             return ImmutableList.<ComponentSelectionDescriptor>copyOf(descriptions);
+        }
+
+        @Override
+        public boolean isConstrained() {
+            return hasCause(ComponentSelectionCause.CONSTRAINT);
         }
 
         @Override

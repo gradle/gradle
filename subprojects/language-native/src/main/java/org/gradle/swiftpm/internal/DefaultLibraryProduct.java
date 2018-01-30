@@ -16,13 +16,18 @@
 
 package org.gradle.swiftpm.internal;
 
-import org.gradle.api.file.FileCollection;
-
-import java.io.File;
+import org.gradle.nativeplatform.Linkage;
 
 public class DefaultLibraryProduct extends AbstractProduct {
-    public DefaultLibraryProduct(String name, String targetName, File path, FileCollection sourceFiles) {
-        super(name, targetName, path, sourceFiles);
+    private final Linkage linkage;
+
+    public DefaultLibraryProduct(String name, DefaultTarget target, Linkage linkage) {
+        super(name, target);
+        this.linkage = linkage;
+    }
+
+    public Linkage getLinkage() {
+        return linkage;
     }
 
     @Override

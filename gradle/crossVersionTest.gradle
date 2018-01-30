@@ -30,7 +30,9 @@ dependencies {
     crossVersionTestRuntime project(":toolingApiBuilders")
 }
 
-useTestFixtures(project: ":toolingApi")
+testFixtures {
+    from(':toolingApi')
+}
 
 ext.crossVersionTestTasks = tasks.withType(CrossVersionTest)
 
