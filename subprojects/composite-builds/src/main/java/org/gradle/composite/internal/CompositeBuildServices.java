@@ -68,8 +68,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new IncludedBuildTaskReferenceResolver(includedBuilds, buildIdentity);
         }
 
-        public ScriptClassPathInitializer createCompositeBuildClasspathResolver(IncludedBuildRegistry includedBuildRegistry, IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
-            return new CompositeBuildClassPathInitializer(includedBuildRegistry, includedBuildTaskGraph, serviceRegistry);
+        public ScriptClassPathInitializer createCompositeBuildClasspathResolver(IncludedBuildTaskGraph includedBuildTaskGraph, ServiceRegistry serviceRegistry) {
+            return new CompositeBuildClassPathInitializer(includedBuildTaskGraph, serviceRegistry);
         }
     }
 

@@ -74,6 +74,30 @@ public interface SourceSet {
     void setCompileClasspath(FileCollection classpath);
 
     /**
+     * Returns the classpath used to load annotation processors when compiling this source set.
+     * This path is also used for annotation processor discovery. The classpath can be empty,
+     * which means use the compile classpath; if you want to disable annotation processing,
+     * then use {@code -proc:none} as a compiler argument.
+     *
+     * @return The annotation processor path. Never returns null.
+     * @since 4.6
+     */
+    @Incubating
+    FileCollection getAnnotationProcessorPath();
+
+    /**
+     * Set the classpath to use to load annotation processors when compiling this source set.
+     * This path is also used for annotation processor discovery. The classpath can be empty,
+     * which means use the compile classpath; if you want to disable annotation processing,
+     * then use {@code -proc:none} as a compiler argument.
+     *
+     * @param annotationProcessorPath The annotation processor path. Should not be null.
+     * @since 4.6
+     */
+    @Incubating
+    void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath);
+
+    /**
      * Returns the classpath used to execute this source.
      *
      * @return The classpath. Never returns null.
@@ -247,6 +271,16 @@ public interface SourceSet {
      */
     @Incubating
     String getCompileClasspathConfigurationName();
+
+    /**
+     * Returns the name of the configuration containing annotation processors and their
+     * dependencies needed to compile this source set.
+     *
+     * @return the name of the annotation processor configuration.
+     * @since 4.6
+     */
+    @Incubating
+    String getAnnotationProcessorConfigurationName();
 
     /**
      * Returns the name of the API configuration for this source set. The API configuration

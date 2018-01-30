@@ -83,4 +83,13 @@ public interface ComponentSelectionReason {
      */
     List<ComponentSelectionDescriptor> getDescriptions();
 
+    /**
+     * Informs whether the selected component version has been influenced by a dependency constraint.
+     *
+     * @return true if a dependency constraint influenced the selection of this component
+     *
+     * @since 4.6
+     */
+    @Incubating
+    boolean isConstrained();
 }

@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentStateWithDependents
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import spock.lang.Specification
 
@@ -134,7 +135,7 @@ abstract class AbstractConflictResolverTest extends Specification {
 
         @Override
         ComponentSelectionReasonInternal getSelectionReason() {
-            null
+            VersionSelectionReasons.requested()
         }
 
         @Override

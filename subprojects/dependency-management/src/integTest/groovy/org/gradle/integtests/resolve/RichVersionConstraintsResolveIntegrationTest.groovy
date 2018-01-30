@@ -33,7 +33,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
                 '17'()
             }
             'org:bar:1.0' {
-                dependsOn(group: 'org', artifact: 'foo', version: '15', rejects: [']15,)'])
+                dependsOn(group: 'org', artifact: 'foo', version: '15', rejects: [']15,)'], reason: 'what not')
             }
         }
 
@@ -58,7 +58,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
    Dependency path ':test:unspecified' --> 'org:foo' prefers '17'
-   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' prefers '15', rejects ']15,)'""")
+   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' prefers '15', rejects ']15,)' because of the following reason: what not""")
 
     }
 
@@ -270,6 +270,118 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
    Dependency path ':test:unspecified' --> 'org:foo' prefers '1.0'
    Constraint path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' rejects all versions""")
 
+    }
+
+    def "shows only one path to dependency when node is already visited"() {
+        given:
+        repository {
+            'org' {
+                'a:1.0' {
+                    dependsOn (group: 'org', artifact: 'b', version: '1.0', rejects: [']1.0,)'], reason: 'Not following semantic versioning')
+                }
+                'b' {
+                    '1.0'()
+                    '1.1'()
+                }
+                'c:1.0' {
+                    dependsOn 'org:b:1.1'
+                }
+                'd:1.0' {
+                    dependsOn 'org:c:1.0' // adds another path to `c`
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:a:1.0'
+                conf 'org:c:1.0'
+                conf 'org:d:1.0'
+            }                       
+        """
+
+        when:
+        repositoryInteractions {
+            'org:a:1.0' {
+                expectGetMetadata()
+            }
+            'org:b:1.0' {
+                expectGetMetadata()
+            }
+            'org:c:1.0' {
+                expectGetMetadata()
+            }
+            'org:d:1.0' {
+                expectGetMetadata()
+            }
+        }
+
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("""Cannot find a version of 'org:b' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b' prefers '1.0', rejects ']1.0,)' because of the following reason: Not following semantic versioning
+   Dependency path ':test:unspecified' --> 'org:c:1.0' --> 'org:b' prefers '1.1'""")
+
+        and: // assertHasCause is a "contains" so we need to make sure there's not an additional line
+        !failure.error.contains("Dependency path ':test:unspecified' --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b' prefers '1.1'")
+
+    }
+
+    def "handles dependency cycles"() {
+        given:
+        repository {
+            'org' {
+                'a:1.0' {
+                    dependsOn (group: 'org', artifact: 'b', version: '1.0', rejects: [']1.0,)'], reason: 'Not following semantic versioning')
+                }
+                'b' {
+                    '1.0'()
+                    '1.1'()
+                }
+                'c:1.0' {
+                    dependsOn 'org:b:1.1'
+                    dependsOn 'org:d:1.0' // creates a cycle
+                }
+                'd:1.0' {
+                    dependsOn 'org:c:1.0' // adds another path to `c`
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:a:1.0'
+                conf 'org:c:1.0'
+                conf 'org:d:1.0'
+            }                       
+        """
+
+        when:
+        repositoryInteractions {
+            'org:a:1.0' {
+                expectGetMetadata()
+            }
+            'org:b:1.0' {
+                expectGetMetadata()
+            }
+            'org:c:1.0' {
+                expectGetMetadata()
+            }
+            'org:d:1.0' {
+                expectGetMetadata()
+            }
+        }
+
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("""Cannot find a version of 'org:b' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b' prefers '1.0', rejects ']1.0,)' because of the following reason: Not following semantic versioning
+   Dependency path ':test:unspecified' --> 'org:c:1.0' --> 'org:b' prefers '1.1'""")
+
+        and: // assertHasCause is a "contains" so we need to make sure there's not an additional line
+        !failure.error.contains("Dependency path ':test:unspecified' --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b' prefers '1.1'")
     }
 
 }

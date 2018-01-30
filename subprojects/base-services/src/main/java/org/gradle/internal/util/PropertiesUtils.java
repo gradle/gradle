@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal.util;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 
 import javax.annotation.Nullable;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
@@ -35,13 +38,40 @@ import java.util.Properties;
 public class PropertiesUtils {
 
     /**
-     * Writes a {@link java.util.Properties} in a way that the results can be expected to be reproducible.
+     * Writes {@link java.util.Properties} in a way that the results can be expected to be reproducible.
+     *
+     * Uses defaults for the arguments of {@link PropertiesUtils#store(Properties, File, String, Charset, String)}:
+     * <ul>
+     *     <li>no comment</li>
+     *     <li>line separator {@literal '\n'}</li>
+     *     <li>charset ISO-8859-1</li>
+     * </ul>
+     */
+    public static void store(Properties properties, File propertyFile) throws IOException {
+        store(properties, propertyFile, null, Charsets.ISO_8859_1, "\n");
+    }
+
+    /**
+     * Writes {@link java.util.Properties} in a way that the results can be expected to be reproducible.
+     *
+     * See {@link #store(Properties, OutputStream, String, Charset, String)} for more details.
+     */
+    public static void store(Properties properties, File propertyFile, @Nullable String comment, Charset charset, String lineSeparator) throws IOException {
+        BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(propertyFile));
+        try {
+            store(properties, outputStream, comment, charset, lineSeparator);
+        } finally {
+            IoActions.closeQuietly(outputStream);
+        }
+    }
+
+    /**
+     * Writes {@link java.util.Properties} in a way that the results can be expected to be reproducible.
      *
      * <p>There are a number of differences compared to {@link java.util.Properties#store(java.io.Writer, String)}:</p>
      * <ul>
      *     <li>no timestamp comment is generated at the beginning of the file</li>
-     *     <li>the lines in the resulting files are separated by a pre-set separator (defaults to
-     *         {@literal '\n'}) instead of the system default line separator</li>
+     *     <li>the lines in the resulting files are separated by a pre-set separator instead of the system default line separator</li>
      *     <li>the properties are sorted alphabetically</li>
      * </ul>
      *
@@ -80,7 +110,11 @@ public class PropertiesUtils {
         }
 
         Collections.sort(nonCommentLines);
-        String contents = Joiner.on(lineSeparator).join(lines);
-        outputStream.write(contents.getBytes(charset));
+        StringBuilder builder = new StringBuilder();
+        for (String line : lines) {
+            builder.append(line);
+            builder.append(lineSeparator);
+        }
+        outputStream.write(builder.toString().getBytes(charset));
     }
 }

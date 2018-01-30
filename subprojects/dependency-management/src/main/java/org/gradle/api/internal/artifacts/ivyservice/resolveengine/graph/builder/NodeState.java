@@ -18,7 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -27,6 +29,7 @@ import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,10 +54,6 @@ class NodeState implements DependencyGraphNode {
     private final ConfigurationMetadata metaData;
     private final ResolveState resolveState;
     private ModuleExclusion previousTraversalExclusions;
-
-    NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState) {
-        this(resultId, id, component, resolveState, component.getMetadata().getConfiguration(id.getConfiguration()));
-    }
 
     NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -177,6 +176,7 @@ class NodeState implements DependencyGraphNode {
                 if (isExcluded(resolutionFilter, dependencyState)) {
                     continue;
                 }
+                dependencyState = maybeSubstitute(dependencyState);
                 if (!pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState)) {
                     EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
                     outgoingEdges.add(dependencyEdge);
@@ -188,6 +188,21 @@ class NodeState implements DependencyGraphNode {
             // we must do this after `previousTraversalExclusions` has been written, or state won't be reset properly
             pendingDepsVisitor.complete();
         }
+    }
+
+    // TODO:DAZ This should be done as a decorator on ConfigurationMetadata.getDependencies() ???
+    private DependencyState maybeSubstitute(DependencyState dependencyState) {
+        DependencySubstitutionApplicator.SubstitutionResult substitutionResult = resolveState.getDependencySubstitutionApplicator().apply(dependencyState.getDependency());
+        if (substitutionResult.hasFailure()) {
+            dependencyState.failure = new ModuleVersionResolveException(dependencyState.getRequested(), substitutionResult.getFailure());
+            return dependencyState;
+        }
+
+        DependencySubstitutionInternal details = substitutionResult.getResult();
+        if (details != null && details.isUpdated()) {
+            return dependencyState.withTarget(details.getTarget(), details.getSelectionDescription());
+        }
+        return dependencyState;
     }
 
     private List<EdgeState> findTransitiveIncomingEdges(boolean hasIncomingEdges) {
@@ -220,7 +235,7 @@ class NodeState implements DependencyGraphNode {
     }
 
     private boolean isExcluded(ModuleExclusion selector, DependencyState dependencyState) {
-        DependencyMetadata dependency = dependencyState.getDependencyMetadata();
+        DependencyMetadata dependency = dependencyState.getDependency();
         if (!resolveState.getEdgeFilter().isSatisfiedBy(dependency)) {
             LOGGER.debug("{} is filtered.", dependency);
             return true;

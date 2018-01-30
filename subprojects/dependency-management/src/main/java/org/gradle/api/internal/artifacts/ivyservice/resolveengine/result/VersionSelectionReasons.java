@@ -34,6 +34,7 @@ public class VersionSelectionReasons {
     public static final ComponentSelectionDescriptorInternal CONFLICT_RESOLUTION = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONFLICT_RESOLUTION);
     public static final ComponentSelectionDescriptorInternal SELECTED_BY_RULE = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.SELECTED_BY_RULE);
     public static final ComponentSelectionDescriptorInternal COMPOSITE_BUILD = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.COMPOSITE_BUILD);
+    public static final ComponentSelectionDescriptorInternal CONSTRAINT = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT);
 
     public static ComponentSelectionReasonInternal requested() {
         return new DefaultComponentSelectionReason(REQUESTED);
@@ -44,7 +45,11 @@ public class VersionSelectionReasons {
         return new DefaultComponentSelectionReason(ROOT);
     }
 
-    public static ComponentSelectionReasonInternal of(List<ComponentSelectionDescriptor> descriptions) {
+    public static ComponentSelectionReasonInternal of(List<? extends ComponentSelectionDescriptor> descriptions) {
+        return new DefaultComponentSelectionReason(descriptions);
+    }
+
+    public static ComponentSelectionReasonInternal of(ComponentSelectionDescriptor descriptions) {
         return new DefaultComponentSelectionReason(descriptions);
     }
 
@@ -57,7 +62,7 @@ public class VersionSelectionReasons {
             descriptions.add((ComponentSelectionDescriptorInternal) description);
         }
 
-        public DefaultComponentSelectionReason(List<ComponentSelectionDescriptor> descriptions) {
+        public DefaultComponentSelectionReason(List<? extends ComponentSelectionDescriptor> descriptions) {
             this.descriptions = new ArrayDeque<ComponentSelectionDescriptorInternal>(1);
             for (ComponentSelectionDescriptor description : descriptions) {
                 addCause(description);
@@ -129,6 +134,11 @@ public class VersionSelectionReasons {
         @Override
         public List<ComponentSelectionDescriptor> getDescriptions() {
             return ImmutableList.<ComponentSelectionDescriptor>copyOf(descriptions);
+        }
+
+        @Override
+        public boolean isConstrained() {
+            return hasCause(ComponentSelectionCause.CONSTRAINT);
         }
 
         @Override

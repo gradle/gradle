@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal
 
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.vcs.internal.spec.DirectoryRepositorySpec
 
 class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
@@ -39,6 +40,70 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         """
         expect:
         succeeds("assemble")
+        assertRepoCheckedOut()
+    }
+
+    def "can define source repositories in root of composite build when child build has classpath dependencies"() {
+        settingsFile << """
+            includeBuild 'child'
+
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from(DirectoryRepositorySpec) {
+                            sourceDir = file("dep")
+                        }
+                    }
+                }
+            }
+        """
+
+        def mavenRepo = new MavenFileRepository(file("maven-repo"))
+        mavenRepo.module("other", "other", "1.0").publish()
+
+        file("child").createDir()
+        file("child/build.gradle").text = """
+            buildscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+                dependencies {
+                    classpath "other:other:1.0"
+                }
+            }
+        """
+
+        expect:
+        succeeds("help")
+        assertRepoNotCheckedOut()
+    }
+
+    def "can use source dependency in build script classpath"() {
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from(DirectoryRepositorySpec) {
+                            sourceDir = file("dep")
+                        }
+                    }
+                }
+            }
+        """
+        file("build.gradle").text = """
+            buildscript { 
+                dependencies {
+                    classpath "org.test:dep:latest.integration"
+                }
+            }
+            def dep = new Dep() 
+        """
+
+        when:
+        run("help")
+
+        then:
+        result.assertTasksExecuted(":dep:compileJava", ":dep:processResources", ":dep:classes", ":dep:jar", ":help")
         assertRepoCheckedOut()
     }
 

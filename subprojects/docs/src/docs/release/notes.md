@@ -39,6 +39,18 @@ You can also use this to programmatically opt-in to using the new Gradle metadat
 
 [The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.0](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
 
+### Annotation processor configurations
+
+It is now even easier to add annotation processors to your Java projects. Simply add them to the `annotationProcessor` configuration.
+
+```
+dependencies {
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.8'
+    implementation 'com.google.dagger:dagger:2.8'
+}
+
+```
+
 ### Public API for defining command line options for tasks
 
 Sometimes a user wants to declare the value of an exposed task property on the command line instead of the build script. Being able to pass in property values on the command line is particularly helpful if they change more frequently. With this version of Gradle, the task API now supports a mechanism for marking a property to automatically generate a corresponding command line parameter with a specific name at runtime. All you need to do is to annotate a setter method of a property with [Option](dsl/org.gradle.api.tasks.options.Option.html).
@@ -67,6 +79,11 @@ The following examples exposes a command line parameter `--url` for the custom t
             // verify URL by making a HTTP call
         }
     }
+    
+### Caching for Scala compilation when using the `play` plugin
+
+The task `PlatformScalaCompile` is now cacheable.
+This means that [Play projects](userguide/play_plugin.html) now also benefit from the [build cache](userguide/build_cache.html)!
 
 ## Promoted features
 
@@ -82,6 +99,10 @@ The following are the features that have been promoted in this Gradle release.
 ### TestKit becomes public feature
 
 TestKit was first introduced in Gradle 2.6 to support developers with writing and executing functional tests for plugins. In the course of the Gradle 2.x releases, a lot of new functionality was added. This version of Gradle removes the incubating status and makes TestKit a public feature.
+
+### `CompileOptions.annotationProcessorPath` property
+
+The `CompileOptions.annotationProcessorPath` property has been promoted and is now stable.
 
 ## Fixed issues
 
@@ -112,7 +133,15 @@ buildCache {
 }
 ```
 
+### Putting annotation processors on the compile classpath or explicit `-processorpath` compiler argument
+
+Putting processors on the compile classpath or using an explicit `-processorpath` compiler argument has been deprecated and will be removed in Gradle 5.0. Annotation processors should be added to the `annotationProcessor` configuration instead. If you don't want any processing, but your compile classpath contains a processor unintentionally (e.g. as part of some library you use), use the `-proc:none` compiler argument to ignore it.
+
 ## Potential breaking changes
+
+### Added annotationProcessor configurations
+
+The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` configuration for each source set. This might break when the user already defined such a configuration. We recommend removing your own and using the configuration provided by `java-base`. 
 
 <!--
 ### Example breaking change
@@ -125,8 +154,10 @@ We would like to thank the following community members for making contributions 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
-
+ - [Thomas Broyer](https://github.com/tbroyer) - Add annotationProcessor configuration for each source set (gradle/gradle#3786)
  - [Sergei Dryganets](https://github.com/dryganets) - Improved gpg instructions in signing plugin documentation (gradle/gradle#4023)
+ - [Kevin Macksamie](https://github.com/k-mack) - Fix xref id to java-gradle-plugin section of user guide (gradle/gradle#4179)
+ - [Devi Sridharan](https://github.com/devishree90) - Make `PlatformScalaCompile` cacheable (gradle/gradle#3804)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

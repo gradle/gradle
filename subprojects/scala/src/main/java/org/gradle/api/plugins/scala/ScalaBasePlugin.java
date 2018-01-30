@@ -117,7 +117,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
 
         Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
         ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
-        SourceSetUtil.configureForSourceSet(sourceSet, scalaSourceSet.getScala(), scalaCompile, project);
+        SourceSetUtil.configureForSourceSet(sourceSet, scalaSourceSet.getScala(), scalaCompile, scalaCompile.getOptions(), project);
         scalaCompile.setDescription("Compiles the " + scalaSourceSet.getScala() + ".");
         scalaCompile.setSource(scalaSourceSet.getScala());
         project.getTasks().getByName(sourceSet.getClassesTaskName()).dependsOn(taskName);

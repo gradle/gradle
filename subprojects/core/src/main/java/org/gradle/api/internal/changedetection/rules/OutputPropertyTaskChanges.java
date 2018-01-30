@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,22 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import javax.annotation.Nullable;
-import java.util.List;
+import java.util.SortedMap;
 
-class NoHistoryTaskStateChanges extends SimpleTaskStateChanges {
-    private final TaskExecution previousExecution;
+@NonNullApi
+public class OutputPropertyTaskChanges extends AbstractPropertyTaskStateChanges<FileCollectionSnapshot> {
 
-    public NoHistoryTaskStateChanges(@Nullable TaskExecution previousExecution) {
-        this.previousExecution = previousExecution;
+    public OutputPropertyTaskChanges(TaskExecution previous, TaskExecution current, Task task) {
+        super(previous, current, "Output", task);
     }
 
     @Override
-    protected void addAllChanges(List<TaskStateChange> changes) {
-        if (previousExecution == null) {
-            changes.add(new DescriptiveChange("No history is available."));
-        }
+    protected SortedMap<String, FileCollectionSnapshot> getProperties(TaskExecution execution) {
+        return execution.getOutputFilesSnapshot();
     }
 }

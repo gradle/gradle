@@ -102,7 +102,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
                 String compileTaskName = sourceSet.getCompileTaskName("groovy");
                 GroovyCompile compile = project.getTasks().create(compileTaskName, GroovyCompile.class);
-                SourceSetUtil.configureForSourceSet(sourceSet, groovySourceSet.getGroovy(), compile, project);
+                SourceSetUtil.configureForSourceSet(sourceSet, groovySourceSet.getGroovy(), compile, compile.getOptions(), project);
                 compile.dependsOn(sourceSet.getCompileJavaTaskName());
                 compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
                 compile.setSource(groovySourceSet.getGroovy());

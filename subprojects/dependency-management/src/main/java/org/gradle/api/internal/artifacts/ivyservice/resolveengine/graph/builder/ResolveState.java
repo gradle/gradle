@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -62,11 +63,13 @@ class ResolveState {
     private final ModuleReplacementsData moduleReplacementsData;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final ImmutableAttributesFactory attributesFactory;
+    private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
 
     public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                         ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
                         ModuleExclusions moduleExclusions, ModuleReplacementsData moduleReplacementsData,
-                        ComponentSelectorConverter componentSelectorConverter, ImmutableAttributesFactory attributesFactory) {
+                        ComponentSelectorConverter componentSelectorConverter, ImmutableAttributesFactory attributesFactory,
+                        DependencySubstitutionApplicator dependencySubstitutionApplicator) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
         this.metaDataResolver = metaDataResolver;
@@ -76,9 +79,12 @@ class ResolveState {
         this.moduleReplacementsData = moduleReplacementsData;
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
+        this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
         ComponentState rootVersion = getRevision(rootResult.getId());
         rootVersion.setMetaData(rootResult.getMetaData());
-        root = new RootNode(idGenerator.generateId(), rootVersion, new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName), this);
+        final ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName);
+        ConfigurationMetadata configurationMetadata = rootVersion.getMetadata().getConfiguration(id.getConfiguration());
+        root = new RootNode(idGenerator.generateId(), rootVersion, id, this, configurationMetadata);
         nodes.put(root.getResolvedConfigurationId(), root);
         root.getComponent().getModule().select(root.getComponent());
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
@@ -128,11 +134,11 @@ class ResolveState {
         return selectors.values();
     }
 
-    public SelectorState getSelector(DependencyMetadata dependencyMetadata, ModuleIdentifier moduleIdentifier) {
-        ComponentSelector requested = dependencyMetadata.getSelector();
+    public SelectorState getSelector(DependencyState dependencyState, ModuleIdentifier moduleIdentifier) {
+        ComponentSelector requested = dependencyState.getRequested();
         SelectorState resolveState = selectors.get(requested);
         if (resolveState == null) {
-            resolveState = new SelectorState(idGenerator.generateId(), dependencyMetadata, idResolver, this, moduleIdentifier);
+            resolveState = new SelectorState(idGenerator.generateId(), dependencyState, idResolver, this, moduleIdentifier);
             selectors.put(requested, resolveState);
         }
         return resolveState;
@@ -195,5 +201,9 @@ class ResolveState {
 
     public ImmutableAttributesFactory getAttributesFactory() {
         return attributesFactory;
+    }
+
+    public DependencySubstitutionApplicator getDependencySubstitutionApplicator() {
+        return dependencySubstitutionApplicator;
     }
 }

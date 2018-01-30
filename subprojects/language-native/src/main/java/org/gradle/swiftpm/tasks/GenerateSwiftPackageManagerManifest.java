@@ -24,9 +24,12 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.nativeplatform.Linkage;
 import org.gradle.swiftpm.Package;
 import org.gradle.swiftpm.internal.AbstractProduct;
+import org.gradle.swiftpm.internal.DefaultLibraryProduct;
 import org.gradle.swiftpm.internal.DefaultPackage;
+import org.gradle.swiftpm.internal.DefaultTarget;
 import org.gradle.swiftpm.internal.Dependency;
 
 import java.io.File;
@@ -79,13 +82,22 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                 for (AbstractProduct product : srcPackage.getProducts()) {
                     if (product.isExecutable()) {
                         writer.print("        .executable(");
+                        writer.print("name: \"");
+                        writer.print(product.getName());
+                        writer.print("\"");
                     } else {
                         writer.print("        .library(");
+                        writer.print("name: \"");
+                        writer.print(product.getName());
+                        DefaultLibraryProduct library = (DefaultLibraryProduct) product;
+                        if (library.getLinkage() == Linkage.SHARED) {
+                            writer.print("\", type: .dynamic");
+                        } else {
+                            writer.print("\", type: .static");
+                        }
                     }
-                    writer.print("name: \"");
-                    writer.print(product.getName());
-                    writer.print("\", targets: [\"");
-                    writer.print(product.getTargetName());
+                    writer.print(", targets: [\"");
+                    writer.print(product.getTarget().getName());
                     writer.println("\"]),");
                 }
                 writer.println("    ],");
@@ -105,19 +117,19 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                     writer.println("    ],");
                 }
                 writer.println("    targets: [");
-                for (AbstractProduct product : srcPackage.getProducts()) {
+                for (DefaultTarget target : srcPackage.getTargets()) {
                     writer.println("        .target(");
                     writer.print("            name: \"");
-                    writer.print(product.getTargetName());
+                    writer.print(target.getName());
                     writer.println("\",");
-                    if (!product.getRequiredTargets().isEmpty() || !product.getRequiredProducts().isEmpty()) {
+                    if (!target.getRequiredTargets().isEmpty() || !target.getRequiredProducts().isEmpty()) {
                         writer.println("            dependencies: [");
-                        for (String dep : product.getRequiredTargets()) {
+                        for (String dep : target.getRequiredTargets()) {
                             writer.print("                .target(name: \"");
                             writer.print(dep);
                             writer.println("\"),");
                         }
-                        for (String dep : product.getRequiredProducts()) {
+                        for (String dep : target.getRequiredProducts()) {
                             writer.print("                .product(name: \"");
                             writer.print(dep);
                             writer.println("\"),");
@@ -125,13 +137,13 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                         writer.println("            ],");
                     }
                     writer.print("            path: \"");
-                    Path productPath = product.getPath().toPath();
+                    Path productPath = target.getPath().toPath();
                     String relPath = baseDir.relativize(productPath).toString();
                     writer.print(relPath.isEmpty() ? "." : relPath);
                     writer.println("\",");
                     writer.println("            sources: [");
                     Set<String> sorted = new TreeSet<String>();
-                    for (File sourceFile : product.getSourceFiles()) {
+                    for (File sourceFile : target.getSourceFiles()) {
                         sorted.add(productPath.relativize(sourceFile.toPath()).toString());
                     }
                     for (String sourcePath : sorted) {
@@ -140,17 +152,23 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                         writer.println("\",");
                     }
                     writer.print("            ]");
-                    if (product.getPublicHeaderDir() != null) {
+                    if (target.getPublicHeaderDir() != null) {
                         writer.println(",");
                         writer.print("            publicHeadersPath: \"");
-                        writer.print(productPath.relativize(product.getPublicHeaderDir().toPath()));
-                        writer.println("\"");
-                    } else {
-                        writer.println();
+                        writer.print(productPath.relativize(target.getPublicHeaderDir().toPath()));
+                        writer.print("\"");
                     }
+                    writer.println();
                     writer.println("        ),");
                 }
-                writer.println("    ]");
+                writer.print("    ]");
+                if (srcPackage.getSwiftLanguageVersion() != null) {
+                    writer.println(",");
+                    writer.print("    swiftLanguageVersions: [");
+                    writer.print(srcPackage.getSwiftLanguageVersion().getVersion());
+                    writer.print("]");
+                }
+                writer.println();
                 writer.println(")");
             } finally {
                 writer.close();

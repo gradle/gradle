@@ -195,7 +195,7 @@ You can use the api:org.gradle.testfixtures.ProjectBuilder[] class to create api
 [[sec:using_the_java_gradle_plugin_development_plugin]]
 ==== Using the Java Gradle Plugin development plugin
 
-You can use the incubating <<javaGradle_plugin,Java Gradle Plugin development plugin>> to eliminate some of the boilerplate declarations in your build script and provide some basic validations of plugin metadata. This plugin will automatically apply the <<java_plugin,Java plugin>>, add the `gradleApi()` dependency to the compile configuration, and perform plugin metadata validations as part of the `jar` task execution.
+You can use the incubating <<java_gradle_plugin,Java Gradle Plugin development plugin>> to eliminate some of the boilerplate declarations in your build script and provide some basic validations of plugin metadata. This plugin will automatically apply the <<java_plugin,Java plugin>>, add the `gradleApi()` dependency to the compile configuration, and perform plugin metadata validations as part of the `jar` task execution.
 
 ++++
 <sample id="useJavaGradlePluginPlugin" dir="javaGradlePlugin" title="Using the Java Gradle Plugin Development plugin">
@@ -203,7 +203,7 @@ You can use the incubating <<javaGradle_plugin,Java Gradle Plugin development pl
             </sample>
 ++++
 
-When publishing plugins to custom plugin repositories using the <<publishing_ivy,ivy>> or <<publishing_maven,maven>> publish plugins, the <<javaGradle_plugin,Java Gradle Plugin development plugin>> will also generate plugin marker artifacts named based on the plugin id which depend on the plugin's implementation artifact.
+When publishing plugins to custom plugin repositories using the <<publishing_ivy,ivy>> or <<publishing_maven,maven>> publish plugins, the <<java_gradle_plugin,Java Gradle Plugin development plugin>> will also generate plugin marker artifacts named based on the plugin id which depend on the plugin's implementation artifact.
 
 [[sec:implementing_a_dsl]]
 === Providing a configuration DSL for the plugin
