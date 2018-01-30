@@ -46,6 +46,27 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    void createSimpleJupiterTest() {
+        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+            package org.gradle;
+
+            import org.junit.jupiter.api.Test;
+
+            public class JUnitJupiterTest {
+                @Test
+                public void ok() { }
+            }
+            '''
+    }
+
+    def 'can work with junit-platform-runner'() {
+        given:
+        createSimpleJupiterTest()
+
+        expect:
+        succeeds('test')
+    }
+
     def 'should prompt user to add dependencies when they are not in test runtime classpath'() {
         given:
         buildFile.text = """ 
@@ -57,16 +78,7 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
             
             test { useJUnitPlatform() }
             """
-        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
-            package org.gradle;
-
-            import org.junit.jupiter.api.Test;
-
-            public class JUnitJupiterTest {
-                @Test
-                public void ok() { }
-            }
-            '''
+        createSimpleJupiterTest()
 
         when:
         fails('test')
@@ -142,7 +154,7 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can handle class level assumption'() {
         given:
-        file('src/test/java/org/gradle/ClassAssumeTest.java') <<'''
+        file('src/test/java/org/gradle/ClassAssumeTest.java') << '''
         package org.gradle;
 
         import org.junit.jupiter.api.*;
@@ -170,7 +182,7 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can handle repeated tests'() {
         given:
-        file('src/test/java/org/gradle/RepeatTest.java') <<'''
+        file('src/test/java/org/gradle/RepeatTest.java') << '''
         package org.gradle;
 
         import org.junit.jupiter.api.*;
@@ -213,6 +225,5 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
             .assertTestPassed('partialSkip 1/3')
             .assertTestsSkipped('partialSkip 2/3')
             .assertTestPassed('partialSkip 3/3')
-
     }
 }
