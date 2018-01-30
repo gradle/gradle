@@ -90,6 +90,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean refreshDependencies;
     private boolean recompileScripts;
     private boolean buildCacheEnabled;
+    private boolean buildCacheDebugLogging;
     private boolean configureOnDemand;
     private boolean continuous;
     private List<File> includedBuilds = new ArrayList<File>();
@@ -696,6 +697,26 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public void setBuildCacheEnabled(boolean buildCacheEnabled) {
         this.buildCacheEnabled = buildCacheEnabled;
+    }
+
+    /**
+     * Whether build cache debug logging is enabled.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public boolean isBuildCacheDebugLogging() {
+        return buildCacheDebugLogging;
+    }
+
+    /**
+     * Whether build cache debug logging is enabled.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    public void setBuildCacheDebugLogging(boolean buildCacheDebugLogging) {
+        this.buildCacheDebugLogging = buildCacheDebugLogging;
     }
 
     /**

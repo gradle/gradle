@@ -394,12 +394,12 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         output.contains("Custom actions are attached to task ':compileJava'.")
     }
 
-    def "input hashes are reported at the info level"() {
+    def "input hashes are reported if build cache debugging is enabled"() {
         when:
         buildFile << """
             compileJava.doFirst { }
         """.stripIndent()
-        withBuildCache().run "compileJava", "--info"
+        withBuildCache().run "compileJava", "-Dorg.gradle.caching.debug=true"
 
         then:
         skippedTasks.empty
@@ -414,6 +414,20 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
             assert output.contains("Appending ${it} to build cache key:")
         }
         output.contains("Build cache key for task ':compileJava' is ")
+    }
+
+    def "only the build cache key is reported at the info level"() {
+        when:
+        buildFile << """
+            compileJava.doFirst { }
+        """.stripIndent()
+        withBuildCache().run "compileJava", "--info"
+
+        then:
+        skippedTasks.empty
+        output.contains("Build cache key for task ':compileJava' is ")
+        !output.contains("Appending taskClass to build cache key:")
+        !output.contains("Appending inputPropertyHash for")
     }
 
     def "compileJava is not cached if forked executable is used"() {

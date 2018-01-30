@@ -23,12 +23,13 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.util.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -37,10 +38,11 @@ import java.util.List;
 
 @NonNullApi
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputCachingBuildCacheKeyBuilder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskOutputCachingBuildCacheKeyBuilder.class);
+    private static final Logger LOGGER = Logging.getLogger(DefaultTaskOutputCachingBuildCacheKeyBuilder.class);
 
     private final BuildCacheHasher hasher = new DefaultBuildCacheHasher();
     private final Path taskPath;
+    private final boolean buildCacheDebugLogging;
     private String taskClass;
     private HashCode classLoaderHash;
     private List<HashCode> actionClassLoaderHashes;
@@ -50,15 +52,16 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     private final ImmutableSortedSet.Builder<String> inputPropertiesLoadedByUnknownClassLoader = ImmutableSortedSet.naturalOrder();
     private final ImmutableSortedSet.Builder<String> outputPropertyNames = ImmutableSortedSet.naturalOrder();
 
-    public DefaultTaskOutputCachingBuildCacheKeyBuilder(Path taskPath) {
+    public DefaultTaskOutputCachingBuildCacheKeyBuilder(Path taskPath, boolean buildCacheDebugLogging) {
         this.taskPath = taskPath;
+        this.buildCacheDebugLogging = buildCacheDebugLogging;
     }
 
     @Override
     public void appendTaskImplementation(ImplementationSnapshot taskImplementation) {
         this.taskClass = taskImplementation.getTypeName();
         hasher.putString(taskClass);
-        log("taskClass", taskClass);
+        logAppend("taskClass", taskClass);
 
         if (taskImplementation.hasUnknownClassLoader()) {
             valid = false;
@@ -66,7 +69,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
             HashCode hashCode = taskImplementation.getClassLoaderHash();
             this.classLoaderHash = hashCode;
             hasher.putHash(hashCode);
-            log("classLoaderHash", hashCode);
+            logAppend("classLoaderHash", hashCode);
         }
     }
 
@@ -78,7 +81,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
             String actionType = actionImpl.getTypeName();
             actionTypes.add(actionType);
             hasher.putString(actionType);
-            log("actionType", actionType);
+            logAppend("actionType", actionType);
 
             HashCode hashCode;
             if (actionImpl.hasUnknownClassLoader()) {
@@ -89,7 +92,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
                 hasher.putHash(hashCode);
             }
             actionClassLoaderHashes.add(hashCode);
-            log("actionClassLoaderHash", hashCode);
+            logAppend("actionClassLoaderHash", hashCode);
         }
 
         this.actionTypes = actionTypes.build();
@@ -101,7 +104,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
         hasher.putString(propertyName);
         hasher.putHash(hashCode);
         inputHashes.put(propertyName, hashCode);
-        LOGGER.info("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
+        log("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
     }
 
     @Override
@@ -109,18 +112,25 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
         valid = false;
         String sanitizedPropertyName = propertyName.replace(".class", "");
         inputPropertiesLoadedByUnknownClassLoader.add(sanitizedPropertyName);
-        LOGGER.info("The implementation of '{}' cannot be determined, because it was loaded by an unknown classloader", sanitizedPropertyName);
+        LogLevel logLevel = buildCacheDebugLogging ? LogLevel.LIFECYCLE : LogLevel.INFO;
+        LOGGER.log(logLevel, "The implementation of '{}' cannot be determined, because it was loaded by an unknown classloader", sanitizedPropertyName);
     }
 
     @Override
     public void appendOutputPropertyName(String propertyName) {
         outputPropertyNames.add(propertyName);
         hasher.putString(propertyName);
-        log("outputPropertyName", propertyName);
+        logAppend("outputPropertyName", propertyName);
     }
 
-    private static void log(String name, @Nullable Object value) {
-        LOGGER.info("Appending {} to build cache key: {}", name, value);
+    private void logAppend(String name, @Nullable Object value) {
+        log("Appending {} to build cache key: {}", name, value);
+    }
+
+    private void log(String message, Object... values) {
+        if (buildCacheDebugLogging) {
+            LOGGER.lifecycle(message, values);
+        }
     }
 
     @Override

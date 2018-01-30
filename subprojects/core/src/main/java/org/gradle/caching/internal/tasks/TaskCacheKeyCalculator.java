@@ -29,8 +29,14 @@ import java.util.SortedSet;
 
 public class TaskCacheKeyCalculator {
 
-    public static TaskOutputCachingBuildCacheKey calculate(TaskInternal task, TaskExecution execution) {
-        TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder(task.getIdentityPath());
+    private final boolean buildCacheDebugLogging;
+
+    public TaskCacheKeyCalculator(boolean buildCacheDebugLogging) {
+        this.buildCacheDebugLogging = buildCacheDebugLogging;
+    }
+
+    public TaskOutputCachingBuildCacheKey calculate(TaskInternal task, TaskExecution execution) {
+        TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder(task.getIdentityPath(), buildCacheDebugLogging);
         builder.appendTaskImplementation(execution.getTaskImplementation());
         builder.appendTaskActionImplementations(execution.getTaskActionImplementations());
 

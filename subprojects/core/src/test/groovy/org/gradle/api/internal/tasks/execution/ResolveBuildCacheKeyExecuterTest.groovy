@@ -41,7 +41,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
     def taskProperties = Mock(TaskProperties)
     def delegate = Mock(TaskExecuter)
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def executer = new ResolveBuildCacheKeyExecuter(delegate, buildOperationExecutor)
+    def executer = new ResolveBuildCacheKeyExecuter(delegate, buildOperationExecutor, false)
     def cacheKey = Mock(TaskOutputCachingBuildCacheKey)
 
     def "calculates build cache key"() {

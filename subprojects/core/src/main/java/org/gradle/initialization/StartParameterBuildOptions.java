@@ -56,6 +56,7 @@ public class StartParameterBuildOptions {
         options.add(new IncludeBuildOption());
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
+        options.add(new BuildCacheDebugLoggingOption());
         options.add(new BuildScanOption());
         options.add(new AdvancedPomSupportOption());
         options.add(new GradleMetadataOption());
@@ -275,6 +276,19 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setBuildCacheEnabled(value);
+        }
+    }
+
+    public static class BuildCacheDebugLoggingOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String GRADLE_PROPERTY = "org.gradle.caching.debug";
+
+        public BuildCacheDebugLoggingOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setBuildCacheDebugLogging(value);
         }
     }
 

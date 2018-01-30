@@ -60,12 +60,14 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final TaskHistoryRepository taskHistoryRepository;
     private final Instantiator instantiator;
     private final TaskOutputFilesRepository taskOutputFilesRepository;
+    private final TaskCacheKeyCalculator taskCacheKeyCalculator;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
-                                              TaskOutputFilesRepository taskOutputFilesRepository) {
+                                              TaskOutputFilesRepository taskOutputFilesRepository, TaskCacheKeyCalculator taskCacheKeyCalculator) {
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
         this.taskOutputFilesRepository = taskOutputFilesRepository;
+        this.taskCacheKeyCalculator = taskCacheKeyCalculator;
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task, TaskProperties taskProperties) {
@@ -124,7 +126,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public TaskOutputCachingBuildCacheKey calculateCacheKey() {
-            return TaskCacheKeyCalculator.calculate(task, history.getCurrentExecution());
+            return taskCacheKeyCalculator.calculate(task, history.getCurrentExecution());
         }
 
         @Override

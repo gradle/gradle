@@ -64,6 +64,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
@@ -131,7 +132,7 @@ public class TaskExecutionServices {
         executer = new SkipUpToDateTaskExecuter(executer);
         executer = new ResolveTaskOutputCachingStateExecuter(taskOutputCacheEnabled, executer);
         if (taskOutputCacheEnabled || scanPluginApplied) {
-            executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor);
+            executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor, startParameter.isBuildCacheDebugLogging());
         }
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputsGenerationListener, executer, buildInvocationScopeId);
@@ -195,6 +196,7 @@ public class TaskExecutionServices {
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, TaskHistoryRepository taskHistoryRepository, TaskOutputFilesRepository taskOutputsRepository) {
+        TaskCacheKeyCalculator taskCacheKeyCalculator = new TaskCacheKeyCalculator(startParameter.isBuildCacheDebugLogging());
 
         return new ShortCircuitTaskArtifactStateRepository(
             startParameter,
@@ -202,7 +204,8 @@ public class TaskExecutionServices {
             new DefaultTaskArtifactStateRepository(
                 taskHistoryRepository,
                 instantiator,
-                taskOutputsRepository
+                taskOutputsRepository,
+                taskCacheKeyCalculator
             )
         );
     }
