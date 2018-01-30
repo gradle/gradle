@@ -101,6 +101,7 @@ if (testJavaHome) {
                 "PlayJavaAnnotationProcessingIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
                 "ScalaAnnotationProcessingIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
                 "CachedScalaCompileIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
+                "CachedPlatformScalaCompileIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
                 "ScalaCompileRelocationIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
                 "UpToDateScalaCompileIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
                 "ScalaDocIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
