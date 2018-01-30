@@ -1,7 +1,5 @@
 import org.gradle.testing.SmokeTest
 
-useTestFixtures()
-
 sourceSets {
     smokeTest {
         compileClasspath += main.output + test.output
@@ -30,7 +28,10 @@ dependencies {
     smokeTestRuntimeOnly project(':toolingApiBuilders')
 }
 
-useTestFixtures(project: ":versionControl")
+testFixtures {
+    from(':core')
+    from(':versionControl')
+}
 
 processSmokeTestResources {
     from ("$rootDir/gradle") {

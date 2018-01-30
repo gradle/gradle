@@ -176,8 +176,6 @@ apply from: "gradle/minifiedDependencies.gradle"
 apply from: "gradle/wrapper.gradle"
 apply from: "gradle/idea.gradle"
 apply from: "gradle/eclipse.gradle"
-apply from: "gradle/classycle.gradle"
-apply from: "gradle/strictCompile.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
@@ -207,7 +205,7 @@ subprojects {
     version = rootProject.version
 
     if (project in groovyProjects) {
-        apply from: "$rootDir/gradle/groovyProject.gradle"
+        apply from: "$rootDir/gradle/groovyProject.gradle.kts"
         apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
         apply from: "$rootDir/gradle/java9.gradle"
         check.dependsOn ":docs:checkstyleApi"

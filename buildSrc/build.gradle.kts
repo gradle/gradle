@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Properties
 
 plugins {
     groovy
     `java-gradle-plugin`
+    `kotlin-dsl`
     idea
     eclipse
 }
@@ -30,6 +32,18 @@ java {
 
 gradlePlugin {
     (plugins) {
+        "classycle" {
+            id = "classycle"
+            implementationClass = "org.gradle.plugins.classycle.ClassyclePlugin"
+        }
+        "testFixtures" {
+            id = "test-fixtures"
+            implementationClass = "org.gradle.plugins.testfixtures.TestFixturesPlugin"
+        }
+        "strictCompile" {
+            id = "strict-compile"
+            implementationClass = "org.gradle.plugins.strictcompile.StrictCompilePlugin"
+        }
         "jsoup" {
             id = "jsoup"
             implementationClass = "org.gradle.plugins.jsoup.JsoupPlugin"
@@ -75,12 +89,23 @@ dependencies {
     compile("com.github.javaparser:javaparser-core:2.4.0")
 }
 
+// Allow Kotlin types to reference both Java and Groovy types
+// Remove compileGroovy -> compileJava dependency added by GroovyBasePlugin
+// Prevent cycles in the task graph as compileJava depends on compileKotlin
+tasks {
+    val compileGroovy by getting(GroovyCompile::class) {
+        dependsOn.remove("compileJava")
+    }
+    "compileKotlin"(KotlinCompile::class) {
+        classpath += files(compileGroovy.destinationDir).builtBy(compileGroovy)
+    }
+}
+
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 
 apply {
     from("../gradle/compile.gradle")
     from("../gradle/dependencies.gradle")
-    from("../gradle/classycle.gradle")
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {

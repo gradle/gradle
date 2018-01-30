@@ -27,4 +27,6 @@ dependencies {
     compile project(':dependencyManagement')
 }
 
-useTestFixtures()
+testFixtures {
+    from(':core')
+}

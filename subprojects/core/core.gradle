@@ -84,12 +84,14 @@ dependencies {
     integTestRuntimeOnly project(':maven')
 }
 
-useTestFixtures()
-useTestFixtures(project: ":coreApi")
-useTestFixtures(project: ":messaging")
-useTestFixtures(project: ":modelCore")
-useTestFixtures(project: ":logging")
-useTestFixtures(project: ":baseServices")
+testFixtures {
+    from(':core')
+    from(':coreApi')
+    from(':messaging')
+    from(':modelCore')
+    from(':logging')
+    from(':baseServices')
+}
 
 test {
     forkEvery = 200

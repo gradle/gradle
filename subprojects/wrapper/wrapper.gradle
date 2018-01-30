@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'classycle'
+}
 
 // Wrapper main entry point requires Java 5
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
@@ -21,6 +24,10 @@ dependencies {
     compile project(":cli")
 
     testCompile libraries.ant
+}
+
+testFixtures {
+    from(':core')
 }
 
 ext {
@@ -53,6 +60,3 @@ task executableJar(type: Jar) {
 integTestTasks.all {
     requiresBinZip = true
 }
-
-useTestFixtures()
-useClassycle()

@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
 
 dependencies {
     compile project(':core')
@@ -23,12 +27,11 @@ dependencies {
     integTestRuntime project(':ideNative')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':platformNative')
-useTestFixtures(project: ':diagnostics')
-useTestFixtures(project: ':platformBase')
-useTestFixtures(project: ':testingBase')
-useTestFixtures(project: ':languageNative')
-
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':core')
+    from(':platformNative')
+    from(':diagnostics')
+    from(':platformBase')
+    from(':testingBase')
+    from(':languageNative')
+}

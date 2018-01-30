@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.classycle
 
-allprojects {
-    ext.strictCompile = {
-        tasks.withType(AbstractCompile) {
-            options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
-        }
-    }
-    ext.strictCompileIgnoreDeprecations = {
-        strictCompile()
-        tasks.withType(AbstractCompile) {
-            options.compilerArgs << "-Xlint:-deprecation"
-        }
+import org.gradle.api.Project
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.ListProperty
+
+import org.gradle.kotlin.dsl.*
+
+open class ClassycleExtension(project: Project) {
+
+    val excludePatterns: ListProperty<String> = project.objects.listProperty()
+
+    val reportResourcesZip: RegularFileProperty = project.layout.fileProperty().also {
+        it.set(project.rootProject.file("gradle/classycle_report_resources.zip"))
     }
 }

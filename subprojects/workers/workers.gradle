@@ -1,3 +1,6 @@
+plugins {
+    id 'classycle'
+}
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
@@ -8,6 +11,7 @@ dependencies {
     integTestCompile project(':internalIntegTesting')
 }
 
-useTestFixtures(project: ":logging")
-useTestFixtures()
-useClassycle()
+testFixtures {
+    from(':core')
+    from(':logging')
+}

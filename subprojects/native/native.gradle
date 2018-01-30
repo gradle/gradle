@@ -3,6 +3,7 @@
 */
 plugins {
     id 'java-library'
+    id 'classycle'
 }
 
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
@@ -17,9 +18,10 @@ dependencies {
     implementation libraries.guava
 }
 
-useTestFixtures()
-useTestFixtures(project: ":logging")
-useClassycle()
+testFixtures {
+    from(':core')
+    from(':logging')
+}
 
 jmh {
     fork = 1

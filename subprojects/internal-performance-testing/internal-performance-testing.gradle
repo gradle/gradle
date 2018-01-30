@@ -15,6 +15,7 @@
  */
 plugins {
     id 'javascript-base'
+    id 'classycle'
 }
 
 configurations {
@@ -46,8 +47,9 @@ task reportResources(type: Copy) {
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
 
-useTestFixtures(sourceSet: 'main')
-useTestFixtures(project: ':toolingApi', sourceSet: 'main')
-useClassycle()
+testFixtures {
+    from(':core', 'main')
+    from(':toolingApi', 'main')
+}
 
 apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"

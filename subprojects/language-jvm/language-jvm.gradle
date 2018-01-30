@@ -1,3 +1,8 @@
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
+
 sourceCompatibility = 1.6
 
 dependencies {
@@ -10,9 +15,8 @@ dependencies {
     testFixturesCompile project(":internalIntegTesting")
 }
 
-useClassycle()
-strictCompile()
-useTestFixtures()
-useTestFixtures(sourceSet: 'testFixtures')
-useTestFixtures(project: ':launcher', sourceSet: 'testFixtures')
-
+testFixtures {
+    from(':core')
+    from(':core', 'testFixtures')
+    from(':launcher', 'testFixtures')
+}

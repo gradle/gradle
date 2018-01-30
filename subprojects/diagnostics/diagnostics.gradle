@@ -38,9 +38,11 @@ dependencies {
     integTestRuntimeOnly project(':languageNative')
 }
 
-useTestFixtures()
-useTestFixtures(project: ':dependencyManagement')
-useTestFixtures(project: ':platformNative', sourceSet: 'testFixtures')
-useTestFixtures(project: ":logging")
+testFixtures {
+    from(':core')
+    from(':dependencyManagement')
+    from(':platformNative', 'testFixtures')
+    from(':logging')
+}
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

@@ -15,6 +15,8 @@
  */
 plugins {
     id 'java-library'
+    id 'strict-compile'
+    id 'classycle'
 }
 
 dependencies {
@@ -28,6 +30,6 @@ dependencies {
     testFixturesCompile libraries.jgit
 }
 
-useTestFixtures()
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':core')
+}

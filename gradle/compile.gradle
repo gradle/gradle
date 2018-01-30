@@ -18,14 +18,17 @@ ext.javaInstallationForCompilation = new DefaultJavaInstallation()
 javaInstallationProbe.current(currentJavaInstallation)
 javaInstallationProbe.current(javaInstallationForCompilation)
 
-tasks.withType(AbstractCompile) {
-    options.fork = true // Always fork compilation
+def javaGroovyCompileTasks = tasks.matching { it instanceof JavaCompile || it instanceof GroovyCompile }
+
+// Always fork compilation
+javaGroovyCompileTasks.all {
+    options.fork = true
 }
 
 if (java7Home) {
     jvmForCompilation = Jvm.forHome(file(java7Home))
     javaInstallationProbe.checkJdk(file(java7Home)).configure(javaInstallationForCompilation)
-    tasks.withType(AbstractCompile) {
+    javaGroovyCompileTasks.all {
         options.with {
             fork = true
             forkOptions.javaHome = jvmForCompilation.javaHome

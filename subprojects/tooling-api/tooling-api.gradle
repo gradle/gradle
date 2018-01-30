@@ -27,10 +27,12 @@ dependencies {
     crossVersionTestRuntime project(":maven")
 }
 
-useTestFixtures()
-useTestFixtures(project: ":logging")
-useTestFixtures(project: ':dependencyManagement')
-useTestFixtures(project: ':ide')
+testFixtures {
+    from(':core')
+    from(':logging')
+    from(':dependencyManagement')
+    from(':ide')
+}
 
 task shadedJarWithoutVersion(type: ShadedJar) {
     ext.outputDir = file("$buildDir/shaded-jar-without-version")

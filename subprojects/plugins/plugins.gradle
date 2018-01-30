@@ -16,10 +16,6 @@
 
 sourceCompatibility = 1.6
 
-configurations {
-    testFixtures
-}
-
 dependencies {
     compile libraries.groovy
 
@@ -53,6 +49,15 @@ dependencies {
     integTestRuntime project(":maven")
 }
 
+testFixtures {
+    from(':core')
+    from(':core', 'testFixtures')
+    from(':dependencyManagement')
+    from(':languageJava')
+    from(':languageGroovy')
+    from(':diagnostics')
+}
+
 def wrapperJarDir = file("$buildDir/generated-resources/wrapper-jar")
 evaluationDependsOn(":wrapper")
 task wrapperJar(type: Copy) {
@@ -61,13 +66,4 @@ task wrapperJar(type: Copy) {
 }
 sourceSets.main.output.dir wrapperJarDir, builtBy: wrapperJar
 
-useTestFixtures()
-useTestFixtures(sourceSet: "testFixtures")
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":languageJava")
-useTestFixtures(project: ":languageGroovy")
-useTestFixtures(project: ':diagnostics')
-
-
 verifyTestFilesCleanup.errorWhenNotEmpty = false
-

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-dependencies {
-    compile libraries.commons_codec
-    compile libraries.slf4j_api
-    compile libraries.commons_io
-    compile project(':core')
-    testRuntime project(':plugins')
-}
+package accessors
 
-useTestFixtures()
+import org.gradle.api.Project
+import org.gradle.api.plugins.BasePluginConvention
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.reporting.ReportingExtension
+
+import org.gradle.kotlin.dsl.*
+
+
+val Project.base
+    get() = the<BasePluginConvention>()
+
+
+val Project.java
+    get() = the<JavaPluginConvention>()
+
+
+val Project.reporting
+    get() = the<ReportingExtension>()

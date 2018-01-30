@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id 'strict-compile'
+    id 'classycle'
+}
 
 dependencies {
     compile libraries.groovy
@@ -23,11 +27,11 @@ dependencies {
     integTestRuntime project(':compositeBuilds')
 }
 
-useTestFixtures()
-useTestFixtures(project: ":platformPlay")
-useTestFixtures(project: ":ide")
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':core')
+    from(':platformPlay')
+    from(':ide')
+}
 
 tasks.withType(org.gradle.testing.IntegrationTest) { task ->
     task.dependsOn(':platformPlay:integTestPrepare')

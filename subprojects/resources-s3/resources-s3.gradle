@@ -1,5 +1,7 @@
 plugins {
     id 'java-library'
+    id 'strict-compile'
+    id 'classycle'
 }
 
 dependencies {
@@ -13,11 +15,11 @@ dependencies {
     implementation libraries.commons_lang
 }
 
-useTestFixtures(project: ":dependencyManagement")
-useTestFixtures(project: ":ivy")
-useTestFixtures(project: ":maven")
-useClassycle()
-strictCompile()
+testFixtures {
+    from(':dependencyManagement')
+    from(':ivy')
+    from(':maven')
+}
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 
