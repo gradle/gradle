@@ -27,6 +27,9 @@ In the example, the version of `commons-codec` that is brought in transitively i
 
     JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
     
+The JUnit Platform serves as a foundation for launching testing frameworks on the JVM. JUnit Jupiter is the combination of the new [programming model](http://junit.org/junit5/docs/current/user-guide/#writing-tests)
+ and [extension model](http://junit.org/junit5/docs/current/user-guide/#extensions) for writing tests and extensions in JUnit 5.  
+    
 Gradle now supports `JUnit Jupiter Engine` on top of `JUnit Platform`. To enable JUnit Platform support, you just need to add one line into your `build.gradle`:
 
     test {
@@ -53,7 +56,8 @@ Put your first JUnit 5 test into `src/test/java/foo/bar`:
     
 Now you can run `gradle test` to see the results of your JUnit 5 tests! 
 
-You can find a sample of test with JUnit Jupiter at `samples/testing/junitplatform/jupiter` in the '-all' distribution of Gradle.
+You can find a sample of test with JUnit Jupiter at `samples/testing/junitplatform/jupiter` in the '-all' distribution of Gradle. 
+Note that JUnit 5 requires Java 8+, so you may need to configure the [`executable`](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable) if you're using JDK 7.
 
 ### Support for optional dependencies in POM consumption
 

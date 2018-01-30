@@ -142,23 +142,23 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can handle class level assumption'() {
         given:
-        file('src/test/java/org/gradle/ClassAssumeTest.java') << """ 
-            package org.gradle;
-            
-            import org.junit.jupiter.api.*;
-            import org.junit.jupiter.api.Assumptions;
+        file('src/test/java/org/gradle/ClassAssumeTest.java') <<'''
+        package org.gradle;
 
-            public class ClassAssumeTest {
-                @Test
-                public void ok() {
-                }
+        import org.junit.jupiter.api.*;
+        import org.junit.jupiter.api.Assumptions;
 
-                @BeforeAll
-                public static void before() {
-                    Assumptions.assumeTrue(false);
-                }
+        public class ClassAssumeTest {
+            @Test
+            public void ok() {
             }
-        """
+
+            @BeforeAll
+            public static void before() {
+                Assumptions.assumeTrue(false);
+            }
+        }
+        '''
 
         when:
         succeeds('test')
@@ -170,32 +170,32 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can handle repeated tests'() {
         given:
-        file('src/test/java/org/gradle/RepeatTest.java') << """ 
-            package org.gradle;
-            
-            import org.junit.jupiter.api.*;
-            import org.junit.jupiter.api.Assumptions;
+        file('src/test/java/org/gradle/RepeatTest.java') <<'''
+        package org.gradle;
 
-            public class RepeatTest {
-                @RepeatedTest(value = 3, name = "ok {currentRepetition}/{totalRepetitions}")
-                public void ok() {
-                }
-                
-                @RepeatedTest(value = 3, name = "partialFail {currentRepetition}/{totalRepetitions}")
-                public void partialFail(RepetitionInfo repetitionInfo){
-                    if(repetitionInfo.getCurrentRepetition​()==2){
-                        throw new RuntimeException();
-                    }
-                }
-                
-                @RepeatedTest(value = 3, name = "partialSkip {currentRepetition}/{totalRepetitions}")
-                public void partialSkip(RepetitionInfo repetitionInfo){
-                    if(repetitionInfo.getCurrentRepetition​()==2){
-                        Assumptions.assumeTrue(false);
-                    }
+        import org.junit.jupiter.api.*;
+        import org.junit.jupiter.api.Assumptions;
+
+        public class RepeatTest {
+            @RepeatedTest(value = 3, name = "ok {currentRepetition}/{totalRepetitions}")
+            public void ok() {
+            }
+
+            @RepeatedTest(value = 3, name = "partialFail {currentRepetition}/{totalRepetitions}")
+            public void partialFail(RepetitionInfo repetitionInfo) {
+                if (repetitionInfo.getCurrentRepetition ​ () == 2 ) {
+                    throw new RuntimeException();
                 }
             }
-        """
+
+            @RepeatedTest(value = 3, name = "partialSkip {currentRepetition}/{totalRepetitions}")
+            public void partialSkip(RepetitionInfo repetitionInfo) {
+                if (repetitionInfo.getCurrentRepetition ​ () == 2 ) {
+                    Assumptions.assumeTrue(false);
+                }
+            }
+        }
+        '''
 
         when:
         fails('test')
