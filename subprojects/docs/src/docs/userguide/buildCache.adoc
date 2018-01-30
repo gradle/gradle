@@ -70,8 +70,6 @@ Let us start with a project using the Java plugin which has a few Java source fi
 
 ----
 $> gradle --build-cache compileJava
-Build cache is an incubating feature.
-Using local directory build cache for the root build (location = /home/user/.gradle/caches/build-cache-1).
 :compileJava
 :processResources
 :classes
@@ -93,8 +91,6 @@ BUILD SUCCESSFUL
 
 ----
 $> gradle --build-cache assemble
-Build cache is an incubating feature.
-Using local directory build cache for the root build (location = /home/user/.gradle/caches/build-cache-1).
 :compileJava FROM-CACHE
 :processResources
 :classes

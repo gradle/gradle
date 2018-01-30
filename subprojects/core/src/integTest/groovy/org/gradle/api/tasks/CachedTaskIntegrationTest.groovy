@@ -21,11 +21,12 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 
 class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
-    def "produces incubation warning"() {
+
+    def "does not produce incubation warning"() {
         buildFile << defineCacheableTask()
         withBuildCache().run "cacheable"
         expect:
-        result.assertOutputContains("Build cache is an incubating feature.")
+        !output.contains("Build cache is an incubating feature.")
     }
 
     def "displays info about local build cache configuration"() {
