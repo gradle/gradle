@@ -23,11 +23,7 @@ public class EvaluateSettingsBuildOperationType implements BuildOperationType<Ev
     @UsedByScanPlugin
     public interface Details {
         /**
-         * The path of the build configuration that contains these projects.
-         * This will be ':' for top-level builds. Nested builds will have a sub-path.
-         *
          * @since 4.6
-         * @see org.gradle.api.internal.GradleInternal#getIdentityPath()
          */
         String getBuildPath();
 
