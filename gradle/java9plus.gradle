@@ -13,7 +13,7 @@ if (testJavaHome) {
     if (isSupportedJavaVersion(currentJavaVersion)) {
 
         tasks.withType(org.gradle.testing.IntegrationTest) {
-            ext.excludedTests = [
+            def excludedTests = [
                 // TODO requires investigation
                 "DaemonGroovyCompilerIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
                 "DaemonJavaCompilerIntegrationTest": [JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_10],
