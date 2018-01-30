@@ -235,7 +235,7 @@ This information includes the full task path, the task type, possible command li
 
 ==== Reporting dependencies
 
-Build scans give a full, visual report of what project and binary dependencies exist on which configurations, transitive dependencies, and dependency version selection.
+Build scans give a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
 
 ----
 ❯ gradle myTask --scan

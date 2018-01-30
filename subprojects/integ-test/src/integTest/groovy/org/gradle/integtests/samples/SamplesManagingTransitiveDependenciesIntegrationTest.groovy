@@ -29,6 +29,18 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @UsesSample("userguide/dependencies/declaringDependencyVersionsWithDependencyConstraints")
+    def "respects dependency constraints for direct and transitive dependencies"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        sample.dir.file('build/libs/httpclient-4.5.3.jar').isFile()
+        sample.dir.file('build/libs/commons-codec-1.11.jar').isFile()
+    }
+
     @UsesSample("userguide/dependencies/unresolvedTransitiveDependencies")
     def "reports an error for unresolved transitive dependency artifacts"() {
         executer.inDirectory(sample.dir)

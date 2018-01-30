@@ -18,6 +18,11 @@ The word "configuration" is an overloaded term and has a different meaning outsi
 
 A dependency is a pointer to another piece of software required to build, test or run a <<sub:terminology_module,module>>. For more information, see <<declaring_dependencies>>.
 
+[[sub:terminology_dependency_constraint]]
+=== Dependency constraint
+
+A dependency constraint defines requirements that need to be met by a module to make it a valid resolution result for the dependency. For example, a dependency constraint can narrow down the set of supported module versions. Dependency constraints can be used to express such requirements for transitive dependencies. For more information, see <<sec:dependency_constraints>>.
+
 [[sub:terminology_module]]
 === Module
 
