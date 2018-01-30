@@ -36,7 +36,7 @@ class JUnitConsoleLoggingIntegrationTest extends JUnitBasicMultiVersionIntegrati
 
         then:
         outputContains("""
-org.gradle.JUnit4Test > badTest FAILED
+org.gradle.JUnit4Test > ${testName('badTest')} FAILED
     java.lang.RuntimeException at JUnit4Test.groovy:44
         """)
     }
@@ -49,13 +49,13 @@ org.gradle.JUnit4Test > badTest FAILED
 
         then:
         outputContains("""
-badTest FAILED
+${testName('badTest')} FAILED
     java.lang.RuntimeException: bad
         at org.gradle.JUnit4Test.beBad(JUnit4Test.groovy:44)
         at org.gradle.JUnit4Test.badTest(JUnit4Test.groovy:28)
         """)
 
-        outputContains("ignoredTest SKIPPED")
+        outputContains("${testName('ignoredTest')} SKIPPED")
 
         outputContains("org.gradle.JUnit4Test FAILED")
     }
@@ -67,7 +67,7 @@ badTest FAILED
 
         then:
         outputContains("""
-org.gradle.JUnit4StandardOutputTest > printTest STANDARD_OUT
+org.gradle.JUnit4StandardOutputTest > ${testName('printTest')} STANDARD_OUT
     line 1
     line 2
     line 3

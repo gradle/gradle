@@ -446,8 +446,8 @@ class TestingIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
         run "test"
         then:
         nonSkippedTasks.contains ":test"
-        output.contains("FirstTest > test PASSED")
-        output.contains("SecondTest > test PASSED")
+        output.contains("FirstTest > ${testName('test')} PASSED")
+        output.contains("SecondTest > ${testName('test')} PASSED")
 
         when:
         run "test"
@@ -466,8 +466,8 @@ class TestingIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
         run "test"
         then:
         nonSkippedTasks.contains ":test"
-        output.contains("FirstTest > test PASSED")
-        !output.contains("SecondTest > test PASSED")
+        output.contains("FirstTest > ${testName('test')} PASSED")
+        !output.contains("SecondTest > ${testName('test')} PASSED")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2661")

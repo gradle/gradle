@@ -45,7 +45,6 @@ class JUnitPlatformTestRewriter {
                                'Assume.': 'Assumptions.',
     ]
 
-
     static rewriteDirectory(File projectDir) {
         rewriteBuildFileInDir(projectDir)
         rewriteJavaFiles(projectDir)

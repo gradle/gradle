@@ -60,4 +60,12 @@ class JUnitBasicMultiVersionIntegrationSpec extends MultiVersionIntegrationSpec 
     protected assumeNotJUnitPlatform() {
         Assume.assumeTrue(version != JUnitCoverage.PLATFORM)
     }
+
+    protected String testName(String methodName) {
+        if (version == JUnitCoverage.PLATFORM) {
+            return methodName + '()'
+        } else {
+            return methodName
+        }
+    }
 }
