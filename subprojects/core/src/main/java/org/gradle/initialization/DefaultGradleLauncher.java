@@ -45,6 +45,9 @@ import java.util.Set;
 
 public class DefaultGradleLauncher implements GradleLauncher {
 
+    private static final ConfigureBuildBuildOperationType.Result CONFIGURE_BUILD_RESULT = new ConfigureBuildBuildOperationType.Result() {
+    };
+
     private enum Stage {
         Load, LoadBuild, Configure, TaskGraph, Build, Finished
     }
@@ -267,12 +270,18 @@ public class DefaultGradleLauncher implements GradleLauncher {
             }
 
             modelConfigurationListener.onConfigure(gradle);
+            context.setResult(CONFIGURE_BUILD_RESULT);
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(contextualize("Configure build")).
-                parent(getGradle().getBuildOperation());
+                details(new ConfigureBuildBuildOperationType.Details(){
+                    @Override
+                    public String getBuildPath() {
+                        return getGradle().getIdentityPath().toString();
+                    }
+                }).parent(getGradle().getBuildOperation());
         }
     }
 

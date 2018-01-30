@@ -35,8 +35,6 @@ import org.slf4j.LoggerFactory;
 
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
-    public static final BuildBuildSrcBuildOperationType.Details BUILD_BUILDSRC_DETAILS = new BuildBuildSrcBuildOperationType.Details() {
-    };
     public static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
     };
     public static final String BUILD_SRC = "buildSrc";
@@ -55,16 +53,15 @@ public class BuildSourceBuilder {
         this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
     }
 
-    public ClassLoaderScope buildAndCreateClassLoader(StartParameter startParameter) {
-        ClassPath classpath = createBuildSourceClasspath(startParameter);
+    public ClassLoaderScope buildAndCreateClassLoader(GradleInternal gradle, StartParameter startParameter) {
+        ClassPath classpath = createBuildSourceClasspath(gradle, startParameter);
         return classLoaderScope.createChild(startParameter.getCurrentDir().getAbsolutePath())
             .export(cachedClasspathTransformer.transform(classpath))
             .lock();
     }
 
-    ClassPath createBuildSourceClasspath(final StartParameter startParameter) {
+    ClassPath createBuildSourceClasspath(final GradleInternal gradle, final StartParameter startParameter) {
         assert startParameter.getCurrentDir() != null && startParameter.getBuildFile() == null;
-
         LOGGER.debug("Starting to build the build sources.");
         if (!startParameter.getCurrentDir().isDirectory()) {
             LOGGER.debug("Gradle source dir does not exist. We leave.");
@@ -83,7 +80,13 @@ public class BuildSourceBuilder {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Build buildSrc").
                     progressDisplayName("Building buildSrc").
-                    details(BUILD_BUILDSRC_DETAILS);
+                    details(new BuildBuildSrcBuildOperationType.Details(){
+
+                        @Override
+                        public String getBuildPath() {
+                            return gradle.getIdentityPath().toString();
+                        }
+                    });
             }
         });
     }

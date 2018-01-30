@@ -40,4 +40,6 @@ public class EvaluateSettingsBuildOperationType implements BuildOperationType<Ev
 
     public interface Result {
     }
+
+    private EvaluateSettingsBuildOperationType(){}
 }

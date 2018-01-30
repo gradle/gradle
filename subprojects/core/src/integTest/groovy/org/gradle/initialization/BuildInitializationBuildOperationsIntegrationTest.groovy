@@ -41,6 +41,7 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
 
         def loadBuildBuildOperation = buildOperations.first(LoadBuildBuildOperationType)
         def evaluateSettingsBuildOperation = buildOperations.first(EvaluateSettingsBuildOperationType)
+        def configureBuildBuildOperations = buildOperations.first(ConfigureBuildBuildOperationType)
         def loadProjectsBuildOperation = buildOperations.first(LoadProjectsBuildOperationType)
 
         then:
@@ -50,6 +51,9 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         evaluateSettingsBuildOperation.details.buildPath == ":"
         evaluateSettingsBuildOperation.result.isEmpty()
         assert loadBuildBuildOperation.id == evaluateSettingsBuildOperation.parentId
+
+        configureBuildBuildOperations.details.buildPath == ":"
+        configureBuildBuildOperations.result.isEmpty()
 
         loadProjectsBuildOperation.details.buildPath == ":"
         loadProjectsBuildOperation.result.rootProject.projectDir == settingsFile.parent
@@ -76,6 +80,7 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
 
         def loadBuildBuildOperations = buildOperations.all(LoadBuildBuildOperationType)
         def evaluateSettingsBuildOperations = buildOperations.all(EvaluateSettingsBuildOperationType)
+        def configureBuildBuildOperations = buildOperations.all(ConfigureBuildBuildOperationType)
         def loadProjectsBuildOperations = buildOperations.all(LoadProjectsBuildOperationType)
 
         then:
@@ -84,6 +89,9 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
 
         evaluateSettingsBuildOperations*.details.buildPath == [':nested', ':']
         evaluateSettingsBuildOperations*.result.isEmpty() == [true, true]
+
+        configureBuildBuildOperations*.details.buildPath == [':nested', ':']
+        configureBuildBuildOperations*.result.isEmpty() == [true, true]
 
         loadProjectsBuildOperations*.details.buildPath == [':nested', ':']
         loadProjectsBuildOperations*.result.rootProject.projectDir == [nestedSettings.parent, settingsFile.parent]
