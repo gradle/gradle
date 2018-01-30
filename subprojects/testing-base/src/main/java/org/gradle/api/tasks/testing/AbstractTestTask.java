@@ -555,6 +555,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         return this;
     }
 
+    public boolean getFailFast() {
+        return this.failFast;
+    }
+
     /**
      * The reports that this task potentially produces.
      *
