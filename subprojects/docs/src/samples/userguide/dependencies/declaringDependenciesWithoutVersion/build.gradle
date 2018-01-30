@@ -4,7 +4,7 @@ repositories {
     mavenCentral()
 }
 
-//START SNIPPET binary-dependencies-without-version
+//START SNIPPET dependencies-without-version
 dependencies {
     implementation 'org.springframework:spring-web'
 }
@@ -14,7 +14,7 @@ dependencies {
         implementation 'org.springframework:spring-web:5.0.2.RELEASE'
     }
 }
-//END SNIPPET binary-dependencies-without-version
+//END SNIPPET dependencies-without-version
 
 task copyLibs(type: Copy) {
     from configurations.compileClasspath

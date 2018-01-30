@@ -1,4 +1,4 @@
-//START SNIPPET binary-dependencies
+//START SNIPPET dependencies
 apply plugin: 'java-library'
 
 repositories {
@@ -11,7 +11,7 @@ repositories {
 dependencies {
     implementation 'org.springframework:spring-web:5.0.3.BUILD-SNAPSHOT'
 }
-//END SNIPPET binary-dependencies
+//END SNIPPET dependencies
 
 task copyLibs(type: Copy) {
     from configurations.compileClasspath

@@ -32,7 +32,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("userguide/dependencies/declaringBinaryDependenciesWithConcreteVersion")
+    @UsesSample("userguide/dependencies/declaringDependenciesWithConcreteVersion")
     def "can use declare and resolve binary dependency with concrete version"() {
         executer.inDirectory(sample.dir)
 
@@ -43,7 +43,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
         sample.dir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
     }
 
-    @UsesSample("userguide/dependencies/declaringBinaryDependenciesWithoutVersion")
+    @UsesSample("userguide/dependencies/declaringDependenciesWithoutVersion")
     def "can use declare and resolve binary dependency without version"() {
         executer.inDirectory(sample.dir)
 
@@ -54,7 +54,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
         sample.dir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
     }
 
-    @UsesSample("userguide/dependencies/declaringBinaryDependenciesWithDynamicVersion")
+    @UsesSample("userguide/dependencies/declaringDependenciesWithDynamicVersion")
     def "can use declare and resolve binary dependency with dynamic version"() {
         executer.inDirectory(sample.dir)
 
@@ -65,7 +65,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
         sample.dir.file('build/libs').listFiles().any { it.name.startsWith('spring-web-5.') }
     }
 
-    @UsesSample("userguide/dependencies/declaringBinaryDependenciesWithChangingVersion")
+    @UsesSample("userguide/dependencies/declaringDependenciesWithChangingVersion")
     def "can use declare and resolve binary dependency with changing version"() {
         executer.inDirectory(sample.dir)
 
