@@ -25,7 +25,7 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
     String compiledFile = "build/classes/main/jar/Person.class"
 
     @Override
-    def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
+    def setupProjectInDirectory(TestFile project) {
         project.with {
             file('settings.gradle') << localCacheConfiguration()
             def scalaFixture = new LanuageScalaCompilationFixture(project)

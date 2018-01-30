@@ -24,7 +24,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
     String compiledFile = "build/classes/groovy/main/Hello.class"
 
     @Override
-    def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
+    def setupProjectInDirectory(TestFile project) {
         project.with {
             file('settings.gradle') << localCacheConfiguration()
             file('build.gradle').text = """
