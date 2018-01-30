@@ -86,7 +86,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
  *   // enable TestNG support (default is JUnit)
  *   useTestNG()
  *   // enable JUnit Platform and JUnit Jupiter Engine (a.k.a. JUnit 5) support
- *   // useJUnitPlatform()
+ *   useJUnitPlatform()
  *
  *   // set a system property for the test JVM(s)
  *   systemProperty 'some.prop', 'value'
