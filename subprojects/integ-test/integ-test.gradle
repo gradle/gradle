@@ -46,6 +46,18 @@ integTestTasks.all { task ->
     }
 }
 
+plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet
+    idea {
+        module {
+            sourceSets.integTest.allSource.srcDirs.each {
+                testSourceDirs += it
+            }
+            scopes.TEST.plus.add(configurations.integTestCompile)
+            scopes.TEST.plus.add(configurations.integTestRuntime)
+        }
+    }
+}
+
 parallelIntegTest {
     systemProperty "org.gradle.userguide.samples.exclude", "multiProjectBuildSrc,multiprojectMessagesHack"
 }
