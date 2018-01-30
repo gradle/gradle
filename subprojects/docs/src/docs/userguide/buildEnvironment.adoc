@@ -42,6 +42,8 @@ The following properties can be used to configure the Gradle build environment:
 
 `org.gradle.caching=(true,false)`::
 When set to true, Gradle will reuse task outputs from any previous build, when possible, resulting is much faster builds. Learn more about <<build_cache, using the build cache>>.
+`org.gradle.caching.debug=(true,false)`::
+When set to true, individual input property hashes and the build cache key for each task are logged at lifecycle. Learn more about <<sec:task_output_caching, task output caching>>.
 `org.gradle.configureondemand=(true,false)`::
 Enables incubating <<sec:configuration_on_demand, configuration on demand>>, where Gradle will attempt to configure only necessary projects.
 `org.gradle.console=(auto,plain,rich,verbose)`::

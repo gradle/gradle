@@ -85,6 +85,28 @@ The following examples exposes a command line parameter `--url` for the custom t
 The task `PlatformScalaCompile` is now cacheable.
 This means that [Play projects](userguide/play_plugin.html) now also benefit from the [build cache](userguide/build_cache.html)!
 
+### New property for debugging the build cache
+
+With Gradle 4.6 we introduce the Gradle property [`org.gradle.caching.debug`](userguide/build_environment.html#sec:gradle_configuration_properties) which causes individual input property hashes to be printed to the console.
+For example, when running `gradle compileJava -Dorg.gradle.caching.debug=true --build-cache` the output would be:
+
+    :compileJava
+    Appending taskClass to build cache key: org.gradle.api.tasks.compile.JavaCompile_Decorated
+    Appending classLoaderHash to build cache key: 0e1119759d236086191ff6fbd26c610f
+    Appending actionType to build cache key: _BuildScript_$_run_closure1_769114ba780efdb8aed68d70a323d160
+    Appending actionClassLoaderHash to build cache key: c383666cbb0f1bf25d832b944f228c44
+    Appending actionType to build cache key: org.gradle.api.tasks.compile.JavaCompile_Decorated
+    Appending actionClassLoaderHash to build cache key: 0e1119759d236086191ff6fbd26c610f
+    Appending inputPropertyHash for 'options.class' to build cache key: 74824162f3f111308fa9dc95c82b65a6
+    Appending inputPropertyHash for 'options.compilerArgs' to build cache key: 8222d82255460164427051d7537fa305
+    ...
+    Appending inputPropertyHash for 'source' to build cache key: 55786645cf0e6dcf6a3d48b1b43bf687
+    Appending outputPropertyName to build cache key: destinationDir
+    Build cache key for task ':compileJava' is 2221655c6648a7e9baf61a6234de8658
+
+In earlier versions of Gradle, this output was printed on the `INFO` log level.
+This does not happen any more and the info logs should be much cleaner now when the build cache is enabled.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -142,6 +164,12 @@ Putting processors on the compile classpath or using an explicit `-processorpath
 ### Added annotationProcessor configurations
 
 The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` configuration for each source set. This might break when the user already defined such a configuration. We recommend removing your own and using the configuration provided by `java-base`. 
+
+### No input property hashes on the info log
+
+Gradle does not print out input property hashes when the `--info` log is enabled.
+Only the build cache key is reported on `--info`.
+Logging input property hashes is now enabled by the Gradle property `org.gradle.caching.debug`.
 
 <!--
 ### Example breaking change
