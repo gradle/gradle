@@ -116,7 +116,6 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 genericArgs.add("-v");
 
                 genericArgs.add("-incremental");
-                genericArgs.add("-driver-show-incremental");
                 genericArgs.add("-emit-dependencies");
 
                 genericArgs.add("-emit-object");

@@ -24,26 +24,36 @@ import org.gradle.nativeplatform.fixtures.app.SwiftApp
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    def setup() {
+        // Useful for diagnosing swiftc incremental compile failures
+        buildFile << """
+            allprojects {            
+                tasks.withType(SwiftCompile) {
+                    compilerArgs.add('-driver-show-incremental')
+                }
+            }
+        """
+    }
+
     def 'recompiles only the Swift source files that have changed'() {
         given:
-        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"))
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
         def app = new SwiftApp()
         settingsFile << "rootProject.name = 'app'"
         app.writeToProject(testDirectory)
-        def fileToModify = file("src/main/swift/main.swift").makeOlder()
+        def main = file("src/main/swift/main.swift").makeOlder()
 
         buildFile << """
             apply plugin: 'swift-application'
          """
-        outputs.snapshot { succeeds("assemble", "-i") }
-        def moduleSwiftDeps = file("build/obj/main/debug/module.swiftdeps")
+        outputs.snapshot { succeeds("assemble") }
 
         when:
-        fileToModify.replace("a: 5, b: 7", "a: 21, b: 21")
+        main.replace("a: 5, b: 7", "a: 21, b: 21")
         and:
-        succeeds("assemble", "-i")
+        succeeds("assemble")
 
         then:
-        outputs.recompiledFiles([ fileToModify, moduleSwiftDeps, file("build/obj/main/debug/output-file-map.json") ])
+        outputs.recompiledFile(main)
     }
 }

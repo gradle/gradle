@@ -293,11 +293,10 @@ public class SwiftCompile extends DefaultTask {
             cleaner.setDestinationDir(getObjectFileDir().getAsFile().get());
             cleaner.execute();
         }
-        boolean isIncremental = inputs.isIncremental() && removedFiles.isEmpty();
 
         BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
 
-        SwiftCompileSpec spec = createSpec(operationLogger, isIncremental, removedFiles);
+        SwiftCompileSpec spec = createSpec(operationLogger, inputs.isIncremental(), removedFiles);
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
         Compiler<SwiftCompileSpec> baseCompiler = platformToolProvider.newCompiler(SwiftCompileSpec.class);
