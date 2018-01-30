@@ -209,8 +209,7 @@ subprojects {
     if (project in groovyProjects) {
         apply from: "$rootDir/gradle/groovyProject.gradle"
         apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
-        apply from: "$rootDir/gradle/java9.gradle"
-        apply from: "$rootDir/gradle/java10.gradle"
+        apply from: "$rootDir/gradle/java9plus.gradle"
         check.dependsOn ":docs:checkstyleApi"
         check.dependsOn "codeQuality"
     }
