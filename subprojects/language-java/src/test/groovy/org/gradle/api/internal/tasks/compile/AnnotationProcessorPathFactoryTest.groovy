@@ -31,10 +31,10 @@ import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class AnnotationProcessorDetectorTest extends Specification {
+class AnnotationProcessorPathFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def detector = new AnnotationProcessorDetector(TestFiles.fileCollectionFactory(), new TestFileContentCacheFactory())
+    def detector = new AnnotationProcessorPathFactory(TestFiles.fileCollectionFactory(), new AnnotationProcessorDetector(new TestFileContentCacheFactory()))
     def options = new CompileOptions(Mock(ObjectFactory))
 
     def "uses path defined on Java compile options, as a FileCollection"() {

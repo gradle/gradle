@@ -20,6 +20,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector;
+import org.gradle.api.internal.tasks.compile.AnnotationProcessorPathFactory;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -35,11 +36,15 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     private static class JavaGradleScopeServices {
         public void configure(ServiceRegistration registration, ComponentTypeRegistry componentTypeRegistry) {
             componentTypeRegistry.maybeRegisterComponentType(JvmLibrary.class)
-                    .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);
+                .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);
         }
 
-        public AnnotationProcessorDetector createAnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileContentCacheFactory cacheFactory) {
-            return new AnnotationProcessorDetector(fileCollectionFactory, cacheFactory);
+        public AnnotationProcessorDetector createAnnotationProcessorDetector(FileContentCacheFactory cacheFactory) {
+            return new AnnotationProcessorDetector(cacheFactory);
+        }
+
+        public AnnotationProcessorPathFactory createAnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, AnnotationProcessorDetector annotationProcessorDetector) {
+            return new AnnotationProcessorPathFactory(fileCollectionFactory, annotationProcessorDetector);
         }
     }
 }

@@ -24,10 +24,10 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.compile.CompileOptions;
 
 /**
- * A wrapper that tells the {@link AnnotationProcessorDetector} that this is the new
+ * A wrapper that tells the {@link AnnotationProcessorPathFactory} that this is the new
  * default annotation processor path introduced in Gradle 4.6
  *
- * See {@link AnnotationProcessorDetector#getEffectiveAnnotationProcessorClasspath(CompileOptions, FileCollection)}
+ * See {@link AnnotationProcessorPathFactory#getEffectiveAnnotationProcessorClasspath(CompileOptions, FileCollection)}
  * for more details.
  */
 public class DefaultProcessorPath extends CompositeFileCollection {

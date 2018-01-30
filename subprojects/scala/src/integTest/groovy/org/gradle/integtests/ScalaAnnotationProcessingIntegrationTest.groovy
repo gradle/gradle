@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector
+import org.gradle.api.internal.tasks.compile.AnnotationProcessorPathFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -64,7 +64,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         skipped(':compileJava')
         executedAndNotSkipped(':compileScala')
         new File(testDirectory, 'generated.txt').exists()
-        outputContains(AnnotationProcessorDetector.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
     }
 
     def "processes annotation for Java class if annotation processor is available on processor path"() {
@@ -108,7 +108,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         then:
         skipped(':compileJava')
         executedAndNotSkipped(':compileScala')
-        outputContains(AnnotationProcessorDetector.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
     }
 
     def "can use external annotation processor for Java class, from processor path"() {

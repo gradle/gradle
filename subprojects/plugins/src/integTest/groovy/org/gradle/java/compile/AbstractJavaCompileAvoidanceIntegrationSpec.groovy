@@ -16,7 +16,7 @@
 
 package org.gradle.java.compile
 
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector
+import org.gradle.api.internal.tasks.compile.AnnotationProcessorPathFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 import spock.lang.Issue
@@ -713,7 +713,7 @@ public class ToolImpl {
         executedAndNotSkipped(':b:compileJava')
         executedAndNotSkipped(':c:compileJava')
         outputContains('greetings')
-        outputContains(AnnotationProcessorDetector.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
 
         when:
         executer.expectDeprecationWarning()
@@ -724,7 +724,7 @@ public class ToolImpl {
         skipped(':b:compileJava')
         skipped(':c:compileJava')
         outputContains('greetings')
-        outputContains(AnnotationProcessorDetector.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
 
         when:
         // Update the library class
@@ -739,7 +739,7 @@ public class ToolImpl {
         skipped(':b:compileJava')
         executedAndNotSkipped(':c:compileJava')
         outputContains('hello')
-        outputContains(AnnotationProcessorDetector.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
 
         when:
         executer.expectDeprecationWarning()
@@ -750,7 +750,7 @@ public class ToolImpl {
         skipped(':b:compileJava')
         skipped(':c:compileJava')
         outputContains('hello')
-        outputContains(AnnotationProcessorDetector.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
 
         when:
         // Update the processor class
@@ -765,7 +765,7 @@ public class ToolImpl {
         executedAndNotSkipped(':b:compileJava')
         executedAndNotSkipped(':c:compileJava')
         outputContains('hello world')
-        outputContains(AnnotationProcessorDetector.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
     }
 
     def "recompiles source when annotation processor implementation changes when separate annotation processor classpath is used for annotation processor discovery"() {
