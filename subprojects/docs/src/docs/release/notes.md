@@ -87,7 +87,7 @@ This means that [Play projects](userguide/play_plugin.html) now also benefit fro
 
 ### New property for debugging the build cache
 
-With Gradle 4.6 we introduce the Gradle property [`org.gradle.caching.debug`](userguide/build_environment.html#sec:gradle_configuration_properties) which causes individual input property hashes to be printed to the console.
+With Gradle 4.6 we introduce the Gradle property [`org.gradle.caching.debug`](userguide/build_environment.html#sec:gradle_configuration_properties) which causes individual input property hashes to be logged on the console.
 For example, when running `gradle compileJava -Dorg.gradle.caching.debug=true --build-cache` the output would be:
 
     :compileJava
@@ -104,8 +104,8 @@ For example, when running `gradle compileJava -Dorg.gradle.caching.debug=true --
     Appending outputPropertyName to build cache key: destinationDir
     Build cache key for task ':compileJava' is 2221655c6648a7e9baf61a6234de8658
 
-In earlier versions of Gradle, this output was printed on the `INFO` log level.
-This does not happen any more and the info logs should be much cleaner now when the build cache is enabled.
+In earlier versions of Gradle, this output was logged on the `INFO` log level.
+This does not happen anymore and the info logs should be much cleaner now when the build cache is enabled.
 
 ## Promoted features
 
@@ -164,12 +164,6 @@ Putting processors on the compile classpath or using an explicit `-processorpath
 ### Added annotationProcessor configurations
 
 The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` configuration for each source set. This might break when the user already defined such a configuration. We recommend removing your own and using the configuration provided by `java-base`. 
-
-### No input property hashes on the info log
-
-Gradle does not print out input property hashes when the `--info` log is enabled.
-Only the build cache key is reported on `--info`.
-Logging input property hashes is now enabled by the Gradle property `org.gradle.caching.debug`.
 
 <!--
 ### Example breaking change
