@@ -47,7 +47,7 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
         }
 
         when:
-        run "a:dependencyInsight", "--dependency", ":$expectedProject", "--configuration", configuration, '--show-variant-details'
+        run "a:dependencyInsight", "--dependency", ":$expectedProject", "--configuration", configuration
 
         then:
         outputContains """project :$expectedProject
@@ -91,7 +91,7 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
         """
 
         when:
-        run "dependencyInsight", "--dependency", "leaf", "--show-variant-details"
+        run "dependencyInsight", "--dependency", "leaf"
 
         then:
         output.contains """org.test:leaf:1.0
@@ -124,7 +124,6 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
             task insight(type: DependencyInsightReportTask) {
                 setDependencySpec { it.requested.module == 'middle' }
                 configuration = configurations.conf
-                showVariantDetails = true
             }
         """
 
@@ -157,7 +156,6 @@ org:middle:1.0 FAILED
             task insight(type: DependencyInsightReportTask) {
                 setDependencySpec { it.requested.module == 'leaf' }
                 configuration = configurations.conf
-                showVariantDetails = true
             }
         """
 
@@ -193,7 +191,6 @@ org:leaf:1.0
             task insight(type: DependencyInsightReportTask) {
                 setDependencySpec { it.requested.module == 'leaf' }
                 configuration = configurations.conf
-                showVariantDetails = true
             }
         """
 

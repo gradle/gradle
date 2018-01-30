@@ -84,7 +84,6 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 public class DependencyInsightReportTask extends DefaultTask {
 
     private Configuration configuration;
-    private boolean showVariantDetails;
     private Spec<DependencyResult> dependencySpec;
 
     /**
@@ -117,35 +116,6 @@ public class DependencyInsightReportTask extends DefaultTask {
     public void setDependencySpec(Object dependencyInsightNotation) {
         NotationParser<Object, Spec<DependencyResult>> parser = DependencyResultSpecNotationConverter.parser();
         this.dependencySpec = parser.parseNotation(dependencyInsightNotation);
-    }
-
-    /**
-     * Configures the report to show variant matching details. When this flag is set to true, the report will also
-     * display the variant details, in particular variant attributes and how they were matched.
-     *
-     * <p>
-     * This method is exposed to the command line interface. Example usage:
-     * <pre>gradle dependencyInsight --configuration compileClasspath --dependency slf4j --variant-details</pre>
-     *
-     * @param showDetails if set to true, display selected variant details
-     *
-     * @since 4.6
-     */
-    @Option(option = "show-variant-details", description = "Shows the details of variant matching")
-    public void setShowVariantDetails(boolean showDetails) {
-        this.showVariantDetails = showDetails;
-    }
-
-    /**
-     * Determine if variant details need to be displayed.
-     *
-     * @return true if variant details need to be displayed
-     *
-     * @since 4.6
-     */
-    @Internal
-    public boolean isShowVariantDetails() {
-        return showVariantDetails;
     }
 
     /**
@@ -240,7 +210,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
         int i = 1;
         for (final RenderableDependency dependency : sortedDeps) {
-            renderer.visit(new RenderDependencyAction(dependency, configuration, showVariantDetails), true);
+            renderer.visit(new RenderDependencyAction(dependency, configuration), true);
             dependencyGraphRenderer.render(dependency);
             boolean last = i++ == sortedDeps.size();
             if (!last) {
@@ -295,12 +265,10 @@ public class DependencyInsightReportTask extends DefaultTask {
     private static class RenderDependencyAction implements Action<StyledTextOutput> {
         private final RenderableDependency dependency;
         private final Configuration configuration;
-        private final boolean showVariantDetails;
 
-        public RenderDependencyAction(RenderableDependency dependency, Configuration configuration, boolean showVariantDetails) {
+        public RenderDependencyAction(RenderableDependency dependency, Configuration configuration) {
             this.dependency = dependency;
             this.configuration = configuration;
-            this.showVariantDetails = showVariantDetails;
         }
 
         public void execute(StyledTextOutput out) {
@@ -323,7 +291,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
         private void printVariantDetails(StyledTextOutput out) {
             ResolvedVariantResult resolvedVariant = dependency.getResolvedVariant();
-            if (resolvedVariant != null && showVariantDetails) {
+            if (resolvedVariant != null) {
                 out.println();
                 out.withStyle(Description).text("   variant \"" + resolvedVariant.getDisplayName() + "\"");
                 AttributeContainer attributes = resolvedVariant.getAttributes();
