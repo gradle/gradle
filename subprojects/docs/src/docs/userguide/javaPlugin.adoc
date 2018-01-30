@@ -649,6 +649,7 @@ When using JUnit, we scan for both JUnit 3 and 4 test classes. If any of the fol
 * Class or a super class is annotated with `@RunWith`
 * Class or a super class contain a method annotated with `@Test`
 
+When using http://junit.org/junit5/docs/current/user-guide[JUnit Platform and JUnit Jupiter], we scan for methods annotated with annotations of `org.junit.jupiter.api` package.
 
 When using TestNG, we scan for methods annotated with `@Test`.
 
@@ -659,7 +660,7 @@ If you don't want to use test class detection, you can disable it by setting `sc
 [[test_grouping]]
 ==== Test grouping
 
-JUnit and TestNG allows sophisticated groupings of test methods.
+JUnit/JUnit Platform and TestNG allows sophisticated groupings of test methods. Currently, http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[JUnit Platform filtering and tagging] is not supported yet.
 
 For grouping JUnit test classes and methods JUnit 4.8 introduces the concept of categories.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
 
