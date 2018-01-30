@@ -15,7 +15,7 @@
 [[declaring_dependencies]]
 == Declaring Dependencies
 
-Gradle builds can declare dependencies on external binaries, raw files and other Gradle projects. You can find examples for common scenarios in this section. For more information, see the <<dependency_types,full reference on all types of dependencies>>.
+Gradle builds can declare dependencies on module, files and other Gradle projects. You can find examples for common scenarios in this section. For more information, see the <<dependency_types,full reference on all types of dependencies>>.
 
 [[sec:declaring_dependency_to_module]]
 === Declaring a dependency to a module
