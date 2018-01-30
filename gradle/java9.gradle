@@ -100,6 +100,7 @@ if (testJavaHome) {
                 "PlayJavaAnnotationProcessingIntegrationTest",
                 "ScalaAnnotationProcessingIntegrationTest",
                 "CachedScalaCompileIntegrationTest",
+                "CachedPlatformScalaCompileIntegrationTest",
                 "ScalaCompileRelocationIntegrationTest",
                 "UpToDateScalaCompileIntegrationTest",
                 "ScalaDocIntegrationTest",
