@@ -336,6 +336,13 @@ class TestNGTestClassProcessorTest extends Specification {
 
         0 * processor._
     }
+
+    def "stopNow should fail on call"() {
+        when: classProcessor.stopNow()
+
+        then:
+        UnsupportedOperationException uoe = thrown()
+    }
 }
 
 public class FailSkippedTestsListener implements ITestListener {
