@@ -31,6 +31,7 @@ import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException;
 import org.gradle.caching.internal.version2.BuildCacheControllerV2;
+import org.gradle.caching.internal.version2.TaskOutputCacheCommandFactoryV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +45,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final TaskExecuter delegate;
     private final TaskOutputChangesListener taskOutputChangesListener;
     private final TaskOutputCacheCommandFactory buildCacheCommandFactory;
+    private final TaskOutputCacheCommandFactoryV2 buildCacheCommandFactoryV2;
     private final BuildCacheControllerV2 buildCacheV2;
     private final boolean useVersion2;
 
@@ -52,14 +54,16 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         BuildCacheControllerV2 buildCacheV2,
         TaskOutputChangesListener taskOutputChangesListener,
         TaskOutputCacheCommandFactory buildCacheCommandFactory,
+        TaskOutputCacheCommandFactoryV2 buildCacheCommandFactoryV2,
         TaskExecuter delegate
     ) {
         this.taskOutputChangesListener = taskOutputChangesListener;
         this.buildCacheCommandFactory = buildCacheCommandFactory;
+        this.buildCacheCommandFactoryV2 = buildCacheCommandFactoryV2;
         this.buildCache = buildCache;
+        this.buildCacheV2 = buildCacheV2;
         this.delegate = delegate;
         this.useVersion2 = Boolean.getBoolean("org.gradle.caching.version2");
-        this.buildCacheV2 = buildCacheV2;
     }
 
     @Override
@@ -84,8 +88,9 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                     try {
                         OriginTaskExecutionMetadata originMetadata;
                         if (useVersion2) {
-//                            originMetadata = buildCacheV2.load(cacheKey, outputProperties, task, taskProperties.getLocalStateFiles(), taskOutputChangesListener, taskState);
-                            originMetadata = null;
+                            originMetadata = buildCacheV2.load(
+                                buildCacheCommandFactoryV2.createLoad(cacheKey, outputProperties, task, taskProperties.getLocalStateFiles(), taskOutputChangesListener, taskState)
+                            );
                         } else {
                             originMetadata = buildCache.load(
                                 buildCacheCommandFactory.createLoad(cacheKey, outputProperties, task, taskProperties.getLocalStateFiles(), taskOutputChangesListener, taskState)

@@ -38,6 +38,7 @@ import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.caching.internal.version2.BuildCacheControllerV2;
 import org.gradle.caching.internal.version2.DefaultBuildCacheControllerV2;
 import org.gradle.caching.internal.version2.DirectoryLocalBuildCacheServiceV2;
+import org.gradle.caching.internal.version2.TaskOutputCacheCommandFactoryV2;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.hash.StreamHasher;
@@ -106,7 +107,13 @@ public class BuildCacheTaskServices {
         }
     }
 
-    BuildCacheControllerV2 createBuildCacheControllerV2(CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository) {
+    TaskOutputCacheCommandFactoryV2 createTaskOutputCacheCommandFactoryV2(
+        TaskOutputOriginFactory taskOutputOriginFactory,
+        FileSystemMirror fileSystemMirror,
+        StringInterner stringInterner,
+        CacheScopeMapping cacheScopeMapping,
+        CacheRepository cacheRepository
+    ) {
         File target = cacheScopeMapping.getBaseDirectory(null, "build-cache-2", VersionStrategy.SharedCache);
         PathKeyFileStore fileStore = new DefaultPathKeyFileStore(target);
         PersistentCache persistentCache = cacheRepository
@@ -115,7 +122,12 @@ public class BuildCacheTaskServices {
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
-        return new DefaultBuildCacheControllerV2(new DirectoryLocalBuildCacheServiceV2(fileStore, persistentCache));
+        DirectoryLocalBuildCacheServiceV2 local = new DirectoryLocalBuildCacheServiceV2(fileStore, persistentCache);
+        return new TaskOutputCacheCommandFactoryV2(taskOutputOriginFactory, fileSystemMirror, stringInterner, local);
+    }
+
+    BuildCacheControllerV2 createBuildCacheControllerV2() {
+        return new DefaultBuildCacheControllerV2();
     }
 
     private boolean isGradleBuildTaskRoot(RootBuildCacheControllerRef rootControllerRef) {

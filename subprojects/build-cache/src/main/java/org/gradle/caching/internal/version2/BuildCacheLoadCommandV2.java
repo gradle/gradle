@@ -16,19 +16,13 @@
 
 package org.gradle.caching.internal.version2;
 
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.OutputPropertySpec;
-
-import java.io.InputStream;
 
 public interface BuildCacheLoadCommandV2<T> {
 
     BuildCacheKey getKey();
 
-    ImmutableSortedSet<OutputPropertySpec> getOutputProperties();
-
-    T parseOriginMetadata(InputStream originMetadata);
+    Result<T> load();
 
     interface Result<T> {
 

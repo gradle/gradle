@@ -16,25 +16,12 @@
 
 package org.gradle.caching.internal.tasks;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.state.CollectingFileCollectionSnapshotBuilder;
-import org.gradle.api.internal.changedetection.state.DirectoryTreeDetails;
-import org.gradle.api.internal.changedetection.state.EmptyFileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileContentSnapshot;
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemMirror;
-import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
-import org.gradle.api.internal.changedetection.state.OutputPathNormalizationStrategy;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
@@ -45,28 +32,17 @@ import org.gradle.caching.internal.OutputPropertySpec;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
-import org.gradle.internal.file.FileType;
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
-
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 
 public class TaskOutputCacheCommandFactory {
 
     private static final Logger LOGGER = Logging.getLogger(TaskOutputCacheCommandFactory.class);
-    private static final Predicate<? super FileSnapshot> EXCLUDE_ROOT_SNAPSHOTS = new Predicate<FileSnapshot>() {
-        @Override
-        public boolean apply(FileSnapshot snapshot) {
-            return !snapshot.isRoot();
-        }
-    };
 
     private final TaskOutputPacker packer;
     private final TaskOutputOriginFactory taskOutputOriginFactory;
@@ -91,12 +67,11 @@ public class TaskOutputCacheCommandFactory {
     private class LoadCommand extends AbstractLoadCommand<InputStream, TaskOutputPacker.UnpackResult> implements BuildCacheLoadCommand<OriginTaskExecutionMetadata> {
 
         private LoadCommand(TaskOutputCachingBuildCacheKey key, SortedSet<ResolvedTaskOutputFilePropertySpec> outputProperties, TaskInternal task, FileCollection localStateFiles, TaskOutputChangesListener taskOutputChangesListener, TaskArtifactState taskArtifactState) {
-            super(key, outputProperties, task, localStateFiles, taskOutputChangesListener, taskArtifactState);
+            super(key, outputProperties, task, localStateFiles, taskOutputChangesListener, taskArtifactState, fileSystemMirror, stringInterner, taskOutputOriginFactory);
         }
 
         @Override
         public Result<OriginTaskExecutionMetadata> load(InputStream inputStream) {
-            LOGGER.info("Unpacked output for {} from cache.", task);
             final TaskOutputPacker.UnpackResult unpackResult = performLoad(inputStream);
             return new BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata>() {
                 @Override
@@ -112,55 +87,12 @@ public class TaskOutputCacheCommandFactory {
         }
 
         @Override
-        protected TaskOutputPacker.UnpackResult performLoad(InputStream input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskArtifactState taskArtifactState) throws IOException {
-            TaskOutputPacker.UnpackResult unpackResult = packer.unpack(outputProperties, input, taskOutputOriginFactory.createReader(task));
-            updateSnapshots(unpackResult.getSnapshots(), unpackResult.getOriginMetadata(), outputProperties, taskArtifactState);
+        protected TaskOutputPacker.UnpackResult performLoad(InputStream input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskOutputOriginReader reader) throws IOException {
+            LOGGER.info("Unpacked output for {} from cache.", task);
+            TaskOutputPacker.UnpackResult unpackResult = packer.unpack(outputProperties, input, reader);
+            updateSnapshots(unpackResult.getSnapshots(), unpackResult.getOriginMetadata());
             return unpackResult;
         }
-
-        private void updateSnapshots(ImmutableListMultimap<String, FileSnapshot> propertiesFileSnapshots, OriginTaskExecutionMetadata originMetadata, SortedSet<? extends OutputPropertySpec> outputProperties, TaskArtifactState taskArtifactState) {
-            ImmutableSortedMap.Builder<String, FileCollectionSnapshot> propertySnapshotsBuilder = ImmutableSortedMap.naturalOrder();
-            for (OutputPropertySpec property : outputProperties) {
-                String propertyName = property.getPropertyName();
-                File outputFile = property.getOutputRoot();
-                if (outputFile == null) {
-                    propertySnapshotsBuilder.put(propertyName, EmptyFileCollectionSnapshot.INSTANCE);
-                    continue;
-                }
-                List<FileSnapshot> fileSnapshots = propertiesFileSnapshots.get(propertyName);
-
-                CollectingFileCollectionSnapshotBuilder builder = new CollectingFileCollectionSnapshotBuilder(UNORDERED, OutputPathNormalizationStrategy.getInstance(), stringInterner);
-                for (FileSnapshot fileSnapshot : fileSnapshots) {
-                    builder.collectFileSnapshot(fileSnapshot);
-                }
-                propertySnapshotsBuilder.put(propertyName, builder.build());
-
-                switch (property.getOutputType()) {
-                    case FILE:
-                        FileSnapshot singleSnapshot = Iterables.getOnlyElement(fileSnapshots, null);
-                        if (singleSnapshot != null) {
-                            if (singleSnapshot.getType() != FileType.RegularFile) {
-                                throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, singleSnapshot.getType()));
-                            }
-                            fileSystemMirror.putFile(singleSnapshot);
-                        } else {
-                            fileSystemMirror.putFile(new MissingFileSnapshot(internedAbsolutePath(outputFile), RelativePath.EMPTY_ROOT));
-                        }
-                        break;
-                    case DIRECTORY:
-                        Collection<FileSnapshot> descendants = Collections2.filter(fileSnapshots, EXCLUDE_ROOT_SNAPSHOTS);
-                        fileSystemMirror.putDirectory(new DirectoryTreeDetails(internedAbsolutePath(outputFile), descendants));
-                        break;
-                    default:
-                        throw new AssertionError();
-                }
-            }
-            taskArtifactState.snapshotAfterLoadedFromCache(propertySnapshotsBuilder.build(), originMetadata);
-        }
-    }
-
-    private String internedAbsolutePath(File outputFile) {
-        return stringInterner.intern(outputFile.getAbsolutePath());
     }
 
     private class StoreCommand implements BuildCacheStoreCommand {

@@ -16,10 +16,15 @@
 
 package org.gradle.caching.internal.version2;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.hash.HashCode;
 
-import java.io.IOException;
+import java.io.File;
 
 public interface LocalBuildCacheServiceV2 {
-    CacheEntry get(HashCode key) throws IOException;
+    CacheEntry get(HashCode key);
+
+    FileEntry put(HashCode key, File file);
+    ManifestEntry put(HashCode key, ImmutableSortedMap<String, HashCode> entries);
+    ResultEntry put(HashCode key, ImmutableSortedMap<String, HashCode> outputs, byte[] originMetadata);
 }
