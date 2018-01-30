@@ -390,8 +390,10 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains(""":dependencyInsight
 org:b:1 (A replaced with B)
+   variant "default"
 
 org:a:1 -> org:b:1
+   variant "default"
 \\--- conf""")
 
         when:
