@@ -19,21 +19,26 @@ package org.gradle.ide.visualstudio.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.ide.visualstudio.VisualStudioProject;
+import org.gradle.ide.visualstudio.VisualStudioRootExtension;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
 import org.gradle.ide.visualstudio.internal.NativeSpecVisualStudioTargetBinary;
 import org.gradle.ide.visualstudio.internal.VisualStudioExtensionInternal;
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration;
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectInternal;
 import org.gradle.ide.visualstudio.internal.VisualStudioSolutionInternal;
 import org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask;
+import org.gradle.internal.Cast;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
@@ -58,40 +63,47 @@ class VisualStudioPluginRules extends RuleSource {
     }
 
     @Mutate
-    public static void createVisualStudioModelForBinaries(VisualStudioExtensionInternal visualStudioExtension, BinaryContainer binaries) {
+    public static void createVisualStudioModelForBinaries(VisualStudioExtensionInternal visualStudioExtension, BinaryContainer binaries, ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
         for (NativeBinarySpec binary : binaries.withType(NativeBinarySpec.class)) {
-            VisualStudioProjectConfiguration configuration = visualStudioExtension.getProjectRegistry().addProjectConfiguration(new NativeSpecVisualStudioTargetBinary(binary));
+            visualStudioExtension.getProjectRegistry().addProjectConfiguration(new NativeSpecVisualStudioTargetBinary(binary));
+        }
 
-            // Only create a solution if one of the binaries is buildable
-            if (binary.isBuildable()) {
-                DefaultVisualStudioProject visualStudioProject = configuration.getProject();
-                visualStudioExtension.getSolutionRegistry().addSolution(visualStudioProject);
-            }
+        if (isRoot(projectIdentifier)) {
+            ensureSubprojectsAreRealized(projectIdentifier, serviceRegistry);
         }
     }
 
     @Mutate
-    public static void createTasksForVisualStudio(TaskContainer tasks, VisualStudioExtensionInternal visualStudioExtension) {
+    public static void createTasksForVisualStudio(TaskContainer tasks, VisualStudioExtensionInternal visualStudioExtension, ProjectIdentifier projectIdentifier) {
         for (VisualStudioProject vsProject : visualStudioExtension.getProjects()) {
             ((VisualStudioProjectInternal)vsProject).builtBy(createProjectsFileTask(tasks, vsProject), createFiltersFileTask(tasks, vsProject));
+
+            Task lifecycleTask = tasks.maybeCreate(((VisualStudioProjectInternal) vsProject).getComponentName() + "VisualStudio");
+            lifecycleTask.dependsOn(vsProject);
         }
 
-        for (VisualStudioSolution solution : visualStudioExtension.getSolutions()) {
-            VisualStudioSolutionInternal vsSolution = (VisualStudioSolutionInternal) solution;
+        if (isRoot(projectIdentifier)) {
+            VisualStudioRootExtension rootExtension = (VisualStudioRootExtension) visualStudioExtension;
+            VisualStudioSolutionInternal vsSolution = (VisualStudioSolutionInternal) rootExtension.getSolution();
 
-            Task solutionTask = tasks.create(vsSolution.getName() + "VisualStudio");
-            solutionTask.setDescription("Generates the '" + vsSolution.getName() + "' Visual Studio solution file.");
-            solutionTask.dependsOn(createSolutionTask(tasks, vsSolution));
-            vsSolution.builtBy(solutionTask);
-
-            // Lifecycle task for component
-            final Task lifecycleTask = tasks.maybeCreate(vsSolution.getComponentName() + "VisualStudio");
-            lifecycleTask.dependsOn(vsSolution);
-            lifecycleTask.setGroup("IDE");
-            lifecycleTask.setDescription("Generates the Visual Studio solution for " + vsSolution.getName() + ".");
+            vsSolution.builtBy(createSolutionTask(tasks, vsSolution));
         }
 
         addCleanTask(tasks);
+    }
+
+    // This ensures that subprojects are realized and register their project and project configuration IDE artifacts
+    private static void ensureSubprojectsAreRealized(ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
+        ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
+        ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
+
+        for (ProjectInternal subproject : projectRegistry.getSubProjects(projectIdentifier.getPath())) {
+            projectModelResolver.resolveProjectModel(subproject.getPath()).realize("visualStudio", VisualStudioExtension.class);
+        }
+    }
+
+    private static boolean isRoot(ProjectIdentifier projectIdentifier) {
+        return projectIdentifier.getParentIdentifier() == null;
     }
 
     private static void addCleanTask(TaskContainer tasks) {

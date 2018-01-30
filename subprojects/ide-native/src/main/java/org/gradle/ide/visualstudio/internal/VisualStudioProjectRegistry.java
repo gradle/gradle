@@ -20,16 +20,19 @@ import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
 import static org.gradle.ide.visualstudio.internal.VisualStudioProjectMapper.getConfigurationName;
 import static org.gradle.ide.visualstudio.internal.VisualStudioProjectMapper.getProjectName;
 
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
     private final FileResolver fileResolver;
+    private final IdeArtifactRegistry ideArtifactRegistry;
 
-    public VisualStudioProjectRegistry(FileResolver fileResolver, Instantiator instantiator) {
+    public VisualStudioProjectRegistry(FileResolver fileResolver, Instantiator instantiator, IdeArtifactRegistry ideArtifactRegistry) {
         super(DefaultVisualStudioProject.class, instantiator);
         this.fileResolver = fileResolver;
+        this.ideArtifactRegistry = ideArtifactRegistry;
     }
 
     public VisualStudioProjectConfiguration getProjectConfiguration(VisualStudioTargetBinary targetBinary) {
@@ -41,6 +44,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getProjectPath(), getProjectName(nativeBinary), nativeBinary.getComponentName());
         VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(project, nativeBinary, getConfigurationName(nativeBinary.getVariantDimensions()));
         project.addConfiguration(nativeBinary, configuration);
+        ideArtifactRegistry.registerIdeArtifact(configuration.getPublishArtifact());
         return configuration;
     }
 
@@ -53,6 +57,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         if (vsProject == null) {
             vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, vsProjectName, projectPath, componentName, fileResolver, getInstantiator());
             add(vsProject);
+            ideArtifactRegistry.registerIdeArtifact(vsProject.getPublishArtifact());
         }
         return vsProject;
     }

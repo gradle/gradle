@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.internal;
+package org.gradle.plugins.ide.internal;
 
-import org.gradle.ide.visualstudio.VisualStudioSolution;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 
 import java.util.List;
 
-public interface VisualStudioSolutionInternal extends VisualStudioSolution {
-    /**
-     * The list of project artifacts included in this solution.
-     */
-    List<LocalComponentArtifactMetadata> getProjectArtifacts();
+public interface IdeArtifactRegistry {
+    void registerIdeArtifact(PublishArtifact ideArtifact);
 
-    /**
-     * The list of project configuration artifacts included in this solution.
-     */
-    List<LocalComponentArtifactMetadata> getProjectConfigurationArtifacts();
+    List<LocalComponentArtifactMetadata> getIdeArtifactMetadata(String type);
 
-    /**
-     * Adds tasks required to build this component.
-     */
-    void builtBy(Object... tasks);
+    FileCollection getIdeArtifacts(String type);
 }

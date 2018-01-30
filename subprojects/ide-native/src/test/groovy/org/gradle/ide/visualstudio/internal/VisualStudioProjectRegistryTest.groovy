@@ -19,11 +19,13 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
     def fileResolver = Mock(FileResolver)
-    def registry = new VisualStudioProjectRegistry(fileResolver, DirectInstantiator.INSTANCE)
+    def ideArtifactRegistry = Mock(IdeArtifactRegistry)
+    def registry = new VisualStudioProjectRegistry(fileResolver, DirectInstantiator.INSTANCE, ideArtifactRegistry)
 
     def "creates a matching visual studio project configuration for target binary"() {
         def executableBinary = targetBinary("vsConfig")
@@ -36,6 +38,24 @@ class VisualStudioProjectRegistryTest extends Specification {
         vsConfig.project.name == "mainExe"
         vsConfig.configurationName == "vsConfig"
         vsConfig.platformName == "Win32"
+    }
+
+    def "adds ide artifact when project and projectConfiguration are added"() {
+        def executableBinary = targetBinary("vsConfig")
+        when:
+        registry.addProjectConfiguration(executableBinary)
+
+        then:
+        1 * ideArtifactRegistry.registerIdeArtifact(_) >> { args ->
+            assert args[0].name == "mainExe"
+            assert args[0].type == VisualStudioProjectInternal.ARTIFACT_TYPE
+        }
+
+        and:
+        1 * ideArtifactRegistry.registerIdeArtifact(_) >> { args ->
+            assert args[0].name == "vsConfig|Win32"
+            assert args[0].type == VisualStudioProjectConfiguration.ARTIFACT_TYPE
+        }
     }
 
     def "returns same visual studio project configuration for native binaries that share project name"() {
