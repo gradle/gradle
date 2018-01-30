@@ -195,14 +195,14 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
 
             @RepeatedTest(value = 3, name = "partialFail {currentRepetition}/{totalRepetitions}")
             public void partialFail(RepetitionInfo repetitionInfo) {
-                if (repetitionInfo.getCurrentRepetition ​ () == 2 ) {
+                if (repetitionInfo.getCurrentRepetition() == 2) {
                     throw new RuntimeException();
                 }
             }
 
             @RepeatedTest(value = 3, name = "partialSkip {currentRepetition}/{totalRepetitions}")
             public void partialSkip(RepetitionInfo repetitionInfo) {
-                if (repetitionInfo.getCurrentRepetition ​ () == 2 ) {
+                if (repetitionInfo.getCurrentRepetition() == 2) {
                     Assumptions.assumeTrue(false);
                 }
             }
