@@ -16,7 +16,7 @@
 
 package org.gradle.java.compile
 
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorPathFactory
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 import spock.lang.Issue

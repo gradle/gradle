@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.api.internal.tasks.compile.processing;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -139,11 +139,9 @@ public class AnnotationProcessorPathFactory {
                     if (hasExplicitProcessor) {
                         return compileClasspath.getFiles();
                     }
-                    for (File file : compileClasspath) {
-                        if (annotationProcessorDetector.containsProcessors(file)) {
-                            DeprecationLogger.nagUserOfDeprecated(COMPILE_CLASSPATH_DEPRECATION_MESSAGE, "Please add them to the processor path instead. If these processors were unintentionally leaked on the compile classpath, use the -proc:none compiler option to ignore them.");
-                            return compileClasspath.getFiles();
-                        }
+                    if (!annotationProcessorDetector.detectProcessors(compileClasspath).isEmpty()) {
+                        DeprecationLogger.nagUserOfDeprecated(COMPILE_CLASSPATH_DEPRECATION_MESSAGE, "Please add them to the processor path instead. If these processors were unintentionally leaked on the compile classpath, use the -proc:none compiler option to ignore them.");
+                        return compileClasspath.getFiles();
                     }
                     return Collections.emptySet();
                 }

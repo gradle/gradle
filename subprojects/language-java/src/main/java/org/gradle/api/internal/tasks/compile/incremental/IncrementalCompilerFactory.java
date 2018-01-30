@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.ClasspathJarFinder;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotFactory;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotMaker;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -43,7 +44,7 @@ public class IncrementalCompilerFactory {
     private final IncrementalTaskInputs inputs;
 
     public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, FileHasher fileHasher, String compileDisplayName, CleaningJavaCompiler cleaningJavaCompiler,
-                                      List<Object> source, CompileCaches compileCaches, IncrementalTaskInputsInternal inputs, FileCollection annotationProcessorClasspath) {
+                                      List<Object> source, CompileCaches compileCaches, IncrementalTaskInputsInternal inputs, FileCollection annotationProcessorClasspath, AnnotationProcessorDetector annotationProcessorDetector) {
         this.inputs = inputs;
         //bunch of services that enable incremental java compilation.
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), compileCaches.getClassAnalysisCache());
@@ -55,7 +56,7 @@ public class IncrementalCompilerFactory {
         ClassSetAnalysisUpdater classSetAnalysisUpdater = new ClassSetAnalysisUpdater(compileCaches.getLocalClassSetAnalysisStore(), fileOperations, analyzer, fileHasher);
         IncrementalCompilationInitializer compilationInitializer = new IncrementalCompilationInitializer(fileOperations);
         incrementalSupport = new IncrementalCompilerDecorator(jarClasspathSnapshotMaker, compileCaches, compilationInitializer,
-                cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classSetAnalysisUpdater, sourceDirs, annotationProcessorClasspath);
+                cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classSetAnalysisUpdater, sourceDirs, annotationProcessorClasspath, annotationProcessorDetector);
     }
 
     public Compiler<JavaCompileSpec> createCompiler() {

@@ -25,7 +25,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorPathFactory;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;

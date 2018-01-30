@@ -21,6 +21,9 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
+import org.gradle.api.internal.tasks.compile.processing.DefaultProcessorPath
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.cache.internal.TestFileContentCacheFactory
@@ -137,7 +140,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
     def "uses compile classpath when directory contains service resource (where options.annotationProcessorPath is #scenario)"() {
         given:
         def dir = tmpDir.file("classes-dir")
-        dir.file("META-INF/services/javax.annotation.processing.Processor").createFile()
+        dir.file("META-INF/services/javax.annotation.processing.Processor") << "MyProcessor"
         def cp = files(dir)
 
         expect:
@@ -210,7 +213,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
     def "uses compile classpath when jar contains service resource (where options.annotationProcessorPath is #scenario)"() {
         given:
         def jar = tmpDir.file("classes.jar")
-        jar << JarUtils.jarWithContents("META-INF/services/javax.annotation.processing.Processor": "thing")
+        jar << JarUtils.jarWithContents("META-INF/services/javax.annotation.processing.Processor": "MyProcessor")
         def cp = files(jar)
 
         expect:

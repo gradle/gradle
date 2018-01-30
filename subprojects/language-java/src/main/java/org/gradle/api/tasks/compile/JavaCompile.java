@@ -24,7 +24,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorPathFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
@@ -37,6 +36,8 @@ import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCac
 import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnalysisStore;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -128,7 +129,7 @@ public class JavaCompile extends AbstractCompile {
         DefaultJavaCompileSpec spec = createSpec();
         CompileCaches compileCaches = createCompileCaches();
         IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
-            getFileOperations(), getStreamHasher(), getCachingFileHasher(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs, getEffectiveAnnotationProcessorPath());
+            getFileOperations(), getStreamHasher(), getCachingFileHasher(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs, getEffectiveAnnotationProcessorPath(), getAnnotationProcessorDetector());
         Compiler<JavaCompileSpec> compiler = factory.createCompiler();
         performCompilation(spec, compiler);
     }
@@ -183,6 +184,11 @@ public class JavaCompile extends AbstractCompile {
 
     @Inject
     protected JavaToolChainFactory getJavaToolChainFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected AnnotationProcessorDetector getAnnotationProcessorDetector() {
         throw new UnsupportedOperationException();
     }
 

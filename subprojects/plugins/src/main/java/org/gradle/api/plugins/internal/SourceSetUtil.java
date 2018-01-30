@@ -22,7 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
-import org.gradle.api.internal.tasks.compile.DefaultProcessorPath;
+import org.gradle.api.internal.tasks.compile.processing.DefaultProcessorPath;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;

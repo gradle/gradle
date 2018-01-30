@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.api.internal.tasks.compile.processing;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;

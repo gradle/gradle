@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorPathFactory
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 

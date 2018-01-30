@@ -19,7 +19,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorPathFactory
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.compile.AbstractCompile
