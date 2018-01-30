@@ -19,6 +19,7 @@ package org.gradle.initialization
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import spock.lang.Ignore
 
 class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -38,15 +39,54 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         when:
         succeeds('foo')
 
+        def loadBuildBuildOperation = buildOperations.first(LoadBuildBuildOperationType)
+        def evaluateSettingsBuildOperation = buildOperations.first(EvaluateSettingsBuildOperationType)
+        def loadProjectsBuildOperation = buildOperations.first(LoadProjectsBuildOperationType)
+
         then:
-        buildOperations.first(LoadBuildBuildOperationType).details.buildPath == ":"
-        buildOperations.first(LoadBuildBuildOperationType).result.isEmpty()
+        loadBuildBuildOperation.details.buildPath == ":"
+        loadBuildBuildOperation.result.isEmpty()
 
-        buildOperations.first(EvaluateSettingsBuildOperationType).details.buildPath == ":"
-        buildOperations.first(EvaluateSettingsBuildOperationType).result.isEmpty()
+        evaluateSettingsBuildOperation.details.buildPath == ":"
+        evaluateSettingsBuildOperation.result.isEmpty()
+        assert loadBuildBuildOperation.id == evaluateSettingsBuildOperation.parentId
 
-        buildOperations.first(LoadProjectsBuildOperationType).details.buildPath == ":"
-        buildOperations.first(LoadProjectsBuildOperationType).result.rootProject.projectDir == settingsFile.parent
+        loadProjectsBuildOperation.details.buildPath == ":"
+        loadProjectsBuildOperation.result.rootProject.projectDir == settingsFile.parent
+        buildOperations.first('Configure build').id == loadProjectsBuildOperation.parentId
+    }
+
+    @Ignore("https://github.com/gradle/gradle/issues/3873")
+    def "build operations for composite builds are fired and build path is exposed"() {
+        buildFile << """
+            apply plugin:'java'
+            
+            dependencies {
+                compile 'org.acme:nested:+'
+            }
+        """
+        def nestedSettings = file("nested/settings.gradle")
+        nestedSettings.text = "rootProject.name = 'nested'"
+        file("nested/build.gradle").text = """
+            apply plugin: 'java'
+            group = 'org.acme'
+        """
+        when:
+        succeeds('build', '--include-build', 'nested')
+
+        def loadBuildBuildOperations = buildOperations.all(LoadBuildBuildOperationType)
+        def evaluateSettingsBuildOperations = buildOperations.all(EvaluateSettingsBuildOperationType)
+        def loadProjectsBuildOperations = buildOperations.all(LoadProjectsBuildOperationType)
+
+        then:
+        loadBuildBuildOperations*.details.buildPath == [':nested', ':']
+        loadBuildBuildOperations*.result.isEmpty() == [true, true]
+
+        evaluateSettingsBuildOperations*.details.buildPath == [':nested', ':']
+        evaluateSettingsBuildOperations*.result.isEmpty() == [true, true]
+
+        loadProjectsBuildOperations*.details.buildPath == [':nested', ':']
+        loadProjectsBuildOperations*.result.rootProject.projectDir == [nestedSettings.parent, settingsFile.parent]
     }
 
 }
