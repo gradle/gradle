@@ -23,7 +23,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
     // https://blog.jetbrains.com/kotlin/
-    private kotlinVersion = '1.2.10'
+    private kotlinVersion = '1.2.21'
     private androidBuildToolsVersion = AndroidPluginsSmokeTest.ANDROID_BUILD_TOOLS_VERSION
 
     def 'kotlin plugin'() {

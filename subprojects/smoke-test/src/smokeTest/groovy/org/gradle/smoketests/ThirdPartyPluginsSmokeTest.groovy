@@ -101,7 +101,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             plugins {
                 id 'java'
                 id 'application'
-                id "com.bmuschko.docker-java-application" version "3.2.1"
+                id "com.bmuschko.docker-java-application" version "3.2.3"
             }
 
             mainClassName = 'org.gradle.JettyMain'
@@ -315,7 +315,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id "org.xtext.xtend" version "1.0.20"
+                id "org.xtext.xtend" version "1.0.21"
             }
 
             ${mavenCentralRepository()}
