@@ -29,7 +29,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("userguide/dependencies/dependencyConstraints")
+    @UsesSample("userguide/dependencies/declaringDependencyVersionsWithDependencyConstraints")
     def "respects dependency constraints for direct and transitive dependencies"() {
         executer.inDirectory(sample.dir)
 
