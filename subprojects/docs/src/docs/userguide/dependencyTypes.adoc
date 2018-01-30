@@ -2,9 +2,9 @@
 == Dependency Types
 
 [[sub:module_dependencies]]
-=== External module dependencies
+=== Module dependencies
 
-External module dependencies are the most common dependencies. They refer to a module in an external repository.
+Module dependencies are the most common dependencies. They refer to a module in a repository.
 
 ++++
 <sample id="moduleDependencies" dir="userguide/artifacts/externalDependencies" title="Module dependencies">
@@ -48,7 +48,7 @@ You can declare which tasks produce the files for a file dependency. You might d
 [[sub:project_dependencies]]
 === Project dependencies
 
-Gradle distinguishes between external dependencies and dependencies on projects which are part of the same multi-project build. For the latter you can declare _Project Dependencies_.
+Gradle distinguishes between external dependencies and dependencies on projects which are part of the same multi-project build. For the latter you can declare _project dependencies_.
 
 ++++
 <sample id="project-dependencies" dir="java/multiproject/api" title="Project dependencies">
