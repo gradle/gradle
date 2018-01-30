@@ -16,24 +16,79 @@
 
 package org.gradle.testing.junitplatform
 
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter
-import org.gradle.testing.junit.JUnitTestFrameworkIntegrationTest
+import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.LATEST_JUPITER_VERSION
+
 @Requires(TestPrecondition.JDK8_OR_LATER)
-class JUnitPlatformTestFrameworkIntegrationTest extends JUnitTestFrameworkIntegrationTest {
-    @Override
-    protected ExecutionResult succeeds(String... tasks) {
-        JUnitPlatformTestRewriter.rewriteDirectory(testDirectory)
-        super.succeeds(*tasks)
+class JUnitPlatformTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
+
+    def setup() {
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies { 
+                testCompile 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'
+            }
+            test {
+                useJUnitPlatform()
+            }
+        """
     }
 
     @Override
-    protected ExecutionFailure fails(String... tasks) {
-        JUnitPlatformTestRewriter.rewriteDirectory(testDirectory)
-        super.fails(*tasks)
+    void createPassingFailingTest() {
+        file('src/main/java/AppException.java').writelns(
+            "public class AppException extends Exception { }"
+        )
+
+        file('src/test/java/SomeTest.java') << """
+            public class SomeTest {
+                @org.junit.jupiter.api.Test
+                public void ${failingTestCaseName} {
+                    System.err.println("some error output");
+                    org.junit.jupiter.api.Assertions.fail(\"test failure message\");
+                }
+                @org.junit.jupiter.api.Test
+                public void ${passingTestCaseName} { }
+            }
+        """
+        file('src/test/java/SomeOtherTest.java') << """
+            public class SomeOtherTest {
+                @org.junit.jupiter.api.Test
+                public void ${passingTestCaseName} { }
+            }
+        """
+    }
+
+    @Override
+    void createEmptyProject() {
+        file("src/test/java/NotATest.java") << """
+            public class NotATest {}
+        """
+    }
+
+    @Override
+    void renameTests() {
+        def newTest = file("src/test/java/NewTest.java")
+        file('src/test/java/SomeOtherTest.java').renameTo(newTest)
+        newTest.text = newTest.text.replaceAll("SomeOtherTest", "NewTest")
+    }
+
+    @Override
+    String getTestTaskName() {
+        return "test"
+    }
+
+    @Override
+    String getPassingTestCaseName() {
+        return "pass()"
+    }
+
+    @Override
+    String getFailingTestCaseName() {
+        return "fail()"
     }
 }

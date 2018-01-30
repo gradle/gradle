@@ -22,6 +22,8 @@ import org.hamcrest.Matcher
 import org.hamcrest.Matchers
 import org.junit.Assert
 
+import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParenthese
+
 class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     GPathResult testClassNode
     String testClassName
@@ -52,7 +54,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         assert testClassNode.@errors == errors
         this
     }
-    
+
     TestClassExecutionResult assertTestCount(int tests, int skipped, int failures, int errors) {
         assert testClassNode.@tests == tests
         assert testClassNode.@skipped == skipped
@@ -107,7 +109,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         Map<String, Node> testMethods = findTests().findAll { name, element ->
             element."skipped".size() > 0 // Include only skipped test.
         }
-        
+
         Assert.assertThat(testMethods.keySet(), Matchers.equalTo(testNames as Set))
         this
     }
@@ -145,7 +147,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     private NodeChild testCase(String name) {
-        testClassNode.testcase.find { it.@name == name }
+        testClassNode.testcase.find { it.@name == name || it.@name == "$name()"}
     }
 
     private def findTests() {
@@ -180,7 +182,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
             checked = true
         }
         Map testMethods = [:]
-        testClassNode.testcase.each { testMethods[it.@name.text()] = it }
+        testClassNode.testcase.each { testMethods[removeParenthese(it.@name.text())] = it }
         return testMethods
     }
 }

@@ -23,6 +23,8 @@ import org.hamcrest.Matchers
 import org.junit.Assume
 import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParenthese
+
 abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
     abstract void createPassingFailingTest()
     abstract void createEmptyProject()
@@ -169,7 +171,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         createPassingFailingTest()
 
         when:
-        run testTaskName, '--tests', "${testSuite('SomeOtherTest')}.$passingTestCaseName"
+        run testTaskName, '--tests', "${testSuite('SomeOtherTest')}.${removeParenthese(passingTestCaseName)}"
 
         then:
         testResult.assertTestClassesExecuted('SomeOtherTest')
@@ -209,21 +211,21 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
 
         when:
-        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.$passingTestCaseName")
+        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.${removeParenthese(passingTestCaseName)}")
 
         then:
         testResult.testClass("SomeOtherTest").assertTestsExecuted(passingTestCaseName)
 
 
         when:
-        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.$passingTestCaseName")
+        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.${removeParenthese(passingTestCaseName)}")
 
         then:
         result.assertTaskSkipped(":$testTaskName") //up-to-date
 
 
         when:
-        run(testTaskName, "--tests", "${testSuite('SomeTest')}.$passingTestCaseName")
+        run(testTaskName, "--tests", "${testSuite('SomeTest')}.${removeParenthese(passingTestCaseName)}")
 
         then:
         result.assertTaskNotSkipped(":$testTaskName")
@@ -257,7 +259,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         desiredTestFilters.each { testClass, testCases ->
             testCases.collect { testCase ->
-                command.addAll([ '--tests', testSuite(testClass) + "." + testCase ])
+                command.addAll([ '--tests', testSuite(testClass) + "." + removeParenthese(testCase) ])
             }
         }
         return command.toArray()

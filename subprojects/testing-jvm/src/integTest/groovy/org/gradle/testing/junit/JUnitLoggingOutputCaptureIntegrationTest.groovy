@@ -91,19 +91,19 @@ public class OkTest {
 Test class OkTest -> before class out
 Test class OkTest -> before class err
 Test class OkTest -> test constructed
-Test anotherOk(OkTest) -> before out
-Test anotherOk(OkTest) -> before err
-Test anotherOk(OkTest) -> ok out
-Test anotherOk(OkTest) -> ok err
-Test anotherOk(OkTest) -> after out
-Test anotherOk(OkTest) -> after err
+Test ${testName('anotherOk')}(OkTest) -> before out
+Test ${testName('anotherOk')}(OkTest) -> before err
+Test ${testName('anotherOk')}(OkTest) -> ok out
+Test ${testName('anotherOk')}(OkTest) -> ok err
+Test ${testName('anotherOk')}(OkTest) -> after out
+Test ${testName('anotherOk')}(OkTest) -> after err
 Test class OkTest -> test constructed
-Test ok(OkTest) -> before out
-Test ok(OkTest) -> before err
-Test ok(OkTest) -> test out: \u03b1</html>
-Test ok(OkTest) -> test err
-Test ok(OkTest) -> after out
-Test ok(OkTest) -> after err
+Test ${testName('ok')}(OkTest) -> before out
+Test ${testName('ok')}(OkTest) -> before err
+Test ${testName('ok')}(OkTest) -> test out: \u03b1</html>
+Test ${testName('ok')}(OkTest) -> test err
+Test ${testName('ok')}(OkTest) -> after out
+Test ${testName('ok')}(OkTest) -> after err
 Test class OkTest -> after class out
 Test class OkTest -> after class err
 """
@@ -177,9 +177,9 @@ dependencies { testCompile "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:slf4j-api
         when: run("test")
 
         then:
-        result.output.contains("Test foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
-        result.output.contains("Test foo(FooTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: jul info")
-        result.output.contains("Test foo(FooTest) -> ${java.util.logging.Level.WARNING.getLocalizedName()}: jul warning")
+        result.output.contains("Test ${testName('foo')}(FooTest) -> [Test worker] INFO FooTest - slf4j info")
+        result.output.contains("Test ${testName('foo')}(FooTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: jul info")
+        result.output.contains("Test ${testName('foo')}(FooTest) -> ${java.util.logging.Level.WARNING.getLocalizedName()}: jul warning")
 
         def testResult = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = testResult.testClass("FooTest")
@@ -227,9 +227,9 @@ public class OkTest {
         def classResult = testResult.testClass("OkTest")
 
         5.times { n ->
-            assert result.output.contains("Test ok(OkTest) -> stdout from thread $n")
-            assert result.output.contains("Test ok(OkTest) -> stderr from thread $n")
-            assert result.output.contains("Test ok(OkTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: info from thread $n")
+            assert result.output.contains("Test ${testName('ok')}(OkTest) -> stdout from thread $n")
+            assert result.output.contains("Test ${testName('ok')}(OkTest) -> stderr from thread $n")
+            assert result.output.contains("Test ${testName('ok')}(OkTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: info from thread $n")
 
             classResult.assertTestCaseStdout("ok", containsString("stdout from thread $n"))
             classResult.assertTestCaseStderr("ok", containsString("stderr from thread $n"))
