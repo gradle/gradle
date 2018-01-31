@@ -55,9 +55,6 @@ public class GenericJUnitTestEventAdapter<T> {
     }
 
     public void testFailure(T identifier, TestDescriptorInternal descriptor, Throwable exception) {
-        if (descriptor == null) {
-            return;
-        }
         TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = executing.get(identifier);

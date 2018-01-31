@@ -54,7 +54,6 @@ public class JUnitTestEventAdapter extends RunListener {
         adapter.testAssumptionFailure(failure.getDescription());
     }
 
-
     @Override
     public void testIgnored(Description description) throws Exception {
         if (methodName(description) == null) {

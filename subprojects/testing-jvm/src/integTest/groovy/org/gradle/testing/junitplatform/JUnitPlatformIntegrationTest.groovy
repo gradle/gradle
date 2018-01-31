@@ -28,23 +28,7 @@ import static org.hamcrest.Matchers.containsString
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
-        executer.noExtraLogging()
-        buildFile << """
-            apply plugin: 'java'
 
-            repositories {
-                mavenCentral()
-            }
-            dependencies { 
-                testCompile 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'
-            }
-
-            test {
-                useJUnitPlatform()
-            }
-        """
-    }
 
     void createSimpleJupiterTest() {
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''

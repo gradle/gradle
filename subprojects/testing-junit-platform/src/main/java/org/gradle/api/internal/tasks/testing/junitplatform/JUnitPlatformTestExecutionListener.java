@@ -67,14 +67,17 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        if (isLeafMethodOrFailedClassMethod(testIdentifier, testExecutionResult)) {
+        if (isLeafMethodOrFailedContainer(testIdentifier, testExecutionResult)) {
             switch (testExecutionResult.getStatus()) {
                 case SUCCESSFUL:
                     adapter.testFinished(testIdentifier.getUniqueId());
                     break;
                 case FAILED:
                     adapter.testFailure(testIdentifier.getUniqueId(), getDescriptor(testIdentifier), testExecutionResult.getThrowable().get());
-                    adapter.testFinished(testIdentifier.getUniqueId());
+                    if (isLeafMethod(testIdentifier)) {
+                        // only leaf methods needs finish event because they triggered start event previously
+                        adapter.testFinished(testIdentifier.getUniqueId());
+                    }
                     break;
                 case ABORTED:
                     adapter.testAssumptionFailure(testIdentifier.getUniqueId());
@@ -86,17 +89,16 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
     }
 
-    private boolean isLeafMethodOrFailedClassMethod(TestIdentifier testIdentifier, TestExecutionResult result) {
+    private boolean isLeafMethodOrFailedContainer(TestIdentifier testIdentifier, TestExecutionResult result) {
         // Generally, there're 4 kinds of identifier:
         // 1. JUnit test engine, which we don't consider at all
-        // 2. A class. Class identifier is not tracked when it succeeds, otherwise every class will have a "classMethod" method.
-        // 3. A container method. Its children will be tracked, but itself won't.
-        // 4. A test "leaf" method. It's always tracked.
-        if (isClass(testIdentifier)) {
-            return result.getStatus() != TestExecutionResult.Status.SUCCESSFUL;
-        } else {
-            return isLeafMethod(testIdentifier);
-        }
+        // 2. A container (class or repeated tests). It is not tracked unless it fails.
+        // 3. A test "leaf" method. It's always tracked.
+        return isLeafMethod(testIdentifier) || isFailedContainer(testIdentifier, result);
+    }
+
+    private boolean isFailedContainer(TestIdentifier testIdentifier, TestExecutionResult result) {
+        return result.getStatus() != TestExecutionResult.Status.SUCCESSFUL && testIdentifier.isContainer();
     }
 
     private TestDescriptorInternal getDescriptor(final TestIdentifier test) {
