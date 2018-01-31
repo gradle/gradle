@@ -34,7 +34,7 @@ import java.util.*
 
 
 private
-const val embeddedRepositoryCacheKeyVersion = 1
+const val embeddedRepositoryCacheKeyVersion = 2
 
 
 private
