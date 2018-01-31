@@ -29,7 +29,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/versionsWithDependencyConstraints")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/versionsWithConstraints")
     def "respects dependency constraints for direct and transitive dependencies"() {
         executer.inDirectory(sample.dir)
 
@@ -103,7 +103,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
     }
 
-    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/forceVersionForDependency")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/forceForDependency")
     def "can force a dependency version"() {
         executer.inDirectory(sample.dir)
 
@@ -116,7 +116,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         !libs.any { it.name == 'commons-codec-1.10.jar' }
     }
 
-    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/forceVersionForConfiguration")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/forceForConfiguration")
     def "can force a dependency version for particular configuration"() {
         executer.inDirectory(sample.dir)
 
@@ -129,7 +129,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         !libs.any { it.name == 'commons-codec-1.10.jar' }
     }
 
-    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/disableResolutionForDependency")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/disableForDependency")
     def "can disable transitive dependency resolution for dependency"() {
         executer.inDirectory(sample.dir)
 
@@ -140,7 +140,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         assertSingleLib('guava-23.0.jar')
     }
 
-    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/disableResolutionForConfiguration")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration")
     def "can disable transitive dependency resolution for particular configuration"() {
         executer.inDirectory(sample.dir)
 
