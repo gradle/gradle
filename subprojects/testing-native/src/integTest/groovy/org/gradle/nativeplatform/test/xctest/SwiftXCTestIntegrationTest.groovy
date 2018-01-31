@@ -105,21 +105,13 @@ apply plugin: 'xctest'
         testBundle.getFooTestSuite().getTestCount()
     }
 
-    @Unroll
-    def "executes added test suite and case #count"() {
+    def "executes added test suite and case"() {
         given:
         def testBundle = new IncrementalSwiftXCTestAddDiscoveryBundle()
         assert testBundle.alternateFooTestSuite.testCount > testBundle.fooTestSuite.testCount
 
         settingsFile << "rootProject.name = 'app'"
         buildFile << "apply plugin: 'swift-library'"
-        buildFile << """
-            allprojects {            
-                tasks.withType(SwiftCompile) {
-                    compilerArgs.add('-driver-show-incremental')
-                }
-            }
-        """
         testBundle.writeToProject(testDirectory)
 
         when:
@@ -131,14 +123,11 @@ apply plugin: 'xctest'
 
         when:
         testBundle.applyChangesToProject(testDirectory)
-        succeeds("test", "-i")
+        succeeds("test")
 
         then:
         result.assertTasksExecuted(":compileDebugSwift", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest", ":test")
         testBundle.assertAlternateTestCasesRan(testExecutionResult)
-
-        where:
-        count << (1..100)
     }
 
     def "build logic can change source layout convention"() {
