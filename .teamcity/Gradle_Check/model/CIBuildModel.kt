@@ -53,7 +53,12 @@ data class CIBuildModel (
             Stage("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions",
                     trigger = Trigger.weekly,
                     performanceTests = listOf(
-                            PerformanceTestType.historical)))
+                            PerformanceTestType.historical)),
+            Stage("Experimental", "On demand: Run experimental tests",
+                    trigger = Trigger.never,
+                    runsIndependent = true
+                    functionalTests = listOf(
+                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java10))))
     ) {
 
     val subProjects = listOf(
@@ -166,7 +171,7 @@ object NoBuildCache : BuildCache {
     }
 }
 
-data class Stage(val name: String, val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false)
+data class Stage(val name: String, val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false)
 
 data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle) {
     fun asId(model : CIBuildModel): String {
@@ -188,7 +193,7 @@ enum class OS(val agentRequirement: String, val ignoredSubprojects: List<String>
 }
 
 enum class JvmVersion {
-    java7, java8, java9
+    java7, java8, java9, java10
 }
 
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {

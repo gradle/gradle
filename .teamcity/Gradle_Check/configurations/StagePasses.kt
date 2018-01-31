@@ -90,7 +90,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
     }
 
     dependencies {
-        if (prevStage != null) {
+        if (!stage.runsIndependent && prevStage != null) {
             dependency("${model.projectPrefix}Stage_${prevStage.name.replace(" ", "").replace("-", "")}_Trigger") {
                 snapshot {
                     onDependencyFailure = FailureAction.ADD_PROBLEM
