@@ -30,12 +30,7 @@ class KotlinInitScriptIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `initscript file path is resolved against parent script dir`() {
-
-        withBuildScript("""
-            val answer: String by extra
-            println("*" + answer + "*")
-        """)
+    fun `initscript file path is resolved relative to parent script dir`() {
 
         val initScript =
             withFile("gradle/init.gradle.kts", """
@@ -46,6 +41,11 @@ class KotlinInitScriptIntegrationTest : AbstractIntegrationTest() {
             rootProject {
                 val answer by extra { "42" }
             }
+        """)
+
+        withBuildScript("""
+            val answer: String by extra
+            println("*" + answer + "*")
         """)
 
         assert(
