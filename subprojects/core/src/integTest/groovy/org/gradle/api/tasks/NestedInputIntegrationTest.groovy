@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggingOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -802,7 +803,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         buildFile << taskWithNestedBeanFromCustomClassLoader()
 
         when:
-        withBuildCache().run "customTask", "--info"
+        withBuildCache().run "customTask", "--info", "-D${BuildCacheDebugLoggingOption.GRADLE_PROPERTY}=true"
         then:
         output.contains "The implementation of 'bean' cannot be determined, because it was loaded by an unknown classloader"
         output.contains "Not caching task ':customTask' because no valid cache key was generated"

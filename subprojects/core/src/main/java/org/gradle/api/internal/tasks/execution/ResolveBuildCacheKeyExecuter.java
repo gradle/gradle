@@ -29,14 +29,15 @@ import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -46,15 +47,17 @@ import java.util.SortedSet;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResolveBuildCacheKeyExecuter.class);
+    private static final Logger LOGGER = Logging.getLogger(ResolveBuildCacheKeyExecuter.class);
     private static final String BUILD_OPERATION_NAME = "Snapshot task inputs";
 
     private final TaskExecuter delegate;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final boolean buildCacheDebugLogging;
 
-    public ResolveBuildCacheKeyExecuter(TaskExecuter delegate, BuildOperationExecutor buildOperationExecutor) {
+    public ResolveBuildCacheKeyExecuter(TaskExecuter delegate, BuildOperationExecutor buildOperationExecutor, boolean buildCacheDebugLogging) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.buildCacheDebugLogging = buildCacheDebugLogging;
     }
 
     @Override
@@ -103,7 +106,8 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         TaskOutputCachingBuildCacheKey cacheKey = taskState.calculateCacheKey();
         if (context.getTaskProperties().hasDeclaredOutputs()) { // A task with no outputs and no cache key.
             if (cacheKey.isValid()) {
-                LOGGER.info("Build cache key for {} is {}", task, cacheKey.getHashCode());
+                LogLevel logLevel = buildCacheDebugLogging ? LogLevel.LIFECYCLE : LogLevel.INFO;
+                LOGGER.log(logLevel, "Build cache key for {} is {}", task, cacheKey.getHashCode());
             }
         }
         return cacheKey;

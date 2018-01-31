@@ -47,6 +47,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
+import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.file.PathToFileResolver
@@ -93,6 +94,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     TaskOutputFilesRepository taskOutputFilesRepository = Stub(TaskOutputFilesRepository)
     final originMetadata = new OriginTaskExecutionMetadata(buildScopeId.id, 1)
     def taskExecutionContext = Mock(TaskExecutionContext)
+    def taskCacheKeyCalculator = new TaskCacheKeyCalculator(false)
 
     def setup() {
         gradle = project.getGradle()
@@ -119,7 +121,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             snapshotterRegistry,
             TestFiles.fileCollectionFactory()
         )
-        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, taskOutputFilesRepository)
+        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, taskOutputFilesRepository, taskCacheKeyCalculator)
     }
 
     def "artifacts are not up to date when cache is empty"() {
