@@ -16,8 +16,6 @@
 
 package org.gradle.caching.internal.version2;
 
-import java.io.IOException;
-
 public interface BuildCacheStoreCommandV2 {
 
     /**
@@ -25,7 +23,7 @@ public interface BuildCacheStoreCommandV2 {
      *
      * The output stream will be closed by this method.
      */
-    Result store() throws IOException;
+    Result store();
 
     interface Result {
 

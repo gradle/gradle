@@ -25,6 +25,6 @@ public class DefaultBuildCacheControllerV2 implements BuildCacheControllerV2 {
 
     @Override
     public void store(BuildCacheStoreCommandV2 command) {
-
+        command.store();
     }
 }

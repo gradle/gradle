@@ -32,6 +32,7 @@ import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException;
 import org.gradle.caching.internal.version2.BuildCacheControllerV2;
 import org.gradle.caching.internal.version2.TaskOutputCacheCommandFactoryV2;
+import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +65,9 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         this.buildCacheV2 = buildCacheV2;
         this.delegate = delegate;
         this.useVersion2 = Boolean.getBoolean("org.gradle.caching.version2");
+        if (useVersion2) {
+            SingleMessageLogger.incubatingFeatureUsed("Build cache version 2");
+        }
     }
 
     @Override

@@ -18,12 +18,8 @@ package org.gradle.caching.internal.version2;
 
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
-import java8.util.concurrent.CompletableFuture;
-import java8.util.function.Function;
-import java8.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
@@ -44,11 +40,12 @@ import org.gradle.caching.internal.tasks.AbstractLoadCommand;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader;
+import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 
-import java.io.Closeable;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -58,13 +55,10 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("Since15")
-public class TaskOutputCacheCommandFactoryV2 implements Closeable {
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+public class TaskOutputCacheCommandFactoryV2 {
     private final TaskOutputOriginFactory taskOutputOriginFactory;
     private final FileSystemMirror fileSystemMirror;
     private final StringInterner stringInterner;
@@ -102,99 +96,64 @@ public class TaskOutputCacheCommandFactoryV2 implements Closeable {
         }
 
         @Override
-        protected OriginTaskExecutionMetadata performLoad(Void input, final SortedSet<? extends OutputPropertySpec> outputProperties, final TaskOutputOriginReader reader) throws IOException {
-            final HashCode resultKey = HashCode.fromString(getKey().getHashCode());
-            return CompletableFuture
-                .supplyAsync(new Supplier<ResultEntry>() {
-                    @Override
-                    public ResultEntry get() {
-                        CacheEntry entry = local.get(resultKey);
-                        if (entry == null || entry instanceof ResultEntry) {
-                            return (ResultEntry) entry;
-                        } else {
-                            throw new IllegalStateException("Found an entry of unknown type for " + resultKey);
-                        }
-                    }
-                }, executor)
-                .thenCompose(new Function<ResultEntry, CompletableFuture<OriginTaskExecutionMetadata>>() {
-                    @Override
-                    public CompletableFuture<OriginTaskExecutionMetadata> apply(final ResultEntry result) {
-                        Map<String, HashCode> outputs = result.getOutputs();
-                        List<CompletableFuture<Void>> childEntries = Lists.newArrayListWithCapacity(outputs.size());
-                        for (OutputPropertySpec propertySpec : outputProperties) {
-                            HashCode outputKey = outputs.get(propertySpec.getPropertyName());
-                            if (outputKey == null) {
-                                // Optional outputs are missing
-                                FileUtils.deleteQuietly(propertySpec.getOutputRoot());
-                                continue;
-                            }
-                            CompletableFuture<Void> childEntry = CompletableFuture.runAsync(
-                                new LoadEntry(outputKey, propertySpec.getOutputRoot()), executor
-                            );
-                            childEntries.add(childEntry);
-                        }
-                        return CompletableFuture
-                            .allOf(Iterables.toArray(childEntries, CompletableFuture.class))
-                            .thenApply(new Function<Void, OriginTaskExecutionMetadata>() {
-                                @Override
-                                public OriginTaskExecutionMetadata apply(Void aVoid) {
-                                    return reader.execute(result.getOriginMetadata());
-                                }
-                            });
-                    }
-                }).join();
-        }
-
-        class LoadEntry implements Runnable {
-            private HashCode key;
-            private File target;
-
-            public LoadEntry(HashCode key, File target) {
-                this.key = key;
-                this.target = target;
+        protected OriginTaskExecutionMetadata performLoad(Void input, SortedSet<? extends OutputPropertySpec> outputProperties, TaskOutputOriginReader reader) {
+            HashCode resultKey = HashCode.fromString(getKey().getHashCode());
+            CacheEntry entry = local.get(resultKey);
+            if (entry == null) {
+                return null;
+            }
+            if (!(entry instanceof ResultEntry)) {
+                throw new IllegalStateException("Found an entry of unknown type for " + resultKey);
             }
 
-            @Override
-            public void run() {
+            ResultEntry result = (ResultEntry) entry;
+            Map<String, HashCode> outputs = result.getOutputs();
+            for (OutputPropertySpec propertySpec : outputProperties) {
+                HashCode outputKey = outputs.get(propertySpec.getPropertyName());
+                if (outputKey == null) {
+                    // Optional outputs are missing
+                    FileUtils.deleteQuietly(propertySpec.getOutputRoot());
+                    continue;
+                }
                 try {
-                    load(key, target);
+                    load(outputKey, propertySpec.getOutputRoot());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
             }
+            return reader.execute(result.getOriginMetadata());
+        }
 
-            private void load(HashCode key, File target) throws IOException {
-                CacheEntry entry = local.get(key);
-                if (entry instanceof FileEntry) {
-                    InputStream inputStream = ((FileEntry) entry).read();
-                    try {
-                        FileUtils.deleteQuietly(target);
-                        OutputStream outputStream = new FileOutputStream(target);
-                        try {
-                            ByteStreams.copy(inputStream, outputStream);
-                        } finally {
-                            IOUtils.closeQuietly(outputStream);
-                        }
-                    } finally {
-                        IOUtils.closeQuietly(inputStream);
-                    }
-                } else if (entry instanceof ManifestEntry) {
-                    ManifestEntry manifest = (ManifestEntry) entry;
-                    ImmutableSortedMap<String, HashCode> childEntries = manifest.getChildren();
+        private void load(HashCode key, File target) throws IOException {
+            CacheEntry entry = local.get(key);
+            if (entry instanceof FileEntry) {
+                InputStream inputStream = ((FileEntry) entry).read();
+                try {
                     FileUtils.deleteQuietly(target);
-                    FileUtils.forceMkdir(target);
-                    for (Map.Entry<String, HashCode> childEntry : childEntries.entrySet()) {
-                        load(childEntry.getValue(), new File(target, childEntry.getKey()));
+                    OutputStream outputStream = new FileOutputStream(target);
+                    try {
+                        ByteStreams.copy(inputStream, outputStream);
+                    } finally {
+                        IOUtils.closeQuietly(outputStream);
                     }
-                } else if (entry == null) {
-                    throw new IllegalStateException("Entry not found: " + key);
-                } else {
-                    throw new IllegalStateException("Invalid entry type: " + entry.getClass().getName());
+                } finally {
+                    IOUtils.closeQuietly(inputStream);
                 }
+            } else if (entry instanceof ManifestEntry) {
+                ManifestEntry manifest = (ManifestEntry) entry;
+                ImmutableSortedMap<String, HashCode> childEntries = manifest.getChildren();
+                FileUtils.deleteQuietly(target);
+                FileUtils.forceMkdir(target);
+                for (Map.Entry<String, HashCode> childEntry : childEntries.entrySet()) {
+                    load(childEntry.getValue(), new File(target, childEntry.getKey()));
+                }
+            } else if (entry == null) {
+                throw new IllegalStateException("Entry not found: " + key);
+            } else {
+                throw new IllegalStateException("Invalid entry type: " + entry.getClass().getName());
             }
         }
     }
-
 
     private class StoreCommand implements BuildCacheStoreCommandV2 {
         private final TaskOutputCachingBuildCacheKey cacheKey;
@@ -214,12 +173,13 @@ public class TaskOutputCacheCommandFactoryV2 implements Closeable {
         @Override
         public Result store() {
             final AtomicInteger count = new AtomicInteger();
-            ImmutableSortedMap.Builder<Comparable<?>, Object> outputHashes = ImmutableSortedMap.naturalOrder();
+            ImmutableSortedMap.Builder<String, HashCode> outputHashes = ImmutableSortedMap.naturalOrder();
             for (final OutputPropertySpec outputProperty : outputProperties) {
                 final File outputRoot = outputProperty.getOutputRoot();
                 if (outputRoot == null) {
                     continue;
                 }
+                String absoluteRootPath = outputRoot.getAbsolutePath();
                 String outputPropertyName = outputProperty.getPropertyName();
                 final Map<String, FileContentSnapshot> outputs = outputSnapshots.get(outputPropertyName);
                 if (outputs == null) {
@@ -236,7 +196,12 @@ public class TaskOutputCacheCommandFactoryV2 implements Closeable {
                         Path rootPath = outputRoot.toPath();
                         DirectorySnapshotX root = new DirectorySnapshotX();
                         for (Map.Entry<String, FileContentSnapshot> entry : outputs.entrySet()) {
-                            File absoluteFile = new File(entry.getKey());
+                            String absolutePath = entry.getKey();
+                            if (absolutePath.equals(absoluteRootPath)) {
+                                // This is the root directory itself
+                                continue;
+                            }
+                            File absoluteFile = new File(absolutePath);
                             Path relativePath = rootPath.relativize(absoluteFile.toPath());
                             Iterator<Path> iPathElements = relativePath.iterator();
                             DirectorySnapshotX parent = root;
@@ -267,6 +232,10 @@ public class TaskOutputCacheCommandFactoryV2 implements Closeable {
                 }
                 outputHashes.put(outputPropertyName, outputHash);
             }
+            TaskOutputOriginWriter writer = taskOutputOriginFactory.createWriter(task, taskExecutionTime);
+            ByteArrayOutputStream originMetadata = new ByteArrayOutputStream();
+            writer.execute(originMetadata);
+            local.put(HashCode.fromString(cacheKey.getHashCode()), outputHashes.build(), originMetadata.toByteArray());
             return new Result() {
                 @Override
                 public long getArtifactEntryCount() {
@@ -332,10 +301,5 @@ public class TaskOutputCacheCommandFactoryV2 implements Closeable {
                 return hashCode;
             }
         }
-    }
-
-    @Override
-    public void close() throws IOException {
-        executor.shutdown();
     }
 }
