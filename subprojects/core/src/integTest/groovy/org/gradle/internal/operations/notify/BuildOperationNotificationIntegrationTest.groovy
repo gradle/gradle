@@ -340,7 +340,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
 
             def registrar = services.get($BuildOperationNotificationListenerRegistrar.name)            
             gradle.buildFinished {
-                listener.store(file('${file('buildOpNotifications.json')}'))
+                listener.store(file('${file('buildOpNotifications.json').toURI()}'))
             }
         """
     }
