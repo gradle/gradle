@@ -26,6 +26,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.ExecException
 import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
@@ -78,6 +79,63 @@ class ForkingTestClassProcessorTest extends Specification {
         11 * moduleRegistry.getModule(_) >> { module(it[0]) }
         9 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
         1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 20 }
+    }
+
+    def "stopNow propagates to worker process"() {
+        TestClassRunInfo testClass = Mock()
+        def remoteProcessor = Mock(RemoteTestClassProcessor)
+
+        setup:
+        1 * workerProcessFactory.create(_) >> workerProcessBuilder
+        1 * workerProcessBuilder.build() >> workerProcess
+        _ * workerProcessBuilder.getJavaCommand() >> Stub (JavaExecHandleBuilder)
+        1 * workerProcess.getConnection() >> Stub(ObjectConnection) { addOutgoing(_) >> remoteProcessor }
+
+        when:
+        processor.processTestClass(testClass)
+        processor.stopNow()
+
+        then:
+        10 * moduleRegistry.getModule(_) >> { module(it[0]) }
+        6 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
+        1 * workerLease.startChild()
+        1 * options.getSystemProperties() >> [:]
+        1 * workerProcess.stopNow()
+    }
+
+    def "stopNow does nothing when no remote processor"() {
+        when:
+        processor.stopNow()
+
+        then:
+        1 * processor.stopNow()
+        0 * _
+    }
+
+    def "no exception when stop after stopNow"() {
+        TestClassRunInfo testClass = Mock()
+        def remoteProcessor = Mock(RemoteTestClassProcessor)
+        WorkerLeaseRegistry.WorkerLeaseCompletion completion = Mock()
+
+        setup:
+        1 * workerProcessFactory.create(_) >> workerProcessBuilder
+        1 * workerProcessBuilder.build() >> workerProcess
+        _ * workerProcessBuilder.getJavaCommand() >> Stub (JavaExecHandleBuilder)
+        1 * workerProcess.getConnection() >> Stub(ObjectConnection) { addOutgoing(_) >> remoteProcessor }
+
+        when:
+        processor.processTestClass(testClass)
+        processor.stopNow()
+        processor.stop()
+
+        then:
+        1 * workerLease.startChild() >> completion
+        10 * moduleRegistry.getModule(_) >> { module(it[0]) }
+        6 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
+        1 * options.getSystemProperties() >> [:]
+        1 * workerProcess.stopNow()
+        _ * workerProcess.waitForStop() >> { throw new ExecException("waitForStop can throw") }
+        notThrown(ExecException)
     }
 
     def module(String module) {

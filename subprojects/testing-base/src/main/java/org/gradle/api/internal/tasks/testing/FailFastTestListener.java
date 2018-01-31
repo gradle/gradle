@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.internal.tasks.testing.TestExecuter;
+import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestResult;
 
+/**
+ * {@code TestListener} that causes the {@link TestExecuter} to stop at the first failed test
+ */
 public class FailFastTestListener implements TestListener {
     private final TestExecuter testExecuter;
 

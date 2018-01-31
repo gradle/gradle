@@ -66,11 +66,8 @@ public class DefaultWorkerProcess implements WorkerProcess {
 
     @Override
     public void stopNow() {
-        try {
-            execHandle.abort();
-        } finally {
-            cleanup();
-        }
+        // cleanup() will abort the process as desired
+        cleanup();
     }
 
     public void setExecHandle(ExecHandle execHandle) {

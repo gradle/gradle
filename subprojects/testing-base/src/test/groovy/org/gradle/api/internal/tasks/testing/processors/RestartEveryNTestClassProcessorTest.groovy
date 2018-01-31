@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.Factory
 import spock.lang.Specification
 
-public class RestartEveryNTestClassProcessorTest extends Specification {
+class RestartEveryNTestClassProcessorTest extends Specification {
     private final Factory<TestClassProcessor> factory = Mock();
     private final TestClassProcessor delegate = Mock();
     private final TestClassRunInfo test1 = Mock();
@@ -154,6 +154,61 @@ public class RestartEveryNTestClassProcessorTest extends Specification {
         1 * delegate.processTestClass(test2)
         then:
         1 * delegate.stop()
+        0 * _._
+    }
+
+    def "stopNow propagates to factory created processors"() {
+        when:
+        processor.startProcessing(resultProcessor)
+        processor.processTestClass(test1)
+        processor.stopNow()
+
+        then:
+        1 * factory.create() >> delegate
+        1 * delegate.startProcessing(resultProcessor)
+        then:
+        1 * delegate.processTestClass(test1)
+        then:
+        1 * delegate.stopNow()
+        0 * _._
+    }
+
+    def "stopNow does not propagate when no processor"() {
+        when:
+        processor.startProcessing(resultProcessor)
+        processor.processTestClass(test1)
+        processor.processTestClass(test2)
+        processor.stopNow()
+
+        then:
+        1 * factory.create() >> delegate
+        1 * delegate.startProcessing(resultProcessor)
+        then:
+        1 * delegate.processTestClass(test1)
+        then:
+        1 * delegate.processTestClass(test2)
+        then:
+        1 * delegate.stop()
+        0 * _._
+    }
+
+    def "processTestClass has no effect after stopNow"() {
+        when:
+        processor.startProcessing(resultProcessor)
+        processor.processTestClass(test1)
+        processor.stopNow()
+
+        then:
+        1 * factory.create() >> delegate
+        1 * delegate.startProcessing(resultProcessor)
+        then:
+        1 * delegate.processTestClass(test1)
+        1 * delegate.stopNow()
+
+        when:
+        processor.processTestClass(test2)
+
+        then:
         0 * _._
     }
 }

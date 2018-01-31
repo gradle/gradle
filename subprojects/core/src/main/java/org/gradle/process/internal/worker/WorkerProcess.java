@@ -36,5 +36,8 @@ public interface WorkerProcess {
 
     JvmMemoryStatus getJvmMemoryStatus();
 
+    /**
+     * Stop the associated process without expecting a normal exit value.
+     */
     void stopNow();
 }

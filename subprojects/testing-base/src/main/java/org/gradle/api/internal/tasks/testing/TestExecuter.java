@@ -19,5 +19,8 @@ package org.gradle.api.internal.tasks.testing;
 public interface TestExecuter<T extends TestExecutionSpec> {
     void execute(T testExecutionSpec, TestResultProcessor testResultProcessor);
 
+    /**
+     * Stops any {@link TestClassProcessor} utilized by this {@code TestExecuter}.
+     */
     void stopNow();
 }
