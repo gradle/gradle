@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks
+package org.gradle.api.internal.tasks.properties
 
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
-import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
-import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -35,6 +34,7 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import spock.lang.Unroll
 
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
@@ -109,6 +109,17 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * visitor.visitInputProperty({ it.propertyName == 'bean' && it.value == null })
+    }
+
+    @Unroll
+    def "correct implementation for #type coerced to Action is tracked"() {
+        expect:
+        DefaultPropertyWalker.getImplementationClass(implementation as Action) == implementation.getClass()
+
+        where:
+        type      | implementation
+        "Closure" | { it }
+        "Action"  |  new Action<String>() { @Override void execute(String s) {} }
     }
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {

@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
+import org.codehaus.groovy.runtime.ConvertedClosure;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
@@ -37,8 +39,10 @@ import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
@@ -104,10 +108,26 @@ public class DefaultPropertyWalker implements PropertyWalker {
     private static void visitImplementation(PropertyNode node, PropertyVisitor visitor, PropertySpecFactory specFactory) {
         // The root bean (Task) implementation is currently tracked separately
         if (!node.isRoot()) {
-            DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("class"), new ImplementationPropertyValue(node.getBean().getClass()));
+            DefaultTaskInputPropertySpec implementation = specFactory.createInputPropertySpec(node.getQualifiedPropertyName("class"), new ImplementationPropertyValue(getImplementationClass(node.getBean())));
             implementation.optional(false);
             visitor.visitInputProperty(implementation);
         }
+    }
+
+    @VisibleForTesting
+    static Class<?> getImplementationClass(Object bean) {
+        // When Groovy coerces a Closure into an SAM type, then it creates a Proxy which is backed by the Closure.
+        // We want to track the implementation of the Closure, since the class name and classloader of the proxy will not change.
+        // Java and Kotlin Lambdas are coerced to SAM types at compile time, so no unpacking is necessary there.
+        if (Proxy.isProxyClass(bean.getClass())) {
+            InvocationHandler invocationHandler = Proxy.getInvocationHandler(bean);
+            if (invocationHandler instanceof ConvertedClosure) {
+                Object delegate = ((ConvertedClosure) invocationHandler).getDelegate();
+                return delegate.getClass();
+            }
+            return invocationHandler.getClass();
+        }
+        return bean.getClass();
     }
 
     private static class PropertyNode extends AbstractBeanNode {
