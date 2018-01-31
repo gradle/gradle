@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.junit.JUnitTestEventAdapter;
+import org.gradle.api.internal.tasks.testing.junit.GenericJUnitTestEventAdapter;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.junit.platform.engine.TestDescriptor;
@@ -30,11 +30,14 @@ import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
-public class JUnitPlatformTestExecutionListener extends JUnitTestEventAdapter implements TestExecutionListener {
+public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
+    private final GenericJUnitTestEventAdapter<String> adapter;
+    private final IdGenerator<?> idGenerator;
     private TestPlan currentTestPlan;
 
     public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator) {
-        super(resultProcessor, clock, idGenerator);
+        this.adapter = new GenericJUnitTestEventAdapter<>(resultProcessor, clock);
+        this.idGenerator = idGenerator;
     }
 
     public void testPlanExecutionStarted(TestPlan testPlan) {
@@ -50,7 +53,7 @@ public class JUnitPlatformTestExecutionListener extends JUnitTestEventAdapter im
         if (isClass(testIdentifier)) {
             currentTestPlan.getChildren(testIdentifier).forEach(child -> executionSkipped(child, reason));
         } else if (isMethod(testIdentifier)) {
-            testIgnored(getDescriptor(testIdentifier));
+            adapter.testIgnored(getDescriptor(testIdentifier));
         }
     }
 
@@ -59,7 +62,7 @@ public class JUnitPlatformTestExecutionListener extends JUnitTestEventAdapter im
         if (!isLeafMethod(testIdentifier)) {
             return;
         }
-        testStarted(testIdentifier.getUniqueId(), getDescriptor(testIdentifier));
+        adapter.testStarted(testIdentifier.getUniqueId(), getDescriptor(testIdentifier));
     }
 
     @Override
@@ -67,15 +70,15 @@ public class JUnitPlatformTestExecutionListener extends JUnitTestEventAdapter im
         if (isLeafMethodOrFailedClassMethod(testIdentifier, testExecutionResult)) {
             switch (testExecutionResult.getStatus()) {
                 case SUCCESSFUL:
-                    testFinished(testIdentifier.getUniqueId());
+                    adapter.testFinished(testIdentifier.getUniqueId());
                     break;
                 case FAILED:
-                    testFailure(testIdentifier.getUniqueId(), getDescriptor(testIdentifier), testExecutionResult.getThrowable().get());
-                    testFinished(testIdentifier.getUniqueId());
+                    adapter.testFailure(testIdentifier.getUniqueId(), getDescriptor(testIdentifier), testExecutionResult.getThrowable().get());
+                    adapter.testFinished(testIdentifier.getUniqueId());
                     break;
                 case ABORTED:
-                    testAssumptionFailure(testIdentifier.getUniqueId());
-                    testFinished(testIdentifier.getUniqueId());
+                    adapter.testAssumptionFailure(testIdentifier.getUniqueId());
+                    adapter.testFinished(testIdentifier.getUniqueId());
                     break;
                 default:
                     throw new AssertionError("Invalid Status: " + testExecutionResult.getStatus());
