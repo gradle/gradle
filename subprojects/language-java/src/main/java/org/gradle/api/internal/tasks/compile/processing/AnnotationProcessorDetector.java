@@ -38,6 +38,9 @@ import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Inspects a classpath to find annotation processors contained in it.
+ */
 public class AnnotationProcessorDetector {
     private final FileContentCache<List<AnnotationProcessorDeclaration>> cache;
 

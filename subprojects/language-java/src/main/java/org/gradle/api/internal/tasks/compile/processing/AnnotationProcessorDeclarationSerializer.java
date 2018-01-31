@@ -30,6 +30,6 @@ class AnnotationProcessorDeclarationSerializer implements org.gradle.internal.se
 
     @Override
     public void write(Encoder encoder, AnnotationProcessorDeclaration value) throws Exception {
-        encoder.writeString(value.getName());
+        encoder.writeString(value.getClassName());
     }
 }

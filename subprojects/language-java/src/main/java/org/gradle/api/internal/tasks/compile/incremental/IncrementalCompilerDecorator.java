@@ -34,6 +34,9 @@ import org.gradle.util.TextUtil;
 
 import java.util.List;
 
+/**
+ * Decorates a non-incremental Java compiler (like javac) so that it can be invoked incrementally.
+ */
 public class IncrementalCompilerDecorator {
 
     private static final Logger LOG = Logging.getLogger(IncrementalCompilerDecorator.class);
@@ -82,7 +85,7 @@ public class IncrementalCompilerDecorator {
         if (!nonIncrementalProcessors.isEmpty()) {
             StringBuilder processorListing = new StringBuilder();
             for (AnnotationProcessorDeclaration processor : nonIncrementalProcessors) {
-                processorListing.append(TextUtil.getPlatformLineSeparator()).append('\t').append(processor.getName());
+                processorListing.append(TextUtil.getPlatformLineSeparator()).append('\t').append(processor.getClassName());
             }
             LOG.info("{} - is not incremental. The following annotation processors were detected:{}", displayName, processorListing);
             return cleaningCompiler;

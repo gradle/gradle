@@ -16,19 +16,23 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
+/**
+ * Information about an annotation processor, based on its static metadata
+ * in META-INF/services/javax.annotation.processing.Processor.
+ */
 public class AnnotationProcessorDeclaration {
-    private final String name;
+    private final String className;
 
-    AnnotationProcessorDeclaration(String name) {
-        this.name = name;
+    AnnotationProcessorDeclaration(String className) {
+        this.className = className;
     }
 
-    public String getName() {
-        return name;
+    public String getClassName() {
+        return className;
     }
 
     @Override
     public String toString() {
-        return name;
+        return className;
     }
 }
