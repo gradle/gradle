@@ -103,7 +103,6 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName == ['$1']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
-        outputs.fileProperties*.outputFile == [new File("a")]
         outputs.fileProperties*.outputType == [FILE]
     }
 
@@ -113,7 +112,6 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName == ['prop']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
-        outputs.fileProperties*.outputFile == [new File("a")]
         outputs.fileProperties*.outputType == [FILE]
     }
 
@@ -123,7 +121,6 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName == ['$1']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
-        outputs.fileProperties*.outputFile == [new File("a")]
         outputs.fileProperties*.outputType == [FILE]
     }
 
@@ -133,7 +130,6 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName == ['prop']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
-        outputs.fileProperties*.outputFile == [new File("a")]
         outputs.fileProperties*.outputType == [DIRECTORY]
     }
 
@@ -169,7 +165,6 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['$1.fileA', '$1.fileB']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
         outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
@@ -180,7 +175,6 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
         outputs.fileProperties*.outputType == [type, type]
         where:
         name    | type
@@ -195,7 +189,6 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['$1.one', '$1.two']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
         outputs.fileProperties*.outputType == [type, type]
         where:
         name    | type
@@ -210,7 +203,6 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['prop.one', 'prop.two']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
-        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
         outputs.fileProperties*.outputType == [type, type]
         where:
         name    | type
