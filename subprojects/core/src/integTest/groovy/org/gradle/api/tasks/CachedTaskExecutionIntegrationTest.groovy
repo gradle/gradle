@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggingOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -265,7 +266,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         errorOutput.contains("Could not evaluate spec for 'on CI'.")
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "can load twice from the cache with no changes"() {
         given:
         buildFile << """
@@ -399,7 +400,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         buildFile << """
             compileJava.doFirst { }
         """.stripIndent()
-        withBuildCache().run "compileJava", "-Dorg.gradle.caching.debug=true"
+        withBuildCache().run "compileJava", "-D${BuildCacheDebugLoggingOption.GRADLE_PROPERTY}=true"
 
         then:
         skippedTasks.empty
