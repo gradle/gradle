@@ -32,7 +32,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/declaringDependenciesWithConcreteVersion")
+    @UsesSample("userguide/dependencyManagement/declaringDependencies/concreteVersion")
     def "can use declare and resolve binary dependency with concrete version"() {
         executer.inDirectory(sample.dir)
 
@@ -43,7 +43,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
         sample.dir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/declaringDependenciesWithoutVersion")
+    @UsesSample("userguide/dependencyManagement/declaringDependencies/withoutVersion")
     def "can use declare and resolve binary dependency without version"() {
         executer.inDirectory(sample.dir)
 
@@ -54,7 +54,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
         sample.dir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/declaringDependenciesWithDynamicVersion")
+    @UsesSample("userguide/dependencyManagement/declaringDependencies/dynamicVersion")
     def "can use declare and resolve binary dependency with dynamic version"() {
         executer.inDirectory(sample.dir)
 
@@ -65,7 +65,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
         sample.dir.file('build/libs').listFiles().any { it.name.startsWith('spring-web-5.') }
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/declaringDependenciesWithChangingVersion")
+    @UsesSample("userguide/dependencyManagement/declaringDependencies/changingVersion")
     def "can use declare and resolve binary dependency with changing version"() {
         executer.inDirectory(sample.dir)
 
@@ -76,7 +76,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
         sample.dir.file('build/libs/spring-web-5.0.3.BUILD-SNAPSHOT.jar').isFile()
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/declaringFileDependencies")
+    @UsesSample("userguide/dependencyManagement/declaringDependencies/fileDependencies")
     def "can use declare and resolve file dependencies"() {
         executer.inDirectory(sample.dir)
 
@@ -91,7 +91,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
         sample.dir.file('build/libs/b.exe').isFile()
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/declaringProjectDependencies")
+    @UsesSample("userguide/dependencyManagement/declaringDependencies/projectDependencies")
     def "can declare and resolve project dependencies"() {
         executer.inDirectory(sample.dir)
 
@@ -100,7 +100,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Requires(JDK8_OR_LATER)
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/declaringCustomConfigurations")
+    @UsesSample("userguide/dependencyManagement/declaringDependencies/customConfigurations")
     def "can declare and resolve custom configuration"() {
         setup:
         executer.inDirectory(sample.dir)
@@ -113,7 +113,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
         sample.dir.file('build/compiled-jsps/org/apache/jsp/hello_jsp.java').isFile()
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/resolvingArtifactOnly")
+    @UsesSample("userguide/dependencyManagement/declaringDependencies/artifactOnly")
     def "can resolve dependency with artifact-only declaration"() {
         executer.inDirectory(sample.dir)
 
@@ -124,7 +124,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
         assertSingleLib('jquery-3.2.1.js')
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/resolvingArtifactOnlyWithClassifier")
+    @UsesSample("userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier")
     def "can resolve dependency with artifact-only declaration with classifier"() {
         executer.inDirectory(sample.dir)
 

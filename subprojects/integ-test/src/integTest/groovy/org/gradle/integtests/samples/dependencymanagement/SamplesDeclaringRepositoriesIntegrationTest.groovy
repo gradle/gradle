@@ -26,7 +26,7 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("userguide/dependencyManagement/declaringRepositories/declaringPublicRepository")
+    @UsesSample("userguide/dependencyManagement/declaringRepositories/publicRepository")
     def "can declare JCenter repository and resolve binary dependency"() {
         executer.inDirectory(sample.dir)
 
@@ -37,7 +37,7 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
         sample.dir.file('build/libs/guava-23.0.jar').isFile()
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringRepositories/declaringCustomRepository")
+    @UsesSample("userguide/dependencyManagement/declaringRepositories/customRepository")
     def "can declare repository with custom URL"() {
         executer.inDirectory(sample.dir)
 
@@ -45,7 +45,7 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
         succeeds('checkRepositories')
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringRepositories/declaringMultipleRepositories")
+    @UsesSample("userguide/dependencyManagement/declaringRepositories/multipleRepositories")
     def "can declare multiple repositories and resolve binary dependency"() {
         executer.inDirectory(sample.dir)
 
