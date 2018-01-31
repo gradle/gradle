@@ -23,7 +23,7 @@ import java.util.Set;
 /**
  * Represents a property whose type is a {@link Set} of elements of type {@link T}. Retains iteration order.
  *
- * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created through the factory method {@link org.gradle.api.model.ObjectFactory#listProperty(Class)}.
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created through the factory method {@link org.gradle.api.model.ObjectFactory#setProperty(Class)}.
  *
  * @param <T> the type of elements.
  * @since 4.5
