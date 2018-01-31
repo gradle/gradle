@@ -61,16 +61,15 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
                         return null;
                     }
                     try {
-                        InputStream inputStream = new FileInputStream(resource.getFile());
+                        DataInputStream input = new DataInputStream(new FileInputStream(resource.getFile()));
                         try {
-                            int type = inputStream.read();
+                            int type = input.readInt();
                             switch (type) {
                                 case 0:
                                     return new DefaultFileEntry(resource.getFile());
                                 case 1:
-                                    return new DefaultManifestEntry(readEntries(new DataInputStream(inputStream)));
+                                    return new DefaultManifestEntry(readEntries(input));
                                 case 2:
-                                    DataInputStream input = new DataInputStream(inputStream);
                                     ImmutableSortedMap<String, HashCode> entries = readEntries(input);
                                     int metadataLength = input.readInt();
                                     byte[] metadata = new byte[metadataLength];
@@ -80,7 +79,7 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
                                     throw new IllegalStateException("Incorrect data: " + type);
                             }
                         } finally {
-                            IOUtils.closeQuietly(inputStream);
+                            IOUtils.closeQuietly(input);
                         }
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
@@ -94,10 +93,11 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
 
     private static ImmutableSortedMap<String, HashCode> readEntries(DataInputStream input) throws IOException {
         int count = input.readInt();
-        byte[] buffer = new byte[32];
         ImmutableSortedMap.Builder<String, HashCode> builder = ImmutableSortedMap.naturalOrder();
         for (int i = 0; i < count; i++) {
             String name = input.readUTF();
+            int length = input.readInt();
+            byte[] buffer = new byte[length];
             input.readFully(buffer);
             HashCode hash = HashCode.fromBytes(buffer);
             builder.put(name, hash);
@@ -109,7 +109,9 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
         output.writeInt(entries.size());
         for (Map.Entry<String, HashCode> entry : entries.entrySet()) {
             output.writeUTF(entry.getKey());
-            output.write(entry.getValue().toByteArray());
+            byte[] buffer = entry.getValue().toByteArray();
+            output.writeInt(buffer.length);
+            output.write(buffer);
         }
     }
 
@@ -157,6 +159,7 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
             public void writeFile(DataOutputStream output) throws IOException {
                 output.writeInt(2);
                 writeEntries(output, outputs);
+                output.writeInt(originMetadata.length);
                 output.write(originMetadata);
             }
 
@@ -207,6 +210,11 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
             }
             return inputStream;
         }
+
+        @Override
+        public String toString() {
+            return "File entry: " + file;
+        }
     }
 
     private static class DefaultManifestEntry implements ManifestEntry {
@@ -219,6 +227,11 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
         @Override
         public ImmutableSortedMap<String, HashCode> getChildren() {
             return children;
+        }
+
+        @Override
+        public String toString() {
+            return "Manifest: " + children;
         }
     }
 
@@ -239,6 +252,11 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
         @Override
         public InputStream getOriginMetadata() {
             return new ByteArrayInputStream(originMetadata);
+        }
+
+        @Override
+        public String toString() {
+            return "Result: " + outputs;
         }
     }
 

@@ -104,7 +104,7 @@ public abstract class AbstractLoadCommand<I, O> {
                 LOGGER.warn("Unrecoverable error during cleaning up after task output unpack failure", eCleanup);
                 throw new UnrecoverableTaskOutputUnpackingException(String.format("Failed to unpack outputs for %s, and then failed to clean up; see log above for details", task), e);
             }
-            throw new GradleException(String.format("Failed to unpack outputs for %s", task), e);
+            throw new GradleException(String.format("Failed to load outputs for %s", task), e);
         } finally {
             cleanLocalState();
         }

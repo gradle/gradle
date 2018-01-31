@@ -73,15 +73,15 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
     def "no task is re-executed when inputs are unchanged"() {
         when:
-        withBuildCache().run "jar"
+        withBuildCache().run "jar", "-Dorg.gradle.caching.version2=true", "-DcacheV2Dir=$cacheDir"
         then:
         skippedTasks.empty
 
         expect:
-        withBuildCache().run "clean"
+        run "clean"
 
         when:
-        withBuildCache().run "jar"
+        withBuildCache().run "jar", "-Dorg.gradle.caching.version2=true", "-DcacheV2Dir=$cacheDir"
         then:
         skippedTasks.containsAll ":compileJava"
     }

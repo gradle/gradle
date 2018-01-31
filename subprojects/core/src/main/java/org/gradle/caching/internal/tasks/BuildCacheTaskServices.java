@@ -36,8 +36,10 @@ import org.gradle.caching.internal.controller.BuildCacheControllerFactory.Remote
 import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.caching.internal.version2.BuildCacheControllerV2;
+import org.gradle.caching.internal.version2.DebuggingLocalBuildCacheServiceV2;
 import org.gradle.caching.internal.version2.DefaultBuildCacheControllerV2;
 import org.gradle.caching.internal.version2.DirectoryLocalBuildCacheServiceV2;
+import org.gradle.caching.internal.version2.LocalBuildCacheServiceV2;
 import org.gradle.caching.internal.version2.TaskOutputCacheCommandFactoryV2;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.SystemProperties;
@@ -114,7 +116,10 @@ public class BuildCacheTaskServices {
         CacheScopeMapping cacheScopeMapping,
         CacheRepository cacheRepository
     ) {
-        File target = cacheScopeMapping.getBaseDirectory(null, "build-cache-2", VersionStrategy.SharedCache);
+        String cacheV2Dir = System.getProperty("cacheV2Dir");
+        File target = cacheV2Dir == null
+            ? cacheScopeMapping.getBaseDirectory(null, "build-cache-2", VersionStrategy.SharedCache)
+            : new File(cacheV2Dir);
         PathKeyFileStore fileStore = new DefaultPathKeyFileStore(target);
         PersistentCache persistentCache = cacheRepository
             .cache(target)
@@ -122,7 +127,9 @@ public class BuildCacheTaskServices {
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
-        DirectoryLocalBuildCacheServiceV2 local = new DirectoryLocalBuildCacheServiceV2(fileStore, persistentCache);
+        LocalBuildCacheServiceV2 local = new DebuggingLocalBuildCacheServiceV2(
+            new DirectoryLocalBuildCacheServiceV2(fileStore, persistentCache)
+        );
         return new TaskOutputCacheCommandFactoryV2(taskOutputOriginFactory, fileSystemMirror, stringInterner, local);
     }
 
