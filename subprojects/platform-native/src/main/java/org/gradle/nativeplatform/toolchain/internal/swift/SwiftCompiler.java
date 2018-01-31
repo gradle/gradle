@@ -144,6 +144,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
                 CommandLineToolInvocation perFileInvocation =
                     newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs, importRootArgs), spec.getOperationLogger());
+                perFileInvocation.getEnvironment().put("TMPDIR", spec.getTempDir().getAbsolutePath());
                 buildQueue.add(perFileInvocation);
             }
         };
