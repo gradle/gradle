@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -68,7 +67,6 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      *
      * @since 3.0
      */
-    @Incubating
     void cacheIf(Spec<? super Task> spec);
 
     /**
@@ -84,7 +82,6 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      *
      * @since 3.4
      */
-    @Incubating
     void cacheIf(String cachingEnabledReason, final Spec<? super Task> spec);
 
     /**
@@ -99,7 +96,6 @@ public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
      *
      * @since 3.4
      */
-    @Incubating
     void doNotCacheIf(String cachingDisabledReason, Spec<? super Task> spec);
 
     /**
