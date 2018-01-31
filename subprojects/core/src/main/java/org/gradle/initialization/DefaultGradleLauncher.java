@@ -45,9 +45,15 @@ import java.util.Set;
 
 public class DefaultGradleLauncher implements GradleLauncher {
 
+    private static final ConfigureBuildBuildOperationType.Result CONFIGURE_BUILD_RESULT = new ConfigureBuildBuildOperationType.Result() {
+    };
+
     private enum Stage {
         Load, LoadBuild, Configure, TaskGraph, Build, Finished
     }
+
+    private static final LoadBuildBuildOperationType.Result RESULT = new LoadBuildBuildOperationType.Result() {
+    };
 
     private final InitScriptHandler initScriptHandler;
     private final SettingsLoader settingsLoader;
@@ -230,15 +236,21 @@ public class DefaultGradleLauncher implements GradleLauncher {
         public void run(BuildOperationContext context) {
             // Evaluate init scripts
             initScriptHandler.executeScripts(gradle);
-
             // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
             settings = settingsLoader.findAndLoadSettings(gradle);
+            context.setResult(RESULT);
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(contextualize("Load build")).
-                parent(getGradle().getBuildOperation());
+            return BuildOperationDescriptor.displayName(contextualize("Load build"))
+                .details(new LoadBuildBuildOperationType.Details() {
+                    @Override
+                    public String getBuildPath() {
+                        return gradle.getIdentityPath().toString();
+                    }
+                })
+                .parent(getGradle().getBuildOperation());
         }
     }
 
@@ -253,12 +265,18 @@ public class DefaultGradleLauncher implements GradleLauncher {
             }
 
             modelConfigurationListener.onConfigure(gradle);
+            context.setResult(CONFIGURE_BUILD_RESULT);
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(contextualize("Configure build")).
-                parent(getGradle().getBuildOperation());
+                details(new ConfigureBuildBuildOperationType.Details() {
+                    @Override
+                    public String getBuildPath() {
+                        return getGradle().getIdentityPath().toString();
+                    }
+                });
         }
     }
 

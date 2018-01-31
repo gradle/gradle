@@ -31,6 +31,10 @@ public final class LoadProjectsBuildOperationType implements BuildOperationType<
 
     @UsedByScanPlugin
     public interface Details {
+        /**
+         * @since 4.6
+         */
+        String getBuildPath();
     }
 
     public interface Result {

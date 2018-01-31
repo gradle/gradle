@@ -55,6 +55,12 @@ public class BuildOperationSettingsProcessor implements SettingsProcessor {
                 return BuildOperationDescriptor.displayName("Evaluate settings").
                     progressDisplayName("Evaluating settings").
                     details(new Details() {
+
+                        @Override
+                        public String getBuildPath() {
+                            return gradle.getIdentityPath().toString();
+                        }
+
                         @Override
                         public String getSettingsDir() {
                             return settingsLocation.getSettingsDir().getAbsolutePath();
@@ -64,6 +70,8 @@ public class BuildOperationSettingsProcessor implements SettingsProcessor {
                         public String getSettingsFile() {
                             return settingsLocation.getSettingsScriptSource().getFileName();
                         }
+
+
                     });
             }
         });

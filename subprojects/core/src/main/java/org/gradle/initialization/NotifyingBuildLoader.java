@@ -46,7 +46,12 @@ public class NotifyingBuildLoader implements BuildLoader {
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Load projects").
                         progressDisplayName("Loading projects").
-                        details(new BuildStructureOperationDetails());
+                        details(new LoadProjectsBuildOperationType.Details() {
+                            @Override
+                            public String getBuildPath() {
+                                return gradle.getIdentityPath().toString();
+                            }
+                        });
                 }
 
                 @Override
@@ -83,9 +88,6 @@ public class NotifyingBuildLoader implements BuildLoader {
             builder.add(convert(child));
         }
         return builder.build();
-    }
-
-    private static class BuildStructureOperationDetails implements LoadProjectsBuildOperationType.Details {
     }
 
     private static class BuildStructureOperationResult implements LoadProjectsBuildOperationType.Result {
