@@ -20,7 +20,7 @@ Gradle provides sufficient tooling to navigate large dependency graphs and mitig
 [[sec:listing_dependencies]]
 === Listing dependencies in a project
 
-A project can declare one or more dependencies. Gradle can visualize the whole dependency tree for every configuration available in the project.
+A project can declare one or more dependencies. Gradle can visualize the whole dependency tree for every <<sub:what_is_a_configuration,configuration>> available in the project.
 
 Rendering the dependency tree is particularly useful if you'd like to identify which dependencies have been resolved at runtime. It also provides you with information about any dependency conflict resolution that occurred in the process and clearly indicates the selected version. The dependency report always contains declared and transitive dependencies.
 

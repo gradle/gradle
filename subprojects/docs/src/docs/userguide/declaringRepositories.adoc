@@ -15,7 +15,7 @@
 [[declaring_repositories]]
 == Declaring Repositories
 
-Gradle can resolve external dependencies from one or many repositories based on Maven, Ivy or flat directory formats. Check out the <<repository_types,full reference on all types of repositories>> for more information.
+Gradle can resolve dependencies from one or many repositories based on Maven, Ivy or flat directory formats. Check out the <<repository_types,full reference on all types of repositories>> for more information.
 
 [[sec:declaring_public_repository]]
 === Declaring a publicly-available repository
@@ -73,5 +73,5 @@ This example demonstrates how to declare various shortcut and custom URL reposit
 
 [NOTE]
 ====
-The order of declaration determines how Gradle will check for dependencies at runtime. If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_. You can learn more about <<sec:dependency_resolution,Gradle's resolution mechanism>> in the dedicated section.
+The order of declaration determines how Gradle will check for dependencies at runtime. If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_. You can learn more about the inner workings of <<sec:dependency_resolution,Gradle's resolution mechanism>>.
 ====
