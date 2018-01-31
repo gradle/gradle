@@ -28,6 +28,23 @@ class EclipseDependenciesCreatorTest extends AbstractProjectBuilderSpec{
     private final EclipseClasspath eclipseClasspath = new EclipseClasspath(project)
     private final dependenciesProvider = new EclipseDependenciesCreator(eclipseClasspath)
 
+    def "compile dependency on child project"() {
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+        childProject.apply(plugin: 'java')
+
+        eclipseClasspath.setProjectDependenciesOnly(true)
+        eclipseClasspath.plusConfigurations = [project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath]
+
+        when:
+        project.dependencies.add('compile', childProject)
+        def result = dependenciesProvider.createDependencyEntries()
+
+        then:
+        result.size() == 1
+        result.findAll { it.kind == 'src' && it.path == '/child' }.size() == 1
+    }
+
     def "testCompile dependency on current project (self-dependency)"() {
         applyPluginToProjects()
         project.apply(plugin: 'java')
