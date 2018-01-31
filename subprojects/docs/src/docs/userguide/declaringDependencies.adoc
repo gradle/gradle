@@ -165,6 +165,8 @@ Many Gradle plugins add pre-defined configurations to your project. The Java plu
 </figure>
 +++++
 
+For more examples on the usage of configurations to navigate, inspect and post-processing metadata and artifacts of assigned dependencies, see <<working_with_dependencies>>.
+
 ==== Defining custom configurations
 
 You can also define configurations yourself, so-called _custom configurations_. A custom configuration is useful for separating the scope of dependencies needed for a dedicated purpose.
