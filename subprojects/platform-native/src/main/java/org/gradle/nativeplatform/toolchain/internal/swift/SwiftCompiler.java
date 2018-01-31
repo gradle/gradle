@@ -41,6 +41,8 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWor
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.VersionNumber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Loader;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -58,6 +60,8 @@ import java.util.Map;
 
 // TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of it applies to SwiftCompiler)
 class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SwiftCompiler.class);
+
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final String objectFileExtension;
     private final VersionNumber swiftCompilerVersion;
@@ -214,6 +218,7 @@ inputs:
                     }
                 });
             } catch (Exception e) {
+                LOGGER.debug("could not update module.swiftdeps", e);
                 return false;
             }
         }
