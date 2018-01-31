@@ -36,7 +36,10 @@ public class TaskCacheKeyCalculator {
     }
 
     public TaskOutputCachingBuildCacheKey calculate(TaskInternal task, TaskExecution execution) {
-        TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder(task.getIdentityPath(), buildCacheDebugLogging);
+        TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder(task.getIdentityPath());
+        if (buildCacheDebugLogging) {
+            builder = new DebuggingTaskOutputCachingBuildCacheKeyBuilder(builder);
+        }
         builder.appendTaskImplementation(execution.getTaskImplementation());
         builder.appendTaskActionImplementations(execution.getTaskActionImplementations());
 
