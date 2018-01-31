@@ -176,21 +176,43 @@ inputs:
   "fully-qualified-path/src/test/swift/main.swift": [1517422583, 0]
   "fully-qualified-path/src/test/swift/FooTestSuite.swift": [1517422583, 0]
      */
-    public static class BuildTimestamp {
-        private final Integer s;
-        private final Integer ns;
-
-        public BuildTimestamp(Integer s, Integer ns) {
-            this.s = s;
-            this.ns = ns;
-        }
-    }
-
     public static class SwiftDeps {
-        String version;
-        String options;
-        BuildTimestamp build_time;
-        Map<String, BuildTimestamp> inputs;
+        private String version;
+        private String options;
+        private Integer[] build_time;
+        private Map<String, Integer[]> inputs;
+
+        public String getVersion() {
+            return version;
+        }
+
+        public void setVersion(String version) {
+            this.version = version;
+        }
+
+        public String getOptions() {
+            return options;
+        }
+
+        public void setOptions(String options) {
+            this.options = options;
+        }
+
+        public Integer[] getBuild_time() {
+            return build_time;
+        }
+
+        public void setBuild_time(Integer[] build_time) {
+            this.build_time = build_time;
+        }
+
+        public Map<String, Integer[]> getInputs() {
+            return inputs;
+        }
+
+        public void setInputs(Map<String, Integer[]> inputs) {
+            this.inputs = inputs;
+        }
     }
 
     private boolean adjustSwiftDepsForIncrementalCompile(File moduleSwiftDeps, Collection<File> changedSources) {
@@ -205,9 +227,10 @@ inputs:
                     }
                 });
                 // Update any previously known files with a bogus timestamp to force a rebuild
+                Integer[] noTimestamp = {0, 0};
                 for (File changedSource : changedSources) {
                     if (swiftDeps.inputs.containsKey(changedSource.getAbsolutePath())) {
-                        swiftDeps.inputs.put(changedSource.getAbsolutePath(), new BuildTimestamp(0, 0));
+                        swiftDeps.inputs.put(changedSource.getAbsolutePath(), noTimestamp);
                     }
                 }
                 // Rewrite the yaml file
