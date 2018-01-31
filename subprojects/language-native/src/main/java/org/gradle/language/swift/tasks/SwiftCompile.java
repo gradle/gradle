@@ -40,7 +40,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.internal.Actions;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.compile.CompilerVersion;
@@ -279,8 +278,16 @@ public class SwiftCompile extends DefaultTask {
     @TaskAction
     void compile(IncrementalTaskInputs inputs) {
         final List<File> removedFiles = Lists.newArrayList();
+        final List<File> changedFiles = Lists.newArrayList();
         if (inputs.isIncremental()) {
-            inputs.outOfDate(Actions.doNothing());
+            inputs.outOfDate(new Action<InputFileDetails>() {
+                @Override
+                public void execute(InputFileDetails inputFileDetails) {
+                    if (inputFileDetails.isModified()) {
+                        changedFiles.add(inputFileDetails.getFile());
+                    }
+                }
+            });
             inputs.removed(new Action<InputFileDetails>() {
                 @Override
                 public void execute(InputFileDetails removed) {
@@ -296,7 +303,7 @@ public class SwiftCompile extends DefaultTask {
 
         BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
 
-        SwiftCompileSpec spec = createSpec(operationLogger, inputs.isIncremental(), removedFiles);
+        SwiftCompileSpec spec = createSpec(operationLogger, inputs.isIncremental(), changedFiles, removedFiles);
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
         Compiler<SwiftCompileSpec> baseCompiler = platformToolProvider.newCompiler(SwiftCompileSpec.class);
@@ -305,7 +312,7 @@ public class SwiftCompile extends DefaultTask {
         setDidWork(result.getDidWork());
     }
 
-    private SwiftCompileSpec createSpec(BuildOperationLogger operationLogger, boolean isIncremental, Collection<File> removedFiles) {
+    private SwiftCompileSpec createSpec(BuildOperationLogger operationLogger, boolean isIncremental, Collection<File> changedFiles, Collection<File> removedFiles) {
         SwiftCompileSpec spec = new DefaultSwiftCompileSpec();
         spec.setModuleName(moduleName.getOrNull());
         spec.setModuleFile(moduleFile.get().getAsFile());
@@ -322,6 +329,7 @@ public class SwiftCompile extends DefaultTask {
         spec.setObjectFileDir(objectFileDir.get().getAsFile());
         spec.source(getSource());
         spec.setRemovedSourceFiles(removedFiles);
+        spec.setChangedFiles(changedFiles);
         spec.setMacros(getMacros());
         spec.args(getCompilerArgs().get());
         spec.setDebuggable(isDebuggable());

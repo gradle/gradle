@@ -25,7 +25,6 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.IoActions;
@@ -40,7 +39,6 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.VersionNumber;
 import org.yaml.snakeyaml.Loader;
@@ -54,7 +52,6 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,15 +106,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 File moduleSwiftDeps = new File(objectDir, "module.swiftdeps");
                 outputFileMap.root().swiftDependenciesFile(moduleSwiftDeps);
 
-                // Hack to see if this fixes things
-                File mainSwift = CollectionUtils.findFirst(spec.getSourceFiles(), new Spec<File>() {
-                    @Override
-                    public boolean isSatisfiedBy(File element) {
-                        return element.getName().equals("main.swift");
-                    }
-                });
-
-                boolean canSafelyCompileIncrementally = adjustSwiftDepsForIncrementalCompile(moduleSwiftDeps, Collections.singletonList(mainSwift));
+                boolean canSafelyCompileIncrementally = adjustSwiftDepsForIncrementalCompile(moduleSwiftDeps, spec.getChangedFiles());
 
                 for (File sourceFile : spec.getSourceFiles()) {
                     outputFileMap.newEntry(sourceFile.getAbsolutePath())
