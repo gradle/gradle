@@ -32,7 +32,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
 
         then:
         verifySettings(operation(), settingsFile)
-        assert operation().details.buildPath == ":"
+        operation().details.buildPath == ":"
     }
 
     def "settings with master folder are exposed"() {
@@ -51,7 +51,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
 
         then:
         verifySettings(operation(), customSettingsFile)
-        assert operation().details.buildPath == ":"
+        operation().details.buildPath == ":"
     }
 
     def "settings set via cmdline flag are exposed"() {
@@ -69,7 +69,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
 
         then:
         verifySettings(operation(), customSettingsFile)
-        assert operation().details.buildPath == ":"
+        operation().details.buildPath == ":"
     }
 
     def "composite participants expose their settings details"() {
@@ -98,7 +98,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         operations().size() == 2
         verifySettings(operations()[0], nestedSettingsFile)
         verifySettings(operations()[1], settingsFile)
-        assert operations()[1].details.buildPath == ":"
+        operations()[1].details.buildPath == ":"
     }
 
     private List<BuildOperationRecord> operations() {

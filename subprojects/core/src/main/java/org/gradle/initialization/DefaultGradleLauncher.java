@@ -234,22 +234,17 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private class LoadBuild implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext context) {
-            try {
-                // Evaluate init scripts
-                initScriptHandler.executeScripts(gradle);
-
-                // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
-                settings = settingsLoader.findAndLoadSettings(gradle);
-
-            } finally {
-                context.setResult(RESULT);
-            }
+            // Evaluate init scripts
+            initScriptHandler.executeScripts(gradle);
+            // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
+            settings = settingsLoader.findAndLoadSettings(gradle);
+            context.setResult(RESULT);
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(contextualize("Load build"))
-                .details(new LoadBuildBuildOperationType.Details(){
+                .details(new LoadBuildBuildOperationType.Details() {
                     @Override
                     public String getBuildPath() {
                         return gradle.getIdentityPath().toString();
@@ -276,12 +271,12 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(contextualize("Configure build")).
-                details(new ConfigureBuildBuildOperationType.Details(){
+                details(new ConfigureBuildBuildOperationType.Details() {
                     @Override
                     public String getBuildPath() {
                         return getGradle().getIdentityPath().toString();
                     }
-                }).parent(getGradle().getBuildOperation());
+                });
         }
     }
 
