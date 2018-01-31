@@ -65,7 +65,7 @@ abstract class KotlinInitScript(
     open fun initscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) = Unit
 
     /**
-     * Logger for settings. You can use this in your settings file to write log messages.
+     * Logger for init scripts. You can use this in your init script to write log messages.
      */
     @Suppress("unused")
     val logger: Logger by lazy { Logging.getLogger(Gradle::class.java) }
@@ -87,7 +87,7 @@ abstract class KotlinInitScript(
     /**
      * Returns the relative path from this script's target base directory to the given path.
      *
-     * The given path object is (logically) resolved as described for [KotlinSettingsScript.file],
+     * The given path object is (logically) resolved as described for [KotlinInitScript.file],
      * from which a relative path is calculated.
      *
      * @param path The path to convert to a relative path.
@@ -100,7 +100,7 @@ abstract class KotlinInitScript(
     /**
      * Resolves a file path to a URI, relative to this script's target base directory.
      *
-     * Evaluates the provided path object as described for [KotlinSettingsScript.file],
+     * Evaluates the provided path object as described for [KotlinInitScript.file],
      * with the exception that any URI scheme is supported, not just `file:` URIs.
      */
     @Suppress("unused")
@@ -115,6 +115,8 @@ abstract class KotlinInitScript(
      *
      * If this script targets [org.gradle.api.initialization.Settings],
      * then `path` is resolved relative to the build root directory.
+     *
+     * Otherwise the file is resolved relative to the script itself.
      *
      * This method converts the supplied path based on its type:
      *
@@ -145,7 +147,7 @@ abstract class KotlinInitScript(
      * @param path The object to resolve as a `File`.
      * @param validation The validation to perform on the file.
      * @return The resolved file.
-     * @see KotlinSettingsScript.file
+     * @see KotlinInitScript.file
      */
     @Suppress("unused")
     fun file(path: Any, validation: PathValidation): File =
@@ -156,12 +158,12 @@ abstract class KotlinInitScript(
      *
      * You can pass any of the following types to this method:
      *
-     * - A [CharSequence], including [String] as defined by [KotlinSettingsScript.file].
-     * - A [File] as defined by [KotlinSettingsScript.file].
-     * - A [java.nio.file.Path] as defined by [KotlinSettingsScript.file].
-     * - A [URI] or [java.net.URL] as defined by [KotlinSettingsScript.file].
+     * - A [CharSequence], including [String] as defined by [KotlinInitScript.file].
+     * - A [File] as defined by [KotlinInitScript.file].
+     * - A [java.nio.file.Path] as defined by [KotlinInitScript.file].
+     * - A [URI] or [java.net.URL] as defined by [KotlinInitScript.file].
      * - A [org.gradle.api.file.Directory] or [org.gradle.api.file.RegularFile]
-     *   as defined by [KotlinSettingsScript.file].
+     *   as defined by [KotlinInitScript.file].
      * - A [Sequence], [Array] or [Iterable] that contains objects of any supported type.
      *   The elements of the collection are recursively converted to files.
      * - A [org.gradle.api.file.FileCollection].
@@ -201,10 +203,10 @@ abstract class KotlinInitScript(
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
      *
-     * @param paths The contents of the file collection. Evaluated as per [KotlinSettingsScript.files].
+     * @param paths The contents of the file collection. Evaluated as per [KotlinInitScript.files].
      * @param configuration The block to use to configure the file collection.
      * @return The file collection.
-     * @see KotlinSettingsScript.files
+     * @see KotlinInitScript.files
      */
     @Suppress("unused")
     fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection =
@@ -213,13 +215,13 @@ abstract class KotlinInitScript(
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
      *
-     * The given `baseDir` path is evaluated as per [KotlinSettingsScript.file].
+     * The given `baseDir` path is evaluated as per [KotlinInitScript.file].
      *
      * The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.
      *
-     * @param baseDir The base directory of the file tree. Evaluated as per [KotlinSettingsScript.file].
+     * @param baseDir The base directory of the file tree. Evaluated as per [KotlinInitScript.file].
      * @return The file tree.
      */
     @Suppress("unused")
@@ -229,10 +231,10 @@ abstract class KotlinInitScript(
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
      *
-     * @param baseDir The base directory of the file tree. Evaluated as per [KotlinSettingsScript.file].
+     * @param baseDir The base directory of the file tree. Evaluated as per [KotlinInitScript.file].
      * @param configuration The block to use to configure the file tree.
      * @return The file tree.
-     * @see [KotlinSettingsScript.fileTree]
+     * @see [KotlinInitScript.fileTree]
      */
     @Suppress("unused")
     fun fileTree(baseDir: Any, configuration: ConfigurableFileTree.() -> Unit): ConfigurableFileTree =
@@ -241,15 +243,15 @@ abstract class KotlinInitScript(
     /**
      * Creates a new [FileTree] which contains the contents of the given ZIP file.
      *
-     * The given `zipPath` path is evaluated as per [KotlinSettingsScript.file]
+     * The given `zipPath` path is evaluated as per [KotlinInitScript.file]
      *
      * The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.
      *
-     * You can combine this method with the [KotlinSettingsScript.copy] method to unzip a ZIP file.
+     * You can combine this method with the [KotlinInitScript.copy] method to unzip a ZIP file.
      *
-     * @param zipPath The ZIP file. Evaluated as per [KotlinSettingsScript.file].
+     * @param zipPath The ZIP file. Evaluated as per [KotlinInitScript.file].
      * @return The file tree.
      */
     @Suppress("unused")
@@ -261,7 +263,7 @@ abstract class KotlinInitScript(
      *
      * The given tarPath path can be:
      * - an instance of [org.gradle.api.resources.Resource],
-     * - any other object is evaluated as per [KotlinSettingsScript.file].
+     * - any other object is evaluated as per [KotlinInitScript.file].
      *
      * The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
@@ -270,7 +272,7 @@ abstract class KotlinInitScript(
      * Unless custom implementation of resources is passed,
      * the tar tree attempts to guess the compression based on the file extension.
      *
-     * You can combine this method with the [KotlinSettingsScript.copy] method to unzip a ZIP file.
+     * You can combine this method with the [KotlinInitScript.copy] method to unzip a ZIP file.
      *
      * @param tarPath The TAR file or an instance of [org.gradle.api.resources.Resource].
      * @return The file tree.
@@ -311,7 +313,7 @@ abstract class KotlinInitScript(
     /**
      * Creates a directory and returns a file pointing to it.
      *
-     * @param path The path for the directory to be created. Evaluated as per [KotlinSettingsScript.file].
+     * @param path The path for the directory to be created. Evaluated as per [KotlinInitScript.file].
      * @return The created directory.
      * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
      */
@@ -322,9 +324,9 @@ abstract class KotlinInitScript(
     /**
      * Deletes files and directories.
      *
-     * This will not follow symlinks. If you need to follow symlinks too use [KotlinSettingsScript.delete].
+     * This will not follow symlinks. If you need to follow symlinks too use [KotlinInitScript.delete].
      *
-     * @param paths Any type of object accepted by [KotlinSettingsScript.file]
+     * @param paths Any type of object accepted by [KotlinInitScript.file]
      * @return true if anything got deleted, false otherwise
      */
     @Suppress("unused")
