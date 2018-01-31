@@ -118,6 +118,9 @@ public class AnnotationProcessorDetector {
         }
 
         private List<AnnotationProcessorDeclaration> toProcessorDeclarations(List<String> processorNames) {
+            if (processorNames.isEmpty()) {
+                return Collections.emptyList();
+            }
             ImmutableList.Builder<AnnotationProcessorDeclaration> processors = ImmutableList.builder();
             for (String name : processorNames) {
                 processors.add(new AnnotationProcessorDeclaration(name));

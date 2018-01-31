@@ -37,7 +37,7 @@ import spock.lang.Unroll
 class AnnotationProcessorPathFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def detector = new AnnotationProcessorPathFactory(TestFiles.fileCollectionFactory(), new AnnotationProcessorDetector(new TestFileContentCacheFactory()))
+    def factory = new AnnotationProcessorPathFactory(TestFiles.fileCollectionFactory(), new AnnotationProcessorDetector(new TestFileContentCacheFactory()))
     def options = new CompileOptions(Mock(ObjectFactory))
 
     def "uses path defined on Java compile options, as a FileCollection"() {
@@ -49,7 +49,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = ["-processorpath", "ignore-me"]
 
         expect:
-        detector.getEffectiveAnnotationProcessorClasspath(options, cp) == procPath
+        factory.getEffectiveAnnotationProcessorClasspath(options, cp) == procPath
     }
 
     def "uses path defined on Java compile options, as a Configuration"() {
@@ -64,7 +64,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = ["-processorpath", "ignore-me"]
 
         expect:
-        detector.getEffectiveAnnotationProcessorClasspath(options, cp).files == procPath.files
+        factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == procPath.files
     }
 
     @Unroll
@@ -77,7 +77,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = compilerArgs
 
         expect:
-        detector.getEffectiveAnnotationProcessorClasspath(options, cp).empty
+        factory.getEffectiveAnnotationProcessorClasspath(options, cp).empty
 
         where:
         scenario             | compilerArgs
@@ -95,7 +95,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = ["-processorpath", procPath.asPath]
 
         expect:
-        detector.getEffectiveAnnotationProcessorClasspath(options, cp).files == procPath.files
+        factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == procPath.files
 
         where:
         scenario                            | annotationProcessorPath
@@ -112,7 +112,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
 
         when:
         options.annotationProcessorPath = annotationProcessorPath
-        detector.getEffectiveAnnotationProcessorClasspath(options, cp)
+        factory.getEffectiveAnnotationProcessorClasspath(options, cp)
 
         then:
         def e = thrown(InvalidUserDataException)
@@ -133,7 +133,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = ["-processorpath", "ignore-me", "-proc:none"]
 
         expect:
-        detector.getEffectiveAnnotationProcessorClasspath(options, cp).empty
+        factory.getEffectiveAnnotationProcessorClasspath(options, cp).empty
     }
 
     @Unroll
@@ -144,7 +144,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         def cp = files(dir)
 
         expect:
-        detector.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
+        factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
 
         where:
         scenario                 | annotationProcessorPath
@@ -164,7 +164,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = ['-processor', 'com.foo.Processor']
 
         then:
-        detector.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
+        factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
 
         where:
         scenario                 | annotationProcessorPath
@@ -186,7 +186,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = ["-processorpath", procPath.asPath]
 
         then:
-        detector.getEffectiveAnnotationProcessorClasspath(options, cp).files == procPath.files
+        factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == procPath.files
 
         where:
         scenario                 | annotationProcessorPath
@@ -202,7 +202,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         options.compilerArgs = ["-Xthing", "-processor"]
 
         when:
-        detector.getEffectiveAnnotationProcessorClasspath(options, cp)
+        factory.getEffectiveAnnotationProcessorClasspath(options, cp)
 
         then:
         def e = thrown(InvalidUserDataException)
@@ -217,7 +217,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         def cp = files(jar)
 
         expect:
-        detector.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
+        factory.getEffectiveAnnotationProcessorClasspath(options, cp).files == cp.files
 
         where:
         scenario                 | annotationProcessorPath
@@ -235,7 +235,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
         def cp = files(dir, jar)
 
         expect:
-        detector.getEffectiveAnnotationProcessorClasspath(options, cp).empty
+        factory.getEffectiveAnnotationProcessorClasspath(options, cp).empty
 
         where:
         scenario                 | annotationProcessorPath

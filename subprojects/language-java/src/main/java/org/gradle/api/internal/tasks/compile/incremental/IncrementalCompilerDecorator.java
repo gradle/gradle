@@ -83,11 +83,7 @@ public class IncrementalCompilerDecorator {
         }
         List<AnnotationProcessorDeclaration> nonIncrementalProcessors = getNonIncrementalProcessors();
         if (!nonIncrementalProcessors.isEmpty()) {
-            StringBuilder processorListing = new StringBuilder();
-            for (AnnotationProcessorDeclaration processor : nonIncrementalProcessors) {
-                processorListing.append(TextUtil.getPlatformLineSeparator()).append('\t').append(processor.getClassName());
-            }
-            LOG.info("{} - is not incremental. The following annotation processors were detected:{}", displayName, processorListing);
+            warnAboutNonIncrementalProcessors(nonIncrementalProcessors);
             return cleaningCompiler;
         }
         ClassSetAnalysisData data = compileCaches.getLocalClassSetAnalysisStore().get();
@@ -101,5 +97,15 @@ public class IncrementalCompilerDecorator {
 
     private List<AnnotationProcessorDeclaration> getNonIncrementalProcessors() {
         return annotationProcessorDetector.detectProcessors(annotationProcessorPath);
+    }
+
+    private void warnAboutNonIncrementalProcessors(List<AnnotationProcessorDeclaration> nonIncrementalProcessors) {
+        if (LOG.isInfoEnabled()) {
+            StringBuilder processorListing = new StringBuilder();
+            for (AnnotationProcessorDeclaration processor : nonIncrementalProcessors) {
+                processorListing.append(TextUtil.getPlatformLineSeparator()).append('\t').append(processor.getClassName());
+            }
+            LOG.info("{} - is not incremental. The following annotation processors were detected:{}", displayName, processorListing);
+        }
     }
 }
