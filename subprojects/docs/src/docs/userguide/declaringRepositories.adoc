@@ -34,7 +34,7 @@ Organizations building software may want to leverage public binary repositories 
 To declare JCenter as repository, add this code to your build script:
 
 ++++
-<sample id="public-repository" dir="userguide/repositories/declaringPublicRepository" title="Declaring JCenter repository as source for resolving dependencies">
+<sample id="public-repository" dir="userguide/dependencyManagement/declaringRepositories/publicRepository" title="Declaring JCenter repository as source for resolving dependencies">
     <sourcefile file="build.gradle" snippet="public-repository"/>
 </sample>
 ++++
@@ -49,7 +49,7 @@ Most enterprise projects set up a binary repository available only within an int
 Add the following code to declare an in-house repository for your build reachable through a custom URL.
 
 ++++
-<sample id="custom-repository" dir="userguide/repositories/declaringCustomRepository" title="Declaring a custom repository by URL">
+<sample id="custom-repository" dir="userguide/dependencyManagement/declaringRepositories/customRepository" title="Declaring a custom repository by URL">
     <sourcefile file="build.gradle" snippet="custom-repository"/>
 </sample>
 ++++
@@ -66,7 +66,7 @@ You can define more than one repository for resolving dependencies. Declaring mu
 This example demonstrates how to declare various shortcut and custom URL repositories for a project:
 
 ++++
-<sample id="multiple-repositories" dir="userguide/repositories/declaringMultipleRepositories" title="Declaring multiple repositories">
+<sample id="multiple-repositories" dir="userguide/dependencyManagement/declaringRepositories/multipleRepositories" title="Declaring multiple repositories">
     <sourcefile file="build.gradle" snippet="multiple-repositories"/>
 </sample>
 ++++

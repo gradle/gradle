@@ -24,7 +24,7 @@ Sometimes you'll want to implement logic based on the resolved dependencies of a
 You can iterate over complete set of dependencies assigned to a configuration with the help of the method api:org.gradle.api.artifacts.Configuration#getDependencies()[].
 
 ++++
-<sample id="iterating-dependencies" dir="userguide/dependencies/iteratingDependencies" title="Iterating over the dependencies assigned to a configuration">
+<sample id="iterating-dependencies" dir="userguide/dependencyManagement/workingWithDependencies/iterateDependencies" title="Iterating over the dependencies assigned to a configuration">
     <sourcefile file="build.gradle" snippet="iteration-task" />
 </sample>
 ++++
@@ -36,7 +36,7 @@ None of the <<inspecting_dependencies,dependency reporting>> helps you with insp
 You can iterate over the complete set of artifacts resolved for a module with the help of the method api:org.gradle.api.file.FileCollection#getFiles()[]. Using this method on a `Configuration` instance is possible as the interface extends `FileCollection`.
 
 ++++
-<sample id="iterating-artifacts" dir="userguide/dependencies/iteratingArtifacts" title="Iterating over the artifacts resolved for a module">
+<sample id="iterating-artifacts" dir="userguide/dependencyManagement/workingWithDependencies/iterateArtifacts" title="Iterating over the artifacts resolved for a module">
     <sourcefile file="build.gradle" snippet="iteration-task" />
 </sample>
 ++++
@@ -55,7 +55,7 @@ The artifact query API provides access to the raw files of a module. Currently, 
 Let's say you wanted to post-process the metadata file of a Maven module. Given a configuration, you filter the component identifiers. Those component identifiers serve as input to the artifact resolution query. After executing the query, you get a handle to all components that match the criteria and their underlying files. Additionally, it's very easy to post-process the metadata file. The example code uses Groovy's link:http://docs.groovy-lang.org/latest/html/api/groovy/util/XmlSlurper.html[XmlSlurper] to ask for POM element values.
 
 ++++
-<sample id="accessingMetadataArtifact" dir="userguide/dependencies/accessingMetadataArtifact" title="Accessing a Maven module's metadata artifact">
+<sample id="accessingMetadataArtifact" dir="userguide/dependencyManagement/workingWithDependencies/accessMetadataArtifact" title="Accessing a Maven module's metadata artifact">
     <sourcefile file="build.gradle" snippet="accessing-metadata-artifact" />
 </sample>
 ++++

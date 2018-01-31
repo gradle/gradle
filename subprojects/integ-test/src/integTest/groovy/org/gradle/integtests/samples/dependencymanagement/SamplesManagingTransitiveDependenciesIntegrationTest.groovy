@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.samples
+package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
@@ -29,7 +29,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("userguide/dependencies/declaringDependencyVersionsWithDependencyConstraints")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/versionsWithConstraints")
     def "respects dependency constraints for direct and transitive dependencies"() {
         executer.inDirectory(sample.dir)
 
@@ -41,7 +41,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         sample.dir.file('build/libs/commons-codec-1.11.jar').isFile()
     }
 
-    @UsesSample("userguide/dependencies/unresolvedTransitiveDependencies")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/unresolved")
     def "reports an error for unresolved transitive dependency artifacts"() {
         executer.inDirectory(sample.dir)
 
@@ -61,7 +61,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
       https://repo.maven.apache.org/maven2/com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar""")
     }
 
-    @UsesSample("userguide/dependencies/excludingTransitiveDependenciesForDependency")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency")
     def "can exclude transitive dependencies for declared dependency"() {
         executer.inDirectory(sample.dir)
 
@@ -75,7 +75,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
     }
 
-    @UsesSample("userguide/dependencies/excludingTransitiveDependenciesForConfiguration")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration")
     def "can exclude transitive dependencies for particular configuration"() {
         executer.inDirectory(sample.dir)
 
@@ -89,7 +89,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
     }
 
-    @UsesSample("userguide/dependencies/excludingTransitiveDependenciesForAllConfigurations")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForAllConfigurations")
     def "can exclude transitive dependencies for all configurations"() {
         executer.inDirectory(sample.dir)
 
@@ -103,7 +103,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
     }
 
-    @UsesSample("userguide/dependencies/forcingDependencyVersion")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/forceForDependency")
     def "can force a dependency version"() {
         executer.inDirectory(sample.dir)
 
@@ -116,7 +116,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         !libs.any { it.name == 'commons-codec-1.10.jar' }
     }
 
-    @UsesSample("userguide/dependencies/forcingDependencyVersionPerConfiguration")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/forceForConfiguration")
     def "can force a dependency version for particular configuration"() {
         executer.inDirectory(sample.dir)
 
@@ -129,7 +129,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         !libs.any { it.name == 'commons-codec-1.10.jar' }
     }
 
-    @UsesSample("userguide/dependencies/disablingTransitiveDependencyResolution")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/disableForDependency")
     def "can disable transitive dependency resolution for dependency"() {
         executer.inDirectory(sample.dir)
 
@@ -140,7 +140,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         assertSingleLib('guava-23.0.jar')
     }
 
-    @UsesSample("userguide/dependencies/disablingTransitiveDependencyResolutionForConfiguration")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration")
     def "can disable transitive dependency resolution for particular configuration"() {
         executer.inDirectory(sample.dir)
 
