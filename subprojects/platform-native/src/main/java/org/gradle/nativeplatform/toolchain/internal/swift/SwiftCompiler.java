@@ -176,6 +176,7 @@ inputs:
   "fully-qualified-path/src/test/swift/main.swift": [1517422583, 0]
   "fully-qualified-path/src/test/swift/FooTestSuite.swift": [1517422583, 0]
      */
+    //CHECKSTYLE:OFF
     public static class SwiftDeps {
         private String version;
         private String options;
@@ -214,6 +215,7 @@ inputs:
             this.inputs = inputs;
         }
     }
+    //CHECKSTYLE:ON
 
     private boolean adjustSwiftDepsForIncrementalCompile(File moduleSwiftDeps, Collection<File> changedSources) {
         if (moduleSwiftDeps.exists()) {
