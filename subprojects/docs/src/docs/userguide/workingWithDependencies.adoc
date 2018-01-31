@@ -15,7 +15,7 @@
 [[working_with_dependencies]]
 == Working with Dependencies
 
-Gradle provides an extensive API for navigating, inspecting and post-processing post-processing metadata and artifacts of resolved dependencies. With this API at hand, you can implement more complex requirements to your build requiring a "runtime view" of dependencies.
+Gradle provides an extensive API for navigating, inspecting and post-processing metadata and artifacts of resolved dependencies. With this API at hand, you can implement more complex requirements to your build requiring a "runtime view" of dependencies.
 
 === Iterating over dependencies assigned to a configuration
 
