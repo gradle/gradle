@@ -21,6 +21,8 @@ plugins {
 dependencies {
     compile libraries.groovy
     compile libraries.commons_io
+    compile libraries.snakeyaml
+    
     compile project(':core')
     compile project(':platformBase')
     compile project(':diagnostics')

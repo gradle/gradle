@@ -21,11 +21,13 @@ import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 
 import java.io.File;
+import java.util.Collection;
 
 public class DefaultSwiftCompileSpec extends AbstractNativeCompileSpec implements SwiftCompileSpec {
     private String moduleName;
     private File moduleFile;
     private SwiftVersion sourceCompatibility;
+    private Collection<File> changedFiles;
 
     @Override
     public String getModuleName() {
@@ -55,5 +57,15 @@ public class DefaultSwiftCompileSpec extends AbstractNativeCompileSpec implement
     @Override
     public void setSourceCompatibility(SwiftVersion sourceCompatibility) {
         this.sourceCompatibility = sourceCompatibility;
+    }
+
+    @Override
+    public Collection<File> getChangedFiles() {
+        return changedFiles;
+    }
+
+    @Override
+    public void setChangedFiles(Collection<File> changedFiles) {
+        this.changedFiles = changedFiles;
     }
 }

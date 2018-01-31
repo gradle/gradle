@@ -20,6 +20,7 @@ import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
+import java.util.Collection;
 
 public interface SwiftCompileSpec extends NativeCompileSpec {
     String getModuleName();
@@ -30,4 +31,7 @@ public interface SwiftCompileSpec extends NativeCompileSpec {
 
     SwiftVersion getSourceCompatibility();
     void setSourceCompatibility(SwiftVersion sourceCompatibility);
+
+    Collection<File> getChangedFiles();
+    void setChangedFiles(Collection<File> changedFiles);
 }

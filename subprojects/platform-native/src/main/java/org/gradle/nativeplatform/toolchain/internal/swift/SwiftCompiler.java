@@ -23,9 +23,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
@@ -37,18 +39,29 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.VersionNumber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Loader;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of is applies to SwiftCompiler)
+// TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of it applies to SwiftCompiler)
 class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SwiftCompiler.class);
+
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final String objectFileExtension;
     private final VersionNumber swiftCompilerVersion;
@@ -69,7 +82,6 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
         if (swiftCompilerVersion.getMajor() < spec.getSourceCompatibility().getVersion()) {
             throw new IllegalArgumentException(String.format("Swift compiler version '%s' doesn't support Swift language version '%d'", swiftCompilerVersion.toString(), spec.getSourceCompatibility().getVersion()));
         }
-
         return super.execute(spec);
     }
 
@@ -81,9 +93,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
             .withOutputBaseFolder(objectFileDir)
             .map(sourceFile);
         File outputDirectory = outputFile.getParentFile();
-        if (!outputDirectory.exists()) {
-            outputDirectory.mkdirs();
-        }
+        GFileUtils.mkdirs(outputDirectory);
         return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
     }
 
@@ -96,13 +106,19 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
 
                 OutputFileMap outputFileMap = new OutputFileMap();
+
+                File moduleSwiftDeps = new File(objectDir, "module.swiftdeps");
+                outputFileMap.root().swiftDependenciesFile(moduleSwiftDeps);
+
+                boolean canSafelyCompileIncrementally = adjustSwiftDepsForIncrementalCompile(moduleSwiftDeps, spec.getChangedFiles());
+
                 for (File sourceFile : spec.getSourceFiles()) {
                     outputFileMap.newEntry(sourceFile.getAbsolutePath())
                         .dependencyFile(getOutputFileDir(sourceFile, objectDir, ".d"))
+                        .diagnosticsFile(getOutputFileDir(sourceFile, objectDir, ".dia"))
                         .objectFile(getOutputFileDir(sourceFile, objectDir, objectFileExtension))
                         .swiftModuleFile(getOutputFileDir(sourceFile, objectDir, "~partial.swiftmodule"))
-                        .swiftDependenciesFile(getOutputFileDir(sourceFile, objectDir, ".swiftdeps"))
-                        .diagnosticsFile(getOutputFileDir(sourceFile, objectDir, ".dia"));
+                        .swiftDependenciesFile(getOutputFileDir(sourceFile, objectDir, ".swiftdeps"));
                     genericArgs.add(sourceFile.getAbsolutePath());
                 }
                 if (null != spec.getModuleName()) {
@@ -111,7 +127,14 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                     genericArgs.add("-emit-module-path");
                     genericArgs.add(spec.getModuleFile().getAbsolutePath());
                 }
+
                 genericArgs.add("-v");
+
+                if (canSafelyCompileIncrementally) {
+                    genericArgs.add("-incremental");
+                    genericArgs.add("-emit-dependencies");
+                }
+
                 genericArgs.add("-emit-object");
 
                 File outputFileMapFile = new File(spec.getObjectFileDir(), "output-file-map.json");
@@ -138,9 +161,93 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
                 CommandLineToolInvocation perFileInvocation =
                     newInvocation("compiling swift file(s)", objectDir, Iterables.concat(genericArgs, outputArgs, importRootArgs), spec.getOperationLogger());
+                perFileInvocation.getEnvironment().put("TMPDIR", spec.getTempDir().getAbsolutePath());
                 buildQueue.add(perFileInvocation);
             }
         };
+    }
+
+    /*
+version: "Swift version 4.0.3 (swift-4.0.3-RELEASE)"
+options: "7890c730e32273cd2686f36d1bd976c0"
+build_time: [1517422583, 339630833]
+inputs:
+  "fully-qualified-path/src/test/swift/BarTestSuite.swift": [9223372036, 854775807]
+  "fully-qualified-path/src/test/swift/main.swift": [1517422583, 0]
+  "fully-qualified-path/src/test/swift/FooTestSuite.swift": [1517422583, 0]
+     */
+    //CHECKSTYLE:OFF
+    public static class SwiftDeps {
+        private String version;
+        private String options;
+        private Integer[] build_time;
+        private Map<String, Integer[]> inputs;
+
+        public String getVersion() {
+            return version;
+        }
+
+        public void setVersion(String version) {
+            this.version = version;
+        }
+
+        public String getOptions() {
+            return options;
+        }
+
+        public void setOptions(String options) {
+            this.options = options;
+        }
+
+        public Integer[] getBuild_time() {
+            return build_time;
+        }
+
+        public void setBuild_time(Integer[] build_time) {
+            this.build_time = build_time;
+        }
+
+        public Map<String, Integer[]> getInputs() {
+            return inputs;
+        }
+
+        public void setInputs(Map<String, Integer[]> inputs) {
+            this.inputs = inputs;
+        }
+    }
+    //CHECKSTYLE:ON
+
+    private boolean adjustSwiftDepsForIncrementalCompile(File moduleSwiftDeps, Collection<File> changedSources) {
+        if (moduleSwiftDeps.exists()) {
+            try {
+                // Parse the existing module.swiftdeps and rewrite inputs with known changes
+                final Yaml yaml = new Yaml(new Loader(new Constructor(SwiftDeps.class)));
+                final SwiftDeps swiftDeps = IoActions.withResource(new FileInputStream(moduleSwiftDeps), new Transformer<SwiftDeps, FileInputStream>() {
+                    @Override
+                    public SwiftDeps transform(FileInputStream fileInputStream) {
+                        return (SwiftDeps) yaml.load(fileInputStream);
+                    }
+                });
+                // Update any previously known files with a bogus timestamp to force a rebuild
+                Integer[] noTimestamp = {0, 0};
+                for (File changedSource : changedSources) {
+                    if (swiftDeps.inputs.containsKey(changedSource.getAbsolutePath())) {
+                        swiftDeps.inputs.put(changedSource.getAbsolutePath(), noTimestamp);
+                    }
+                }
+                // Rewrite the yaml file
+                IoActions.writeTextFile(moduleSwiftDeps, new Action<BufferedWriter>() {
+                    @Override
+                    public void execute(BufferedWriter bufferedWriter) {
+                        yaml.dump(swiftDeps, bufferedWriter);
+                    }
+                });
+            } catch (Exception e) {
+                LOGGER.debug("could not update module.swiftdeps", e);
+                return false;
+            }
+        }
+        return true;
     }
 
     private static class SwiftCompileArgsTransformer implements ArgsTransformer<SwiftCompileSpec> {
@@ -152,6 +259,10 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
     private static class OutputFileMap {
         private Map<String, Entry> entries = new HashMap<String, Entry>();
+
+        public Builder root() {
+            return newEntry("");
+        }
 
         public Builder newEntry(String name) {
             Entry entry = new Entry();
