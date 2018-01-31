@@ -69,8 +69,7 @@ plugins.withType<IdeaPlugin> {
     configure<IdeaModel> {
         module {
             integTest.withConvention(GroovySourceSet::class) {
-                testSourceDirs.addAll(groovy.srcDirs)
-                testSourceDirs.addAll(integTest.resources.srcDirs)
+                testSourceDirs = testSourceDirs + groovy.srcDirs + integTest.resources.srcDirs
             }
             scopes["TEST"]!!["plus"]!!.apply {
                 add(integTestCompile)
