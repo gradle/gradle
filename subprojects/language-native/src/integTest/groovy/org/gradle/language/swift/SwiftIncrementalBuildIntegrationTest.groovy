@@ -135,7 +135,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.alternate))
+        file("build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(app.alternate))
         executable("build/exe/main/debug/App").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedAlternateOutput
     }
@@ -161,7 +161,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
         result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
 
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.alternate))
+        file("build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(lib.alternate))
         sharedLibrary("build/lib/main/debug/Hello").assertExists()
     }
 
@@ -234,11 +234,11 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
         executable("app/build/exe/main/debug/App").assertExists()
-        file("app/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.application.original))
+        file("app/build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(app.application.original))
         installation("app/build/install/main/debug").assertInstalled()
 
         sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
-        file("greeter/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.library.original))
+        file("greeter/build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(app.library.original))
 
         when:
         app.library.applyChangesToProject(file('greeter'))
@@ -258,7 +258,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         installation("app/build/install/main/debug").assertNotInstalled()
 
         sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
-        file("greeter/build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.library.alternate))
+        file("greeter/build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(app.library.alternate))
     }
 
     def "removes stale executable file when all source files are removed"() {
@@ -276,7 +276,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
         executable("build/exe/main/debug/App").assertExists()
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(app.original))
+        file("build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(app.original))
         installation("build/install/main/debug").assertInstalled()
 
         when:
@@ -310,7 +310,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
         sharedLibrary("build/lib/main/debug/Greeter").assertExists()
-        file("build/obj/main/debug").assertHasDescendants(expectIntermediateDescendants(lib.original))
+        file("build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(lib.original))
 
         when:
         lib.applyChangesToProject(testDirectory)
@@ -325,7 +325,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         file("build/obj/main/debug").assertDoesNotExist()
     }
 
-    private List<String> expectIntermediateDescendants(SourceElement sourceElement) {
+    private List<String> expectedIntermediateDescendants(SourceElement sourceElement) {
         List<String> result = new ArrayList<String>()
 
         String sourceSetName = sourceElement.getSourceSetName()
@@ -336,8 +336,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
             result.add(objectFileFor(swiftFile, intermediateFilesDirPath).relativizeFrom(intermediateFilesDir).path)
             result.add(swiftmoduleFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
             result.add(swiftdocFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
-            result.add(swiftDepsFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
             result.add(dependFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
+            result.add(swiftDepsFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
         }
         result.add("module.swiftdeps")
         result.add("output-file-map.json")
