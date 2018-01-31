@@ -41,6 +41,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def project = Mock(Project)
     def projectDir = Mock(File)
     def taskOutputCaching = Mock(TaskOutputCachingState)
+    def localStateFiles = Mock(FileCollection)
     def taskProperties = Mock(TaskProperties)
     def task = Stub(TaskInternal)
     def taskState = Mock(TaskStateInternal)
@@ -76,7 +77,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _ as SortedSet, task, _ as FileCollection, taskOutputGenerationListener, _ as TaskArtifactState) >> loadCommand
+        1 * taskProperties.getLocalStateFiles() >> localStateFiles
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _ as SortedSet, task, localStateFiles, taskOutputGenerationListener, taskArtifactState) >> loadCommand
 
         then:
         1 * buildCacheController.load(loadCommand) >> metadata
@@ -103,7 +105,8 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, taskOutputGenerationListener, _) >> loadCommand
+        1 * taskProperties.getLocalStateFiles() >> localStateFiles
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _ as SortedSet, task, localStateFiles, taskOutputGenerationListener, taskArtifactState) >> loadCommand
 
         then:
         1 * buildCacheController.load(loadCommand) >> null
@@ -117,7 +120,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getOutputContentSnapshots() >> outputContentSnapshots
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputContentSnapshots, task, 1) >> storeCommand
+        1 * buildCacheCommandFactory.createStore(cacheKey, _ as SortedSet, outputContentSnapshots, task, 1) >> storeCommand
 
         then:
         1 * buildCacheController.store(storeCommand)
@@ -150,7 +153,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getOutputContentSnapshots() >> outputContentSnapshots
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputContentSnapshots, task, 1) >> storeCommand
+        1 * buildCacheCommandFactory.createStore(cacheKey, _ as SortedSet, outputContentSnapshots, task, 1) >> storeCommand
 
         then:
         1 * buildCacheController.store(storeCommand)
@@ -173,8 +176,9 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(*_)
-        1 * buildCacheController.load(_)
+        1 * taskProperties.getLocalStateFiles() >> localStateFiles
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _ as SortedSet, task, localStateFiles, taskOutputGenerationListener, taskArtifactState) >> loadCommand
+        1 * buildCacheController.load(loadCommand)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -233,8 +237,9 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
 
         then:
-        1 * buildCacheCommandFactory.createLoad(*_)
-        1 * buildCacheController.load(_) >> { throw new RuntimeException("unknown error") }
+        1 * taskProperties.getLocalStateFiles() >> localStateFiles
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _ as SortedSet, task, localStateFiles, taskOutputGenerationListener, taskArtifactState) >> loadCommand
+        1 * buildCacheController.load(loadCommand) >> { throw new RuntimeException("unknown error") }
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -247,7 +252,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.getOutputContentSnapshots() >> outputContentSnapshots
-        1 * buildCacheCommandFactory.createStore(cacheKey, _, outputContentSnapshots, task, 1) >> storeCommand
+        1 * buildCacheCommandFactory.createStore(cacheKey, _ as SortedSet, outputContentSnapshots, task, 1) >> storeCommand
 
         then:
         1 * buildCacheController.store(storeCommand)
@@ -270,8 +275,9 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
 
         then:
-        1 * buildCacheCommandFactory.createLoad(*_)
-        1 * buildCacheController.load(_) >> { throw new UnrecoverableTaskOutputUnpackingException("unknown error") }
+        1 * taskProperties.getLocalStateFiles() >> localStateFiles
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _ as SortedSet, task, localStateFiles, taskOutputGenerationListener, taskArtifactState) >> loadCommand
+        1 * buildCacheController.load(loadCommand) >> { throw new UnrecoverableTaskOutputUnpackingException("unknown error") }
 
         then:
         0 * _
@@ -296,8 +302,9 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(*_)
-        1 * buildCacheController.load(_)
+        1 * taskProperties.getLocalStateFiles() >> localStateFiles
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _ as SortedSet, task, localStateFiles, taskOutputGenerationListener, taskArtifactState) >> loadCommand
+        1 * buildCacheController.load(loadCommand)
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
