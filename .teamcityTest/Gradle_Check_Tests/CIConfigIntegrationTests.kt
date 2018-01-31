@@ -47,6 +47,11 @@ class CIConfigIntegrationTests {
             if (stageNumber <= m.stages.size) {
                 val stage = m.stages[stageNumber - 1]
                 var functionalTestCount = 0
+
+                if (stage.runsIndependent) {
+                    return@forEach
+                }
+
                 stage.functionalTests.forEach { testCoverage ->
                     m.subProjects.forEach { subProject ->
                         if (shouldBeSkipped(subProject, testCoverage)) {
