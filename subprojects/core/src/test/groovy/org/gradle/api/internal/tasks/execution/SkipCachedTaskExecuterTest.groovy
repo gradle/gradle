@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution
 
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputCachingState
 import org.gradle.api.internal.changedetection.TaskArtifactState
@@ -53,7 +54,7 @@ class SkipCachedTaskExecuterTest extends Specification {
     def buildCacheCommandFactory = Mock(TaskOutputCacheCommandFactory)
     def outputContentSnapshots = [:]
 
-    def executer = new SkipCachedTaskExecuter(buildCacheController, null, taskOutputGenerationListener, buildCacheCommandFactory, delegate)
+    def executer = new SkipCachedTaskExecuter(buildCacheController, null, taskOutputGenerationListener, buildCacheCommandFactory, null, delegate)
 
     def "skip task when cached results exist"() {
         def originId = UniqueId.generate()
@@ -75,7 +76,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * cacheKey.isValid() >> true
 
         then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, _, task, taskProperties, taskOutputGenerationListener, _) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _ as SortedSet, task, _ as FileCollection, taskOutputGenerationListener, _ as TaskArtifactState) >> loadCommand
 
         then:
         1 * buildCacheController.load(loadCommand) >> metadata
