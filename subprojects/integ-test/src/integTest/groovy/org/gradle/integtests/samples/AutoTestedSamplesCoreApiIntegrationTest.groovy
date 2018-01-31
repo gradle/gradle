@@ -24,6 +24,6 @@ class AutoTestedSamplesCoreApiIntegrationTest extends AbstractAutoTestedSamplesT
     @Test
     void runSamples() {
         file('subprojects/abc').createDir() //for example in Settings.java
-        runSamplesFrom("subprojects/core-api/src/main/java/org/gradle/api")
+        runSamplesFrom("subprojects/core-api/src/main/java")
     }
 }
