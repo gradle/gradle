@@ -1,3 +1,61 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getCacheRepository()",
+            "acceptation": "Internal dependency injection method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getCachingFileHasher()",
+            "acceptation": "Internal dependency injection method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getFileOperations()",
+            "acceptation": "Internal dependency injection method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getGeneralCompileCaches()",
+            "acceptation": "Internal dependency injection method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getStreamHasher()",
+            "acceptation": "Internal dependency injection method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getIncrementalCompilerFactory()",
+            "acceptation": "Internal dependency injection method"
+        },
+        {
+            "type": "org.gradle.language.java.tasks.PlatformJavaCompile",
+            "member": "Class org.gradle.language.java.tasks.PlatformJavaCompile",
+            "acceptation": "Internal dependency injection method",
+            "changes": [
+                "org.gradle.api.tasks.compile.JavaCompile.getCacheRepository()",
+                "org.gradle.api.tasks.compile.JavaCompile.getCachingFileHasher()",
+                "org.gradle.api.tasks.compile.JavaCompile.getFileOperations()",
+                "org.gradle.api.tasks.compile.JavaCompile.getGeneralCompileCaches()",
+                "org.gradle.api.tasks.compile.JavaCompile.getStreamHasher()"
+            ]
+        }
+    ]
 }

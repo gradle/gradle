@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.internal.tasks.compile.AnnotationProcessorDetector
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 
@@ -131,7 +131,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file('build/classes/java/main/TestAppHelper.class').exists()
-        result.output.contains(AnnotationProcessorDetector.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
+        result.output.contains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
     }
 
     def "empty processor path overrides processors in the compile classpath, and no deprecation warning is emitted"() {
@@ -235,7 +235,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file('build/classes/java/main/TestAppHelper.class').exists()
-        result.output.contains(AnnotationProcessorDetector.PROCESSOR_PATH_DEPRECATION_MESSAGE)
+        result.output.contains(AnnotationProcessorPathFactory.PROCESSOR_PATH_DEPRECATION_MESSAGE)
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.api.internal.tasks.compile.processing;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import org.apache.tools.zip.ZipFile;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -26,29 +25,24 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.cache.internal.FileContentCache;
-import org.gradle.cache.internal.FileContentCacheFactory;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.file.FileType;
-import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class AnnotationProcessorDetector {
+
+public class AnnotationProcessorPathFactory {
     public static final String COMPILE_CLASSPATH_DEPRECATION_MESSAGE = "Putting annotation processors on the compile classpath";
     public static final String PROCESSOR_PATH_DEPRECATION_MESSAGE = "Specifying the processor path in the CompilerOptions compilerArgs property";
 
     private final FileCollectionFactory fileCollectionFactory;
-    private final FileContentCache<Boolean> cache;
+    private final AnnotationProcessorDetector annotationProcessorDetector;
 
-    public AnnotationProcessorDetector(FileCollectionFactory fileCollectionFactory, FileContentCacheFactory cacheFactory) {
+    public AnnotationProcessorPathFactory(FileCollectionFactory fileCollectionFactory, AnnotationProcessorDetector annotationProcessorDetector) {
         this.fileCollectionFactory = fileCollectionFactory;
-        cache = cacheFactory.newCache("annotation-processors", 20000, new AnnotationServiceLocator(), BaseSerializerFactory.BOOLEAN_SERIALIZER);
+        this.annotationProcessorDetector = annotationProcessorDetector;
     }
 
     /**
@@ -146,12 +140,9 @@ public class AnnotationProcessorDetector {
                     if (hasExplicitProcessor) {
                         return compileClasspath.getFiles();
                     }
-                    for (File file : compileClasspath) {
-                        boolean hasServices = cache.get(file);
-                        if (hasServices) {
-                            DeprecationLogger.nagUserOfDeprecated(COMPILE_CLASSPATH_DEPRECATION_MESSAGE, "Please add them to the processor path instead. If these processors were unintentionally leaked on the compile classpath, use the -proc:none compiler option to ignore them.");
-                            return compileClasspath.getFiles();
-                        }
+                    if (!annotationProcessorDetector.detectProcessors(compileClasspath).isEmpty()) {
+                        DeprecationLogger.nagUserOfDeprecated(COMPILE_CLASSPATH_DEPRECATION_MESSAGE, "Please add them to the processor path instead. If these processors were unintentionally leaked on the compile classpath, use the -proc:none compiler option to ignore them.");
+                        return compileClasspath.getFiles();
                     }
                     return Collections.emptySet();
                 }
@@ -173,29 +164,5 @@ public class AnnotationProcessorDetector {
             hasExplicitProcessor = true;
         }
         return hasExplicitProcessor;
-    }
-
-    private static class AnnotationServiceLocator implements FileContentCacheFactory.Calculator<Boolean> {
-        @Override
-        public Boolean calculate(File file, FileType fileType) {
-            if (fileType == FileType.Directory) {
-                return new File(file, "META-INF/services/javax.annotation.processing.Processor").isFile();
-            }
-
-            if (fileType == FileType.RegularFile && FileUtils.hasExtensionIgnoresCase(file.getName(), ".jar")) {
-                try {
-                    ZipFile zipFile = new ZipFile(file);
-                    try {
-                        return zipFile.getEntry("META-INF/services/javax.annotation.processing.Processor") != null;
-                    } finally {
-                        zipFile.close();
-                    }
-                } catch (IOException e) {
-                    DeprecationLogger.nagUserWith("Malformed jar [" + file.getName() + "] found on compile classpath. Gradle 5.0 will no longer allow malformed jars on the compile classpath.");
-                }
-            }
-
-            return false;
-        }
     }
 }
