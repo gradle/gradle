@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
@@ -54,11 +55,13 @@ public class EclipseDependenciesCreator {
     private static final Logger LOGGER = LoggerFactory.getLogger(EclipseDependenciesCreator.class);
     private final EclipseClasspath classpath;
     private final ProjectDependencyBuilder projectDependencyBuilder;
+    private final ProjectComponentIdentifier currentProjectId;
 
     public EclipseDependenciesCreator(EclipseClasspath classpath) {
         this.classpath = classpath;
         ServiceRegistry serviceRegistry = ((ProjectInternal) classpath.getProject()).getServices();
         this.projectDependencyBuilder = new ProjectDependencyBuilder(serviceRegistry.get(LocalComponentRegistry.class));
+        this.currentProjectId = DefaultProjectComponentIdentifier.newProjectId(classpath.getProject());
     }
 
     public List<AbstractClasspathEntry> createDependencyEntries() {
@@ -94,7 +97,9 @@ public class EclipseDependenciesCreator {
         @Override
         public void visitProjectDependency(ResolvedArtifactResult artifact) {
             ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
-            projects.add(projectDependencyBuilder.build(componentIdentifier));
+            if (!componentIdentifier.equals(currentProjectId)) {
+                projects.add(projectDependencyBuilder.build(componentIdentifier));
+            }
         }
 
         @Override
