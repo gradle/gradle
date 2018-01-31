@@ -276,7 +276,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
                     public String getBuildPath() {
                         return getGradle().getIdentityPath().toString();
                     }
-                });
+                }).parent(gradle.getBuildOperation());
         }
     }
 

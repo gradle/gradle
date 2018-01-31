@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.initialization.buildsrc.BuildSourceBuilder
 import org.gradle.internal.FileUtils
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.util.Path
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
@@ -38,7 +39,7 @@ class DefaultSettingsLoaderTest extends Specification {
     def buildSourceBuilder = Mock(BuildSourceBuilder)
     def settingsHandler = new DefaultSettingsLoader(settingsFinder, settingsProcessor, buildSourceBuilder);
 
-    public void findAndLoadSettingsWithExistingSettings() {
+    void findAndLoadSettingsWithExistingSettings() {
         when:
         def projectRegistry = Mock(ProjectRegistry)
         def projectDescriptor = Mock(DefaultProjectDescriptor)
@@ -51,8 +52,12 @@ class DefaultSettingsLoaderTest extends Specification {
         projectDescriptor.getBuildFile() >> new File(settingsLocation.getSettingsDir(), "build.gradle")
         gradle.getStartParameter() >> startParameter
         gradle.getServices() >> services
+        gradle.getIdentityPath() >> Path.ROOT
         settingsFinder.find(startParameter) >> settingsLocation
-        1 * buildSourceBuilder.buildAndCreateClassLoader({ StartParameter sp -> sp.currentDir == new File(settingsLocation.getSettingsDir(), DefaultSettings.DEFAULT_BUILD_SRC_DIR) }) >> classLoaderScope
+        1 * buildSourceBuilder.buildAndCreateClassLoader(_, _) >> { GradleInternal gradle, StartParameter sp ->
+            assert sp.currentDir == new File(settingsLocation.getSettingsDir(), DefaultSettings.DEFAULT_BUILD_SRC_DIR)
+            classLoaderScope
+        }
         1 * settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter) >> settings
 
         then:
