@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.samples
+package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
@@ -28,7 +28,7 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("userguide/dependencies/iteratingDependencies")
+    @UsesSample("userguide/dependencyManagement/workingWithDependencies/iteratingDependencies")
     def "can iterate over dependencies assigned to a configuration"() {
         executer.inDirectory(sample.dir)
 
@@ -40,7 +40,7 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
 commons-codec:commons-codec:1.7""")
     }
 
-    @UsesSample("userguide/dependencies/iteratingArtifacts")
+    @UsesSample("userguide/dependencyManagement/workingWithDependencies/iteratingArtifacts")
     def "can iterate over artifacts resolved for a module"() {
         executer.inDirectory(sample.dir)
 
@@ -59,7 +59,7 @@ commons-codec:commons-codec:1.7""")
         normalizedContent.contains('commons-logging/commons-logging/1.1.3/f6f66e966c70a83ffbdb6f17a0919eaf7c8aca7f/commons-logging-1.1.3.jar')
     }
 
-    @UsesSample("userguide/dependencies/accessingMetadataArtifact")
+    @UsesSample("userguide/dependencyManagement/workingWithDependencies/accessingMetadataArtifact")
     def "can accessing a module's metadata artifact"() {
         executer.inDirectory(sample.dir)
 

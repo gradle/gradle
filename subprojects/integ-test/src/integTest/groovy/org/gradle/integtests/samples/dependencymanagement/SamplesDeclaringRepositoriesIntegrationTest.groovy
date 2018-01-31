@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.samples
+package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
@@ -26,7 +26,7 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("userguide/repositories/declaringPublicRepository")
+    @UsesSample("userguide/dependencyManagement/declaringRepositories/declaringPublicRepository")
     def "can declare JCenter repository and resolve binary dependency"() {
         executer.inDirectory(sample.dir)
 
@@ -37,7 +37,7 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
         sample.dir.file('build/libs/guava-23.0.jar').isFile()
     }
 
-    @UsesSample("userguide/repositories/declaringCustomRepository")
+    @UsesSample("userguide/dependencyManagement/declaringRepositories/declaringCustomRepository")
     def "can declare repository with custom URL"() {
         executer.inDirectory(sample.dir)
 
@@ -45,7 +45,7 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
         succeeds('checkRepositories')
     }
 
-    @UsesSample("userguide/repositories/declaringMultipleRepositories")
+    @UsesSample("userguide/dependencyManagement/declaringRepositories/declaringMultipleRepositories")
     def "can declare multiple repositories and resolve binary dependency"() {
         executer.inDirectory(sample.dir)
 

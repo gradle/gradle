@@ -27,7 +27,7 @@ Rendering the dependency tree is particularly useful if you'd like to identify w
 Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<sub:scope_of_dependency_configurations,custom configuration>> so that it doesn't doesn't pollute other contexts like the compilation classpath for your production source code.
 
 ++++
-<sample id="jgit-dependency" dir="userguide/dependencies/dependenciesReport" title="Declaring the JGit dependency with a custom configuration">
+<sample id="jgit-dependency" dir="userguide/dependencyManagement/inspectingDependencies/dependenciesReport" title="Declaring the JGit dependency with a custom configuration">
     <sourcefile file="build.gradle" snippet="dependency-declaration" />
 </sample>
 ++++
@@ -46,7 +46,7 @@ A link:https://scans.gradle.com/[build scan] can visualize dependencies as a nav
 Every Gradle project provides the task `dependencies` to render the so-called _dependency report_ from the command line. By default the dependency report renders dependencies for all configurations. To pair down on the information provide the optional parameter `--configuration`.
 
 ++++
-<sample id="dependencyReport" dir="userguide/dependencies/dependenciesReport" title="Rendering the dependency report for a custom configuration">
+<sample id="dependencyReport" dir="userguide/dependencyManagement/inspectingDependencies/dependenciesReport" title="Rendering the dependency report for a custom configuration">
     <output args="-q dependencies --configuration scm"/>
 </sample>
 ++++
@@ -60,7 +60,7 @@ Large software projects inevitably deal with an increased number of dependencies
 Let's have a look at a concrete example. A project may request two different versions of the same dependency either as direct or transitive dependency. Gradle applies version conflict resolution to ensure that only one version of the dependency exists in the dependency graph. In this example the conflicting dependency is represented by `commons-codec:commons-codec`.
 
 ++++
-<sample id="jgit-dependency-with-conflict" dir="userguide/dependencies/dependencyInsightReport" title="Declaring the JGit dependency and a conflicting dependency">
+<sample id="jgit-dependency-with-conflict" dir="userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport" title="Declaring the JGit dependency and a conflicting dependency">
     <sourcefile file="build.gradle" snippet="dependency-declaration" />
 </sample>
 ++++
@@ -79,7 +79,7 @@ The dependency tree in a link:https://scans.gradle.com/[build scan] renders the 
 Every Gradle project provides the task `dependencyInsight` to render the so-called  _dependency insight report_ from the command line. Given a dependency in the dependency graph you can identify the selection reason and track down the origin of the dependency selection. You can think of the dependency insight report as the inverse representation of the dependency report for a given dependency. When executing the task you have to provide the mandatory parameter `--dependency` to specify the coordinates of the dependency under inspection. The parameter `--configuration` is optional but helps with filtering the output.
 
 ++++
-<sample id="dependencyInsightReport" dir="userguide/dependencies/dependencyInsightReport" title="Using the dependency insight report for a given dependency">
+<sample id="dependencyInsightReport" dir="userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport" title="Using the dependency insight report for a given dependency">
     <output args="-q dependencyInsight --dependency commons-codec --configuration scm"/>
 </sample>
 ++++
