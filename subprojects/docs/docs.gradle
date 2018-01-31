@@ -67,13 +67,13 @@ dependencies {
     jqueryTipTip "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
     testCompile "org.pegdown:pegdown:1.1.0"
-    testCompile libraries.jsoup
+    testCompile testLibraries.jsoup
     testCompile "org.gebish:geb-spock:0.9.3"
     testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2') {
         exclude group: 'org.apache.httpcomponents'
     }
-    testCompile libraries.commons_httpclient
-    testCompile "org.apache.httpcomponents:httpmime:${versions.httpclient}"
+    testCompile libraries.commons_httpclient.coordinate
+    testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
     testCompile project(":core")
 }
 
@@ -375,8 +375,8 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: pdfUserguideXhtml) {
 }
 
 def javaApiUrl = "https://docs.oracle.com/javase/7/docs/api"
-def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${versions.groovy}/html/gapi"
-def mavenApiUrl = "http://maven.apache.org/ref/${versions.maven}/maven-model/apidocs"
+def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${libraries.groovy.version}/html/gapi"
+def mavenApiUrl = "http://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
 
 task javadocAll(type: Javadoc) {
     ext.stylesheetFile = file("src/docs/css/javadoc.css")

@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
     compile project(":internalTesting")
     compile project(':cli')
     compile project(':launcher')
     compile project(':native')
-    compile libraries.jetty
+    compile testLibraries.jetty
     compile module("org.littleshoot:littleproxy:1.1.0-beta1") {
-        dependency libraries.slf4j_api
+        dependency libraries.slf4j_api.coordinate
         dependency "io.netty:netty-all:4.0.23.Final"
         dependency "org.apache.commons:commons-lang3:3.4"
     }
-    compile libraries.gcs, libraries.commons_httpclient, libraries.joda
-    compile libraries.jackson_core, libraries.jackson_annotations, libraries.jackson_databind
-    compile libraries.ivy
-    compile libraries.sshd
-    compile libraries.gson
-    compile libraries.joda
-    compile libraries.jsch
-    compile libraries.jcifs
-    compile libraries.jansi
-    compile libraries.commons_collections
+    compile libraries.gcs.coordinate, libraries.commons_httpclient.coordinate, libraries.joda.coordinate
+    compile libraries.jackson_core.coordinate, libraries.jackson_annotations.coordinate, libraries.jackson_databind.coordinate
+    compile libraries.ivy.coordinate
+    compile testLibraries.sshd
+    compile libraries.gson.coordinate
+    compile libraries.joda.coordinate
+    compile libraries.jsch.coordinate
+    compile libraries.jcifs.coordinate
+    compile libraries.jansi.coordinate
+    compile libraries.commons_collections.coordinate
     compile 'org.apache.mina:mina-core'
 
     implementation project(':dependencyManagement')

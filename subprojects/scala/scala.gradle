@@ -18,14 +18,14 @@
 sourceCompatibility = 1.6
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
 
     compile project(":core")
     compile project(":languageJvm")
     compile project(":languageScala")
     compile project(":plugins")
 
-    testCompile libraries.slf4j_api
+    testCompile libraries.slf4j_api.coordinate
 
     integTestRuntime project(":ide")
     integTestRuntime project(':maven')

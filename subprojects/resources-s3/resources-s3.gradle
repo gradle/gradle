@@ -9,12 +9,12 @@ dependencies {
     api project(':resources')
 
     implementation project(':resourcesHttp')
-    implementation libraries.slf4j_api
-    implementation libraries.guava
-    implementation libraries.awsS3_core, libraries.awsS3_s3, libraries.awsS3_kms
-    implementation libraries.jackson_core, libraries.jackson_annotations, libraries.jackson_databind
-    implementation libraries.commons_httpclient, libraries.joda
-    implementation libraries.commons_lang
+    implementation libraries.slf4j_api.coordinate
+    implementation libraries.guava.coordinate
+    implementation libraries.awsS3_core.coordinate, libraries.awsS3_s3.coordinate, libraries.awsS3_kms.coordinate
+    implementation libraries.jackson_core.coordinate, libraries.jackson_annotations.coordinate, libraries.jackson_databind.coordinate
+    implementation libraries.commons_httpclient.coordinate, libraries.joda.coordinate
+    implementation libraries.commons_lang.coordinate
 }
 
 testFixtures {

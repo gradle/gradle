@@ -21,7 +21,7 @@ dependencies {
     implementation 'org.codehaus.plexus:plexus-container-default'
     implementation 'org.apache.maven:maven-compat'
     implementation 'org.apache.maven:maven-plugin-api'
-    implementation libraries.groovy
+    implementation libraries.groovy.coordinate
 
     implementation project(':core')
     implementation project(':plugins')

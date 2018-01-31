@@ -5,11 +5,11 @@ plugins {
 sourceCompatibility = 1.6
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
     compile project(':core')
     compile project(':dependencyManagement')
     compile project(':workers')
-    compile libraries.commons_collections
+    compile libraries.commons_collections.coordinate
     testFixturesCompile project(path: ':modelCore', configuration: 'testFixturesUsageRuntime')
 }
 

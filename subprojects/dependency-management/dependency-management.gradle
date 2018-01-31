@@ -16,22 +16,22 @@ dependencies {
     compile project(":versionControl")
     compile project(":resourcesHttp")
 
-    compile libraries.asm
-    compile libraries.asm_commons
-    compile libraries.asm_util
-    compile libraries.commons_lang
-    compile libraries.commons_io
-    compile libraries.ivy
-    compile libraries.slf4j_api
-    compile libraries.gson
-    compile libraries.jcip
+    compile libraries.asm.coordinate
+    compile libraries.asm_commons.coordinate
+    compile libraries.asm_util.coordinate
+    compile libraries.commons_lang.coordinate
+    compile libraries.commons_io.coordinate
+    compile libraries.ivy.coordinate
+    compile libraries.slf4j_api.coordinate
+    compile libraries.gson.coordinate
+    compile libraries.jcip.coordinate
 
-    runtime libraries.bouncycastle_provider
+    runtime libraries.bouncycastle_provider.coordinate
     runtime project(":installationBeacon")
 
-    compile libraries.maven3
+    compile libraries.maven3.coordinate
 
-    testCompile libraries.nekohtml
+    testCompile libraries.nekohtml.coordinate
 
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")

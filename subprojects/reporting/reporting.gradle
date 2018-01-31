@@ -13,11 +13,11 @@ repositories {
 }
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
     compile project(':core')
-    compile libraries.jatl
+    compile libraries.jatl.coordinate
 
-    testCompile libraries.jsoup
+    testCompile testLibraries.jsoup
     integTestRuntime project(':codeQuality')
     integTestRuntime project(':jacoco')
 

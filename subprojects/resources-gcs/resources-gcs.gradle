@@ -7,11 +7,11 @@ dependencies {
     compile project(':resources')
     compile project(':resourcesHttp')
     compile project(':core')
-    compile libraries.guava
-    compile libraries.jackson_core, libraries.jackson_annotations, libraries.jackson_databind
-    compile libraries.gcs, libraries.commons_httpclient, libraries.joda
-    compile libraries.commons_lang
-    testCompile libraries.groovy
+    compile libraries.guava.coordinate
+    compile libraries.jackson_core.coordinate, libraries.jackson_annotations.coordinate, libraries.jackson_databind.coordinate
+    compile libraries.gcs.coordinate, libraries.commons_httpclient.coordinate, libraries.joda.coordinate
+    compile libraries.commons_lang.coordinate
+    testCompile libraries.groovy.coordinate
 }
 
 testFixtures {

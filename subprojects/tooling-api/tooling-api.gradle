@@ -12,8 +12,8 @@ dependencies {
     compile project(':messaging')
     compile project(':wrapper')
     compile project(':baseServices')
-    publishCompile (libraries.slf4j_api) { version { prefer versions.slf4j } }
-    compile libraries.jcip
+    publishCompile (libraries.slf4j_api.coordinate) { version { prefer libraries.slf4j_api.version } }
+    compile libraries.jcip.coordinate
 
     testFixturesCompile project(':baseServicesGroovy')
     testFixturesCompile project(':internalIntegTesting')
@@ -21,7 +21,7 @@ dependencies {
     integTestRuntime project(":toolingApiBuilders")
     integTestRuntime project(":ivy")
 
-    crossVersionTestRuntime "org.gradle:gradle-kotlin-dsl:${versions.gradle_kotlin_dsl}"
+    crossVersionTestRuntime "org.gradle:gradle-kotlin-dsl:${gradle_kotlin_dsl_version}"
     crossVersionTestRuntime project(':buildComparison')
     crossVersionTestRuntime project(":ivy")
     crossVersionTestRuntime project(":maven")

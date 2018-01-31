@@ -12,16 +12,18 @@ plugins {
 sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
-    api libraries.guava
-    api libraries.jsr305
-    api libraries.fastutil
+    compile project(':distributionsDependencies')
 
-    implementation libraries.slf4j_api
-    implementation libraries.commons_lang
-    implementation libraries.commons_io
-    implementation libraries.jcip
+    api libraries.guava.coordinate
+    api libraries.jsr305.coordinate
+    api libraries.fastutil.coordinate
 
-    jmh('org.bouncycastle:bcprov-jdk15on') { version { prefer versions.bouncycastle } }
+    implementation libraries.slf4j_api.coordinate
+    implementation libraries.commons_lang.coordinate
+    implementation libraries.commons_io.coordinate
+    implementation libraries.jcip.coordinate
+
+    jmh(libraries.bouncycastle_provider.coordinate) { version { prefer libraries.bouncycastle_provider.version } }
 }
 
 testFixtures {

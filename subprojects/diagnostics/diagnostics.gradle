@@ -20,7 +20,7 @@ plugins {
 sourceCompatibility = 1.6
 
 dependencies {
-    api libraries.groovy
+    api libraries.groovy.coordinate
 
     api project(':core')
     api project(':reporting')
@@ -28,10 +28,10 @@ dependencies {
 
     implementation project(':dependencyManagement')
     implementation project(':baseServicesGroovy')
-    implementation libraries.guava
-    implementation libraries.jatl
-    implementation libraries.commons_collections
-    implementation libraries.commons_lang
+    implementation libraries.guava.coordinate
+    implementation libraries.jatl.coordinate
+    implementation libraries.commons_collections.coordinate
+    implementation libraries.commons_lang.coordinate
 
     integTestRuntimeOnly project(':plugins')
     integTestRuntimeOnly project(':platformNative')

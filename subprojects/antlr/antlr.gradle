@@ -21,7 +21,7 @@ dependencies {
 
     compileOnly "antlr:antlr:2.7.7"
 
-    compile libraries.slf4j_api
+    compile libraries.slf4j_api.coordinate
 }
 
 testFixtures {

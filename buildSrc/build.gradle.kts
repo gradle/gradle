@@ -116,11 +116,11 @@ tasks {
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 
 apply {
-    from("../gradle/dependenciesVersions.gradle")
     from("../gradle/compile.gradle")
 }
 
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
+    apply { from("../gradle/dependencies.gradle") }
     apply { from("../gradle/codeQuality.gradle") }
 }
 

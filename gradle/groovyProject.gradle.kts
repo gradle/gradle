@@ -48,8 +48,21 @@ dependencies {
     val testCompile by configurations
     testCompile(library("junit"))
     testCompile(library("groovy"))
-    libraries("jmock").forEach { testCompile(it) }
-    libraries("spock").forEach { testCompile(it) }
+    testCompile(testLibrary("spock"))
+    testLibraries("jmock").forEach { testCompile(it) }
+
+    components {
+        withModule("org.spockframework:spock-core") {
+            allVariants {
+                withDependencyConstraints {
+                    filter { it.group == "org.objenesis" }.forEach {
+                        it.version { prefer("1.2") }
+                        it.because("1.2 is required by Gradle and part of the distribution")
+                    }
+                }
+            }
+        }
+    }
 }
 
 // Extracted as it's also used by buildSrc

@@ -15,25 +15,25 @@
  */
 
 dependencies {
-    compile libraries.groovy
+    compile libraries.groovy.coordinate
 
     compile project(':core')
     compile project(':dependencyManagement')
     compile project(':plugins')
     compile project(':pluginUse')
     compile project(':publish')
-    compile libraries.slf4j_api
+    compile libraries.slf4j_api.coordinate
 
-    compile libraries.maven3
-    compile libraries.pmaven_common
-    compile libraries.pmaven_groovy
+    compile libraries.maven3.coordinate
+    compile libraries.pmaven_common.coordinate
+    compile libraries.pmaven_groovy.coordinate
 
-    implementation libraries.maven3_wagon_file
-    implementation libraries.maven3_wagon_http
-    implementation libraries.plexus_container
-    implementation libraries.aether_connector
+    implementation libraries.maven3_wagon_file.coordinate
+    implementation libraries.maven3_wagon_http.coordinate
+    implementation libraries.plexus_container.coordinate
+    implementation libraries.aether_connector.coordinate
 
-    testCompile libraries.xmlunit
+    testCompile testLibraries.xmlunit
 
     integTestCompile project(":ear")
     integTestRuntime project(":resourcesS3")
