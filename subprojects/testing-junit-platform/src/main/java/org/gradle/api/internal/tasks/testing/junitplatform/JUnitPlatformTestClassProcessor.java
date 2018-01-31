@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
-import org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.junit.TestClassExecutionListener;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
@@ -38,8 +38,12 @@ import org.junit.platform.launcher.core.LauncherFactory;
 import java.util.Optional;
 
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
+import static org.junit.platform.launcher.EngineFilter.excludeEngines;
+import static org.junit.platform.launcher.EngineFilter.includeEngines;
+import static org.junit.platform.launcher.TagFilter.excludeTags;
+import static org.junit.platform.launcher.TagFilter.includeTags;
 
-public class JUnitPlatformTestClassProcessor extends JUnitTestClassProcessor {
+public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<JUnitPlatformSpec> {
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         super(spec, idGenerator, actorFactory, clock);
     }
@@ -64,12 +68,36 @@ public class JUnitPlatformTestClassProcessor extends JUnitTestClassProcessor {
         LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request()
             .selectors(selectClass(testClassName));
 
+        addTestsFilter(requestBuilder);
+        addEnginesFilter(requestBuilder);
+        addTagsFilter(requestBuilder);
+
+        return requestBuilder.build();
+    }
+
+    private void addEnginesFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
+        if (!spec.getIncludeEngines().isEmpty()) {
+            requestBuilder.filters(includeEngines(spec.getIncludeEngines()));
+        }
+        if (!spec.getExcludeEngines().isEmpty()) {
+            requestBuilder.filters(excludeEngines(spec.getExcludeEngines()));
+        }
+    }
+
+    private void addTagsFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
+        if (!spec.getIncludeTags().isEmpty()) {
+            requestBuilder.filters(includeTags(spec.getIncludeTags()));
+        }
+        if (!spec.getExcludeTags().isEmpty()) {
+            requestBuilder.filters(excludeTags(spec.getExcludeTags()));
+        }
+    }
+
+    private void addTestsFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
         if (!spec.getIncludedTests().isEmpty() || !spec.getIncludedTestsCommandLine().isEmpty()) {
             TestSelectionMatcher matcher = new TestSelectionMatcher(spec.getIncludedTests(), spec.getIncludedTestsCommandLine());
             requestBuilder.filters(new MethodNameFilter(matcher));
         }
-
-        return requestBuilder.build();
     }
 
     private static class MethodNameFilter implements PostDiscoveryFilter {
