@@ -15,15 +15,20 @@
  */
 package org.gradle.testing
 
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.testing.junit.JUnitBasicMultiVersionIntegrationSpec
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+
 @Issue("GRADLE-1009")
-public class TestOutputListenerIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+class TestOutputListenerIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
     @Before
@@ -169,7 +174,7 @@ test.testLogging {
     @Test
     def "shows standard stream also for testNG"() {
         given:
-        assumeNotJUnitPlatform()
+        ignoreWhenJupiter()
         def test = file("src/test/java/SomeTest.java")
         test << """
 import org.testng.*;

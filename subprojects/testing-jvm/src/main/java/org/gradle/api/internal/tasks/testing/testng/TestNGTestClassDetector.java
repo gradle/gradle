@@ -18,9 +18,6 @@ package org.gradle.api.internal.tasks.testing.testng;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 
 import java.util.Set;
 
@@ -36,9 +33,16 @@ class TestNGTestClassDetector extends TestClassVisitor {
         .add("Lorg/testng/annotations/AfterGroups;")
         .add("Lorg/testng/annotations/Factory;")
         .build();
+    private static final Set<String> TEST_CLASS_ANNOTATIONS=
+        ImmutableSet.of("Lorg/testng/annotations/Test;");
 
     TestNGTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
+    }
+
+    @Override
+    protected boolean ignoreMethodsInAbstractClass() {
+        return false;
     }
 
     @Override
@@ -47,34 +51,12 @@ class TestNGTestClassDetector extends TestClassVisitor {
     }
 
     @Override
-    public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        if ("Lorg/testng/annotations/Test;".equals(desc)) {
-            setTest(true);
-        }
-        return null;
+    protected Set<String> getTestMethodAnnotations() {
+        return TEST_METHOD_ANNOTATIONS;
     }
 
     @Override
-    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (!isAbstract() && !isTest()) {
-            return new TestNGTestMethodDetector();
-        } else {
-            return null;
-        }
-    }
-
-    private class TestNGTestMethodDetector extends MethodVisitor {
-        private TestNGTestMethodDetector() {
-            super(Opcodes.ASM6);
-
-        }
-
-        @Override
-        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            if (TEST_METHOD_ANNOTATIONS.contains(desc)) {
-                setTest(true);
-            }
-            return null;
-        }
+    protected Set<String> getTestClassAnnotations() {
+        return TEST_CLASS_ANNOTATIONS;
     }
 }

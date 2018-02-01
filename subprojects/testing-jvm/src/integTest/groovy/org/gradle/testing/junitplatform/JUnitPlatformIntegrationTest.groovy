@@ -16,7 +16,6 @@
 
 package org.gradle.testing.junitplatform
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -26,10 +25,7 @@ import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.L
 import static org.hamcrest.Matchers.containsString
 
 @Requires(TestPrecondition.JDK8_OR_LATER)
-class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
-
-
-
+class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
     void createSimpleJupiterTest() {
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
             package org.gradle;
@@ -165,8 +161,7 @@ class JUnitPlatformIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertNoTestClassesExecuted()
+        new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.ClassAssumeTest').assertTestCount(1, 0, 0)
     }
 
     def 'can handle repeated tests'() {

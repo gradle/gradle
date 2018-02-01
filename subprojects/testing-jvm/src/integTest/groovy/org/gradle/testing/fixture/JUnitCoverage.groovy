@@ -14,16 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.fixture;
+package org.gradle.testing.fixture
 
+import org.gradle.api.JavaVersion;
+
+/**
+ * NEWEST is JUnit 4 series, i.e. junit:junit:4.12
+ * JUPITER is JUnit Jupiter engine, i.e. org.junit.jupiter:junit-jupiter-api:5.0.x
+ * VINTAGE is JUnit Vintage engine which supports JUnit 4 tests on top of JUnit Platform, i.e. org.junit.vintage:junit-vintage-engine:4.12.3
+ */
 class JUnitCoverage {
     final static String NEWEST = '4.12'
-    final static String PLATFORM = '5.0'
+    final static String JUPITER = 'Jupiter'
+    final static String VINTAGE = '5.1.0-M2'
     final static String[] LARGE_COVERAGE = ['4.0', '4.4', '4.8.2', NEWEST]
     final static String[] IGNORE_ON_CLASS = ['4.4', '4.8.2', NEWEST]
     final static String[] ASSUMPTIONS = ['4.5', NEWEST]
     final static String[] CATEGORIES = ['4.8', NEWEST]
     final static String[] FILTER_JUNIT3_TESTS = ['3.8.1', '4.6', NEWEST]
-    final static String[] LOGGING = [NEWEST, PLATFORM]
-    final static String[] JUNIT_BASIC = [NEWEST, PLATFORM]
+    final static String[] JUNIT_4_LATEST = [NEWEST]
+    final static String[] JUNIT_VINTAGE = emptyIfJava7(VINTAGE)
+    final static String[] JUNIT_VINTAGE_JUPITER = emptyIfJava7(VINTAGE, JUPITER)
+
+    static String[] emptyIfJava7(String... versions) {
+        if (JavaVersion.current().isJava8Compatible()) {
+            return versions
+        } else {
+            return [] as String[]
+        }
+    }
 }

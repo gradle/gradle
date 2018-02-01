@@ -100,6 +100,8 @@ public class GenericJUnitTestEventAdapter<T> {
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
     }
 
+
+
     private TestStartEvent startEvent() {
         return new TestStartEvent(clock.getCurrentTime());
     }

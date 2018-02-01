@@ -16,12 +16,18 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 import spock.lang.Issue
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
 @Issue("GRADLE-1682")
-class JUnitJdkNavigationIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
+class JUnitJdkNavigationIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)

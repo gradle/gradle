@@ -16,11 +16,16 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.testing.junit.JUnitBasicMultiVersionIntegrationSpec
 import org.junit.Rule
 
-class IncrementalTestIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+class IncrementalTestIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
 

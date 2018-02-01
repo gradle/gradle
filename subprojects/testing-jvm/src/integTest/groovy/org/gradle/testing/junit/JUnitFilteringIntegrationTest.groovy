@@ -19,15 +19,21 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
-import org.gradle.testing.fixture.JUnitCoverage
 import spock.lang.Issue
 
-@TargetCoverage({ JUnitCoverage.LARGE_COVERAGE })
-public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
+import static org.gradle.testing.fixture.JUnitCoverage.*
+
+@TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE})
+class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
     void configureFramework() {
-        framework = "JUnit"
-        dependency = "junit:junit"
+        if (version == VINTAGE) {
+            framework = "JUnitPlatform"
+            dependency = "org.junit.vintage:junit-vintage-engine"
+        } else {
+            framework = "JUnit"
+            dependency = "junit:junit"
+        }
         imports = "org.junit.*"
     }
 

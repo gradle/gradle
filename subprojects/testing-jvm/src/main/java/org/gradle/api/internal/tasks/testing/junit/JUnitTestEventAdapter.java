@@ -25,6 +25,8 @@ import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,7 +57,7 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     @Override
-    public void testIgnored(Description description) throws Exception {
+    public void testIgnored(Description description) {
         if (methodName(description) == null) {
             // An @Ignored class, ignore the event. We don't get testIgnored events for each method, so we have
             // generate them on our own
@@ -65,12 +67,21 @@ public class JUnitTestEventAdapter extends RunListener {
         }
     }
 
-    private void processIgnoredClass(Description description) throws Exception {
-        IgnoredTestDescriptorProvider provider = new IgnoredTestDescriptorProvider();
+    private void processIgnoredClass(Description description) {
+        ClassLoader classLoader = description.getClass().getClassLoader();
         String className = className(description);
-        for (Description childDescription : provider.getAllDescriptions(description, className)) {
-            testIgnored(childDescription);
+        for (TestDescriptorInternal method : getIgnoredMethodsFromIgnoredClass(classLoader, className, idGenerator)) {
+            adapter.testIgnored(method);
         }
+    }
+
+    public static List<TestDescriptorInternal> getIgnoredMethodsFromIgnoredClass(ClassLoader classLoader, String className, IdGenerator idGenerator) {
+        IgnoredTestDescriptorProvider provider = new IgnoredTestDescriptorProvider();
+        List<TestDescriptorInternal> children = new ArrayList<TestDescriptorInternal>();
+        for (Description childDescription : provider.getAllDescriptions(classLoader, className)) {
+            children.add(descriptor(idGenerator.generateId(), childDescription));
+        }
+        return children;
     }
 
     @Override
@@ -78,7 +89,7 @@ public class JUnitTestEventAdapter extends RunListener {
         adapter.testFinished(description);
     }
 
-    private TestDescriptorInternal descriptor(Object id, Description description) {
+    private static TestDescriptorInternal descriptor(Object id, Description description) {
         return new DefaultTestDescriptor(id, className(description), methodName(description));
     }
 
@@ -93,6 +104,10 @@ public class JUnitTestEventAdapter extends RunListener {
 
     // Use this instead of Description.getMethodName(), it is not available in JUnit <= 4.5
     public static String methodName(Description description) {
+        return methodName(description.toString());
+    }
+
+    public static String methodName(String description) {
         Matcher matcher = methodStringMatcher(description);
         if (matcher.matches()) {
             return matcher.group(1);
@@ -102,12 +117,16 @@ public class JUnitTestEventAdapter extends RunListener {
 
     // Use this instead of Description.getClassName(), it is not available in JUnit <= 4.5
     public static String className(Description description) {
-        Matcher matcher = methodStringMatcher(description);
-        return matcher.matches() ? matcher.group(2) : description.toString();
+        return className(description.toString());
     }
 
-    private static Matcher methodStringMatcher(Description description) {
-        return DESCRIPTOR_PATTERN.matcher(description.toString());
+    public static String className(String description) {
+        Matcher matcher = methodStringMatcher(description);
+        return matcher.matches() ? matcher.group(2) : description;
+    }
+
+    private static Matcher methodStringMatcher(String description) {
+        return DESCRIPTOR_PATTERN.matcher(description);
     }
 
 }

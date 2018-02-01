@@ -19,17 +19,21 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.testing.junit.JUnitBasicMultiVersionIntegrationSpec
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 import static org.hamcrest.Matchers.*
 
-class TestReportIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+class TestReportIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule Sample sample = new Sample(temporaryFolder)
 
     def "report includes results of most recent invocation"() {
@@ -89,7 +93,7 @@ public class LoggingTest {
     @IgnoreIf({ GradleContextualExecuter.parallel })
     def "merges report with duplicated classes and methods"() {
         given:
-        assumeNotJUnitPlatform()
+        ignoreWhenJupiter()
         buildFile << """
 $junitSetup
 test {

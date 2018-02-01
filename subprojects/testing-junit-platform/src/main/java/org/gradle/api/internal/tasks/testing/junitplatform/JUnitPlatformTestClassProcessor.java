@@ -37,6 +37,7 @@ import org.junit.platform.launcher.core.LauncherFactory;
 
 import java.util.Optional;
 
+import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.*;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 import static org.junit.platform.launcher.EngineFilter.excludeEngines;
 import static org.junit.platform.launcher.EngineFilter.includeEngines;
@@ -68,7 +69,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request()
             .selectors(selectClass(testClassName));
 
-        addTestsFilter(requestBuilder);
+        addTestsFilter(requestBuilder, testClassName);
         addEnginesFilter(requestBuilder);
         addTagsFilter(requestBuilder);
 
@@ -93,10 +94,12 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private void addTestsFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
+    private void addTestsFilter(LauncherDiscoveryRequestBuilder requestBuilder, String className) {
         if (!spec.getIncludedTests().isEmpty() || !spec.getIncludedTestsCommandLine().isEmpty()) {
             TestSelectionMatcher matcher = new TestSelectionMatcher(spec.getIncludedTests(), spec.getIncludedTestsCommandLine());
-            requestBuilder.filters(new MethodNameFilter(matcher));
+            if (!matcher.matchesTest(className, null)) {
+                requestBuilder.filters(new MethodNameFilter(matcher));
+            }
         }
     }
 
@@ -109,14 +112,14 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
         @Override
         public FilterResult apply(TestDescriptor descriptor) {
-            if (shouldInclude(descriptor)) {
+            if (shouldRun(descriptor)) {
                 return FilterResult.included("included");
             } else {
                 return FilterResult.excluded("excluded");
             }
         }
 
-        private boolean shouldInclude(TestDescriptor descriptor) {
+        private boolean shouldRun(TestDescriptor descriptor) {
             Optional<TestSource> source = descriptor.getSource();
             if (!source.isPresent()) {
                 return true;
@@ -127,13 +130,20 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                 return matcher.matchesTest(methodSource.getClassName(), methodSource.getMethodName());
             } else if (source.get() instanceof ClassSource) {
                 for (TestDescriptor child : descriptor.getChildren()) {
-                    if (shouldInclude(child)) {
+                    if (shouldRun(child)) {
                         return true;
                     }
+                }
+                if (isVintageDynamicTest(descriptor, source.get())) {
+                    return shouldRunVintageDynamicTest(descriptor);
                 }
             }
 
             return false;
+        }
+
+        private boolean shouldRunVintageDynamicTest(TestDescriptor descriptor) {
+            return matcher.matchesTest(vintageDynamicClassName(descriptor.getUniqueId()), vintageDynamicMethodName(descriptor.getUniqueId()));
         }
     }
 

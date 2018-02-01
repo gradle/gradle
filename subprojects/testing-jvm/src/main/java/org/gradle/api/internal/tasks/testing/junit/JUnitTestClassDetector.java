@@ -15,45 +15,36 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+
+import java.util.Set;
 
 public class JUnitTestClassDetector extends TestClassVisitor {
+    public static final Set<String> METHOD_ANNOTATIONS = ImmutableSet.of("Lorg/junit/Test;");
+    public static final Set<String> CLASS_ANNOTATIONS = ImmutableSet.of("Lorg/junit/runner/RunWith;");
+
     public JUnitTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
     }
 
     @Override
-    protected boolean ignoreNonStaticInnerClass(){
+    protected boolean ignoreMethodsInAbstractClass() {
+        return false;
+    }
+
+    @Override
+    protected boolean ignoreNonStaticInnerClass() {
         return true;
     }
 
-    @Override
-    public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        if ("Lorg/junit/runner/RunWith;".equals(desc)) {
-            setTest(true);
-        }
-
-        return null;
+    protected Set<String> getTestMethodAnnotations() {
+        return METHOD_ANNOTATIONS;
     }
 
     @Override
-    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (!isTest()) {
-            return new MethodVisitor(Opcodes.ASM6) {
-                @Override
-                public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-                    if ("Lorg/junit/Test;".equals(desc)) {
-                        setTest(true);
-                    }
-                    return null;
-                }
-            };
-        } else {
-            return null;
-        }
+    protected Set<String> getTestClassAnnotations() {
+        return CLASS_ANNOTATIONS;
     }
 }

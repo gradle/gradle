@@ -16,9 +16,14 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 
-class BuildSrcSpockIntegrationTest extends AbstractIntegrationSpec {
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
+
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE })
+class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def "can run spock tests with mock of class using gradleApi"() {
         file("build.gradle") << """
 apply plugin: 'groovy'
@@ -31,7 +36,7 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
 
-    testCompile 'junit:junit:4.12@jar',
+    testCompile '$dependencyNotation@jar',
         'org.spockframework:spock-core:1.0-groovy-2.4@jar',
         'cglib:cglib-nodep:2.2',
         'org.objenesis:objenesis:1.2'

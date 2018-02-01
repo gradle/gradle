@@ -35,7 +35,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile '$dependency:$org.gradle.integtests.fixtures.MultiVersionIntegrationSpec.version' }
+            dependencies { testCompile '$dependency:$version' }
             test { use${framework}() }
         """
     }
