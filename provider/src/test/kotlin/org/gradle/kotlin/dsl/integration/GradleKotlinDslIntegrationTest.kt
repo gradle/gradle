@@ -663,10 +663,10 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             server.enqueue(MockResponse().setBody(remoteScript))
             server.start()
 
-            val initScriptUrl = server.url("/remote.gradle.kts")
+            val remoteScriptUrl = server.url("/remote.gradle.kts")
 
             withBuildScript("""
-                apply { from("$initScriptUrl") }
+                apply { from("$remoteScriptUrl") }
                 val answer: String by extra
                 println("*" + answer + "*")
             """)
