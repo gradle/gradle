@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
 
@@ -52,7 +51,6 @@ import java.util.concurrent.Callable;
  * @see java.util.Properties#store(OutputStream, String)
  * @since 3.3
  */
-@Incubating
 @CacheableTask
 public class WriteProperties extends DefaultTask {
     private final Map<String, Callable<String>> deferredProperties = Maps.newHashMap();
@@ -66,7 +64,6 @@ public class WriteProperties extends DefaultTask {
      * Returns an immutable view of properties to be written to the properties file.
      * @since 3.3
      */
-    @Incubating
     @Input
     public Map<String, String> getProperties() {
         ImmutableMap.Builder<String, String> propertiesBuilder = ImmutableMap.builder();
@@ -105,7 +102,6 @@ public class WriteProperties extends DefaultTask {
      * @param value Value of the property
      * @since 3.4
      */
-    @Incubating
     public void property(final String name, final Object value) {
         checkForNullValue(name, value);
         if (value instanceof Callable) {
@@ -132,7 +128,6 @@ public class WriteProperties extends DefaultTask {
      * @see #property(String, Object)
      * @since 3.4
      */
-    @Incubating
     public void properties(Map<String, Object> properties) {
         for (Map.Entry<String, Object> e : properties.entrySet()) {
             property(e.getKey(), e.getValue());

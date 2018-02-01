@@ -28,7 +28,6 @@ import javax.annotation.Nullable;
  *
  * @since 3.5
  */
-@Incubating
 public class DirectoryBuildCache extends AbstractBuildCache {
     private Object directory;
     private int removeUnusedEntriesAfterDays = 7;
@@ -76,6 +75,7 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      *
      * @since 4.6
      */
+    @Incubating
     public int getRemoveUnusedEntriesAfterDays() {
         return removeUnusedEntriesAfterDays;
     }
@@ -87,6 +87,7 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      *
      * @since 4.6
      */
+    @Incubating
     public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
         if (removeUnusedEntriesAfterDays < 1) {
             throw new IllegalArgumentException("Directory build cache needs to retain entries for at least a day.");

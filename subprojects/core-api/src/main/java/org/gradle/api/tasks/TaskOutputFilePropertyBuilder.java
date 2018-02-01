@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -28,7 +27,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 3.0
  */
-@Incubating
 @HasInternalProtocol
 public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, TaskOutputs {
     /**

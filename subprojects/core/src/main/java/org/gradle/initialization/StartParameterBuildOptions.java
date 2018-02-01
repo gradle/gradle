@@ -270,7 +270,7 @@ public class StartParameterBuildOptions {
         public static final String GRADLE_PROPERTY = "org.gradle.caching";
 
         public BuildCacheOption() {
-            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("build-cache", "Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.", "Disables the Gradle build cache.").incubating());
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("build-cache", "Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.", "Disables the Gradle build cache."));
         }
 
         @Override
