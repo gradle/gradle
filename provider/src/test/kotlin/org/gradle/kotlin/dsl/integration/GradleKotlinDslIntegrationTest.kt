@@ -1,5 +1,8 @@
 package org.gradle.kotlin.dsl.integration
 
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+
 import org.gradle.api.JavaVersion
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
@@ -638,6 +641,38 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
                 3 errors
             """.replaceIndent()))
+    }
+
+    @Test
+    fun `given a remote buildscript, file paths are resolved relative to root project dir`() {
+
+        val remoteScript = """
+
+            apply { from("./gradle/answer.gradle.kts") }
+
+        """
+
+        withFile("gradle/answer.gradle.kts", """
+
+            val answer by extra { "42" }
+
+        """)
+
+        MockWebServer().use { server ->
+
+            server.enqueue(MockResponse().setBody(remoteScript))
+            server.start()
+
+            val initScriptUrl = server.url("/remote.gradle.kts")
+
+            withBuildScript("""
+                apply { from("$initScriptUrl") }
+                val answer: String by extra
+                println("*" + answer + "*")
+            """)
+
+            assert(build().output.contains("*42*"))
+        }
     }
 
     private
