@@ -22,6 +22,7 @@ import com.google.common.io.LineProcessor;
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
 import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.UncheckedException;
@@ -131,6 +132,12 @@ public class BuildOperationTrace implements Stoppable {
                 if (gradle.getParent() == null) {
                     listener.write();
                 }
+            }
+
+            // Build may have failed before getting to projectsLoaded
+            @Override
+            public void buildFinished(BuildResult result) {
+                listener.write();
             }
         });
     }
