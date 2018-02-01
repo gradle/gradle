@@ -75,7 +75,7 @@ dependencies {
         exclude group: 'org.apache.httpcomponents'
     }
     testCompile libraries.commons_httpclient
-    testCompile 'org.apache.httpcomponents:httpmime:4.5.5'
+    testCompile "org.apache.httpcomponents:httpmime:${versions.httpclient}"
     testCompile project(":core")
 }
 
