@@ -197,6 +197,10 @@ The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` conf
 The deprecated property `StartParameter.taskOutputCacheEnabled` has been removed.
 Use `StartParameter.buildCacheEnabled` instead.
 
+### HttpClient library upgraded to version 4.5.5
+
+Gradle has been upgraded to embed [HttpClient version 4.5.5](https://archive.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES-4.5.x.txt) over 4.4.1.
+
 <!--
 ### Example breaking change
 -->

@@ -24,7 +24,8 @@ versions.commons_io = '2.2'
 versions.groovy = '2.4.12'
 versions.bouncycastle = '1.58'
 versions.maven = '3.0.4'
-versions.httpclient = '4.4.1'
+versions.httpclient = '4.5.5'
+versions.httpcore = '4.4.9'
 
 libraries.ant = 'org.apache.ant:ant:1.9.9'
 libraries.asm =  'org.ow2.asm:asm:6.0'
@@ -333,7 +334,7 @@ allprojects { currentProject ->
                             it.removeAll { it.group == 'commons-logging' }
                             add(libraries.jcl_to_slf4j)
                             it.findAll { it.group == 'commons-codec' }.each { changeVersionInMetadata it, '1.6' }
-                            it.findAll { it.name == 'httpcore' }.each { changeVersionInMetadata it, '4.4.4' }
+                            it.findAll { it.name == 'httpcore' }.each { changeVersionInMetadata it, versions.httpcore }
                             add(libraries.jcifs)
                         }
                     }
@@ -341,7 +342,7 @@ allprojects { currentProject ->
                         withDependencies {
                             it.removeAll { it.group == 'commons-logging' }
                             it.findAll { it.group == 'commons-codec' }.each { changeVersionInMetadata it, '1.6' }
-                            it.findAll { it.name == 'httpcore' }.each { changeVersionInMetadata it, '4.4.4' }
+                            it.findAll { it.name == 'httpcore' }.each { changeVersionInMetadata it, versions.httpcore }
                         }
                     }
                 }
