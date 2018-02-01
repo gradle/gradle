@@ -181,6 +181,31 @@ Let's say you wanted to declare a dependency on the link:https://tomcat.apache.o
 
 A project's configurations are managed by a `configurations` object. Configurations have a name and can extend each other. To learn more about this API have a look at api:org.gradle.api.artifacts.ConfigurationContainer[].
 
+==== Inheriting dependencies from other configurations
+
+A configuration can extend other configurations to form an inheritance hierarchy similar to class inheritance in object-oriented programming. Configurations with a super configuration have access to the whole set of dependencies assigned to the hierarchy.
+
+This concept is used by Gradle core plugins like the <<sec:java_plugin_and_dependency_management,Java plugin>>. For example the `testCompile` configuration extends the `compile` configuration. Compiling tests requires the dependencies of the source code under test to be available on the classpath on top of the dependencies needed to compile the test code. You could easy imagine a Java project that uses the Guava dependency in the production source code and JUnit to write and execute test code.
+
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Configuration inheritance provided by the Java plugin</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-configuration-inheritance.png" width="140mm" />
+    </imageobject>
+</figure>
++++++
+
+Under the covers the `testCompile` and `compile` configurations form an inheritance hierarchy by calling the method api:org.gradle.api.artifacts.Configuration#extendsFrom(org.gradle.api.artifacts.Configuration...)[]. You can use the method to let configurations extend from other configurations.
+
+Let's say you wanted to write a suite of smoke tests. Each smoke test makes a HTTP call to verify an web service endpoint. As the underlying test framework the project already uses JUnit. You can define a new configuration named `smokeTest` that extends from the `testCompile` configuration to reuse the existing test framework dependency.
+
+++++
+<sample id="configuration-inheritance" dir="userguide/dependencyManagement/declaringDependencies/configurationInheritance" title="Extending a configuration from another configuration">
+    <sourcefile file="build.gradle" snippet="configuration-definition"/>
+</sample>
+++++
+
 [[sub:resolve_specific_artifacts_from_dependency]]
 === Resolving specific artifacts from a module dependency
 
