@@ -55,5 +55,13 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         then:
         outputs.recompiledFile(main)
+
+        when:
+        outputs.snapshot()
+        main.replace("a: 21, b: 21", "a: 5, b: 7")
+        succeeds("assemble")
+
+        then:
+        outputs.recompiledFile(main)
     }
 }

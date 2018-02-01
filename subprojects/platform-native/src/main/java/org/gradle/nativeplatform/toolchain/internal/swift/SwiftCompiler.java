@@ -43,6 +43,7 @@ import org.gradle.util.GFileUtils;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.JavaBeanDumper;
 import org.yaml.snakeyaml.Loader;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -52,6 +53,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.HashMap;
@@ -221,10 +223,10 @@ inputs:
         if (moduleSwiftDeps.exists()) {
             try {
                 // Parse the existing module.swiftdeps and rewrite inputs with known changes
-                final Yaml yaml = new Yaml(new Loader(new Constructor(SwiftDeps.class)));
                 final SwiftDeps swiftDeps = IoActions.withResource(new FileInputStream(moduleSwiftDeps), new Transformer<SwiftDeps, FileInputStream>() {
                     @Override
                     public SwiftDeps transform(FileInputStream fileInputStream) {
+                        Yaml yaml = new Yaml(new Loader(new Constructor(SwiftDeps.class)));
                         return (SwiftDeps) yaml.load(fileInputStream);
                     }
                 });
@@ -239,7 +241,13 @@ inputs:
                 IoActions.writeTextFile(moduleSwiftDeps, new Action<BufferedWriter>() {
                     @Override
                     public void execute(BufferedWriter bufferedWriter) {
+                        JavaBeanDumper yaml = new JavaBeanDumper(false);
                         yaml.dump(swiftDeps, bufferedWriter);
+                        if (LOGGER.isDebugEnabled()) {
+                            StringWriter sw = new StringWriter();
+                            yaml.dump(swiftDeps, sw);
+                            LOGGER.debug(sw.toString());
+                        }
                     }
                 });
             } catch (Exception e) {
