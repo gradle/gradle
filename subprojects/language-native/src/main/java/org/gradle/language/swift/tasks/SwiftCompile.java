@@ -17,6 +17,7 @@
 package org.gradle.language.swift.tasks;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
@@ -61,6 +62,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Compiles Swift source files into object files.
@@ -278,7 +280,7 @@ public class SwiftCompile extends DefaultTask {
     @TaskAction
     void compile(IncrementalTaskInputs inputs) {
         final List<File> removedFiles = Lists.newArrayList();
-        final List<File> changedFiles = Lists.newArrayList();
+        final Set<File> changedFiles = Sets.newHashSet();
         if (inputs.isIncremental()) {
             inputs.outOfDate(new Action<InputFileDetails>() {
                 @Override
@@ -294,11 +296,21 @@ public class SwiftCompile extends DefaultTask {
                     removedFiles.add(removed.getFile());
                 }
             });
+
+            // If a non-source file changed, rebuild everything.
+            if (!changedFiles.isEmpty()) {
+                Set<File> allSourceFiles = getSource().getFiles();
+                if (!allSourceFiles.containsAll(changedFiles)) {
+                    changedFiles.clear();
+                    changedFiles.addAll(allSourceFiles);
+                }
+            }
         } else {
             // Not incremental, so delete all old outputs
             SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
             cleaner.setDestinationDir(getObjectFileDir().getAsFile().get());
             cleaner.execute();
+            changedFiles.addAll(getSource().getFiles());
         }
 
         BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
