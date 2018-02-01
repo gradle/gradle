@@ -14,7 +14,6 @@ import org.hamcrest.CoreMatchers.containsString
 
 import org.junit.Assert.assertThat
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import org.junit.rules.TestName
 
 import java.io.File
@@ -30,7 +29,7 @@ open class AbstractIntegrationTest {
     @Rule val testName = TestName()
 
     @JvmField
-    @Rule val temporaryFolder = TemporaryFolder()
+    @Rule val temporaryFolder = ForcefullyDeletedTemporaryFolder()
 
     protected
     val projectRoot: File

@@ -1,14 +1,13 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 
 import java.io.File
 
 abstract class TestWithTempFiles {
 
     @JvmField
-    @Rule val tempFolder = TemporaryFolder()
+    @Rule val tempFolder = ForcefullyDeletedTemporaryFolder()
 
     protected
     val root: File
