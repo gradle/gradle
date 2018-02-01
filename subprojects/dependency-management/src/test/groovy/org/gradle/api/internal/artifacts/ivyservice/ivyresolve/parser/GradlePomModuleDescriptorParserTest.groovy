@@ -202,7 +202,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         hasDefaultDependencyArtifact(dep)
     }
 
-    def "can provide different values for different scopes in dependency management section"() {
+    def "in case of conflicting entries in the dependency management section, the last seen entry wins"() {
         given:
         pomFile << """
 <project>
@@ -215,11 +215,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         <dependency>
             <groupId>group-two</groupId>
             <artifactId>artifact-two</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>group-two</groupId>
-            <artifactId>artifact-two</artifactId>
             <scope>runtime</scope>
         </dependency>
     </dependencies>
@@ -228,14 +223,14 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
             <dependency>
                 <groupId>group-two</groupId>
                 <artifactId>artifact-two</artifactId>
-                <version>1.1</version>
-                <scope>compile</scope>
+                <version>1.2</version>
+                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>group-two</groupId>
                 <artifactId>artifact-two</artifactId>
-                <version>1.2</version>
-                <scope>runtime</scope>
+                <version>1.1</version>
+                <scope>compile</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -246,12 +241,10 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
+        metadata.dependencies.size() == 1
         def depCompile = metadata.dependencies[0]
         depCompile.selector == moduleId('group-two', 'artifact-two', '1.1')
-        depCompile.scope == MavenScope.Compile
-        def depRuntime = metadata.dependencies[1]
-        depRuntime.selector == moduleId('group-two', 'artifact-two', '1.2')
-        depRuntime.scope == MavenScope.Runtime
+        depCompile.scope == MavenScope.Runtime //scope is defined in the dependency declaration and is not replaced
     }
 
     def "if two dependencyManagement entries for the same dependency are combined, the closest wins a conflict"() {
@@ -292,7 +285,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
     <dependencies>
         <dependency>
             <groupId>group-two</groupId>
-            <artifactId>artifact-two</artifactId>
+            <artifactId>artifact-two</artifactId>   
         </dependency>
     </dependencies>
     <dependencyManagement>
