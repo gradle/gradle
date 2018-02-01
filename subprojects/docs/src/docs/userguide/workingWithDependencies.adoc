@@ -33,7 +33,7 @@ Sometimes you'll want to implement logic based on the declared dependencies of a
 
 None of the <<inspecting_dependencies,dependency reporting>> helps you with inspecting or further processing the underlying, resolved artifacts of a module. A typical use case for accessing the artifacts is to copy them into a specific directory or filter out files of interest based on a specific file extension.
 
-You can iterate over the complete set of artifacts resolved for a module with the help of the method api:org.gradle.api.file.FileCollection#getFiles()[]. Using this method on a `Configuration` instance is possible as the interface extends `FileCollection`.
+You can iterate over the complete set of artifacts resolved for a module with the help of the method api:org.gradle.api.file.FileCollection#getFiles()[]. Every file instance returned from the method points to its location in the <<dependency_cache,dependency cache>>. Using this method on a `Configuration` instance is possible as the interface extends `FileCollection`.
 
 ++++
 <sample id="iterating-artifacts" dir="userguide/dependencyManagement/workingWithDependencies/iterateArtifacts" title="Iterating over the artifacts resolved for a module">
