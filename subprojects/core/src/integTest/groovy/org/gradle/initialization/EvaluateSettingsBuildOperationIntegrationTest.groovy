@@ -96,9 +96,10 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
 
         then:
         operations().size() == 2
-        verifySettings(operations()[0], nestedSettingsFile)
-        verifySettings(operations()[1], settingsFile)
-        operations()[1].details.buildPath == ":"
+        verifySettings(operations()[0], settingsFile)
+        operations()[0].details.buildPath == ":"
+        verifySettings(operations()[1], nestedSettingsFile)
+        operations()[1].details.buildPath == ":nested"
     }
 
     private List<BuildOperationRecord> operations() {
