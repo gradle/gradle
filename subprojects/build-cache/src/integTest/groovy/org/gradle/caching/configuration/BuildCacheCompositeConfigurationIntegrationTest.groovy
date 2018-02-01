@@ -21,6 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.operations.trace.BuildOperationTrace
+import org.gradle.util.ToBeImplemented
+import spock.lang.Issue
+
 /**
  * Tests build cache configuration within composite builds and buildSrc.
  */
@@ -29,7 +32,9 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
     def setup() {
-        executer.withBuildCacheEnabled()
+        executer.beforeExecute {
+            withBuildCacheEnabled()
+        }
     }
 
     def "can configure with settings.gradle"() {
@@ -108,6 +113,49 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
             ":": mainCache.cacheDir,
             ":buildSrc": buildSrcCache.cacheDir
         ]
+    }
+
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/4216")
+    def "build cache service is closed only after all included builds are finished"() {
+        def localCache = new TestBuildCache(file("local-cache"))
+
+        buildTestFixture.withBuildInSubDir()
+        ['i1', 'i2'].each {
+            multiProjectBuild(it, ['first', 'second']) {
+                buildFile << """
+                gradle.startParameter.setTaskNames(['build'])
+                println gradle
+                allprojects {
+                    apply plugin: 'java-library'
+                }
+                """
+            }
+        }
+
+        settingsFile << localCache.localCacheConfiguration() << """
+            includeBuild "i1"
+            includeBuild "i2"
+        """
+        buildFile << """             
+            apply plugin: 'java'
+            println gradle
+            gradle.startParameter.setTaskNames(['build'])
+            processResources {
+                dependsOn gradle.includedBuild('i1').task(':processResources')
+                dependsOn gradle.includedBuild('i2').task(':processResources')
+            }
+        """
+
+        expect:
+        succeeds()
+
+        when:
+        ['i1', 'i2'].each {
+            file("$it/src/test/java/DummyTest.java") << "public class DummyTest {}"
+        }
+        then:
+        succeeds()
     }
 
     private static String customTaskCode(String val = "foo") {
