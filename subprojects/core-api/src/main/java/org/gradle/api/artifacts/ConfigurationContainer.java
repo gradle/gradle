@@ -79,6 +79,8 @@ import org.gradle.internal.HasInternalProtocol;
  * </pre>
  *
  * Examples on configuring the <b>resolution strategy</b> - see docs for {@link ResolutionStrategy}
+ *
+ * Please see <a href="https://docs.gradle.org/current/userguide/declaring_dependencies.html#sub:scope_of_dependency_configurations" target="_top">the Declaring Dependencies User Guide chapter</a> for more information.
  */
 @HasInternalProtocol
 public interface ConfigurationContainer extends NamedDomainObjectContainer<Configuration> {
