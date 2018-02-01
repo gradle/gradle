@@ -21,14 +21,12 @@ import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
-import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class ApplyScriptPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
-    def operationNotifications = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     def "captures gradle script events"() {
         given:
@@ -86,13 +84,12 @@ class ApplyScriptPluginBuildOperationIntegrationTest extends AbstractIntegration
         operations.search(ops[2], ApplyScriptPluginBuildOperationType).size() == 0
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/3873")
-    def "build operation trace of settings script events is broken for composite builds"() {
+    def "identifies build of application target"() {
         given:
         def subBuildSettingsFile = file("subBuild/settings.gradle")
         subBuildSettingsFile << "rootProject.name = 'subBuild'"
         settingsFile << """
-        includeBuild 'subBuild'
+            includeBuild 'subBuild'
         """
 
         when:
@@ -103,15 +100,14 @@ class ApplyScriptPluginBuildOperationIntegrationTest extends AbstractIntegration
             it.details.targetType == "settings"
         }
         ops.size() == 2
-
-        // works as expected for root build
-        ops[1].details.file == settingsFile.absolutePath
-        ops[1].details.containsKey('buildPath')
-
-        // accessing buildPath in ApplyScriptPluginBuildOperationType.Details when tracing is broken
-        // and therefore not stored
-        ops[0].details.file == subBuildSettingsFile.absolutePath
-        !ops[0].details.containsKey('buildPath')
+        with(ops[0]) {
+            details.file == settingsFile.absolutePath
+            details.buildPath == ":"
+        }
+        with(ops[1]) {
+            details.file == subBuildSettingsFile.absolutePath
+            details.buildPath == ":subBuild"
+        }
     }
 
     def "captures project script events"() {
@@ -184,7 +180,7 @@ class ApplyScriptPluginBuildOperationIntegrationTest extends AbstractIntegration
         then:
         def op = operations.only(ApplyScriptPluginBuildOperationType) {
             it.details.targetType == "project" &&
-            it.details.uri != null
+                it.details.uri != null
         }
 
         op.details.file == null
