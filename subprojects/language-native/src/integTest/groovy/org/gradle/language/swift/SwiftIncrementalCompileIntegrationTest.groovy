@@ -229,37 +229,12 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
     def 'changing Swift tool chain rebuilds everything'() {
         given:
         def swiftc3 = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_3)
         def swiftc4 = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_4)
         Assume.assumeNotNull(swiftc3, swiftc4)
-
-        File initScript = file("init.gradle") << """
-            allprojects { p ->
-                apply plugin: ${swiftc4.pluginClass}
-
-                model {
-                      toolChains {
-                        ${swiftc4.buildScriptConfig}
-                      }
-                }
-            }
-        """
-        executer.beforeExecute({
-            usingInitScript(initScript)
-        })
-
-        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
-        def app = new SwiftApp()
-        settingsFile << "rootProject.name = 'app'"
-        app.writeToProject(testDirectory)
-        buildFile << """
-            apply plugin: 'swift-application'
-         """
-
-        // Build with swiftc4
-        outputs.snapshot { succeeds("compileDebugSwift") }
 
         initScript.text = """
             allprojects { p ->
@@ -273,8 +248,31 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
             }
         """
 
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app'"
+        app.writeToProject(testDirectory)
+        buildFile << """
+            apply plugin: 'swift-application'
+         """
+
+        // Build with swiftc3
+        outputs.snapshot { succeeds("compileDebugSwift") }
+
+        initScript.text = """
+            allprojects { p ->
+                apply plugin: ${swiftc4.pluginClass}
+
+                model {
+                      toolChains {
+                        ${swiftc4.buildScriptConfig}
+                      }
+                }
+            }
+        """
+
         expect:
-        // rebuild for Swift3
+        // rebuild with swiftc4
         succeeds("compileDebugSwift")
         outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }

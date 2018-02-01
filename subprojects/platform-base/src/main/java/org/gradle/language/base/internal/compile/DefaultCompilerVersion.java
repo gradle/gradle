@@ -48,4 +48,12 @@ public class DefaultCompilerVersion implements CompilerVersion {
         return version.toString();
     }
 
+    @Override
+    public String toString() {
+        return "CompilerVersion{" +
+            "type='" + type + '\'' +
+            ", vendor='" + vendor + '\'' +
+            ", version=" + version +
+            '}';
+    }
 }
