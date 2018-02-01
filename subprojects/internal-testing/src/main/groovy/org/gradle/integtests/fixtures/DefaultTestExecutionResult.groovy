@@ -65,12 +65,12 @@ class DefaultTestExecutionResult implements TestExecutionResult {
     // In JUnit 3/4 test case name is exactly the method name
     // In JUnit 5 test method injection is allowed: http://junit.org/junit5/docs/current/user-guide/#writing-tests-dependency-injection
     // So test case name is [method name + parameters]
-    static String removeParenthese(String testName) {
+    static String removeParentheses(String testName) {
         testName.size() > 2 && testName.endsWith('()') ? testName[0..-3] : testName
     }
 
-    static String[] removeAllParenthese(String... testNames) {
-        testNames.collect { removeParenthese(it) } as String[]
+    static String[] removeAllParentheses(String... testNames) {
+        testNames.collect { removeParentheses(it) } as String[]
     }
 
     private class DefaultTestClassExecutionResult implements TestClassExecutionResult {
@@ -81,7 +81,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
-            testClassResults*.assertTestsExecuted(removeAllParenthese(testNames))
+            testClassResults*.assertTestsExecuted(removeAllParentheses(testNames))
             this
         }
 
@@ -91,22 +91,22 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestsSkipped(String... testNames) {
-            testClassResults*.assertTestsSkipped(removeAllParenthese(testNames))
+            testClassResults*.assertTestsSkipped(removeAllParentheses(testNames))
             this
         }
 
         TestClassExecutionResult assertTestPassed(String name) {
-            testClassResults*.assertTestPassed(removeParenthese(name))
+            testClassResults*.assertTestPassed(removeParentheses(name))
             this
         }
 
         TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
-            testClassResults*.assertTestFailed(removeParenthese(name), messageMatchers)
+            testClassResults*.assertTestFailed(removeParentheses(name), messageMatchers)
             this
         }
 
         TestClassExecutionResult assertTestSkipped(String name) {
-            testClassResults*.assertTestSkipped(removeParenthese(name))
+            testClassResults*.assertTestSkipped(removeParentheses(name))
             this
         }
 
@@ -126,7 +126,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher) {
-            testClassResults*.assertTestCaseStdout(removeParenthese(testCaseName), matcher)
+            testClassResults*.assertTestCaseStdout(removeParentheses(testCaseName), matcher)
             this
         }
 
@@ -136,7 +136,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher) {
-            testClassResults*.assertTestCaseStderr(removeParenthese(testCaseName), matcher)
+            testClassResults*.assertTestCaseStderr(removeParentheses(testCaseName), matcher)
             this
         }
 

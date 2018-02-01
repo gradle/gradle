@@ -22,7 +22,7 @@ import org.hamcrest.Matcher
 import org.hamcrest.Matchers
 import org.junit.Assert
 
-import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParenthese
+import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
 
 class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     GPathResult testClassNode
@@ -182,7 +182,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
             checked = true
         }
         Map testMethods = [:]
-        testClassNode.testcase.each { testMethods[removeParenthese(it.@name.text())] = it }
+        testClassNode.testcase.each { testMethods[removeParentheses(it.@name.text())] = it }
         return testMethods
     }
 }
