@@ -192,23 +192,23 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         then:
         def resolveOperations = operations.all(ResolveConfigurationDependenciesBuildOperationType)
         resolveOperations.size() == 2
-        resolveOperations[0].details.configurationName == "compileClasspath"
-        resolveOperations[0].details.projectPath == ":"
-        resolveOperations[0].details.buildPath == ":my-composite-app"
-        resolveOperations[0].details.scriptConfiguration == false
-        resolveOperations[0].details.configurationDescription == "Compile classpath for source set 'main'."
-        resolveOperations[0].details.configurationVisible == false
+        resolveOperations[0].details.configurationName == "classpath"
+        resolveOperations[0].details.projectPath == null
+        resolveOperations[0].details.buildPath == ":"
+        resolveOperations[0].details.scriptConfiguration == true
+        resolveOperations[0].details.configurationDescription == null
+        resolveOperations[0].details.configurationVisible == true
         resolveOperations[0].details.configurationTransitive == true
-        resolveOperations[0].result.resolvedDependenciesCount == 1
+        resolveOperations[0].result.resolvedDependenciesCount == 2
 
-        resolveOperations[1].details.configurationName == "classpath"
-        resolveOperations[1].details.projectPath == null
-        resolveOperations[1].details.buildPath == ":"
-        resolveOperations[1].details.scriptConfiguration == true
-        resolveOperations[1].details.configurationDescription == null
-        resolveOperations[1].details.configurationVisible == true
+        resolveOperations[1].details.configurationName == "compileClasspath"
+        resolveOperations[1].details.projectPath == ":"
+        resolveOperations[1].details.buildPath == ":my-composite-app"
+        resolveOperations[1].details.scriptConfiguration == false
+        resolveOperations[1].details.configurationDescription == "Compile classpath for source set 'main'."
+        resolveOperations[1].details.configurationVisible == false
         resolveOperations[1].details.configurationTransitive == true
-        resolveOperations[1].result.resolvedDependenciesCount == 2
+        resolveOperations[1].result.resolvedDependenciesCount == 1
     }
 
     @Unroll
