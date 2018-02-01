@@ -43,10 +43,12 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         this.idGenerator = idGenerator;
     }
 
+    @Override
     public void testPlanExecutionStarted(TestPlan testPlan) {
         this.currentTestPlan = testPlan;
     }
 
+    @Override
     public void testPlanExecutionFinished(TestPlan testPlan) {
         this.currentTestPlan = null;
     }

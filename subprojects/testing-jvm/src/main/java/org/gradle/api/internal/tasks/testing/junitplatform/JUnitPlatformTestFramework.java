@@ -79,7 +79,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     public static class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {
-        private JUnitPlatformSpec spec;
+        private final JUnitPlatformSpec spec;
 
         public JUnitPlatformTestClassProcessorFactory(JUnitPlatformSpec spec) {
             this.spec = spec;
