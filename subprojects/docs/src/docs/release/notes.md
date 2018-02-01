@@ -184,6 +184,10 @@ Putting processors on the compile classpath or using an explicit `-processorpath
 
 The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` configuration for each source set. This might break when the user already defined such a configuration. We recommend removing your own and using the configuration provided by `java-base`. 
 
+### HttpClient library upgraded to version 4.5.5
+
+Gradle has been upgraded to embed HttpClient version 4.5.5 over 4.4.1.
+
 <!--
 ### Example breaking change
 -->
