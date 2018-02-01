@@ -149,9 +149,9 @@ The `CompileOptions.annotationProcessorPath` property has been promoted and is n
 
 The [build cache](userguide/build_cache.html) and [task output caching](userguide/build_cache.html#sec:task_output_caching) were first introduced in Gradle 3.5.
 They are used in production by different teams, including the Gradle team itself, with great results.
-As of Gradle 4.6, the build cache and task output caching are no longer incubating and a public feature.
+As of Gradle 4.6, the build cache and task output caching are no longer incubating and considered public features.
 
-Note that the SPI to [implement your own build cache service](userguide/build_cache.html#sec:build_cache_implement) stays incubating for 4.6. 
+Note that the SPI to [implement your own build cache service](userguide/build_cache.html#sec:build_cache_implement) stays incubating. 
 
 ## Fixed issues
 
