@@ -19,7 +19,8 @@ package org.gradle.test.fixtures.junitplatform
 import groovy.io.FileType
 
 class JUnitPlatformTestRewriter {
-    static final String LATEST_JUPITER_VERSION = '5.0.3'
+    static final String LATEST_JUPITER_VERSION = '5.1.0-M2'
+    static final String LATEST_VINTAGE_VERSION = '5.1.0-M2'
     static Map replacements = ['org.junit.Test': 'org.junit.jupiter.api.Test',
                                'org.junit.Before;': 'org.junit.jupiter.api.BeforeEach;',
                                'org.junit.After;': 'org.junit.jupiter.api.AfterEach;',
@@ -45,12 +46,24 @@ class JUnitPlatformTestRewriter {
                                'Assume.': 'Assumptions.',
     ]
 
-    static rewriteDirectory(File projectDir) {
-        rewriteBuildFileInDir(projectDir)
-        rewriteJavaFiles(projectDir)
+    static rewriteWithJupiter(File projectDir) {
+        rewriteBuildFileWithJupiter(projectDir)
+        rewriteJavaFilesWithJupiterAnno(projectDir)
     }
 
-    static rewriteJavaFiles(File rootProject) {
+    static rewriteWithVintage(File projectDir) {
+        rewriteBuildFileWithVintage(projectDir)
+    }
+
+    static rewriteBuildFileWithJupiter(File buildFile) {
+        rewriteBuildFileInDir(buildFile, "org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}")
+    }
+
+    static rewriteBuildFileWithVintage(File buildFile) {
+        rewriteBuildFileInDir(buildFile, "org.junit.vintage:junit-vintage-engine:${LATEST_VINTAGE_VERSION}")
+    }
+
+    static rewriteJavaFilesWithJupiterAnno(File rootProject) {
         rootProject.traverse(type: FileType.FILES, nameFilter: ~/.*\.(java|groovy)/) {
             String text = it.text
             replacements.each { key, value ->
@@ -60,22 +73,21 @@ class JUnitPlatformTestRewriter {
         }
     }
 
-    static rewriteBuildFileInDir(File dir) {
+    static rewriteBuildFileInDir(File dir, String dependencies) {
         def dirs = [dir]
         dirs.addAll(dir.listFiles().findAll { it.isDirectory() })
         dirs.each {
             File buildFile = new File(it, 'build.gradle')
             if (buildFile.exists()) {
-                rewriteBuildFile(buildFile)
+                rewriteBuildFile(buildFile, dependencies)
             }
         }
     }
 
-    static rewriteBuildFile(File buildFile) {
+    static rewriteBuildFile(File buildFile, String dependenciesReplacement) {
         String text = buildFile.text
         // compile/testCompile
-        text = text.replaceFirst(/ompile ['"]junit:junit:4\.12['"]/,
-            "ompile 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'")
+        text = text.replaceFirst(/ompile ['"]junit:junit:4\.12['"]/, "ompile '${dependenciesReplacement}'")
         if (!text.contains('useTestNG')) {
             // we only hack build with JUnit 4
             // See IncrementalTestIntegrationTest.executesTestsWhenTestFrameworkChanges

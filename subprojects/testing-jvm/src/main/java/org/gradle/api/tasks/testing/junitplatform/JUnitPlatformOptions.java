@@ -18,7 +18,6 @@ package org.gradle.api.tasks.testing.junitplatform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
-import org.gradle.api.tasks.testing.junit.JUnitOptions;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -38,6 +37,17 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
     private Set<String> includeTags = new LinkedHashSet<String>();
 
     private Set<String> excludeTags = new LinkedHashSet<String>();
+
+    private boolean legacyJUnitEnabled;
+
+    @Incubating
+    public void enableLegacyJUnit() {
+        legacyJUnitEnabled = true;
+    }
+
+    public boolean isLegacyJUnitEnabled() {
+        return legacyJUnitEnabled;
+    }
 
     @Incubating
     public JUnitPlatformOptions includeEngines(String... includeEngines) {

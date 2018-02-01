@@ -36,7 +36,7 @@ class JUnitPlatformTestRewriterTest extends Specification {
 dependencies { testCompile 'junit:junit:4.12' }
 '''
         when:
-        JUnitPlatformTestRewriter.rewriteBuildFileInDir(temporaryFolder.testDirectory)
+        JUnitPlatformTestRewriter.rewriteBuildFileWithJupiter(temporaryFolder.testDirectory)
 
         then:
         temporaryFolder.testDirectory.file('build.gradle').text.contains(
@@ -49,7 +49,7 @@ dependencies { testCompile 'junit:junit:4.12' }
         temporaryFolder.testDirectory.file('src/test/java/Test.java') << oldText
 
         when:
-        JUnitPlatformTestRewriter.rewriteJavaFiles(temporaryFolder.testDirectory)
+        JUnitPlatformTestRewriter.rewriteJavaFilesWithJupiterAnno(temporaryFolder.testDirectory)
 
         then:
         temporaryFolder.testDirectory.file('src/test/java/Test.java').text == newText

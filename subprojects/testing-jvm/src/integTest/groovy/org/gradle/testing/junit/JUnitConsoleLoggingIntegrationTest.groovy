@@ -17,13 +17,18 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 import static org.hamcrest.Matchers.equalTo
 
 // cannot make assumptions about order in which test methods of JUnit4Test get executed
-class JUnitConsoleLoggingIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+class JUnitConsoleLoggingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {

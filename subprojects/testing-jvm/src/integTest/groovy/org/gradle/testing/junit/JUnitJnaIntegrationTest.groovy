@@ -17,12 +17,17 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-class JUnitJnaIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
+import static org.gradle.testing.fixture.JUnitCoverage.*
+
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+class JUnitJnaIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 

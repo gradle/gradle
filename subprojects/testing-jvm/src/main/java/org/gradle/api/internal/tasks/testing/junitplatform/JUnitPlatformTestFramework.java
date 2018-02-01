@@ -39,13 +39,13 @@ import java.lang.reflect.Constructor;
 
 public class JUnitPlatformTestFramework implements TestFramework {
     private final JUnitPlatformOptions options;
-    private final JUnitPlatformDetector detector;
     private final DefaultTestFilter filter;
+    private final JUnitPlatformDetector detector;
 
     public JUnitPlatformTestFramework(Test testTask, DefaultTestFilter filter) {
         this.filter = filter;
-        options = new JUnitPlatformOptions();
-        detector = new JUnitPlatformDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
+        this.options = new JUnitPlatformOptions();
+        this.detector = new JUnitPlatformDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
     }
 
     @Override

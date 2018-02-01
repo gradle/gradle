@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+
+import java.util.Set;
 
 /**
  * Base class for ASM test class scanners.
@@ -49,10 +53,6 @@ public abstract class TestClassVisitor extends ClassVisitor {
         return test;
     }
 
-    protected void setTest(boolean test) {
-        this.test = test;
-    }
-
     public boolean isAbstract() {
         return isAbstract;
     }
@@ -65,13 +65,44 @@ public abstract class TestClassVisitor extends ClassVisitor {
     }
 
     @Override
+    public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+        if (getTestClassAnnotations().contains(desc)) {
+            TestClassVisitor.this.test = true;
+        }
+        return null;
+    }
+
+    @Override
+    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        if (isTest() || (ignoreMethodsInAbstractClass() && isAbstract)) {
+            return null;
+        } else {
+            return new MethodVisitor(Opcodes.ASM6) {
+                @Override
+                public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+                    if (getTestMethodAnnotations().contains(desc)) {
+                        TestClassVisitor.this.test = true;
+                    }
+                    return null;
+                }
+            };
+        }
+    }
+
+    @Override
     public void visitInnerClass(String name, String outerName, String innerName, int access) {
         if (ignoreNonStaticInnerClass() && innerClassIsNonStatic(name, access)) {
             isAbstract = true;
         }
     }
 
+    protected abstract boolean ignoreMethodsInAbstractClass();
+
     protected abstract boolean ignoreNonStaticInnerClass();
+
+    protected abstract Set<String> getTestMethodAnnotations();
+
+    protected abstract Set<String> getTestClassAnnotations();
 
     private boolean innerClassIsNonStatic(String name, int access) {
         return name.equals(getClassName()) && (access & Opcodes.ACC_STATIC) == 0;

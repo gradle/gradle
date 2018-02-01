@@ -16,14 +16,19 @@
 
 package org.gradle.testing
 
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testing.junit.JUnitBasicMultiVersionIntegrationSpec
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class TestTaskIntegrationTest extends JUnitBasicMultiVersionIntegrationSpec {
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Issue("GRADLE-2702")
     def "should not resolve configuration results when there are no tests"() {

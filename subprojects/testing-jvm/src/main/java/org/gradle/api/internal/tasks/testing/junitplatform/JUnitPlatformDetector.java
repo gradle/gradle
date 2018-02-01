@@ -18,19 +18,22 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.internal.tasks.testing.detection.AbstractTestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
+import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
+import org.gradle.api.internal.tasks.testing.junit.JUnitDetector;
 
-public class JUnitPlatformDetector extends AbstractTestFrameworkDetector<JUnitPlatformTestClassDetector> {
+public class JUnitPlatformDetector extends AbstractTestFrameworkDetector<TestClassVisitor> {
     public JUnitPlatformDetector(ClassFileExtractionManager classFileExtractionManager) {
         super(classFileExtractionManager);
     }
 
     @Override
-    protected JUnitPlatformTestClassDetector createClassVisitor() {
+    protected TestClassVisitor createClassVisitor() {
         return new JUnitPlatformTestClassDetector(this);
     }
 
     @Override
     protected boolean isKnownTestCaseClassName(String testCaseClassName) {
-        return false;
+        return JUnitDetector.isKnownJUnitTestCaseClassName(testCaseClassName);
     }
+
 }

@@ -35,6 +35,10 @@ public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassD
 
     @Override
     protected boolean isKnownTestCaseClassName(String testCaseClassName) {
-        return KNOWN_TEST_CASE_CLASS_NAMES.contains(testCaseClassName);
+        return isKnownJUnitTestCaseClassName(testCaseClassName);
+    }
+
+    public static boolean isKnownJUnitTestCaseClassName(String className) {
+        return KNOWN_TEST_CASE_CLASS_NAMES.contains(className);
     }
 }

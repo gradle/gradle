@@ -17,14 +17,14 @@
 package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.testing.fixture.JUnitCoverage
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 
 @TargetCoverage({ JUnitCoverage.LARGE_COVERAGE })
-class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationSpec {
+class JUnitSmokeMultiVersionIntegrationSpec extends JUnitMultiVersionIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
@@ -33,7 +33,12 @@ class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationSpec {
         resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
         resources.maybeCopy('JUnitIntegrationTest/junit4Tests')
 
-        buildFile << "dependencies { testCompile 'junit:junit:$version' }"
+        buildFile << """
+        apply plugin: 'java'
+        ${mavenCentralRepository()}
+        dependencies { 
+            testCompile '$dependencyNotation' 
+        }"""
 
         when:
         run('check')
