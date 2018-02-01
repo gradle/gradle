@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,40 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
-import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.file.DefaultFileOperations
-import org.gradle.api.internal.file.FileLookup
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.ObjectConfigurationAction
+import org.gradle.api.plugins.PluginAware
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 
-import org.gradle.internal.hash.FileHasher
-import org.gradle.internal.hash.StreamHasher
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.service.ServiceRegistry
-
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
-import org.gradle.kotlin.dsl.support.get
+import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
-import org.gradle.process.internal.ExecFactory
 
 import java.io.File
 import java.net.URI
@@ -56,22 +48,27 @@ import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
- * Base class for Kotlin settings scripts.
+ * Base class for Kotlin init scripts.
  */
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
-    scriptFilePattern = "settings\\.gradle\\.kts")
+    scriptFilePattern = ".+\\.init\\.gradle\\.kts")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
-abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
-
-    private
-    val fileOperations by lazy { fileOperationsFor(settings) }
+abstract class KotlinInitScript(
+    private val host: KotlinScriptHost,
+    gradle: Gradle) : Gradle by gradle {
 
     /**
-     * Logger for settings. You can use this in your settings file to write log messages.
+     * Configures the classpath of the init script.
      */
     @Suppress("unused")
-    val logger: Logger by lazy { Logging.getLogger(Settings::class.java) }
+    open fun initscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) = Unit
+
+    /**
+     * Logger for init scripts. You can use this in your init script to write log messages.
+     */
+    @Suppress("unused")
+    val logger: Logger by lazy { Logging.getLogger(Gradle::class.java) }
 
     /**
      * The [LoggingManager] which can be used to receive logging and to control the standard output/error capture for
@@ -79,7 +76,7 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
      * and `System.err` is redirected at the `ERROR` log level.
      */
     @Suppress("unused")
-    val logging by lazy { settings.serviceOf<LoggingManager>() }
+    val logging by lazy { gradle.serviceOf<LoggingManager>() }
 
     /**
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.
@@ -90,7 +87,7 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
     /**
      * Returns the relative path from this script's target base directory to the given path.
      *
-     * The given path object is (logically) resolved as described for [KotlinSettingsScript.file],
+     * The given path object is (logically) resolved as described for [KotlinInitScript.file],
      * from which a relative path is calculated.
      *
      * @param path The path to convert to a relative path.
@@ -103,7 +100,7 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
     /**
      * Resolves a file path to a URI, relative to this script's target base directory.
      *
-     * Evaluates the provided path object as described for [KotlinSettingsScript.file],
+     * Evaluates the provided path object as described for [KotlinInitScript.file],
      * with the exception that any URI scheme is supported, not just `file:` URIs.
      */
     @Suppress("unused")
@@ -118,6 +115,8 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
      *
      * If this script targets [org.gradle.api.initialization.Settings],
      * then `path` is resolved relative to the build root directory.
+     *
+     * Otherwise the file is resolved relative to the script itself.
      *
      * This method converts the supplied path based on its type:
      *
@@ -148,7 +147,7 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
      * @param path The object to resolve as a `File`.
      * @param validation The validation to perform on the file.
      * @return The resolved file.
-     * @see KotlinSettingsScript.file
+     * @see KotlinInitScript.file
      */
     @Suppress("unused")
     fun file(path: Any, validation: PathValidation): File =
@@ -159,12 +158,12 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
      *
      * You can pass any of the following types to this method:
      *
-     * - A [CharSequence], including [String] as defined by [KotlinSettingsScript.file].
-     * - A [File] as defined by [KotlinSettingsScript.file].
-     * - A [java.nio.file.Path] as defined by [KotlinSettingsScript.file].
-     * - A [URI] or [java.net.URL] as defined by [KotlinSettingsScript.file].
+     * - A [CharSequence], including [String] as defined by [KotlinInitScript.file].
+     * - A [File] as defined by [KotlinInitScript.file].
+     * - A [java.nio.file.Path] as defined by [KotlinInitScript.file].
+     * - A [URI] or [java.net.URL] as defined by [KotlinInitScript.file].
      * - A [org.gradle.api.file.Directory] or [org.gradle.api.file.RegularFile]
-     *   as defined by [KotlinSettingsScript.file].
+     *   as defined by [KotlinInitScript.file].
      * - A [Sequence], [Array] or [Iterable] that contains objects of any supported type.
      *   The elements of the collection are recursively converted to files.
      * - A [org.gradle.api.file.FileCollection].
@@ -204,10 +203,10 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
      *
-     * @param paths The contents of the file collection. Evaluated as per [KotlinSettingsScript.files].
+     * @param paths The contents of the file collection. Evaluated as per [KotlinInitScript.files].
      * @param configuration The block to use to configure the file collection.
      * @return The file collection.
-     * @see KotlinSettingsScript.files
+     * @see KotlinInitScript.files
      */
     @Suppress("unused")
     fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection =
@@ -216,13 +215,13 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
      *
-     * The given `baseDir` path is evaluated as per [KotlinSettingsScript.file].
+     * The given `baseDir` path is evaluated as per [KotlinInitScript.file].
      *
      * The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.
      *
-     * @param baseDir The base directory of the file tree. Evaluated as per [KotlinSettingsScript.file].
+     * @param baseDir The base directory of the file tree. Evaluated as per [KotlinInitScript.file].
      * @return The file tree.
      */
     @Suppress("unused")
@@ -232,10 +231,10 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
      *
-     * @param baseDir The base directory of the file tree. Evaluated as per [KotlinSettingsScript.file].
+     * @param baseDir The base directory of the file tree. Evaluated as per [KotlinInitScript.file].
      * @param configuration The block to use to configure the file tree.
      * @return The file tree.
-     * @see [KotlinSettingsScript.fileTree]
+     * @see [KotlinInitScript.fileTree]
      */
     @Suppress("unused")
     fun fileTree(baseDir: Any, configuration: ConfigurableFileTree.() -> Unit): ConfigurableFileTree =
@@ -244,15 +243,15 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
     /**
      * Creates a new [FileTree] which contains the contents of the given ZIP file.
      *
-     * The given `zipPath` path is evaluated as per [KotlinSettingsScript.file]
+     * The given `zipPath` path is evaluated as per [KotlinInitScript.file]
      *
      * The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.
      *
-     * You can combine this method with the [KotlinSettingsScript.copy] method to unzip a ZIP file.
+     * You can combine this method with the [KotlinInitScript.copy] method to unzip a ZIP file.
      *
-     * @param zipPath The ZIP file. Evaluated as per [KotlinSettingsScript.file].
+     * @param zipPath The ZIP file. Evaluated as per [KotlinInitScript.file].
      * @return The file tree.
      */
     @Suppress("unused")
@@ -264,7 +263,7 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
      *
      * The given tarPath path can be:
      * - an instance of [org.gradle.api.resources.Resource],
-     * - any other object is evaluated as per [KotlinSettingsScript.file].
+     * - any other object is evaluated as per [KotlinInitScript.file].
      *
      * The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
@@ -273,7 +272,7 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
      * Unless custom implementation of resources is passed,
      * the tar tree attempts to guess the compression based on the file extension.
      *
-     * You can combine this method with the [KotlinSettingsScript.copy] method to unzip a ZIP file.
+     * You can combine this method with the [KotlinInitScript.copy] method to unzip a ZIP file.
      *
      * @param tarPath The TAR file or an instance of [org.gradle.api.resources.Resource].
      * @return The file tree.
@@ -314,7 +313,7 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
     /**
      * Creates a directory and returns a file pointing to it.
      *
-     * @param path The path for the directory to be created. Evaluated as per [KotlinSettingsScript.file].
+     * @param path The path for the directory to be created. Evaluated as per [KotlinInitScript.file].
      * @return The created directory.
      * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
      */
@@ -325,9 +324,9 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
     /**
      * Deletes files and directories.
      *
-     * This will not follow symlinks. If you need to follow symlinks too use [KotlinSettingsScript.delete].
+     * This will not follow symlinks. If you need to follow symlinks too use [KotlinInitScript.delete].
      *
-     * @param paths Any type of object accepted by [KotlinSettingsScript.file]
+     * @param paths Any type of object accepted by [KotlinInitScript.file]
      * @return true if anything got deleted, false otherwise
      */
     @Suppress("unused")
@@ -354,7 +353,7 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
      */
     @Suppress("unused")
     fun exec(configuration: ExecSpec.() -> Unit): ExecResult =
-        fileOperations.exec(configuration)
+        processOperations.exec(configuration)
 
     /**
      * Executes an external Java process.
@@ -366,48 +365,22 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
      */
     @Suppress("unused")
     fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
-        fileOperations.javaexec(configuration)
-
-    /**
-     * Configures the build script classpath for settings.
-     *
-     * @see [Settings.buildscript]
-     */
-    @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) = Unit
-
+        processOperations.javaexec(configuration)
     /**
      * Applies zero or more plugins or scripts.
-     *
-     * @param configuration the block to configure an {@link ObjectConfigurationAction} with before “executing” it
+     * <p>
+     * The given action is used to configure an [ObjectConfigurationAction], which “builds” the plugin application.
+     * <p>
+     * @param action the action to configure an [ObjectConfigurationAction] with before “executing” it
+     * @see [PluginAware.apply]
      */
-    inline
-    fun apply(crossinline configuration: ObjectConfigurationAction.() -> Unit) =
-        settings.apply({ it.configuration() })
+    override fun apply(action: Action<in ObjectConfigurationAction>) =
+        host.applyObjectConfigurationAction(action)
+
+    private
+    val fileOperations get() = host.operations
+
+    private
+    val processOperations get() = host.operations
 }
 
-
-private
-fun fileOperationsFor(settings: Settings): DefaultFileOperations =
-    fileOperationsFor(settings.gradle, settings.rootDir)
-
-
-internal
-fun fileOperationsFor(gradle: Gradle, baseDir: File?): DefaultFileOperations =
-    fileOperationsFor((gradle as GradleInternal).services, baseDir)
-
-
-internal
-fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): DefaultFileOperations {
-    val fileLookup = services.get<FileLookup>()
-    return DefaultFileOperations(
-        baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver,
-        null,
-        null,
-        services.get<Instantiator>(),
-        fileLookup,
-        services.get<DirectoryFileTreeFactory>(),
-        services.get<StreamHasher>(),
-        services.get<FileHasher>(),
-        services.get<ExecFactory>())
-}

@@ -112,7 +112,9 @@ class KotlinBuildScriptCompiler(
         val accessorsClassPath = accessorsClassPath()
         val compiledScript = compileScriptFileFor(compilationClassPath + accessorsClassPath)
         val scriptScope = scriptClassLoaderScopeWith(accessorsClassPath)
-        executeCompiledScript(compiledScript, scriptScope)
+        withClassFrom(compiledScript, scriptScope) { scriptClass ->
+            scriptTarget.eval(scriptClass)
+        }
     }
 
     private
@@ -123,7 +125,7 @@ class KotlinBuildScriptCompiler(
     fun executeBuildscriptBlock() {
         scriptTarget.buildscriptBlockTemplate?.let { template ->
             setupEmbeddedKotlinForBuildscript()
-            extractBuildscriptBlockFrom(script)?.let { buildscriptRange ->
+            extractTopLevelSectionFrom(script, scriptTarget.buildscriptBlockName)?.let { buildscriptRange ->
                 executeBuildscriptBlockFrom(buildscriptRange, template)
             }
         }
@@ -132,7 +134,9 @@ class KotlinBuildScriptCompiler(
     private
     fun executeBuildscriptBlockFrom(buildscriptRange: IntRange, scriptTemplate: KClass<*>) {
         val compiledScript = compileBuildscriptBlock(buildscriptRange, scriptTemplate)
-        executeCompiledScript(compiledScript, buildscriptBlockClassLoaderScope())
+        withClassFrom(compiledScript, buildscriptBlockClassLoaderScope()) { scriptClass ->
+            scriptTarget.evalBuildscriptBlock(scriptClass)
+        }
     }
 
     private
@@ -143,12 +147,6 @@ class KotlinBuildScriptCompiler(
                 scriptHandler.configurations["classpath"],
                 "stdlib-jdk8", "reflect")
         }
-    }
-
-    private
-    fun executeCompiledScript(compiledScript: CachingKotlinCompiler.CompiledScript, scope: ClassLoaderScope) {
-        val scriptClass = classFrom(compiledScript, scope)
-        executeScriptWithContextClassLoader(scriptClass)
     }
 
     private
@@ -189,14 +187,9 @@ class KotlinBuildScriptCompiler(
         compiledPluginsBlock: CachingKotlinCompiler.CompiledPluginsBlock) {
 
         val (lineNumber, compiledScript) = compiledPluginsBlock
-        val pluginsBlockClass = classFrom(compiledScript, pluginsBlockClassLoaderScope())
         val pluginDependenciesSpec = pluginRequestCollector.createSpec(lineNumber)
-        withContextClassLoader(pluginsBlockClass.classLoader) {
-            try {
-                instantiate(pluginsBlockClass, PluginDependenciesSpec::class, pluginDependenciesSpec)
-            } catch (e: InvocationTargetException) {
-                throw e.targetException
-            }
+        withClassFrom(compiledScript, pluginsBlockClassLoaderScope()) { pluginsBlockClass ->
+            instantiate(pluginsBlockClass, PluginDependenciesSpec::class, pluginDependenciesSpec)
         }
     }
 
@@ -249,6 +242,22 @@ class KotlinBuildScriptCompiler(
         }
 
     private
+    fun withClassFrom(
+        compiledScript: CachingKotlinCompiler.CompiledScript,
+        classLoaderScope: ClassLoaderScope,
+        action: (Class<*>) -> Unit) {
+
+        val scriptClass = classFrom(compiledScript, classLoaderScope)
+        withContextClassLoader(scriptClass.classLoader) {
+            try {
+                action(scriptClass)
+            } catch (e: InvocationTargetException) {
+                throw e.targetException
+            }
+        }
+    }
+
+    private
     fun classFrom(compiledScript: CachingKotlinCompiler.CompiledScript, scope: ClassLoaderScope): Class<*> =
         classLoaderFor(compiledScript.location, scope)
             .loadClass(compiledScript.className)
@@ -284,23 +293,7 @@ class KotlinBuildScriptCompiler(
         }
 
     private
-    fun executeScriptWithContextClassLoader(scriptClass: Class<*>) {
-        withContextClassLoader(scriptClass.classLoader) {
-            executeScriptOf(scriptClass)
-        }
-    }
-
-    private
-    fun executeScriptOf(scriptClass: Class<*>) {
-        try {
-            instantiate(scriptClass, scriptTarget.type, scriptTarget.`object`)
-        } catch (e: InvocationTargetException) {
-            throw e.targetException
-        }
-    }
-
-    private inline
-    fun <reified T : Any> instantiate(scriptClass: Class<*>, targetType: KClass<*>, target: T) {
+    fun <T : Any> instantiate(scriptClass: Class<*>, targetType: KClass<*>, target: T) {
         scriptClass.getConstructor(targetType.java).newInstance(target)
     }
 
@@ -322,9 +315,9 @@ class KotlinBuildScriptCompiler(
 
 
 private inline
-fun ignoringErrors(block: () -> Unit) {
+fun ignoringErrors(action: () -> Unit) {
     try {
-        block()
+        action()
     } catch (e: Exception) {
         e.printStackTrace()
     }
@@ -332,12 +325,12 @@ fun ignoringErrors(block: () -> Unit) {
 
 
 private inline
-fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {
+fun withContextClassLoader(classLoader: ClassLoader, action: () -> Unit) {
     val currentThread = Thread.currentThread()
     val previous = currentThread.contextClassLoader
     try {
         currentThread.contextClassLoader = classLoader
-        block()
+        action()
     } finally {
         currentThread.contextClassLoader = previous
     }

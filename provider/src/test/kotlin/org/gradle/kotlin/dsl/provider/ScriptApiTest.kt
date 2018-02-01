@@ -1,6 +1,7 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.kotlin.dsl.KotlinBuildScript
+import org.gradle.kotlin.dsl.KotlinInitScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
 
 import org.gradle.api.Action
@@ -31,17 +32,23 @@ class ScriptApiTest {
 
     @Test
     fun `build script template implements script api`() =
-        assertThat(
-            ScriptApi::class.apiMembers.missingMembersFrom(KotlinBuildScript::class),
-            equalTo(emptyList()))
+        assertScriptApiOf<KotlinBuildScript>()
 
     @Test
     fun `settings script template implements script api`() =
-        assertThat(
-            ScriptApi::class.apiMembers.missingMembersFrom(KotlinSettingsScript::class),
-            equalTo(emptyList()))
+        assertScriptApiOf<KotlinSettingsScript>()
+
+    @Test
+    fun `init script template implements script api`() =
+        assertScriptApiOf<KotlinInitScript>()
 }
 
+
+private inline
+fun <reified T> assertScriptApiOf() =
+    assertThat(
+        ScriptApi::class.apiMembers.missingMembersFrom(T::class),
+        equalTo(emptyList()))
 
 private
 typealias ScriptApiMembers = Collection<KCallable<*>>
