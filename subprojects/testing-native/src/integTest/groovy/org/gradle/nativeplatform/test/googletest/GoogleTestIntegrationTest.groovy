@@ -406,11 +406,11 @@ tasks.withType(RunTestExecutable) {
         buildFile.text = "apply plugin: 'visual-studio'\n" + buildFile.text
 
         when:
-        succeeds "helloTestVisualStudio"
+        succeeds "visualStudio"
 
         then:
-        final mainSolution = new SolutionFile(file("helloTestExe.sln"))
-        mainSolution.assertHasProjects("helloTestExe")
+        final mainSolution = new SolutionFile(file("test.sln"))
+        mainSolution.assertHasProjects("helloTestExe", "helloLib", "helloDll")
 
         and:
         final projectFile = new ProjectFile(file("helloTestExe.vcxproj"))
