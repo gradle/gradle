@@ -186,9 +186,9 @@ A project's configurations are managed by a `configurations` object. Configurati
 [[sub:inheriting_dependencies_from_other_configurations]]
 ==== Inheriting dependencies from other configurations
 
-A configuration can extend other configurations to form an inheritance hierarchy similar to class inheritance in object-oriented programming. Configurations with a super configuration have access to the whole set of dependencies assigned to the hierarchy.
+A configuration can extend other configurations to form an inheritance hierarchy. In practice, this concept is similar to class inheritance in object-oriented programming. Child configurations inherit the whole set of dependencies declared for any of its superconfigurations.
 
-This concept is used by Gradle core plugins like the <<sec:java_plugin_and_dependency_management,Java plugin>>. For example the `testCompile` configuration extends the `compile` configuration. Compiling tests requires the dependencies of the source code under test to be available on the classpath on top of the dependencies needed to compile the test code. You could easy imagine a Java project that uses the Guava dependency in the production source code and JUnit to write and execute test code.
+Configuration inheritance is heavily used by Gradle core plugins like the <<sec:java_plugin_and_dependency_management,Java plugin>>. For example the `testCompile` configuration extends the `compile` configuration. The configuration hierarchy has a practical purpose: compiling tests requires the dependencies of the source code under test on top of the dependencies needed write the test class. A Java project that uses JUnit to write and execute test code also needs Guava if its classes are imported in the production source code.
 
 +++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -199,7 +199,7 @@ This concept is used by Gradle core plugins like the <<sec:java_plugin_and_depen
 </figure>
 +++++
 
-Under the covers the `testCompile` and `compile` configurations form an inheritance hierarchy by calling the method api:org.gradle.api.artifacts.Configuration#extendsFrom(org.gradle.api.artifacts.Configuration...)[]. You can use the method to let configurations extend from other configurations.
+Under the covers the `testCompile` and `compile` configurations form an inheritance hierarchy by calling the method api:org.gradle.api.artifacts.Configuration#extendsFrom(org.gradle.api.artifacts.Configuration...)[]. A configuration can extend any other configuration irrespective of its definition in the build script or a plugin.
 
 Let's say you wanted to write a suite of smoke tests. Each smoke test makes a HTTP call to verify an web service endpoint. As the underlying test framework the project already uses JUnit. You can define a new configuration named `smokeTest` that extends from the `testCompile` configuration to reuse the existing test framework dependency.
 
