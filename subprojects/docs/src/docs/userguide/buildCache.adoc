@@ -15,8 +15,6 @@
 [[build_cache]]
 == Build Cache
 
-NOTE: The build cache feature is ready to be used for Java, Groovy and Scala projects. Work continues to make it available in more areas.
-
 NOTE: The build cache feature described here is different from the http://tools.android.com/tech-docs/build-cache[Android plugin build cache].
 
 [[sec:build_cache_intro]]
