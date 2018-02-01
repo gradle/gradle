@@ -13,16 +13,17 @@ task printGuavaMetadata {
     dependsOn configurations.compileClasspath
 
     doLast {
-        def resolutionResult = configurations.compileClasspath.incoming.resolutionResult
-        def componentIds = resolutionResult.allDependencies.collect { it.selected.id }
+        ResolutionResult resolutionResult = configurations.compileClasspath.incoming.resolutionResult
+        List<ComponentIdentifier> componentIds = resolutionResult.allDependencies.collect { it.selected.id }
 
-        def result = dependencies.createArtifactResolutionQuery().forComponents(componentIds)
+        ArtifactResolutionQuery query = dependencies.createArtifactResolutionQuery()
+            .forComponents(componentIds)
             .withArtifacts(MavenModule, MavenPomArtifact)
-            .execute()
+        ArtifactResolutionResult result = query.execute()
 
         for(component in result.resolvedComponents) {
-            def mavenPomArtifacts = component.getArtifacts(MavenPomArtifact)
-            def guavaPomArtifact = mavenPomArtifacts.find { it.file.name == 'guava-18.0.pom' }
+            Set<ArtifactResult> mavenPomArtifacts = component.getArtifacts(MavenPomArtifact)
+            ArtifactResult guavaPomArtifact = mavenPomArtifacts.find { it.file.name == 'guava-18.0.pom' }
             def xml = new XmlSlurper().parse(guavaPomArtifact.file)
             println guavaPomArtifact.file
             println xml.name

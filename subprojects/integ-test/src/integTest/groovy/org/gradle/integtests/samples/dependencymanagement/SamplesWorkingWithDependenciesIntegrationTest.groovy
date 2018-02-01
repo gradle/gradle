@@ -33,7 +33,7 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('iterateScmDependencies')
+        succeeds('iterateDeclaredDependencies')
 
         then:
         outputContains("""org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r
@@ -45,7 +45,7 @@ commons-codec:commons-codec:1.7""")
         executer.inDirectory(sample.dir)
 
         when:
-        succeeds('iterateScmArtifacts')
+        succeeds('iterateResolvedArtifacts')
 
         then:
         def normalizedContent = normaliseFileSeparators(output)

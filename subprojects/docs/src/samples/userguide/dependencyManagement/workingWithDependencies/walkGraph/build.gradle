@@ -23,11 +23,11 @@ task walkDependencyGraph {
             if (it instanceof ResolvedDependencyResult) {
                 ResolvedComponentResult componentResult = it.selected
                 ComponentIdentifier componentIdentifier = componentResult.id
-                println "Resolved: $componentIdentifier.displayName ($componentResult.selectionReason)"
+                logger.quiet "Resolved: $componentIdentifier.displayName ($componentResult.selectionReason)"
             } else if (it instanceof UnresolvedDependencyResult) {
                 ComponentSelector componentSelector = it.attempted
                 Throwable failure = it.failure
-                println "Unresolved: $componentSelector.displayName ($failure.message)"
+                logger.quiet "Unresolved: $componentSelector.displayName ($failure.message)"
             }
         }
     }
