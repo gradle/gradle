@@ -192,6 +192,11 @@ Putting processors on the compile classpath or using an explicit `-processorpath
 
 The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` configuration for each source set. This might break when the user already defined such a configuration. We recommend removing your own and using the configuration provided by `java-base`. 
 
+### Removed `StartParameter.taskOutputCacheEnabled`
+
+The deprecated property `StartParameter.taskOutputCacheEnabled` has been removed.
+Use `StartParameter.buildCacheEnabled` instead.
+
 <!--
 ### Example breaking change
 -->
