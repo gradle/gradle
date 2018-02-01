@@ -36,6 +36,7 @@ import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.OutputPropertySpec;
+import org.gradle.caching.internal.OutputType;
 import org.gradle.caching.internal.tasks.AbstractLoadCommand;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
@@ -116,6 +117,9 @@ public class TaskOutputCacheCommandFactoryV2 {
                     continue;
                 }
                 try {
+                    if (propertySpec.getOutputType() == OutputType.FILE) {
+                        FileUtils.forceMkdir(propertySpec.getOutputRoot().getParentFile());
+                    }
                     load(outputKey, propertySpec.getOutputRoot());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
