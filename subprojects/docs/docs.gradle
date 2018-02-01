@@ -57,10 +57,9 @@ configurations {
 
 dependencies {
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
-    userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
-        dependency 'itext:itext:2.0.8@jar'
-    }
-    userGuideTask 'xslthl:xslthl:2.0.1@jar'
+    userGuideTask 'xhtmlrenderer:xhtmlrenderer:R8rc1'
+    userGuideTask 'itext:itext:2.0.8'
+    userGuideTask 'xslthl:xslthl:2.0.1'
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
     jquery "jquery:jquery.min:1.8.0@js"
@@ -69,9 +68,7 @@ dependencies {
     testCompile "org.pegdown:pegdown:1.1.0"
     testCompile testLibraries.jsoup
     testCompile "org.gebish:geb-spock:0.9.3"
-    testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2') {
-        exclude group: 'org.apache.httpcomponents'
-    }
+    testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testCompile libraries.commons_httpclient.coordinate
     testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
     testCompile project(":core")
