@@ -44,8 +44,8 @@ tasks.withType<DistributionTest> {
         systemProperties[integTestVersionsSysProp] = "latest"
     }
 
-    fun ifProperty(name: String, then: String): String? =
-        then.takeIf { hasProperty(name) && property(name).toString().isNotEmpty() }
+    fun Project.ifProperty(name: String, then: String): String? =
+        then.takeIf { findProperty(name) != null }
 
     systemProperties["org.gradle.integtest.native.toolChains"] =
         ifProperty("testAllPlatforms", "all") ?: "default"
