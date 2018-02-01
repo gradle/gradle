@@ -183,6 +183,7 @@ Let's say you wanted to declare a dependency on the link:https://tomcat.apache.o
 
 A project's configurations are managed by a `configurations` object. Configurations have a name and can extend each other. To learn more about this API have a look at api:org.gradle.api.artifacts.ConfigurationContainer[].
 
+[[sub:inheriting_dependencies_from_other_configurations]]
 ==== Inheriting dependencies from other configurations
 
 A configuration can extend other configurations to form an inheritance hierarchy similar to class inheritance in object-oriented programming. Configurations with a super configuration have access to the whole set of dependencies assigned to the hierarchy.

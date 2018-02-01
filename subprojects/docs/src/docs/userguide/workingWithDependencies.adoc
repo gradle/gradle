@@ -17,11 +17,11 @@
 
 Gradle provides an extensive API for navigating, inspecting and post-processing metadata and artifacts of resolved dependencies. With this API at hand, you can implement more complex requirements to your build requiring a "runtime view" of dependencies.
 
+The main entry point for this functionality is the api:org.gradle.api.artifacts.Configuration[] API. To learn more about the fundamentals of configurations, see <<sub:scope_of_dependency_configurations>>.
+
 === Iterating over dependencies assigned to a configuration
 
-Sometimes you'll want to implement logic based on the resolved dependencies of a project e.g. for building a plugin that visualizes the dependency graph as an image. The api:org.gradle.api.artifacts.Configuration[] API provides a wealth of methods to navigate and inspect dependencies assigned to a configuration.
-
-You can iterate over complete set of dependencies assigned to a configuration with the help of the method api:org.gradle.api.artifacts.Configuration#getDependencies()[].
+Sometimes you'll want to implement logic based on the declared dependencies of a project e.g. to inspect the declared dependencies in build script from a Gradle plugin. You can iterate over set of dependencies assigned to a configuration with the help of the method api:org.gradle.api.artifacts.Configuration#getDependencies()[]. Alternatively, you can also use api:org.gradle.api.artifacts.Configuration#getAllDependencies()[] to include the declared dependencies of <<sub:inheriting_dependencies_from_other_configurations,superconfigurations>>. The returned dependencies do not resolve the configuration and therefore do not include transitive dependencies.
 
 ++++
 <sample id="iterating-dependencies" dir="userguide/dependencyManagement/workingWithDependencies/iterateDependencies" title="Iterating over the dependencies assigned to a configuration">
