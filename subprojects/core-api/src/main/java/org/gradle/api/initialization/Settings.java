@@ -239,7 +239,6 @@ public interface Settings extends PluginAware {
      *
      * @since 3.5
      */
-    @Incubating
     BuildCacheConfiguration getBuildCache();
 
     /**
@@ -247,7 +246,6 @@ public interface Settings extends PluginAware {
      *
      * @since 3.5
      */
-    @Incubating
     void buildCache(Action<? super BuildCacheConfiguration> action);
 
     /**

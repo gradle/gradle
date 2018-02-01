@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.specs.Spec;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -33,7 +33,6 @@ import java.lang.annotation.Target;
  *
  * @since 3.0
  */
-@Incubating
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})

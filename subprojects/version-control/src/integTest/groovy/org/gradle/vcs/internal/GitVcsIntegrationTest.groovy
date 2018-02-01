@@ -398,8 +398,8 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         gitCheckout.file('foo').text == "bar"
 
         when:
-        gitCheckout.file('foo').text = "baz"
-        succeeds('assemble', "-i")
+        gitCheckout.file('foo').text = "not a bar"
+        succeeds('assemble')
 
         then:
         gitCheckout.file('foo').text == "bar"
@@ -438,8 +438,8 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "baz"
 
         when:
-        gitCheckout.file('deeperDep/foo').text = "baz"
-        gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "buzz"
+        gitCheckout.file('deeperDep/foo').text = "not a bar"
+        gitCheckout.file('deeperDep/evenDeeperDep/foo').text = "not a baz"
         succeeds('assemble')
 
         then:

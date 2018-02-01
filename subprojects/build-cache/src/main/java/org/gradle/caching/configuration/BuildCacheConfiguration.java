@@ -17,7 +17,6 @@
 package org.gradle.caching.configuration;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -26,7 +25,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 3.5
  */
-@Incubating
 @HasInternalProtocol
 public interface BuildCacheConfiguration {
 

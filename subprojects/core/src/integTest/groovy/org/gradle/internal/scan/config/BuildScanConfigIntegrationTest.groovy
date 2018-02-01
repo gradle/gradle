@@ -259,7 +259,7 @@ For more information on how to apply the build scan plugin, please visit https:/
             sourceControl {
                 vcsMappings {
                     withModule('external-source:artifact') {
-                        from vcs(DirectoryRepositorySpec) {
+                        from(DirectoryRepositorySpec) {
                             sourceDir = file('${normaliseFileSeparators(mapped.absolutePath)}')
                         }
                     }
