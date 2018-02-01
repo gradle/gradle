@@ -24,19 +24,21 @@ import org.gradle.internal.HasInternalProtocol;
  * Allows VCS mapping rules to be specified for a build. A VCS mapping rule is responsible for calculating the VCS information for a particular dependency.
  *
  * In settings.gradle:
- * <pre>
- * vcsMappings {
- *   withModule("group:name") {
- *     from vcs(GitVcs) {
- *         url = "..."
- *     }
- *   }
- *   addRule("rule for group") { details -&gt;
- *       if (details.requested.group == "group") {
- *           from vcs(GitVcs) {
- *               url = "..."
- *           }
+ * <pre class='autoTestedSettings'>
+ * sourceControl {
+ *   vcsMappings {
+ *     withModule("org.gradle:gradle") {
+ *       from vcs(GitVersionControlSpec) {
+ *         url = uri("https://github.com/gradle/gradle")
  *       }
+ *     }
+ *     all { details -&gt;
+ *       if (details.requested.group == "org.gradle") {
+ *         from vcs(GitVersionControlSpec) {
+ *           url = uri("https://github.com/gradle/${details.requested.module}")
+ *         }
+ *       }
+ *     }
  *   }
  * }
  * </pre>
