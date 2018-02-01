@@ -59,6 +59,29 @@ commons-codec:commons-codec:1.7""")
         normalizedContent.contains('commons-logging/commons-logging/1.1.3/f6f66e966c70a83ffbdb6f17a0919eaf7c8aca7f/commons-logging-1.1.3.jar')
     }
 
+    @UsesSample("userguide/dependencyManagement/workingWithDependencies/walkGraph")
+    def "can walk the dependency graph of a configuration"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('walkDependencyGraph')
+
+        then:
+        outputContains("""Resolved: org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r (requested)
+Resolved: com.jcraft:jsch:0.1.54 (requested)
+Resolved: com.googlecode.javaewah:JavaEWAH:1.1.6 (requested)
+Resolved: org.apache.httpcomponents:httpclient:4.3.6 (requested)
+Resolved: org.apache.httpcomponents:httpcore:4.3.3 (requested)
+Resolved: commons-logging:commons-logging:1.1.3 (requested)
+Resolved: commons-codec:commons-codec:1.7 (conflict resolution)
+Resolved: org.slf4j:slf4j-api:1.7.2 (requested)
+Resolved: commons-codec:commons-codec:1.7 (conflict resolution)
+Unresolved: some:unresolved:2.5 (Could not find some:unresolved:2.5.
+Searched in the following locations:
+    https://jcenter.bintray.com/some/unresolved/2.5/unresolved-2.5.pom
+    https://jcenter.bintray.com/some/unresolved/2.5/unresolved-2.5.jar)""")
+    }
+
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/accessMetadataArtifact")
     def "can accessing a module's metadata artifact"() {
         executer.inDirectory(sample.dir)

@@ -1,0 +1,35 @@
+repositories {
+    jcenter()
+}
+
+configurations {
+    scm
+}
+
+dependencies {
+    scm 'org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r'
+    scm 'commons-codec:commons-codec:1.7'
+    scm 'some:unresolved:2.5'
+}
+
+//START SNIPPET walk-task
+task walkDependencyGraph {
+    dependsOn configurations.scm
+
+    doLast {
+        ResolutionResult resolutionResult = configurations.scm.incoming.resolutionResult
+
+        resolutionResult.allDependencies {
+            if (it instanceof ResolvedDependencyResult) {
+                ResolvedComponentResult componentResult = it.selected
+                ComponentIdentifier componentIdentifier = componentResult.id
+                println "Resolved: $componentIdentifier.displayName ($componentResult.selectionReason)"
+            } else if (it instanceof UnresolvedDependencyResult) {
+                ComponentSelector componentSelector = it.attempted
+                Throwable failure = it.failure
+                println "Unresolved: $componentSelector.displayName ($failure.message)"
+            }
+        }
+    }
+}
+//END SNIPPET walk-task

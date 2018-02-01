@@ -46,6 +46,18 @@ You can iterate over the complete set of artifacts resolved for a module with th
 Iterating over the artifacts of a module automatically resolves the configuration. A resolved configuration becomes immutable and cannot add or remove dependencies. If needed you can copy a configuration for further modification via api:org.gradle.api.artifacts.Configuration#copy()[].
 ====
 
+=== Navigating the dependency graph
+
+As a plugin developer, you might be faced with the challenge of navigating the full graph of dependencies assigned to a configuration e.g. for turning the dependency graph into a visualization. You can access the full graph of dependencies for a configuration with the help of the api:org.gradle.api.artifacts.result.ResolutionResult[].
+
+The resolution result provides various methods for accessing the resolved and unresolved dependencies. For demonstration purposes the sample code uses api:org.gradle.api.artifacts.result.ResolutionResult#allDependencies(org.gradle.api.Action)[]. Each iteration of the method returns an instance of api:org.gradle.api.artifacts.result.ResolvedDependencyResult[] or api:org.gradle.api.artifacts.result.UnresolvedDependencyResult[] providing detailed information about the dependency.
+
+++++
+<sample id="walking-dependency-graph" dir="userguide/dependencyManagement/workingWithDependencies/walkGraph" title="Walking the resolved and unresolved dependencies of a configuration">
+    <sourcefile file="build.gradle" snippet="walk-task" />
+</sample>
+++++
+
 === Accessing a module’s metadata file
 
 As part of the dependency resolution process, Gradle downloads the metadata file of a module and stores it in the dependency cache. Some organizations enforce strong restrictions on accessing repositories outside of internal network. Instead of downloading artifacts, those organizations prefer to provide an "installable" Gradle cache with all artifacts contained in it to fulfill the build's dependency requirements.
