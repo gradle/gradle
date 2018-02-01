@@ -44,6 +44,14 @@ import kotlin.script.experimental.dependencies.ScriptDependencies
 
 
 internal
+data class CompiledScript<out T : Any>(val location: File, val className: String, val metadata: T)
+
+
+internal
+data class PluginsBlockMetadata(val lineNumber: Int)
+
+
+internal
 class CachingKotlinCompiler(
     private val scriptCache: ScriptCache,
     private val implicitImports: ImplicitImports,
@@ -63,59 +71,58 @@ class CachingKotlinCompiler(
     val cacheProperties = mapOf("version" to "6")
 
     fun compileBuildscriptBlockOf(
+        displayName: String,
         buildscriptBlockTemplate: KClass<out Any>,
         scriptPath: String,
         buildscript: String,
-        classPath: ClassPath): CompiledScript {
+        classPath: ClassPath): CompiledScript<Unit> {
 
         val scriptFileName = scriptFileNameFor(scriptPath)
         val cacheKeySpec = cacheKeyPrefix + buildscriptBlockTemplate.qualifiedName + scriptFileName + buildscript
-        return compileScript(cacheKeySpec, classPath) { cacheDir ->
+        return compileScript(cacheKeySpec, classPath, Unit) { cacheDir ->
             ScriptCompilationSpec(
                 buildscriptBlockTemplate,
                 scriptPath,
                 cacheFileFor(buildscript, cacheDir, scriptFileName),
-                scriptFileName + " buildscript block")
+                displayName)
         }
     }
 
-    data class CompiledScript(val location: File, val className: String)
-
     fun compilePluginsBlockOf(
+        displayName: String,
         pluginsBlockTemplate: KClass<out Any>,
         scriptPath: String,
         lineNumberedPluginsBlock: Pair<Int, String>,
-        classPath: ClassPath): CompiledPluginsBlock {
+        classPath: ClassPath): CompiledScript<PluginsBlockMetadata> {
 
         val (lineNumber, plugins) = lineNumberedPluginsBlock
         val scriptFileName = scriptFileNameFor(scriptPath)
         val cacheKeySpec = cacheKeyPrefix + pluginsBlockTemplate.qualifiedName + scriptFileName + plugins
-        val compiledScript = compileScript(cacheKeySpec, classPath) { cacheDir ->
+        return compileScript(cacheKeySpec, classPath, PluginsBlockMetadata(lineNumber)) { cacheDir ->
             ScriptCompilationSpec(
                 pluginsBlockTemplate,
                 scriptPath,
                 cacheFileFor(plugins, cacheDir, scriptFileName),
-                scriptFileName + " plugins block")
+                displayName)
         }
-        return CompiledPluginsBlock(lineNumber, compiledScript)
     }
 
-    data class CompiledPluginsBlock(val lineNumber: Int, val compiledScript: CompiledScript)
-
-    fun compileGradleScript(
+    fun <T : Any> compileGradleScript(
+        displayName: String,
         scriptTemplate: KClass<out Any>,
         scriptPath: String,
         script: String,
-        classPath: ClassPath): CompiledScript {
+        classPath: ClassPath,
+        metadata: T): CompiledScript<T> {
 
         val scriptFileName = scriptFileNameFor(scriptPath)
         val cacheKeySpec = cacheKeyPrefix + scriptTemplate.qualifiedName + scriptFileName + script
-        return compileScript(cacheKeySpec, classPath) { cacheDir ->
+        return compileScript(cacheKeySpec, classPath, metadata) { cacheDir ->
             ScriptCompilationSpec(
                 scriptTemplate,
                 scriptPath,
                 cacheFileFor(script, cacheDir, scriptFileName),
-                scriptFileName)
+                displayName)
         }
     }
 
@@ -126,10 +133,11 @@ class CachingKotlinCompiler(
     }
 
     private
-    fun compileScript(
+    fun <T : Any> compileScript(
         cacheKeySpec: CacheKeySpec,
         classPath: ClassPath,
-        compilationSpecFor: (File) -> ScriptCompilationSpec): CompiledScript {
+        metadata: T,
+        compilationSpecFor: (File) -> ScriptCompilationSpec): CompiledScript<T> {
 
         try {
             val cacheDir = cacheDirFor(cacheKeySpec + classPath) {
@@ -137,7 +145,7 @@ class CachingKotlinCompiler(
                     compileScriptTo(classesDirOf(baseDir), compilationSpecFor(baseDir), classPath)
                 writeClassNameTo(baseDir, scriptClassName)
             }
-            return CompiledScript(classesDirOf(cacheDir), readClassNameFrom(cacheDir))
+            return CompiledScript(classesDirOf(cacheDir), readClassNameFrom(cacheDir), metadata)
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
@@ -157,7 +165,9 @@ class CachingKotlinCompiler(
 
         spec.run {
             withProgressLoggingFor(description) {
-                logger.debug("Kotlin compilation classpath for {}: {}", description, classPath)
+                logger.debug(
+                    "Compiling {} from {} with classpath: {}",
+                    spec.scriptTemplate.simpleName, description, classPath)
                 compileKotlinScriptToDirectory(
                     outputDir,
                     scriptFile,
