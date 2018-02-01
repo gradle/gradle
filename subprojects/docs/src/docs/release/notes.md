@@ -280,6 +280,12 @@ This also applies to the DSL. The Groovy DSL will allow any `Iterable` to be use
 
 The new `SetProperty` type follows this same pattern.
 
+### Kotlin upgraded to 1.2.0
+
+The version of Kotlin bundled with Gradle was changed from Kotlin 1.1.51 to Kotlin [1.2.0](http://kotlinlang.org/docs/reference/whatsnew12.html).
+
+The Kotlin 1.2.0 release contains breaking changes that might affect your build.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
