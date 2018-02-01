@@ -203,10 +203,10 @@ public class DirectoryLocalBuildCacheServiceV2 implements LocalBuildCacheService
 
         @Override
         public InputStream read() throws IOException {
-            InputStream inputStream = new FileInputStream(file);
+            DataInputStream inputStream = new DataInputStream(new FileInputStream(file));
             // Skip header byte
-            if (inputStream.read() == -1) {
-                throw new IllegalStateException("File entry is missing header byte");
+            if (inputStream.readInt() != 0) {
+                throw new IllegalStateException("File entry is missing header");
             }
             return inputStream;
         }
