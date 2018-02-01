@@ -33,7 +33,7 @@ public class BuildOperationTree {
         for (BuildOperationRecord record : roots) {
             visit(records, record);
         }
-        this.roots = roots;
+        this.roots = BuildOperationRecord.ORDERING.immutableSortedCopy(roots);
         this.records = records.build();
     }
 

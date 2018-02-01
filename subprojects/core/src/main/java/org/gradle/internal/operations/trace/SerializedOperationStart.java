@@ -26,7 +26,7 @@ import org.gradle.internal.progress.OperationStartEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-class SerializedOperationStart {
+class SerializedOperationStart implements SerializedOperation {
 
     final Object id;
     final Object parentId;
@@ -80,7 +80,7 @@ class SerializedOperationStart {
         this.detailsClassName = (String) map.get("detailsClassName");
     }
 
-    Map<String, ?> toMap() {
+    public Map<String, ?> toMap() {
         ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
 
         // Order is optimised for humans looking at the log.
