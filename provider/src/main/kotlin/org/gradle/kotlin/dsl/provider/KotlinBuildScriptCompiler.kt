@@ -264,9 +264,9 @@ class KotlinBuildScriptCompiler(
 
     private
     fun scriptClassLoaderScopeWith(accessorsClassPath: ClassPath) =
-        targetScope.createChild(classLoaderScopeIdFor("script")).apply {
-            local(accessorsClassPath)
-        }
+        targetScope
+            .createChild(classLoaderScopeIdFor("script"))
+            .local(accessorsClassPath)
 
     private
     fun pluginsBlockClassLoaderScope() =
@@ -286,11 +286,10 @@ class KotlinBuildScriptCompiler(
 
     private
     fun classLoaderFor(location: File, scope: ClassLoaderScope) =
-        scope.run {
-            local(DefaultClassPath(location))
-            lock()
-            localClassLoader
-        }
+        scope
+            .local(DefaultClassPath(location))
+            .lock()
+            .localClassLoader
 
     private
     fun <T : Any> instantiate(scriptClass: Class<*>, targetType: KClass<*>, target: T) {
