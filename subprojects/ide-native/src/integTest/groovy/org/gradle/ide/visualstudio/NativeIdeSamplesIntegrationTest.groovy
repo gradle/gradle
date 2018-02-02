@@ -15,17 +15,17 @@
  */
 package org.gradle.ide.visualstudio
 
+import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-class NativeIdeSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     @Rule public final Sample visualStudio = sample(temporaryFolder, 'visual-studio')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {

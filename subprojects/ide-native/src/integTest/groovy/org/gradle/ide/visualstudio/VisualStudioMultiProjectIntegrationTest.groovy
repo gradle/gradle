@@ -15,13 +15,16 @@
  */
 package org.gradle.ide.visualstudio
 
+import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
+import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 
-class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     private final Set<String> projectConfigurations = ['debug', 'release'] as Set
 
     def app = new CppHelloWorldApp()
@@ -46,6 +49,11 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
                     buildTypes {
                         debug
                         release
+                    }
+                    components {
+                        all {
+                            targetPlatform "win32"
+                        }
                     }
                 }
             }
@@ -287,6 +295,101 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         greetLibProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2017_OR_NEWER)
+    def "can build executable that depends on static library in another project from visual studio"() {
+        useMsbuildTool()
+
+        given:
+        app.executable.writeSources(file("exe/src/main"))
+        app.library.writeSources(file("lib/src/hello"))
+
+        settingsFile << """
+            include ':exe', ':lib'
+        """
+        file("exe", "build.gradle") << """
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            cpp.lib project: ':lib', library: 'hello', linkage: 'static'
+                        }
+                    }
+                }
+            }
+        """
+        file("lib", "build.gradle") << """
+            model {
+                components {
+                    hello(NativeLibrarySpec)
+                }
+            }
+        """
+        succeeds ":visualStudio"
+
+        when:
+        def resultDebug = msbuild
+            .withSolution(solutionFile('app.sln'))
+            .withConfiguration('debug')
+            .succeeds()
+
+        then:
+        resultDebug.executedTasks as Set == [':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary', ':lib:compileHelloDebugSharedLibraryHelloCpp', ':lib:linkHelloDebugSharedLibrary', ':lib:helloDebugSharedLibrary'] as Set
+        resultDebug.skippedTasks.empty
+        installation('exe/build/install/main/debug').assertInstalled()
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2017_OR_NEWER)
+    def "can clean from visual studio with dependencies"() {
+        useMsbuildTool()
+        def debugBinary = executable('exe/build/exe/main/debug/main')
+
+        given:
+        app.executable.writeSources(file("exe/src/main"))
+        app.library.writeSources(file("lib/src/hello"))
+        settingsFile << """
+            include ':exe', ':lib'
+        """
+        file("exe", "build.gradle") << """
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            cpp.lib project: ':lib', library: 'hello', linkage: 'static'
+                        }
+                    }
+                }
+            }
+        """
+        file("lib", "build.gradle") << """
+            model {
+                components {
+                    hello(NativeLibrarySpec)
+                }
+            }
+        """
+        succeeds ":visualStudio"
+
+        when:
+        debugBinary.assertDoesNotExist()
+        msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('debug')
+            .succeeds()
+
+        then:
+        debugBinary.exec().out == app.englishOutput
+
+        when:
+        msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('debug')
+            .succeeds(MSBuildExecutor.MSBuildAction.CLEAN)
+
+        then:
+        file("exe/build").assertDoesNotExist()
+        file("lib/build").assertDoesNotExist()
+    }
+
     def "create visual studio solution where multiple components have same name"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
@@ -444,7 +547,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         then:
         final exeProject = projectFile("exe/exe_mainExe.vcxproj")
         exeProject.projectConfigurations.values().each {
-            assert it.buildCommand == "../gradlew.bat -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand == "\"../gradlew.bat\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
         }
     }
 

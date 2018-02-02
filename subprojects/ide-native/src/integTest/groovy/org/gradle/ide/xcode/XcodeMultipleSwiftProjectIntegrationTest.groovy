@@ -17,7 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.ide.xcode.fixtures.XcodebuildExecuter
+import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithDep
@@ -445,7 +445,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('App')
-            .succeeds(XcodebuildExecuter.XcodeAction.CLEAN)
+            .succeeds(XcodebuildExecutor.XcodeAction.CLEAN)
 
         then:
         exe("app/build/exe/main/debug/App").assertDoesNotExist()
@@ -456,7 +456,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('Hello')
-            .succeeds(XcodebuildExecuter.XcodeAction.CLEAN)
+            .succeeds(XcodebuildExecutor.XcodeAction.CLEAN)
 
         then:
         exe("app/build/exe/main/debug/App").assertDoesNotExist()
@@ -549,7 +549,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         def resultTestRunner = xcodebuild
             .withWorkspace(rootXcodeWorkspace)
             .withScheme('Greeter')
-            .succeeds(XcodebuildExecuter.XcodeAction.TEST)
+            .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
         resultTestRunner.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkTest',

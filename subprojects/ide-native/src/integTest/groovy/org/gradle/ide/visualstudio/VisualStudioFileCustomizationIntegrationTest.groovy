@@ -16,14 +16,14 @@
 
 package org.gradle.ide.visualstudio
 
+import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.FiltersFile
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
-class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioIntegrationSpec {
 
     def app = new CppHelloWorldApp()
 
@@ -80,7 +80,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         assert projectFile.headerFiles == app.headerFiles*.withPath("../../../src/main").sort()
         assert projectFile.sourceFiles == ['../../../build.gradle'] + app.sourceFiles*.withPath("../../../src/main").sort()
         projectFile.projectConfigurations.values().each {
-            assert it.buildCommand == "../../../gradlew.bat -p \"../../..\" :installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand == "\"../../../gradlew.bat\" -p \"../../..\" :installMain${it.name.capitalize()}Executable"
             assert it.outputFile == OperatingSystem.current().getExecutableName("../../../build/install/main/${it.name}/lib/main")
         }
         def filtersFile = filtersFile("other/filters.vcxproj.filters")

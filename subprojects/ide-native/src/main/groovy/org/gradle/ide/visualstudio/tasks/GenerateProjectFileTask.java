@@ -29,6 +29,7 @@ import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration;
 import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer;
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioProjectFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
+import org.gradle.plugins.ide.internal.IdePlugin;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -43,7 +44,7 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
     private String gradleArgs;
 
     public void initGradleCommand() {
-        final File gradlew = getProject().getRootProject().file("gradlew.bat");
+        final File gradlew = new File(IdePlugin.toGradleCommand(getProject()));
         getConventionMapping().map("gradleExe", new Callable<Object>() {
             @Override
             public Object call() throws Exception {
@@ -54,7 +55,7 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
                 }
 
                 if (gradlew.isFile()) {
-                    return getTransformer().transform(gradlew) + args;
+                    return "\"" + getTransformer().transform(gradlew) + "\"" + args;
                 }
 
                 return "gradle" + args;

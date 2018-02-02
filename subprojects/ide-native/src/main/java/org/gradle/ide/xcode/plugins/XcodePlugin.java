@@ -16,7 +16,6 @@
 
 package org.gradle.ide.xcode.plugins;
 
-import com.google.common.base.Optional;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -31,7 +30,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Delete;
@@ -208,7 +206,7 @@ public class XcodePlugin extends IdePlugin {
                 xcode.getProject().getGroups().getTests().from(sources);
 
                 String targetName = component.getModule().get();
-                final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
+                final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project), getBridgeTaskPath(project), sources);
                 target.setDebug(component.getTestBinary().get().getInstallDirectory(), PBXTarget.ProductType.UNIT_TEST);
                 target.setRelease(component.getTestBinary().get().getInstallDirectory(), PBXTarget.ProductType.UNIT_TEST);
                 target.getCompileModules().from(component.getTestBinary().get().getCompileModules());
@@ -239,7 +237,7 @@ public class XcodePlugin extends IdePlugin {
 
                 // TODO - should use the _install_ task for an executable
                 String targetName = component.getModule().get();
-                final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
+                final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project), getBridgeTaskPath(project), sources);
                 component.getBinaries().whenElementFinalized(new Action<SwiftBinary>() {
                     @Override
                     public void execute(SwiftBinary swiftBinary) {
@@ -299,7 +297,7 @@ public class XcodePlugin extends IdePlugin {
 
                 // TODO - should use the _install_ task for an executable
                 String targetName = StringUtils.capitalize(component.getBaseName().get());
-                final XcodeTarget target = newTarget(targetName, targetName, toGradleCommand(project.getRootProject()), getBridgeTaskPath(project), sources);
+                final XcodeTarget target = newTarget(targetName, targetName, toGradleCommand(project), getBridgeTaskPath(project), sources);
                 component.getBinaries().whenElementFinalized(new Action<CppBinary>() {
                     @Override
                     public void execute(CppBinary cppBinary) {
@@ -336,23 +334,6 @@ public class XcodePlugin extends IdePlugin {
         schemeFileTask.setXcodeProject(xcodeProject);
         schemeFileTask.setOutputFile(new File(xcodeProject.getLocationDir(), "xcshareddata/xcschemes/" + schemeName + ".xcscheme"));
         return schemeFileTask;
-    }
-
-    private static String toGradleCommand(Project project) {
-        Gradle gradle = project.getGradle();
-        Optional<String> gradleWrapperPath = Optional.absent();
-        if (project.file("gradlew").exists()) {
-            gradleWrapperPath = Optional.of(project.file("gradlew").getAbsolutePath());
-        }
-
-        if (gradle.getGradleHomeDir() != null) {
-            if (gradleWrapperPath.isPresent() && gradle.getGradleHomeDir().getAbsolutePath().startsWith(gradle.getGradleUserHomeDir().getAbsolutePath())) {
-                return gradleWrapperPath.get();
-            }
-            return gradle.getGradleHomeDir().getAbsolutePath() + "/bin/gradle";
-        }
-
-        return gradleWrapperPath.or("gradle");
     }
 
     private XcodeTarget newTarget(String name, String productName, String gradleCommand, String taskName, FileCollection sources) {

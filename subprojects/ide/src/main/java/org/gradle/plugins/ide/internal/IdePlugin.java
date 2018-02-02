@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.internal;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.BuildAdapter;
@@ -36,10 +37,12 @@ import org.gradle.api.tasks.Delete;
 import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -50,6 +53,27 @@ public abstract class IdePlugin implements Plugin<Project>, IdeArtifactRegistry 
     private Task lifecycleTask;
     private Task cleanTask;
     protected Project project;
+
+    public static String toGradleCommand(Project project) {
+        Gradle gradle = project.getGradle();
+        Optional<String> gradleWrapperPath = Optional.absent();
+
+        Project rootProject = project.getRootProject();
+        String gradlewExtension = OperatingSystem.current().isWindows() ? ".bat" : "";
+        File gradlewFile = rootProject.file("gradlew" + gradlewExtension);
+        if (gradlewFile.exists()) {
+            gradleWrapperPath = Optional.of(gradlewFile.getAbsolutePath());
+        }
+
+        if (gradle.getGradleHomeDir() != null) {
+            if (gradleWrapperPath.isPresent() && gradle.getGradleHomeDir().getAbsolutePath().startsWith(gradle.getGradleUserHomeDir().getAbsolutePath())) {
+                return gradleWrapperPath.get();
+            }
+            return gradle.getGradleHomeDir().getAbsolutePath() + "/bin/gradle";
+        }
+
+        return gradleWrapperPath.or("gradle");
+    }
 
     @Override
     public void apply(Project target) {

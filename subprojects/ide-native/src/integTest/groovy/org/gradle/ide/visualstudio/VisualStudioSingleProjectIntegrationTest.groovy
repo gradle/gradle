@@ -15,19 +15,25 @@
  */
 package org.gradle.ide.visualstudio
 
+import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.FiltersFile
+import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.app.*
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
-class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     private final Set<String> projectConfigurations = ['win32Debug', 'win32Release', 'x64Debug', 'x64Release'] as Set
 
     def app = new CppHelloWorldApp()
@@ -132,6 +138,139 @@ model {
         final mainSolution = solutionFile("app.sln")
         mainSolution.assertHasProjects("mainExe")
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2017_OR_NEWER)
+    def "can build executable from visual studio"() {
+        useMsbuildTool()
+        def debugBinary = executable("build/exe/main/win32/debug/main")
+
+        given:
+        app.writeSources(file("src/main"))
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
+        """
+
+        and:
+        succeeds "visualStudio"
+
+        when:
+        debugBinary.assertDoesNotExist()
+        def resultDebug = msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('win32Debug')
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileMainWin32DebugExecutableMainCpp', ':linkMainWin32DebugExecutable', ':mainWin32DebugExecutable', ':installMainWin32DebugExecutable')
+        resultDebug.assertTasksNotSkipped(':compileMainWin32DebugExecutableMainCpp', ':linkMainWin32DebugExecutable', ':mainWin32DebugExecutable', ':installMainWin32DebugExecutable')
+        debugBinary.assertExists()
+        installation('build/install/main/win32/debug').assertInstalled()
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2017_OR_NEWER)
+    def "can build library from visual studio"() {
+        useMsbuildTool()
+        def debugBinaryLib = staticLibrary("build/libs/main/static/win32/debug/main")
+        def debugBinaryDll = sharedLibrary("build/libs/main/shared/win32/debug/main")
+
+        given:
+        app.library.writeSources(file("src/main"))
+        buildFile << """
+model {
+    components {
+        main(NativeLibrarySpec)
+    }
+}
+"""
+        and:
+        succeeds "visualStudio"
+
+        when:
+        debugBinaryLib.assertDoesNotExist()
+        debugBinaryDll.assertDoesNotExist()
+        def resultDebug = msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('win32Debug')
+            .succeeds()
+
+        then:
+        resultDebug.assertTasksExecuted(':compileMainWin32DebugStaticLibraryMainCpp', ':createMainWin32DebugStaticLibrary', ':mainWin32DebugStaticLibrary', ':compileMainWin32DebugSharedLibraryMainCpp', ':linkMainWin32DebugSharedLibrary', ':mainWin32DebugSharedLibrary')
+        resultDebug.assertTasksNotSkipped(':compileMainWin32DebugStaticLibraryMainCpp', ':createMainWin32DebugStaticLibrary', ':mainWin32DebugStaticLibrary', ':compileMainWin32DebugSharedLibraryMainCpp', ':linkMainWin32DebugSharedLibrary', ':mainWin32DebugSharedLibrary')
+        debugBinaryLib.assertExists()
+        debugBinaryDll.assertExists()
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2017_OR_NEWER)
+    def "can detect build failure from visual studio"() {
+        useMsbuildTool()
+
+        given:
+        app.writeSources(file("src/main"))
+        file('src/main/cpp/broken.cpp') << 'Broken!'
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
+        """
+
+        and:
+        succeeds "visualStudio"
+
+        when:
+        def resultDebug = msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('win32Debug')
+            .fails()
+
+        then:
+        resultDebug.assertTasksExecuted()
+        resultDebug.assertTasksSkipped()
+        file('build').assertDoesNotExist()
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP_2017_OR_NEWER)
+    def "can clean from visual studio"() {
+        useMsbuildTool()
+        def debugBinary = executable('build/exe/main/win32/debug/main')
+
+        given:
+        app.writeSources(file("src/main"))
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
+        """
+
+        and:
+        succeeds "visualStudio"
+
+        when:
+        debugBinary.assertDoesNotExist()
+        msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('win32Debug')
+            .succeeds()
+
+        then:
+        debugBinary.exec().out == app.englishOutput
+
+        when:
+        msbuild
+            .withSolution(solutionFile("app.sln"))
+            .withConfiguration('win32Debug')
+            .succeeds(MSBuildExecutor.MSBuildAction.CLEAN)
+
+        then:
+        file("build").assertDoesNotExist()
     }
 
     def "create visual studio solution for library"() {
