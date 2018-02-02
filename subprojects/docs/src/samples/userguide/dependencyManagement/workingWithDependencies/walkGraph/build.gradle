@@ -13,23 +13,38 @@ dependencies {
 }
 
 //START SNIPPET walk-task
-task walkDependencyGraph {
+task walkDependencyGraph(type: DependencyGraphWalk) {
     dependsOn configurations.scm
+}
 
-    doLast {
-        ResolutionResult resolutionResult = configurations.scm.incoming.resolutionResult
+class DependencyGraphWalk extends DefaultTask {
+    @TaskAction
+    void walk() {
+        Configuration configuration = project.configurations.scm
+        ResolutionResult resolutionResult = configuration.incoming.resolutionResult
+        ResolvedComponentResult root = resolutionResult.root
+        logger.quiet configuration.name
+        traverseDependencies(0, root.dependencies)
+    }
 
-        resolutionResult.allDependencies {
-            if (it instanceof ResolvedDependencyResult) {
-                ResolvedComponentResult componentResult = it.selected
+    private void traverseDependencies(int level, Set<? extends DependencyResult> results) {
+        for (DependencyResult result : results) {
+            if (result instanceof ResolvedDependencyResult) {
+                ResolvedComponentResult componentResult = result.selected
                 ComponentIdentifier componentIdentifier = componentResult.id
-                logger.quiet "Resolved: $componentIdentifier.displayName ($componentResult.selectionReason)"
-            } else if (it instanceof UnresolvedDependencyResult) {
-                ComponentSelector componentSelector = it.attempted
-                Throwable failure = it.failure
-                logger.quiet "Unresolved: $componentSelector.displayName ($failure.message)"
+                String node = calculateIndentation(level) + "- $componentIdentifier.displayName ($componentResult.selectionReason)"
+                logger.quiet node
+                traverseDependencies(level + 1, componentResult.dependencies)
+            } else if (result instanceof UnresolvedDependencyResult) {
+                ComponentSelector componentSelector = result.attempted
+                String node = calculateIndentation(level) + "- $componentSelector.displayName (failed)"
+                logger.quiet node
             }
         }
+    }
+
+    private String calculateIndentation(int level) {
+        '     ' * level
     }
 }
 //END SNIPPET walk-task
