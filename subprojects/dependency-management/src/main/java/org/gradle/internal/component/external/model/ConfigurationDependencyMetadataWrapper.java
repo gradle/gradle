@@ -38,6 +38,8 @@ public class ConfigurationDependencyMetadataWrapper implements ModuleDependencyM
     private final ExternalDependencyDescriptor delegate;
     private final String reason;
 
+    private List<ExcludeMetadata> cachedExcludes;
+
     private ConfigurationDependencyMetadataWrapper(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor delegate, String reason) {
         this.configuration = configuration;
         this.componentId = componentId;
@@ -61,7 +63,11 @@ public class ConfigurationDependencyMetadataWrapper implements ModuleDependencyM
 
     @Override
     public List<ExcludeMetadata> getExcludes() {
-        return delegate.getConfigurationExcludes(configuration.getHierarchy());
+        if (cachedExcludes != null) {
+            return cachedExcludes;
+        }
+        cachedExcludes = delegate.getConfigurationExcludes(configuration.getHierarchy());
+        return cachedExcludes;
     }
 
     @Override
