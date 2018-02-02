@@ -50,6 +50,7 @@ class EdgeState implements DependencyGraphEdge {
     private final ResolveState resolveState;
     private final ModuleExclusion transitiveExclusions;
     private final List<NodeState> targetNodes = Lists.newLinkedList();
+    private final boolean isTransitive;
 
     private ComponentState targetModuleRevision;
     private ModuleVersionResolveException targetNodeSelectionFailure;
@@ -62,6 +63,7 @@ class EdgeState implements DependencyGraphEdge {
         this.transitiveExclusions = transitiveExclusions;
         this.resolveState = resolveState;
         this.selector = resolveState.getSelector(dependencyState, dependencyState.getModuleIdentifier());
+        this.isTransitive = from.isTransitive() && dependencyMetadata.isTransitive();
     }
 
     @Override
@@ -99,7 +101,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     public boolean isTransitive() {
-        return from.isTransitive() && dependencyMetadata.isTransitive();
+        return isTransitive;
     }
 
     public void attachToTargetConfigurations() {
