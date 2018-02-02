@@ -102,7 +102,9 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             }
         } else {
             if (!directory.mkdirs()) {
-                throw new UncheckedIOException(String.format("Could not create cache directory: %s", directory));
+                if (!directory.isDirectory()) {
+                    throw new UncheckedIOException(String.format("Could not create cache directory: %s", directory));
+                }
             }
         }
     }

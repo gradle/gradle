@@ -46,7 +46,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
     private final PersistentCache persistentCache;
     private final BuildCacheTempFileStore tempFileStore;
     private final String failedFileSuffix;
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private static final ReadWriteLock LOCK = new ReentrantReadWriteLock();
 
     public DirectoryBuildCacheService(PathKeyFileStore fileStore, PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, String failedFileSuffix) {
         this.fileStore = fileStore;
@@ -96,11 +96,11 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
         persistentCache.withFileLock(new Runnable() {
             @Override
             public void run() {
-                lock.readLock().lock();
+                LOCK.readLock().lock();
                 try {
                     loadInsideLock(key, reader);
                 } finally {
-                    lock.readLock().unlock();
+                    LOCK.readLock().unlock();
                 }
             }
         });
@@ -157,11 +157,11 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
         persistentCache.withFileLock(new Runnable() {
             @Override
             public void run() {
-                lock.writeLock().lock();
+                LOCK.writeLock().lock();
                 try {
                     storeInsideLock(key, file);
                 } finally {
-                    lock.writeLock().unlock();
+                    LOCK.writeLock().unlock();
                 }
             }
         });

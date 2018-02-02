@@ -29,7 +29,7 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.BuildCacheControllerFactory;
 import org.gradle.caching.internal.controller.BuildCacheControllerFactory.BuildCacheMode;
 import org.gradle.caching.internal.controller.BuildCacheControllerFactory.RemoteAccessMode;
-import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
+import org.gradle.caching.internal.controller.RootBuildCacheConfigurationRef;
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.SystemProperties;
@@ -85,19 +85,17 @@ public class BuildCacheTaskServices {
         BuildOperationExecutor buildOperationExecutor,
         InstantiatorFactory instantiatorFactory,
         GradleInternal gradle,
-        RootBuildCacheControllerRef rootControllerRef
+        RootBuildCacheConfigurationRef rootConfigurationRef
     ) {
-        if (isRoot(gradle) || isRootBuildSrc(gradle) || isGradleBuildTaskRoot(rootControllerRef)) {
-            return doCreateBuildCacheController(serviceRegistry, buildCacheConfiguration, buildOperationExecutor, instantiatorFactory, gradle);
-        } else {
-            // must be an included build
-            return rootControllerRef.getForNonRootBuild();
-        }
+        BuildCacheConfigurationInternal usedConfiguration =
+        isRoot(gradle) || isRootBuildSrc(gradle) || isGradleBuildTaskRoot(rootConfigurationRef)
+            ? buildCacheConfiguration : rootConfigurationRef.getForNonRootBuild();
+        return doCreateBuildCacheController(serviceRegistry, usedConfiguration, buildOperationExecutor, instantiatorFactory, gradle);
     }
 
-    private boolean isGradleBuildTaskRoot(RootBuildCacheControllerRef rootControllerRef) {
+    private boolean isGradleBuildTaskRoot(RootBuildCacheConfigurationRef rootControllerRef) {
         // GradleBuild tasks operate with their own build session and tree scope.
-        // Therefore, they have their own RootBuildCacheControllerRef.
+        // Therefore, they have their own RootBuildCacheConfigurationRef.
         // This prevents them from reusing the build cache configuration defined by the root.
         // There is no way to detect that a Gradle instance represents a GradleBuild invocation.
         // If there were, that would be a better heuristic than this.
