@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
- * The configuration for mapping a set of C++ components to a Visual Studio project.
+ * The configuration for mapping a set of native components to a Visual Studio project.
  *
  * @since 4.6
  */

@@ -22,7 +22,7 @@ import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A visual studio project, created from one or more {@link org.gradle.nativeplatform.NativeBinary} instances.
+ * A visual studio project, created from one or more native binaries.
  *
  * <p>
  *
