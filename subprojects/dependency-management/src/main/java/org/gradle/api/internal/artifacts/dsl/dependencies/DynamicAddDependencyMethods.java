@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.util.CollectionUtils;
@@ -63,7 +62,7 @@ class DynamicAddDependencyMethods implements MethodAccess {
         }
     }
 
-    interface DependencyAdder {
-        Dependency add(Configuration configuration, Object dependencyNotation, Closure configureAction);
+    interface DependencyAdder<T> {
+        T add(Configuration configuration, Object dependencyNotation, Closure configureAction);
     }
 }

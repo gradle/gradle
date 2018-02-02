@@ -64,6 +64,16 @@ public interface ResolvableDependencies extends ArtifactView {
     DependencySet getDependencies();
 
     /**
+     * Returns the set of dependency constraints which will be considered during resolution.
+     *
+     * @return the dependency constraints. Never null.
+     *
+     * @since 4.6
+     */
+    @Incubating
+    DependencyConstraintSet getDependencyConstraints();
+
+    /**
      * Adds an action to be executed before the dependencies in this set are resolved.
      *
      * @param action The action to execute.

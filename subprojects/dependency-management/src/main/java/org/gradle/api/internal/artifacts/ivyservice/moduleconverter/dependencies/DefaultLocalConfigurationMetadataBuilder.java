@@ -46,6 +46,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         configuration.runDependencyActions();
 
         addDependencies(metaData, configuration);
+        addDependencyConstraints(metaData, configuration);
         addExcludeRules(metaData, configuration);
     }
 
@@ -58,12 +59,16 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             } else if (dependency instanceof FileCollectionDependency) {
                 final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
                 configurationMetadata.addFiles(new DefaultLocalFileDependencyMetadata(fileDependency));
-            } else if (dependency instanceof DependencyConstraint) {
-                DependencyConstraint dependencyConstraint = (DependencyConstraint) dependency;
-                configurationMetadata.addDependency(dependencyDescriptorFactory.createDependencyConstraintDescriptor(configurationMetadata.getComponentId(), configuration.getName(), attributes, dependencyConstraint));
             } else {
                 throw new IllegalArgumentException("Cannot convert dependency " + dependency + " to local component dependency metadata.");
             }
+        }
+    }
+
+    private void addDependencyConstraints(BuildableLocalConfigurationMetadata configurationMetadata, ConfigurationInternal configuration) {
+        AttributeContainerInternal attributes = configuration.getAttributes();
+        for (DependencyConstraint dependencyConstraint : configuration.getDependencyConstraints()) {
+            configurationMetadata.addDependency(dependencyDescriptorFactory.createDependencyConstraintDescriptor(configurationMetadata.getComponentId(), configuration.getName(), attributes, dependencyConstraint));
         }
     }
 

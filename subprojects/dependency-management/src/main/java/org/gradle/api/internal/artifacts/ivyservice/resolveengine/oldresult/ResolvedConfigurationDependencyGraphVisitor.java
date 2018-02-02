@@ -42,7 +42,9 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyAr
         for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
             if (dependency.getFrom() == root) {
                 Dependency moduleDependency = dependency.getOriginalDependency();
-                builder.addFirstLevelDependency(moduleDependency, node);
+                if (moduleDependency != null) {
+                    builder.addFirstLevelDependency(moduleDependency, node);
+                }
             }
         }
     }

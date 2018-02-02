@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.gradle.api.artifacts.DependencyConstraint
+import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.FileCollectionDependency
@@ -37,6 +39,7 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
     def metaData = Mock(BuildableLocalConfigurationMetadata)
     def configuration = Mock(ConfigurationInternal)
     def dependencySet = Mock(DependencySet)
+    def dependencyConstraintSet = Mock(DependencyConstraintSet)
 
     def "ignores configuration with no dependencies or exclude rules"() {
         when:
@@ -45,9 +48,11 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
         then:
         1 * configuration.runDependencyActions()
         1 * configuration.dependencies >> dependencySet
+        1 * configuration.dependencyConstraints >> dependencyConstraintSet
         1 * dependencySet.iterator() >> [].iterator()
+        1 * dependencyConstraintSet.iterator() >> [].iterator()
         1 * configuration.excludeRules >> ([] as Set)
-        1 * configuration.attributes >> Stub(AttributeContainerInternal)
+        2 * configuration.attributes >> Stub(AttributeContainerInternal)
         0 * _
     }
 
@@ -65,11 +70,40 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
         _ * metaData.getComponentId() >> componentId
         1 * configuration.runDependencyActions()
         1 * configuration.dependencies >> dependencySet
+        1 * configuration.dependencyConstraints >> dependencyConstraintSet
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
+        1 * dependencyConstraintSet.iterator() >> [].iterator()
         _ * configuration.name >> "config"
         _ * configuration.attributes >> Stub(AttributeContainerInternal)
         1 * dependencyDescriptorFactory.createDependencyDescriptor(componentId, "config", _, dependency1) >> dependencyDescriptor1
         1 * dependencyDescriptorFactory.createDependencyDescriptor(componentId, "config", _, dependency2) >> dependencyDescriptor2
+        1 * metaData.addDependency(dependencyDescriptor1)
+        1 * metaData.addDependency(dependencyDescriptor2)
+        1 * configuration.excludeRules >> ([] as Set)
+        0 * _
+    }
+
+    def "adds DependencyConstraint instances from configuration"() {
+        def componentId = Mock(ComponentIdentifier)
+        def dependencyDescriptor1 = Mock(LocalOriginDependencyMetadata)
+        def dependencyDescriptor2 = Mock(LocalOriginDependencyMetadata)
+        def dependencyConstraint1 = Mock(DependencyConstraint)
+        def dependencyConstraint2 = Mock(DependencyConstraint)
+
+        when:
+        converter.addDependenciesAndExcludes(metaData, configuration)
+
+        then:
+        _ * metaData.getComponentId() >> componentId
+        1 * configuration.runDependencyActions()
+        1 * configuration.dependencies >> dependencySet
+        1 * configuration.dependencyConstraints >> dependencyConstraintSet
+        1 * dependencySet.iterator() >> [].iterator()
+        1 * dependencyConstraintSet.iterator() >> [dependencyConstraint1, dependencyConstraint2].iterator()
+        _ * configuration.name >> "config"
+        _ * configuration.attributes >> Stub(AttributeContainerInternal)
+        1 * dependencyDescriptorFactory.createDependencyConstraintDescriptor(componentId, "config", _, dependencyConstraint1) >> dependencyDescriptor1
+        1 * dependencyDescriptorFactory.createDependencyConstraintDescriptor(componentId, "config", _, dependencyConstraint2) >> dependencyDescriptor2
         1 * metaData.addDependency(dependencyDescriptor1)
         1 * metaData.addDependency(dependencyDescriptor2)
         1 * configuration.excludeRules >> ([] as Set)
@@ -86,7 +120,9 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
         then:
         1 * configuration.runDependencyActions()
         1 * configuration.dependencies >> dependencySet
+        1 * configuration.dependencyConstraints >> dependencyConstraintSet
         1 * dependencySet.iterator() >> [dependency1, dependency2].iterator()
+        1 * dependencyConstraintSet.iterator() >> [].iterator()
         _ * configuration.name >> "config"
         _ * configuration.attributes >> Stub(AttributeContainerInternal)
         1 * metaData.addFiles({it.source == dependency1})
@@ -105,7 +141,9 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
         then:
         1 * configuration.runDependencyActions()
         1 * configuration.dependencies >> dependencySet
+        1 * configuration.dependencyConstraints >> dependencyConstraintSet
         1 * dependencySet.iterator() >> [].iterator()
+        1 * dependencyConstraintSet.iterator() >> [].iterator()
 
         1 * configuration.excludeRules >> ([excludeRule] as Set)
         _ * configuration.getName() >> "config"

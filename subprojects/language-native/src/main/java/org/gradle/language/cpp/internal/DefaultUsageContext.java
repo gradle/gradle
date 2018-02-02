@@ -41,7 +41,7 @@ class DefaultUsageContext implements UsageContext, Named {
         this.attributes = configuration.getAttributes();
         this.artifacts = artifacts;
         this.dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
-        this.dependencyConstraints = configuration.getAllDependencies().withType(DependencyConstraint.class);
+        this.dependencyConstraints = configuration.getAllDependencyConstraints();
     }
 
     DefaultUsageContext(String name, Usage usage, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts, Set<? extends ModuleDependency> dependencies, Set<? extends DependencyConstraint> dependencyConstraints) {

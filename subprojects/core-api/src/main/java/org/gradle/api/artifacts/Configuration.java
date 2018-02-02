@@ -319,6 +319,28 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     DependencySet getAllDependencies();
 
     /**
+     * Gets the set of dependency constraints directly contained in this configuration
+     * (ignoring superconfigurations).
+     *
+     * @return the set of dependency constraints
+     *
+     * @since 4.6
+     */
+    @Incubating
+    DependencyConstraintSet getDependencyConstraints();
+
+    /**
+     * <p>Gets the complete set of dependency constraints including those contributed by
+     * superconfigurations.</p>
+     *
+     * @return the (read-only) set of dependency constraints
+     *
+     * @since 4.6
+     */
+    @Incubating
+    DependencyConstraintSet getAllDependencyConstraints();
+
+    /**
      * Returns the artifacts of this configuration excluding the artifacts of extended configurations.
      *
      * @return The set.

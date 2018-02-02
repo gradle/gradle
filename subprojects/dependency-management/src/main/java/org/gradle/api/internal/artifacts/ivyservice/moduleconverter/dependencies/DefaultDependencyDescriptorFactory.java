@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
@@ -48,9 +47,8 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
     public LocalOriginDependencyMetadata createDependencyConstraintDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, DependencyConstraint dependencyConstraint) {
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
             nullToEmpty(dependencyConstraint.getGroup()), nullToEmpty(dependencyConstraint.getName()), dependencyConstraint.getVersionConstraint());
-        LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(componentId, selector, clientConfiguration, attributes, null,
+        return new LocalComponentDependencyMetadata(componentId, selector, clientConfiguration, attributes, null,
             Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, true, dependencyConstraint.getReason());
-        return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependencyConstraint);
     }
 
     private IvyDependencyDescriptorFactory findFactoryForDependency(ModuleDependency dependency) {

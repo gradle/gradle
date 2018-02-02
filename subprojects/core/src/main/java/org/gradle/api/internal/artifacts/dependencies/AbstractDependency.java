@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.artifacts.DirectDependency;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.artifacts.ResolvableDependency;
 
-public abstract class AbstractDependency implements ResolvableDependency, DirectDependency {
+public abstract class AbstractDependency implements ResolvableDependency, Dependency {
     private String reason;
 
     protected void copyTo(AbstractDependency target) {

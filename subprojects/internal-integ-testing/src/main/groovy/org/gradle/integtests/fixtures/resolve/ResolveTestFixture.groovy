@@ -101,7 +101,7 @@ allprojects {
         def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]".toString()
         assert actualRoot.startsWith(expectedRoot)
 
-        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
+        def expectedFirstLevel = graph.root.deps.findAll { !graph.constraints.contains(it.selected) }.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
 
         def actualFirstLevel = findLines(configDetails, 'first-level')
         compare("first level dependencies", actualFirstLevel, expectedFirstLevel)
@@ -312,6 +312,8 @@ allprojects {
         private final Map<String, NodeBuilder> nodes = new LinkedHashMap<>()
         private NodeBuilder root
         private String defaultConfig
+
+        final Set<NodeBuilder> constraints = new LinkedHashSet<>()
 
         GraphBuilder(String defaultConfig) {
             this.defaultConfig = defaultConfig
@@ -574,6 +576,18 @@ allprojects {
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node
             cl.call()
+            return node
+        }
+
+        /**
+         * Defines a link between nodes created through a dependency constraint.
+         */
+        NodeBuilder edgeFromConstraint(String requested, String selectedModuleVersionId) {
+            def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
+            deps << new EdgeBuilder(this, requested, node)
+            if (this == graph.root) {
+                graph.constraints.add(node)
+            }
             return node
         }
 

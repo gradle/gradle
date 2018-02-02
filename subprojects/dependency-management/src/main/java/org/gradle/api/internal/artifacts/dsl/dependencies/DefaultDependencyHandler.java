@@ -209,7 +209,7 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         transforms.registerTransform(registrationAction);
     }
 
-    private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder {
+    private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {
 
         @Override
         public Dependency add(Configuration configuration, Object dependencyNotation, @Nullable Closure configureAction) {

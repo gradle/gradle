@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.internal.metaobject.MethodAccess;
@@ -71,7 +70,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
 
     private DependencyConstraint doAdd(Configuration configuration, Object dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {
         DependencyConstraint dependency = doCreate(dependencyNotation, configureAction);
-        configuration.getDependencies().add(dependency);
+        configuration.getDependencyConstraints().add(dependency);
         return dependency;
     }
 
@@ -80,11 +79,11 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         return dynamicMethods;
     }
 
-    private class DependencyConstraintAdder implements DynamicAddDependencyMethods.DependencyAdder {
+    private class DependencyConstraintAdder implements DynamicAddDependencyMethods.DependencyAdder<DependencyConstraint> {
         @Override
-        public Dependency add(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
+        public DependencyConstraint add(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
             DependencyConstraint dependencyConstraint = ConfigureUtil.configure(configureClosure, dependencyFactory.createDependencyConstraint(dependencyNotation));
-            configuration.getDependencies().add(dependencyConstraint);
+            configuration.getDependencyConstraints().add(dependencyConstraint);
             return dependencyConstraint;
         }
     }

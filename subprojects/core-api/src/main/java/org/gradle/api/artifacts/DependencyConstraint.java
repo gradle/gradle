@@ -18,22 +18,46 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents a constraints over all, including transitive, dependencies.
  *
  * @since 4.5
  */
 @Incubating
-public interface DependencyConstraint extends Dependency {
+public interface DependencyConstraint extends ModuleVersionSelector {
 
     /**
-     * Configures the version constraint for this dependency.
+     * Configures the version constraint for this dependency constraint.
+     *
      * @param configureAction the configuration action for the module version
      */
     void version(Action<? super MutableVersionConstraint> configureAction);
 
     /**
-     * Returns the version constraint.
+     * Returns a reason why this dependency constraint should be used, in particular with regards to its version. The dependency report will use it to explain why a specific dependency was selected, or why a
+     * specific dependency version was used.
+     *
+     * @return a reason to use this dependency constraint
+     * @since 4.6
      */
-    VersionConstraint getVersionConstraint();
+    @Nullable
+    String getReason();
+
+    /**
+     * Sets the reason why this dependency constraint should be used.
+     *
+     * @since 4.6
+     */
+    void because(String reason);
+
+    /**
+     * Creates and returns a new dependency constraint with the property values of this one.
+     *
+     * @return The copy. Never returns null.
+     *
+     * @since 4.6
+     */
+    DependencyConstraint copy();
 }

@@ -17,7 +17,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
@@ -235,12 +234,12 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         runtimeUsage.dependencies.size() == 2
         runtimeUsage.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         runtimeUsage.dependencyConstraints.size() == 2
-        runtimeUsage.dependencyConstraints == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(DependencyConstraint)
+        runtimeUsage.dependencyConstraints == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencyConstraints
 
         apiUsage.dependencies.size() == 1
         apiUsage.dependencies == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         apiUsage.dependencyConstraints.size() == 1
-        apiUsage.dependencyConstraints == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies.withType(DependencyConstraint)
+        apiUsage.dependencyConstraints == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencyConstraints
     }
 
 }

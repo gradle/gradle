@@ -20,7 +20,7 @@ import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.DependencyConstraint
-import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.internal.AsmBackedClassGenerator
 import spock.lang.Specification
@@ -33,7 +33,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
     private def configurationContainer = Mock(ConfigurationContainer)
     private def dependencyFactory = Mock(DependencyFactory)
     private def configuration = Mock(Configuration)
-    private def dependencySet = Mock(DependencySet)
+    private def dependencyConstraintSet = Mock(DependencyConstraintSet)
 
     private DefaultDependencyConstraintHandler dependencyConstraintHandler = new AsmBackedClassGenerator().newInstance(DefaultDependencyConstraintHandler, configurationContainer, dependencyFactory)
 
@@ -41,7 +41,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration
         _ * configurationContainer.getByName(TEST_CONF_NAME) >> configuration
         _ * configurationContainer.getByName(UNKNOWN_TEST_CONF_NAME) >> { throw new UnknownDomainObjectException("") }
-        _ * configuration.dependencies >> dependencySet
+        _ * configuration.dependencyConstraints >> dependencyConstraintSet
     }
 
     void "creates and adds a dependency constraint from some notation"() {
@@ -55,7 +55,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
 
         and:
         1 * dependencyFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
-        1 * dependencySet.add(dependencyConstraint)
+        1 * dependencyConstraintSet.add(dependencyConstraint)
     }
 
     void "creates, configures and adds a dependency constraint from some notation"() {
@@ -72,7 +72,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         and:
         1 * dependencyFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
         1 * dependencyConstraint.version(_ as Action<VersionConstraint>)
-        1 * dependencySet.add(dependencyConstraint)
+        1 * dependencyConstraintSet.add(dependencyConstraint)
     }
 
     void "creates a dependency constraint from some notation"() {
@@ -115,7 +115,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
 
         and:
         1 * dependencyFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
-        1 * dependencySet.add(dependencyConstraint)
+        1 * dependencyConstraintSet.add(dependencyConstraint)
 
     }
 
@@ -130,7 +130,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
 
         and:
         1 * dependencyFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
-        1 * dependencySet.add(dependencyConstraint)
+        1 * dependencyConstraintSet.add(dependencyConstraint)
         1 * dependencyConstraint.version(_ as Action<VersionConstraint>)
     }
 
@@ -147,8 +147,8 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         and:
         1 * dependencyFactory.createDependencyConstraint("someNotation") >> constraint1
         1 * dependencyFactory.createDependencyConstraint("someOther") >> constraint2
-        1 * dependencySet.add(constraint1)
-        1 * dependencySet.add(constraint2)
+        1 * dependencyConstraintSet.add(constraint1)
+        1 * dependencyConstraintSet.add(constraint2)
     }
 
     void "can use dynamic method to add multiple dependency constraint from nested lists"() {
@@ -164,8 +164,8 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         and:
         1 * dependencyFactory.createDependencyConstraint("someNotation") >> constraint1
         1 * dependencyFactory.createDependencyConstraint("someOther") >> constraint2
-        1 * dependencySet.add(constraint1)
-        1 * dependencySet.add(constraint2)
+        1 * dependencyConstraintSet.add(constraint1)
+        1 * dependencyConstraintSet.add(constraint2)
     }
 
     void "dynamic method fails for unknown configuration"() {

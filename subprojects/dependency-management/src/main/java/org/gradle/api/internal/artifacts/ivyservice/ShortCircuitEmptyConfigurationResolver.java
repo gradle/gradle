@@ -58,7 +58,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     @Override
     public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result) {
-        if (configuration.getAllDependencies().isEmpty()) {
+        if (configuration.getAllDependencies().isEmpty() && configuration.getAllDependencyConstraints().isEmpty()) {
             emptyGraph(configuration, result);
         } else {
             delegate.resolveBuildDependencies(configuration, result);
@@ -67,7 +67,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     @Override
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
-        if (configuration.getAllDependencies().isEmpty()) {
+        if (configuration.getAllDependencies().isEmpty() && configuration.getAllDependencyConstraints().isEmpty()) {
             emptyGraph(configuration, results);
         } else {
             delegate.resolveGraph(configuration, results);
@@ -85,7 +85,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     @Override
     public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
-        if (configuration.getAllDependencies().isEmpty()) {
+        if (configuration.getAllDependencies().isEmpty() && configuration.getAllDependencyConstraints().isEmpty()) {
             results.artifactsResolved(new EmptyResolvedConfiguration(), new EmptyResults());
         } else {
             delegate.resolveArtifacts(configuration, results);

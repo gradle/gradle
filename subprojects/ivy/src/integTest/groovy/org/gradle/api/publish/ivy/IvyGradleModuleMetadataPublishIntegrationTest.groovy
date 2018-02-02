@@ -262,7 +262,7 @@ class TestVariant implements org.gradle.api.internal.component.SoftwareComponent
                     name: 'api',
                     usage: objects.named(Usage, 'api'), 
                     dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
-                    dependencyConstraints: configurations.implementation.allDependencies.withType(DependencyConstraint),
+                    dependencyConstraints: configurations.implementation.allDependencyConstraints,
                     attributes: configurations.implementation.attributes))
 
             dependencies {
@@ -371,7 +371,7 @@ class TestVariant implements org.gradle.api.internal.component.SoftwareComponent
                     name: 'api',
                     usage: objects.named(Usage, 'api'), 
                     dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
-                    dependencyConstraints: configurations.implementation.allDependencies.withType(DependencyConstraint),
+                    dependencyConstraints: configurations.implementation.allDependencyConstraints,
                     attributes: configurations.implementation.attributes))
 
             dependencies {
