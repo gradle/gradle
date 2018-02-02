@@ -219,6 +219,26 @@ inputs:
     }
     //CHECKSTYLE:ON
 
+    /**
+     * The peculiars of the swiftc incremental compiler can be extracted from the Driver's source code:
+     * https://github.com/apple/swift/tree/d139ab29681d679337245f399dd8c76d620aa1aa/lib/Driver
+     * And docs:
+     * https://github.com/apple/swift/blob/d139ab29681d679337245f399dd8c76d620aa1aa/docs/Driver.md
+     *
+     * The incremental compiler uses the timestamp of source files and the timestamp in module.swiftdeps to
+     * determine which files should be considered for compilation initially.  The compiler then looks at the
+     * individual object's .swiftdeps file to build a dependency graph between changed and unchanged files.
+     *
+     * The incremental compiler will rebuild everything when:
+     * - A source file is removed
+     * - A different version of swiftc is used
+     * - Different compiler arguments are used
+     *
+     * We work around issues with timestamps by changing module.swiftdeps and setting any changed files to
+     * a timestamp of 0.  swiftc then sees those source files as different from the last compilation.
+     *
+     * If we have any issues reading or writing the swiftdeps file, we bail out and disable incremental compilation.
+     */
     private boolean adjustSwiftDepsForIncrementalCompile(File moduleSwiftDeps, Collection<File> changedSources) {
         if (moduleSwiftDeps.exists()) {
             try {
