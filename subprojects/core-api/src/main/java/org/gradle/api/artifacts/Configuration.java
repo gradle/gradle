@@ -295,7 +295,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     TaskDependency getTaskDependencyFromProjectDependency(boolean useDependedOn, final String taskName);
 
     /**
-     * Gets the set of dependencies directly contained in this configuration
+     * Gets the set of declared dependencies directly contained in this configuration
      * (ignoring superconfigurations).
      * <p>
      * This method does not resolve the configuration. Therefore, the return value does not include
@@ -307,7 +307,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     DependencySet getDependencies();
 
     /**
-     * Gets the complete set of dependencies including those contributed by
+     * Gets the complete set of declared dependencies including those contributed by
      * superconfigurations.
      * <p>
      * This method does not resolve the configuration. Therefore, the return value does not include
