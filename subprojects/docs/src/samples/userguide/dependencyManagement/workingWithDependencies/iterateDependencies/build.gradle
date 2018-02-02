@@ -13,8 +13,6 @@ dependencies {
 
 //START SNIPPET iteration-task
 task iterateDeclaredDependencies {
-    dependsOn configurations.scm
-
     doLast {
         DependencySet dependencySet = configurations.scm.dependencies
 
