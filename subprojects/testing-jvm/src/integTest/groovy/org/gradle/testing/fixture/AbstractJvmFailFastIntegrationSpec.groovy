@@ -121,7 +121,32 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         result.testClass('pkg.OtherTest').assertTestCount(0, 0, 0)
     }
 
-    protected void withBuildFile(int forkEvery = 1) {
+    def "ensure fail fast with forkEvery"() {
+        final testOmitted = 5
+        given:
+        withBuildFile(2)
+        withFailingTest()
+        def otherResources = withNonfailingTests(testOmitted)
+        def testExecution = server.expectConcurrentAndBlock(2, ([ FAILED_RESOURCE ] + otherResources).grep() as String[])
+
+        when:
+        def gradleHandle = executer.withTasks('test', '--fail-fast').start()
+        testExecution.waitForAllPendingCalls()
+
+        then:
+        testExecution.release(FAILED_RESOURCE)
+        testExecution.waitForAllPendingCalls()
+        sleep(1000)
+        testExecution.releaseAll()
+        gradleHandle.waitForFailure()
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
+        testOmitted.each {
+            result.testClass("pkg.OtherTest_${it}").assertTestCount(0, 0, 0)
+        }
+    }
+
+    private void withBuildFile(int forkEvery = 0) {
         buildFile << """
             apply plugin: 'java'
 
@@ -133,7 +158,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
 
             tasks.withType(Test) {
                 maxParallelForks = $MAX_WORKERS
-                // forkEvery = $forkEvery
+                forkEvery = $forkEvery
             }
 
             ${testFrameworkConfiguration()}
@@ -165,6 +190,23 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
                 }
             }
         """.stripIndent()
+    }
+
+    private List<String> withNonfailingTests(int num) {
+        (1..num).collect {
+            final resource = "test_${it}" as String
+            file("src/test/java/pkg/OtherTest_${it}.java") << """
+                package pkg;
+                import ${testAnnotationClass()};
+                public class OtherTest_${it} {
+                    @Test
+                    public void passingTest() {
+                        ${server.callFromBuild("$resource")}
+                    }
+                }
+            """.stripIndent()
+            (it % 2 == 0) ? resource : null
+        }
     }
 
     abstract String testAnnotationClass()
