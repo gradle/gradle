@@ -186,7 +186,7 @@ A project's configurations are managed by a `configurations` object. Configurati
 [[sub:inheriting_dependencies_from_other_configurations]]
 ==== Inheriting dependencies from other configurations
 
-A configuration can extend other configurations to form an inheritance hierarchy. In practice, this concept is similar to class inheritance in object-oriented programming. Child configurations inherit the whole set of dependencies declared for any of its superconfigurations.
+A configuration can extend other configurations to form an inheritance hierarchy. Child configurations inherit the whole set of dependencies declared for any of its superconfigurations.
 
 Configuration inheritance is heavily used by Gradle core plugins like the <<sec:java_plugin_and_dependency_management,Java plugin>>. For example the `testImplementation` configuration extends the `implementation` configuration. The configuration hierarchy has a practical purpose: compiling tests requires the dependencies of the source code under test on top of the dependencies needed write the test class. A Java project that uses JUnit to write and execute test code also needs Guava if its classes are imported in the production source code.
 
