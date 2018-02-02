@@ -49,8 +49,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksExecuted(assembleAppTasks)
+        result.assertTasksNotSkipped(assembleAppTasks)
         executable("build/exe/main/debug/App").exec().out == app.expectedOutput
 
         when:
@@ -58,16 +58,16 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksExecuted(assembleAppTasks)
+        result.assertTasksNotSkipped(assembleAppTasks)
         executable("build/exe/main/debug/App").exec().out == app.expectedAlternateOutput
 
         when:
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksExecuted(assembleAppTasks)
+        result.assertTasksSkipped(assembleAppTasks)
     }
 
     def "rebuilds application when a single source file in library changes"() {
@@ -90,28 +90,28 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         app.application.writeToProject(file("app"))
 
         when:
-        succeeds ":app:assemble"
+        succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksExecuted(assembleAppAndLibTasks, ":assemble")
+        result.assertTasksNotSkipped(assembleAppAndLibTasks)
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
 
         when:
         app.library.applyChangesToProject(file('greeter'))
-        succeeds ":app:assemble"
+        succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksExecuted(assembleAppAndLibTasks, ":assemble")
+        result.assertTasksNotSkipped(assembleAppAndLibTasks)
         installation("app/build/install/main/debug").exec().out == app.alternateLibraryOutput
 
         when:
-        succeeds ":app:assemble"
+        succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksExecuted(assembleAppAndLibTasks, ":assemble")
+        result.assertTasksSkipped(assembleAppAndLibTasks, ":assemble")
     }
 
     def "removes stale object files for executable"() {
@@ -132,8 +132,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksExecuted(assembleAppTasks)
+        result.assertTasksNotSkipped(assembleAppTasks)
 
         file("build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(app.alternate))
         executable("build/exe/main/debug/App").assertExists()
@@ -158,8 +158,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
+        result.assertTasksExecuted(assembleLibTasks)
+        result.assertTasksNotSkipped(assembleLibTasks)
 
         file("build/obj/main/debug").assertContainsDescendants(expectedIntermediateDescendants(lib.alternate))
         sharedLibrary("build/lib/main/debug/Hello").assertExists()
@@ -181,8 +181,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksExecuted(assembleAppTasks)
+        result.assertTasksSkipped(assembleAppTasks)
 
         executable("build/exe/main/debug/App").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
@@ -204,8 +204,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
-        result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
+        result.assertTasksExecuted(assembleLibTasks)
+        result.assertTasksSkipped(assembleLibTasks)
 
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
@@ -246,11 +246,9 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":greeter:assemble",
-            ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble",
-            ":assemble")
-        result.assertTasksNotSkipped(":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksSkipped(":assemble", ":greeter:compileDebugSwift", ":greeter:linkDebug", ":greeter:assemble")
+        result.assertTasksExecuted(assembleAppAndLibTasks, ":assemble")
+        result.assertTasksNotSkipped(getAssembleAppTasks(":app"))
+        result.assertTasksSkipped(":assemble", getAssembleLibTasks(":greeter"))
 
         executable("app/build/exe/main/debug/App").assertDoesNotExist()
         file("app/build/exe/main/debug").assertDoesNotExist()
@@ -284,8 +282,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksExecuted(assembleAppTasks)
+        result.assertTasksNotSkipped(assembleAppTasks)
 
         executable("build/exe/main/debug/App").assertDoesNotExist()
         file("build/exe/main/debug").assertDoesNotExist()
@@ -317,8 +315,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":assemble")
-        result.assertTasksNotSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
+        result.assertTasksExecuted(assembleLibTasks)
+        result.assertTasksNotSkipped(assembleLibTasks)
 
         sharedLibrary("build/lib/main/debug/Hello").assertDoesNotExist()
         file("build/lib/main/debug").assertDoesNotExist()
@@ -358,5 +356,18 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
     def dependFileFor(File sourceFile, String intermediateFilesDir = "build/obj/main/debug") {
         return intermediateFileFor(sourceFile, intermediateFilesDir, ".d")
+    }
+
+    private List<String> getCompileAndLinkTasks(String projectPath="") {
+        [ "${projectPath}:compileDebugSwift", "${projectPath}:linkDebug" ]
+    }
+    private List<String> getAssembleAppTasks(String projectPath="") {
+        getCompileAndLinkTasks(projectPath) + [ "${projectPath}:installDebug", "${projectPath}:assemble" ]
+    }
+    private List<String> getAssembleLibTasks(String projectPath="") {
+        getCompileAndLinkTasks(projectPath) + [ "${projectPath}:assemble" ]
+    }
+    private List<String> getAssembleAppAndLibTasks() {
+        getAssembleLibTasks(":greeter") + getAssembleAppTasks(":app")
     }
 }
