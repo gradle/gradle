@@ -35,6 +35,7 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
+import org.gradle.api.internal.tasks.testing.junit5.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
@@ -48,6 +49,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.api.tasks.testing.junit5.JUnitPlatformOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -871,6 +873,34 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     public void useTestNG(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
         useTestFramework(new TestNGTestFramework(this, (DefaultTestFilter) getFilter(), getInstantiator(), getClassLoaderCache()), testFrameworkConfigure);
+    }
+
+    /**
+     * Specifies that JUnit Platform should be used to execute the tests. <p> To configure JUnit Platform specific options, see {@link #useJUnitPlatform(groovy.lang.Closure)}.
+     */
+    public void useJUnitPlatform() {
+        useJUnitPlatform(Actions.<JUnitPlatformOptions>doNothing());
+    }
+
+    /**
+     * Specifies that JUnit Platform should be used to execute the tests, configuring JUnit Platform specific options. <p> The supplied closure configures an instance of {@link
+     * org.gradle.api.tasks.testing.junit5.JUnitPlatformOptions}, which can be used to configure how JUnit runs.
+     *
+     * @param testFrameworkConfigure A closure used to configure the JUnit options.
+     */
+    public void useJUnitPlatform(Closure testFrameworkConfigure) {
+        useJUnitPlatform(ConfigureUtil.<JUnitPlatformOptions>configureUsing(testFrameworkConfigure));
+    }
+
+    /**
+     * Specifies that JUnit Platform should be used to execute the tests, configuring JUnit specific options. <p> The supplied action configures an instance of {@link
+     * org.gradle.api.tasks.testing.junit.JUnitOptions}, which can be used to configure how JUnit runs.
+     *
+     * @param testFrameworkConfigure An action used to configure the JUnit options.
+     */
+    public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter()), testFrameworkConfigure);
+        setScanForTestClasses(false);
     }
 
     /**

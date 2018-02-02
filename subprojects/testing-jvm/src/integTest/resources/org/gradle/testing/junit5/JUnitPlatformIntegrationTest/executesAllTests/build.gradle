@@ -1,0 +1,34 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.2'
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.2'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'started', 'skipped', 'failed', 'started'
+        showStandardStreams = true
+    }
+    systemProperty 'java.util.logging.config.file', file('logging.properties').absolutePath
+
+    beforeSuite { descriptor ->
+        println "Listener starting suite: Test[id=${descriptor.className}#${descriptor.name}, parent=${descriptor.parent}]"
+    }
+    afterSuite { descriptor, result ->
+        println "Listener ending suite: Test[id=${descriptor.className}#${descriptor.name}, parent=${descriptor.parent}]"
+    }
+
+    beforeTest { descriptor ->
+        println "Listener starting test: Test[id=${descriptor.className}#${descriptor.name}, parent=${descriptor.parent}]"
+    }
+
+    afterTest { descriptor, result ->
+        println "Listener ending test: Test[id=${descriptor.className}#${descriptor.name}, parent=${descriptor.parent}]"
+    }
+}

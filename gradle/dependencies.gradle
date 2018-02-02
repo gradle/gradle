@@ -75,6 +75,10 @@ libraries += [
     jaxen: 'jaxen:jaxen:1.1',
     jcip: "net.jcip:jcip-annotations:1.0",
     junit: 'junit:junit:4.12',
+    junitPlatform: [
+        'org.junit.platform:junit-platform-launcher:1.0.2',
+        'org.apiguardian:apiguardian-api:1.0.0'
+    ],
     xmlunit: 'xmlunit:xmlunit:1.3',
     equalsVerifier: 'nl.jqno.equalsverifier:equalsverifier:2.1.6',
     xbean: 'org.apache.xbean:xbean-reflect:3.4', //required by maven3 classes
