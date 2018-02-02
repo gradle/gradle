@@ -151,6 +151,19 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         assertSingleLib('guava-23.0.jar')
     }
 
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/importingDependencyConstraintsFromBOM")
+    def "can import dependency versions from a bom"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds(COPY_LIBS_TASK_NAME)
+
+        then:
+        def libs = listFilesInBuildLibsDir()
+        libs.size() == 3
+        libs.any { it.name == 'gson-2.8.2.jar' || it.name == 'dom4j-1.6.1.jar' || it.name == 'xml-apis-1.4.01.jar'}
+    }
+
     private TestFile[] listFilesInBuildLibsDir() {
         sample.dir.file('build/libs').listFiles()
     }

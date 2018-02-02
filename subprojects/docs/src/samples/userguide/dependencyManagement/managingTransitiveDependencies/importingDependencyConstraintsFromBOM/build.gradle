@@ -1,0 +1,20 @@
+apply plugin: 'java-library'
+
+repositories {
+    mavenCentral()
+}
+
+//START SNIPPET dependency-on-bom
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE'
+
+    implementation 'com.google.code.gson:gson'
+    implementation 'dom4j:dom4j'
+}
+//END SNIPPET dependency-on-bom
+
+//Note: dom4j also brings in xml-apis as transitive dependency
+task copyLibs(type: Copy) {
+    from configurations.compileClasspath
+    into "$buildDir/libs"
+}
