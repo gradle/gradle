@@ -98,7 +98,7 @@ class VisualStudioPluginRules extends RuleSource {
         ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
 
         for (ProjectInternal subproject : projectRegistry.getSubProjects(projectIdentifier.getPath())) {
-            projectModelResolver.resolveProjectModel(subproject.getPath()).realize("visualStudio", VisualStudioExtension.class);
+            projectModelResolver.resolveProjectModel(subproject.getPath()).find("visualStudio", VisualStudioExtension.class);
         }
     }
 

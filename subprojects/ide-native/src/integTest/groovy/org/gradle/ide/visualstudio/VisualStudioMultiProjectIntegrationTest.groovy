@@ -52,7 +52,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         """
     }
 
-    def "create visual studio solution for executable that depends on static library in another project"() {
+    def "create visual studio solution for executable that depends on a library in another project"() {
         when:
         app.executable.writeSources(file("exe/src/main"))
         app.library.writeSources(file("lib/src/hello"))
@@ -112,7 +112,108 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         final mainSolution = solutionFile("app.sln")
         mainSolution.assertHasProjects("exe_mainExe", "lib_helloDll", "lib_helloLib")
         mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(dllProject, projectConfigurations)
         mainSolution.assertReferencesProject(libProject, projectConfigurations)
+    }
+
+    def "visual studio solution does not reference the components of a project if it does not have visual studio plugin applied"() {
+        when:
+        app.executable.writeSources(file("exe/src/main"))
+        app.library.writeSources(file("lib/src/hello"))
+        app.library.writeSources(file("other/src/greeting"))
+
+        settingsFile << """
+            include ':exe', ':lib', ':other'
+        """
+        buildFile.text = """
+            allprojects {
+                if (name != 'other') {
+                    apply plugin: 'visual-studio'
+                }
+            }
+            subprojects {
+                apply plugin: 'cpp'
+
+                model {
+                    platforms {
+                        win32 {
+                            architecture "i386"
+                        }
+                    }
+                    buildTypes {
+                        debug
+                        release
+                    }
+                }
+            }
+        """
+
+        file("exe", "build.gradle") << """
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            cpp.lib project: ':lib', library: 'hello', linkage: 'static'
+                        }
+                    }
+                }
+            }
+        """
+        file("lib", "build.gradle") << """
+            model {
+                components {
+                    hello(NativeLibrarySpec)
+                }
+            }
+        """
+        file("other", "build.gradle") << """
+            apply plugin: 'cpp'
+            
+            model {
+                components {
+                    greeting(NativeLibrarySpec)
+                }
+            }
+        """
+        and:
+        run ":visualStudio"
+
+        then:
+        final exeProject = projectFile("exe/exe_mainExe.vcxproj")
+        exeProject.assertHasComponentSources(app.executable, "src/main")
+        exeProject.projectConfigurations.keySet() == projectConfigurations
+        exeProject.projectConfigurations.values().each {
+            assert it.includePath == filePath("src/main/headers", "../lib/src/hello/headers")
+            assert it.buildCommand == "gradle -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+        }
+
+        and:
+        final dllProject = projectFile("lib/lib_helloDll.vcxproj")
+        dllProject.assertHasComponentSources(app.library, "src/hello")
+        dllProject.projectConfigurations.keySet() == projectConfigurations
+        dllProject.projectConfigurations.values().each {
+            assert it.includePath == filePath("src/hello/headers")
+            assert it.buildCommand == "gradle -p \"..\" :lib:hello${it.name.capitalize()}SharedLibrary"
+        }
+
+        and:
+        final libProject = projectFile("lib/lib_helloLib.vcxproj")
+        libProject.assertHasComponentSources(app.library, "src/hello")
+        libProject.projectConfigurations.keySet() == projectConfigurations
+        libProject.projectConfigurations.values().each {
+            assert it.includePath == filePath("src/hello/headers")
+            assert it.buildCommand == "gradle -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary"
+        }
+
+        and:
+        final mainSolution = solutionFile("app.sln")
+        mainSolution.assertHasProjects("exe_mainExe", "lib_helloDll", "lib_helloLib")
+        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(dllProject, projectConfigurations)
+        mainSolution.assertReferencesProject(libProject, projectConfigurations)
+
+        and:
+        file("other").listFiles().every { !(it.name.endsWith(".vcxproj") || it.name.endsWith(".vcxproj.filters")) }
     }
 
     def "create visual studio solution for executable that transitively depends on multiple projects"() {
