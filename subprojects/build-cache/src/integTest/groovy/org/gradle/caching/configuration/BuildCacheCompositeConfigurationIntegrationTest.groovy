@@ -120,15 +120,15 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         buildTestFixture.withBuildInSubDir()
             multiProjectBuild('included', ['first', 'second']) {
                 buildFile << """
-                gradle.startParameter.setTaskNames(['build'])
-                allprojects {
-                    apply plugin: 'java-library'
-                    
-                    compileJava.doFirst {
-                        // this makes it more probable that tasks from the included build finish after the root build
-                        Thread.sleep(1000)
+                    gradle.startParameter.setTaskNames(['build'])
+                    allprojects {
+                        apply plugin: 'java-library'
+                        
+                        compileJava.doFirst {
+                            // this makes it more probable that tasks from the included build finish after the root build
+                            Thread.sleep(1000)
+                        }
                     }
-                }
                 """
             }
 
@@ -149,10 +149,10 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         then:
         succeeds "build"
         int buildSuccessful = output.indexOf("BUILD SUCCESSFUL")
-        int i1SecondBuild = output.indexOf(":included:second:build")
+        int includedSecondBuild = output.indexOf(":included:second:build")
         buildSuccessful > 0
-        i1SecondBuild > 0
-        buildSuccessful < i1SecondBuild
+        includedSecondBuild > 0
+        buildSuccessful < includedSecondBuild
     }
 
     private static String customTaskCode(String val = "foo") {
