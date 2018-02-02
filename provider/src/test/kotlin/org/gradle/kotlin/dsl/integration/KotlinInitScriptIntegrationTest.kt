@@ -2,12 +2,15 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
+
 import org.junit.Test
 
 
 class KotlinInitScriptIntegrationTest : AbstractIntegrationTest() {
 
     @Test
+    @LeaksFileHandles
     fun `initscript classpath`() {
 
         withClassJar("fixture.jar", DeepThought::class.java)

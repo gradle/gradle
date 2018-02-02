@@ -8,6 +8,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 import org.gradle.kotlin.dsl.fixtures.canPublishBuildScan
 import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
@@ -27,6 +28,7 @@ import java.io.File
 class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
     @Test
+    @LeaksFileHandles
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
         checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter({ it })
     }
