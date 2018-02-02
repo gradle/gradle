@@ -48,7 +48,7 @@ Iterating over the artifacts of a module automatically resolves the configuratio
 
 === Navigating the dependency graph
 
-As a plugin developer, you might be faced with the challenge of navigating the full graph of dependencies assigned to a configuration e.g. for turning the dependency graph into a visualization. You can access the full graph of dependencies for a configuration with the help of the api:org.gradle.api.artifacts.result.ResolutionResult[].
+As a plugin developer, you may want to navigate the full graph of dependencies assigned to a configuration e.g. for turning the dependency graph into a visualization. You can access the full graph of dependencies for a configuration with the help of the api:org.gradle.api.artifacts.result.ResolutionResult[].
 
 The resolution result provides various methods for accessing the resolved and unresolved dependencies. For demonstration purposes the sample code uses api:org.gradle.api.artifacts.result.ResolutionResult#allDependencies(org.gradle.api.Action)[]. Each iteration of the method returns an instance of api:org.gradle.api.artifacts.result.ResolvedDependencyResult[] or api:org.gradle.api.artifacts.result.UnresolvedDependencyResult[] providing detailed information about the dependency.
 
