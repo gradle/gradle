@@ -15,6 +15,7 @@ import org.gradle.kotlin.dsl.fixtures.customDaemonRegistry
 import org.gradle.kotlin.dsl.fixtures.customInstallation
 import org.gradle.kotlin.dsl.fixtures.withDaemonIdleTimeout
 import org.gradle.kotlin.dsl.fixtures.withDaemonRegistry
+import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 
 import org.junit.Test
 
@@ -24,6 +25,7 @@ import java.io.File
 class KotlinBuildScriptTemplateModelIntegrationTest : AbstractIntegrationTest() {
 
     @Test
+    @LeaksFileHandles
     fun `can load script template using classpath model`() {
 
         withBuildScript("")

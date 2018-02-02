@@ -53,7 +53,7 @@ import kotlin.reflect.KProperty
 
 
 /**
- * Sets the the default tasks of this project. These are used when no tasks names are provided when
+ * Sets the default tasks of this project. These are used when no tasks names are provided when
  * starting the build.
  */
 inline

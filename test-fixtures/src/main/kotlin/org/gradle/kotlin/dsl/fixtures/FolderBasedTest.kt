@@ -1,14 +1,13 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 
 import java.io.File
 
 abstract class FolderBasedTest {
 
     @JvmField
-    @Rule val tempFolder = TemporaryFolder()
+    @Rule val tempFolder = ForcefullyDeletedTemporaryFolder()
 
     fun withFolders(folders: FoldersDslExpression) =
         tempFolder.root.withFolders(folders)
