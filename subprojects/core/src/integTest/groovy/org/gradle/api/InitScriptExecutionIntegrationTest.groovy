@@ -166,6 +166,31 @@ try {
         result.output.contains("BuildClass not found as expected")
     }
 
+    @Requires([KOTLIN_SCRIPT])
+    def "executes Kotlin init scripts from init.d directory in user home dir in alphabetical order"() {
+        given:
+        executer.requireOwnGradleUserHomeDir()
+
+        and:
+        ["c", "b", "a"].each {
+            executer.gradleUserHomeDir.file("init.d/${it}.gradle.kts") << """
+                // make sure the script is evaluated as Kotlin by explicitly qualifying `println`
+                kotlin.io.println("init #${it}#")
+            """
+        }
+
+        when:
+        run()
+
+        then:
+        def a = output.indexOf('init #a#')
+        def b = output.indexOf('init #b#')
+        def c = output.indexOf('init #c#')
+        a > 0
+        b > a
+        c > b
+    }
+
     def "init script can inject configuration into the root project and all projects"() {
         given:
         settingsFile << "include 'a', 'b'"

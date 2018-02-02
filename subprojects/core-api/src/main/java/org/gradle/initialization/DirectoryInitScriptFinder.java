@@ -24,19 +24,29 @@ import java.util.List;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
+
     protected void findScriptsInDir(File initScriptsDir, Collection<File> scripts) {
         if (!initScriptsDir.isDirectory()) {
             return;
         }
+        List<File> found = initScriptsIn(initScriptsDir);
+        Collections.sort(found);
+        scripts.addAll(found);
+    }
+
+    private List<File> initScriptsIn(File initScriptsDir) {
         List<File> files = new ArrayList<File>();
         for (File file : initScriptsDir.listFiles()) {
-            if (file.isFile() && hasExtension(file, ".gradle")) {
+            if (isInitScript(file)) {
                 files.add(file);
             }
         }
-        Collections.sort(files);
-        for (File file : files) {
-            scripts.add(file);
-        }
+        return files;
+    }
+
+    private boolean isInitScript(File file) {
+        return file.isFile()
+            && (hasExtension(file, ".gradle")
+            || hasExtension(file, ".gradle.kts"));
     }
 }
