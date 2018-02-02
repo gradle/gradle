@@ -298,7 +298,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * Gets the set of dependencies directly contained in this configuration
      * (ignoring superconfigurations).
      * <p>
-     * This method does not resolve the configuration. Therefore, the return values does not include
+     * This method does not resolve the configuration. Therefore, the return value does not include
      * transitive dependencies.
      *
      * @return the set of dependencies
@@ -310,7 +310,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * Gets the complete set of dependencies including those contributed by
      * superconfigurations.
      * <p>
-     * This method does not resolve the configuration. Therefore, the return values does not include
+     * This method does not resolve the configuration. Therefore, the return value does not include
      * transitive dependencies.
      *
      * @return the (read-only) set of dependencies
