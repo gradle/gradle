@@ -17,7 +17,6 @@
 package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -26,7 +25,6 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         runner.targetVersions = ["4.6-20180125002142+0000"]
     }
 
-    @Ignore("FIXME wolfs: We need to understand what is going on here before we release 4.5.1")
     @Unroll
     def "#task on #testProject"() {
         given:
