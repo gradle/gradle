@@ -30,7 +30,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -87,11 +86,6 @@ class SwiftDepsHandler {
             public void execute(BufferedWriter bufferedWriter) {
                 JavaBeanDumper yaml = new JavaBeanDumper(false);
                 yaml.dump(swiftDeps, bufferedWriter);
-                if (LOGGER.isDebugEnabled()) {
-                    StringWriter sw = new StringWriter();
-                    yaml.dump(swiftDeps, sw);
-                    LOGGER.debug(sw.toString());
-                }
             }
         });
     }
