@@ -124,6 +124,10 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
                 gradle.startParameter.setTaskNames(['build'])
                 allprojects {
                     apply plugin: 'java-library'
+                    
+                    compileJava.doFirst {
+                        Thread.sleep(1000)
+                    }
                 }
                 """
             }
