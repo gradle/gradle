@@ -21,9 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.operations.trace.BuildOperationTrace
-import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
-
 /**
  * Tests build cache configuration within composite builds and buildSrc.
  */
@@ -115,7 +113,6 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         ]
     }
 
-    @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/4216")
     def "build cache service is closed only after all included builds are finished"() {
         def localCache = new TestBuildCache(file("local-cache"))
@@ -125,7 +122,6 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
             multiProjectBuild(it, ['first', 'second']) {
                 buildFile << """
                 gradle.startParameter.setTaskNames(['build'])
-                println gradle
                 allprojects {
                     apply plugin: 'java-library'
                 }
@@ -138,9 +134,8 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
             includeBuild "i2"
         """
         buildFile << """             
-            apply plugin: 'java'
-            println gradle
-            gradle.startParameter.setTaskNames(['build'])
+            apply plugin: 'java-library'
+            // These dependencies are needed to actually trigger the included builds at all
             processResources {
                 dependsOn gradle.includedBuild('i1').task(':processResources')
                 dependsOn gradle.includedBuild('i2').task(':processResources')
@@ -148,14 +143,19 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         """
 
         expect:
-        succeeds()
+        succeeds "build"
 
         when:
         ['i1', 'i2'].each {
             file("$it/src/test/java/DummyTest.java") << "public class DummyTest {}"
         }
         then:
-        succeeds()
+        succeeds "build"
+        int buildSuccessful = output.indexOf("BUILD SUCCESSFUL")
+        int i1SecondBuild = output.indexOf(":i1:second:build")
+        buildSuccessful > 0
+        i1SecondBuild > 0
+        buildSuccessful < i1SecondBuild
     }
 
     private static String customTaskCode(String val = "foo") {
