@@ -23,14 +23,12 @@ public class MavenDependencyKey {
     private final String artifactId;
     private final String type;
     private final String classifier;
-    private final String scope;
 
-    public MavenDependencyKey(String groupId, String artifactId, String type, String classifier, String scope) {
+    public MavenDependencyKey(String groupId, String artifactId, String type, String classifier) {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.type = type;
         this.classifier = classifier;
-        this.scope = scope;
     }
 
     public String getGroupId() {
@@ -49,10 +47,6 @@ public class MavenDependencyKey {
         return classifier;
     }
 
-    public String getScope() {
-        return scope;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -63,10 +57,6 @@ public class MavenDependencyKey {
         }
 
         MavenDependencyKey that = (MavenDependencyKey) o;
-        return equalsWithoutScope(that) && Objects.equal(scope, that.scope);
-    }
-
-    public boolean equalsWithoutScope(MavenDependencyKey that) {
         return Objects.equal(groupId, that.groupId)
             && Objects.equal(artifactId, that.artifactId)
             && Objects.equal(classifier, that.classifier)
@@ -75,7 +65,7 @@ public class MavenDependencyKey {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(groupId, artifactId, classifier, type, scope);
+        return Objects.hashCode(groupId, artifactId, classifier, type);
     }
 
     @Override
@@ -83,11 +73,8 @@ public class MavenDependencyKey {
         StringBuilder key = new StringBuilder();
         key.append(groupId).append(KEY_SEPARATOR).append(artifactId).append(KEY_SEPARATOR).append(type);
 
-        if (classifier != null) {
+        if(classifier != null) {
             key.append(KEY_SEPARATOR).append(classifier);
-        }
-        if (scope != null) {
-            key.append(KEY_SEPARATOR).append(scope);
         }
 
         return key.toString();
