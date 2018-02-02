@@ -16,9 +16,7 @@
 
 package org.gradle.caching.internal.tasks;
 
-import org.gradle.BuildResult;
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.cache.StringInterner;
@@ -124,7 +122,7 @@ public class BuildCacheTaskServices {
             SingleMessageLogger.incubatingFeatureUsed("Build cache");
         }
 
-        final BuildCacheController controller = BuildCacheControllerFactory.create(
+        return BuildCacheControllerFactory.create(
             buildOperationExecutor,
             buildIdentityPath,
             gradleUserHomeDir,
@@ -134,16 +132,6 @@ public class BuildCacheTaskServices {
             logStackTraces,
             instantiatorFactory.inject(serviceRegistry)
         );
-
-        // Stop the controller early so that any logging emitted during stopping is visible.
-        gradle.buildFinished(new Action<BuildResult>() {
-            @Override
-            public void execute(BuildResult result) {
-                controller.close();
-            }
-        });
-
-        return controller;
     }
 
 }
