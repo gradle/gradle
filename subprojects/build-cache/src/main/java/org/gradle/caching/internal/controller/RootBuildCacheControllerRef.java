@@ -17,22 +17,28 @@
 package org.gradle.caching.internal.controller;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RootBuildCacheControllerRef {
 
-    private BuildCacheController buildCacheController;
+    private ReferenceCountingBuildCacheController buildCacheController;
+
+    public BuildCacheController register(BuildCacheController buildCacheController) {
+        return new ReferenceCountingBuildCacheController(buildCacheController);
+    }
 
     public void set(BuildCacheController buildCacheController) {
         // This instance ends up in build/gradle scoped services for nesteds
         // We don't want to invoke close at that time.
-        // Instead, close it at the root.
-        this.buildCacheController = new CloseShieldBuildCacheController(buildCacheController);
+        // Instead, close it at as soon as all the builds using it have finished.
+        this.buildCacheController = (ReferenceCountingBuildCacheController) buildCacheController;
     }
 
     public BuildCacheController getForNonRootBuild() {
         if (!isSet()) {
             throw new IllegalStateException("Root build cache controller not yet assigned");
         }
+        buildCacheController.newReference();
 
         return buildCacheController;
     }
@@ -41,10 +47,11 @@ public class RootBuildCacheControllerRef {
         return buildCacheController != null;
     }
 
-    private static class CloseShieldBuildCacheController implements BuildCacheController {
+    private static class ReferenceCountingBuildCacheController implements BuildCacheController {
         private final BuildCacheController delegate;
+        private final AtomicInteger referenceCount = new AtomicInteger(1);
 
-        private CloseShieldBuildCacheController(BuildCacheController delegate) {
+        private ReferenceCountingBuildCacheController(BuildCacheController delegate) {
             this.delegate = delegate;
         }
 
@@ -59,8 +66,16 @@ public class RootBuildCacheControllerRef {
             delegate.store(command);
         }
 
+        public void newReference() {
+            referenceCount.incrementAndGet();
+        }
+
         @Override
         public void close() {
+            int activeReferences = referenceCount.decrementAndGet();
+            if (activeReferences == 0) {
+                delegate.close();
+            }
         }
     }
 

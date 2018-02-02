@@ -21,9 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.operations.trace.BuildOperationTrace
-import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
-
 /**
  * Tests build cache configuration within composite builds and buildSrc.
  */
@@ -32,7 +30,9 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
     def setup() {
-        executer.withBuildCacheEnabled()
+        executer.beforeExecute {
+            withBuildCacheEnabled()
+        }
     }
 
     def "can configure with settings.gradle"() {
@@ -113,7 +113,6 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         ]
     }
 
-    @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/4216")
     def "build cache service is closed only after all included builds are finished"() {
         def localCache = new TestBuildCache(file("local-cache"))
@@ -146,17 +145,14 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         """
 
         expect:
-        withBuildCache().succeeds '--parallel'
+        succeeds()
 
         when:
         ['i1', 'i2'].each {
             file("$it/src/test/java/DummyTest.java") << "public class DummyTest {}"
         }
         then:
-        executer.withStackTraceChecksDisabled() // FIXME: There should be no stack traces
-        withBuildCache().succeeds '--parallel'
-        output.contains('Failed to store cache entry')
-        output.contains('NullPointerException')
+        succeeds()
     }
 
     private static String customTaskCode(String val = "foo") {

@@ -88,7 +88,16 @@ public class BuildCacheTaskServices {
         RootBuildCacheControllerRef rootControllerRef
     ) {
         if (isRoot(gradle) || isRootBuildSrc(gradle) || isGradleBuildTaskRoot(rootControllerRef)) {
-            return doCreateBuildCacheController(serviceRegistry, buildCacheConfiguration, buildOperationExecutor, instantiatorFactory, gradle);
+            final BuildCacheController controller = rootControllerRef.register(doCreateBuildCacheController(serviceRegistry, buildCacheConfiguration, buildOperationExecutor, instantiatorFactory, gradle));
+            // Stop the controller early so that any logging emitted during stopping is visible.
+            gradle.buildFinished(new Action<BuildResult>() {
+                @Override
+                public void execute(BuildResult result) {
+                    controller.close();
+                }
+            });
+
+            return controller;
         } else {
             // must be an included build
             return rootControllerRef.getForNonRootBuild();
@@ -124,7 +133,7 @@ public class BuildCacheTaskServices {
             SingleMessageLogger.incubatingFeatureUsed("Build cache");
         }
 
-        final BuildCacheController controller = BuildCacheControllerFactory.create(
+        return BuildCacheControllerFactory.create(
             buildOperationExecutor,
             buildIdentityPath,
             gradleUserHomeDir,
@@ -134,16 +143,6 @@ public class BuildCacheTaskServices {
             logStackTraces,
             instantiatorFactory.inject(serviceRegistry)
         );
-
-        // Stop the controller early so that any logging emitted during stopping is visible.
-        gradle.buildFinished(new Action<BuildResult>() {
-            @Override
-            public void execute(BuildResult result) {
-                controller.close();
-            }
-        });
-
-        return controller;
     }
 
 }
