@@ -118,45 +118,38 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         def localCache = new TestBuildCache(file("local-cache"))
 
         buildTestFixture.withBuildInSubDir()
-        ['i1', 'i2'].each {
-            multiProjectBuild(it, ['first', 'second']) {
+            multiProjectBuild('included', ['first', 'second']) {
                 buildFile << """
                 gradle.startParameter.setTaskNames(['build'])
                 allprojects {
                     apply plugin: 'java-library'
                     
                     compileJava.doFirst {
+                        // this makes it more probable that tasks from the included build finish after the root build
                         Thread.sleep(1000)
                     }
                 }
                 """
             }
-        }
 
         settingsFile << localCache.localCacheConfiguration() << """
-            includeBuild "i1"
-            includeBuild "i2"
+            includeBuild "included"
         """
         buildFile << """             
             apply plugin: 'java-library'
-            // These dependencies are needed to actually trigger the included builds at all
-            processResources {
-                dependsOn gradle.includedBuild('i1').task(':processResources')
-                dependsOn gradle.includedBuild('i2').task(':processResources')
-            }
+            // This dependency is needed to actually trigger the included build at all
+            processResources.dependsOn gradle.includedBuild('included').task(':processResources')
         """
 
         expect:
         succeeds "build"
 
         when:
-        ['i1', 'i2'].each {
-            file("$it/src/test/java/DummyTest.java") << "public class DummyTest {}"
-        }
+        file("included/src/test/java/DummyTest.java") << "public class DummyTest {}"
         then:
         succeeds "build"
         int buildSuccessful = output.indexOf("BUILD SUCCESSFUL")
-        int i1SecondBuild = output.indexOf(":i1:second:build")
+        int i1SecondBuild = output.indexOf(":included:second:build")
         buildSuccessful > 0
         i1SecondBuild > 0
         buildSuccessful < i1SecondBuild
