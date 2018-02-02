@@ -11,9 +11,8 @@ import kotlin.annotation.AnnotationTarget.FUNCTION
 
 
 /**
- * A [TemporaryFolder] JUnit rule that fails the test if the
- * the temporary folder cannot be deleted when the test finishes and
- * the test is not annotated with [LeaksFileHandles].
+ * A [TemporaryFolder] JUnit rule that fails the test if the temporary folder cannot be deleted
+ * when the test finishes and the test is not annotated with [LeaksFileHandles].
  */
 class ForcefullyDeletedTemporaryFolder : TemporaryFolder() {
 
