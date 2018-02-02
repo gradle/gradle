@@ -56,6 +56,7 @@ import java.util.Map;
  *
  * If we have any issues reading or writing the swiftdeps file, we bail out and disable incremental compilation.
  */
+@SuppressWarnings("rawtypes")
 class SwiftDepsHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(SwiftDepsHandler.class);
     static final List RESET_TIMESTAMP = Arrays.asList(0L, 0L);
