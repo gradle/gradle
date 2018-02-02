@@ -229,6 +229,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }
 
+    // This isn't quite right, we really want to assert something like "has both swiftc3 and swiftc4"
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
     def 'changing Swift tool chain rebuilds everything'() {
         given:
