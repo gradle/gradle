@@ -537,7 +537,10 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 expectFiles "bar-1.0.jar"
             }
             withoutModuleMetadata {
-                expectFiles "bar-1.0.jar"
+                // To allow this, we would need to support multiple dependency management entries with different scopes
+                // for the same module. This is not supported by Maven and an attempt to implement it in Gradle failed.
+                // See: https://github.com/gradle/gradle/issues/4202
+                expectFiles "bar-1.1.jar"
             }
         }
         resolveRuntimeArtifacts(javaLibrary) {

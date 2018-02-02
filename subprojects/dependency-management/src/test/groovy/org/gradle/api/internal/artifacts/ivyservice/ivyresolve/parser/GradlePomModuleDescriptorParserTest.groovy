@@ -202,7 +202,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         hasDefaultDependencyArtifact(dep)
     }
 
-    def "can provide different values for different scopes in dependency management section"() {
+    def "in case of conflicting entries in the dependency management section, the last seen entry wins"() {
         given:
         pomFile << """
 <project>
@@ -215,11 +215,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         <dependency>
             <groupId>group-two</groupId>
             <artifactId>artifact-two</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>group-two</groupId>
-            <artifactId>artifact-two</artifactId>
             <scope>runtime</scope>
         </dependency>
     </dependencies>
@@ -228,14 +223,14 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
             <dependency>
                 <groupId>group-two</groupId>
                 <artifactId>artifact-two</artifactId>
-                <version>1.1</version>
-                <scope>compile</scope>
+                <version>1.2</version>
+                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>group-two</groupId>
                 <artifactId>artifact-two</artifactId>
-                <version>1.2</version>
-                <scope>runtime</scope>
+                <version>1.1</version>
+                <scope>compile</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -246,12 +241,85 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
+        metadata.dependencies.size() == 1
         def depCompile = metadata.dependencies[0]
         depCompile.selector == moduleId('group-two', 'artifact-two', '1.1')
-        depCompile.scope == MavenScope.Compile
-        def depRuntime = metadata.dependencies[1]
-        depRuntime.selector == moduleId('group-two', 'artifact-two', '1.2')
-        depRuntime.scope == MavenScope.Runtime
+        depCompile.scope == MavenScope.Runtime //scope is defined in the dependency declaration and is not replaced
+    }
+
+    def "if two dependencyManagement entries for the same dependency are combined, the closest wins a conflict"() {
+        given:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>parent</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>1.2</version>
+                $scopeInParent
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+    
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>   
+        </dependency>
+    </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                $versionInChild
+                $scopeInChild
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        and:
+        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> asResource(parent)
+
+        when:
+        parsePom()
+
+        then:
+        metadata.dependencies.size() == 1
+        def depCompile = metadata.dependencies[0]
+        depCompile.selector == moduleId('group-two', 'artifact-two', selectedVersion)
+        depCompile.scope == selectedScope
+
+        where:
+        scopeInParent            | scopeInChild          | versionInChild           | selectedVersion | selectedScope
+        ""                       | "<scope>test</scope>" | "<version>1.1</version>" | "1.1"           | MavenScope.Test
+        "<scope>compile</scope>" | "<scope>test</scope>" | "<version>1.1</version>" | "1.1"           | MavenScope.Test
+        "<scope>test</scope>"    | ""                    | "<version>1.1</version>" | "1.1"           | MavenScope.Compile
+        ""                       | "<scope>test</scope>" | ""                       | ""              | MavenScope.Test
+        "<scope>compile</scope>" | "<scope>test</scope>" | ""                       | ""              | MavenScope.Test
+        "<scope>test</scope>"    | ""                    | ""                       | ""              | MavenScope.Compile
     }
 
     def "uses empty version if parent pom dependency management section does not provide default values for dependency"() {
