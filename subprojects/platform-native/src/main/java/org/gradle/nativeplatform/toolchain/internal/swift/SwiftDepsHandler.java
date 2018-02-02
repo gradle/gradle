@@ -31,7 +31,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 
@@ -57,8 +59,9 @@ import java.util.Map;
  */
 class SwiftDepsHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(SwiftDepsHandler.class);
+    static final List RESET_TIMESTAMP = Arrays.asList(0L, 0L);
 
-    private SwiftDeps parse(File moduleSwiftDeps) throws FileNotFoundException {
+    SwiftDeps parse(File moduleSwiftDeps) throws FileNotFoundException {
         return IoActions.withResource(new FileInputStream(moduleSwiftDeps), new Transformer<SwiftDeps, FileInputStream>() {
             @Override
             public SwiftDeps transform(FileInputStream fileInputStream) {
@@ -70,10 +73,10 @@ class SwiftDepsHandler {
 
     private void adjustTimestamps(SwiftDeps swiftDeps, Collection<File> changedSources) {
         // Update any previously known files with a bogus timestamp to force a rebuild
-        Integer[] noTimestamp = {0, 0};
+
         for (File changedSource : changedSources) {
             if (swiftDeps.inputs.containsKey(changedSource.getAbsolutePath())) {
-                swiftDeps.inputs.put(changedSource.getAbsolutePath(), noTimestamp);
+                swiftDeps.inputs.put(changedSource.getAbsolutePath(), RESET_TIMESTAMP);
             }
         }
     }
@@ -94,7 +97,7 @@ class SwiftDepsHandler {
     }
 
     boolean adjustTimestampsFor(File moduleSwiftDeps, Collection<File> changedSources) {
-        if (moduleSwiftDeps.exists()) {
+        if (moduleSwiftDeps.exists() && !changedSources.isEmpty()) {
             try {
                 SwiftDeps swiftDeps = parse(moduleSwiftDeps);
                 adjustTimestamps(swiftDeps, changedSources);
@@ -107,21 +110,13 @@ class SwiftDepsHandler {
         return true;
     }
 
-    /*
-version: "Swift version 4.0.3 (swift-4.0.3-RELEASE)"
-options: "7890c730e32273cd2686f36d1bd976c0"
-build_time: [1517422583, 339630833]
-inputs:
-  "fully-qualified-path/src/test/swift/BarTestSuite.swift": [9223372036, 854775807]
-  "fully-qualified-path/src/test/swift/main.swift": [1517422583, 0]
-  "fully-qualified-path/src/test/swift/FooTestSuite.swift": [1517422583, 0]
-     */
     //CHECKSTYLE:OFF
+    // This is used to parse a YAML file
     public static class SwiftDeps {
         private String version;
         private String options;
-        private Integer[] build_time;
-        private Map<String, Integer[]> inputs;
+        private List<Long> build_time;
+        private Map<String, List> inputs;
 
         public String getVersion() {
             return version;
@@ -139,19 +134,19 @@ inputs:
             this.options = options;
         }
 
-        public Integer[] getBuild_time() {
+        public List<Long> getBuild_time() {
             return build_time;
         }
 
-        public void setBuild_time(Integer[] build_time) {
+        public void setBuild_time(List<Long> build_time) {
             this.build_time = build_time;
         }
 
-        public Map<String, Integer[]> getInputs() {
+        public Map<String, List> getInputs() {
             return inputs;
         }
 
-        public void setInputs(Map<String, Integer[]> inputs) {
+        public void setInputs(Map<String, List> inputs) {
             this.inputs = inputs;
         }
     }
