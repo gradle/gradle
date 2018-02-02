@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit
+package org.gradle.testing.testng
 
 import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
 
-class JUnitFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
+class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     @Override
     String testAnnotationClass() {
-        'org.junit.Test'
+        'org.testng.annotations.Test'
     }
 
     @Override
     String testDependency() {
-        'junit:junit:4.12'
+        'org.testng:testng:6.9.13.6'
     }
 
     @Override
     String testFrameworkConfiguration() {
-        ''
+        """
+            tasks.withType(Test) {
+                useTestNG()
+            }
+        """
     }
 }
