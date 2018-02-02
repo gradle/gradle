@@ -23,11 +23,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
@@ -41,38 +39,29 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWor
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.VersionNumber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.JavaBeanDumper;
-import org.yaml.snakeyaml.Loader;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.io.Writer;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 // TODO(daniel): Swift compiler should extends from an abstraction of NativeCompiler (most of it applies to SwiftCompiler)
 class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SwiftCompiler.class);
 
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final String objectFileExtension;
     private final VersionNumber swiftCompilerVersion;
+    private final SwiftDepsHandler swiftDepsHandler;
 
     SwiftCompiler(BuildOperationExecutor buildOperationExecutor, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, WorkerLeaseService workerLeaseService, VersionNumber swiftCompilerVersion) {
         super(buildOperationExecutor, commandLineToolInvocationWorker, invocationContext, new SwiftCompileArgsTransformer(), false, workerLeaseService);
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.objectFileExtension = objectFileExtension;
         this.swiftCompilerVersion = swiftCompilerVersion;
+        this.swiftDepsHandler = new SwiftDepsHandler();
     }
 
     @Override
@@ -112,8 +101,6 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 File moduleSwiftDeps = new File(objectDir, "module.swiftdeps");
                 outputFileMap.root().swiftDependenciesFile(moduleSwiftDeps);
 
-                boolean canSafelyCompileIncrementally = adjustSwiftDepsForIncrementalCompile(moduleSwiftDeps, spec.getChangedFiles());
-
                 for (File sourceFile : spec.getSourceFiles()) {
                     outputFileMap.newEntry(sourceFile.getAbsolutePath())
                         .dependencyFile(getOutputFileDir(sourceFile, objectDir, ".d"))
@@ -132,6 +119,8 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
                 genericArgs.add("-v");
 
+
+                boolean canSafelyCompileIncrementally = swiftDepsHandler.adjustTimestampsFor(moduleSwiftDeps, spec.getChangedFiles());
                 if (canSafelyCompileIncrementally) {
                     genericArgs.add("-incremental");
                     genericArgs.add("-emit-dependencies");
@@ -167,115 +156,6 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                 buildQueue.add(perFileInvocation);
             }
         };
-    }
-
-    /*
-version: "Swift version 4.0.3 (swift-4.0.3-RELEASE)"
-options: "7890c730e32273cd2686f36d1bd976c0"
-build_time: [1517422583, 339630833]
-inputs:
-  "fully-qualified-path/src/test/swift/BarTestSuite.swift": [9223372036, 854775807]
-  "fully-qualified-path/src/test/swift/main.swift": [1517422583, 0]
-  "fully-qualified-path/src/test/swift/FooTestSuite.swift": [1517422583, 0]
-     */
-    //CHECKSTYLE:OFF
-    public static class SwiftDeps {
-        private String version;
-        private String options;
-        private Integer[] build_time;
-        private Map<String, Integer[]> inputs;
-
-        public String getVersion() {
-            return version;
-        }
-
-        public void setVersion(String version) {
-            this.version = version;
-        }
-
-        public String getOptions() {
-            return options;
-        }
-
-        public void setOptions(String options) {
-            this.options = options;
-        }
-
-        public Integer[] getBuild_time() {
-            return build_time;
-        }
-
-        public void setBuild_time(Integer[] build_time) {
-            this.build_time = build_time;
-        }
-
-        public Map<String, Integer[]> getInputs() {
-            return inputs;
-        }
-
-        public void setInputs(Map<String, Integer[]> inputs) {
-            this.inputs = inputs;
-        }
-    }
-    //CHECKSTYLE:ON
-
-    /**
-     * The peculiars of the swiftc incremental compiler can be extracted from the Driver's source code:
-     * https://github.com/apple/swift/tree/d139ab29681d679337245f399dd8c76d620aa1aa/lib/Driver
-     * And docs:
-     * https://github.com/apple/swift/blob/d139ab29681d679337245f399dd8c76d620aa1aa/docs/Driver.md
-     *
-     * The incremental compiler uses the timestamp of source files and the timestamp in module.swiftdeps to
-     * determine which files should be considered for compilation initially.  The compiler then looks at the
-     * individual object's .swiftdeps file to build a dependency graph between changed and unchanged files.
-     *
-     * The incremental compiler will rebuild everything when:
-     * - A source file is removed
-     * - A different version of swiftc is used
-     * - Different compiler arguments are used
-     *
-     * We work around issues with timestamps by changing module.swiftdeps and setting any changed files to
-     * a timestamp of 0.  swiftc then sees those source files as different from the last compilation.
-     *
-     * If we have any issues reading or writing the swiftdeps file, we bail out and disable incremental compilation.
-     */
-    private boolean adjustSwiftDepsForIncrementalCompile(File moduleSwiftDeps, Collection<File> changedSources) {
-        if (moduleSwiftDeps.exists()) {
-            try {
-                // Parse the existing module.swiftdeps and rewrite inputs with known changes
-                final SwiftDeps swiftDeps = IoActions.withResource(new FileInputStream(moduleSwiftDeps), new Transformer<SwiftDeps, FileInputStream>() {
-                    @Override
-                    public SwiftDeps transform(FileInputStream fileInputStream) {
-                        Yaml yaml = new Yaml(new Loader(new Constructor(SwiftDeps.class)));
-                        return (SwiftDeps) yaml.load(fileInputStream);
-                    }
-                });
-                // Update any previously known files with a bogus timestamp to force a rebuild
-                Integer[] noTimestamp = {0, 0};
-                for (File changedSource : changedSources) {
-                    if (swiftDeps.inputs.containsKey(changedSource.getAbsolutePath())) {
-                        swiftDeps.inputs.put(changedSource.getAbsolutePath(), noTimestamp);
-                    }
-                }
-                // Rewrite the yaml file
-                IoActions.writeTextFile(moduleSwiftDeps, new Action<BufferedWriter>() {
-                    @Override
-                    public void execute(BufferedWriter bufferedWriter) {
-                        JavaBeanDumper yaml = new JavaBeanDumper(false);
-                        yaml.dump(swiftDeps, bufferedWriter);
-                        if (LOGGER.isDebugEnabled()) {
-                            StringWriter sw = new StringWriter();
-                            yaml.dump(swiftDeps, sw);
-                            LOGGER.debug(sw.toString());
-                        }
-                    }
-                });
-            } catch (Exception e) {
-                LOGGER.debug("could not update module.swiftdeps", e);
-                return false;
-            }
-        }
-        return true;
     }
 
     private static class SwiftCompileArgsTransformer implements ArgsTransformer<SwiftCompileSpec> {
