@@ -46,17 +46,19 @@ import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.base.compile.CompilerVersion;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.VersionAwareCompiler;
-import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.tasks.internal.DefaultSwiftCompileSpec;
 import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
+import org.gradle.nativeplatform.toolchain.internal.swift.IncrementalSwiftCompiler;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -83,9 +85,12 @@ public class SwiftCompile extends DefaultTask {
     private final DirectoryProperty objectFileDir;
     private final ConfigurableFileCollection source;
     private final Property<SwiftVersion> sourceCompatibility;
+    private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
     private final Map<String, String> macros = new LinkedHashMap<String, String>();
 
-    public SwiftCompile() {
+    @Inject
+    public SwiftCompile(CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory) {
+        this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         source = getProject().files();
         compilerArgs = getProject().getObjects().listProperty(String.class);
         objectFileDir = newOutputDirectory();
@@ -281,7 +286,13 @@ public class SwiftCompile extends DefaultTask {
     void compile(IncrementalTaskInputs inputs) {
         final List<File> removedFiles = Lists.newArrayList();
         final Set<File> changedFiles = Sets.newHashSet();
-        if (inputs.isIncremental()) {
+        boolean isIncremental = inputs.isIncremental();
+
+        // TODO: This should become smarter and move into the compiler infrastructure instead
+        // of the task, similar to how the other native languages are done.
+        // For now, this does a rudimentary incremental build analysis by looking at
+        // which files changed and marking the compilation incremental or not.
+        if (isIncremental) {
             inputs.outOfDate(new Action<InputFileDetails>() {
                 @Override
                 public void execute(InputFileDetails inputFileDetails) {
@@ -297,28 +308,20 @@ public class SwiftCompile extends DefaultTask {
                 }
             });
 
-            // If a non-source file changed, rebuild everything.
-            if (!changedFiles.isEmpty()) {
-                Set<File> allSourceFiles = getSource().getFiles();
-                if (!allSourceFiles.containsAll(changedFiles)) {
-                    changedFiles.clear();
-                    changedFiles.addAll(allSourceFiles);
-                }
+            Set<File> allSourceFiles = getSource().getFiles();
+            if (!allSourceFiles.containsAll(changedFiles)) {
+                // If a non-source file changed, the compilation cannot be incremental
+                // due to the way the Swift compiler detects changes from other modules
+                isIncremental = false;
             }
-        } else {
-            // Not incremental, so delete all old outputs
-            SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
-            cleaner.setDestinationDir(getObjectFileDir().getAsFile().get());
-            cleaner.execute();
-            changedFiles.addAll(getSource().getFiles());
         }
 
         BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
 
-        SwiftCompileSpec spec = createSpec(operationLogger, inputs.isIncremental(), changedFiles, removedFiles);
+        SwiftCompileSpec spec = createSpec(operationLogger, isIncremental, changedFiles, removedFiles);
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
-        Compiler<SwiftCompileSpec> baseCompiler = platformToolProvider.newCompiler(SwiftCompileSpec.class);
+        Compiler<SwiftCompileSpec> baseCompiler = new IncrementalSwiftCompiler(platformToolProvider.newCompiler(SwiftCompileSpec.class), getOutputs(), compilerOutputFileNamingSchemeFactory);
         Compiler<SwiftCompileSpec> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(baseCompiler);
         WorkResult result = loggingCompiler.execute(spec);
         setDidWork(result.getDidWork());

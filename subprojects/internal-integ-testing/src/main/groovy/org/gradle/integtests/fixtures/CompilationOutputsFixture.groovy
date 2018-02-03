@@ -31,7 +31,7 @@ class CompilationOutputsFixture {
         this(targetDir, [])
     }
     /**
-     * Tracks outputs in given target dir considering only the files by the given extensions
+     * Tracks outputs in given target dir considering only the files by the given extensions (ignoring case)
      */
     CompilationOutputsFixture(File targetDir, List<String> includeExtensions) {
         assert targetDir != null
