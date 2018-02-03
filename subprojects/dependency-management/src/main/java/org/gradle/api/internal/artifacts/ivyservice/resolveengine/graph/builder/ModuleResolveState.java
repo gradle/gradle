@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
@@ -27,9 +28,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Resolution state for a given module.
@@ -38,7 +39,7 @@ class ModuleResolveState implements CandidateModule {
     private final ComponentMetaDataResolver metaDataResolver;
     private final IdGenerator<Long> idGenerator;
     private final ModuleIdentifier id;
-    private final List<EdgeState> unattachedDependencies = new LinkedList<EdgeState>();
+    private final Set<EdgeState> unattachedDependencies = Sets.newLinkedHashSet();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<ModuleVersionIdentifier, ComponentState>();
     private final List<SelectorState> selectors = Lists.newLinkedList();
     private ComponentState selected;
@@ -143,12 +144,22 @@ class ModuleResolveState implements CandidateModule {
 
     private void restartUnattachedDependencies(ComponentState selected) {
         if (unattachedDependencies.size()==1) {
-            unattachedDependencies.get(0).restart(selected);
+            restartSingleUnattached(selected);
         } else {
-            for (EdgeState dependency : new ArrayList<EdgeState>(unattachedDependencies)) {
-                dependency.restart(selected);
-            }
+            restartAllUnattached(selected);
         }
+    }
+
+    private void restartAllUnattached(ComponentState selected) {
+        ArrayList<EdgeState> states = new ArrayList<EdgeState>(unattachedDependencies);
+        unattachedDependencies.clear();
+        for (EdgeState dependency : states) {
+            dependency.restart(selected);
+        }
+    }
+
+    private void restartSingleUnattached(ComponentState selected) {
+        unattachedDependencies.iterator().next().restart(selected);
         unattachedDependencies.clear();
     }
 
