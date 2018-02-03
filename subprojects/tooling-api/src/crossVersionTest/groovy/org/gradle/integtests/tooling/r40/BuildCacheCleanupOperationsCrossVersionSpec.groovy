@@ -24,9 +24,11 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.util.GradleVersion
+import org.junit.Ignore
 
 import java.util.concurrent.TimeUnit
 
+@Ignore
 @ToolingApiVersion('>=3.3')
 @TargetGradleVersion(">=4.0")
 class BuildCacheCleanupOperationsCrossVersionSpec extends ToolingApiSpecification {
