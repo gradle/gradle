@@ -24,6 +24,8 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.NativeComponentSpec
 import spock.lang.Specification
 
+import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.getUUID
+
 class DefaultVisualStudioProjectTest extends Specification {
     private DirectInstantiator instantiator = DirectInstantiator.INSTANCE
     def component = Mock(NativeComponentSpec)
@@ -67,27 +69,15 @@ class DefaultVisualStudioProjectTest extends Specification {
         vsProject.headerFiles == [headerfile1, headerfile2, headerfile3] as Set
     }
 
-    def "has consistent uuid for same mapped component"() {
+    def "has consistent uuid for same file"() {
         when:
-        def sameComponent = Mock(NativeComponentSpec)
-        def otherComponent = Mock(NativeComponentSpec)
-
-        component.projectPath >> ":projectPath"
-        sameComponent.projectPath >> ":projectPath"
-        otherComponent.projectPath >> ":otherProjectPath"
-        vsProject = project("projectName", component)
-
-        and:
-        def sameProject = project("projectName", component)
-        def samePath = project("projectName", sameComponent)
-        def differentPath = project("projectName", otherComponent)
-        def differentName = project("otherProject", component)
+        def file = new File("foo")
+        def sameFile = new File("foo")
+        def differentFile = new File("bar")
 
         then:
-        vsProject.uuid == sameProject.uuid
-        vsProject.uuid == samePath.uuid
-        vsProject.uuid != differentPath.uuid
-        vsProject.uuid != differentName.uuid
+        getUUID(file) == getUUID(sameFile)
+        getUUID(file) != getUUID(differentFile)
     }
 
     private VisualStudioTargetBinary targetBinary(List<File> sourceFiles, List<File> resourceFiles, List<File> headerFiles) {

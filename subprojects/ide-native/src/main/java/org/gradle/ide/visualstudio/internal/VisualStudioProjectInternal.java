@@ -16,9 +16,12 @@
 
 package org.gradle.ide.visualstudio.internal;
 
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 
 public interface VisualStudioProjectInternal extends VisualStudioProject {
+    String ARTIFACT_TYPE = "visualStudioProject";
+
     /**
      * Returns the name of the component associated with this project
      */
@@ -28,4 +31,9 @@ public interface VisualStudioProjectInternal extends VisualStudioProject {
      * Adds tasks required to build this component.
      */
     void builtBy(Object... tasks);
+
+    /**
+     * Returns a {@link org.gradle.api.artifacts.PublishArtifact} associated with this project
+     */
+    PublishArtifact getPublishArtifact();
 }

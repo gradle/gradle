@@ -16,8 +16,16 @@
 
 package org.gradle.ide.visualstudio.internal;
 
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+
+import java.io.File;
+
 public class VisualStudioProjectConfiguration {
+    public final static String ARTIFACT_TYPE = "visualStudioProjectConfiguration";
+
     private final DefaultVisualStudioProject vsProject;
+    private final String name;
     private final String configurationName;
     private final String platformName = "Win32";
     private final VisualStudioTargetBinary binary;
@@ -25,11 +33,12 @@ public class VisualStudioProjectConfiguration {
     public VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, VisualStudioTargetBinary binary) {
         this.vsProject = vsProject;
         this.configurationName = configurationName;
+        this.name = configurationName + "|" + platformName;
         this.binary = binary;
     }
 
     public String getName() {
-        return configurationName + "|" + platformName;
+        return name;
     }
 
     public String getConfigurationName() {
@@ -50,5 +59,20 @@ public class VisualStudioProjectConfiguration {
 
     public DefaultVisualStudioProject getProject() {
         return vsProject;
+    }
+
+    public PublishArtifact getPublishArtifact() {
+        return new VisualStudioProjectConfigurationArtifact();
+    }
+
+    private class VisualStudioProjectConfigurationArtifact extends DefaultPublishArtifact {
+        public VisualStudioProjectConfigurationArtifact() {
+            super(name, "vcxproj", ARTIFACT_TYPE, null, null, null, vsProject.getBuildDependencies());
+        }
+
+        @Override
+        public File getFile() {
+            return vsProject.getProjectFile().getLocation();
+        }
     }
 }

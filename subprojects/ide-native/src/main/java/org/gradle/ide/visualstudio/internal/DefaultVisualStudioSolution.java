@@ -21,28 +21,27 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.visualstudio.TextConfigFile;
 import org.gradle.ide.visualstudio.TextProvider;
-import org.gradle.ide.visualstudio.VisualStudioProject;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal {
     private final String name;
-    private final DefaultVisualStudioProject rootProject;
     private final SolutionFile solutionFile;
-    private final VisualStudioProjectResolver vsProjectResolver;
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+    private final IdeArtifactRegistry ideArtifactRegistry;
 
-    public DefaultVisualStudioSolution(String name, DefaultVisualStudioProject rootProject, PathToFileResolver fileResolver, VisualStudioProjectResolver vsProjectResolver, Instantiator instantiator) {
+    public DefaultVisualStudioSolution(String name, PathToFileResolver fileResolver, Instantiator instantiator, IdeArtifactRegistry ideArtifactRegistry) {
         this.name = name;
-        this.rootProject = rootProject;
-        this.vsProjectResolver = vsProjectResolver;
         this.solutionFile = instantiator.newInstance(SolutionFile.class, fileResolver, getName() + ".sln");
+        this.ideArtifactRegistry = ideArtifactRegistry;
+        builtBy(ideArtifactRegistry.getIdeArtifacts(VisualStudioProjectInternal.ARTIFACT_TYPE));
+        builtBy(ideArtifactRegistry.getIdeArtifacts(VisualStudioProjectConfiguration.ARTIFACT_TYPE));
     }
 
     @Override
@@ -55,45 +54,13 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
     }
 
     @Override
-    public String getComponentName() {
-        return rootProject.getComponentName();
+    public List<LocalComponentArtifactMetadata> getProjectArtifacts() {
+        return ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectInternal.ARTIFACT_TYPE);
     }
 
-    public Set<VisualStudioProject> getProjects() {
-        Set<VisualStudioProject> projects = new LinkedHashSet<VisualStudioProject>();
-
-        for (VisualStudioProjectConfiguration solutionConfig : getSolutionConfigurations()) {
-            for (VisualStudioProjectConfiguration projectConfig : getProjectConfigurations(solutionConfig)) {
-                projects.add(projectConfig.getProject());
-            }
-        }
-
-        return projects;
-    }
-
-    public List<VisualStudioProjectConfiguration> getSolutionConfigurations() {
-        return rootProject.getConfigurations();
-    }
-
-    public List<VisualStudioProjectConfiguration> getProjectConfigurations(VisualStudioProjectConfiguration solutionConfiguration) {
-        Set<VisualStudioProjectConfiguration> configurations = new LinkedHashSet<VisualStudioProjectConfiguration>();
-        configurations.add(solutionConfiguration);
-        addDependentConfigurations(configurations, solutionConfiguration);
-        return new ArrayList<VisualStudioProjectConfiguration>(configurations);
-    }
-
-    private void addDependentConfigurations(Set configurations, VisualStudioProjectConfiguration configuration) {
-        for (VisualStudioTargetBinary library : configuration.getTargetBinary().getDependencies()) {
-            VisualStudioProjectConfiguration libraryConfiguration = vsProjectResolver.lookupProjectConfiguration(library);
-            if (configurations.add(libraryConfiguration)) {
-                addDependentConfigurations(configurations, libraryConfiguration);
-            }
-        }
-
-    }
-
-    public final DefaultVisualStudioProject getRootProject() {
-        return rootProject;
+    @Override
+    public List<LocalComponentArtifactMetadata> getProjectConfigurationArtifacts() {
+        return ideArtifactRegistry.getIdeArtifactMetadata(VisualStudioProjectConfiguration.ARTIFACT_TYPE);
     }
 
     @Override

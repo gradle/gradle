@@ -45,7 +45,7 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
-public abstract class IdePlugin implements Plugin<Project> {
+public abstract class IdePlugin implements Plugin<Project>, IdeArtifactRegistry {
 
     private Task lifecycleTask;
     private Task cleanTask;
@@ -116,12 +116,14 @@ public abstract class IdePlugin implements Plugin<Project> {
         }
     }
 
-    protected void registerIdeArtifact(PublishArtifact ideArtifact) {
+    @Override
+    public void registerIdeArtifact(PublishArtifact ideArtifact) {
         ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
         ProjectComponentIdentifier projectId = newProjectId(project);
         projectComponentProvider.registerAdditionalArtifact(projectId, new PublishArtifactLocalArtifactMetadata(projectId, ideArtifact));
     }
 
+    @Override
     public List<LocalComponentArtifactMetadata> getIdeArtifactMetadata(String type) {
         ServiceRegistry serviceRegistry = ((ProjectInternal)project).getServices();
         List<LocalComponentArtifactMetadata> result = Lists.newArrayList();
@@ -130,15 +132,18 @@ public abstract class IdePlugin implements Plugin<Project> {
 
         for (Path projectPath : projectPathRegistry.getAllExplicitProjectPaths()) {
             ProjectComponentIdentifier projectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
-            LocalComponentArtifactMetadata artifactMetadata = localComponentRegistry.findAdditionalArtifact(projectId, type);
-            if (artifactMetadata != null) {
-                result.add(artifactMetadata);
+            Iterable<LocalComponentArtifactMetadata> additionalArtifacts = localComponentRegistry.getAdditionalArtifacts(projectId);
+            for (LocalComponentArtifactMetadata artifactMetadata : additionalArtifacts) {
+                if (artifactMetadata.getName().getType().equals(type)) {
+                    result.add(artifactMetadata);
+                }
             }
         }
 
         return result;
     }
 
+    @Override
     public FileCollection getIdeArtifacts(final String type) {
         return project.files(new Callable<List<FileCollection>>() {
             @Override

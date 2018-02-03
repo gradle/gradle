@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio;
+package org.gradle.plugins.ide.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.file.FileCollection;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 
-/**
- * The configuration for mapping a set of native components to a Visual Studio project.
- */
-@Incubating
-public interface VisualStudioExtension {
-    /**
-     * The {@link VisualStudioProject}s generated.
-     */
-    NamedDomainObjectSet<? extends VisualStudioProject> getProjects();
+import java.util.List;
+
+public interface IdeArtifactRegistry {
+    void registerIdeArtifact(PublishArtifact ideArtifact);
+
+    List<LocalComponentArtifactMetadata> getIdeArtifactMetadata(String type);
+
+    FileCollection getIdeArtifacts(String type);
 }

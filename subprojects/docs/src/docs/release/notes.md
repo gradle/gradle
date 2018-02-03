@@ -126,6 +126,11 @@ For example, when running `gradle compileJava -Dorg.gradle.caching.debug=true --
 In earlier versions of Gradle, this output was logged on the `INFO` log level.
 This does not happen anymore and the info logs should be much cleaner now when the build cache is enabled.
 
+
+### Better Visual Studio IDE support for multi-project builds
+
+Previous versions of Gradle would only generate Visual Studio solution files for a given component and its dependencies.  This made it difficult to work on multiple components in a build at one time as a developer would potentially need to open multiple Visual Studio solutions to see all components.  When the `visual-studio` plugin is applied, Gradle now has a `visualStudio` task on the root project that generates a solution for all components in the multi-project build.  This means there is only one Visual Studio solution that needs to be opened to be able to work on any or all components in the build.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -191,6 +196,21 @@ Putting processors on the compile classpath or using an explicit `-processorpath
 ### Added annotationProcessor configurations
 
 The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` configuration for each source set. This might break when the user already defined such a configuration. We recommend removing your own and using the configuration provided by `java-base`. 
+
+### Changes to Visual Studio IDE configuration
+[`VisualStudioExtension`](dsl/org.gradle.ide.visualstudio.VisualStudioExtension.html) no longer has a `solutions` property.  There is now only a single solution for a multi-project build that can be accessed through the [`VisualStudioRootExtension`](dsl/org.gradle.ide.visualstudio.VisualStudioRootExtension.html) on the root project.  For instance:
+
+    model {
+        visualStudio {
+            solution {
+                solutionFile.location = "vs/${name}.sln"
+            }
+        }
+    }
+
+
+### Removed Visual Studio IDE tasks
+There are no longer tasks to generate Visual Studio solution files for each component in the build.  There is now only a single task (`visualStudio`) in the root project that generates a solution containing all components in the build.
 
 ### Removed `StartParameter.taskOutputCacheEnabled`
 

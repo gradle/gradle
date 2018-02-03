@@ -16,26 +16,22 @@
 
 package org.gradle.ide.visualstudio.tasks.internal
 import org.gradle.api.Action
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
-import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
+import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.getUUID
+
 class VisualStudioSolutionFileTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
-    def fileResolver = Mock(FileResolver)
-    def instantiator = DirectInstantiator.INSTANCE
     def solutionFile = new VisualStudioSolutionFile()
-    def binary1 = binary("one")
 
     def "setup"() {
         solutionFile.loadDefaults()
@@ -62,24 +58,24 @@ EndGlobal
     def "create for single project configuration"() {
         when:
         def project = createProject("project1")
-        def configuration1 = createProjectConfiguration(project, "projectConfig")
-        solutionFile.addSolutionConfiguration("solutionConfig", [configuration1])
-        solutionFile.mainProject = project
+        def configuration1 = createProjectConfiguration(project.file, "projectConfig")
+        solutionFile.projects = [project]
+        solutionFile.projectConfigurations = [configuration1]
 
         then:
         generatedSolution.content ==
 """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project.projectFile.location.absolutePath}", "${project.uuid}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project.file.absolutePath}", "${getUUID(project.file)}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		solutionConfig=solutionConfig
+		projectConfig|Win32=projectConfig|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		${project.uuid}.solutionConfig.ActiveCfg = projectConfig|Win32
-		${project.uuid}.solutionConfig.Build.0 = projectConfig|Win32
+		${getUUID(project.file)}.projectConfig|Win32.ActiveCfg = projectConfig|Win32
+		${getUUID(project.file)}.projectConfig|Win32.Build.0 = projectConfig|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -92,37 +88,35 @@ EndGlobal
         when:
         def project1 = createProject("project1")
         def project2 = createProject("project2")
-        solutionFile.mainProject = project1
-        solutionFile.addSolutionConfiguration("solutionConfig1", [
-                createProjectConfiguration(project1, "config1"),
-                createProjectConfiguration(project1, "config2"),
-                createProjectConfiguration(project2, "configA")
-        ])
-        solutionFile.addSolutionConfiguration("solutionConfig2", [
-                createProjectConfiguration(project2, "configA")
-        ])
+        solutionFile.projects = [project1, project2]
+        solutionFile.projectConfigurations = [
+                createProjectConfiguration(project1.file, "config1"),
+                createProjectConfiguration(project1.file, "config2"),
+                createProjectConfiguration(project2.file, "configA")
+        ]
 
         then:
         generatedSolution.content ==
 """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project1.projectFile.location.absolutePath}", "${project1.uuid}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project1.file.absolutePath}", "${getUUID(project1.file)}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project2", "${project2.projectFile.location.absolutePath}", "${project2.uuid}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project2", "${project2.file.absolutePath}", "${getUUID(project2.file)}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		solutionConfig1=solutionConfig1
-		solutionConfig2=solutionConfig2
+		config1|Win32=config1|Win32
+		config2|Win32=config2|Win32
+		configA|Win32=configA|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		${project1.uuid}.solutionConfig1.ActiveCfg = config1|Win32
-		${project1.uuid}.solutionConfig1.Build.0 = config1|Win32
-		${project1.uuid}.solutionConfig1.ActiveCfg = config2|Win32
-		${project1.uuid}.solutionConfig1.Build.0 = config2|Win32
-		${project2.uuid}.solutionConfig1.ActiveCfg = configA|Win32
-		${project2.uuid}.solutionConfig2.ActiveCfg = configA|Win32
+		${getUUID(project1.file)}.config1|Win32.ActiveCfg = config1|Win32
+		${getUUID(project1.file)}.config1|Win32.Build.0 = config1|Win32
+		${getUUID(project1.file)}.config2|Win32.ActiveCfg = config2|Win32
+		${getUUID(project1.file)}.config2|Win32.Build.0 = config2|Win32
+		${getUUID(project2.file)}.configA|Win32.ActiveCfg = configA|Win32
+		${getUUID(project2.file)}.configA|Win32.Build.0 = configA|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -157,22 +151,23 @@ EndGlobal
         generatedSolutionFile.text == "tset"
     }
 
-    private VisualStudioProjectConfiguration createProjectConfiguration(DefaultVisualStudioProject project1, String configName) {
-        return new VisualStudioProjectConfiguration(project1, configName, binary1)
+    private LocalComponentArtifactMetadata createProjectConfiguration(File projectFile, String configName) {
+        IvyArtifactName name = Stub(IvyArtifactName)
+        name.name >> "${configName}|Win32"
+        LocalComponentArtifactMetadata metadata = Stub(LocalComponentArtifactMetadata)
+        metadata.file >> projectFile
+        metadata.name >> name
+        return metadata
     }
 
-    private DefaultVisualStudioProject createProject(String projectName) {
+    private LocalComponentArtifactMetadata createProject(String projectName) {
         final project1File = new File(projectName)
-        fileResolver.resolve("${projectName}.vcxproj") >> project1File
-        return new DefaultVisualStudioProject(projectName, binary1.projectPath, binary1.getComponentName(), fileResolver, instantiator)
-    }
-
-    private VisualStudioTargetBinary binary(def name) {
-        def binary = Mock(VisualStudioTargetBinary)
-        binary.componentName >> "${name}Component"
-        binary.projectPath >> "project-path"
-        binary.name >> name
-        return binary
+        IvyArtifactName name = Stub(IvyArtifactName)
+        name.name >> projectName
+        LocalComponentArtifactMetadata metadata = Stub(LocalComponentArtifactMetadata)
+        metadata.file >> project1File
+        metadata.name >> name
+        return metadata
     }
 
     private SolutionFile getGeneratedSolution() {
