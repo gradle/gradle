@@ -124,9 +124,11 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
                     allprojects {
                         apply plugin: 'java-library'
                         
-                        compileJava.doFirst {
-                            // this makes it more probable that tasks from the included build finish after the root build
-                            Thread.sleep(1000)
+                        tasks.withType(JavaCompile) {
+                            doFirst {
+                                // this makes it more probable that tasks from the included build finish after the root build
+                                Thread.sleep(2000)
+                            }
                         }
                     }
                 """
@@ -149,10 +151,10 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         then:
         succeeds "build"
         int buildSuccessful = output.indexOf("BUILD SUCCESSFUL")
-        int includedSecondBuild = output.indexOf(":included:second:build")
+        int includedTest = output.indexOf(":included:test")
         buildSuccessful > 0
-        includedSecondBuild > 0
-        buildSuccessful < includedSecondBuild
+        includedTest > 0
+        buildSuccessful < includedTest
     }
 
     private static String customTaskCode(String val = "foo") {
