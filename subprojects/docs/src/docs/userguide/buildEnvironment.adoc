@@ -88,20 +88,13 @@ You can also set system properties in `gradle.properties` files with the prefix 
 ====
 [source,properties]
 ----
-systemProp.org.gradle.cache.remote.url=https://build-cache.mycompany.com
-systemProp.org.gradle.cache.remote.username=myuser
-systemProp.org.gradle.cache.remote.password=mypassword
+systemProp.gradle.wrapperUser=myuser
+systemProp.gradle.wrapperPassword=mypassword
 ----
 ====
 
 The following system properties are available. Note that command-line options take precedence over system properties.
 
-`org.gradle.cache.remote.url=(remote build cache URL)`::
-Specify URL of remote Gradle build cache. Learn more in the section on <<sec:build_cache_configure_remote, configuring a remote HTTP build cache>>.
-`org.gradle.cache.remote.username=(myuser)`::
-Specify username for authenticating to a remote Gradle build cache.
-`org.gradle.cache.remote.password=(mypassword)`::
-Specify password for authenticating to a remote Gradle build cache.
 `gradle.wrapperUser=(myuser)`::
 Specify user name to download Gradle distributions from servers using HTTP Basic Authentication. Learn more in <<sec:authenticated_download>>.
 `gradle.wrapperPassword=(mypassword)`::

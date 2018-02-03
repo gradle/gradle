@@ -16,15 +16,11 @@
 
 package org.gradle.caching.configuration;
 
-import org.gradle.api.Incubating;
-
-
 /**
  * Configuration object for a build cache.
  *
  * @since 3.5
  */
-@Incubating
 public interface BuildCache {
 
     /**

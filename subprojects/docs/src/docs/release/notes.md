@@ -150,6 +150,14 @@ TestKit was first introduced in Gradle 2.6 to support developers with writing an
 
 The `CompileOptions.annotationProcessorPath` property has been promoted and is now stable.
 
+### Build cache and task output caching
+
+The [build cache](userguide/build_cache.html) and [task output caching](userguide/build_cache.html#sec:task_output_caching) were first introduced in Gradle 3.5.
+They are used in production by different teams, including the Gradle team itself, with great results.
+As of Gradle 4.6, the build cache and task output caching are no longer incubating and considered public features.
+
+Note that the SPI to [implement your own build cache service](userguide/build_cache.html#sec:build_cache_implement) stays incubating. 
+
 ## Fixed issues
 
 ## Deprecations
@@ -203,6 +211,15 @@ The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` conf
 
 ### Removed Visual Studio IDE tasks
 There are no longer tasks to generate Visual Studio solution files for each component in the build.  There is now only a single task (`visualStudio`) in the root project that generates a solution containing all components in the build.
+
+### Removed `StartParameter.taskOutputCacheEnabled`
+
+The deprecated property `StartParameter.taskOutputCacheEnabled` has been removed.
+Use `StartParameter.buildCacheEnabled` instead.
+
+### HttpClient library upgraded to version 4.5.5
+
+Gradle has been upgraded to embed [HttpClient version 4.5.5](https://archive.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES-4.5.x.txt) over 4.4.1.
 
 <!--
 ### Example breaking change
