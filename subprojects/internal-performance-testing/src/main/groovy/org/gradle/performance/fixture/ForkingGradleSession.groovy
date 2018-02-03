@@ -52,6 +52,7 @@ class ForkingGradleSession implements GradleSession {
     @Override
     Action<MeasuredOperation> runner(BuildExperimentInvocationInfo invocationInfo, InvocationCustomizer invocationCustomizer) {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(invocationInfo, this.invocation) : this.invocation
+        invocation = invocation.withBuilder().distribution(new PerformanceTestGradleDistribution(invocation.gradleDistribution, invocation.workingDirectory)).build()
         return { MeasuredOperation measuredOperation ->
             def cleanTasks = invocation.cleanTasks
             if (cleanTasks) {
