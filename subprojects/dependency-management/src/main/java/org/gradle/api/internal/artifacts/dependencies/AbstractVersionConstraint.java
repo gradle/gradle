@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.VersionConstraint;
 
 public abstract class AbstractVersionConstraint implements VersionConstraint {
@@ -24,13 +25,16 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
         if (this == o) {
             return true;
         }
-        if (o == null) {
+        if (o == null || o.getClass() != getClass()) {
             return false;
         }
 
         AbstractVersionConstraint that = (AbstractVersionConstraint) o;
 
-        if (getPreferredVersion() != null ? !getPreferredVersion().equals(that.getPreferredVersion()) : that.getPreferredVersion() != null) {
+        if (!Objects.equal(getPreferredVersion(), that.getPreferredVersion())) {
+            return false;
+        }
+        if (!Objects.equal(getBranch(), that.getBranch())) {
             return false;
         }
         return getRejectedVersions().equals(that.getRejectedVersions());
@@ -38,13 +42,13 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
 
     @Override
     public int hashCode() {
-        int result = getPreferredVersion() != null ? getPreferredVersion().hashCode() : 0;
+        int result = getPreferredVersion().hashCode();
         result = 31 * result + getRejectedVersions().hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return getPreferredVersion() + (getRejectedVersions().isEmpty() ? "" : " (rejects: " + Joiner.on(" - ").join(getRejectedVersions()) + ")");
+        return getPreferredVersion() + (getRejectedVersions().isEmpty() ? "" : " (rejects: " + Joiner.on(" - ").join(getRejectedVersions()) + ")") + (getBranch() == null ? "" : " (branch: " + getBranch() + ")");
     }
 }

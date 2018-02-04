@@ -79,7 +79,17 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
             try {
                 return delegate.getHead(spec);
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not list available versions for '%s'.", spec.getDisplayName()), e);
+                throw new GradleException(String.format("Could not locate default branch for '%s'.", spec.getDisplayName()), e);
+            }
+        }
+
+        @Nullable
+        @Override
+        public VersionRef getBranch(VersionControlSpec spec, String branch) {
+            try {
+                return delegate.getBranch(spec, branch);
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not locate branch '%s' for '%s'.", branch, spec.getDisplayName()), e);
             }
         }
 

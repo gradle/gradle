@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
@@ -65,10 +66,13 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
 
         assertEquals(moduleDependency.isChanging(), dependencyMetaData.isChanging());
         assertEquals(moduleDependency.isForce(), dependencyMetaData.isForce());
+        assertEquals(moduleDependency.getGroup(), moduleDependency.getGroup());
+        assertEquals(moduleDependency.getName(), moduleDependency.getName());
+        assertEquals(moduleDependency.getVersion(), moduleDependency.getVersion());
         assertEquals(moduleDependency.getGroup(), selector.getGroup());
         assertEquals(moduleDependency.getName(), selector.getModule());
         assertEquals(moduleDependency.getVersion(), selector.getVersion());
-        assertEquals(moduleDependency.getVersionConstraint(), selector.getVersionConstraint());
+        assertEquals(((VersionConstraintInternal)moduleDependency.getVersionConstraint()).asImmutable(), selector.getVersionConstraint());
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
     }
 }

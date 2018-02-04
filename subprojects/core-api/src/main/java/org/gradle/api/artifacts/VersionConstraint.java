@@ -17,6 +17,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -27,6 +28,14 @@ import java.util.List;
  */
 @Incubating
 public interface VersionConstraint {
+    /**
+     * The branch to select versions from. When not {@code null} selects only those versions that were built from the specified branch.
+     *
+     * @since 4.6
+     */
+    @Nullable
+    String getBranch();
+
     /**
      * The preferred version of a module. The preferred version of a module can typically be upgraded during dependency resolution,
      * unless further constraints are added.

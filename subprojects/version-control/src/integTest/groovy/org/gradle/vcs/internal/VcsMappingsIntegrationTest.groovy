@@ -143,7 +143,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         fails('assemble')
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
-        failure.assertHasCause("Could not list available versions for 'Git Repository at https://bad.invalid'.")
+        failure.assertHasCause("Could not locate default branch for 'Git Repository at https://bad.invalid'.")
     }
 
     def "can define and use source repositories with all {}"() {
