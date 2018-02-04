@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
@@ -74,6 +75,7 @@ public class EclipseDependenciesCreator {
         private final List<AbstractClasspathEntry> files = Lists.newArrayList();
         private final Multimap<String, String> pathToSourceSets = collectLibraryToSourceSetMapping();
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
+        private final ProjectComponentIdentifier currentProjectId = DefaultProjectComponentIdentifier.newProjectId(classpath.getProject());
 
 
         @Override
@@ -94,7 +96,9 @@ public class EclipseDependenciesCreator {
         @Override
         public void visitProjectDependency(ResolvedArtifactResult artifact) {
             ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
-            projects.add(projectDependencyBuilder.build(componentIdentifier));
+            if (!componentIdentifier.equals(currentProjectId)) {
+                projects.add(projectDependencyBuilder.build(componentIdentifier));
+            }
         }
 
         @Override

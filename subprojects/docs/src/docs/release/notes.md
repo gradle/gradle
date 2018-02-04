@@ -9,7 +9,7 @@ With [dependency constraints](userguide/managing_transitive_dependencies.html#se
     dependencies {
         implementation 'org.apache.httpcomponents:httpclient'  
     }
-    
+
     dependencies {
         constraints {
             // declare versions for my dependencies in a central place
@@ -23,7 +23,7 @@ In the example, the version of `commons-codec` that is brought in transitively i
 
 ### Advanced POM support (preview)
 
-Gradle now supports [additional features for modules with POM metadata](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc). This includes support for _optional dependencies_, _BOM import_ and _compile/runtime scope separation_. 
+Gradle now supports [additional features for modules with POM metadata](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc). This includes support for _optional dependencies_, _BOM import_ and _compile/runtime scope separation_.
 
 _Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
 
@@ -77,28 +77,28 @@ Sometimes a user wants to declare the value of an exposed task property on the c
 The following examples exposes a command line parameter `--url` for the custom task type `UrlVerify`. Let's assume you wanted to pass a URL to a task of this type named `verifyUrl`. The invocation looks as such: `gradle verifyUrl --url=https://gradle.org/`. You can find more information about this feature in the [user guide](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options).
 
     import org.gradle.api.tasks.options.Option;
-    
+
     public class UrlVerify extends DefaultTask {
         private String url;
-    
+
         @Option(option = "url", description = "Configures the URL to be verified.")
         public void setUrl(String url) {
             this.url = url;
         }
-    
+
         @Input
         public String getUrl() {
             return url;
         }
-    
+
         @TaskAction
         public void verify() {
             getLogger().quiet("Verifying URL '{}'", url);
-    
+
             // verify URL by making a HTTP call
         }
     }
-    
+
 ### Caching for Scala compilation when using the `play` plugin
 
 The task `PlatformScalaCompile` is now cacheable.
@@ -156,7 +156,7 @@ The [build cache](userguide/build_cache.html) and [task output caching](userguid
 They are used in production by different teams, including the Gradle team itself, with great results.
 As of Gradle 4.6, the build cache and task output caching are no longer incubating and considered public features.
 
-Note that the SPI to [implement your own build cache service](userguide/build_cache.html#sec:build_cache_implement) stays incubating. 
+Note that the SPI to [implement your own build cache service](userguide/build_cache.html#sec:build_cache_implement) stays incubating.
 
 ## Fixed issues
 
@@ -195,7 +195,7 @@ Putting processors on the compile classpath or using an explicit `-processorpath
 
 ### Added annotationProcessor configurations
 
-The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` configuration for each source set. This might break when the user already defined such a configuration. We recommend removing your own and using the configuration provided by `java-base`. 
+The `java-base` plugin will now add an `<sourceSetName>AnnotationProcessor` configuration for each source set. This might break when the user already defined such a configuration. We recommend removing your own and using the configuration provided by `java-base`.
 
 ### Changes to Visual Studio IDE configuration
 [`VisualStudioExtension`](dsl/org.gradle.ide.visualstudio.VisualStudioExtension.html) no longer has a `solutions` property.  There is now only a single solution for a multi-project build that can be accessed through the [`VisualStudioRootExtension`](dsl/org.gradle.ide.visualstudio.VisualStudioRootExtension.html) on the root project.  For instance:
