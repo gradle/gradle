@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule;
@@ -90,6 +91,7 @@ public class WtpComponentFactory {
 
     private class WtpDependenciesVisitor implements IdeDependencyVisitor {
         private final Project project;
+        private final ProjectComponentIdentifier currentProjectId;
         private final EclipseWtpComponent wtp;
         private final String deployPath;
         private final List<WbDependentModule> projectEntries = Lists.newArrayList();
@@ -102,6 +104,7 @@ public class WtpComponentFactory {
             this.project = project;
             this.wtp = wtp;
             this.deployPath = deployPath;
+            currentProjectId = DefaultProjectComponentIdentifier.newProjectId(project);
         }
 
         @Override
@@ -126,8 +129,10 @@ public class WtpComponentFactory {
         @Override
         public void visitProjectDependency(ResolvedArtifactResult artifact) {
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
-            String targetProjectPath = projectDependencyBuilder.determineTargetProjectName(projectId);
-            projectEntries.add(new WbDependentModule(deployPath, "module:/resource/" + targetProjectPath + "/" + targetProjectPath));
+            if (!projectId.equals(currentProjectId)) {
+                String targetProjectPath = projectDependencyBuilder.determineTargetProjectName(projectId);
+                projectEntries.add(new WbDependentModule(deployPath, "module:/resource/" + targetProjectPath + "/" + targetProjectPath));
+            }
         }
 
         @Override

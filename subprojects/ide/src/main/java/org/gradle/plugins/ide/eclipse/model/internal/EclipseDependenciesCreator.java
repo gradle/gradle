@@ -55,13 +55,11 @@ public class EclipseDependenciesCreator {
     private static final Logger LOGGER = LoggerFactory.getLogger(EclipseDependenciesCreator.class);
     private final EclipseClasspath classpath;
     private final ProjectDependencyBuilder projectDependencyBuilder;
-    private final ProjectComponentIdentifier currentProjectId;
 
     public EclipseDependenciesCreator(EclipseClasspath classpath) {
         this.classpath = classpath;
         ServiceRegistry serviceRegistry = ((ProjectInternal) classpath.getProject()).getServices();
         this.projectDependencyBuilder = new ProjectDependencyBuilder(serviceRegistry.get(LocalComponentRegistry.class));
-        this.currentProjectId = DefaultProjectComponentIdentifier.newProjectId(classpath.getProject());
     }
 
     public List<AbstractClasspathEntry> createDependencyEntries() {
@@ -77,6 +75,7 @@ public class EclipseDependenciesCreator {
         private final List<AbstractClasspathEntry> files = Lists.newArrayList();
         private final Multimap<String, String> pathToSourceSets = collectLibraryToSourceSetMapping();
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
+        private final ProjectComponentIdentifier currentProjectId = DefaultProjectComponentIdentifier.newProjectId(classpath.getProject());
 
 
         @Override
