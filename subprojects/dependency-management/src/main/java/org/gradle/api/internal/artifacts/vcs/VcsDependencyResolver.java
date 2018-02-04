@@ -37,6 +37,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -57,6 +58,7 @@ import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -103,8 +105,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     selectedVersion = selectVersionFromRepository(spec, versionControlSystem, depSelector.getVersionConstraint());
                 }
                 if (selectedVersion == null) {
-                    result.failed(new ModuleVersionResolveException(depSelector,
-                        "Could not resolve " + depSelector.toString() + ". " + spec.getDisplayName() + " does not contain a version matching " + depSelector.getVersion()));
+                    result.failed(new ModuleVersionNotFoundException(depSelector, Collections.singleton(spec.getDisplayName())));
                     return;
                 }
 

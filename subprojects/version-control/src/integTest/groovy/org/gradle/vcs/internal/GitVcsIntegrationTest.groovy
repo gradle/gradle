@@ -169,44 +169,6 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         gitCheckout.file('.git').assertExists()
     }
 
-    def 'handle missing version by adding tag to git repository'() {
-        given:
-        settingsFile << """
-            sourceControl {
-                vcsMappings {
-                    withModule("org.test:dep") {
-                        from(GitVersionControlSpec) {
-                            url = "${repo.url}"
-                        }
-                    }
-                }
-            }
-        """
-        def commit = repo.commit('initial commit')
-        repo.createLightWeightTag('1.3.0')
-
-        def javaFile = file('dep/src/main/java/Dep.java')
-        javaFile.replace('class', 'interface')
-        repo.commit('Changed Dep to an interface')
-
-        buildFile.replace('latest.integration', '1.4.0')
-
-        when:
-        fails('assemble')
-
-        then:
-        failureCauseContains("Could not resolve org.test:dep:1.4.0. Git Repository at file:")
-        failureCauseContains("does not contain a version matching 1.4.0")
-
-        when:
-        javaFile.replace('interface', 'class')
-        repo.commit('Switch it back to a class.')
-        repo.createLightWeightTag('1.4.0')
-
-        then:
-        succeeds('assemble')
-    }
-
     def 'can handle conflicting versions'() {
         given:
         settingsFile << """
