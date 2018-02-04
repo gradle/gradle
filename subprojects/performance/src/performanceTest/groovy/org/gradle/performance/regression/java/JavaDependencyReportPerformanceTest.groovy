@@ -30,7 +30,7 @@ class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanc
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ["${subProject}dependencyReport"]
-        runner.targetVersions = ["4.5"]
+        runner.targetVersions = ["4.5-20180120003357+0000"]
 
         when:
         def result = runner.run()
