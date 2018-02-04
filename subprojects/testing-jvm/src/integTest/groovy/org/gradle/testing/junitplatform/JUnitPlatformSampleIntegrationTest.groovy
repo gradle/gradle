@@ -20,8 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class JUnitPlatformSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider)

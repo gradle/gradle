@@ -90,14 +90,6 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
         Assume.assumeTrue(!version in [JUPITER, VINTAGE])
     }
 
-    protected String testName(String methodName) {
-        if (version == JUPITER) {
-            return methodName + '()'
-        } else {
-            return methodName
-        }
-    }
-
     protected String getTestFramework() {
         if (version in [JUPITER, VINTAGE]) {
             return "JUnitPlatform"

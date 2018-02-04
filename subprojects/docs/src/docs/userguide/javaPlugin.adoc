@@ -649,6 +649,7 @@ When using JUnit, we scan for both JUnit 3 and 4 test classes. If any of the fol
 * Class or a super class is annotated with `@RunWith`
 * Class or a super class contain a method annotated with `@Test`
 
+
 When using TestNG, we scan for methods annotated with `@Test`.
 
 Note that abstract classes are not executed. Gradle also scans up the inheritance tree into jar files on the test classpath.

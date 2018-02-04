@@ -38,17 +38,6 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
 
     private Set<String> excludeTags = new LinkedHashSet<String>();
 
-    private boolean legacyJUnitEnabled;
-
-    @Incubating
-    public void enableLegacyJUnit() {
-        legacyJUnitEnabled = true;
-    }
-
-    public boolean isLegacyJUnitEnabled() {
-        return legacyJUnitEnabled;
-    }
-
     @Incubating
     public JUnitPlatformOptions includeEngines(String... includeEngines) {
         this.includeEngines.addAll(Arrays.asList(includeEngines));
