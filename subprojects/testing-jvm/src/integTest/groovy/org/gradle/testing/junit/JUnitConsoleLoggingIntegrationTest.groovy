@@ -40,10 +40,10 @@ class JUnitConsoleLoggingIntegrationTest extends JUnitMultiVersionIntegrationSpe
         fails("test")
 
         then:
-        outputContains("""
-org.gradle.JUnit4Test > ${testName('badTest')} FAILED
+        result.normalizedOutput.contains("""
+org.gradle.JUnit4Test > badTest FAILED
     java.lang.RuntimeException at JUnit4Test.groovy:44
-        """)
+""")
     }
 
     def "customQuietLogging"() {
@@ -53,14 +53,14 @@ org.gradle.JUnit4Test > ${testName('badTest')} FAILED
         fails("test")
 
         then:
-        outputContains("""
-${testName('badTest')} FAILED
+        result.normalizedOutput.contains("""
+badTest FAILED
     java.lang.RuntimeException: bad
         at org.gradle.JUnit4Test.beBad(JUnit4Test.groovy:44)
         at org.gradle.JUnit4Test.badTest(JUnit4Test.groovy:28)
-        """)
+""")
 
-        outputContains("${testName('ignoredTest')} SKIPPED")
+        result.normalizedOutput.contains("ignoredTest SKIPPED")
 
         outputContains("org.gradle.JUnit4Test FAILED")
     }
@@ -71,12 +71,12 @@ ${testName('badTest')} FAILED
         fails("test")
 
         then:
-        outputContains("""
-org.gradle.JUnit4StandardOutputTest > ${testName('printTest')} STANDARD_OUT
+        result.normalizedOutput.contains("""
+org.gradle.JUnit4StandardOutputTest > printTest STANDARD_OUT
     line 1
     line 2
     line 3
-        """)
+""")
     }
 
     def "test logging is included in XML results"() {

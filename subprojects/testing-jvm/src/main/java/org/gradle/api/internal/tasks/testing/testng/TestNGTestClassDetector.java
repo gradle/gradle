@@ -27,15 +27,15 @@ import java.util.Set;
 class TestNGTestClassDetector extends TestClassVisitor {
     private static final Set<String> TEST_METHOD_ANNOTATIONS =
         ImmutableSet.<String>builder()
-            .add("Lorg/testng/annotations/Test;")
-            .add("Lorg/testng/annotations/BeforeSuite;")
-            .add("Lorg/testng/annotations/AfterSuite;")
-            .add("Lorg/testng/annotations/BeforeTest;")
-            .add("Lorg/testng/annotations/AfterTest;")
-            .add("Lorg/testng/annotations/BeforeGroups;")
-            .add("Lorg/testng/annotations/AfterGroups;")
-            .add("Lorg/testng/annotations/Factory;")
-            .build();
+        .add("Lorg/testng/annotations/Test;")
+        .add("Lorg/testng/annotations/BeforeSuite;")
+        .add("Lorg/testng/annotations/AfterSuite;")
+        .add("Lorg/testng/annotations/BeforeTest;")
+        .add("Lorg/testng/annotations/AfterTest;")
+        .add("Lorg/testng/annotations/BeforeGroups;")
+        .add("Lorg/testng/annotations/AfterGroups;")
+        .add("Lorg/testng/annotations/Factory;")
+        .build();
 
     TestNGTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);

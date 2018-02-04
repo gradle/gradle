@@ -23,9 +23,9 @@ import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.ASSUMPTIONS
-import static org.gradle.testing.fixture.JUnitCoverage.VINTAGE
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
-@TargetCoverage({ ASSUMPTIONS + VINTAGE })
+@TargetCoverage({ ASSUMPTIONS + JUNIT_VINTAGE })
 class JUnitAssumptionsIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)

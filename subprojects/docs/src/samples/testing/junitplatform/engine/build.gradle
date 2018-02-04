@@ -7,7 +7,7 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.0.3'
     testImplementation 'org.junit.vintage:junit-vintage-engine:4.12.3'
-    testRuntimeOnly'org.junit.jupiter:junit-jupiter-engine:5.0.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.0.3'
 }
 
 test {

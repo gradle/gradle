@@ -22,9 +22,9 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 
 import static org.gradle.testing.fixture.JUnitCoverage.FILTER_JUNIT3_TESTS
-import static org.gradle.testing.fixture.JUnitCoverage.VINTAGE
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
-@TargetCoverage({ FILTER_JUNIT3_TESTS + VINTAGE })
+@TargetCoverage({ FILTER_JUNIT3_TESTS + JUNIT_VINTAGE })
 class JUnit3FilteringIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     void "filters tests implemented using 3.x test cases"() {
         buildFile << """
