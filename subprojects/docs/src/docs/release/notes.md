@@ -30,7 +30,7 @@ In the example, the version of `commons-codec` that is brought in transitively i
 The `JUnit Platform` serves as a foundation for launching testing frameworks on the JVM. `JUnit Jupiter` is the combination of the new [programming model](http://junit.org/junit5/docs/current/user-guide/#writing-tests)
  and [extension model](http://junit.org/junit5/docs/current/user-guide/#extensions) for writing tests and extensions in JUnit 5. `JUnit Vintage` provides a `TestEngine` for running JUnit 3 and JUnit 4 based tests on the platform.
     
-Gradle now supports `JUnit Jupiter/Vintage Engine` on top of `JUnit Platform`. To enable `JUnit Platform` support, you just need to add one line into your `build.gradle`:
+Gradle now provides native support for `JUnit Jupiter/Vintage Engine` on top of `JUnit Platform`. To enable `JUnit Platform` support, you just need to add one line into your `build.gradle`:
 
     test {
         useJUnitPlatform()
@@ -47,6 +47,8 @@ Moreover, [Tagging and Filtering](http://junit.org/junit5/docs/current/user-guid
             // excludeEngines 'custom-engine'
         }
     }  
+    
+You can find a sample of tagging test at `samples/testing/junitplatform/tagging` in the '-all' distribution of Gradle.         
     
 #### JUnit Jupiter Engine
     
@@ -86,8 +88,9 @@ If you want to run JUnit 3/4 tests on `JUnit Platform`, you should add extra `JU
     }
     
 You can mix JUnit 3/4 tests with `Jupiter` tests without the need to rewrite old tests.
+A sample of mixed tests can be found at `samples/testing/junitplatform/engine` in the '-all' distribution of Gradle.         
 
-Note that JUnit 5 requires Java 8+, so you may need to configure the [`executable`](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable) if you're using JDK 7.
+Note that JUnit 5 requires Java 8+, so you may need to configure the [`executable`](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable) if you're using Java 7.
 
 ### Support for optional dependencies in POM consumption
 
