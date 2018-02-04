@@ -16,23 +16,19 @@
 
 package org.gradle.testing.junit
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
 import static org.hamcrest.Matchers.startsWith
 
-@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE })
-class JUnitCategoriesIntegrationSpec extends JUnitMultiVersionIntegrationSpec {
+public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
     def reportsUnloadableExcludeCategory() {
         given:
-        ignoreWhenJUnitPlatform()
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reportsUnloadableCategories")
         buildFile << "test.useJUnit { excludeCategories 'org.gradle.CategoryA' }"
 
@@ -48,7 +44,6 @@ class JUnitCategoriesIntegrationSpec extends JUnitMultiVersionIntegrationSpec {
 
     def reportsUnloadableIncludeCategory() {
         given:
-        ignoreWhenJUnitPlatform()
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reportsUnloadableCategories")
         buildFile << "test.useJUnit { excludeCategories 'org.gradle.CategoryA' }"
 

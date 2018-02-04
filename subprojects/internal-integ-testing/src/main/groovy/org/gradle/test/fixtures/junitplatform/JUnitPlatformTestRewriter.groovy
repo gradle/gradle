@@ -51,6 +51,17 @@ class JUnitPlatformTestRewriter {
         rewriteJavaFilesWithJupiterAnno(projectDir)
     }
 
+    static replaceCategoriesWithTags(File projectDir) {
+        // http://junit.org/junit5/docs/current/user-guide/#migrating-from-junit4-categories-support
+        File buildFile = new File(projectDir, 'build.gradle')
+        if (buildFile.exists()) {
+            String text = buildFile.text
+            text = text.replace('excludeCategories', 'excludeTags')
+            text = text.replace('includeCategories', 'includeTags')
+            buildFile.text = text
+        }
+    }
+
     static rewriteWithVintage(File projectDir) {
         rewriteBuildFileWithVintage(projectDir)
     }
@@ -91,7 +102,9 @@ class JUnitPlatformTestRewriter {
         if (!text.contains('useTestNG')) {
             // we only hack build with JUnit 4
             // See IncrementalTestIntegrationTest.executesTestsWhenTestFrameworkChanges
-            if (text.contains('test {')) {
+            if (text.contains("useJUnit {")) {
+                text = text.replace('useJUnit {', 'useJUnitPlatform {')
+            } else if (text.contains('test {')) {
                 text = text.replace('test {', '''
                     test {
                     useJUnitPlatform()

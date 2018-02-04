@@ -79,8 +79,8 @@ public class JUnitTestClassExecutor implements Action<String> {
                 }
             };
             filters.add(new CategoryFilter(
-                CollectionUtils.collect(options.getIncludeCategories(), transformer),
-                CollectionUtils.collect(options.getExcludeCategories(), transformer)
+                    CollectionUtils.collect(options.getIncludeCategories(), transformer),
+                    CollectionUtils.collect(options.getExcludeCategories(), transformer)
             ));
         }
 

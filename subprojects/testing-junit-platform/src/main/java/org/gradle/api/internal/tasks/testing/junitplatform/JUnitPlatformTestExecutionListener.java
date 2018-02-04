@@ -67,21 +67,26 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private void processIgnoredClass(TestIdentifier id) {
-        getIgnoredMethodsFromIgnoredClass(id.getClass().getClassLoader(), className(id), idGenerator).forEach(adapter::testIgnored);
+        Class testClass = ClassSource.class.cast(id.getSource().get()).getJavaClass();
+        getIgnoredMethodsFromIgnoredClass(testClass.getClassLoader(), testClass.getName(), idGenerator).forEach(adapter::testIgnored);
     }
 
     @Override
     public void executionStarted(TestIdentifier testIdentifier) {
-        if (!testIdentifier.isTest()) {
+        if (!isLeafTest(testIdentifier)) {
             return;
         }
         adapter.testStarted(testIdentifier.getUniqueId(), getDescriptor(testIdentifier));
     }
 
+    private boolean isLeafTest(TestIdentifier identifier) {
+        return identifier.isTest();
+    }
+
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
         if (isLeafMethodOrFailedContainer(testIdentifier, testExecutionResult)) {
-            if (!testIdentifier.isTest()) {
+            if (!isLeafTest(testIdentifier)) {
                 // only leaf methods triggered start events previously
                 // so here we need to add the missing start events
                 adapter.testStarted(testIdentifier.getUniqueId(), getDescriptor(testIdentifier));
@@ -109,7 +114,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         // 1. JUnit test engine, which we don't consider at all
         // 2. A container (class or repeated tests). It is not tracked unless it fails/aborts.
         // 3. A test "leaf" method. It's always tracked.
-        return testIdentifier.isTest() || isFailedContainer(testIdentifier, result);
+        return isLeafTest(testIdentifier) || isFailedContainer(testIdentifier, result);
     }
 
     private boolean isFailedContainer(TestIdentifier testIdentifier, TestExecutionResult result) {
@@ -122,6 +127,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         } else if (isVintageDynamicTest(test)) {
             UniqueId uniqueId = UniqueId.parse(test.getUniqueId());
             return new DefaultTestDescriptor(idGenerator.generateId(), vintageDynamicClassName(uniqueId), vintageDynamicMethodName(uniqueId));
+        } else if (isVintageNullDescriptionTest(test)) {
+            return new DefaultTestDescriptor(idGenerator.generateId(), className(test), test.getDisplayName());
         } else if (isClass(test)) {
             return new DefaultTestDescriptor(idGenerator.generateId(), className(test), "classMethod");
         } else {
@@ -138,12 +145,24 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private String className(TestIdentifier testIdentifier) {
-        if (testIdentifier.getSource().get() instanceof MethodSource) {
-            return MethodSource.class.cast(testIdentifier.getSource().get()).getClassName();
+        if (isMethod(testIdentifier)) {
+            return retrieveClassName(testIdentifier);
         } else if (testIdentifier.getSource().get() instanceof ClassSource) {
             return ClassSource.class.cast(testIdentifier.getSource().get()).getClassName();
         } else {
-            return null;
+            return "UnknownClass";
         }
+    }
+
+    private String retrieveClassName(TestIdentifier testIdentifier) {
+        // For tests in default method of interface,
+        // we might not be able to get the implementation class directly.
+        // In this case, we need to retrieve test plan to get the real implementation class.
+        TestIdentifier current = testIdentifier;
+        while (!isClass(current) && current.getParentId().isPresent()) {
+            current = currentTestPlan.getTestIdentifier(current.getParentId().get());
+        }
+
+        return className(current);
     }
 }

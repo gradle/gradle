@@ -260,9 +260,9 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         file("build/tmp/test").exists() // ensure we extracted classes
 
         where:
-        testFramework | dependency                | superClass
-        "useJUnit"    | "junit:junit:4.12"        | "org.junit.runner.Result"
-        "useTestNG"   | "org.testng:testng:6.3.1" | "org.testng.Converter"
+        framework   | dependency                | superClass
+        "useJUnit"  | "junit:junit:4.12"        | "org.junit.runner.Result"
+        "useTestNG" | "org.testng:testng:6.3.1" | "org.testng.Converter"
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2527")
