@@ -676,7 +676,11 @@ For grouping JUnit 4 test classes and methods JUnit 4.8 introduces the concept o
 In http://junit.org/junit5/docs/current/user-guide[JUnit Platform], http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[tagging] is introduced instead of categories.
 You can specify the included/excluded tags as follows:
 
-
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="junitplatformtags" dir="testing/junitplatform/tagging" title="JUnit Platform Tags">
+                <sourcefile file="build.gradle" snippet="test-tags"/>
+            </sample>
+++++
 
 The TestNG framework has a quite similar concept. In TestNG you can specify different test groups.footnote:[The TestNG documentation contains more details about test groups: http://testng.org/doc/documentation-main.html#test-groups[].] The test groups that should be included or excluded from the test execution can be configured in the test task.
 

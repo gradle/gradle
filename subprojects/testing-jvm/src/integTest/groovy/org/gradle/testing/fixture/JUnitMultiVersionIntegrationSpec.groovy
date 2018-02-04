@@ -54,6 +54,7 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
         if (version == JUPITER) {
             rewriteWithJupiter(executer.workingDir)
         } else if (version == VINTAGE) {
+            replaceCategoriesWithTags(executer.workingDir)
             rewriteWithVintage(executer.workingDir)
         }
     }

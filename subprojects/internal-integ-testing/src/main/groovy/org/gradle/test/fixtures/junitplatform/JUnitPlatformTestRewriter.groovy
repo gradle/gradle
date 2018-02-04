@@ -104,6 +104,8 @@ class JUnitPlatformTestRewriter {
             // See IncrementalTestIntegrationTest.executesTestsWhenTestFrameworkChanges
             if (text.contains("useJUnit {")) {
                 text = text.replace('useJUnit {', 'useJUnitPlatform {')
+            } else if (text.contains('useJUnit()')) {
+                text = text.replace('useJUnit()', 'useJUnitPlatform()')
             } else if (text.contains('test {')) {
                 text = text.replace('test {', '''
                     test {

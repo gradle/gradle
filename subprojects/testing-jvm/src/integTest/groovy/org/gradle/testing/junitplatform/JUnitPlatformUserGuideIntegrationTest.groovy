@@ -21,6 +21,9 @@ import org.hamcrest.Matchers
 
 import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.LATEST_JUPITER_VERSION
 
+/**
+ * These test cases are all from http://junit.org/junit5/docs/current/user-guide
+ */
 class JUnitPlatformUserGuideIntegrationTest extends JUnitPlatformIntegrationSpec {
     def 'can display test case in @DisplayName'() {
         given:

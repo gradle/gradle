@@ -31,7 +31,9 @@ if (java7Home) {
     javaGroovyCompileTasks.all {
         options.with {
             fork = true
-            if (!(project in rootProject.findProperty('projectsRequiresJava8'))) {
+            if (project in rootProject.findProperty('projectsRequiresJava8')) {
+                project.sourceCompatibility = '1.8'
+            } else {
                 forkOptions.javaHome = jvmForCompilation.javaHome
             }
         }

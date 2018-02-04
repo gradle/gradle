@@ -241,7 +241,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Unroll
     "can clean test after extracting class file with #framework"() {
         when:
-        ignoreWhenJupiter()
+        ignoreWhenJUnitPlatform()
         buildFile << """
             apply plugin: "java"
             ${mavenCentralRepository()}

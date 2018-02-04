@@ -19,14 +19,14 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.testing.fixture.JUnitCategoriesMultiVersionIntegrationSpec
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.CATEGORIES
 import static org.gradle.testing.fixture.JUnitCoverage.VINTAGE
 
 @TargetCoverage({ CATEGORIES + VINTAGE })
-class JUnitCategoriesCoverageIntegrationSpec extends JUnitCategoriesMultiVersionIntegrationSpec {
+class JUnitCategoriesCoverageIntegrationSpec extends JUnitMultiVersionIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
