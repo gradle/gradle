@@ -42,8 +42,15 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         builder.append(group);
         builder.append(":");
         builder.append(module);
-        builder.append(":");
-        builder.append(versionConstraint.getPreferredVersion());
+        if (versionConstraint.getPreferredVersion().length() > 0) {
+            builder.append(":");
+            builder.append(versionConstraint.getPreferredVersion());
+        }
+        if (versionConstraint.getBranch() != null) {
+            builder.append(" (branch: ");
+            builder.append(versionConstraint.getBranch());
+            builder.append(")");
+        }
         return builder.toString();
     }
 
@@ -67,11 +74,11 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 
-        if(identifier instanceof ModuleComponentIdentifier) {
-            ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier)identifier;
+        if (identifier instanceof ModuleComponentIdentifier) {
+            ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) identifier;
             return module.equals(moduleComponentIdentifier.getModule())
-                    && group.equals(moduleComponentIdentifier.getGroup())
-                    && versionConstraint.getPreferredVersion().equals(moduleComponentIdentifier.getVersion());
+                && group.equals(moduleComponentIdentifier.getGroup())
+                && versionConstraint.getPreferredVersion().equals(moduleComponentIdentifier.getVersion());
         }
 
         return false;

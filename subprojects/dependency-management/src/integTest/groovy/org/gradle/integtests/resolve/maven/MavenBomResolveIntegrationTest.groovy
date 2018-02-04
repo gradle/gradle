@@ -64,7 +64,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     module("group:moduleA:2.0")
                     noArtifacts()
                 }
-                edge("group:moduleA:", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0")
             }
         }
     }
@@ -93,7 +93,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                         noArtifacts()
                     }
                 }
-                edge("group:moduleA:", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0")
             }
         }
     }
@@ -123,7 +123,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     module("group:moduleA:2.0")
                     noArtifacts()
                 }
-                edge("group:moduleA:", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0")
             }
         }
 
@@ -141,7 +141,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     }
                     noArtifacts()
                 }
-                edge("group:moduleA:", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0")
             }
         }
     }
@@ -180,10 +180,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     module("group:moduleC:1.0")
                     noArtifacts()
                 }
-                edge("group:moduleA:", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0")
             }
         }
-
     }
 
     def "a parent pom is not a bom"() {

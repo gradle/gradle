@@ -1456,7 +1456,7 @@ foo:foo:1.0
          org.gradle.usage = java-api
    ]
 
-org:foo: -> $selected
+org:foo -> $selected
    variant "default" [
       Requested attributes not found in the selected variant:
          org.gradle.usage = java-api
@@ -1509,7 +1509,7 @@ org:foo: -> $selected
          org.gradle.usage = java-api
    ]
 
-org:foo: -> $selected
+org:foo -> $selected
    variant "default" [
       Requested attributes not found in the selected variant:
          org.gradle.usage = java-api
@@ -1607,7 +1607,7 @@ org:foo:$displayVersion -> $selected
 \\--- org:bom:1.0
      \\--- compileClasspath
 
-org:leaf: -> 1.0
+org:leaf -> 1.0
    variant "compile" [
       org.gradle.usage = java-api
    ]
