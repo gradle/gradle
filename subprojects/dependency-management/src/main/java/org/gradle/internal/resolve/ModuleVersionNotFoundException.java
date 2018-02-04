@@ -16,7 +16,6 @@
 package org.gradle.internal.resolve;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
@@ -32,16 +31,16 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         super(selector, message);
     }
 
-    public ModuleVersionNotFoundException(ModuleVersionSelector selector, String message) {
-        super(selector, message);
-    }
-
     public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations, Collection<String> unmatchedVersions, Collection<String> rejectedVersions) {
         super(selector, format(selector, attemptedLocations, unmatchedVersions, rejectedVersions));
     }
 
     public ModuleVersionNotFoundException(ModuleVersionIdentifier id, Collection<String> attemptedLocations) {
         super(id, format(id, attemptedLocations));
+    }
+
+    public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations) {
+        super(selector, format(selector, attemptedLocations));
     }
 
     private static String format(ModuleComponentSelector selector, Collection<String> locations, Collection<String> unmatchedVersions, Collection<String> rejectedVersions) {
@@ -66,6 +65,13 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
     private static String format(ModuleVersionIdentifier id, Collection<String> locations) {
         StringBuilder builder = new StringBuilder();
         builder.append(String.format("Could not find %s.", id));
+        addLocations(builder, locations);
+        return builder.toString();
+    }
+
+    private static String format(ModuleComponentSelector selector, Collection<String> locations) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(String.format("Could not find any version that matches %s.", selector));
         addLocations(builder, locations);
         return builder.toString();
     }
