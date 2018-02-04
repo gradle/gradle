@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import spock.lang.Issue
 
 class ComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
     String getDefaultStatus() {
@@ -322,4 +323,69 @@ resolve.doLast {
         succeeds 'resolve'
     }
 
+    @Issue("gradle/gradle#4261")
+    def "different projects can apply different metadata rules for the same component"() {
+        repository {
+            'org.test:projectA:1.0'()
+            'org.test:projectB:1.0'()
+        }
+
+        settingsFile << """
+rootProject.name = 'root'
+include 'sub'
+"""
+        buildFile << """
+project (':sub') {
+    $repositoryDeclaration
+
+    configurations {
+        conf
+        other
+    }
+    dependencies {
+        conf 'org.test:projectA:1.0'
+        other 'org.test:projectA:1.0'
+
+        // Component metadata rule that applies only to the 'sub' project
+        components {
+            withModule('org.test:projectA') {
+                allVariants {
+                    withDependencies {
+                        add 'org.test:projectB:1.0'
+                    }
+                }
+            }
+        }
+    }
+    task res {
+        doLast {
+            // If we resolve twice the modified component metadata for 'projectA' must not be cached in-memory 
+            println configurations.conf.collect { it.name }
+            println configurations.other.collect { it.name }
+        }
+    }
+}
+
+task res {
+    doLast {
+        // Should get the unmodified component metadata for 'projectA'
+        println configurations.conf.collect { it.name }
+        assert configurations.conf.collect { it.name } == ['projectA-1.0.jar']
+    }
+}
+"""
+
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                allowAll()
+            }
+            'org.test:projectB:1.0' {
+                allowAll()
+            }
+        }
+
+        then:
+        succeeds ':sub:res', ':res'
+    }
 }
