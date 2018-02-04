@@ -18,6 +18,7 @@ package org.gradle.vcs.internal;
 import org.gradle.api.Incubating;
 import org.gradle.vcs.VersionControlSpec;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
@@ -47,4 +48,10 @@ public interface VersionControlSystem {
      * Returns the default revision for this VCS.
      */
     VersionRef getHead(VersionControlSpec spec);
+
+    /**
+     * Returns the given branch or null.
+     */
+    @Nullable
+    VersionRef getBranch(VersionControlSpec spec, String branch);
 }

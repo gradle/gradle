@@ -246,4 +246,65 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         "release" | _
         "HEAD"    | _
     }
+
+    def "selects and builds latest from branch for branch selector"() {
+        given:
+        buildFile << """
+            dependencies { 
+                compile('test:test') {
+                    versionConstraint.branch = 'release'
+                }
+            }
+        """
+        repo.commit("v1")
+        repo.createBranch("release")
+        repo.checkout("release")
+        repoSettingsFile.replace("version = '1.0'", "version = '2.0'")
+        repo.commit("v2")
+        repo.expectListVersions()
+        repo.expectCloneHead()
+
+        when:
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test:", "project :test", "test:test:2.0") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+
+        when:
+        repoSettingsFile.replace("version = '2.0'", "version = '3.0'")
+        repo.commit("v3")
+        repo.expectListVersions()
+        repo.expectCloneHead()
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test:", "project :test", "test:test:3.0") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
+
+        when:
+        // TODO - should not do this
+        repo.expectListVersions()
+        repo.expectListVersions()
+        run('checkDeps')
+
+        then:
+        fixture.expectGraph {
+            root(":", "test:consumer:1.2") {
+                edge("test:test:", "project :test", "test:test:3.0") {
+                }
+            }
+        }
+        result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
+    }
 }

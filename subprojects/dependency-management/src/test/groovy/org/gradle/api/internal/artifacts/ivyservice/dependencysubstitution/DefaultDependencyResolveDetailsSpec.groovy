@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -234,10 +235,10 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
     }
 
     private static ModuleComponentSelector newComponentSelector(String group, String module, String version) {
-        return DefaultModuleComponentSelector.newSelector(group, module, new DefaultMutableVersionConstraint(version))
+        return DefaultModuleComponentSelector.newSelector(group, module, new DefaultImmutableVersionConstraint(version))
     }
 
     private static ModuleVersionSelector newVersionSelector(String group, String name, String version) {
-        return DefaultModuleVersionSelector.newSelector(group, name, new DefaultMutableVersionConstraint(version))
+        return DefaultModuleVersionSelector.newSelector(group, name, new DefaultImmutableVersionConstraint(version))
     }
 }
