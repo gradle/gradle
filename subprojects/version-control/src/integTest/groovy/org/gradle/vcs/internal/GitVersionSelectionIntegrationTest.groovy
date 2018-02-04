@@ -392,7 +392,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:", "project :test", "test:test:2.0") {
+                edge("test:test", "project :test", "test:test:2.0") {
                 }
             }
         }
@@ -408,7 +408,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:", "project :test", "test:test:3.0") {
+                edge("test:test", "project :test", "test:test:3.0") {
                 }
             }
         }
@@ -423,7 +423,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:", "project :test", "test:test:3.0") {
+                edge("test:test", "project :test", "test:test:3.0") {
                 }
             }
         }
@@ -447,8 +447,7 @@ Required by:
 
         then:
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
-        // TODO - include branch in error message
-        failure.assertHasCause("""Could not find any version that matches test:test:.
+        failure.assertHasCause("""Could not find any version that matches test:test (branch: release).
 Searched in the following locations:
     Git Repository at ${repo.url}
 Required by:
@@ -466,7 +465,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:", "project :test", "test:test:2.0") {
+                edge("test:test", "project :test", "test:test:2.0") {
                 }
             }
         }
@@ -481,7 +480,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:", "project :test", "test:test:2.0") {
+                edge("test:test", "project :test", "test:test:2.0") {
                 }
             }
         }

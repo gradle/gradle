@@ -78,7 +78,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:","org:foo:1.1")
+                edge("org:foo","org:foo:1.1")
                 module("org:foo:1.1")
             }
         }
