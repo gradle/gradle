@@ -149,7 +149,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         def result = runner("dependencies", "--configuration", "compile").build()
 
         then:
-        result.output.contains('org.springframework:spring-core: -> 4.0.3.RELEASE')
+        result.output.contains('org.springframework:spring-core -> 4.0.3.RELEASE')
     }
 
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin/1.5.7.RELEASE')
