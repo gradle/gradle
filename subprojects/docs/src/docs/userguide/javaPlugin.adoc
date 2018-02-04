@@ -649,26 +649,34 @@ When using JUnit, we scan for both JUnit 3 and 4 test classes. If any of the fol
 * Class or a super class is annotated with `@RunWith`
 * Class or a super class contain a method annotated with `@Test`
 
-When using http://junit.org/junit5/docs/current/user-guide[JUnit Platform and JUnit Jupiter], we scan for methods annotated with annotations of `org.junit.jupiter.api` package.
-
 When using TestNG, we scan for methods annotated with `@Test`.
 
 Note that abstract classes are not executed. Gradle also scans up the inheritance tree into jar files on the test classpath.
 
 If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are ???`\**/*Tests.class`???, ???`*\*/*Test.class`??? and ???`*\*/Abstract*.class`??? for include and exclude, respectively.
 
+[NOTE]
+====
+When using http://junit.org/junit5/docs/current/user-guide[JUnit Platform], we simply pass all test classes to `JUnit Platform` and let it decide what should be run. In this case, `scanForTestClasses` has no effect.
+====
+
 [[test_grouping]]
 ==== Test grouping
 
-JUnit/JUnit Platform and TestNG allows sophisticated groupings of test methods. Currently, http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[JUnit Platform filtering and tagging] is not supported yet.
+JUnit/JUnit Platform and TestNG allows sophisticated groupings of test methods.
 
-For grouping JUnit test classes and methods JUnit 4.8 introduces the concept of categories.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
+For grouping JUnit 4 test classes and methods JUnit 4.8 introduces the concept of categories.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="junitcategories" dir="testing/junit/categories" title="JUnit Categories">
                 <sourcefile file="build.gradle" snippet="test-categories"/>
             </sample>
 ++++
+
+In http://junit.org/junit5/docs/current/user-guide[JUnit Platform], http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[tagging] is introduced instead of categories.
+You can specify the included/excluded tags as follows:
+
+
 
 The TestNG framework has a quite similar concept. In TestNG you can specify different test groups.footnote:[The TestNG documentation contains more details about test groups: http://testng.org/doc/documentation-main.html#test-groups[].] The test groups that should be included or excluded from the test execution can be configured in the test task.
 

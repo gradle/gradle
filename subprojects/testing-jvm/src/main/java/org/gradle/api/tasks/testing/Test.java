@@ -868,7 +868,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Incubating
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitPlatformTestFramework(this, (DefaultTestFilter) getFilter()), testFrameworkConfigure);
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter()), testFrameworkConfigure);
     }
 
     /**

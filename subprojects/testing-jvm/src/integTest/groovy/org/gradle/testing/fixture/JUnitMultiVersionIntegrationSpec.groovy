@@ -39,13 +39,15 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
     @Override
     protected ExecutionResult succeeds(String... tasks) {
         rewriteProjectDirectory()
-        super.succeeds(*tasks)
+        assertUsingJUnitPlatform()
+        super.succeeds(tasks)
     }
 
     @Override
     protected ExecutionFailure fails(String... tasks) {
         rewriteProjectDirectory()
-        super.fails(*tasks)
+        assertUsingJUnitPlatform()
+        super.fails(tasks)
     }
 
     private void rewriteProjectDirectory() {
@@ -53,6 +55,19 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
             rewriteWithJupiter(executer.workingDir)
         } else if (version == VINTAGE) {
             rewriteWithVintage(executer.workingDir)
+        }
+    }
+
+    private assertUsingJUnitPlatform() {
+        if (version in [JUPITER, VINTAGE]) {
+            File buildFile = new File(executer.workingDir, 'build.gradle')
+            if (buildFile.exists()) {
+                String text = buildFile.text
+                assert text.contains('useJUnitPlatform')
+                assert !text.contains('useJUnit()')
+                assert !text.contains('useJUnit {')
+                assert !text.contains('useTestNG')
+            }
         }
     }
 

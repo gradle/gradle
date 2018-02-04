@@ -21,10 +21,8 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
-import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
@@ -40,12 +38,10 @@ import java.lang.reflect.Constructor;
 public class JUnitPlatformTestFramework implements TestFramework {
     private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
-    private final JUnitPlatformDetector detector;
 
-    public JUnitPlatformTestFramework(Test testTask, DefaultTestFilter filter) {
+    public JUnitPlatformTestFramework(DefaultTestFilter filter) {
         this.filter = filter;
         this.options = new JUnitPlatformOptions();
-        this.detector = new JUnitPlatformDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
     }
 
     @Override
@@ -64,6 +60,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
                 workerProcessBuilder.sharedPackages("org.junit.platform.commons");
                 workerProcessBuilder.sharedPackages("org.junit.platform.launcher.core");
                 workerProcessBuilder.sharedPackages("org.junit.platform.launcher");
+                workerProcessBuilder.sharedPackages("org.junit");
             }
         };
     }
@@ -75,7 +72,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
 
     @Override
     public TestFrameworkDetector getDetector() {
-        return detector;
+        return null;
     }
 
     public static class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {

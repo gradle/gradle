@@ -21,28 +21,43 @@ With [dependency constraints](userguide/managing_transitive_dependencies.html#se
 
 In the example, the version of `commons-codec` that is brought in transitively is `1.9`. With the constraint, we express that we need at lease `1.11` and Gradle will now pick that version during dependency resolution.
 
-### JUnit Platform and JUnit Jupiter Engine (a.k.a. JUnit 5) support
+### JUnit Platform and JUnit Jupiter/Vintage Engine (a.k.a. JUnit 5) support
 
 [JUnit 5](http://junit.org/junit5/docs/current/user-guide) is the latest version of well-known `JUnit` test framework. JUnit 5 is composed of several modules:
 
     JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
     
-The JUnit Platform serves as a foundation for launching testing frameworks on the JVM. JUnit Jupiter is the combination of the new [programming model](http://junit.org/junit5/docs/current/user-guide/#writing-tests)
- and [extension model](http://junit.org/junit5/docs/current/user-guide/#extensions) for writing tests and extensions in JUnit 5.  
+The `JUnit Platform` serves as a foundation for launching testing frameworks on the JVM. `JUnit Jupiter` is the combination of the new [programming model](http://junit.org/junit5/docs/current/user-guide/#writing-tests)
+ and [extension model](http://junit.org/junit5/docs/current/user-guide/#extensions) for writing tests and extensions in JUnit 5. `JUnit Vintage` provides a `TestEngine` for running JUnit 3 and JUnit 4 based tests on the platform.
     
-Gradle now supports `JUnit Jupiter Engine` on top of `JUnit Platform`. To enable JUnit Platform support, you just need to add one line into your `build.gradle`:
+Gradle now supports `JUnit Jupiter/Vintage Engine` on top of `JUnit Platform`. To enable `JUnit Platform` support, you just need to add one line into your `build.gradle`:
 
     test {
         useJUnitPlatform()
     }
+
+Moreover, [Tagging and Filtering](http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering) can be enabled via:
+
+    test {
+        useJUnitPlatform {
+            // includeTags 'fast'
+            excludeTags 'slow'
+            
+            // includeEngines 'junit-jupiter', 'junit-vintage'
+            // excludeEngines 'custom-engine'
+        }
+    }  
     
-And add `JUnit Jupiter` dependencies:
+#### JUnit Jupiter Engine
+    
+To enable `JUnit Jupiter` support, add the following dependencies:
 
     dependencies {
-        testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.3', 'org.junit.jupiter:junit-jupiter-engine:5.0.3'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.0.3'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.0.3'
     }      
 
-Put your first JUnit 5 test into `src/test/java/foo/bar`:
+Put your first `Jupiter` test into `src/test/java/foo/bar`:
 
     package foo.bar;
     
@@ -56,7 +71,22 @@ Put your first JUnit 5 test into `src/test/java/foo/bar`:
     
 Now you can run `gradle test` to see the results of your JUnit 5 tests! 
 
-You can find a sample of test with JUnit Jupiter at `samples/testing/junitplatform/jupiter` in the '-all' distribution of Gradle. 
+You can find a sample of test with `JUnit Jupiter` at `samples/testing/junitplatform/jupiter` in the '-all' distribution of Gradle. 
+
+#### JUnit Vintage Engine
+
+If you want to run JUnit 3/4 tests on `JUnit Platform`, you should add extra `JUnit Vintage Engine` dependency:
+
+    test {
+        useJUnitPlatform()
+    }
+    
+    dependencies {
+        testImplementation 'org.junit.vintage:junit-vintage-engine:4.12.3' 
+    }
+    
+You can mix JUnit 3/4 tests with `Jupiter` tests without the need to rewrite old tests.
+
 Note that JUnit 5 requires Java 8+, so you may need to configure the [`executable`](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable) if you're using JDK 7.
 
 ### Support for optional dependencies in POM consumption
