@@ -256,4 +256,4 @@ The important thing is that `whenReady` affects the release task _before_ the re
 
 In this chapter, we have had a first look at tasks. But this is not the end of the story for tasks. If you want to jump into more of the details, have a look at <<more_about_tasks>>.
 
-Otherwise, continue on to the tutorials in <<tutorial_java_projects>> and <<artifact_dependencies_tutorial>>.
+Otherwise, continue on to the tutorials in <<tutorial_java_projects>> and <<dependency_management_for_java_projects>>.

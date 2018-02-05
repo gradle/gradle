@@ -3,21 +3,15 @@ repositories {
 }
 
 configurations {
-    compile
+    implementation
     runtime
 }
 
 //START SNIPPET define-dependency
 dependencies {
-    compile group: 'org.hibernate', name: 'hibernate-core', version: '3.6.7.Final'
+    implementation 'org.hibernate:hibernate-core:3.6.7.Final'
 }
 //END SNIPPET define-dependency
-
-//START SNIPPET define-dependency-shortcut
-dependencies {
-    compile 'org.hibernate:hibernate-core:3.6.7.Final'
-}
-//END SNIPPET define-dependency-shortcut
 
 //START SNIPPET use-configuration
 task listJars {

@@ -100,7 +100,7 @@
                                             <li><a href="/userguide/web_project_tutorial.html">Web Application Quickstart</a></li>
                                             <li><a href="https://guides.gradle.org/writing-gradle-tasks/">Writing Custom Script Tasks</a></li>
                                             <li><a href="/userguide/custom_tasks.html">Writing Custom Task Classes</a></li>
-                                            <li><a href="/userguide/artifact_dependencies_tutorial.html">Dependency Management for Java Projects</a></li>
+                                            <li><a href="/userguide/dependency_management_java_projects.html">Dependency Management for Java Projects</a></li>
                                         </ul>
                                     </li>
                                     <li><a class="nav-dropdown" data-toggle="collapse" href="#java-plugins-reference" aria-expanded="false" aria-controls="java-plugins-reference">Plugins Reference</a>
