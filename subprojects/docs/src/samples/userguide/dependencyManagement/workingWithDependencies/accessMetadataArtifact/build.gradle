@@ -13,11 +13,8 @@ task printGuavaMetadata {
     dependsOn configurations.compileClasspath
 
     doLast {
-        ResolutionResult resolutionResult = configurations.compileClasspath.incoming.resolutionResult
-        List<ComponentIdentifier> componentIds = resolutionResult.allDependencies.collect { it.selected.id }
-
         ArtifactResolutionQuery query = dependencies.createArtifactResolutionQuery()
-            .forComponents(componentIds)
+            .forModule('com.google.guava', 'guava', '18.0')
             .withArtifacts(MavenModule, MavenPomArtifact)
         ArtifactResolutionResult result = query.execute()
 
