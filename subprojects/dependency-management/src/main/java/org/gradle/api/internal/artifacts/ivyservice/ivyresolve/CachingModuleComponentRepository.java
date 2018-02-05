@@ -203,9 +203,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 result.setAuthoritative(cachedMetaData.getAgeMillis() == 0);
                 return;
             }
-            ModuleComponentResolveMetadata metaData = cachedMetaData.getMetaData();
-            metaData = metadataProcessor.processMetadata(metaData);
-            if (requestMetaData.isChanging() || metaData.isChanging()) {
+            ModuleComponentResolveMetadata metadata = getProcessedMetadata(cachedMetaData);
+            if (requestMetaData.isChanging() || metadata.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
                     LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                     return;
@@ -219,10 +218,20 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
 
             LOGGER.debug("Using cached module metadata for module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
-            metaData = metaData.withSource(new CachingModuleSource(metaData.getContentHash().asBigInteger(), metaData.isChanging(), metaData.getSource()));
-            result.resolved(metaData);
+            metadata = metadata.withSource(new CachingModuleSource(metadata.getContentHash().asBigInteger(), metadata.isChanging(), metadata.getSource()));
+            result.resolved(metadata);
             // When age == 0, verified since the start of this build, assume the meta-data hasn't changed
             result.setAuthoritative(cachedMetaData.getAgeMillis() == 0);
+        }
+
+        private ModuleComponentResolveMetadata getProcessedMetadata(ModuleMetaDataCache.CachedMetaData cachedMetaData) {
+            ModuleComponentResolveMetadata metadata = cachedMetaData.getProcessedMetadata();
+            if (metadata == null) {
+                metadata = metadataProcessor.processMetadata(cachedMetaData.getMetaData());
+                // Save the processed metadata for next time.
+                cachedMetaData.setProcessedMetadata(metadata);
+            }
+            return metadata;
         }
 
         @Override
@@ -302,8 +311,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 }
                 return true;
             }
-            ModuleComponentResolveMetadata metaData = cachedMetaData.getMetaData();
-            metaData = metadataProcessor.processMetadata(metaData);
+            ModuleComponentResolveMetadata metaData = getProcessedMetadata(cachedMetaData);
             if (metaData.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
                     return false;
@@ -375,13 +383,13 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     moduleMetaDataCache.cacheMissing(delegate, moduleComponentIdentifier);
                     break;
                 case Resolved:
-                    ModuleComponentResolveMetadata metaData = result.getMetaData();
-                    ModuleSource moduleSource = metaData.getSource();
-                    moduleMetaDataCache.cacheMetaData(delegate, moduleComponentIdentifier, metaData);
-                    metaData = metadataProcessor.processMetadata(metaData);
-                    moduleSource = new CachingModuleSource(metaData.getContentHash().asBigInteger(), requestMetaData.isChanging() || metaData.isChanging(), moduleSource);
-                    metaData = metaData.withSource(moduleSource);
-                    result.resolved(metaData);
+                    ModuleComponentResolveMetadata resolvedMetadata = result.getMetaData();
+                    ModuleSource moduleSource = resolvedMetadata.getSource();
+                    ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, moduleComponentIdentifier, resolvedMetadata);
+                    ModuleComponentResolveMetadata processedMetadata = metadataProcessor.processMetadata(resolvedMetadata);
+                    cachedMetaData.setProcessedMetadata(processedMetadata);
+                    moduleSource = new CachingModuleSource(processedMetadata.getContentHash().asBigInteger(), requestMetaData.isChanging() || processedMetadata.isChanging(), moduleSource);
+                    result.resolved(processedMetadata.withSource(moduleSource));
                     break;
                 case Failed:
                     break;

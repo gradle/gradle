@@ -21,10 +21,13 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.util.BuildCommencedTimeProvider;
 
+import javax.annotation.Nullable;
+
 class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
     private final ModuleSource moduleSource;
     private final long ageMillis;
     private final ModuleComponentResolveMetadata metaData;
+    private ModuleComponentResolveMetadata processedMetadata;
 
     public DefaultCachedMetaData(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metaData, BuildCommencedTimeProvider timeProvider) {
         this.moduleSource = entry.moduleSource;
@@ -50,5 +53,16 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
 
     public long getAgeMillis() {
         return ageMillis;
+    }
+
+    @Nullable
+    @Override
+    public ModuleComponentResolveMetadata getProcessedMetadata() {
+        return processedMetadata;
+    }
+
+    @Override
+    public void setProcessedMetadata(ModuleComponentResolveMetadata processedMetadata) {
+        this.processedMetadata = processedMetadata;
     }
 }
