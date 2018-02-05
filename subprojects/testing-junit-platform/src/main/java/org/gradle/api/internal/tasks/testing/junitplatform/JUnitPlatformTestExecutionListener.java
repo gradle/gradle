@@ -67,6 +67,9 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private void processIgnoredClass(TestIdentifier id) {
+        // Here we used legacy IgnoredTestDescriptorProvider to get ignored methods from
+        // ignored class. This should be improved once 5.1RC is released:
+        // https://github.com/junit-team/junit5/issues/1277
         Class testClass = ClassSource.class.cast(id.getSource().get()).getJavaClass();
         getIgnoredMethodsFromIgnoredClass(testClass.getClassLoader(), testClass.getName(), idGenerator).forEach(adapter::testIgnored);
     }

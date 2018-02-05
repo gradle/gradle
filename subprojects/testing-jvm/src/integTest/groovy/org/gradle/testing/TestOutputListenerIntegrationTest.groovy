@@ -174,7 +174,7 @@ test.testLogging {
     @Test
     def "shows standard stream also for testNG"() {
         given:
-        ignoreWhenJupiter()
+        ignoreWhenJUnitPlatform()
         def test = file("src/test/java/SomeTest.java")
         test << """
 import org.testng.*;

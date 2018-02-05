@@ -84,7 +84,8 @@ If you want to run JUnit 3/4 tests on `JUnit Platform`, you should add extra `JU
     }
     
     dependencies {
-        testImplementation 'org.junit.vintage:junit-vintage-engine:4.12.3' 
+        testCompileOnly 'junit:junit:4.12' 
+        testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:4.12.3' 
     }
     
 You can mix JUnit 3/4 tests with `Jupiter` tests without the need to rewrite old tests.
