@@ -26,6 +26,8 @@ import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFac
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -299,11 +301,10 @@ class DependencyManagementBuildScopeServices {
                                               VersionComparator versionComparator,
                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory, RepositoryBlacklister repositoryBlacklister) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
+        ModuleRepositoryCaches caches = new ModuleRepositoryCaches(moduleVersionsCache, moduleMetadataCache, moduleArtifactsCache, defaultModuleArtifactCache);
+        ModuleRepositoryCacheProvider cacheProvider = new ModuleRepositoryCacheProvider(caches);
         return new ResolveIvyFactory(
-            moduleVersionsCache,
-            moduleMetadataCache,
-            moduleArtifactsCache,
-            defaultModuleArtifactCache,
+            cacheProvider,
             startParameterResolutionOverride,
             buildCommencedTimeProvider,
             inMemoryCachedRepositoryFactory,

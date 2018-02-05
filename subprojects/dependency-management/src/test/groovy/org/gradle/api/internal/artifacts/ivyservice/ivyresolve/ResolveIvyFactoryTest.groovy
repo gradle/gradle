@@ -21,6 +21,8 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
@@ -47,6 +49,7 @@ class ResolveIvyFactoryTest extends Specification {
     ModuleMetadataCache moduleMetaDataCache
     ModuleArtifactsCache moduleArtifactsCache
     ModuleArtifactCache cachedArtifactIndex
+    ModuleRepositoryCacheProvider cacheProvider
     StartParameterResolutionOverride startParameterResolutionOverride
     BuildCommencedTimeProvider buildCommencedTimeProvider
     InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory
@@ -60,6 +63,7 @@ class ResolveIvyFactoryTest extends Specification {
         moduleMetaDataCache = Mock(ModuleMetadataCache)
         moduleArtifactsCache = Mock(ModuleArtifactsCache)
         cachedArtifactIndex = Mock(ModuleArtifactCache)
+        cacheProvider = new ModuleRepositoryCacheProvider(new ModuleRepositoryCaches(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache, cachedArtifactIndex))
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
         }
@@ -73,8 +77,7 @@ class ResolveIvyFactoryTest extends Specification {
         versionComparator = Mock(VersionComparator)
         repositoryBlacklister = Mock(RepositoryBlacklister)
 
-        resolveIvyFactory = new ResolveIvyFactory(moduleVersionsCache, moduleMetaDataCache, moduleArtifactsCache,
-            cachedArtifactIndex, startParameterResolutionOverride, buildCommencedTimeProvider,
+        resolveIvyFactory = new ResolveIvyFactory(cacheProvider, startParameterResolutionOverride, buildCommencedTimeProvider,
             inMemoryCachedRepositoryFactory, versionSelectorScheme, versionComparator, moduleIdentifierFactory, repositoryBlacklister)
     }
 

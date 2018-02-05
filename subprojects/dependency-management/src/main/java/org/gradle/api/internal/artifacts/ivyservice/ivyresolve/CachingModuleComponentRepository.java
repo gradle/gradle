@@ -27,9 +27,13 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ArtifactAtRepositoryKey;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.CachedArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
@@ -49,9 +53,6 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.CachedArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ArtifactAtRepositoryKey;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -77,7 +78,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final ModuleVersionsCache moduleVersionsCache;
     private final ModuleMetadataCache moduleMetadataCache;
     private final ModuleArtifactsCache moduleArtifactsCache;
-    private final ModuleArtifactCache artifactAtRepositoryCachedResolutionIndex;
+    private final ModuleArtifactCache moduleArtifactCache;
 
     private final CachePolicy cachePolicy;
 
@@ -88,16 +89,15 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
-    public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetadataCache moduleMetadataCache,
-                                            ModuleArtifactsCache moduleArtifactsCache, ModuleArtifactCache artifactAtRepositoryCachedResolutionIndex,
+    public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleRepositoryCaches caches,
                                             CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
                                             ComponentMetadataProcessor metadataProcessor,
                                             ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.delegate = delegate;
-        this.moduleMetadataCache = moduleMetadataCache;
-        this.moduleVersionsCache = moduleVersionsCache;
-        this.moduleArtifactsCache = moduleArtifactsCache;
-        this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;
+        this.moduleMetadataCache = caches.moduleMetadataCache;
+        this.moduleVersionsCache = caches.moduleVersionsCache;
+        this.moduleArtifactsCache = caches.moduleArtifactsCache;
+        this.moduleArtifactCache = caches.moduleArtifactCache;
         this.timeProvider = timeProvider;
         this.cachePolicy = cachePolicy;
         this.metadataProcessor = metadataProcessor;
@@ -326,7 +326,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
 
         private void resolveArtifactFromCache(ComponentArtifactMetadata artifact, CachingModuleSource moduleSource, BuildableArtifactResolveResult result) {
-            CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(artifactCacheKey(artifact.getId()));
+            CachedArtifact cached = moduleArtifactCache.lookup(artifactCacheKey(artifact.getId()));
             final BigInteger descriptorHash = moduleSource.getDescriptorHash();
             if (cached != null) {
                 long age = timeProvider.getCurrentTime() - cached.getCachedAt();
@@ -428,9 +428,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
             ArtifactResolveException failure = result.getFailure();
             if (failure == null) {
-                artifactAtRepositoryCachedResolutionIndex.store(artifactCacheKey(artifact.getId()), result.getResult(), cachingModuleSource.getDescriptorHash());
+                moduleArtifactCache.store(artifactCacheKey(artifact.getId()), result.getResult(), cachingModuleSource.getDescriptorHash());
             } else if (failure instanceof ArtifactNotFoundException) {
-                artifactAtRepositoryCachedResolutionIndex.storeMissing(artifactCacheKey(artifact.getId()), result.getAttempted(), cachingModuleSource.getDescriptorHash());
+                moduleArtifactCache.storeMissing(artifactCacheKey(artifact.getId()), result.getAttempted(), cachingModuleSource.getDescriptorHash());
             }
         }
 
