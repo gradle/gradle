@@ -16,7 +16,9 @@
 
 package org.gradle.language;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 
 /**
  * Allows the API and implementation dependencies of a library to be specified.
@@ -26,9 +28,17 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface LibraryDependencies extends ComponentDependencies {
     /**
-     * Adds an API dependency to this library.
+     * Adds an API dependency to this library. An API dependency is made visible to consumers that are compiled against this component.
      *
      * @param notation The dependency notation, as per {@link org.gradle.api.artifacts.dsl.DependencyHandler#create(Object)}.
      */
     void api(Object notation);
+
+    /**
+     * Adds an API dependency to this library. An API dependency is made visible to consumers that are compiled against this component.
+     *
+     * @param notation The dependency notation, as per {@link org.gradle.api.artifacts.dsl.DependencyHandler#create(Object)}.
+     * @param action The action to run to configure the dependency.
+     */
+    void api(Object notation, Action<? super ExternalModuleDependency> action);
 }

@@ -16,32 +16,36 @@
 
 package org.gradle.language.internal
 
+import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import spock.lang.Specification
 
-
 class DefaultLibraryDependenciesTest extends Specification {
-    def "can add api dependency"() {
-        def configurations = Stub(ConfigurationContainer)
-        def dependencyFactory = Mock(DependencyHandler)
-        def apiDeps = Mock(Configuration)
-        def deps = Mock(DependencySet)
-        def dep = Stub(Dependency)
+    def configurations = Stub(ConfigurationContainer)
+    def dependencyFactory = Mock(DependencyHandler)
+    def apiDeps = Mock(Configuration)
+    def deps = Mock(DependencySet)
+    DefaultLibraryDependencies dependencies
 
-        given:
+    def setup() {
         configurations.create("api") >> apiDeps
         apiDeps.dependencies >> deps
 
-        def dependencies = new DefaultLibraryDependencies(configurations, "impl", "api") {
+        dependencies = new DefaultLibraryDependencies(configurations, "impl", "api") {
             @Override
             protected DependencyHandler getDependencyHandler() {
                 return dependencyFactory
             }
         }
+    }
+
+    def "can add api dependency"() {
+        def dep = Stub(Dependency)
 
         when:
         dependencies.api("a:b:c")
@@ -51,4 +55,16 @@ class DefaultLibraryDependenciesTest extends Specification {
         1 * deps.add(dep)
     }
 
+    def "can add and configure api dependency"() {
+        def dep = Stub(ExternalModuleDependency)
+        def action = Mock(Action)
+
+        when:
+        dependencies.api("a:b:c", action)
+
+        then:
+        1 * dependencyFactory.create("a:b:c") >> dep
+        1 * action.execute(dep)
+        1 * deps.add(dep)
+    }
 }
