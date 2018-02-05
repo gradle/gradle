@@ -17,6 +17,7 @@
 package org.gradle.ide.visualstudio.fixtures
 
 import org.gradle.ide.fixtures.IdeCommandLineUtil
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 class AbstractVisualStudioIntegrationSpec extends AbstractInstalledToolChainIntegrationSpec {
@@ -24,6 +25,13 @@ class AbstractVisualStudioIntegrationSpec extends AbstractInstalledToolChainInte
         executer.requireGradleDistribution().requireIsolatedDaemons()
 
         buildFile << IdeCommandLineUtil.generateGradleProbeBuildFile('visualStudio', 'msbuild')
+    }
+
+    File getHostGradleWrapperFile() {
+        if (OperatingSystem.current().isWindows()) {
+            return file('gradlew.bat')
+        }
+        return file('gradlew')
     }
 
     protected MSBuildExecutor getMsbuild() {

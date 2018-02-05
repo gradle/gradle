@@ -527,7 +527,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
 
     def "detects gradle wrapper and uses in vs project"() {
         when:
-        file("gradlew.bat") << "dummy wrapper"
+        hostGradleWrapperFile << "dummy wrapper"
 
         settingsFile << """
             include ':exe'
@@ -547,7 +547,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         then:
         final exeProject = projectFile("exe/exe_mainExe.vcxproj")
         exeProject.projectConfigurations.values().each {
-            assert it.buildCommand == "\"../gradlew.bat\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand == "\"../${hostGradleWrapperFile.name}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
         }
     }
 

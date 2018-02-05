@@ -55,7 +55,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
 
     def "can specify location of generated files"() {
         when:
-        file("gradlew.bat") << "dummy wrapper"
+        hostGradleWrapperFile << "dummy wrapper"
         buildFile << '''
     model {
         visualStudio {
@@ -80,7 +80,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
         assert projectFile.headerFiles == app.headerFiles*.withPath("../../../src/main").sort()
         assert projectFile.sourceFiles == ['../../../build.gradle'] + app.sourceFiles*.withPath("../../../src/main").sort()
         projectFile.projectConfigurations.values().each {
-            assert it.buildCommand == "\"../../../gradlew.bat\" -p \"../../..\" :installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand == "\"../../../${hostGradleWrapperFile.name}\" -p \"../../..\" :installMain${it.name.capitalize()}Executable"
             assert it.outputFile == OperatingSystem.current().getExecutableName("../../../build/install/main/${it.name}/lib/main")
         }
         def filtersFile = filtersFile("other/filters.vcxproj.filters")
