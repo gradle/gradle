@@ -85,10 +85,10 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
         def md = metadata
 
         then:
-        md.getConfiguration("a").hierarchy == ["a"]
-        md.getConfiguration("b").hierarchy == ["b", "a"]
-        md.getConfiguration("c").hierarchy == ["c", "a"]
-        md.getConfiguration("d").hierarchy == ["d", "b", "a", "c"]
+        md.getConfiguration("a").hierarchy as List == ["a"]
+        md.getConfiguration("b").hierarchy as List  == ["b", "a"]
+        md.getConfiguration("c").hierarchy as List  == ["c", "a"]
+        md.getConfiguration("d").hierarchy as List  == ["d", "b", "a", "c"]
     }
 
     def "builds and caches artifacts for a configuration"() {

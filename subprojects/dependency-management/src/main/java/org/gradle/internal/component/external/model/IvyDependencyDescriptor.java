@@ -194,11 +194,10 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         if (excludes.isEmpty()) {
             return Collections.emptyList();
         }
-        Set<String> asSet = ImmutableSet.copyOf(configurations);
         List<ExcludeMetadata> rules = Lists.newArrayListWithCapacity(excludes.size());
         for (Exclude exclude : excludes) {
             Set<String> ruleConfigurations = exclude.getConfigurations();
-            if (include(ruleConfigurations, asSet)) {
+            if (include(ruleConfigurations, configurations)) {
                 rules.add(exclude);
             }
         }
