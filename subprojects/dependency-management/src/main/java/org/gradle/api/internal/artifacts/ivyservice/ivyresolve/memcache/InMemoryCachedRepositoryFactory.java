@@ -32,8 +32,6 @@ import java.util.Map;
  */
 public class InMemoryCachedRepositoryFactory implements Stoppable {
 
-    public final static String TOGGLE_PROPERTY = "org.gradle.resolution.memorycache";
-
     private final static Logger LOG = Logging.getLogger(InMemoryCachedRepositoryFactory.class);
 
     private final Map<String, InMemoryModuleComponentRepositoryCaches> cachePerRepo = new MapMaker().makeMap();
@@ -42,10 +40,6 @@ public class InMemoryCachedRepositoryFactory implements Stoppable {
      * For a local repository, we provide full in-memory caching services.
      */
     public ModuleComponentRepository cacheLocalRepository(ModuleComponentRepository input) {
-        if ("false".equalsIgnoreCase(System.getProperty(TOGGLE_PROPERTY))) {
-            return input;
-        }
-
         InMemoryModuleComponentRepositoryCaches caches = getInMemoryCaches(input);
         return new InMemoryCachedModuleComponentRepository(caches, input);
     }
@@ -55,10 +49,6 @@ public class InMemoryCachedRepositoryFactory implements Stoppable {
      * The rest of the in-memory caching is handled by the CachingModuleComponentRepository.
      */
     public ModuleComponentRepository cacheRemoteRepository(ModuleComponentRepository input) {
-        if ("false".equalsIgnoreCase(System.getProperty(TOGGLE_PROPERTY))) {
-            return input;
-        }
-
         InMemoryModuleComponentRepositoryCaches caches = getInMemoryCaches(input);
         return new ResolvedArtifactCacheProvidingModuleComponentRepository(caches, input);
     }

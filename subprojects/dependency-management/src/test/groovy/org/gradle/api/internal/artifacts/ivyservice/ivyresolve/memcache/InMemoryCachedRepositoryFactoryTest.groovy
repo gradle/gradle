@@ -17,25 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 import spock.lang.Specification
 
 class InMemoryCachedRepositoryFactoryTest extends Specification {
 
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
     def cache = new InMemoryCachedRepositoryFactory()
-
-    def "can be turned off via system property"() {
-        System.properties.setProperty(InMemoryCachedRepositoryFactory.TOGGLE_PROPERTY, "false")
-        def repo = Mock(ModuleComponentRepository) { getId() >> "mavenCentral" }
-
-        when:
-        def out = cache.cacheLocalRepository(repo)
-
-        then:
-        out.is(repo)
-    }
 
     def "wraps repositories"() {
         def repo1 = Mock(ModuleComponentRepository) { getId() >> "mavenCentral" }
