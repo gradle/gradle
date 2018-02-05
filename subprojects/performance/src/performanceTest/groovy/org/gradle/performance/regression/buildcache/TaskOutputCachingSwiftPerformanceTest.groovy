@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,30 @@ package org.gradle.performance.regression.buildcache
 
 import org.gradle.initialization.ParallelismBuildOptions
 import spock.lang.Unroll
+import spock.util.environment.OperatingSystem
 
-class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
+class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
-        runner.minimumVersion = "4.3"
-        runner.targetVersions = ["4.6-20180125002142+0000"]
+        runner.minimumVersion = "4.5"
+        runner.targetVersions = ["4.6-20180201071900+0000"]
+        if (OperatingSystem.current.linux) {
+            def toolchain = new File(runner.workingDir, "toolchain.gradle")
+            toolchain << """
+                allprojects { p ->
+                    apply plugin: SwiftCompilerPlugin
+                
+                    model {
+                        toolChains {
+                            swiftc(Swiftc) {
+                                path file('/opt/swift/latest/usr/bin')
+                            }
+                        }
+                    }
+                }
+            """
+            runner.args.add("-I${toolchain.name}")
+        }
         runner.args += ["-Dorg.gradle.caching.native=true", "--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
@@ -42,8 +60,6 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
 
         where:
         testProject        | task       | maxMemory
-        'bigCppApp'        | 'assemble' | '256m'
-        'bigCppMulti'      | 'assemble' | '1G'
-        'bigNative'        | 'assemble' | '1G'
+        'mediumSwiftMulti' | 'assemble' | '1G'
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,32 @@ package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyChangeToNativeSourceFileMutator
+import spock.lang.Ignore
 import spock.lang.Unroll
+import spock.util.environment.OperatingSystem
 
-class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.minimumVersion = '4.0'
-        runner.targetVersions = ["4.6-20180125002142+0000"]
+        runner.minimumVersion = '4.5'
+        runner.targetVersions = ["4.6-20180201071900+0000"]
+        if (OperatingSystem.current.linux) {
+            def toolchain = new File(runner.workingDir, "toolchain.gradle")
+            toolchain << """
+                allprojects { p ->
+                    apply plugin: SwiftCompilerPlugin
+                
+                    model {
+                        toolChains {
+                            swiftc(Swiftc) {
+                                path file('/opt/swift/latest/usr/bin')
+                            }
+                        }
+                    }
+                }
+            """
+            runner.args.add("-I${toolchain.name}")
+        }
     }
 
     @Unroll
@@ -45,32 +64,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject                       | maxMemory | iterations
-        "smallNative"                     | '256m'    | 40
-        "mediumNative"                    | '256m'    | null
-        "bigNative"                       | '1g'      | null
-        "multiNative"                     | '256m'    | null
-        "smallCppApp"                     | '256m'    | 40
-        "mediumCppApp"                    | '256m'    | null
-        "mediumCppAppWithMacroIncludes"   | '256m'    | null
-        "bigCppApp"                       | '256m'    | null
-        "smallCppMulti"                   | '256m'    | 40
-        "mediumCppMulti"                  | '256m'    | null
-        "mediumCppMultiWithMacroIncludes" | '256m'    | null
-        "bigCppMulti"                     | '1g'      | null
-    }
-
-    def "clean assemble on manyProjectsNative"() {
-        given:
-        runner.testProject = "manyProjectsNative"
-        runner.tasksToRun = ["assemble"]
-        runner.cleanTasks = ["clean"]
-        runner.args = ["--parallel", "--max-workers=12"]
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
+        'mediumSwiftMulti'                | '1G'      | null
     }
 
     @Unroll
@@ -88,10 +82,10 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject        | maxMemory
-        "bigCppApp"        | '256m'
-        "bigCppMulti"      | '1g'
+        'mediumSwiftMulti' | '1G'
     }
 
+    @Ignore
     @Unroll
     def "assemble with #changeType file change on #testProject"() {
         given:
@@ -108,10 +102,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject   | maxMemory | fileToChange
-        "bigCppApp"   | '256m'    | 'src/main/cpp/lib250.cpp'
-        "bigCppApp"   | '256m'    | 'src/main/headers/lib250.h'
-        "bigCppMulti" | '1g'      | 'project101/src/main/cpp/project101lib4.cpp'
-        "bigCppMulti" | '1g'      | 'project101/src/main/public/project101lib4.h'
+        "mediumSwiftMulti" | '1g'      | 'project101/src/main/public/project101lib4.h'
         changeType = fileToChange.endsWith('.h') ? 'header' : 'source'
     }
 
