@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
+package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions;
+
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 
 import java.util.Set;
 
-class ModuleVersionsCacheEntry {
-    public Set<String> moduleVersionListing;
-    public long createTimestamp;
+public interface ModuleVersionsCache {
 
-    ModuleVersionsCacheEntry(Set<String> moduleVersionListing, long createTimestamp) {
-        this.moduleVersionListing = moduleVersionListing;
-        this.createTimestamp = createTimestamp;
+    void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions);
+
+    CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository repository, ModuleIdentifier moduleId);
+
+    interface CachedModuleVersionList {
+        Set<String> getModuleVersions();
+
+        long getAgeMillis();
     }
 }
