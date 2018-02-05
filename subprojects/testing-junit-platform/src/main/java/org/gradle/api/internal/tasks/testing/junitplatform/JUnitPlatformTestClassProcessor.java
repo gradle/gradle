@@ -24,9 +24,11 @@ import org.gradle.api.internal.tasks.testing.junit.TestClassExecutionListener;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestSource;
+import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
@@ -35,39 +37,57 @@ import org.junit.platform.launcher.PostDiscoveryFilter;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.*;
-import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 import static org.junit.platform.launcher.EngineFilter.excludeEngines;
 import static org.junit.platform.launcher.EngineFilter.includeEngines;
 import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
 public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<JUnitPlatformSpec> {
+    private TestResultProcessor resultProcessor;
+    private TestClassExecutionListener executionListener;
+    private CollectAllTestClassesExecutor testClassExecutor;
+
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         super(spec, idGenerator, actorFactory, clock);
     }
 
     @Override
     protected Action<String> createTestExecutor(TestResultProcessor threadSafeResultProcessor, TestClassExecutionListener threadSafeTestClassListener) {
-        return testClassName -> {
+        resultProcessor = threadSafeResultProcessor;
+        executionListener = threadSafeTestClassListener;
+        testClassExecutor = new CollectAllTestClassesExecutor();
+        return testClassExecutor;
+    }
+
+    @Override
+    public void stop() {
+        testClassExecutor.processAllTestClasses();
+        super.stop();
+    }
+
+    private class CollectAllTestClassesExecutor implements Action<String> {
+        private final List<Class<?>> testClasses = new ArrayList<>();
+
+        @Override
+        public void execute(String testClassName) {
             Class<?> testClass = loadClass(testClassName);
-            if (testClass == null || testClass.getEnclosingClass() != null) {
+            if (testClass != null && testClass.getEnclosingClass() == null) {
                 // Only process top level classes
-                return;
+                testClasses.add(testClass);
             }
+        }
+
+        private void processAllTestClasses() {
             Launcher launcher = LauncherFactory.create();
-            launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(threadSafeResultProcessor, clock, idGenerator));
-            threadSafeTestClassListener.testClassStarted(testClassName);
-            Throwable e = null;
-            try {
-                launcher.execute(createLauncherDiscoveryRequest(testClass));
-            } catch (Throwable throwable) {
-                e = throwable;
-            }
-            threadSafeTestClassListener.testClassFinished(e);
-        };
+            launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, executionListener));
+            launcher.execute(createLauncherDiscoveryRequest(testClasses));
+        }
     }
 
     private Class<?> loadClass(String testClassName) {
@@ -79,11 +99,14 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(Class<?> testClass) {
-        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request()
-            .selectors(selectClass(testClass));
+    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
+        List<DiscoverySelector> classSelectors = testClasses.stream()
+            .map(DiscoverySelectors::selectClass)
+            .collect(Collectors.toList());
 
-        addTestsFilter(requestBuilder, testClass.getName());
+        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request().selectors(classSelectors);
+
+        addTestNameFilters(requestBuilder);
         addEnginesFilter(requestBuilder);
         addTagsFilter(requestBuilder);
 
@@ -108,28 +131,29 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private void addTestsFilter(LauncherDiscoveryRequestBuilder requestBuilder, String className) {
+    private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
         if (!spec.getIncludedTests().isEmpty() || !spec.getIncludedTestsCommandLine().isEmpty()) {
             TestSelectionMatcher matcher = new TestSelectionMatcher(spec.getIncludedTests(), spec.getIncludedTestsCommandLine());
-            if (!matcher.matchesTest(className, null)) {
-                requestBuilder.filters(new MethodNameFilter(matcher));
-            }
+            requestBuilder.filters(new ClassMethodNameFilter(matcher));
         }
     }
 
-    private static class MethodNameFilter implements PostDiscoveryFilter {
+    private static class ClassMethodNameFilter implements PostDiscoveryFilter {
         private final TestSelectionMatcher matcher;
 
-        public MethodNameFilter(TestSelectionMatcher matcher) {
+        private ClassMethodNameFilter(TestSelectionMatcher matcher) {
             this.matcher = matcher;
         }
 
         @Override
         public FilterResult apply(TestDescriptor descriptor) {
+            if (classMatch(descriptor)) {
+                return FilterResult.included("Class match");
+            }
             if (shouldRun(descriptor)) {
-                return FilterResult.included("included");
+                return FilterResult.included("Method or class match");
             } else {
-                return FilterResult.excluded("excluded");
+                return FilterResult.excluded("Method or class mismatch");
             }
         }
 
@@ -154,6 +178,24 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             }
 
             return false;
+        }
+
+        private boolean classMatch(TestDescriptor descriptor) {
+            while (descriptor.getParent().isPresent()) {
+                if (isClass(descriptor) && matcher.matchesTest(className(descriptor), null)) {
+                    return true;
+                }
+                descriptor = descriptor.getParent().get();
+            }
+            return false;
+        }
+
+        private boolean isClass(TestDescriptor descriptor) {
+            return descriptor.getSource().isPresent() && descriptor.getSource().get() instanceof ClassSource;
+        }
+
+        private String className(TestDescriptor descriptor) {
+            return ClassSource.class.cast(descriptor.getSource().get()).getClassName();
         }
 
         private boolean shouldRunVintageDynamicTest(TestDescriptor descriptor) {
