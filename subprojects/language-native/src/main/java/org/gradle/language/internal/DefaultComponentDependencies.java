@@ -16,8 +16,10 @@
 
 package org.gradle.language.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.language.ComponentDependencies;
 
@@ -45,5 +47,12 @@ public class DefaultComponentDependencies implements ComponentDependencies {
     @Override
     public void implementation(Object notation) {
         implementation.getDependencies().add(getDependencyHandler().create(notation));
+    }
+
+    @Override
+    public void implementation(Object notation, Action<? super ExternalModuleDependency> action) {
+        ExternalModuleDependency dependency = (ExternalModuleDependency) getDependencyHandler().create(notation);
+        action.execute(dependency);
+        implementation.getDependencies().add(dependency);
     }
 }
