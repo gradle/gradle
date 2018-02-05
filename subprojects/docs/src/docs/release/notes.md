@@ -32,8 +32,10 @@ _Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially 
 Gradle now [provides support](userguide/managing_transitive_dependencies.html#sec:bom_import) for importing [bill of materials (BOM) files](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies), which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies. It works by declaring a dependency on a BOM.
 
     dependencies {
+        // import a BOM
         implementation 'org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE'
     
+        // define dependencies without versions
         implementation 'com.google.code.gson:gson'
         implementation 'dom4j:dom4j'
     }
