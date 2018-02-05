@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.hamcrest.Matchers
 import org.junit.Rule
+import spock.lang.Unroll
 
 abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpec {
     protected static final String FAILED_RESOURCE = "fail"
@@ -121,13 +122,13 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         result.testClass('pkg.OtherTest').assertTestCount(0, 0, 0)
     }
 
-    def "ensure fail fast with forkEvery"() {
-        final testOmitted = 5
+    @Unroll
+    def "ensure fail fast with forkEvery #forkEvery, maxWorkers #maxWorkers, omittedTests #testOmitted"() {
         given:
-        withBuildFile(2)
+        withBuildFile(forkEvery, maxWorkers)
         withFailingTest()
         def otherResources = withNonfailingTests(testOmitted)
-        def testExecution = server.expectConcurrentAndBlock(2, ([ FAILED_RESOURCE ] + otherResources).grep() as String[])
+        def testExecution = server.expectMaybeAndBlock(maxWorkers, ([ FAILED_RESOURCE ] + otherResources).grep() as String[])
 
         when:
         def gradleHandle = executer.withTasks('test', '--fail-fast').start()
@@ -135,16 +136,26 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
 
         then:
         testExecution.release(FAILED_RESOURCE)
-        testExecution.waitForAllPendingCalls()
         sleep(1000)
         testExecution.releaseAll()
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
-        result.testClassStartsWith("pkg.OtherTest").assertTestCount(0, 0, 0)
+        if (result.getTotalNumberOfTestClassesExecuted() != 1) {
+            result.testClassStartsWith("pkg.OtherTest").assertTestCount(0, 0, 0)
+        }
+
+        where:
+        forkEvery | maxWorkers | testOmitted
+        0         | 1          | 1
+        1         | 1          | 1
+        2         | 1          | 1
+        0         | 2          | 5
+        1         | 2          | 5
+        2         | 2          | 5
     }
 
-    private void withBuildFile(int forkEvery = 0) {
+    private void withBuildFile(int forkEvery = 0, int maxWorkers = MAX_WORKERS) {
         buildFile << """
             apply plugin: 'java'
 
@@ -155,7 +166,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
             }
 
             tasks.withType(Test) {
-                maxParallelForks = $MAX_WORKERS
+                maxParallelForks = $maxWorkers
                 forkEvery = $forkEvery
             }
 
@@ -203,7 +214,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
                     }
                 }
             """.stripIndent()
-            (it % 2 == 0) ? resource : null
+            resource
         }
     }
 

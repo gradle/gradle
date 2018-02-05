@@ -253,6 +253,14 @@ public class BlockingHttpServer extends ExternalResource {
         return addBlockingHandler(concurrent, expectations);
     }
 
+    public BlockingHandler expectMaybeAndBlock(int concurrent, String... expectedMaybeCalls) {
+        List<ResourceExpectation> expectations = new ArrayList<ResourceExpectation>();
+        for (String call : expectedMaybeCalls) {
+            expectations.add(new ExpectGetAndSendFixedContent(call));
+        }
+        return addBlockingMaybeHandler(concurrent, expectations);
+    }
+
     /**
      * Expects the given requests to be made concurrently. Blocks each request until they have all been received and released using one of the methods on {@link BlockingHandler}.
      */
@@ -277,6 +285,15 @@ public class BlockingHttpServer extends ExternalResource {
             @Override
             public CyclicBarrierAnyOfRequestHandler create(WaitPrecondition previous) {
                 return new CyclicBarrierAnyOfRequestHandler(lock, serverId, timeoutMs, concurrent, previous, expectations);
+            }
+        });
+    }
+
+    private BlockingHandler addBlockingMaybeHandler(final int concurrent, final Collection<? extends ResourceExpectation> expectations) {
+        return handler.addHandler(new ChainingHttpHandler.HandlerFactory<CyclicBarrierAnyOfRequestHandler>() {
+            @Override
+            public CyclicBarrierAnyOfRequestHandler create(WaitPrecondition previous) {
+                return new CyclicBarrierAnyOfRequestOptionalHandler(lock, serverId, timeoutMs, concurrent, previous, expectations);
             }
         });
     }

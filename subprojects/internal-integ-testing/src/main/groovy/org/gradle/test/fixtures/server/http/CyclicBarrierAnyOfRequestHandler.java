@@ -35,14 +35,14 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
     private final List<String> received = new ArrayList<String>();
     private final List<String> released = new ArrayList<String>();
     private final Map<String, ResourceHandlerWrapper> all = new TreeMap<String, ResourceHandlerWrapper>();
-    private final Map<String, ResourceHandlerWrapper> expected = new TreeMap<String, ResourceHandlerWrapper>();
+    protected final Map<String, ResourceHandlerWrapper> expected = new TreeMap<String, ResourceHandlerWrapper>();
     private final int testId;
     private final int timeoutMs;
     private final Clock clock = Time.clock();
     private int waitingFor;
     private final WaitPrecondition previous;
     private long mostRecentEvent;
-    private AssertionError failure;
+    protected AssertionError failure;
 
     CyclicBarrierAnyOfRequestHandler(Lock lock, int testId, int timeoutMs, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
         if (expectedRequests.size() < maxConcurrent) {
