@@ -47,7 +47,7 @@ public interface VersionControlSystem {
     /**
      * Returns the default revision for this VCS.
      */
-    VersionRef getHead(VersionControlSpec spec);
+    VersionRef getDefaultBranch(VersionControlSpec spec);
 
     /**
      * Returns the given branch or null.

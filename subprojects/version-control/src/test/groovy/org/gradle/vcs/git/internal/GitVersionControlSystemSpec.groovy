@@ -238,12 +238,12 @@ class GitVersionControlSystemSpec extends Specification {
         versionMap['v1.0.1'] == c1.id.name
     }
 
-    def 'can get HEAD of repository'() {
+    def 'default branch of repo is master'() {
         given:
-        def version = gitVcs.getHead(repoSpec)
+        def version = gitVcs.getDefaultBranch(repoSpec)
 
         expect:
-        version.version == 'HEAD'
+        version.version == 'master'
         version.canonicalId == c2.id.name
     }
 }

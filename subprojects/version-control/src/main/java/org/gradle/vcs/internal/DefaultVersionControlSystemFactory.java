@@ -75,9 +75,9 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         }
 
         @Override
-        public VersionRef getHead(VersionControlSpec spec) {
+        public VersionRef getDefaultBranch(VersionControlSpec spec) {
             try {
-                return delegate.getHead(spec);
+                return delegate.getDefaultBranch(spec);
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not locate default branch for '%s'.", spec.getDisplayName()), e);
             }

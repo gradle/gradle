@@ -100,10 +100,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
             if (vcsMappingInternal.hasRepository()) {
                 VersionControlSpec spec = vcsMappingInternal.getRepository();
                 VersionControlSystem versionControlSystem = versionControlSystemFactory.create(spec);
-                VersionRef selectedVersion = selectVersionFromCache(spec, depSelector.getVersionConstraint());
-                if (selectedVersion == null) {
-                    selectedVersion = selectVersionFromRepository(spec, versionControlSystem, depSelector.getVersionConstraint());
-                }
+
+                VersionRef selectedVersion = selectVersion(depSelector, spec, versionControlSystem);
                 if (selectedVersion == null) {
                     result.failed(new ModuleVersionNotFoundException(depSelector, Collections.singleton(spec.getDisplayName())));
                     return;
@@ -143,31 +141,33 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         projectDependencyResolver.resolve(dependency, result);
     }
 
+    private VersionRef selectVersion(ModuleComponentSelector depSelector, VersionControlSpec spec, VersionControlSystem versionControlSystem) {
+        String cacheKey = cacheKey(spec, depSelector.getVersionConstraint());
+        if (selectedVersionCache.containsKey(cacheKey)) {
+            return selectedVersionCache.get(cacheKey);
+        } else {
+            VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem, depSelector.getVersionConstraint());
+            selectedVersionCache.put(cacheKey, selectedVersion);
+            return selectedVersion;
+        }
+    }
+
     private File populateWorkingDirectory(File baseWorkingDir, VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionRef selectedVersion) {
         String repositoryId = HashUtil.createCompactMD5(spec.getUniqueId());
         File versionDirectory = new File(baseWorkingDir, repositoryId + "-" + selectedVersion.getCanonicalId());
         return versionControlSystem.populate(versionDirectory, selectedVersion, spec);
     }
 
-    private VersionRef selectVersionFromCache(VersionControlSpec spec, VersionConstraint constraint) {
-        return selectedVersionCache.get(cacheKey(spec, constraint));
-    }
-
     private VersionRef selectVersionFromRepository(VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionConstraint constraint) {
         // TODO: match with status, order versions correctly
 
         if (constraint.getBranch() != null) {
-            VersionRef versionRef = versionControlSystem.getBranch(spec, constraint.getBranch());
-            selectedVersionCache.put(cacheKey(spec, constraint), versionRef);
-            return versionRef;
-
+            return versionControlSystem.getBranch(spec, constraint.getBranch());
         }
 
         String version = constraint.getPreferredVersion();
         if (version.equals("latest.integration")) {
-            VersionRef versionRef = versionControlSystem.getHead(spec);
-            selectedVersionCache.put(cacheKey(spec, constraint), versionRef);
-            return versionRef;
+            return versionControlSystem.getDefaultBranch(spec);
         }
 
         VersionSelector versionSelector = versionSelectorScheme.parseSelector(version);
@@ -188,9 +188,6 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
             }
         }
 
-        if (bestCandidate != null) {
-            selectedVersionCache.put(cacheKey(spec, constraint), bestCandidate);
-        }
         return bestCandidate;
     }
 
