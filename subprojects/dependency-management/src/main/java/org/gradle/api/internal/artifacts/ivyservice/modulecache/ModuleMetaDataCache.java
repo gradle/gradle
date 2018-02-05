@@ -21,10 +21,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
+import javax.annotation.Nullable;
+
 public interface ModuleMetaDataCache {
     CachedMetaData cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id);
 
-    CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetadata metaData);
+    CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metaData);
 
     CachedMetaData getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier id);
 
@@ -38,5 +40,17 @@ public interface ModuleMetaDataCache {
         boolean isMissing();
 
         ModuleSource getModuleSource();
+
+        /**
+         * The metadata after being processed by component metadata rules.
+         * Will be null the first time an entry is accessed during a build.
+         */
+        @Nullable
+        ModuleComponentResolveMetadata getProcessedMetadata();
+
+        /**
+         * Set the processed metadata, for caching in-memory.
+         */
+        void setProcessedMetadata(ModuleComponentResolveMetadata processedMetadata);
     }
 }

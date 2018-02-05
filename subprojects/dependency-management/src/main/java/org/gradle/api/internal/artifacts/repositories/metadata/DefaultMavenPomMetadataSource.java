@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
@@ -56,10 +55,8 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
             // Snapshot POMs use -SNAPSHOT instead of the timestamp as version, so validate against the expected id
             MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier = (MavenUniqueSnapshotComponentIdentifier) moduleComponentIdentifier;
             checkMetadataConsistency(snapshotComponentIdentifier.getSnapshotComponent(), metaData);
-            // Use the requested id. Currently we're discarding the MavenUniqueSnapshotComponentIdentifier and replacing with DefaultModuleComponentIdentifier as pretty
-            // much every consumer of the meta-data is expecting a DefaultModuleComponentIdentifier.
-            ModuleComponentIdentifier lossyId = DefaultModuleComponentIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
-            metaData.setComponentId(lossyId);
+
+            metaData.setComponentId(snapshotComponentIdentifier);
             metaData.setSnapshotTimestamp(snapshotComponentIdentifier.getTimestamp());
         } else {
             checkMetadataConsistency(moduleComponentIdentifier, metaData);

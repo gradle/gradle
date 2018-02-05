@@ -274,10 +274,10 @@ allprojects {
         StringBuilder matched = new StringBuilder()
         expectedSorted.each { node ->
             def actualNode = actualSorted.find { it.id == node.id }
+
             if (!actualNode) {
                 errors.append("Expected to find node ${node.id} but wasn't present in result\n")
-            }
-            if (!node.diff(actualNode, errors)) {
+            } else if (!node.diff(actualNode, errors)) {
                 matched.append("   - $node\n")
             }
         }
@@ -550,6 +550,19 @@ allprojects {
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node
             cl.call()
+            return node
+        }
+
+        /**
+         * Defines a dependency on a unique snapshot module.
+         */
+        NodeBuilder snapshot(String moduleVersionId, String timestamp) {
+            def id = moduleVersionId + ":" + timestamp
+            def parts = moduleVersionId.split(':')
+            assert parts.length == 3
+            def attrs = [group: parts[0], module: parts[1], version: parts[2]]
+            def node = graph.node(id, moduleVersionId, attrs)
+            deps << new EdgeBuilder(this, moduleVersionId, node)
             return node
         }
 

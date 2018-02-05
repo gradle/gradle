@@ -16,10 +16,48 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
 
 class MavenSnapshotResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def "can resolve unique and non-unique snapshots"() {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    maven { url "${mavenHttpRepo.uri}" }
+}
+configurations {
+    compile
+}
+dependencies {
+    compile "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
+}
+"""
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
+        def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
+        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+
+        and:
+        expectModuleServed(uniqueVersionModule)
+        expectModuleServed(nonUniqueVersionModule)
+
+        and:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                snapshot("org.gradle.integtests.resolve:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)
+                module("org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT")
+            }
+        }
+    }
 
     def "can find and cache snapshots in multiple Maven HTTP repositories"() {
         def repo1 = mavenHttpRepo("repo1")
@@ -365,6 +403,70 @@ task retrieve(type: Sync) {
         file('libs/nonunique-1.0-SNAPSHOT.jar').assertIsCopyOf(nonUniqueVersionModule.artifactFile).assertHasChangedSince(nonUniqueJarSnapshot);
     }
 
+    @Issue("gradle/gradle#3109")
+    def "should honour changing module cache expiry for subsequent snapshot resolutions in the same build"() {
+        given:
+        buildFile << """
+repositories {
+    maven { url "${mavenHttpRepo.uri}" }
+}
+
+configurations {
+    fresh
+    stale
+}
+configurations.fresh.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+ 
+dependencies {
+    stale "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
+    fresh "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
+}
+
+task resolveStaleThenFresh {
+    doFirst {
+        project.sync {
+            from configurations.stale
+            into 'stale'
+        }
+        project.sync {
+            from configurations.fresh
+            into 'fresh'
+        }
+    }
+}
+"""
+
+        when: "snapshot modules are published"
+        def snapshotModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
+        snapshotModule.artifactFile.makeOlder()
+
+        and:
+        expectModuleServed(snapshotModule)
+
+        and:
+        run 'resolveStaleThenFresh'
+
+        then:
+        file('stale').assertHasDescendants('unique-1.0-SNAPSHOT.jar')
+        file('fresh').assertHasDescendants('unique-1.0-SNAPSHOT.jar')
+        def firstStaleVersion = file('stale/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile).snapshot()
+        def firstFreshVersion = file('fresh/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile).snapshot()
+
+        when: "Republish the snapshots"
+        server.resetExpectations()
+        snapshotModule.publishWithChangedContent()
+
+        // Should get the newer snapshot when resolving 'fresh'
+        expectChangedModuleServed(snapshotModule)
+
+        and:
+        run 'resolveStaleThenFresh'
+
+        then:
+        file('fresh/unique-1.0-SNAPSHOT.jar').assertContentsHaveChangedSince(firstFreshVersion)
+        file('fresh/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile)
+    }
+
     def "does not download snapshot artifacts after expiry when snapshot has not changed"() {
         buildFile << """
 repositories {
@@ -681,7 +783,7 @@ task retrieve(type: Sync) {
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT).
+        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
 
@@ -692,7 +794,7 @@ Searched in the following locations:
         fails 'retrieve'
 
         and:
-        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT).
+        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.0-SNAPSHOT:${projectA.uniqueSnapshotVersion}).
 Searched in the following locations:
     ${projectA.artifact.uri}""")
     }
