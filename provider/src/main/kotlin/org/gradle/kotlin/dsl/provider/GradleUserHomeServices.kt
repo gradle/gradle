@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
-import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 
 internal
 object GradleUserHomeServices {
 
     @Suppress("unused")
-    fun createKotlinScriptClassloadingCache(cacheFactory: CrossBuildInMemoryCacheFactory, scriptSourceHasher: ScriptSourceHasher) =
-        KotlinScriptClassloadingCache(cacheFactory, scriptSourceHasher)
+    fun createKotlinScriptClassloadingCache(cacheFactory: CrossBuildInMemoryCacheFactory) =
+        KotlinScriptClassloadingCache(cacheFactory)
 }

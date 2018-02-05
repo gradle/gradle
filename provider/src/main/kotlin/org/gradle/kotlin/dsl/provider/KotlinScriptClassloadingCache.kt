@@ -15,16 +15,20 @@
  */
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.api.internal.initialization.ClassLoaderScope
+
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.internal.ScriptSourceHasher
+
 import org.gradle.internal.Cast
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
+
 import org.gradle.kotlin.dsl.support.loggerFor
+
+import java.io.File
 import java.lang.ref.WeakReference
 import javax.inject.Inject
-import kotlin.reflect.KClass
 
 
 internal
@@ -34,9 +38,7 @@ data class LoadedScriptClass<out T : Any>(
 
 
 internal
-class KotlinScriptClassloadingCache @Inject constructor(
-    cacheFactory: CrossBuildInMemoryCacheFactory,
-    private val sourceHasher: ScriptSourceHasher) {
+class KotlinScriptClassloadingCache @Inject constructor(cacheFactory: CrossBuildInMemoryCacheFactory) {
 
     private
     val logger = loggerFor<KotlinScriptPluginFactory>()
@@ -45,28 +47,38 @@ class KotlinScriptClassloadingCache @Inject constructor(
     val cache: CrossBuildInMemoryCache<ScriptCacheKey, LoadedScriptClass<*>> = cacheFactory.newCache()
 
     fun <T : Any> loadScriptClass(
-        displayName: String,
-        scriptTemplate: KClass<*>,
-        scriptSource: ScriptSource,
+        scriptBlock: ScriptBlock<T>,
         parentClassLoader: ClassLoader,
-        compilation: () -> CompiledScript<T>,
-        classloading: (CompiledScript<T>) -> Class<*>
+        scopeFactory: () -> ClassLoaderScope,
+        compilation: (ScriptBlock<T>) -> CompiledScript<T>
     ): LoadedScriptClass<T> {
 
-        val key = ScriptCacheKey(scriptTemplate.qualifiedName!!, sourceHasher.hash(scriptSource), parentClassLoader)
+        val key = ScriptCacheKey(scriptBlock.scriptTemplate.qualifiedName!!, scriptBlock.sourceHash, parentClassLoader)
         val cached = cache.get(key)
         if (cached != null) {
             return Cast.uncheckedCast<LoadedScriptClass<T>>(cached)
         }
 
-        val compiledScript = compilation()
+        val compiledScript = compilation(scriptBlock)
 
-        logger.debug("Loading {} from {}", scriptTemplate.simpleName, displayName)
-        val scriptClass = classloading(compiledScript)
+        logger.debug("Loading {} from {}", scriptBlock.scriptTemplate.simpleName, scriptBlock.displayName)
+        val scriptClass = classFrom(compiledScript, scopeFactory())
         return LoadedScriptClass(compiledScript, scriptClass).also {
             cache.put(key, it)
         }
     }
+
+    private
+    fun classFrom(compiledScript: CompiledScript<*>, scope: ClassLoaderScope): Class<*> =
+        classLoaderFor(compiledScript.location, scope)
+            .loadClass(compiledScript.className)
+
+    private
+    fun classLoaderFor(location: File, scope: ClassLoaderScope) =
+        scope
+            .local(DefaultClassPath(location))
+            .lock()
+            .localClassLoader
 }
 
 private

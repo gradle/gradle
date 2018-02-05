@@ -21,6 +21,8 @@ import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
@@ -41,6 +43,18 @@ import kotlin.script.dependencies.Environment
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.experimental.dependencies.DependenciesResolver
 import kotlin.script.experimental.dependencies.ScriptDependencies
+
+
+internal
+data class ScriptBlock<out T : Any>(
+    val displayName: String,
+    val scriptTemplate: KClass<*>,
+    val scriptPath: String,
+    val source: String,
+    val metadata: T) {
+
+    val sourceHash: HashCode = Hashing.md5().hashString(source)
+}
 
 
 internal
@@ -70,61 +84,49 @@ class CachingKotlinCompiler(
     private
     val cacheProperties = mapOf("version" to "6")
 
-    fun compileBuildscriptBlockOf(
-        displayName: String,
-        buildscriptBlockTemplate: KClass<out Any>,
-        scriptPath: String,
-        buildscript: String,
-        classPath: ClassPath): CompiledScript<Unit> {
+    fun compileBuildscriptBlockOf(scriptBlock: ScriptBlock<Unit>, classPath: ClassPath): CompiledScript<Unit> =
 
-        val scriptFileName = scriptFileNameFor(scriptPath)
-        val cacheKeySpec = cacheKeyPrefix + buildscriptBlockTemplate.qualifiedName + scriptFileName + buildscript
-        return compileScript(cacheKeySpec, classPath, Unit) { cacheDir ->
-            ScriptCompilationSpec(
-                displayName,
-                buildscriptBlockTemplate,
-                scriptPath,
-                cacheFileFor(buildscript, cacheDir, scriptFileName))
+        scriptBlock.run {
+            val scriptFileName = scriptFileNameFor(scriptPath)
+            val cacheKeySpec = cacheKeyPrefix + scriptTemplate.qualifiedName + scriptFileName + source
+            return compileScript(cacheKeySpec, classPath, metadata) { cacheDir ->
+                ScriptCompilationSpec(
+                    displayName,
+                    scriptTemplate,
+                    scriptPath,
+                    cacheFileFor(source, cacheDir, scriptFileName))
+            }
         }
-    }
 
     fun compilePluginsBlockOf(
-        displayName: String,
-        pluginsBlockTemplate: KClass<out Any>,
-        scriptPath: String,
-        lineNumberedPluginsBlock: Pair<Int, String>,
-        classPath: ClassPath): CompiledScript<PluginsBlockMetadata> {
+        scriptBlock: ScriptBlock<PluginsBlockMetadata>,
+        classPath: ClassPath): CompiledScript<PluginsBlockMetadata> =
 
-        val (lineNumber, plugins) = lineNumberedPluginsBlock
-        val scriptFileName = scriptFileNameFor(scriptPath)
-        val cacheKeySpec = cacheKeyPrefix + pluginsBlockTemplate.qualifiedName + scriptFileName + plugins
-        return compileScript(cacheKeySpec, classPath, PluginsBlockMetadata(lineNumber)) { cacheDir ->
-            ScriptCompilationSpec(
-                displayName,
-                pluginsBlockTemplate,
-                scriptPath,
-                cacheFileFor(plugins, cacheDir, scriptFileName))
+        scriptBlock.run {
+            val scriptFileName = scriptFileNameFor(scriptPath)
+            val cacheKeySpec = cacheKeyPrefix + scriptTemplate.qualifiedName + scriptFileName + source
+            return compileScript(cacheKeySpec, classPath, metadata) { cacheDir ->
+                ScriptCompilationSpec(
+                    displayName,
+                    scriptTemplate,
+                    scriptPath,
+                    cacheFileFor(source, cacheDir, scriptFileName))
+            }
         }
-    }
 
-    fun <T : Any> compileGradleScript(
-        displayName: String,
-        scriptTemplate: KClass<out Any>,
-        scriptPath: String,
-        script: String,
-        classPath: ClassPath,
-        metadata: T): CompiledScript<T> {
+    fun <T : Any> compileGradleScript(scriptBlock: ScriptBlock<T>, classPath: ClassPath): CompiledScript<T> =
 
-        val scriptFileName = scriptFileNameFor(scriptPath)
-        val cacheKeySpec = cacheKeyPrefix + scriptTemplate.qualifiedName + scriptFileName + script
-        return compileScript(cacheKeySpec, classPath, metadata) { cacheDir ->
-            ScriptCompilationSpec(
-                displayName,
-                scriptTemplate,
-                scriptPath,
-                cacheFileFor(script, cacheDir, scriptFileName))
+        scriptBlock.run {
+            val scriptFileName = scriptFileNameFor(scriptPath)
+            val cacheKeySpec = cacheKeyPrefix + scriptTemplate.qualifiedName + scriptFileName + source
+            return compileScript(cacheKeySpec, classPath, metadata) { cacheDir ->
+                ScriptCompilationSpec(
+                    displayName,
+                    scriptTemplate,
+                    scriptPath,
+                    cacheFileFor(source, cacheDir, scriptFileName))
+            }
         }
-    }
 
     private
     fun scriptFileNameFor(scriptPath: String) = scriptPath.run {
