@@ -25,6 +25,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scripts.ScriptingLanguages;
 import org.gradle.scripts.ScriptingLanguage;
 
+import java.util.List;
+
 /**
  * Selects a {@link ScriptPluginFactory} suitable for handling a given build script based
  * on its file name. Build script file names ending in ".gradle" are supported by the
@@ -77,16 +79,13 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     }
 
     private final ScriptPluginFactory defaultScriptPluginFactory;
-    private final ScriptingLanguages scriptingLanguages;
     private final ProviderInstantiator providerInstantiator;
     private final BuildOperationExecutor buildOperationExecutor;
 
     public ScriptPluginFactorySelector(ScriptPluginFactory defaultScriptPluginFactory,
-                                       ScriptingLanguages scriptingLanguages,
                                        ProviderInstantiator providerInstantiator,
                                        BuildOperationExecutor buildOperationExecutor) {
         this.defaultScriptPluginFactory = defaultScriptPluginFactory;
-        this.scriptingLanguages = scriptingLanguages;
         this.providerInstantiator = providerInstantiator;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -100,24 +99,23 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     }
 
     private ScriptPluginFactory scriptPluginFactoryFor(String fileName) {
-        return fileName.endsWith(".gradle")
-            ? defaultScriptPluginFactory
-            : findScriptPluginFactoryFor(fileName);
-    }
-
-    private ScriptPluginFactory findScriptPluginFactoryFor(String fileName) {
-        for (ScriptingLanguage scriptingLanguage : scriptingLanguages) {
+        for (ScriptingLanguage scriptingLanguage : scriptingLanguages()) {
             if (fileName.endsWith(scriptingLanguage.getExtension())) {
-                ScriptPluginFactory scriptPluginFactory = scriptPluginFactoryFor(scriptingLanguage);
-                if (scriptPluginFactory != null) {
-                    return scriptPluginFactory;
+                String provider = scriptingLanguage.getProvider();
+                if (provider != null) {
+                    return instantiate(provider);
                 }
+                return defaultScriptPluginFactory;
             }
         }
         return defaultScriptPluginFactory;
     }
 
-    private ScriptPluginFactory scriptPluginFactoryFor(ScriptingLanguage scriptingLanguage) {
-        return providerInstantiator.instantiate(scriptingLanguage.getProvider());
+    private List<ScriptingLanguage> scriptingLanguages() {
+        return ScriptingLanguages.defaultScriptLanguages();
+    }
+
+    private ScriptPluginFactory instantiate(String provider) {
+        return providerInstantiator.instantiate(provider);
     }
 }

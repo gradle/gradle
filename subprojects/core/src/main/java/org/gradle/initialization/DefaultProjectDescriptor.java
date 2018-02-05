@@ -145,17 +145,13 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         if (buildFileName != null) {
             return new File(getProjectDir(), buildFileName);
         }
-        File defaultBuildFile = new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
-        if (defaultBuildFile.isFile()) {
-            return defaultBuildFile;
-        }
         if (scriptFileResolver != null) {
             File buildScriptFile = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
             if (buildScriptFile != null) {
                 return buildScriptFile;
             }
         }
-        return defaultBuildFile;
+        return new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
     }
 
     public ProjectDescriptorRegistry getProjectDescriptorRegistry() {

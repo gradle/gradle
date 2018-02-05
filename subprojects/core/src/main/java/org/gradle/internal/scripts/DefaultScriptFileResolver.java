@@ -29,7 +29,7 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     }
 
     public static ScriptFileResolver forDefaultScriptingLanguages() {
-        return forScriptingLanguages(DefaultScriptingLanguages.create());
+        return forScriptingLanguages(ScriptingLanguages.defaultScriptLanguages());
     }
 
     public static ScriptFileResolver forScriptingLanguages(Iterable<ScriptingLanguage> scriptingLanguages) {

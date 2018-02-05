@@ -36,7 +36,7 @@ class DistributionFactoryTest extends Specification {
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ProgressLogger progressLogger = Mock()
     final BuildCancellationToken cancellationToken = Mock()
-    final DistributionFactory factory = new DistributionFactory(Time.clock(), new BuildLayoutFactory(DefaultScriptFileResolver.empty()))
+    final DistributionFactory factory = new DistributionFactory(Time.clock())
     final InternalBuildProgressListener buildProgressListener = Mock()
 
     def setup() {
