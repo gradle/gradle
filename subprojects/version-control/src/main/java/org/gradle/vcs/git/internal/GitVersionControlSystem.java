@@ -88,7 +88,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
     }
 
     @Override
-    public VersionRef getHead(VersionControlSpec spec) {
+    public VersionRef getDefaultBranch(VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
         Collection<Ref> refs;
         try {
@@ -99,11 +99,11 @@ public class GitVersionControlSystem implements VersionControlSystem {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         }
         for (Ref ref : refs) {
-            if (ref.getName().equals("HEAD")) {
+            if (ref.getName().equals("refs/heads/master")) {
                 return GitVersionRef.from(ref);
             }
         }
-        throw new UnsupportedOperationException("Git repository has no HEAD reference");
+        throw new UnsupportedOperationException("Git repository has no master branch");
     }
 
     @Nullable

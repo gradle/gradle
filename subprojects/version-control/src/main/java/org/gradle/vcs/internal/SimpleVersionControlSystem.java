@@ -30,11 +30,11 @@ import java.util.Set;
 public class SimpleVersionControlSystem implements VersionControlSystem {
     @Override
     public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
-        return Sets.newHashSet(getHead(spec));
+        return Sets.newHashSet(getDefaultBranch(spec));
     }
 
     @Override
-    public VersionRef getHead(VersionControlSpec spec) {
+    public VersionRef getDefaultBranch(VersionControlSpec spec) {
         return new DefaultVersionRef();
     }
 
