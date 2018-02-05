@@ -125,7 +125,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
     @Unroll
     def "ensure fail fast with forkEvery #forkEvery, maxWorkers #maxWorkers, omittedTests #testOmitted"() {
         given:
-        withBuildFile(forkEvery, maxWorkers)
+        withBuildFile(maxWorkers, forkEvery)
         withFailingTest()
         def otherResources = withNonfailingTests(testOmitted)
         def testExecution = server.expectMaybeAndBlock(maxWorkers, ([ FAILED_RESOURCE ] + otherResources).grep() as String[])
@@ -155,7 +155,25 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         2         | 2          | 5
     }
 
-    private void withBuildFile(int forkEvery = 0, int maxWorkers = MAX_WORKERS) {
+    def "fail fast console output shows failure"() {
+        given:
+        withBuildFile()
+        withFailingTest()
+        withNonfailingTest()
+        def testExecution = server.expectConcurrentAndBlock(2, FAILED_RESOURCE, OTHER_RESOURCE)
+
+        when:
+        def gradleHandle = executer.withTasks('test', '--fail-fast').start()
+        testExecution.waitForAllPendingCalls()
+
+        then:
+        testExecution.release(FAILED_RESOURCE)
+        gradleHandle.waitForFailure()
+        assert gradleHandle.standardOutput.matches(/(?s).*pkg\.FailedTest.*failTest.*FAILED.*java.lang.RuntimeException at FailedTest.java.*/)
+        assert !gradleHandle.standardOutput.contains('pkg.OtherTest')
+    }
+
+    void withBuildFile(int maxWorkers = MAX_WORKERS, int forkEvery = 0) {
         buildFile << """
             apply plugin: 'java'
 
@@ -174,7 +192,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         """
     }
 
-    private void withFailingTest() {
+    void withFailingTest() {
         file('src/test/java/pkg/FailedTest.java') << """
             package pkg;
             import ${testAnnotationClass()};
@@ -188,7 +206,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         """.stripIndent()
     }
 
-    private void withNonfailingTest() {
+    void withNonfailingTest() {
         file('src/test/java/pkg/OtherTest.java') << """
             package pkg;
             import ${testAnnotationClass()};
@@ -201,7 +219,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         """.stripIndent()
     }
 
-    private List<String> withNonfailingTests(int num) {
+    List<String> withNonfailingTests(int num) {
         (1..num).collect {
             final resource = "test_${it}" as String
             file("src/test/java/pkg/OtherTest_${it}.java") << """

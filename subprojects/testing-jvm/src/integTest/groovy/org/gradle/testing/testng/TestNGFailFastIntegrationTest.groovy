@@ -16,7 +16,10 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
+import org.hamcrest.Matchers
+import spock.lang.Unroll
 
 class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     @Override
@@ -36,5 +39,48 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
                 useTestNG()
             }
         """
+    }
+
+    @Unroll
+    def "parallel #parallel execution with #threadCount threads, #maxWorkers workers fails fast"() {
+        given:
+        withBuildFile(maxWorkers)
+        buildFile << """
+            test {
+                useTestNG() {
+                    parallel = '$parallel'
+                    threadCount = $threadCount
+                }
+            }
+        """.stripIndent()
+        withFailingTest()
+        def otherResources = withNonfailingTests(5)
+        def testExecution = server.expectMaybeAndBlock(maxWorkers * threadCount, ([ FAILED_RESOURCE ] + otherResources).grep() as String[])
+
+        when:
+        def gradleHandle = executer.withTasks('test', '--fail-fast').start()
+        testExecution.waitForAllPendingCalls()
+
+        then:
+        testExecution.release(FAILED_RESOURCE)
+        sleep(1000)
+        testExecution.releaseAll()
+        gradleHandle.waitForFailure()
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
+        if (result.getTotalNumberOfTestClassesExecuted() != 1) {
+            result.testClassStartsWith("pkg.OtherTest").assertTestCount(0, 0, 0)
+        }
+
+        where:
+        parallel    | threadCount | maxWorkers
+        'methods'   | 1           | 1
+        'methods'   | 2           | 1
+        'methods'   | 1           | 2
+        'methods'   | 2           | 2
+        'classes'   | 1           | 1
+        'classes'   | 2           | 1
+        'classes'   | 1           | 2
+        'classes'   | 2           | 2
     }
 }
