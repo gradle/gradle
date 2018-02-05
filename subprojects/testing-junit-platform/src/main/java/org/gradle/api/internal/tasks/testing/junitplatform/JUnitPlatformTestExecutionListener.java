@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.junit.GenericJUnitTestEventAdapter;
+import org.gradle.api.internal.tasks.testing.junit.TestClassExecutionListener;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.junit.platform.engine.TestExecutionResult;
@@ -32,15 +33,20 @@ import org.junit.platform.launcher.TestPlan;
 
 import static org.gradle.api.internal.tasks.testing.junit.JUnitTestEventAdapter.getIgnoredMethodsFromIgnoredClass;
 import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.*;
+import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
 
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
     private final GenericJUnitTestEventAdapter<String> adapter;
     private final IdGenerator<?> idGenerator;
+    private final TestClassExecutionListener executionListener;
+    private final CurrentRunningTestClass currentRunningTestClass;
     private TestPlan currentTestPlan;
 
-    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator) {
+    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, TestClassExecutionListener executionListener) {
         this.adapter = new GenericJUnitTestEventAdapter<>(resultProcessor, clock);
         this.idGenerator = idGenerator;
+        this.executionListener = executionListener;
+        this.currentRunningTestClass = new CurrentRunningTestClass();
     }
 
     @Override
@@ -56,11 +62,13 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     @Override
     public void executionSkipped(TestIdentifier testIdentifier, String reason) {
         if (isClass(testIdentifier)) {
+            reportTestClassStarted(testIdentifier);
             if (isVintageEngine(testIdentifier)) {
                 processIgnoredClass(testIdentifier);
             } else {
                 currentTestPlan.getChildren(testIdentifier).forEach(child -> executionSkipped(child, reason));
             }
+            reportTestClassFinished(testIdentifier, TestExecutionResult.aborted(null));
         } else if (isMethod(testIdentifier)) {
             adapter.testIgnored(getDescriptor(testIdentifier));
         }
@@ -76,6 +84,9 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @Override
     public void executionStarted(TestIdentifier testIdentifier) {
+        if (isClass(testIdentifier)) {
+            reportTestClassStarted(testIdentifier);
+        }
         if (!isLeafTest(testIdentifier)) {
             return;
         }
@@ -110,18 +121,29 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
                     throw new AssertionError("Invalid Status: " + testExecutionResult.getStatus());
             }
         }
+
+        if (isClass(testIdentifier)) {
+            reportTestClassFinished(testIdentifier, testExecutionResult);
+        }
+    }
+
+    private void reportTestClassStarted(TestIdentifier testIdentifier) {
+        currentRunningTestClass.start(className(testIdentifier));
+    }
+
+    private void reportTestClassFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+        currentRunningTestClass.end(className(testIdentifier));
     }
 
     private boolean isLeafMethodOrFailedContainer(TestIdentifier testIdentifier, TestExecutionResult result) {
-        // Generally, there're 4 kinds of identifier:
-        // 1. JUnit test engine, which we don't consider at all
-        // 2. A container (class or repeated tests). It is not tracked unless it fails/aborts.
-        // 3. A test "leaf" method. It's always tracked.
+        // Generally, there're 2 kinds of identifier:
+        // 1. A container (test engine/class/repeated tests). It is not tracked unless it fails/aborts.
+        // 2. A test "leaf" method. It's always tracked.
         return isLeafTest(testIdentifier) || isFailedContainer(testIdentifier, result);
     }
 
     private boolean isFailedContainer(TestIdentifier testIdentifier, TestExecutionResult result) {
-        return result.getStatus() != TestExecutionResult.Status.SUCCESSFUL && testIdentifier.isContainer();
+        return result.getStatus() != SUCCESSFUL && testIdentifier.isContainer();
     }
 
     private TestDescriptorInternal getDescriptor(final TestIdentifier test) {
@@ -167,5 +189,30 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
 
         return className(current);
+    }
+
+    private class CurrentRunningTestClass {
+        private String name;
+        private int count;
+
+        private void start(String className) {
+            if (name == null) {
+                name = className;
+                executionListener.testClassStarted(className);
+                count = 1;
+            } else if (className.equals(name)) {
+                count++;
+            }
+        }
+
+        private void end(String className) {
+            if (className.equals(name)) {
+                count--;
+                if (count == 0) {
+                    executionListener.testClassFinished(null);
+                    name = null;
+                }
+            }
+        }
     }
 }
