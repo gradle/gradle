@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultModuleVersionsCache;
@@ -38,9 +38,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactsCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetaDataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
@@ -200,17 +200,17 @@ class DependencyManagementBuildScopeServices {
         return new AttributeContainerSerializer(attributesFactory, NamedObjectInstantiator.INSTANCE);
     }
 
-    ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider,
+    ModuleMetadataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider,
                                                     CacheLockingManager cacheLockingManager,
-                                                    ArtifactCacheMetaData artifactCacheMetaData,
+                                                    ArtifactCacheMetadata artifactCacheMetadata,
                                                     ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                                     AttributeContainerSerializer attributeContainerSerializer,
                                                     MavenMutableModuleMetadataFactory mavenMetadataFactory,
                                                     IvyMutableModuleMetadataFactory ivyMetadataFactory) {
-        return new DefaultModuleMetaDataCache(
+        return new DefaultModuleMetadataCache(
             timeProvider,
             cacheLockingManager,
-            artifactCacheMetaData,
+            artifactCacheMetadata,
             moduleIdentifierFactory,
             attributeContainerSerializer,
             mavenMetadataFactory,
@@ -233,12 +233,12 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ArtifactIdentifierFileStore createArtifactRevisionIdFileStore(ArtifactCacheMetaData artifactCacheMetaData) {
-        return new ArtifactIdentifierFileStore(artifactCacheMetaData.getFileStoreDirectory(), new TmpDirTemporaryFileProvider());
+    ArtifactIdentifierFileStore createArtifactRevisionIdFileStore(ArtifactCacheMetadata artifactCacheMetadata) {
+        return new ArtifactIdentifierFileStore(artifactCacheMetadata.getFileStoreDirectory(), new TmpDirTemporaryFileProvider());
     }
 
-    ExternalResourceFileStore createExternalResourceFileStore(ArtifactCacheMetaData artifactCacheMetaData) {
-        return new ExternalResourceFileStore(artifactCacheMetaData.getExternalResourcesStoreDirectory(), new TmpDirTemporaryFileProvider());
+    ExternalResourceFileStore createExternalResourceFileStore(ArtifactCacheMetadata artifactCacheMetadata) {
+        return new ExternalResourceFileStore(artifactCacheMetadata.getExternalResourcesStoreDirectory(), new TmpDirTemporaryFileProvider());
     }
 
     TextResourceLoader createTextResourceLoader(ExternalResourceFileStore resourceFileStore, RepositoryTransportFactory repositoryTransportFactory) {
@@ -256,9 +256,9 @@ class DependencyManagementBuildScopeServices {
         return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider);
     }
 
-    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactIdentifierFileStore fileStore) {
+    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetadata artifactCacheMetadata, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactIdentifierFileStore fileStore) {
         LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
-            artifactCacheMetaData,
+            artifactCacheMetadata,
             localMavenRepositoryLocator,
             fileStore);
         return finderFactory.create();
@@ -292,7 +292,7 @@ class DependencyManagementBuildScopeServices {
         return new ConnectionFailureRepositoryBlacklister();
     }
 
-    ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
+    ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetadataCache moduleMetadataCache, ModuleArtifactsCache moduleArtifactsCache,
                                               DefaultModuleArtifactCache defaultModuleArtifactCache,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider, InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory,
                                               VersionSelectorScheme versionSelectorScheme,
@@ -301,7 +301,7 @@ class DependencyManagementBuildScopeServices {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
             moduleVersionsCache,
-            moduleMetaDataCache,
+            moduleMetadataCache,
             moduleArtifactsCache,
             defaultModuleArtifactCache,
             startParameterResolutionOverride,

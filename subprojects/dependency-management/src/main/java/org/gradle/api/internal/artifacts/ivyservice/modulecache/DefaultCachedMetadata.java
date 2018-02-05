@@ -23,13 +23,13 @@ import org.gradle.util.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
 
-class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
+class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
     private final ModuleSource moduleSource;
     private final long ageMillis;
     private final ModuleComponentResolveMetadata metaData;
     private ModuleComponentResolveMetadata processedMetadata;
 
-    public DefaultCachedMetaData(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metaData, BuildCommencedTimeProvider timeProvider) {
+    public DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metaData, BuildCommencedTimeProvider timeProvider) {
         this.moduleSource = entry.moduleSource;
         this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
         this.metaData = metaData;

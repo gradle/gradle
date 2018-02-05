@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class DefaultArtifactCacheMetaDataTest extends Specification {
+class DefaultArtifactCacheMetadataTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder
     def scopeMapping = Stub(CacheScopeMapping)
 
@@ -32,7 +32,7 @@ class DefaultArtifactCacheMetaDataTest extends Specification {
         scopeMapping.getBaseDirectory(null, CacheLayout.ROOT.key, VersionStrategy.SharedCache) >> testCacheDir
 
         when:
-        def metaData = new DefaultArtifactCacheMetaData(scopeMapping)
+        def metaData = new DefaultArtifactCacheMetadata(scopeMapping)
         File fileStore = metaData.getFileStoreDirectory()
 
         then:
@@ -45,7 +45,7 @@ class DefaultArtifactCacheMetaDataTest extends Specification {
         scopeMapping.getBaseDirectory(null, CacheLayout.ROOT.key, VersionStrategy.SharedCache) >> testCacheDir
 
         when:
-        def metaData = new DefaultArtifactCacheMetaData(scopeMapping)
+        def metaData = new DefaultArtifactCacheMetadata(scopeMapping)
         File metadataStore = metaData.getMetaDataStoreDirectory()
 
         then:

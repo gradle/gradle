@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
@@ -53,7 +53,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         getRemoteAccess() >> realRemoteAccess
     }
     def moduleResolutionCache = Stub(ModuleVersionsCache)
-    def moduleDescriptorCache = Mock(ModuleMetaDataCache)
+    def moduleDescriptorCache = Mock(ModuleMetadataCache)
     def moduleArtifactsCache = Mock(ModuleArtifactsCache)
     def artifactAtRepositoryCache = Mock(ModuleArtifactCache)
     def cachePolicy = Stub(CachePolicy)

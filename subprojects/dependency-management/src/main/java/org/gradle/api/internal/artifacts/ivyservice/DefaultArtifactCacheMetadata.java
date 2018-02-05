@@ -24,13 +24,13 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-public class DefaultArtifactCacheMetaData implements ArtifactCacheMetaData, CachedJarFileStore {
+public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, CachedJarFileStore {
 
     public static final VersionNumber CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
     private final File cacheDir;
     private final File transformsDir;
 
-    public DefaultArtifactCacheMetaData(CacheScopeMapping cacheScopeMapping) {
+    public DefaultArtifactCacheMetadata(CacheScopeMapping cacheScopeMapping) {
         cacheDir = cacheScopeMapping.getBaseDirectory(null, CacheLayout.ROOT.getKey(), VersionStrategy.SharedCache);
         transformsDir = cacheScopeMapping.getBaseDirectory(null, CacheLayout.TRANSFORMS.getKey(), VersionStrategy.SharedCache);
     }

@@ -19,7 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
@@ -40,27 +40,27 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleMetaDataCache.class);
+public class DefaultModuleMetadataCache implements ModuleMetadataCache {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleMetadataCache.class);
 
     private final BuildCommencedTimeProvider timeProvider;
     private final CacheLockingManager cacheLockingManager;
 
     private final ModuleMetadataStore moduleMetadataStore;
 
-    private Map<ModuleComponentAtRepositoryKey, CachedMetaData> inMemoryCache =  Maps.newConcurrentMap();;
+    private Map<ModuleComponentAtRepositoryKey, CachedMetadata> inMemoryCache =  Maps.newConcurrentMap();;
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
 
-    public DefaultModuleMetaDataCache(BuildCommencedTimeProvider timeProvider,
+    public DefaultModuleMetadataCache(BuildCommencedTimeProvider timeProvider,
                                       CacheLockingManager cacheLockingManager,
-                                      ArtifactCacheMetaData artifactCacheMetaData,
+                                      ArtifactCacheMetadata artifactCacheMetadata,
                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                       AttributeContainerSerializer attributeContainerSerializer,
                                       MavenMutableModuleMetadataFactory mavenMetadataFactory,
                                       IvyMutableModuleMetadataFactory ivyMetadataFactory) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
-        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetaData.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory);
+        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory);
     }
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {
@@ -74,33 +74,33 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return cacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleMetadataCacheEntrySerializer());
     }
 
-    public CachedMetaData getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier componentId) {
+    public CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier componentId) {
         final ModuleComponentAtRepositoryKey key = createKey(repository, componentId);
-        final CachedMetaData inMemory = inMemoryCache.get(key);
+        final CachedMetadata inMemory = inMemoryCache.get(key);
         if (inMemory != null) {
             return inMemory;
         }
 
-        CachedMetaData cachedMetaData = loadCachedMetadata(key);
-        if (cachedMetaData != null) {
-            inMemoryCache.put(key, cachedMetaData);
-            return cachedMetaData;
+        CachedMetadata cachedMetadata = loadCachedMetadata(key);
+        if (cachedMetadata != null) {
+            inMemoryCache.put(key, cachedMetadata);
+            return cachedMetadata;
         }
 
         return null;
     }
 
-    private CachedMetaData loadCachedMetadata(final ModuleComponentAtRepositoryKey key) {
+    private CachedMetadata loadCachedMetadata(final ModuleComponentAtRepositoryKey key) {
         final PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache = getCache();
-        return cacheLockingManager.useCache(new Factory<CachedMetaData>() {
+        return cacheLockingManager.useCache(new Factory<CachedMetadata>() {
             @Override
-            public CachedMetaData create() {
+            public CachedMetadata create() {
                 ModuleMetadataCacheEntry entry = cache.get(key);
                 if (entry == null) {
                     return null;
                 }
                 if (entry.isMissing()) {
-                    return new DefaultCachedMetaData(entry, null, timeProvider);
+                    return new DefaultCachedMetadata(entry, null, timeProvider);
                 }
                 MutableModuleComponentResolveMetadata metadata = moduleMetadataStore.getModuleDescriptor(key);
                 if (metadata == null) {
@@ -108,31 +108,31 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
                     cache.remove(key);
                     return null;
                 }
-                return new DefaultCachedMetaData(entry, entry.configure(metadata), timeProvider);
+                return new DefaultCachedMetadata(entry, entry.configure(metadata), timeProvider);
             }
         });
     }
 
-    public CachedMetaData cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
+    public CachedMetadata cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
         LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", id, false);
         ModuleComponentAtRepositoryKey key = createKey(repository, id);
         ModuleMetadataCacheEntry entry = ModuleMetadataCacheEntry.forMissingModule(timeProvider.getCurrentTime());
         getCache().put(key, entry);
-        DefaultCachedMetaData cachedMetaData = new DefaultCachedMetaData(entry, null, timeProvider);
+        DefaultCachedMetadata cachedMetaData = new DefaultCachedMetadata(entry, null, timeProvider);
         inMemoryCache.put(key, cachedMetaData);
         return cachedMetaData;
     }
 
-    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, final ModuleComponentIdentifier id, final ModuleComponentResolveMetadata metadata) {
+    public CachedMetadata cacheMetaData(ModuleComponentRepository repository, final ModuleComponentIdentifier id, final ModuleComponentResolveMetadata metadata) {
         LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", metadata.getComponentId(), metadata.isChanging());
         final ModuleComponentAtRepositoryKey key = createKey(repository, id);
-        return cacheLockingManager.useCache(new Factory<CachedMetaData>() {
+        return cacheLockingManager.useCache(new Factory<CachedMetadata>() {
             @Override
-            public CachedMetaData create() {
+            public CachedMetadata create() {
                 moduleMetadataStore.putModuleDescriptor(key, metadata);
                 ModuleMetadataCacheEntry entry = createEntry(metadata);
                 getCache().put(key, entry);
-                DefaultCachedMetaData cachedMetaData = new DefaultCachedMetaData(entry, metadata, timeProvider);
+                DefaultCachedMetadata cachedMetaData = new DefaultCachedMetadata(entry, metadata, timeProvider);
                 inMemoryCache.put(key, cachedMetaData);
                 return cachedMetaData;
             }
