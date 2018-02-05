@@ -36,7 +36,7 @@ data class LoadedScriptClass<out T : Any>(
 internal
 class KotlinScriptClassloadingCache @Inject constructor(
     cacheFactory: CrossBuildInMemoryCacheFactory,
-    private val scriptSourceHasher: ScriptSourceHasher) {
+    private val sourceHasher: ScriptSourceHasher) {
 
     private
     val logger = loggerFor<KotlinScriptPluginFactory>()
@@ -53,28 +53,26 @@ class KotlinScriptClassloadingCache @Inject constructor(
         classloading: (CompiledScript<T>) -> Class<*>
     ): LoadedScriptClass<T> {
 
-        val cacheKey = ScriptCacheKey(
-            scriptTemplateTypeName = scriptTemplate.java.name,
-            scriptSourceHash = scriptSourceHasher.hash(scriptSource),
-            parentClassLoader = parentClassLoader)
-        val cached = cache.get(cacheKey)
+        val key = ScriptCacheKey(scriptTemplate.qualifiedName!!, sourceHasher.hash(scriptSource), parentClassLoader)
+        val cached = cache.get(key)
         if (cached != null) {
             return Cast.uncheckedCast<LoadedScriptClass<T>>(cached)
         }
 
         val compiledScript = compilation()
+
         logger.debug("Loading {} from {}", scriptTemplate.simpleName, displayName)
         val scriptClass = classloading(compiledScript)
         return LoadedScriptClass(compiledScript, scriptClass).also {
-            cache.put(cacheKey, it)
+            cache.put(key, it)
         }
     }
 }
 
 private
 class ScriptCacheKey(
-    private val scriptTemplateTypeName: String,
-    private val scriptSourceHash: HashCode,
+    private val templateId: String,
+    private val sourceHash: HashCode,
     parentClassLoader: ClassLoader) {
 
     private
@@ -90,13 +88,13 @@ class ScriptCacheKey(
         val key = other as ScriptCacheKey
         return (parentClassLoader.get() != null && key.parentClassLoader.get() != null
             && parentClassLoader.get() == key.parentClassLoader.get()
-            && scriptTemplateTypeName == key.scriptTemplateTypeName
-            && scriptSourceHash == key.scriptSourceHash)
+            && templateId == key.templateId
+            && sourceHash == key.sourceHash)
     }
 
     override fun hashCode(): Int {
-        var result = scriptTemplateTypeName.hashCode()
-        result = 31 * result + scriptSourceHash.hashCode()
+        var result = templateId.hashCode()
+        result = 31 * result + sourceHash.hashCode()
         parentClassLoader.get()?.let { loader ->
             result = 31 * result + loader.hashCode()
         }
