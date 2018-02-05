@@ -29,8 +29,7 @@ class JUnitPlatformUserGuideIntegrationTest extends JUnitPlatformIntegrationSpec
         given:
         file('src/test/java/org/gradle/DisplayNameDemo.java') << '''
 package org.gradle; 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 @DisplayName("A special test case")
 class DisplayNameDemo {
@@ -43,8 +42,7 @@ class DisplayNameDemo {
 '''
         file('src/test/java/org/gradle/DisplayNameDemo2.java') << ''' 
 package org.gradle;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 @DisplayName("A special test case")
 class DisplayNameDemo2 {
@@ -117,18 +115,12 @@ public class LifecycleTest {
     def 'can perform nested tests'() {
         file('src/test/java/org/gradle/TestingAStackDemo.java') << '''
 package org.gradle;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.EmptyStackException;
 import java.util.Stack;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 @DisplayName("A stack")
 class TestingAStackDemo {
@@ -201,14 +193,9 @@ class TestingAStackDemo {
         file('src/test/java/org/gradle/TestInfoDemo.java') << '''
 package org.gradle;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.*;
 
 @DisplayName("TestInfo Demo")
 class TestInfoDemo {

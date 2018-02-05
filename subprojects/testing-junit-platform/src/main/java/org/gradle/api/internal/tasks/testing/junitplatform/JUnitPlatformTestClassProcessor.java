@@ -51,13 +51,18 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     @Override
     protected Action<String> createTestExecutor(TestResultProcessor threadSafeResultProcessor, TestClassExecutionListener threadSafeTestClassListener) {
-        Launcher launcher = LauncherFactory.create();
-        launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(threadSafeResultProcessor, clock, idGenerator));
         return testClassName -> {
+            Class<?> testClass = loadClass(testClassName);
+            if (testClass == null || testClass.getEnclosingClass() != null) {
+                // Only process top level classes
+                return;
+            }
+            Launcher launcher = LauncherFactory.create();
+            launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(threadSafeResultProcessor, clock, idGenerator));
             threadSafeTestClassListener.testClassStarted(testClassName);
             Throwable e = null;
             try {
-                launcher.execute(createLauncherDiscoveryRequest(testClassName));
+                launcher.execute(createLauncherDiscoveryRequest(testClass));
             } catch (Throwable throwable) {
                 e = throwable;
             }
@@ -65,11 +70,20 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         };
     }
 
-    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(String testClassName) {
-        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request()
-            .selectors(selectClass(testClassName));
+    private Class<?> loadClass(String testClassName) {
+        try {
+            ClassLoader applicationClassloader = Thread.currentThread().getContextClassLoader();
+            return Class.forName(testClassName, false, applicationClassloader);
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
 
-        addTestsFilter(requestBuilder, testClassName);
+    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(Class<?> testClass) {
+        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request()
+            .selectors(selectClass(testClass));
+
+        addTestsFilter(requestBuilder, testClass.getName());
         addEnginesFilter(requestBuilder);
         addTagsFilter(requestBuilder);
 

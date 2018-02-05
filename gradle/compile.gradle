@@ -31,9 +31,7 @@ if (java7Home) {
     javaGroovyCompileTasks.all {
         options.with {
             fork = true
-            if (project in rootProject.findProperty('projectsRequiresJava8')) {
-                project.sourceCompatibility = '1.8'
-            } else {
+            if (!(project in rootProject.findProperty('projectsRequiresJava8'))) {
                 forkOptions.javaHome = jvmForCompilation.javaHome
             }
         }
@@ -48,6 +46,11 @@ tasks.withType(JavaCompile) {
     // core.jar and base-services.jar in its Manifest - and these are not present
     // while compiling.
     options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
+    if (project in rootProject.findProperty('projectsRequiresJava8')) {
+        project.sourceCompatibility = '1.8'
+        project.targetCompatibility = '1.8'
+        options.compilerArgs += ['-source', '8']
+    }
     options.incremental = true
     inputs.property('javaInstallation') {
         javaInstallationForCompilation.displayName

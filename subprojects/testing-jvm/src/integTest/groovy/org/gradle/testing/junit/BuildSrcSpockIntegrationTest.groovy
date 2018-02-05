@@ -36,7 +36,7 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
 
-    testCompile '$dependencyNotation@jar',
+    testCompile '$dependencyNotation',
         'org.spockframework:spock-core:1.0-groovy-2.4@jar',
         'cglib:cglib-nodep:2.2',
         'org.objenesis:objenesis:1.2'
