@@ -17,6 +17,8 @@
 
 Gradle builds can declare dependencies on modules hosted in repositories, files and other Gradle projects. You can find examples for common scenarios in this section. For more information, see the <<dependency_types,full reference on all types of dependencies>>.
 
+Every dependency needs to be assigned to a configuration when declared in a build script. For more information on the purpose and syntax of configurations, see <<sub:scope_of_dependency_configurations>>.
+
 [[sec:declaring_dependency_to_module]]
 === Declaring a dependency to a module
 
@@ -165,6 +167,8 @@ Many Gradle plugins add pre-defined configurations to your project. The Java plu
 </figure>
 +++++
 
+For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, see <<working_with_dependencies>>.
+
 ==== Defining custom configurations
 
 You can also define configurations yourself, so-called _custom configurations_. A custom configuration is useful for separating the scope of dependencies needed for a dedicated purpose.
@@ -178,6 +182,32 @@ Let's say you wanted to declare a dependency on the link:https://tomcat.apache.o
 ++++
 
 A project's configurations are managed by a `configurations` object. Configurations have a name and can extend each other. To learn more about this API have a look at api:org.gradle.api.artifacts.ConfigurationContainer[].
+
+[[sub:inheriting_dependencies_from_other_configurations]]
+==== Inheriting dependencies from other configurations
+
+A configuration can extend other configurations to form an inheritance hierarchy. Child configurations inherit the whole set of dependencies declared for any of its superconfigurations.
+
+Configuration inheritance is heavily used by Gradle core plugins like the <<sec:java_plugin_and_dependency_management,Java plugin>>. For example the `testImplementation` configuration extends the `implementation` configuration. The configuration hierarchy has a practical purpose: compiling tests requires the dependencies of the source code under test on top of the dependencies needed write the test class. A Java project that uses JUnit to write and execute test code also needs Guava if its classes are imported in the production source code.
+
++++++
+<figure xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Configuration inheritance provided by the Java plugin</title>
+    <imageobject>
+        <imagedata fileref="img/dependency-management-configuration-inheritance.png" width="140mm" />
+    </imageobject>
+</figure>
++++++
+
+Under the covers the `testImplementation` and `implementation` configurations form an inheritance hierarchy by calling the method api:org.gradle.api.artifacts.Configuration#extendsFrom(org.gradle.api.artifacts.Configuration...)[]. A configuration can extend any other configuration irrespective of its definition in the build script or a plugin.
+
+Let's say you wanted to write a suite of smoke tests. Each smoke test makes a HTTP call to verify an web service endpoint. As the underlying test framework the project already uses JUnit. You can define a new configuration named `smokeTest` that extends from the `testImplementation` configuration to reuse the existing test framework dependency.
+
+++++
+<sample id="configuration-inheritance" dir="userguide/dependencyManagement/declaringDependencies/configurationInheritance" title="Extending a configuration from another configuration">
+    <sourcefile file="build.gradle" snippet="configuration-definition"/>
+</sample>
+++++
 
 [[sub:resolve_specific_artifacts_from_dependency]]
 === Resolving specific artifacts from a module dependency
