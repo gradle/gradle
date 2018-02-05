@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.util.Map;
 
@@ -26,18 +25,29 @@ import java.util.Map;
 public class PendingDependenciesState {
     private static final PendingDependencies NOT_PENDING = PendingDependencies.notPending();
 
-    private final Map<ModuleIdentifier, PendingDependencies> pendingDependencies = Maps.newHashMap();
+    private final Map<String, Map<String, PendingDependencies>> pendingDependencies = Maps.newHashMap();
 
-    public PendingDependencies getPendingDependencies(ModuleIdentifier module) {
-        PendingDependencies pendingDependencies = this.pendingDependencies.get(module);
+    public PendingDependencies getPendingDependencies(String group, String module) {
+        Map<String, PendingDependencies> pendingDependenciesForGroup = pendingDependenciesForGroup(group);
+        PendingDependencies pendingDependencies = pendingDependenciesForGroup.get(module);
         if (pendingDependencies == null) {
             pendingDependencies = PendingDependencies.pending();
-            this.pendingDependencies.put(module, pendingDependencies);
+            pendingDependenciesForGroup.put(module, pendingDependencies);
         }
         return pendingDependencies;
     }
 
-    public PendingDependencies notPending(ModuleIdentifier module) {
-        return pendingDependencies.put(module, NOT_PENDING);
+    public PendingDependencies notPending(String group, String module) {
+        Map<String, PendingDependencies> pendingDependenciesForGroup = pendingDependenciesForGroup(group);
+        return pendingDependenciesForGroup.put(module, NOT_PENDING);
+    }
+
+    private Map<String, PendingDependencies> pendingDependenciesForGroup(String group) {
+        Map<String, PendingDependencies> map = pendingDependencies.get(group);
+        if (map == null) {
+            map = Maps.newHashMap();
+            pendingDependencies.put(group, map);
+        }
+        return map;
     }
 }

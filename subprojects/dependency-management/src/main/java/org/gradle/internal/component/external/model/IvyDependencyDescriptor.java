@@ -191,7 +191,10 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
     @Override
     public List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations) {
-        List<ExcludeMetadata> rules = Lists.newArrayList();
+        if (excludes.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<ExcludeMetadata> rules = Lists.newArrayListWithCapacity(excludes.size());
         for (Exclude exclude : excludes) {
             Set<String> ruleConfigurations = exclude.getConfigurations();
             if (include(ruleConfigurations, configurations)) {

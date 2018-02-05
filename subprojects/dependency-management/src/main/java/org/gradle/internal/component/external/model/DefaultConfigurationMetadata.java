@@ -43,7 +43,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
     private final boolean transitive;
     private final boolean visible;
-    private final ImmutableList<String> hierarchy;
+    private final ImmutableSet<String> hierarchy;
     private final VariantMetadataRules componentMetadataRules;
     private final ImmutableList<ExcludeMetadata> excludes;
     private final ImmutableAttributes attributes;
@@ -56,14 +56,14 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
     private ImmutableAttributes computedAttributes;
 
     protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-                                           ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+                                           ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
                                            VariantMetadataRules componentMetadataRules,
                                            ImmutableList<ExcludeMetadata> excludes) {
         this(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, ImmutableAttributes.EMPTY, null);
     }
 
     private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-                                         ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+                                         ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
                                          VariantMetadataRules componentMetadataRules,
                                          ImmutableList<ExcludeMetadata> excludes,
                                          ImmutableAttributes attributes,

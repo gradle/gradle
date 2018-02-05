@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -85,7 +86,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     }
 
     @Override
-    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, VariantMetadataRules componentMetadataRules) {
+    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, VariantMetadataRules componentMetadataRules) {
         ImmutableList<ModuleComponentArtifactMetadata> artifacts = filterArtifacts(name, hierarchy);
         ImmutableList<ExcludeMetadata> excludesForConfiguration = filterExcludes(hierarchy);
 
@@ -94,7 +95,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         return configuration;
     }
 
-    private ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, ImmutableList<String> hierarchy) {
+    private ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, ImmutableSet<String> hierarchy) {
         Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
         collectArtifactsFor(name, artifacts);
         for (String parent : hierarchy) {
@@ -119,7 +120,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         }
     }
 
-    private ImmutableList<ExcludeMetadata> filterExcludes(ImmutableList<String> hierarchy) {
+    private ImmutableList<ExcludeMetadata> filterExcludes(ImmutableSet<String> hierarchy) {
         ImmutableList.Builder<ExcludeMetadata> filtered = ImmutableList.builder();
         for (Exclude exclude : excludes) {
             for (String config : exclude.getConfigurations()) {

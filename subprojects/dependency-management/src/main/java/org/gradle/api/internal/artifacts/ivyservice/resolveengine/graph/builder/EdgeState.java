@@ -50,9 +50,11 @@ class EdgeState implements DependencyGraphEdge {
     private final ResolveState resolveState;
     private final ModuleExclusion transitiveExclusions;
     private final List<NodeState> targetNodes = Lists.newLinkedList();
+    private final boolean isTransitive;
 
     private ComponentState targetModuleRevision;
     private ModuleVersionResolveException targetNodeSelectionFailure;
+    private ModuleExclusion cachedExclusions;
 
     EdgeState(NodeState from, DependencyState dependencyState, ModuleExclusion transitiveExclusions, ResolveState resolveState) {
         this.from = from;
@@ -62,6 +64,7 @@ class EdgeState implements DependencyGraphEdge {
         this.transitiveExclusions = transitiveExclusions;
         this.resolveState = resolveState;
         this.selector = resolveState.getSelector(dependencyState, dependencyState.getModuleIdentifier());
+        this.isTransitive = from.isTransitive() && dependencyMetadata.isTransitive();
     }
 
     @Override
@@ -99,7 +102,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     public boolean isTransitive() {
-        return from.isTransitive() && dependencyMetadata.isTransitive();
+        return isTransitive;
     }
 
     public void attachToTargetConfigurations() {
@@ -158,12 +161,16 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public ModuleExclusion getExclusions() {
+        if (cachedExclusions != null) {
+            return cachedExclusions;
+        }
         List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
         if (excludes.isEmpty()) {
             return transitiveExclusions;
         }
         ModuleExclusion edgeExclusions = resolveState.getModuleExclusions().excludeAny(ImmutableList.copyOf(excludes));
-        return resolveState.getModuleExclusions().intersect(edgeExclusions, transitiveExclusions);
+        cachedExclusions = resolveState.getModuleExclusions().intersect(edgeExclusions, transitiveExclusions);
+        return cachedExclusions;
     }
 
     @Override

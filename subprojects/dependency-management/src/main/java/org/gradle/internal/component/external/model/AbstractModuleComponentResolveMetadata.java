@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -121,7 +122,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return null;
         }
 
-        ImmutableList<String> hierarchy = constructHierarchy(descriptorConfiguration);
+        ImmutableSet<String> hierarchy = constructHierarchy(descriptorConfiguration);
         boolean transitive = descriptorConfiguration.isTransitive();
         boolean visible = descriptorConfiguration.isVisible();
         populated = createConfiguration(componentIdentifier, name, transitive, visible, hierarchy, variantMetadataRules);
@@ -129,13 +130,13 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return populated;
     }
 
-    private ImmutableList<String> constructHierarchy(Configuration descriptorConfiguration) {
+    private ImmutableSet<String> constructHierarchy(Configuration descriptorConfiguration) {
         if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
-            return ImmutableList.of(descriptorConfiguration.getName());
+            return ImmutableSet.of(descriptorConfiguration.getName());
         }
         Set<String> accumulator = new LinkedHashSet<String>();
         populateHierarchy(descriptorConfiguration, accumulator);
-        return ImmutableList.copyOf(accumulator);
+        return ImmutableSet.copyOf(accumulator);
     }
 
     private void populateHierarchy(Configuration metadata, Set<String> accumulator) {
@@ -149,7 +150,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     /**
      * Creates a {@link org.gradle.internal.component.model.ConfigurationMetadata} implementation for this component.
      */
-    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, VariantMetadataRules componentMetadataRules);
+    protected abstract DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, VariantMetadataRules componentMetadataRules);
 
     /**
      * If there are no variants defined in the metadata, but the implementation knows how to provide variants it can do that here.

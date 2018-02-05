@@ -48,13 +48,13 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         expect:
         def immutable = metadata.asImmutable()
         immutable.configurationNames == ["compile", "runtime", "test", "provided", "system", "optional", "master", "default", "javadoc", "sources"] as Set
-        immutable.getConfiguration("compile").hierarchy == ["compile"]
-        immutable.getConfiguration("runtime").hierarchy == ["runtime", "compile"]
-        immutable.getConfiguration("master").hierarchy == ["master"]
-        immutable.getConfiguration("test").hierarchy == ["test", "runtime", "compile"]
-        immutable.getConfiguration("default").hierarchy == ["default", "runtime", "compile", "master"]
-        immutable.getConfiguration("provided").hierarchy == ["provided"]
-        immutable.getConfiguration("optional").hierarchy == ["optional"]
+        immutable.getConfiguration("compile").hierarchy as List == ["compile"]
+        immutable.getConfiguration("runtime").hierarchy as List  == ["runtime", "compile"]
+        immutable.getConfiguration("master").hierarchy as List  == ["master"]
+        immutable.getConfiguration("test").hierarchy as List  == ["test", "runtime", "compile"]
+        immutable.getConfiguration("default").hierarchy as List  == ["default", "runtime", "compile", "master"]
+        immutable.getConfiguration("provided").hierarchy as List  == ["provided"]
+        immutable.getConfiguration("optional").hierarchy as List  == ["optional"]
     }
 
     def "default metadata"() {

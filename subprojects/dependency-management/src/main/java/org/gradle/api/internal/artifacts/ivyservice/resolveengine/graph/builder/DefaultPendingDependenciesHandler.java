@@ -16,7 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
 import java.util.List;
 
@@ -36,11 +37,20 @@ public class DefaultPendingDependenciesHandler implements PendingDependenciesHan
         private List<PendingDependencies> noLongerPending;
 
         public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
-            ModuleIdentifier key = dependencyState.getModuleIdentifier();
             boolean isOptionalDependency = dependencyState.getDependency().isPending();
+            ComponentSelector selector = dependencyState.getDependency().getSelector();
+            String group;
+            String module;
+            if (selector instanceof ModuleComponentSelector) {
+                group = ((ModuleComponentSelector) selector).getGroup();
+                module = ((ModuleComponentSelector) selector).getModule();
+            } else {
+                return false;
+            }
+
             if (!isOptionalDependency) {
                 // Mark as not pending. If we saw pending dependencies before, mark them as no longer pending
-                PendingDependencies priorPendingDependencies = pendingDependencies.notPending(key);
+                PendingDependencies priorPendingDependencies = pendingDependencies.notPending(group, module);
                 if (priorPendingDependencies != null) {
                     if (noLongerPending == null) {
                         noLongerPending = Lists.newLinkedList();
@@ -51,7 +61,7 @@ public class DefaultPendingDependenciesHandler implements PendingDependenciesHan
             }
 
             // Adding an optional dependency: see if we already have a hard dependency on the same module
-            PendingDependencies pendingDependencies = DefaultPendingDependenciesHandler.this.pendingDependencies.getPendingDependencies(key);
+            PendingDependencies pendingDependencies = DefaultPendingDependenciesHandler.this.pendingDependencies.getPendingDependencies(group, module);
             boolean pending = pendingDependencies.isPending();
 
             // Already have a hard dependency, this optional dependency is not pending.

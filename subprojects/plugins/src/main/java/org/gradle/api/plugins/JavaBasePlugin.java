@@ -503,6 +503,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         final Usage javaRuntimeJars;
         final Usage javaRuntimeClasses;
         final Usage javaRuntimeResources;
+        final ImmutableSet<Usage> javaApiOrApiClassesUsages;
+        final ImmutableSet<Usage> javaApiOrRuntimeUsages;
+        final ImmutableSet<Usage> javaRuntimeJarOrResourcesUsages;
 
         @Inject
         UsageDisambiguationRules(Usage javaApi, Usage javaApiClasses, Usage javaRuntimeJars, Usage javaRuntimeClasses, Usage javaRuntimeResources) {
@@ -511,23 +514,31 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             this.javaRuntimeJars = javaRuntimeJars;
             this.javaRuntimeClasses = javaRuntimeClasses;
             this.javaRuntimeResources = javaRuntimeResources;
+
+            this.javaApiOrApiClassesUsages = ImmutableSet.of(javaApi, javaApiClasses);
+            this.javaApiOrRuntimeUsages = ImmutableSet.of(javaApi, javaRuntimeJars);
+            this.javaRuntimeJarOrResourcesUsages = ImmutableSet.of(javaRuntimeJars, javaRuntimeClasses, javaRuntimeResources);
+
         }
 
         @Override
         public void execute(MultipleCandidatesDetails<Usage> details) {
-            if (details.getCandidateValues().equals(ImmutableSet.of(javaApi, javaApiClasses))) {
+
+            if (details.getCandidateValues().equals(javaApiOrApiClassesUsages)) {
                 details.closestMatch(javaApiClasses);
             } else if (details.getConsumerValue() == null) {
-                if (details.getCandidateValues().equals(ImmutableSet.of(javaApi, javaRuntimeJars))) {
+                if (details.getCandidateValues().equals(javaApiOrRuntimeUsages)) {
                     // Use the Jars when nothing has been requested
                     details.closestMatch(javaRuntimeJars);
-                } else if (details.getCandidateValues().equals(ImmutableSet.of(javaRuntimeJars, javaRuntimeClasses, javaRuntimeResources))) {
-                    // Use the Jars when nothing has been requested
-                    details.closestMatch(javaRuntimeJars);
+                } else {
+                    if (details.getCandidateValues().equals(javaRuntimeJarOrResourcesUsages)) {
+                        // Use the Jars when nothing has been requested
+                        details.closestMatch(javaRuntimeJars);
+                    }
                 }
             } else if (details.getConsumerValue() != null) {
                 Usage requested = details.getConsumerValue();
-                if ((requested.getName().equals(Usage.JAVA_API) || requested.getName().equals(Usage.JAVA_API_CLASSES)) && details.getCandidateValues().equals(ImmutableSet.of(javaApi, javaRuntimeJars))) {
+                if ((requested.getName().equals(Usage.JAVA_API) || requested.getName().equals(Usage.JAVA_API_CLASSES)) && details.getCandidateValues().equals(javaApiOrRuntimeUsages)) {
                     // Prefer the API over the runtime when the API has been requested
                     details.closestMatch(javaApi);
                 }
