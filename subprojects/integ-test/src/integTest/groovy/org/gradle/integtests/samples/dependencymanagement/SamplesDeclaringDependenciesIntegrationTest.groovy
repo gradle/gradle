@@ -20,10 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
 import org.junit.Rule
-
-import static org.gradle.util.TestPrecondition.JDK8_OR_LATER
 
 class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -97,33 +94,6 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
 
         expect:
         succeeds('assemble')
-    }
-
-    @Requires(JDK8_OR_LATER)
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/customConfigurations")
-    def "can declare and resolve custom configuration"() {
-        setup:
-        executer.inDirectory(sample.dir)
-        executer.requireGradleDistribution() // required to avoid multiple Servlet API JARs in classpath
-
-        when:
-        succeeds('preCompileJsps')
-
-        then:
-        sample.dir.file('build/compiled-jsps/org/apache/jsp/hello_jsp.java').isFile()
-    }
-
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/configurationInheritance")
-    def "can extend one configuration from another configuration"() {
-        setup:
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds('copyLibs')
-
-        then:
-        sample.dir.file('build/libs/junit-4.12.jar').isFile()
-        sample.dir.file('build/libs/httpclient-4.5.5.jar').isFile()
     }
 
     @UsesSample("userguide/dependencyManagement/declaringDependencies/artifactOnly")
