@@ -677,6 +677,41 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         }
     }
 
+    @Test
+    fun `given a script from a jar, file paths are resolved relative to root project dir`() {
+
+        val scriptFromJar = """
+
+            apply { from("./gradle/answer.gradle.kts") }
+
+        """
+
+        withZip(
+            "fixture.jar",
+            sequenceOf("common.gradle.kts" to scriptFromJar.toByteArray()))
+
+        withFile("gradle/answer.gradle.kts", """
+
+            val answer by extra { "42" }
+
+        """)
+
+        withBuildScript("""
+            buildscript {
+                dependencies { classpath(files("fixture.jar")) }
+            }
+
+            apply {
+                from(project.buildscript.classLoader.getResource("common.gradle.kts").toURI())
+            }
+
+            val answer: String by extra
+            println("*" + answer + "*")
+        """)
+
+        assert(build().output.contains("*42*"))
+    }
+
     private
     fun assumeJavaLessThan9() {
         assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)

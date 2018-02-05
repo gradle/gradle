@@ -76,8 +76,12 @@ open class AbstractIntegrationTest {
 
     protected
     fun withClassJar(fileName: String, vararg classes: Class<*>) =
-        newFile(fileName).apply {
-            zipTo(this, classEntriesFor(*classes))
+        withZip(fileName, classEntriesFor(*classes))
+
+    protected
+    fun withZip(fileName: String, entries: Sequence<Pair<String, ByteArray>>): File =
+        newFile(fileName).also {
+            zipTo(it, entries)
         }
 
     protected
