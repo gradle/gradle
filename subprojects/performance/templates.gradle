@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-import org.gradle.testing.performance.generator.tasks.CppMultiProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.KtsProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
-import org.gradle.testing.performance.generator.tasks.RemoteProject
+import org.gradle.testing.performance.generator.tasks.*
 
 // === Gradle Build ===
 task gradleBuildCurrent(type: RemoteProject) {
@@ -306,6 +299,29 @@ task bigCppMulti(type: CppMultiProjectGeneratorTask) {
         functionCount: 3
     ]
     subProjectTemplates = ['cpp-source', 'cpp-project']
+}
+
+// Build-builder projects
+task buildBuilder(type: RemoteProject) {
+    remoteUri = 'https://github.com/adammurdoch/build-builder.git'
+    ref = 'ef909790b6d4311609af0cb53373b1c8a9180718'
+}
+
+task installBuildBuilder(type: GradleBuild) {
+    dir = buildBuilder.outputDirectory
+    tasks = ['install']
+    dependsOn buildBuilder
+}
+
+tasks.withType(BuildBuilderGenerator) {
+    buildBuilderInstall = new File(tasks.buildBuilder.outputDirectory, "build/install/build-builder")
+    dependsOn installBuildBuilder
+}
+
+task mediumSwiftMulti(type: BuildBuilderGenerator) {
+    projectType = "swift"
+    projects = 100
+    sourceFiles = 4
 }
 
 // === Android ===

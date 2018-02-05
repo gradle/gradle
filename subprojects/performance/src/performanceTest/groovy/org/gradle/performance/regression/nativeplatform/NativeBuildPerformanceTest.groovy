@@ -57,6 +57,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         "mediumCppMulti"                  | '256m'    | null
         "mediumCppMultiWithMacroIncludes" | '256m'    | null
         "bigCppMulti"                     | '1g'      | null
+        'mediumSwiftMulti'                | '1G'      | null
     }
 
     def "clean assemble on manyProjectsNative"() {
@@ -87,9 +88,10 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject   | maxMemory
-        "bigCppApp"   | '256m'
-        "bigCppMulti" | '1g'
+        testProject        | maxMemory
+        "bigCppApp"        | '256m'
+        "bigCppMulti"      | '1g'
+        'mediumSwiftMulti' | '1G'
     }
 
     @Unroll
