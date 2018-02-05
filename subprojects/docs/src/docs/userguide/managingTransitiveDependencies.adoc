@@ -149,7 +149,7 @@ A project can decide to disable transitive dependency resolution completely. You
 ++++
 
 [[sec:bom_import]]
-=== Importing dependency constraints from Maven BOMs
+=== Importing version recommendations from a Maven BOM
 
 Gradle provides support for importing https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies[bill of materials (BOM) files], which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies. The BOM support in Gradle works similar to using `<scope>import</scope>` when depending on a BOM in Maven. In Gradle however, it is done via a regular dependency declaration on the BOM:
 
