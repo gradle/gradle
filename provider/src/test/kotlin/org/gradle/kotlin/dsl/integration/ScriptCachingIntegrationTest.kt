@@ -5,6 +5,7 @@ import org.gradle.kotlin.dsl.KotlinInitScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+import org.gradle.kotlin.dsl.fixtures.IsolatedTestKitDir
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
@@ -13,7 +14,6 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.ClassRule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import java.io.File
 import kotlin.reflect.KClass
 
@@ -22,9 +22,9 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
 
     companion object {
 
-        @JvmStatic
         @get:ClassRule
-        val isolatedGradleUserHome = TemporaryFolder()
+        @JvmStatic
+        val isolatedTestKitDir = IsolatedTestKitDir()
     }
 
     @Test
@@ -239,7 +239,7 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
 
     private
     fun gradleRunnerForCacheInspection(vararg arguments: String) =
-        gradleRunnerForArguments(*arrayOf("-d", "-g", isolatedGradleUserHome.root.absolutePath) + arguments)
+        gradleRunnerForArguments(*arrayOf("-d") + arguments)
 
 
     private
@@ -247,6 +247,7 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
         MultiProjectCachedScripts(
             cachedSettingsFile(
                 withSettings("""
+                    rootProject.name = "${projectRoot.name}" // distinguish settings files
                     $settings
                     include("right", "left")
                 """)),
