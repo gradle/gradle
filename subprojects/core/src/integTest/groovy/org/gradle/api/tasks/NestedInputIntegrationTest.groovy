@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.ToBeImplemented
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class NestedInputIntegrationTest extends AbstractIntegrationSpec {
@@ -623,8 +622,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped task
     }
 
-    @Ignore
-    @ToBeImplemented("A cycle in nested properties currently causes the build to never terminate")
     def "recursive nested bean causes build to fail"() {
         buildFile << """
             class TaskWithNestedInput extends DefaultTask {
@@ -657,6 +654,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "myTask"
+        failure.assertHasDescription("Could not determine the dependencies of task ':myTask'.")
+        failure.assertHasCause("Cycles between nested beans are not allowed. Cycle detected between: 'nested' and 'nested.nested'.")
     }
 
     def "implementation of nested property in Groovy build script is tracked"() {

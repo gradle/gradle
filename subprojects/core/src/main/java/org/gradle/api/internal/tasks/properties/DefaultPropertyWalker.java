@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.codehaus.groovy.runtime.ConvertedClosure;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
@@ -61,7 +62,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
     @Override
     public void visitProperties(PropertySpecFactory specFactory, PropertyVisitor visitor, Object bean) {
         Queue<PropertyNode> queue = new ArrayDeque<PropertyNode>();
-        queue.add(new PropertyNode(null, bean));
+        queue.add(new PropertyNode(null, bean, ImmutableMap.<Object, String>of()));
         while (!queue.isEmpty()) {
             PropertyNode node = queue.remove();
             Object nested = node.getBean();
@@ -71,7 +72,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
                 int count = 0;
                 for (Object nestedBean : nestedBeans) {
                     String nestedPropertyName = node.getQualifiedPropertyName("$" + count++);
-                    queue.add(new PropertyNode(nestedPropertyName, nestedBean));
+                    queue.add(new PropertyNode(nestedPropertyName, nestedBean, node.getSeenBeans()));
                 }
             } else {
                 visitProperties(node, nestedTypeMetadata, queue, visitor, specFactory);
@@ -91,15 +92,21 @@ public class DefaultPropertyWalker implements PropertyWalker {
             PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata.getAnnotations(), bean, propertyMetadata.getMethod());
             propertyValueVisitor.visitPropertyValue(propertyValue, visitor, specFactory);
             if (propertyValue.isAnnotationPresent(Nested.class)) {
+                Object nested = null;
+                boolean getterSucceeded;
                 try {
-                    Object nested = propertyValue.getValue();
+                    nested = propertyValue.getValue();
+                    getterSucceeded = true;
+                } catch (Exception e) {
+                    visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new InvalidPropertyValue(e)));
+                    getterSucceeded = false;
+                }
+                if (getterSucceeded) {
                     if (nested != null) {
-                        queue.add(new PropertyNode(propertyName, nested));
+                        queue.add(new PropertyNode(propertyName, nested, node.getSeenBeans()));
                     } else if (!propertyValue.isOptional()) {
                         visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new AbsentPropertyValue()));
                     }
-                } catch (Exception e) {
-                    visitor.visitInputProperty(specFactory.createInputPropertySpec(propertyName, new InvalidPropertyValue(e)));
                 }
             }
         }
@@ -132,14 +139,21 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     private static class PropertyNode extends AbstractBeanNode {
         private final Object bean;
+        private final ImmutableMap<Object, String> seenBeans;
 
-        public PropertyNode(@Nullable String parentPropertyName, Object bean) {
+        public PropertyNode(@Nullable String parentPropertyName, Object bean, ImmutableMap<Object, String> seenBeans) {
             super(parentPropertyName, Preconditions.checkNotNull(bean, "Null is not allowed as nested property '" + parentPropertyName + "'").getClass());
+            Preconditions.checkState(!seenBeans.keySet().contains(bean), "Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.", seenBeans.get(bean), parentPropertyName);
             this.bean = bean;
+            this.seenBeans = seenBeans;
         }
 
         public Object getBean() {
             return bean;
+        }
+
+        public ImmutableMap<Object, String> getSeenBeans() {
+            return ImmutableMap.<Object, String>builder().putAll(seenBeans).put(bean, getParentPropertyName() == null ? "<root>" : getParentPropertyName()).build();
         }
     }
 
