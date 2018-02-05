@@ -18,7 +18,7 @@
 Resolution behavior for transitive dependencies can be customized to a high degree to meet enterprise requirements.
 
 [[sec:dependency_constraints]]
-=== Dependency constraints
+=== Managing versions of transitive dependencies with dependency constraints
 
 Dependency constraints allow you to define the version or the version range of both dependencies declared in the build script and transitive dependencies. It is the preferred method to express constraints that should be applied to all dependencies of a configuration. When Gradle attempts to resolve a dependency to a module version, all <<sub:declaring_dependency_with_version,dependency declarations with version>>, all transitive dependencies and all dependency constraints for that module are taken into consideration. The highest version that matches all conditions is selected. If no such version is found, Gradle fails with an error showing the conflicting declarations. If this happens you can adjust your dependencies or dependency constraints declarations, or <<managing_transitive_dependencies,make other adjustments to the transitive dependencies>> if needed. Similar to dependency declarations, dependency constraint declarations are <<defining_and_using_configurations,scoped by configurations>> and can therefore be selectively defined for parts of a build. If a dependency constraint influenced the resolution result, any type of <<sec:dependency_resolve_rules,dependency resolve rules>> may still be applied afterwards.
 
