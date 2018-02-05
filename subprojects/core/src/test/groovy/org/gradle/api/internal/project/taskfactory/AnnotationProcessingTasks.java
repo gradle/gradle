@@ -293,7 +293,7 @@ public class AnnotationProcessingTasks {
     public static abstract class SomePropertyContainer<T extends SomeProperty> implements PropertyContainer {
         @OutputFile
         public File getSomeOutputFile() {
-            return null;
+            return new File("hello");
         }
     }
 
@@ -456,10 +456,16 @@ public class AnnotationProcessingTasks {
     }
 
     public static class TaskWithOptionalNestedBean extends TaskWithAction {
+        private final Bean bean;
+
+        public TaskWithOptionalNestedBean(Bean bean) {
+            this.bean = bean;
+        }
+
         @Nested
         @org.gradle.api.tasks.Optional
         public Bean getBean() {
-            return null;
+            return bean;
         }
     }
 

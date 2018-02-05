@@ -22,6 +22,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.execution.DefaultTaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.tasks.TaskPropertyTestUtils
@@ -570,6 +571,50 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOptionalNestedBeanWithPrivateType | "bean.class"      | null                     | null
         TaskWithInput                             | "inputValue"      | "value"                  | "value"
         TaskWithBooleanInput                      | "inputValue"      | true                     | true           // https://issues.gradle.org/Browse/GRADLE-2815
+    }
+
+    @Unroll
+    def "registers properties #allTaskProperties on #type.simpleName"() {
+        given:
+        def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value as Object[])
+
+        when:
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+
+        then:
+        taskProperties.inputPropertyValues.create().keySet() == inputs as Set
+        taskProperties.inputFileProperties*.propertyName as Set == inputFiles as Set
+        taskProperties.outputFileProperties*.propertyName as Set == outputFiles as Set
+
+        where:
+        type                                      | value                          | inputs                                          | inputFiles              | outputFiles
+        TaskWithInput                             | ["value"]                      | ["inputValue"]                                  | []                      | []
+        TaskWithBooleanInput                      | [true]                         | ["inputValue"]                                  | []                      | []
+        TaskWithInputFile                         | [new File("some")]             | []                                              | ["inputFile"]           | []
+        TaskWithInputFiles                        | [[new File("some")]]           | []                                              | ["input"]               | []
+        BrokenTaskWithInputFiles                  | [[new File("some")]]           | []                                              | ["input"]               | []
+        TaskWithInputDir                          | [new File("some")]             | []                                              | ["inputDir"]            | []
+        BrokenTaskWithInputDir                    | [new File("some")]             | []                                              | ["inputDir"]            | []
+        TaskWithOptionalInputFile                 | null                           | []                                              | ["inputFile"]           | []
+        TaskWithOutputFile                        | [new File("some")]             | []                                              | []                      | ["outputFile"]
+        TaskWithOutputFiles                       | [[new File("some")]]           | []                                              | []                      | ["outputFiles\$1"]
+        TaskWithOutputDir                         | [new File("some")]             | []                                              | []                      | ["outputDir"]
+        TaskWithOutputDirs                        | [[new File("some")]]           | []                                              | []                      | ["outputDirs\$1"]
+        TaskWithOptionalOutputFile                | null                           | []                                              | []                      | []
+        TaskWithOptionalOutputFiles               | null                           | []                                              | []                      | []
+        TaskWithOptionalOutputDir                 | null                           | []                                              | []                      | []
+        TaskWithOptionalOutputDirs                | null                           | []                                              | []                      | []
+        TaskWithNestedBean                        | [null]                         | ["bean.class"]                                  | ["bean.inputFile"]      | []
+        TaskWithNestedIterable                    | [null]                         | ["beans.\$0.class"]                             | ["beans.\$0.inputFile"] | []
+        TaskWithNestedBeanWithPrivateClass        | [null, null]                   | ["bean.class"]                                  | ["bean.inputFile"]      | []
+        TaskWithOptionalNestedBean                | [null]                         | []                                              | []                      | []
+        TaskWithOptionalNestedBean                | [new Bean()]                   | ["bean.class"]                                  | ["bean.inputFile"]      | []
+        TaskWithOptionalNestedBeanWithPrivateType | null                           | []                                              | []                      | []
+        TaskWithMultipleProperties                | [new File("some")]             | ["bean.class"]                                  | ["bean.inputFile"]      | ["outputFile"]
+        TaskWithBridgeMethod                      | null                           | ["nestedProperty.class"]                        | []                      | ["nestedProperty.someOutputFile"]
+        TaskWithJavaBeanCornerCaseProperties      | ["c", "C", "d", "U", "a", "b"] | ["cCompiler", "CFlags", "dns", "URL", "a", "b"] | []                      | []
+
+        allTaskProperties = inputs + inputFiles + outputFiles
     }
 
     @Unroll
