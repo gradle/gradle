@@ -42,13 +42,15 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
 
     private final Logger logger = Logging.getLogger(CleanupStaleOutputsExecuter.class);
     private final BuildOperationExecutor buildOperationExecutor;
+    private final TaskOutputsGenerationListener taskOutputsGenerationListener;
     private final TaskExecuter executer;
     private final TaskOutputFilesRepository taskOutputFilesRepository;
     private final BuildOutputCleanupRegistry cleanupRegistry;
 
-    public CleanupStaleOutputsExecuter(BuildOutputCleanupRegistry cleanupRegistry, TaskOutputFilesRepository taskOutputFilesRepository, BuildOperationExecutor buildOperationExecutor, TaskExecuter executer) {
+    public CleanupStaleOutputsExecuter(BuildOutputCleanupRegistry cleanupRegistry, TaskOutputFilesRepository taskOutputFilesRepository, BuildOperationExecutor buildOperationExecutor, TaskOutputsGenerationListener taskOutputsGenerationListener, TaskExecuter executer) {
         this.cleanupRegistry = cleanupRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.taskOutputsGenerationListener = taskOutputsGenerationListener;
         this.executer = executer;
         this.taskOutputFilesRepository = taskOutputFilesRepository;
     }
@@ -66,6 +68,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
             }
         }
         if (!filesToDelete.isEmpty()) {
+            taskOutputsGenerationListener.beforeTaskOutputsGenerated();
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {

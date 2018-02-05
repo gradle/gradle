@@ -168,17 +168,21 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         succeeds("myTask")
 
         when:
-        // Now that we produce this, we can detect the situation where
-        // someone builds with Gradle 4.3, then 4.2 and then 4.3 again.
-        file(".gradle/buildOutputCleanup/cache.properties").text = """
-            gradle.version=1.0
-        """
-        // recreate the output
+        changeGradleVersion()
         dirInBuildDir.createDir()
         staleFileInDir.touch()
         fileInBuildDir.touch()
         then:
         succeeds("myTask")
+    }
+
+    // Now that we produce this, we can detect the situation where
+    // someone builds with Gradle 4.3, then 4.2 and then 4.3 again.
+    // recreate the output
+    private void changeGradleVersion() {
+        file(".gradle/buildOutputCleanup/cache.properties").text = """
+            gradle.version=1.0
+        """
     }
 
     def "stale #type is removed before task executes"(String type, Closure creationCommand) {
@@ -390,6 +394,60 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         // FIXME This should be localStateHasBeenRemoved(), and the task should not be skipped
         taskWithLocalState.localStateHasNotBeenRemoved()
         skipped(taskWithLocalState.taskPath)
+    }
+
+    def "up-to-date checks detect removed stale outputs"() {
+        buildFile << """                                    
+            plugins {
+                id 'base'
+            }
+
+            def originalDir = file('build/original')
+            def backupDir = file('backup')
+
+            task backup {
+                inputs.files(originalDir)
+                outputs.dir(backupDir)
+                doLast {
+                    copy {
+                        from originalDir
+                        into backupDir
+                    }
+                }
+            }
+            
+            task restore {
+                inputs.files(backupDir)
+                outputs.dir(originalDir)
+                doLast {
+                    copy {
+                        from backupDir
+                        into originalDir
+                    }
+                }
+            }
+        """
+
+        def original = file('build/original/original.txt')
+        original.text = "Original"
+        def backup = file('backup/original.txt')
+
+        when:
+        run 'backup', 'restore'
+
+        then:
+        original.text == backup.text
+        original.text == "Original"
+
+        when:
+        changeGradleVersion()
+        run 'backup', 'restore'
+
+        then:
+        original.text == backup.text
+        original.text == "Original"
+        skipped ':backup'
+        executedAndNotSkipped(':restore')
     }
 
     class TaskWithLocalState {
