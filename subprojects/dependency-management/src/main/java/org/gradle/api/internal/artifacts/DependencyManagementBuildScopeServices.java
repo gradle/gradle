@@ -37,9 +37,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterRes
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleArtifactsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetaDataCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
@@ -95,7 +95,7 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
-import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactCache;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -217,8 +217,8 @@ class DependencyManagementBuildScopeServices {
             ivyMetadataFactory);
     }
 
-    ArtifactAtRepositoryCachedArtifactIndex createArtifactAtRepositoryCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
-        return new ArtifactAtRepositoryCachedArtifactIndex(
+    DefaultModuleArtifactCache createArtifactAtRepositoryCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+        return new DefaultModuleArtifactCache(
             "module-artifact",
             timeProvider,
             cacheLockingManager
@@ -293,7 +293,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
-                                              ArtifactAtRepositoryCachedArtifactIndex artifactAtRepositoryCachedArtifactIndex,
+                                              DefaultModuleArtifactCache defaultModuleArtifactCache,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider, InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory,
                                               VersionSelectorScheme versionSelectorScheme,
                                               VersionComparator versionComparator,
@@ -303,7 +303,7 @@ class DependencyManagementBuildScopeServices {
             moduleVersionsCache,
             moduleMetaDataCache,
             moduleArtifactsCache,
-            artifactAtRepositoryCachedArtifactIndex,
+            defaultModuleArtifactCache,
             startParameterResolutionOverride,
             buildCommencedTimeProvider,
             inMemoryCachedRepositoryFactory,

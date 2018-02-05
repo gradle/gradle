@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultComponentSelectionRules;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -44,7 +44,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-import org.gradle.internal.resource.cached.CachedArtifactIndex;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.util.Collection;
@@ -53,7 +53,7 @@ public class ResolveIvyFactory {
     private final ModuleVersionsCache moduleVersionsCache;
     private final ModuleMetaDataCache moduleMetaDataCache;
     private final ModuleArtifactsCache moduleArtifactsCache;
-    private final CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex;
+    private final ModuleArtifactCache artifactAtRepositoryCachedResolutionIndex;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final BuildCommencedTimeProvider timeProvider;
     private final InMemoryCachedRepositoryFactory inMemoryCache;
@@ -63,7 +63,7 @@ public class ResolveIvyFactory {
     private final RepositoryBlacklister repositoryBlacklister;
 
     public ResolveIvyFactory(ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache, ModuleArtifactsCache moduleArtifactsCache,
-                             CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
+                             ModuleArtifactCache artifactAtRepositoryCachedResolutionIndex,
                              StartParameterResolutionOverride startParameterResolutionOverride,
                              BuildCommencedTimeProvider timeProvider, InMemoryCachedRepositoryFactory inMemoryCache, VersionSelectorScheme versionSelectorScheme,
                              VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, RepositoryBlacklister repositoryBlacklister) {

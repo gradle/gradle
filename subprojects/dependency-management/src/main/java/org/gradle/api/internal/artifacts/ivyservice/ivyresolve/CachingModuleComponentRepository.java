@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
@@ -49,9 +49,9 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
-import org.gradle.internal.resource.cached.CachedArtifact;
-import org.gradle.internal.resource.cached.CachedArtifactIndex;
-import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.CachedArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ArtifactAtRepositoryKey;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -77,7 +77,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final ModuleVersionsCache moduleVersionsCache;
     private final ModuleMetaDataCache moduleMetaDataCache;
     private final ModuleArtifactsCache moduleArtifactsCache;
-    private final CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex;
+    private final ModuleArtifactCache artifactAtRepositoryCachedResolutionIndex;
 
     private final CachePolicy cachePolicy;
 
@@ -89,7 +89,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
     public CachingModuleComponentRepository(ModuleComponentRepository delegate, ModuleVersionsCache moduleVersionsCache, ModuleMetaDataCache moduleMetaDataCache,
-                                            ModuleArtifactsCache moduleArtifactsCache, CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
+                                            ModuleArtifactsCache moduleArtifactsCache, ModuleArtifactCache artifactAtRepositoryCachedResolutionIndex,
                                             CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
                                             ComponentMetadataProcessor metadataProcessor,
                                             ImmutableModuleIdentifierFactory moduleIdentifierFactory) {

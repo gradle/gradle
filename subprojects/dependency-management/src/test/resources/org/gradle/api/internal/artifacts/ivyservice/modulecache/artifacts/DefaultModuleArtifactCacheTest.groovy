@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.ivy
+package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
-import org.gradle.internal.resource.cached.CachedArtifact
-import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex
-import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.BuildCommencedTimeProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
+class DefaultModuleArtifactCacheTest extends Specification {
 
     CacheLockingManager cacheLockingManager = Mock()
     BuildCommencedTimeProvider timeProvider = Mock()
@@ -38,14 +35,14 @@ class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
 
     PersistentIndexedCache persistentIndexedCache = Mock()
 
-    ArtifactAtRepositoryCachedArtifactIndex index
+    DefaultModuleArtifactCache index
     String persistentCacheFile
     CachedArtifact cachedArtifact = Mock()
 
 
     def setup() {
         persistentCacheFile = "cacheFile"
-        index = new ArtifactAtRepositoryCachedArtifactIndex(persistentCacheFile, timeProvider, cacheLockingManager)
+        index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheLockingManager)
     }
 
     def "storing null artifactFile not supported"() {

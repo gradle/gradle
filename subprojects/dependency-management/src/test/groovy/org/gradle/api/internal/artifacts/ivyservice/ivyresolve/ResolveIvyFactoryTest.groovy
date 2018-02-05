@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
@@ -33,7 +33,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.resource.ExternalResourceRepository
-import org.gradle.internal.resource.cached.CachedArtifactIndex
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
@@ -46,7 +46,7 @@ class ResolveIvyFactoryTest extends Specification {
     ModuleVersionsCache moduleVersionsCache
     ModuleMetaDataCache moduleMetaDataCache
     ModuleArtifactsCache moduleArtifactsCache
-    CachedArtifactIndex cachedArtifactIndex
+    ModuleArtifactCache cachedArtifactIndex
     StartParameterResolutionOverride startParameterResolutionOverride
     BuildCommencedTimeProvider buildCommencedTimeProvider
     InMemoryCachedRepositoryFactory inMemoryCachedRepositoryFactory
@@ -59,7 +59,7 @@ class ResolveIvyFactoryTest extends Specification {
         moduleVersionsCache = Mock(ModuleVersionsCache)
         moduleMetaDataCache = Mock(ModuleMetaDataCache)
         moduleArtifactsCache = Mock(ModuleArtifactsCache)
-        cachedArtifactIndex = Mock(CachedArtifactIndex)
+        cachedArtifactIndex = Mock(ModuleArtifactCache)
         startParameterResolutionOverride = Mock(StartParameterResolutionOverride) {
             _ * overrideModuleVersionRepository(_) >> { ModuleComponentRepository repository -> repository }
         }
