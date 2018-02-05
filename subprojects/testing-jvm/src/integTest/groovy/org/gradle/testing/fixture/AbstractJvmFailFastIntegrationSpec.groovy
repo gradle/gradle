@@ -141,9 +141,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         gradleHandle.waitForFailure()
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass('pkg.FailedTest').assertTestFailed('failTest', Matchers.anything())
-        testOmitted.each {
-            result.testClass("pkg.OtherTest_${it}").assertTestCount(0, 0, 0)
-        }
+        result.testClassStartsWith("pkg.OtherTest").assertTestCount(0, 0, 0)
     }
 
     private void withBuildFile(int forkEvery = 0) {
