@@ -49,8 +49,8 @@ class KotlinScriptClassloadingCache @Inject constructor(
         scriptTemplate: KClass<*>,
         scriptSource: ScriptSource,
         parentClassLoader: ClassLoader,
-        classloading: (CompiledScript<T>) -> Class<*>,
-        compilation: () -> CompiledScript<T>
+        compilation: () -> CompiledScript<T>,
+        classloading: (CompiledScript<T>) -> Class<*>
     ): LoadedScriptClass<T> {
 
         val cacheKey = ScriptCacheKey(
