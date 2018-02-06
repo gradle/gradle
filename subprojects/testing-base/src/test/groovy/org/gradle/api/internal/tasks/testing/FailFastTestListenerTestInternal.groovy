@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal
-import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
