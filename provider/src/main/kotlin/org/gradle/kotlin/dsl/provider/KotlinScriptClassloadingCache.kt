@@ -32,21 +32,22 @@ import javax.inject.Inject
 
 
 internal
-data class LoadedScriptClass<out T : Any>(
+data class LoadedScriptClass<out T>(
     val compiledScript: CompiledScript<T>,
     val scriptClass: Class<*>)
+
+
+private
+val logger = loggerFor<KotlinScriptPluginFactory>()
 
 
 internal
 class KotlinScriptClassloadingCache @Inject constructor(cacheFactory: CrossBuildInMemoryCacheFactory) {
 
     private
-    val logger = loggerFor<KotlinScriptPluginFactory>()
-
-    private
     val cache: CrossBuildInMemoryCache<ScriptCacheKey, LoadedScriptClass<*>> = cacheFactory.newCache()
 
-    fun <T : Any> loadScriptClass(
+    fun <T> loadScriptClass(
         scriptBlock: ScriptBlock<T>,
         parentClassLoader: ClassLoader,
         scopeFactory: () -> ClassLoaderScope,
@@ -98,8 +99,10 @@ class ScriptCacheKey(
             return false
         }
         val key = other as ScriptCacheKey
-        return (parentClassLoader.get() != null && key.parentClassLoader.get() != null
-            && parentClassLoader.get() == key.parentClassLoader.get()
+        val thisParentLoader = parentClassLoader.get()
+        val otherParentLoader = key.parentClassLoader.get()
+        return (thisParentLoader != null && otherParentLoader != null
+            && thisParentLoader == otherParentLoader
             && templateId == key.templateId
             && sourceHash == key.sourceHash)
     }

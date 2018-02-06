@@ -346,7 +346,7 @@ fun ignoringErrors(action: () -> Unit) {
 
 
 private inline
-fun <T : Any> LoadedScriptClass<T>.withContextClassLoader(action: LoadedScriptClass<T>.() -> Unit) {
+fun <T> LoadedScriptClass<T>.withContextClassLoader(action: LoadedScriptClass<T>.() -> Unit) {
     val currentThread = Thread.currentThread()
     val previous = currentThread.contextClassLoader
     try {

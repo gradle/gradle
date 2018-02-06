@@ -46,7 +46,7 @@ import kotlin.script.experimental.dependencies.ScriptDependencies
 
 
 internal
-data class ScriptBlock<out T : Any>(
+data class ScriptBlock<out T>(
     val displayName: String,
     val scriptTemplate: KClass<*>,
     val scriptPath: String,
@@ -58,11 +58,15 @@ data class ScriptBlock<out T : Any>(
 
 
 internal
-data class CompiledScript<out T : Any>(val location: File, val className: String, val metadata: T)
+data class CompiledScript<out T>(val location: File, val className: String, val metadata: T)
 
 
 internal
 data class PluginsBlockMetadata(val lineNumber: Int)
+
+
+private
+val logger = loggerFor<KotlinScriptPluginFactory>()
 
 
 internal
@@ -74,9 +78,6 @@ class CachingKotlinCompiler(
     init {
         org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
     }
-
-    private
-    val logger = loggerFor<KotlinScriptPluginFactory>()
 
     private
     val cacheKeyPrefix = CacheKeySpec.withPrefix("gradle-kotlin-dsl")
@@ -114,7 +115,7 @@ class CachingKotlinCompiler(
             }
         }
 
-    fun <T : Any> compileGradleScript(scriptBlock: ScriptBlock<T>, classPath: ClassPath): CompiledScript<T> =
+    fun <T> compileGradleScript(scriptBlock: ScriptBlock<T>, classPath: ClassPath): CompiledScript<T> =
 
         scriptBlock.run {
             val scriptFileName = scriptFileNameFor(scriptPath)
@@ -135,7 +136,7 @@ class CachingKotlinCompiler(
     }
 
     private
-    fun <T : Any> compileScript(
+    fun <T> compileScript(
         cacheKeySpec: CacheKeySpec,
         classPath: ClassPath,
         metadata: T,
