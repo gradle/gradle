@@ -6,6 +6,7 @@ import org.gradle.kotlin.dsl.KotlinSettingsScript
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.IsolatedTestKitDir
+import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
@@ -18,6 +19,10 @@ import java.io.File
 import kotlin.reflect.KClass
 
 
+@LeaksFileHandles("""
+    Daemons hold their daemon log file open after the build has finished, debug logging exacerbates this.
+    This should be revisited once TestKit provides a mechanism to control daemon termination.
+""")
 class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
 
     companion object {

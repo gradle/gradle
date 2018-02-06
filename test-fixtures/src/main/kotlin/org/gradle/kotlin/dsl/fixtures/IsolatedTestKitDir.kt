@@ -13,18 +13,25 @@ open class IsolatedTestKitDir : ForcefullyDeletedTemporaryFolder() {
     private
     var previous: String? = null
 
+
     override fun before() {
         super.before()
+        isolateTestKitDir()
+    }
+
+    override fun after() {
+        restoreTestKitDir()
+        super.after()
+    }
+
+
+    private
+    fun isolateTestKitDir() {
         previous = System.getProperty(testKitDirProperty, null)
         System.setProperty(testKitDirProperty, root.absolutePath)
     }
 
-    override fun after() {
-        if (previous == null) {
-            System.clearProperty(testKitDirProperty)
-        } else {
-            System.setProperty(testKitDirProperty, previous)
-        }
-        super.after()
-    }
+    private
+    fun restoreTestKitDir() =
+        setOrClearProperty(testKitDirProperty, previous)
 }

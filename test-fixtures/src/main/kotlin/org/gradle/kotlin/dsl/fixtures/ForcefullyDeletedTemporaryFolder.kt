@@ -8,6 +8,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 import kotlin.annotation.AnnotationTarget.FUNCTION
+import kotlin.annotation.AnnotationTarget.CLASS
 
 
 /**
@@ -58,5 +59,5 @@ open class ForcefullyDeletedTemporaryFolder : TemporaryFolder() {
  *
  * @see ForcefullyDeletedTemporaryFolder
  */
-@Target(FUNCTION)
-annotation class LeaksFileHandles
+@Target(FUNCTION, CLASS)
+annotation class LeaksFileHandles(val why: String = "")
