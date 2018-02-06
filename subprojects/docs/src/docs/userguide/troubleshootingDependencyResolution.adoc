@@ -57,7 +57,7 @@ You can fine-tune certain aspects of caching programmatically using the api:org.
 By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version for a dynamic version, use:
 
 ++++
-<sample id="dynamic-version-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Dynamic version cache control">
+<sample id="dynamic-version-cache-control" dir="userguide/dependencyManagement/troubleshooting/cache/dynamic" title="Dynamic version cache control">
     <sourcefile file="build.gradle" snippet="dynamic-version-cache-control"/>
 </sample>
 ++++
@@ -65,7 +65,7 @@ By default, Gradle caches dynamic versions for 24 hours. To change how long Grad
 By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
 
 ++++
-<sample id="changing-module-cache-control" dir="userguide/artifacts/resolutionStrategy" title="Changing module cache control">
+<sample id="changing-module-cache-control" dir="userguide/dependencyManagement/troubleshooting/cache/changing" title="Changing module cache control">
     <sourcefile file="build.gradle" snippet="changing-module-cache-control"/>
 </sample>
 ++++
