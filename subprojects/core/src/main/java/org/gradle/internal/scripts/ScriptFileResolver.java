@@ -15,11 +15,14 @@
  */
 package org.gradle.internal.scripts;
 
+import org.gradle.scripts.ScriptingLanguage;
+
 import java.io.File;
+import java.util.List;
 import javax.annotation.Nullable;
 
 /**
- * Resolves script files according to available {@link org.gradle.scripts.ScriptingLanguage} providers.
+ * Resolves script files according to available {@link ScriptingLanguage} providers.
  *
  * @since 4.0
  */
@@ -34,4 +37,14 @@ public interface ScriptFileResolver {
      */
     @Nullable
     File resolveScriptFile(File dir, String basename);
+
+    /**
+     * Searches for script files in the given directory, that is, any file with  a known
+     * {@link ScriptingLanguage#getExtension()}).
+     *
+     * @param dir the directory in which to search
+     *
+     * @return list containing all script files found in the given directory in no particular order
+     */
+     List<File> findScriptsIn(File dir);
 }

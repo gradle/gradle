@@ -16,9 +16,15 @@
 package org.gradle.internal.scripts;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Collections.emptyList;
+import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DefaultScriptFileResolver implements ScriptFileResolver {
 
+    @Override
     public File resolveScriptFile(File dir, String basename) {
         for (String extension : ScriptingLanguages.EXTENSIONS) {
             File scriptFile = new File(dir, basename + extension);
@@ -27,5 +33,29 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
             }
         }
         return null;
+    }
+
+    @Override
+    public List<File> findScriptsIn(File dir) {
+        File[] candidates = dir.listFiles();
+        if (candidates == null || candidates.length == 0) {
+            return emptyList();
+        }
+        List<File> files = new ArrayList<File>(candidates.length);
+        for (File file : candidates) {
+            if (file.isFile() && hasScriptExtension(file)) {
+                files.add(file);
+            }
+        }
+        return files;
+    }
+
+    private boolean hasScriptExtension(File file) {
+        for (String extension : ScriptingLanguages.EXTENSIONS) {
+            if (hasExtension(file, extension)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
