@@ -73,8 +73,8 @@ class GradleBuildPerformanceTest extends Specification {
         }
     }
 
-    def warmupBuilds = 10
-    def measuredBuilds = 20
+    def warmupBuilds = 20
+    def measuredBuilds = 40
 
     @Unroll
     def "#tasks on the gradle build comparing the build"() {
