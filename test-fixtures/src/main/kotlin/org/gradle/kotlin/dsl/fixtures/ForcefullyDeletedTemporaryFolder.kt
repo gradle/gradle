@@ -50,6 +50,7 @@ open class ForcefullyDeletedTemporaryFolder : TemporaryFolder() {
     private
     fun leaksFileHandles(description: Description) =
         description.getAnnotation(LeaksFileHandles::class.java) != null
+            || description.testClass.getAnnotation(LeaksFileHandles::class.java) != null
 }
 
 
