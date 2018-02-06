@@ -15,6 +15,7 @@
  */
 package org.gradle.ide.visualstudio
 
+import org.apache.commons.io.FilenameUtils
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
@@ -577,7 +578,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         then:
         final exeProject = projectFile("exe/exe_mainExe.vcxproj")
         exeProject.projectConfigurations.values().each {
-            assert it.buildCommand == "\"${executer.distribution.gradleHomeDir.file('bin/gradle')}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand == "\"${FilenameUtils.separatorsToUnix(executer.distribution.gradleHomeDir.file('bin/gradle').absolutePath)}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
         }
     }
 
