@@ -22,8 +22,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
-
-import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.LATEST_JUPITER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
 class JUnitPlatformOnJdk7IntegrationTest extends AbstractIntegrationSpec {

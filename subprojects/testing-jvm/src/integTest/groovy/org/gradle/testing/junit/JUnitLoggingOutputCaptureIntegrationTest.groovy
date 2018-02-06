@@ -25,7 +25,8 @@ import static org.gradle.testing.fixture.JUnitCoverage.*
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.is
 
-@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+// https://github.com/junit-team/junit5/issues/1285
+@TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, 'Vintage:5.1.0-M2') })
 class JUnitLoggingOutputCaptureIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def setup() {
         buildFile << """

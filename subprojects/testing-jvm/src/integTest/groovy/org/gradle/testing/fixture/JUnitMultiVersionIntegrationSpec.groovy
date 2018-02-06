@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Assume
 
 import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.*
-import static org.gradle.testing.fixture.JUnitCoverage.*
 
 /**
  * To avoid rework when testing JUnit Platform (a.k.a JUnit 5), we'd like to reuse previous test cases in following aspects:
@@ -51,16 +50,16 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
     }
 
     private void rewriteProjectDirectory() {
-        if (version == JUPITER) {
-            rewriteWithJupiter(executer.workingDir)
-        } else if (version == VINTAGE) {
+        if (isJupiter()) {
+            rewriteWithJupiter(executer.workingDir, dependencyVersion)
+        } else if (isVintage()) {
             replaceCategoriesWithTags(executer.workingDir)
-            rewriteWithVintage(executer.workingDir)
+            rewriteWithVintage(executer.workingDir, dependencyVersion)
         }
     }
 
     private assertUsingJUnitPlatform() {
-        if (version in [JUPITER, VINTAGE]) {
+        if (isJupiter() || isVintage()) {
             File buildFile = new File(executer.workingDir, 'build.gradle')
             if (buildFile.exists()) {
                 String text = buildFile.text
@@ -73,28 +72,46 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
     }
 
     protected getDependencyNotation() {
-        if (version == JUPITER) {
-            return "org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}"
-        } else if (version == VINTAGE) {
-            return "org.junit.vintage:junit-vintage-engine:${LATEST_VINTAGE_VERSION}"
+        if (isJupiter()) {
+            return "org.junit.jupiter:junit-jupiter-api:${dependencyVersion}','org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}"
+        } else if (isVintage()) {
+            return "org.junit.vintage:junit-vintage-engine:${dependencyVersion}"
         } else {
             return "junit:junit:${version}"
         }
     }
 
     protected ignoreWhenJupiter() {
-        Assume.assumeTrue(version != JUPITER)
+        Assume.assumeFalse(isJupiter())
     }
 
     protected ignoreWhenJUnitPlatform() {
-        Assume.assumeTrue(!version in [JUPITER, VINTAGE])
+        Assume.assumeFalse(isVintage() || isJupiter())
     }
 
-    protected String getTestFramework() {
-        if (version in [JUPITER, VINTAGE]) {
+    static String getTestFramework() {
+        if (isJupiter() || isVintage()) {
             return "JUnitPlatform"
         } else {
             return "JUnit"
+        }
+    }
+
+    private static boolean isVintage() {
+        return version.toString().startsWith("Vintage")
+    }
+
+    private static boolean isJupiter() {
+        return version.toString().startsWith("Jupiter")
+    }
+
+    static String getDependencyVersion() {
+        if (isJupiter()) {
+            return version.toString().substring("Jupiter:".length())
+        } else if (isVintage()) {
+            return version.toString().substring("Vintage:".length())
+        } else {
+            return version
         }
     }
 }

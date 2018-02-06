@@ -22,6 +22,8 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec.*
+
 abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrationSpec {
 
     protected String framework
@@ -35,7 +37,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testCompile '$dependency:$org.gradle.integtests.fixtures.MultiVersionIntegrationSpec.version' }
+            dependencies { testCompile '$dependency:${dependencyVersion}' }
             test { use${framework}() }
         """
     }
