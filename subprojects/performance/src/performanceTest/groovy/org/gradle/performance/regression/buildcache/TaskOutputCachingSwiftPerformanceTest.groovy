@@ -40,7 +40,7 @@ class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPer
                     }
                 }
             """
-            runner.args.add("-I${toolchain.name}")
+            runner.args.add("-I${toolchain.absolutePath}")
         }
         runner.args += ["-Dorg.gradle.caching.native=true", "--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }

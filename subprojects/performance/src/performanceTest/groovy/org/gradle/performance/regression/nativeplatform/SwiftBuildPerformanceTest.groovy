@@ -42,7 +42,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
                     }
                 }
             """
-            runner.args.add("-I${toolchain.name}")
+            runner.args.add("-I${toolchain.absolutePath}")
         }
     }
 
