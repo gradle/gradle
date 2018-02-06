@@ -116,7 +116,7 @@ class KotlinBuildScriptCompiler(
 
     private
     fun executeScriptBody() {
-        loadScriptBodyClass().withContextClassLoader {
+        loadScriptBodyClass().eval {
             scriptTarget.eval(scriptClass)
         }
     }
@@ -134,7 +134,7 @@ class KotlinBuildScriptCompiler(
     private
     fun executeBuildscriptBlockFrom(buildscriptRange: IntRange, scriptTemplate: KClass<*>) =
         loadBuildscriptBlockClass(scriptBlockForBuildscript(buildscriptRange, scriptTemplate))
-            .withContextClassLoader {
+            .eval {
                 scriptTarget.evalBuildscriptBlock(scriptClass)
             }
 
@@ -186,7 +186,7 @@ class KotlinBuildScriptCompiler(
         loadedPluginsBlockClass: LoadedScriptClass<PluginsBlockMetadata>) {
 
         val pluginDependenciesSpec = pluginRequestCollector.createSpec(loadedPluginsBlockClass.compiledScript.metadata.lineNumber)
-        loadedPluginsBlockClass.withContextClassLoader {
+        loadedPluginsBlockClass.eval {
             instantiate(scriptClass, PluginDependenciesSpec::class, pluginDependenciesSpec)
         }
     }
@@ -339,14 +339,23 @@ fun ignoringErrors(action: () -> Unit) {
 
 
 private inline
-fun <T> LoadedScriptClass<T>.withContextClassLoader(action: LoadedScriptClass<T>.() -> Unit) {
+fun <T> LoadedScriptClass<T>.eval(action: LoadedScriptClass<T>.() -> Unit) =
+    withContextClassLoader(scriptClass.classLoader) {
+        try {
+            action()
+        } catch (e: InvocationTargetException) {
+            throw e.targetException
+        }
+    }
+
+
+private inline
+fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {
     val currentThread = Thread.currentThread()
     val previous = currentThread.contextClassLoader
     try {
-        currentThread.contextClassLoader = scriptClass.classLoader
-        action()
-    } catch (e: InvocationTargetException) {
-        throw e.targetException
+        currentThread.contextClassLoader = classLoader
+        block()
     } finally {
         currentThread.contextClassLoader = previous
     }
