@@ -15,13 +15,12 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
+
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static org.gradle.internal.FileUtils.hasExtension;
 
 public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
 
@@ -35,18 +34,6 @@ public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
     }
 
     private List<File> initScriptsIn(File initScriptsDir) {
-        List<File> files = new ArrayList<File>();
-        for (File file : initScriptsDir.listFiles()) {
-            if (isInitScript(file)) {
-                files.add(file);
-            }
-        }
-        return files;
-    }
-
-    private boolean isInitScript(File file) {
-        return file.isFile()
-            && (hasExtension(file, ".gradle")
-            || hasExtension(file, ".gradle.kts"));
+        return new DefaultScriptFileResolver().findScriptsIn(initScriptsDir);
     }
 }
