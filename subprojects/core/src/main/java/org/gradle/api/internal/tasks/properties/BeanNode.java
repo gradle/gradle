@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.PropertySpecFactory;
-
-public interface PropertyValueVisitor {
-    void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedBeanContext<PropertyNode> context);
+public interface BeanNode<SELF extends BeanNode<SELF>> {
+    boolean isIterable();
+    Iterable<SELF> asIterable(NestedBeanContext<SELF> context);
 }

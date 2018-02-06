@@ -81,7 +81,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
     }
 
     static  class TaskWithCustomAnnotation extends DefaultTask {
-        @SearchPath FileCollection searchPath;
+        @SearchPath FileCollection searchPath
     }
 
     class SearchPathAnnotationHandler implements PropertyAnnotationHandler {
@@ -98,7 +98,7 @@ class DefaultPropertyMetadataStoreTest extends Specification {
 
 
         @Override
-        void visitPropertyValue(PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+        void visitPropertyValue(PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedBeanContext<PropertyNode> context) {
             visitorAction.call(propertyInfo, visitor)
         }
     }

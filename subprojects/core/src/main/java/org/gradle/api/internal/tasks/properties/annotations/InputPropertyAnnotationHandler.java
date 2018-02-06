@@ -17,6 +17,8 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.DefaultTaskInputPropertySpec;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.internal.tasks.properties.NestedBeanContext;
+import org.gradle.api.internal.tasks.properties.PropertyNode;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Input;
@@ -30,7 +32,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
 
     @Override
     @SuppressWarnings("Since15")
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedBeanContext<PropertyNode> context) {
         DefaultTaskInputPropertySpec declaration = specFactory.createInputPropertySpec(propertyValue.getPropertyName(), propertyValue);
         declaration.optional(propertyValue.isOptional());
         visitor.visitInputProperty(declaration);

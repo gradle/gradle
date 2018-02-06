@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.internal.tasks.properties.NestedBeanContext;
+import org.gradle.api.internal.tasks.properties.PropertyNode;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
@@ -26,7 +28,7 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
     protected abstract DeclaredTaskOutputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory);
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedBeanContext<PropertyNode> context) {
         DeclaredTaskOutputFileProperty fileSpec = createFileSpec(propertyValue, specFactory);
         fileSpec
             .withPropertyName(propertyValue.getPropertyName())

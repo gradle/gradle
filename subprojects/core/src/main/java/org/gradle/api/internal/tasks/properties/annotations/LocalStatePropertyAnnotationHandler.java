@@ -17,6 +17,8 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.DefaultTaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.api.internal.tasks.properties.NestedBeanContext;
+import org.gradle.api.internal.tasks.properties.PropertyNode;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.LocalState;
@@ -29,7 +31,7 @@ public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedBeanContext<PropertyNode> context) {
         visitor.visitLocalStateProperty(new DefaultTaskLocalStatePropertySpec(propertyValue.getPropertyName(), propertyValue));
     }
 }

@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.properties.annotations;
 import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.api.internal.tasks.properties.NestedBeanContext;
+import org.gradle.api.internal.tasks.properties.PropertyNode;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.PathSensitive;
@@ -30,7 +32,7 @@ import java.io.File;
 public abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory) {
+    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, NestedBeanContext<PropertyNode> context) {
         PathSensitive pathSensitive = propertyValue.getAnnotation(PathSensitive.class);
         final PathSensitivity pathSensitivity;
         if (pathSensitive == null) {

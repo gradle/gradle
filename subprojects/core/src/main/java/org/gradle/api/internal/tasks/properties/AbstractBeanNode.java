@@ -21,10 +21,12 @@ import javax.annotation.Nullable;
 abstract class AbstractBeanNode {
     private final String parentPropertyName;
     private final Class<?> beanClass;
+    private final TypeMetadata typeMetadata;
 
-    public AbstractBeanNode(@Nullable String parentPropertyName, Class<?> beanClass) {
+    public AbstractBeanNode(@Nullable String parentPropertyName, Class<?> beanClass, TypeMetadata typeMetadata) {
         this.parentPropertyName = parentPropertyName;
         this.beanClass = beanClass;
+        this.typeMetadata = typeMetadata;
     }
 
     public String getQualifiedPropertyName(String propertyName) {
@@ -35,8 +37,8 @@ abstract class AbstractBeanNode {
         return parentPropertyName == null;
     }
 
-    public boolean isIterable(TypeMetadata metadata) {
-        return !isRoot() && Iterable.class.isAssignableFrom(beanClass) && !metadata.isAnnotated();
+    public boolean isIterable() {
+        return !isRoot() && Iterable.class.isAssignableFrom(beanClass) && !typeMetadata.isAnnotated();
     }
 
     @Nullable
@@ -44,7 +46,7 @@ abstract class AbstractBeanNode {
         return parentPropertyName;
     }
 
-    public Class<?> getBeanClass() {
-        return beanClass;
+    public TypeMetadata getTypeMetadata() {
+        return typeMetadata;
     }
 }
