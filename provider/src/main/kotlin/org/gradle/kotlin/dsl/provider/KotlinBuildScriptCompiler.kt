@@ -50,6 +50,10 @@ typealias KotlinScript = (Any) -> Unit
 
 
 internal
+data class PluginsBlockMetadata(val lineNumber: Int)
+
+
+internal
 class KotlinBuildScriptCompiler(
     private val kotlinCompiler: CachingKotlinCompiler,
     private val classloadingCache: KotlinScriptClassloadingCache,
@@ -223,7 +227,7 @@ class KotlinBuildScriptCompiler(
     private
     fun compileBuildscriptBlock(scriptBlock: ScriptBlock<Unit>) =
         withKotlinCompiler {
-            compileBuildscriptBlockOf(scriptBlock, buildscriptBlockCompilationClassPath)
+            compileScriptBlock(scriptBlock, buildscriptBlockCompilationClassPath)
         }
 
 
@@ -249,7 +253,7 @@ class KotlinBuildScriptCompiler(
     private
     fun compilePluginsBlock(scriptBlock: ScriptBlock<PluginsBlockMetadata>) =
         withKotlinCompiler {
-            compilePluginsBlockOf(scriptBlock, pluginsBlockCompilationClassPath)
+            compileScriptBlock(scriptBlock, pluginsBlockCompilationClassPath)
         }
 
 
@@ -267,7 +271,7 @@ class KotlinBuildScriptCompiler(
     private
     fun compileScriptBody(scriptBlock: ScriptBlock<Unit>, classPath: ClassPath) =
         withKotlinCompiler {
-            compileGradleScript(scriptBlock, classPath)
+            compileScriptBlock(scriptBlock, classPath)
         }
 
 

@@ -61,10 +61,6 @@ internal
 data class CompiledScript<out T>(val location: File, val className: String, val metadata: T)
 
 
-internal
-data class PluginsBlockMetadata(val lineNumber: Int)
-
-
 private
 val logger = loggerFor<KotlinScriptPluginFactory>()
 
@@ -85,37 +81,7 @@ class CachingKotlinCompiler(
     private
     val cacheProperties = mapOf("version" to "6")
 
-    fun compileBuildscriptBlockOf(scriptBlock: ScriptBlock<Unit>, classPath: ClassPath): CompiledScript<Unit> =
-
-        scriptBlock.run {
-            val scriptFileName = scriptFileNameFor(scriptPath)
-            val cacheKeySpec = cacheKeyPrefix + scriptTemplate.qualifiedName + scriptFileName + source
-            return compileScript(cacheKeySpec, classPath, metadata) { cacheDir ->
-                ScriptCompilationSpec(
-                    displayName,
-                    scriptTemplate,
-                    scriptPath,
-                    cacheFileFor(source, cacheDir, scriptFileName))
-            }
-        }
-
-    fun compilePluginsBlockOf(
-        scriptBlock: ScriptBlock<PluginsBlockMetadata>,
-        classPath: ClassPath): CompiledScript<PluginsBlockMetadata> =
-
-        scriptBlock.run {
-            val scriptFileName = scriptFileNameFor(scriptPath)
-            val cacheKeySpec = cacheKeyPrefix + scriptTemplate.qualifiedName + scriptFileName + source
-            return compileScript(cacheKeySpec, classPath, metadata) { cacheDir ->
-                ScriptCompilationSpec(
-                    displayName,
-                    scriptTemplate,
-                    scriptPath,
-                    cacheFileFor(source, cacheDir, scriptFileName))
-            }
-        }
-
-    fun <T> compileGradleScript(scriptBlock: ScriptBlock<T>, classPath: ClassPath): CompiledScript<T> =
+    fun <T> compileScriptBlock(scriptBlock: ScriptBlock<T>, classPath: ClassPath): CompiledScript<T> =
 
         scriptBlock.run {
             val scriptFileName = scriptFileNameFor(scriptPath)
