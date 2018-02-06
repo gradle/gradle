@@ -664,7 +664,7 @@ When using http://junit.org/junit5/docs/current/user-guide[JUnit Platform], we s
 [[test_grouping]]
 ==== Test grouping
 
-JUnit/JUnit Platform and TestNG allows sophisticated groupings of test methods.
+JUnit/JUnit Platform and TestNG allow sophisticated groupings of test methods.
 
 For grouping JUnit 4 test classes and methods JUnit 4.8 introduces the concept of categories.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
 

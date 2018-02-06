@@ -23,14 +23,14 @@ In the example, the version of `commons-codec` that is brought in transitively i
 
 ### JUnit Platform and JUnit Jupiter/Vintage Engine (a.k.a. JUnit 5) support
 
-[JUnit 5](http://junit.org/junit5/docs/current/user-guide) is the latest version of well-known `JUnit` test framework. JUnit 5 is composed of several modules:
+[JUnit 5](http://junit.org/junit5/docs/current/user-guide) is the latest version of the well-known `JUnit` test framework. JUnit 5 is composed of several modules:
 
     JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
     
 The `JUnit Platform` serves as a foundation for launching testing frameworks on the JVM. `JUnit Jupiter` is the combination of the new [programming model](http://junit.org/junit5/docs/current/user-guide/#writing-tests)
  and [extension model](http://junit.org/junit5/docs/current/user-guide/#extensions) for writing tests and extensions in JUnit 5. `JUnit Vintage` provides a `TestEngine` for running JUnit 3 and JUnit 4 based tests on the platform.
     
-Gradle now provides native support for `JUnit Jupiter/Vintage Engine` on top of `JUnit Platform`. To enable `JUnit Platform` support, you just need to add one line into your `build.gradle`:
+Gradle now provides native support for `JUnit Jupiter/Vintage Engine` on top of `JUnit Platform`. To enable `JUnit Platform` support, you just need to add one line to your `build.gradle`:
 
     test {
         useJUnitPlatform()
@@ -48,7 +48,7 @@ Moreover, [Tagging and Filtering](http://junit.org/junit5/docs/current/user-guid
         }
     }  
     
-You can find a sample of tagging test at `samples/testing/junitplatform/tagging` in the '-all' distribution of Gradle.         
+You can find samples of tagged tests at `samples/testing/junitplatform/tagging` in the '-all' distribution of Gradle.         
     
 #### JUnit Jupiter Engine
     

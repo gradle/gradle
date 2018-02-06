@@ -38,10 +38,11 @@ class JUnitPlatformSampleIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'test'
 
         then:
-        new DefaultTestExecutionResult(sample.dir).testClass('org.gradle.junitplatform.JupiterTest').assertTestCount(4, 0, 0)
+        new DefaultTestExecutionResult(sample.dir).testClass('org.gradle.junitplatform.JupiterTest').assertTestCount(5, 0, 0)
             .assertTestPassed('ok()')
             .assertTestPassed('repetition 1 of 2')
             .assertTestPassed('repetition 2 of 2')
+            .assertTestPassed('TEST 1')
             .assertTestsSkipped('disabled()')
     }
 
