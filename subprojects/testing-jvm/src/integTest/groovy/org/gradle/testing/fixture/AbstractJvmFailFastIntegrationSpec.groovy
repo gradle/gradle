@@ -128,7 +128,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         withBuildFile(maxWorkers, forkEvery)
         withFailingTest()
         def otherResources = withNonfailingTests(testOmitted)
-        def testExecution = server.expectMaybeAndBlock(maxWorkers, ([ FAILED_RESOURCE ] + otherResources).grep() as String[])
+        def testExecution = server.expectOptionalAndBlock(maxWorkers, ([FAILED_RESOURCE ] + otherResources).grep() as String[])
 
         when:
         def gradleHandle = executer.withTasks('test', '--fail-fast').start()

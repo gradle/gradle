@@ -19,10 +19,13 @@ package org.gradle.test.fixtures.server.http;
 import java.util.Collection;
 import java.util.concurrent.locks.Lock;
 
-public class CyclicBarrierAnyOfRequestOptionalHandler extends CyclicBarrierAnyOfRequestHandler {
+/**
+ * A cyclic barrier for {@link BlockingHttpServer} where expectations are optional.
+ */
+public class CyclicBarrierAnyOfOptionalRequestHandler extends CyclicBarrierAnyOfRequestHandler {
     private final Lock lock;
 
-    CyclicBarrierAnyOfRequestOptionalHandler(Lock lock, int testId, int timeoutMs, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
+    CyclicBarrierAnyOfOptionalRequestHandler(Lock lock, int testId, int timeoutMs, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
         super(lock, testId, timeoutMs, maxConcurrent, previous, expectedRequests);
         this.lock = lock;
     }

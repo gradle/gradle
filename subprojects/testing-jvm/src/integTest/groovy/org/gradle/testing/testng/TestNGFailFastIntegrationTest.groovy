@@ -55,7 +55,7 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
         """.stripIndent()
         withFailingTest()
         def otherResources = withNonfailingTests(5)
-        def testExecution = server.expectMaybeAndBlock(maxWorkers * threadCount, ([ FAILED_RESOURCE ] + otherResources).grep() as String[])
+        def testExecution = server.expectOptionalAndBlock(maxWorkers * threadCount, ([FAILED_RESOURCE ] + otherResources).grep() as String[])
 
         when:
         def gradleHandle = executer.withTasks('test', '--fail-fast').start()
