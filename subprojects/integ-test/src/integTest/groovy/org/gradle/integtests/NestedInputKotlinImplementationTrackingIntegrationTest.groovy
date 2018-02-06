@@ -19,7 +19,9 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
+@Ignore
 @Requires([TestPrecondition.KOTLIN_SCRIPT])
 class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractIntegrationSpec {
 

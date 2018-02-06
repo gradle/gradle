@@ -20,9 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.Requires
+import spock.lang.Ignore
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
+@Ignore
 @Requires([KOTLIN_SCRIPT])
 class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
