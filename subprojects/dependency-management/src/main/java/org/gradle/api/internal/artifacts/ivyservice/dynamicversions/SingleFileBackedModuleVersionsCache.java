@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache {
@@ -36,6 +38,8 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
     private final BuildCommencedTimeProvider timeProvider;
     private final CacheLockingManager cacheLockingManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+
+    private final Map<ModuleKey, ModuleVersionsCacheEntry> inMemoryCache = Maps.newConcurrentMap();
     private PersistentIndexedCache<ModuleKey, ModuleVersionsCacheEntry> cache;
 
     public SingleFileBackedModuleVersionsCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -57,14 +61,30 @@ public class SingleFileBackedModuleVersionsCache implements ModuleVersionsCache 
 
     public void cacheModuleVersionList(ModuleComponentRepository repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
         LOGGER.debug("Caching version list in module versions cache: Using '{}' for '{}'", listedVersions, moduleId);
-        getCache().put(createKey(repository, moduleId), createEntry(listedVersions));
+        ModuleKey key = createKey(repository, moduleId);
+        ModuleVersionsCacheEntry entry = createEntry(listedVersions);
+        inMemoryCache.put(key, entry);
+        getCache().put(key, entry);
     }
 
     public CachedModuleVersionList getCachedModuleResolution(ModuleComponentRepository repository, ModuleIdentifier moduleId) {
-        ModuleVersionsCacheEntry moduleVersionsCacheEntry = getCache().get(createKey(repository, moduleId));
-        if (moduleVersionsCacheEntry == null) {
-            return null;
+        ModuleKey key = createKey(repository, moduleId);
+
+        ModuleVersionsCacheEntry inMemoryEntry = inMemoryCache.get(key);
+        if (inMemoryEntry != null) {
+            return versionList(inMemoryEntry);
         }
+
+        ModuleVersionsCacheEntry cachedEntry = getCache().get(key);
+        if (cachedEntry != null) {
+            inMemoryCache.put(key, cachedEntry);
+            return versionList(cachedEntry);
+        }
+
+        return null;
+    }
+
+    private CachedModuleVersionList versionList(ModuleVersionsCacheEntry moduleVersionsCacheEntry) {
         return new DefaultCachedModuleVersionList(moduleVersionsCacheEntry, timeProvider);
     }
 

@@ -103,6 +103,7 @@ if (project.hasProperty('nocache')) {
         snapshotModule.publish()
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.0-SNAPSHOT")
+                .withSnapshotTimestamp(snapshotModule.uniqueSnapshotVersion)
                 .requestingSource()
                 .prepare()
 
@@ -117,6 +118,7 @@ if (project.hasProperty('nocache')) {
         when:
         snapshotModule.publishWithChangedContent()
         fixture.clearExpectations()
+                .withSnapshotTimestamp(snapshotModule.uniqueSnapshotVersion)
                 .expectSourceArtifact("sources")
                 .createVerifyTask("verifyRefresh")
 
@@ -155,6 +157,7 @@ if (project.hasProperty('nocache')) {
         snapshotModule.publish()
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.0-SNAPSHOT")
+                .withSnapshotTimestamp(snapshotModule.uniqueSnapshotVersion)
                 .requestingSource()
                 .expectSourceArtifact("sources")
                 .prepare()
@@ -171,6 +174,8 @@ if (project.hasProperty('nocache')) {
         when:
         def snapshot = file("sources/some-artifact-1.0-SNAPSHOT-sources.jar").snapshot()
         snapshotModule.publishWithChangedContent()
+        fixture.withSnapshotTimestamp(snapshotModule.uniqueSnapshotVersion)
+                .createVerifyTask("verifyRefresh")
 
         and:
         server.resetExpectations()
@@ -187,13 +192,13 @@ if (project.hasProperty('nocache')) {
 
         then:
         executer.withArgument(execArg)
-        succeeds("verify")
+        succeeds("verifyRefresh")
         file("sources/some-artifact-1.0-SNAPSHOT-sources.jar").assertHasChangedSince(snapshot)
 
         where:
         condition | execArg
         "with --refresh-dependencies" | "--refresh-dependencies"
-        "when snapshot pom changes" | "-Pnocache"
+        "when snapshot pom changes"   | "-Pnocache"
     }
 
     def "reports failure to resolve artifacts of non-existing component"() {
