@@ -151,7 +151,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         assertSingleLib('guava-23.0.jar')
     }
 
-    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/importingDependencyConstraintsFromBOM")
+    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM")
     def "can import dependency versions from a bom"() {
         executer.inDirectory(sample.dir)
 

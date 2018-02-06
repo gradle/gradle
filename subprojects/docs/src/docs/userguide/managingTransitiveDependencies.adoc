@@ -154,7 +154,7 @@ A project can decide to disable transitive dependency resolution completely. You
 Gradle provides support for importing https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies[bill of materials (BOM) files], which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies. The BOM support in Gradle works similar to using `<scope>import</scope>` when depending on a BOM in Maven. In Gradle however, it is done via a regular dependency declaration on the BOM:
 
 ++++
-<sample id="importing-dependency-constraints-from-bom" dir="userguide/dependencyManagement/managingTransitiveDependencies/importingDependencyConstraintsFromBOM" title="Depending on a BOM to import its dependency constraints">
+<sample id="importing-dependency-constraints-from-bom" dir="userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM" title="Depending on a BOM to import its dependency constraints">
     <sourcefile file="build.gradle" snippet="dependency-on-bom"/>
 </sample>
 ++++
