@@ -1,10 +1,14 @@
-import org.jetbrains.gradle.ext.runConfigurations.*
 import org.jetbrains.gradle.ext.*
+import static org.jetbrains.gradle.ext.ForceBraces.*
 
 buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
     dependencies {
-        classpath files("${rootProject.projectDir.absolutePath}/gradle-idea-ext-0.1-SNAPSHOT.jar")
-        classpath files("${rootProject.projectDir.absolutePath}/gson-2.8.2.jar")
+        classpath "gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.1"
     }
 }
 
@@ -54,24 +58,25 @@ idea {
         excludeDirs += file('buildSrc/.gradle')
     }
 
-    project.settings {
-        compiler {
-	        processHeapSize = 2042
-	    }
-
-        groovyCompiler {
-            heapSize = 2000
-            excludes {
-                file("${rootProject.projectDir.absolutePath}/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy")
+    project {
+        settings {
+            compiler {
+                processHeapSize = 2042
             }
-        }
 
-        copyright {
-            useDefault = "ASL2"
-            profiles {
-                ASL2 {
-                    notice =
-"""Copyright \${today.year} the original author or authors.
+            groovyCompiler {
+                heapSize = 2000
+                excludes {
+                    file("${rootProject.projectDir.absolutePath}/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy")
+                }
+            }
+
+            copyright {
+                useDefault = "ASL2"
+                profiles {
+                    ASL2 {
+                        notice =
+                            """Copyright \${today.year} the original author or authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -84,77 +89,78 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
-                    keyword = "Copyright"
-                }
-            }
-        }
-
-        runConfigurations {
-            "Gradle"(Application) {
-                mainClass = 'org.gradle.debug.GradleRunConfiguration'
-                workingDirectory = rootProject.projectDir.absolutePath
-                moduleName = 'integTest'
-            }
-
-            def gradleRunners = [
-                "Regenerate IDEA metadata": "idea",
-                "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives"
-            ]
-
-            gradleRunners.each { runnerName, commandLine ->
-                create(runnerName, Application) {
-                    mainClass = "org.gradle.testing.internal.util.GradlewRunner"
-                    programParameters = commandLine
-                    workingDirectory = rootProject.projectDir.absolutePath
-                    moduleName = "internalTesting"
-                    envs = ["TERM": "xterm"]
-                    beforeRun {
-                        make(Make) {
-                            enabled = false
-                        }
+                        keyword = "Copyright"
                     }
                 }
             }
 
-            "Remote debug port 5005"(Remote) {
-                mode = Remote.RemoteMode.ATTACH
-                transport = Remote.RemoteTransport.SOCKET
-                host = "localhost"
-                port = 5005
+            runConfigurations {
+                "Gradle"(Application) {
+                    mainClass = 'org.gradle.debug.GradleRunConfiguration'
+                    workingDirectory = rootProject.projectDir.absolutePath
+                    moduleName = 'integTest'
+                }
+
+                def gradleRunners = [
+                    "Regenerate IDEA metadata": "idea",
+                    "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives"
+                ]
+
+                gradleRunners.each { runnerName, commandLine ->
+                    create(runnerName, Application) {
+                        mainClass = "org.gradle.testing.internal.util.GradlewRunner"
+                        programParameters = commandLine
+                        workingDirectory = rootProject.projectDir.absolutePath
+                        moduleName = "internalTesting"
+                        envs = ["TERM": "xterm"]
+                        beforeRun {
+                            make(Make) {
+                                enabled = false
+                            }
+                        }
+                    }
+                }
+
+                "Remote debug port 5005"(Remote) {
+                    mode = Remote.RemoteMode.ATTACH
+                    transport = Remote.RemoteTransport.SOCKET
+                    host = "localhost"
+                    port = 5005
+                }
             }
+
+            codeStyle {
+                USE_SAME_INDENTS = true // deprecated!
+                hardWrapAt = 200
+
+                java {
+                    wrapCommentsAtRightMargin = true
+                    classCountToUseImportOnDemand = 999
+                    keepControlStatementInOneLine = false
+                    alignParameterDescriptions = false
+                    alignThrownExceptionDescriptions = false
+                    generatePTagOnEmptyLines = false
+                    keepEmptyParamTags = false
+                    keepEmptyThrowsTags = false
+                    keepEmptyReturnTags = false
+                    ifForceBraces = FORCE_BRACES_ALWAYS
+                    doWhileForceBraces = FORCE_BRACES_ALWAYS
+                    whileForceBraces = FORCE_BRACES_ALWAYS
+                    forForceBraces = FORCE_BRACES_ALWAYS
+                }
+
+                groovy {
+                    alignMultilineNamedArguments = false
+                    classCountToUseImportOnDemand = 999
+                    ifForceBraces = FORCE_BRACES_ALWAYS
+                    doWhileForceBraces = FORCE_BRACES_ALWAYS
+                    whileForceBraces = FORCE_BRACES_ALWAYS
+                    forForceBraces = FORCE_BRACES_ALWAYS
+                }
+            }
+
+            doNotDetectFrameworks("android", "web")
         }
-
-        codeStyle {
-            USE_SAME_IDENTS = true // deprecated?
-            RIGHT_MARGIN = 200
-
-            java {
-                WRAP_COMMENTS = true
-                CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND = 999
-                KEEP_CONTROL_STATEMENT_IN_ONE_LINE = false
-                JD_ALIGN_PARAM_COMMENTS = false
-                JD_ALIGN_EXCEPTION_COMMENTS = false
-                JD_P_AT_EMPTY_LINES = false
-                JD_KEEP_EMPTY_PARAMETER = false
-                JD_KEEP_EMPTY_EXCEPTION = false
-                JD_KEEP_EMPTY_RETURN = false
-                IF_BRACE_FORCE = ForceBraces.FORCE_BRACES_ALWAYS
-                DOWHILE_BRACE_FORCE = ForceBraces.FORCE_BRACES_ALWAYS
-                WHILE_BRACE_FORCE = ForceBraces.FORCE_BRACES_ALWAYS
-                FOR_BRACE_FORCE = ForceBraces.FORCE_BRACES_ALWAYS
-            }
-
-            groovy {
-                ALIGN_NAMED_ARGS_IN_MAP = false
-                CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND = 999
-                IF_BRACE_FORCE = ForceBraces.FORCE_BRACES_ALWAYS
-                DOWHILE_BRACE_FORCE = ForceBraces.FORCE_BRACES_ALWAYS
-                WHILE_BRACE_FORCE = ForceBraces.FORCE_BRACES_ALWAYS
-                FOR_BRACE_FORCE = ForceBraces.FORCE_BRACES_ALWAYS
-            }
-        }
-
-        doNotDetectFrameworks("android", "web")
     }
 
     project {
