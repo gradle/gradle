@@ -16,10 +16,8 @@
 package org.gradle.tooling.internal.consumer
 
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.scripts.DefaultScriptFileResolver
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
