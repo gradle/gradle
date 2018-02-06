@@ -58,7 +58,10 @@ data class ScriptBlock<out T>(
 
 
 internal
-data class CompiledScript<out T>(val location: File, val className: String, val metadata: T)
+data class CompiledScript<out T>(
+    val location: File,
+    val className: String,
+    val metadata: T)
 
 
 private
@@ -136,7 +139,7 @@ class CachingKotlinCompiler(
             withProgressLoggingFor(displayName) {
                 logger.debug(
                     "Compiling {} from {} with classpath: {}",
-                    spec.scriptTemplate.simpleName, displayName, classPath)
+                    scriptTemplate.simpleName, displayName, classPath)
                 compileKotlinScriptToDirectory(
                     outputDir,
                     scriptFile,
