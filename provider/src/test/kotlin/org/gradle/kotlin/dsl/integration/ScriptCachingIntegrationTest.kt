@@ -3,19 +3,25 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.KotlinInitScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
+
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.IsolatedTestKitDir
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
+
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
+
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+
 import org.junit.ClassRule
 import org.junit.Test
+
 import java.io.File
+
 import kotlin.reflect.KClass
 
 
@@ -27,6 +33,7 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
 
     companion object {
 
+        @Suppress("unused")
         @get:ClassRule
         @JvmStatic
         val isolatedTestKitDir = IsolatedTestKitDir()
@@ -79,7 +86,6 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
             }
         }
     }
-
 
     @Test
     fun `same script different target type`() {
@@ -138,7 +144,6 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
             }
         }
     }
-
 
     @Test
     fun `same script & target type different classpath`() {
@@ -200,7 +205,6 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
         }
     }
 
-
     @Test
     fun `in-memory script class loading cache releases memory of unused entries`() {
 
@@ -226,7 +230,6 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
         }
     }
 
-
     private
     fun buildForCacheInspection(vararg arguments: String): BuildResult =
         gradleRunnerForCacheInspection(*arguments)
@@ -245,7 +248,6 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
     private
     fun gradleRunnerForCacheInspection(vararg arguments: String) =
         gradleRunnerForArguments(*arrayOf("-d") + arguments)
-
 
     private
     fun withMultiProjectBuild(settings: String = "", root: String = "", left: String = "", right: String = "") =
@@ -281,23 +283,24 @@ data class MultiProjectCachedScripts(
 
 private
 sealed class CachedScript {
+
     class WholeFile(
         val buildscript: CompilationStage? = null,
         val plugins: CompilationStage? = null,
-        val body: CompilationStage
-    ) : CachedScript() {
+        val body: CompilationStage) : CachedScript() {
+
         val stages = listOfNotNull(buildscript, plugins, body)
     }
 
     class CompilationStage(
         sourceDescription: String, file: File,
-        templateClass: KClass<*>, val enabled: Boolean = true
-    ) : CachedScript() {
+        templateClass: KClass<*>, val enabled: Boolean = true) : CachedScript() {
+
         val source = "$sourceDescription '$file'"
         val template = templateClass.simpleName!!
     }
-
 }
+
 
 private
 object Descriptions {
@@ -310,11 +313,13 @@ object Descriptions {
     val pluginsBlock = "plugins block"
 }
 
+
 private
 fun cachedInitializationFile(file: File, initscript: Boolean = false) =
     CachedScript.WholeFile(
         buildscript = CachedScript.CompilationStage(Descriptions.initscriptBlock, file, KotlinInitscriptBlock::class, initscript),
         body = CachedScript.CompilationStage(Descriptions.initializationScript, file, KotlinInitScript::class))
+
 
 private
 fun cachedGradleScript(file: File) =
@@ -322,11 +327,13 @@ fun cachedGradleScript(file: File) =
         buildscript = CachedScript.CompilationStage(Descriptions.initscriptBlock, file, KotlinInitscriptBlock::class, false),
         body = CachedScript.CompilationStage(Descriptions.script, file, KotlinInitScript::class))
 
+
 private
 fun cachedSettingsFile(file: File, buildscript: Boolean = false) =
     CachedScript.WholeFile(
         buildscript = CachedScript.CompilationStage(Descriptions.buildscriptBlock, file, KotlinSettingsBuildscriptBlock::class, buildscript),
         body = CachedScript.CompilationStage(Descriptions.settingsFile, file, KotlinSettingsScript::class))
+
 
 private
 fun cachedSettingsScript(file: File) =
@@ -334,12 +341,14 @@ fun cachedSettingsScript(file: File) =
         buildscript = CachedScript.CompilationStage(Descriptions.buildscriptBlock, file, KotlinSettingsBuildscriptBlock::class, false),
         body = CachedScript.CompilationStage(Descriptions.script, file, KotlinSettingsScript::class))
 
+
 private
 fun cachedBuildFile(file: File, buildscript: Boolean = false, plugins: Boolean = false) =
     CachedScript.WholeFile(
         buildscript = CachedScript.CompilationStage(Descriptions.buildscriptBlock, file, KotlinBuildscriptBlock::class, buildscript),
         plugins = CachedScript.CompilationStage(Descriptions.pluginsBlock, file, KotlinPluginsBlock::class, plugins),
         body = CachedScript.CompilationStage(Descriptions.buildFile, file, KotlinBuildScript::class))
+
 
 private
 fun cachedProjectScript(file: File) =
@@ -352,6 +361,7 @@ fun cachedProjectScript(file: File) =
 private
 fun BuildResult.compilationCache(action: CompilationCache.() -> Unit) =
     action(CompilationCache(this))
+
 
 private
 class CompilationCache(val result: BuildResult) {
@@ -376,6 +386,7 @@ class CompilationCache(val result: BuildResult) {
 private
 fun BuildResult.classLoadingCache(action: ClassLoadingCache.() -> Unit) =
     action(ClassLoadingCache(this))
+
 
 private
 class ClassLoadingCache(val result: BuildResult) {
