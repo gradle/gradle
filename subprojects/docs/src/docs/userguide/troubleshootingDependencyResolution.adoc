@@ -47,7 +47,14 @@ Alternatively, the module you request can change over time even for the same ver
 Using dynamic versions and changing modules can lead to unreproducible builds. As new versions of a particular module are published, its API may become incompatible with your source code. Use this feature with caution!
 ====
 
-By default, Gradle caches dynamic versions and changing modules for 24 hours. During that time frame Gradle does not contact any of the declared, remote repositories for new versions. You can override the default cache modes using <<sec:controlling_dependency_caching_command_line,command line options>>. You can also <<sec:controlling_dependency_caching_programmatically,change the cache expiry times in your build programmatically>> using the resolution strategy.
+By default, Gradle caches dynamic versions and changing modules for 24 hours. During that time frame Gradle does not contact any of the declared, remote repositories for new versions. If you want Gradle to check the remote repository more frequently or with every execution of your build, then you will need to change the time to live (TTL) threshold.
+
+[NOTE]
+====
+Using a short TTL threshold for dynamic or changing versions may result in longer build times due to the increased number of HTTP(s) calls.
+====
+
+You can override the default cache modes using <<sec:controlling_dependency_caching_command_line,command line options>>. You can also <<sec:controlling_dependency_caching_programmatically,change the cache expiry times in your build programmatically>> using the resolution strategy.
 
 [[sec:controlling_dependency_caching_programmatically]]
 === Controlling dependency caching programmatically
