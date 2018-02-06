@@ -13,7 +13,6 @@ open class IsolatedTestKitDir : ForcefullyDeletedTemporaryFolder() {
     private
     var previous: String? = null
 
-
     override fun before() {
         super.before()
         isolateTestKitDir()
@@ -23,7 +22,6 @@ open class IsolatedTestKitDir : ForcefullyDeletedTemporaryFolder() {
         restoreTestKitDir()
         super.after()
     }
-
 
     private
     fun isolateTestKitDir() {
