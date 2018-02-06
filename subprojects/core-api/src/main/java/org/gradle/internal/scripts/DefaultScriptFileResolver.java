@@ -27,9 +27,9 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     @Override
     public File resolveScriptFile(File dir, String basename) {
         for (String extension : ScriptingLanguages.EXTENSIONS) {
-            File scriptFile = new File(dir, basename + extension);
-            if (scriptFile.isFile()) {
-                return scriptFile;
+            File candidate = new File(dir, basename + extension);
+            if (candidate.isFile()) {
+                return candidate;
             }
         }
         return null;
@@ -41,13 +41,13 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
         if (candidates == null || candidates.length == 0) {
             return emptyList();
         }
-        List<File> files = new ArrayList<File>(candidates.length);
-        for (File file : candidates) {
-            if (file.isFile() && hasScriptExtension(file)) {
-                files.add(file);
+        List<File> found = new ArrayList<File>(candidates.length);
+        for (File candidate : candidates) {
+            if (candidate.isFile() && hasScriptExtension(candidate)) {
+                found.add(candidate);
             }
         }
-        return files;
+        return found;
     }
 
     private boolean hasScriptExtension(File file) {
