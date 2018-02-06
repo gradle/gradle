@@ -17,8 +17,7 @@
 package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.mutator.ApplyChangeToNativeSourceFileMutator
-import spock.lang.Ignore
+import org.gradle.performance.mutator.AbstractFileChangeMutator
 import spock.lang.Unroll
 import spock.util.environment.OperatingSystem
 
@@ -85,14 +84,13 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         'mediumSwiftMulti' | '1G'
     }
 
-    @Ignore
     @Unroll
-    def "assemble with #changeType file change on #testProject"() {
+    def "incremental compile on #testProject"() {
         given:
         runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
-        runner.addBuildExperimentListener(new ApplyChangeToNativeSourceFileMutator(fileToChange))
+        runner.addBuildExperimentListener(new ChangeSwiftFileMutator(fileToChange))
 
         when:
         def result = runner.run()
@@ -101,9 +99,24 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject   | maxMemory | fileToChange
-        "mediumSwiftMulti" | '1g'      | 'project101/src/main/public/project101lib4.h'
-        changeType = fileToChange.endsWith('.h') ? 'header' : 'source'
+        testProject        | maxMemory | fileToChange
+        "mediumSwiftMulti" | '1g'      | 'lib6api3/src/main/swift/Lib6Api3Impl2Api.swift'
+    }
+
+    private static class ChangeSwiftFileMutator extends AbstractFileChangeMutator {
+
+        ChangeSwiftFileMutator(String sourceFilePath) {
+            super(sourceFilePath)
+            if (!sourceFilePath.endsWith('.swift')) {
+                throw new IllegalArgumentException('Can only modify Swift source')
+            }
+        }
+
+        @Override
+        protected void applyChangeTo(StringBuilder text) {
+            def newText = text.replaceFirst(/Lib6Api3Impl2Api \{/, "Lib6Api3Impl2Api {\n    var ${uniqueText} : int = 0")
+            text.replace(0, text.length(), newText)
+        }
     }
 
 }
