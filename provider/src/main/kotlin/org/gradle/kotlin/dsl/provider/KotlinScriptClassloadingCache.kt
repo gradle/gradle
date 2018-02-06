@@ -20,14 +20,16 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 
-import org.gradle.internal.Cast
+import org.gradle.internal.Cast.uncheckedCast
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.support.loggerFor
 
 import java.io.File
+
 import java.lang.ref.WeakReference
+
 import javax.inject.Inject
 
 
@@ -50,24 +52,28 @@ class KotlinScriptClassloadingCache @Inject constructor(cacheFactory: CrossBuild
     fun <T> loadScriptClass(
         scriptBlock: ScriptBlock<T>,
         parentClassLoader: ClassLoader,
-        scopeFactory: () -> ClassLoaderScope,
-        compilation: (ScriptBlock<T>) -> CompiledScript<T>
-    ): LoadedScriptClass<T> {
+        createClassLoaderScope: () -> ClassLoaderScope,
+        compile: (ScriptBlock<T>) -> CompiledScript<T>): LoadedScriptClass<T> {
 
-        val key = ScriptCacheKey(scriptBlock.scriptTemplate.qualifiedName!!, scriptBlock.sourceHash, parentClassLoader)
+        val key = cacheKeyFor(scriptBlock, parentClassLoader)
         val cached = cache.get(key)
         if (cached != null) {
-            return Cast.uncheckedCast<LoadedScriptClass<T>>(cached)
+            return uncheckedCast(cached)
         }
 
-        val compiledScript = compilation(scriptBlock)
+        val compiledScript = compile(scriptBlock)
 
-        logger.debug("Loading {} from {}", scriptBlock.scriptTemplate.simpleName, scriptBlock.displayName)
-        val scriptClass = classFrom(compiledScript, scopeFactory())
+        logClassloadingOf(scriptBlock)
+        val scriptClass = classFrom(compiledScript, createClassLoaderScope())
+
         return LoadedScriptClass(compiledScript, scriptClass).also {
             cache.put(key, it)
         }
     }
+
+    private
+    fun <T> cacheKeyFor(scriptBlock: ScriptBlock<T>, parentClassLoader: ClassLoader) =
+        ScriptCacheKey(scriptBlock.scriptTemplate.qualifiedName!!, scriptBlock.sourceHash, parentClassLoader)
 
     private
     fun classFrom(compiledScript: CompiledScript<*>, scope: ClassLoaderScope): Class<*> =
@@ -80,7 +86,12 @@ class KotlinScriptClassloadingCache @Inject constructor(cacheFactory: CrossBuild
             .local(DefaultClassPath(location))
             .lock()
             .localClassLoader
+
+    private
+    fun <T> logClassloadingOf(scriptBlock: ScriptBlock<T>) =
+        logger.debug("Loading {} from {}", scriptBlock.scriptTemplate.simpleName, scriptBlock.displayName)
 }
+
 
 private
 class ScriptCacheKey(
@@ -89,7 +100,7 @@ class ScriptCacheKey(
     parentClassLoader: ClassLoader) {
 
     private
-    val parentClassLoader: WeakReference<ClassLoader> = WeakReference(parentClassLoader)
+    val parentClassLoader = WeakReference(parentClassLoader)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) {
@@ -98,13 +109,14 @@ class ScriptCacheKey(
         if (other == null || this::class != other::class) {
             return false
         }
-        val key = other as ScriptCacheKey
+        val that = other as ScriptCacheKey
         val thisParentLoader = parentClassLoader.get()
-        val otherParentLoader = key.parentClassLoader.get()
-        return (thisParentLoader != null && otherParentLoader != null
-            && thisParentLoader == otherParentLoader
-            && templateId == key.templateId
-            && sourceHash == key.sourceHash)
+        val thatParentLoader = that.parentClassLoader.get()
+        return thisParentLoader != null
+            && thatParentLoader != null
+            && thisParentLoader == thatParentLoader
+            && templateId == that.templateId
+            && sourceHash == that.sourceHash
     }
 
     override fun hashCode(): Int {
