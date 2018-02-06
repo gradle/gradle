@@ -23,7 +23,6 @@ import org.gradle.api.internal.plugins.PluginAwareInternal
 import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 
 import org.gradle.kotlin.dsl.get
@@ -37,8 +36,6 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
 import org.jetbrains.kotlin.com.intellij.openapi.util.text.StringUtilRt.convertLineSeparators
-
-import java.io.File
 
 import java.lang.reflect.InvocationTargetException
 
@@ -284,11 +281,6 @@ class KotlinBuildScriptCompiler(
         }
 
     private
-    fun classFrom(compiledScript: CompiledScript<*>, scope: ClassLoaderScope): Class<*> =
-        classLoaderFor(compiledScript.location, scope)
-            .loadClass(compiledScript.className)
-
-    private
     fun scriptClassLoaderScopeWith(accessorsClassPath: ClassPath) =
         targetScope
             .createChild(classLoaderScopeIdFor("script"))
@@ -309,13 +301,6 @@ class KotlinBuildScriptCompiler(
     private
     fun classLoaderScopeIdFor(stage: String) =
         "kotlin-dsl:$scriptPath:$stage"
-
-    private
-    fun classLoaderFor(location: File, scope: ClassLoaderScope) =
-        scope
-            .local(DefaultClassPath(location))
-            .lock()
-            .localClassLoader
 
     private
     fun <T : Any> instantiate(scriptClass: Class<*>, targetType: KClass<*>, target: T) {
