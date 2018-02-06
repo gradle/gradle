@@ -224,7 +224,6 @@ class KotlinBuildScriptCompiler(
             compileScriptBlock(scriptBlock, buildscriptBlockCompilationClassPath)
         }
 
-
     private
     fun scriptBlockForPlugins(pluginsRange: IntRange, scriptTemplate: KClass<*>) =
         script.linePreservingSubstring_(pluginsRange).let { (lineNumber, source) ->
