@@ -20,11 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.Requires
-import spock.lang.Ignore
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-@Ignore
 @Requires([KOTLIN_SCRIPT])
 class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
@@ -93,8 +91,12 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds 'hello'
         result.output.contains("Hello!")
+
+        cleanup: // wait for all daemons to shutdown so the test dir can be deleted
+        executer.cleanup()
     }
 
+    @LeaksFileHandles
     def 'can apply Kotlin script from url'() {
         given:
         executer.requireOwnGradleUserHomeDir() //we need an empty external resource cache
@@ -127,6 +129,9 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds 'hello'
         result.output.contains("Hello!")
+
+        cleanup: // wait for all daemons to shutdown so the test dir can be deleted
+        executer.cleanup()
     }
 
     def 'can query KotlinBuildScriptModel'() {
