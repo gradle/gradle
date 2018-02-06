@@ -279,6 +279,8 @@ dependencies {
     coreRuntimeExtensions patchedExternalModules
 }
 
+ext.allCoreRuntimeExtensions = configurations.coreRuntimeExtensions.allDependencies
+
 import org.gradle.modules.PatchExternalModules
 
 task patchExternalModules(type: PatchExternalModules) {
