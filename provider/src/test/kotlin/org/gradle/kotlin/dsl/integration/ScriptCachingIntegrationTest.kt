@@ -295,42 +295,53 @@ sealed class CachedScript {
 }
 
 private
+object Descriptions {
+    val initializationScript = "initialization script"
+    val settingsFile = "settings file"
+    val buildFile = "build file"
+    val script = "script"
+    val initscriptBlock = "initscript block"
+    val buildscriptBlock = "buildscript block"
+    val pluginsBlock = "plugins block"
+}
+
+private
 fun cachedInitializationFile(file: File, initscript: Boolean = false) =
     CachedScript.WholeFile(
-        buildscript = CachedScript.CompilationStage("initscript block", file, KotlinInitscriptBlock::class, initscript),
-        body = CachedScript.CompilationStage("initialization script", file, KotlinInitScript::class))
+        buildscript = CachedScript.CompilationStage(Descriptions.initscriptBlock, file, KotlinInitscriptBlock::class, initscript),
+        body = CachedScript.CompilationStage(Descriptions.initializationScript, file, KotlinInitScript::class))
 
 private
 fun cachedGradleScript(file: File) =
     CachedScript.WholeFile(
-        buildscript = CachedScript.CompilationStage("initscript block", file, KotlinInitscriptBlock::class, false),
-        body = CachedScript.CompilationStage("script", file, KotlinInitScript::class))
+        buildscript = CachedScript.CompilationStage(Descriptions.initscriptBlock, file, KotlinInitscriptBlock::class, false),
+        body = CachedScript.CompilationStage(Descriptions.script, file, KotlinInitScript::class))
 
 private
 fun cachedSettingsFile(file: File, buildscript: Boolean = false) =
     CachedScript.WholeFile(
-        buildscript = CachedScript.CompilationStage("buildscript block", file, KotlinSettingsBuildscriptBlock::class, buildscript),
-        body = CachedScript.CompilationStage("settings file", file, KotlinSettingsScript::class))
+        buildscript = CachedScript.CompilationStage(Descriptions.buildscriptBlock, file, KotlinSettingsBuildscriptBlock::class, buildscript),
+        body = CachedScript.CompilationStage(Descriptions.settingsFile, file, KotlinSettingsScript::class))
 
 private
 fun cachedSettingsScript(file: File) =
     CachedScript.WholeFile(
-        buildscript = CachedScript.CompilationStage("buildscript block", file, KotlinSettingsBuildscriptBlock::class, false),
-        body = CachedScript.CompilationStage("script", file, KotlinSettingsScript::class))
+        buildscript = CachedScript.CompilationStage(Descriptions.buildscriptBlock, file, KotlinSettingsBuildscriptBlock::class, false),
+        body = CachedScript.CompilationStage(Descriptions.script, file, KotlinSettingsScript::class))
 
 private
 fun cachedBuildFile(file: File, buildscript: Boolean = false, plugins: Boolean = false) =
     CachedScript.WholeFile(
-        buildscript = CachedScript.CompilationStage("buildscript block", file, KotlinBuildscriptBlock::class, buildscript),
-        plugins = CachedScript.CompilationStage("plugins block", file, KotlinPluginsBlock::class, plugins),
-        body = CachedScript.CompilationStage("build file", file, KotlinBuildScript::class))
+        buildscript = CachedScript.CompilationStage(Descriptions.buildscriptBlock, file, KotlinBuildscriptBlock::class, buildscript),
+        plugins = CachedScript.CompilationStage(Descriptions.pluginsBlock, file, KotlinPluginsBlock::class, plugins),
+        body = CachedScript.CompilationStage(Descriptions.buildFile, file, KotlinBuildScript::class))
 
 private
 fun cachedProjectScript(file: File) =
     CachedScript.WholeFile(
-        buildscript = CachedScript.CompilationStage("buildscript block", file, KotlinBuildscriptBlock::class, false),
-        plugins = CachedScript.CompilationStage("plugins block", file, KotlinPluginsBlock::class, false),
-        body = CachedScript.CompilationStage("script", file, KotlinBuildScript::class))
+        buildscript = CachedScript.CompilationStage(Descriptions.buildscriptBlock, file, KotlinBuildscriptBlock::class, false),
+        plugins = CachedScript.CompilationStage(Descriptions.pluginsBlock, file, KotlinPluginsBlock::class, false),
+        body = CachedScript.CompilationStage(Descriptions.script, file, KotlinBuildScript::class))
 
 
 private
