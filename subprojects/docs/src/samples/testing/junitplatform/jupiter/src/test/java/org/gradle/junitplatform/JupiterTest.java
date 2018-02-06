@@ -16,6 +16,8 @@
 
 package org.gradle.junitplatform;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.*;
 
 public class JupiterTest {
@@ -43,5 +45,13 @@ public class JupiterTest {
     @Test
     public void disabled() {
         throw new RuntimeException("This won't happen!");
+    }
+
+    @Test
+    @DisplayName("TEST 1")
+    @Tag("my-tag")
+    void test1(TestInfo testInfo) {
+        assertEquals("TEST 1", testInfo.getDisplayName());
+        assertTrue(testInfo.getTags().contains("my-tag"));
     }
 }

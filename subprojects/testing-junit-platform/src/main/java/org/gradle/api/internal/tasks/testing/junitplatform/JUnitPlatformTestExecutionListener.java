@@ -31,7 +31,6 @@ import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
-import static org.gradle.api.internal.tasks.testing.junit.JUnitTestEventAdapter.getIgnoredMethodsFromIgnoredClass;
 import static org.gradle.api.internal.tasks.testing.junitplatform.VintageTestNameAdapter.*;
 import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
 
@@ -61,25 +60,13 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @Override
     public void executionSkipped(TestIdentifier testIdentifier, String reason) {
-        if (isClass(testIdentifier)) {
-            reportTestClassStarted(testIdentifier);
-            if (isVintageEngine(testIdentifier)) {
-                processIgnoredClass(testIdentifier);
-            } else {
-                currentTestPlan.getChildren(testIdentifier).forEach(child -> executionSkipped(child, reason));
-            }
-            reportTestClassFinished(testIdentifier, TestExecutionResult.aborted(null));
-        } else if (isMethod(testIdentifier)) {
+        if (isLeafTest(testIdentifier)) {
             adapter.testIgnored(getDescriptor(testIdentifier));
+        } else if (isClass(testIdentifier)) {
+            reportTestClassStarted(testIdentifier);
+            currentTestPlan.getChildren(testIdentifier).forEach(child -> executionSkipped(child, reason));
+            reportTestClassFinished(testIdentifier, TestExecutionResult.aborted(null));
         }
-    }
-
-    private void processIgnoredClass(TestIdentifier id) {
-        // Here we used legacy IgnoredTestDescriptorProvider to get ignored methods from
-        // ignored class. This should be improved once 5.1RC is released:
-        // https://github.com/junit-team/junit5/issues/1277
-        Class testClass = ClassSource.class.cast(id.getSource().get()).getJavaClass();
-        getIgnoredMethodsFromIgnoredClass(testClass.getClassLoader(), testClass.getName(), idGenerator).forEach(adapter::testIgnored);
     }
 
     @Override

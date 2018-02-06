@@ -16,7 +16,7 @@
 
 package org.gradle.testing.fixture
 
-import org.gradle.api.JavaVersion;
+import org.gradle.api.JavaVersion
 
 /**
  * NEWEST is JUnit 4 series, i.e. junit:junit:4.12
@@ -26,7 +26,7 @@ import org.gradle.api.JavaVersion;
 class JUnitCoverage {
     final static String NEWEST = '4.12'
     final static String JUPITER = 'Jupiter'
-    final static String VINTAGE = '5.1.0-M2'
+    final static String VINTAGE = '5.1.0-RC1'
     final static String[] LARGE_COVERAGE = ['4.0', '4.4', '4.8.2', NEWEST]
     final static String[] IGNORE_ON_CLASS = ['4.4', '4.8.2', NEWEST]
     final static String[] ASSUMPTIONS = ['4.5', NEWEST]

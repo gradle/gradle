@@ -25,8 +25,6 @@ import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +55,7 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     @Override
-    public void testIgnored(Description description) {
+    public void testIgnored(Description description) throws Exception {
         if (methodName(description) == null) {
             // An @Ignored class, ignore the event. We don't get testIgnored events for each method, so we have
             // generate them on our own
@@ -67,21 +65,12 @@ public class JUnitTestEventAdapter extends RunListener {
         }
     }
 
-    private void processIgnoredClass(Description description) {
-        ClassLoader classLoader = description.getClass().getClassLoader();
-        String className = className(description);
-        for (TestDescriptorInternal method : getIgnoredMethodsFromIgnoredClass(classLoader, className, idGenerator)) {
-            adapter.testIgnored(method);
-        }
-    }
-
-    public static List<TestDescriptorInternal> getIgnoredMethodsFromIgnoredClass(ClassLoader classLoader, String className, IdGenerator idGenerator) {
+    private void processIgnoredClass(Description description) throws Exception {
         IgnoredTestDescriptorProvider provider = new IgnoredTestDescriptorProvider();
-        List<TestDescriptorInternal> children = new ArrayList<TestDescriptorInternal>();
-        for (Description childDescription : provider.getAllDescriptions(classLoader, className)) {
-            children.add(descriptor(idGenerator.generateId(), childDescription));
+        String className = className(description);
+        for (Description childDescription : provider.getAllDescriptions(description, className)) {
+            testIgnored(childDescription);
         }
-        return children;
     }
 
     @Override
@@ -89,7 +78,7 @@ public class JUnitTestEventAdapter extends RunListener {
         adapter.testFinished(description);
     }
 
-    private static TestDescriptorInternal descriptor(Object id, Description description) {
+    private TestDescriptorInternal descriptor(Object id, Description description) {
         return new DefaultTestDescriptor(id, className(description), methodName(description));
     }
 

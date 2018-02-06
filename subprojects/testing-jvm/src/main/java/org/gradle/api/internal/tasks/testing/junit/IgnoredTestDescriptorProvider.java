@@ -24,10 +24,10 @@ import org.junit.runner.Runner;
 import java.util.List;
 
 public class IgnoredTestDescriptorProvider {
-    List<Description> getAllDescriptions(ClassLoader classLoader, String className) {
+    List<Description> getAllDescriptions(Description description, String className) {
         final AllExceptIgnoredTestRunnerBuilder allExceptIgnoredTestRunnerBuilder = new AllExceptIgnoredTestRunnerBuilder();
         try {
-            final Class<?> testClass = classLoader.loadClass(className);
+            final Class<?> testClass = description.getClass().getClassLoader().loadClass(className);
             Runner runner = allExceptIgnoredTestRunnerBuilder.runnerForClass(testClass);
             if (runner == null) {
                 //fall back to default runner
