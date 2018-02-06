@@ -21,9 +21,37 @@ With [dependency constraints](userguide/managing_transitive_dependencies.html#se
 
 In the example, the version of `commons-codec` that is brought in transitively is `1.9`. With the constraint, we express that we need at lease `1.11` and Gradle will now pick that version during dependency resolution.
 
-### Advanced POM support (preview)
+### Support for optional dependencies in POM consumption
 
-Gradle now supports [additional features for modules with POM metadata](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/preview-features.adoc). This includes support for _optional dependencies_, _BOM import_ and _compile/runtime scope separation_.
+Gradle now creates a dependency constraint for each dependency declaration in a POM file with `<optional>true</optional>`. This constraint will produce the expected result for an optional dependency: if the dependency module is brought in by another, non-optional dependency declaration, then the constraint will apply when choosing the version for that dependency (e.g., if the optional dependency defines a higher version, that one is chosen).
+
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
+
+### BOM import
+
+Gradle now [provides support](userguide/managing_transitive_dependencies.html#sec:bom_import) for importing [bill of materials (BOM) files](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies), which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies. It works by declaring a dependency on a BOM.
+
+    dependencies {
+        // import a BOM
+        implementation 'org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE'
+    
+        // define dependencies without versions
+        implementation 'com.google.code.gson:gson'
+        implementation 'dom4j:dom4j'
+    }
+
+Here, for example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
+
+_Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
+
+### Compile/runtime scope separation in POM consumption
+
+Since Gradle 1.0, `runtime` scoped dependencies have been included in the Java compile classpath, which has some drawbacks:
+
+- The compile classpath is much larger than it needs to be, slowing down compilation.
+- The compile classpath includes `runtime` files that do not impact compilation, resulting in unnecessary re-compilation when these files change.
+
+Now, if this new behavior is turned on, the Java and Java Library plugins both honor the separation of compile and runtime scopes. Meaning that the compile classpath only includes `compile` scoped dependencies, while the runtime classpath adds the `runtime` scoped dependencies as well. This is in particular useful if you develop and publish Java libraries with Gradle where the api/implementation dependencies separation is reflected in the published scopes.
 
 _Note:_ This is a _Gradle 5.0 feature preview_, which means it is a potentially breaking change that will be activated by default in Gradle 5.0. It can be turned on in Gradle 4.6+ by setting `org.gradle.advancedpomsupport=true` in _gradle.properties_.
 

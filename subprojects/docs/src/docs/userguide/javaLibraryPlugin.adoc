@@ -55,6 +55,14 @@ Dependencies appearing in the `api` configurations will be transitively exposed 
 The `compile` configuration still exists but should not be used as it will not offer the guarantees that the `api` and `implementation` configurations provide.
 ====
 
+If your build consumes a published module with POM metadata, the Java and Java Library plugins both honor api and implementation separation through the scopes used in the pom. Meaning that the compile classpath only includes `compile` scoped dependencies, while the runtime classpath adds the `runtime` scoped dependencies as well.
+
+This often does not have an effect on modules published with Maven, where the POM that defines the project is directly published as metadata. There, the compile scope includes both dependencies that were required to compile the project (i.e. implementation dependencies) and dependencies required to compile against the published library (i.e. API dependencies). For most published libraries, this means that all dependencies belong to the compile scope. However, as mentioned above, if the library is published with Gradle, the produced POM file only puts `api` dependencies into the compile scope and the remaining `implementation` dependencies into the runtime scope.
+
+[NOTE]
+====
+Separating compile and runtime scope of modules is active by default in Gradle 5.0+. In Gradle 4.6+, you need to activate it by setting `org.gradle.advancedpomsupport=true` in gradle.properties.
+====
 
 [[sec:java_library_recognizing_dependencies]]
 === Recognizing API and implementation dependencies
