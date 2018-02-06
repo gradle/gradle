@@ -21,10 +21,13 @@ import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
 import org.gradle.StartParameter;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.progress.BuildOperationListener;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.progress.BuildOperationListenerManager;
 import org.gradle.util.GFileUtils;
 
@@ -80,10 +83,10 @@ public class BuildOperationTrace implements Stoppable {
     private final OutputStream logOutputStream;
     private final BuildOperationListenerManager listenerManager;
 
-    private BuildOperationListener listener;
+    private SerializingBuildOperationListener listener;
 
-    public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager listenerManager) {
-        this.listenerManager = listenerManager;
+    public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager, ListenerManager listenerManager) {
+        this.listenerManager = buildOperationListenerManager;
 
         Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
         String basePath = sysProps.get(SYSPROP);
@@ -112,9 +115,32 @@ public class BuildOperationTrace implements Stoppable {
         }
 
         listener = new SerializingBuildOperationListener(logOutputStream);
-        listenerManager.addListener(listener);
-    }
+        buildOperationListenerManager.addListener(listener);
 
+        // This is a workaround for https://github.com/gradle/gradle/issues/3873
+        // Several early typed operations have `buildPath` property,
+        // the value of which can only be determined after the settings file for the build has loaded.
+        //
+        // The workaround is to buffer all operation notifications in memory until the root build's settings have loaded.
+        // This works because all possible settings files have been evaluated by the time the root one has been.
+        // This is not guaranteed to hold into the future.
+        // A proper solution would be to change the operation details/results to be
+        // truly immutable and convey values known at the time.
+        listenerManager.addListener(new BuildAdapter() {
+            @Override
+            public void projectsLoaded(Gradle gradle) {
+                if (gradle.getParent() == null) {
+                    listener.write();
+                }
+            }
+
+            // Build may have failed before getting to projectsLoaded
+            @Override
+            public void buildFinished(BuildResult result) {
+                listener.write();
+            }
+        });
+    }
 
     @Override
     public void stop() {
@@ -272,7 +298,7 @@ public class BuildOperationTrace implements Stoppable {
                             finish.resultClassName,
                             finish.failureMsg,
                             progresses,
-                            children
+                            BuildOperationRecord.ORDERING.immutableSortedCopy(children)
                         );
 
                         if (start.parentId == null) {
