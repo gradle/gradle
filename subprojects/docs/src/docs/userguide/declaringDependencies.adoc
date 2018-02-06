@@ -56,6 +56,7 @@ A recommended practice for larger projects is to declare dependencies without ve
 </sample>
 ++++
 
+[[sub:declaring_dependency_with_dynamic_version]]
 ==== Declaring a dynamic versions
 
 Projects might adopt a more aggressive approach for consuming dependencies to modules. For example you might want to always integrate the latest version of a dependency to consume cutting edge features at any given time. A _dynamic version_ allows for resolving the latest version or the latest version of a version range for a given module.
@@ -84,6 +85,7 @@ A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic d
 
 By default, Gradle caches dynamic versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<sec:controlling_caching,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
 
+[[sub:declaring_dependency_with_changing_version]]
 ==== Declaring a changing version
 
 A team might decide to implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early and often is to release a module with a so-called _changing version_. A changing version indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
