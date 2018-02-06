@@ -563,6 +563,8 @@ The task has an `ignoreFailures` property to control the behavior when tests fai
 
 The `testLogging` property allows you to configure which test events are going to be logged and at which detail level. By default, a concise message will be logged for every failed test. See api:org.gradle.api.tasks.testing.logging.TestLoggingContainer[] for how to tune test logging to your preferences.
 
+The `failFast` property allows you to cause the `test` task to fail after the first test failure instead of running all tests. When this property is true, the resulting output will only show the results of tests that have completed up to and including the failure. The command line options `--fail-fast` and `--no-fail-fast` override the value of this property in the build file.  The default value for the `failFast` property is false.
+
 [[sec:debugging]]
 ==== Debugging
 
