@@ -15,40 +15,12 @@
  */
 package org.gradle.internal.scripts;
 
-import org.gradle.scripts.ScriptingLanguage;
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class DefaultScriptFileResolver implements ScriptFileResolver {
 
-    public static ScriptFileResolver empty() {
-        return new DefaultScriptFileResolver(Collections.<String>emptyList());
-    }
-
-    public static ScriptFileResolver forDefaultScriptingLanguages() {
-        return forScriptingLanguages(ScriptingLanguages.defaultScriptLanguages());
-    }
-
-    public static ScriptFileResolver forScriptingLanguages(Iterable<ScriptingLanguage> scriptingLanguages) {
-        List<String> extensions = new ArrayList<String>();
-        for (ScriptingLanguage scriptingLanguage : scriptingLanguages) {
-            extensions.add(scriptingLanguage.getExtension());
-        }
-        return new DefaultScriptFileResolver(extensions);
-    }
-
-    private final Iterable<String> scriptingExtensions;
-
-    private DefaultScriptFileResolver(Iterable<String> scriptingExtensions) {
-        this.scriptingExtensions = scriptingExtensions;
-    }
-
-    @Override
     public File resolveScriptFile(File dir, String basename) {
-        for (String extension : scriptingExtensions) {
+        for (String extension : ScriptingLanguages.EXTENSIONS) {
             File scriptFile = new File(dir, basename + extension);
             if (scriptFile.isFile()) {
                 return scriptFile;

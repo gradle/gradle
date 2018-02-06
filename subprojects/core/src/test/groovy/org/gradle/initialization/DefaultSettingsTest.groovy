@@ -30,7 +30,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.scripts.ScriptFileResolver
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.JUnit4GroovyMockery
@@ -59,7 +58,6 @@ class DefaultSettingsTest {
     ProjectDescriptorRegistry projectDescriptorRegistry
     ServiceRegistryFactory serviceRegistryFactory
     FileResolver fileResolver
-    ScriptFileResolver scriptFileResolver
     ScriptPluginFactory scriptPluginFactory
     ScriptHandlerFactory scriptHandlerFactory
     ScriptHandler settingsScriptHandler
@@ -78,7 +76,6 @@ class DefaultSettingsTest {
         scriptSourceMock = context.mock(ScriptSource)
         gradleMock = context.mock(GradleInternal)
         serviceRegistryFactory = context.mock(ServiceRegistryFactory.class)
-        scriptFileResolver = context.mock(ScriptFileResolver.class)
         scriptPluginFactory = context.mock(ScriptPluginFactory.class)
         scriptHandlerFactory = context.mock(ScriptHandlerFactory.class)
         settingsScriptHandler = context.mock(ScriptHandler.class)
@@ -90,8 +87,6 @@ class DefaultSettingsTest {
             one(serviceRegistryFactory).createFor(with(any(Settings.class)));
             will(returnValue(settingsServices));
 
-            allowing(settingsServices).get((Type)ScriptFileResolver.class);
-            will(returnValue(scriptFileResolver));
             allowing(settingsServices).get((Type)FileResolver.class);
             will(returnValue(fileResolver));
             allowing(settingsServices).get((Type)ScriptPluginFactory.class);
@@ -103,7 +98,6 @@ class DefaultSettingsTest {
             allowing(settingsServices).get((Type)DefaultPluginManager.class);
             will(returnValue(pluginManager));
 
-            allowing(scriptFileResolver).resolveScriptFile(withParam(notNullValue()), withParam(notNullValue()));
             will(returnValue(null));
             allowing(fileResolver).resolve(withParam(notNullValue()))
             will { File file -> file.canonicalFile }

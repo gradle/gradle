@@ -23,6 +23,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.util.NameValidator;
 import org.gradle.util.Path;
@@ -63,11 +64,14 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         this.dir = dir;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.path = path(name);
+        this.scriptFileResolver = scriptFileResolver != null
+            ? scriptFileResolver
+            : new DefaultScriptFileResolver();
+
         projectDescriptorRegistry.addProject(this);
         if (parent != null) {
             parent.getChildren().add(this);
         }
-        this.scriptFileResolver = scriptFileResolver;
     }
 
     private Path path(String name) {
@@ -145,11 +149,9 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         if (buildFileName != null) {
             return new File(getProjectDir(), buildFileName);
         }
-        if (scriptFileResolver != null) {
-            File buildScriptFile = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
-            if (buildScriptFile != null) {
-                return buildScriptFile;
-            }
+        File buildScriptFile = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
+        if (buildScriptFile != null) {
+            return buildScriptFile;
         }
         return new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
     }

@@ -26,10 +26,15 @@ import java.util.List;
  */
 public final class ScriptingLanguages {
 
-    public static List<ScriptingLanguage> defaultScriptLanguages() {
-        return ImmutableList.of(
-           scriptingLanguage(".gradle", null),
-           scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory"));
+    private static final ImmutableList<ScriptingLanguage> ALL =
+        ImmutableList.of(
+            scriptingLanguage(".gradle", null),
+            scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory"));
+
+    static final ImmutableList<String> EXTENSIONS = extensionsOf(ALL);
+
+    public static List<ScriptingLanguage> all() {
+        return ALL;
     }
 
     private static ScriptingLanguage scriptingLanguage(final String extension, final String scriptPluginFactory) {
@@ -44,5 +49,13 @@ public final class ScriptingLanguages {
                 return scriptPluginFactory;
             }
         };
+    }
+
+    private static ImmutableList<String> extensionsOf(List<ScriptingLanguage> scriptingLanguages) {
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        for (ScriptingLanguage language : scriptingLanguages) {
+            builder.add(language.getExtension());
+        }
+        return builder.build();
     }
 }

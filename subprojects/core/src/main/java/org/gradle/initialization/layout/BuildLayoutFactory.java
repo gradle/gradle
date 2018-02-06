@@ -62,9 +62,7 @@ public class BuildLayoutFactory {
 
     @Nullable
     public File findExistingSettingsFileIn(File directory) {
-        return DefaultScriptFileResolver
-            .forDefaultScriptingLanguages()
-            .resolveScriptFile(directory, DEFAULT_SETTINGS_FILE_BASENAME);
+        return new DefaultScriptFileResolver().resolveScriptFile(directory, DEFAULT_SETTINGS_FILE_BASENAME);
     }
 
     BuildLayout getLayoutFor(File currentDir, File stopAt) {
