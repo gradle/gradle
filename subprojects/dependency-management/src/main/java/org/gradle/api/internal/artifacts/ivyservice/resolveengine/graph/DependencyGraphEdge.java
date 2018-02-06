@@ -38,8 +38,6 @@ public interface DependencyGraphEdge extends DependencyResult {
 
     List<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata targetConfiguration);
 
-    Iterable<? extends DependencyGraphNode> getTargets();
-
     /**
      * The original dependency instance declared in the build script, if any.
      */
