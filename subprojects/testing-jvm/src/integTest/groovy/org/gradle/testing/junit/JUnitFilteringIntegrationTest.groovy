@@ -27,7 +27,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.*
 class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
     void configureFramework() {
-        if (version == VINTAGE) {
+        if (version.toString().startsWith('Vintage')) {
             framework = "JUnitPlatform"
             dependency = "org.junit.vintage:junit-vintage-engine"
         } else {

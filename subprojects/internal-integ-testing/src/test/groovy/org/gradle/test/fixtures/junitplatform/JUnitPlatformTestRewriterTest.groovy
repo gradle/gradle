@@ -22,8 +22,6 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static JUnitPlatformTestRewriter.LATEST_JUPITER_VERSION
-
 @CleanupTestDirectory
 class JUnitPlatformTestRewriterTest extends Specification {
 
@@ -36,11 +34,11 @@ class JUnitPlatformTestRewriterTest extends Specification {
 dependencies { testCompile 'junit:junit:4.12' }
 '''
         when:
-        JUnitPlatformTestRewriter.rewriteBuildFileWithJupiter(temporaryFolder.testDirectory)
+        JUnitPlatformTestRewriter.rewriteBuildFileWithJupiter(temporaryFolder.testDirectory,'5.1.0')
 
         then:
         temporaryFolder.testDirectory.file('build.gradle').text.contains(
-            "testCompile 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'")
+            "testCompile 'org.junit.jupiter:junit-jupiter-api:5.1.0','org.junit.jupiter:junit-jupiter-engine:5.1.0'")
     }
 
     @Unroll

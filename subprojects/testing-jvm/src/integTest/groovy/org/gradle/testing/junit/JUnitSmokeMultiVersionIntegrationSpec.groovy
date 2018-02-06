@@ -19,11 +19,12 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 
-@TargetCoverage({ JUnitCoverage.LARGE_COVERAGE })
+import static org.gradle.testing.fixture.JUnitCoverage.*
+
+@TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE })
 class JUnitSmokeMultiVersionIntegrationSpec extends JUnitMultiVersionIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)

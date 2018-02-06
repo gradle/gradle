@@ -21,7 +21,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.LATEST_JUPITER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.*
 import static org.hamcrest.Matchers.containsString
 
 @Requires(TestPrecondition.JDK8_OR_LATER)

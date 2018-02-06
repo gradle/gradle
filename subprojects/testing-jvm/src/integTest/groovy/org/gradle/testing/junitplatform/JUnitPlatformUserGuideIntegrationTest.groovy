@@ -19,7 +19,7 @@ package org.gradle.testing.junitplatform
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.hamcrest.Matchers
 
-import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.LATEST_JUPITER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 
 /**
  * These test cases are all from http://junit.org/junit5/docs/current/user-guide

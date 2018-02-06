@@ -46,8 +46,8 @@ class JUnitPlatformTestRewriter {
                                'Assume.': 'Assumptions.',
     ]
 
-    static rewriteWithJupiter(File projectDir) {
-        rewriteBuildFileWithJupiter(projectDir)
+    static rewriteWithJupiter(File projectDir, String dependencyVersion) {
+        rewriteBuildFileWithJupiter(projectDir, dependencyVersion)
         rewriteJavaFilesWithJupiterAnno(projectDir)
     }
 
@@ -62,16 +62,16 @@ class JUnitPlatformTestRewriter {
         }
     }
 
-    static rewriteWithVintage(File projectDir) {
-        rewriteBuildFileWithVintage(projectDir)
+    static rewriteWithVintage(File projectDir, String dependencyVersion) {
+        rewriteBuildFileWithVintage(projectDir, dependencyVersion)
     }
 
-    static rewriteBuildFileWithJupiter(File buildFile) {
-        rewriteBuildFileInDir(buildFile, "org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}")
+    static rewriteBuildFileWithJupiter(File buildFile, String dependencyVersion) {
+        rewriteBuildFileInDir(buildFile, "org.junit.jupiter:junit-jupiter-api:${dependencyVersion}','org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}")
     }
 
-    static rewriteBuildFileWithVintage(File buildFile) {
-        rewriteBuildFileInDir(buildFile, "org.junit.vintage:junit-vintage-engine:${LATEST_VINTAGE_VERSION}")
+    static rewriteBuildFileWithVintage(File buildFile, String dependencyVersion) {
+        rewriteBuildFileInDir(buildFile, "org.junit.vintage:junit-vintage-engine:${dependencyVersion}")
     }
 
     static rewriteJavaFilesWithJupiterAnno(File rootProject) {
