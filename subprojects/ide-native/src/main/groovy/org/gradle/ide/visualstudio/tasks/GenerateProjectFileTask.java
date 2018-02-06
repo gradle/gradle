@@ -58,7 +58,7 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
                     return "\"" + getTransformer().transform(gradlew) + "\"" + args;
                 }
 
-                return "gradle" + args;
+                return "\"gradle\"" + args;
             }
         });
     }

@@ -130,7 +130,7 @@ model {
         projectFile.projectConfigurations.values().each {
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle :installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand.endsWith("gradle\" :installMain${it.name.capitalize()}Executable")
             assert it.outputFile == OperatingSystem.current().getExecutableName("build/install/main/${it.outputDir}/lib/main")
         }
 
@@ -296,7 +296,7 @@ model {
         dllProjectFile.projectConfigurations.keySet() == projectConfigurations
         dllProjectFile.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle :main${it.name.capitalize()}SharedLibrary"
+            assert it.buildCommand.endsWith("gradle\" :main${it.name.capitalize()}SharedLibrary")
             assert it.outputFile == OperatingSystem.current().getSharedLibraryName("build/libs/main/shared/${it.outputDir}/main")
         }
 
@@ -306,7 +306,7 @@ model {
         libProjectFile.projectConfigurations.keySet() == projectConfigurations
         libProjectFile.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle :main${it.name.capitalize()}StaticLibrary"
+            assert it.buildCommand.endsWith("gradle\" :main${it.name.capitalize()}StaticLibrary")
             assert it.outputFile == OperatingSystem.current().getStaticLibraryName("build/libs/main/static/${it.outputDir}/main")
         }
 

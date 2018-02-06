@@ -20,8 +20,10 @@ import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.FiltersFile
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import spock.lang.IgnoreIf
 
 class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioIntegrationSpec {
 
@@ -53,6 +55,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
 """
     }
 
+    @IgnoreIf({GradleContextualExecuter.daemon})
     def "can specify location of generated files"() {
         when:
         hostGradleWrapperFile << "dummy wrapper"

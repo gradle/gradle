@@ -19,10 +19,12 @@ import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import spock.lang.IgnoreIf
 
 class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     private final Set<String> projectConfigurations = ['debug', 'release'] as Set
@@ -95,7 +97,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers", "../lib/src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable")
         }
 
         and:
@@ -104,7 +106,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         dllProject.projectConfigurations.keySet() == projectConfigurations
         dllProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :lib:hello${it.name.capitalize()}SharedLibrary"
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:hello${it.name.capitalize()}SharedLibrary")
         }
 
         and:
@@ -113,7 +115,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         libProject.projectConfigurations.keySet() == projectConfigurations
         libProject.projectConfigurations.values().each {
             assert it.includePath == filePath("src/hello/headers")
-            assert it.buildCommand == "gradle -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary"
+            assert it.buildCommand.endsWith("gradle\" -p \"..\" :lib:hello${it.name.capitalize()}StaticLibrary")
         }
 
         and:
@@ -525,6 +527,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         greetLibProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
     }
 
+    @IgnoreIf({GradleContextualExecuter.daemon})
     def "detects gradle wrapper and uses in vs project"() {
         when:
         hostGradleWrapperFile << "dummy wrapper"
@@ -548,6 +551,33 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         final exeProject = projectFile("exe/exe_mainExe.vcxproj")
         exeProject.projectConfigurations.values().each {
             assert it.buildCommand == "\"../${hostGradleWrapperFile.name}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+        }
+    }
+
+    @IgnoreIf({!GradleContextualExecuter.daemon})
+    def "detects executing gradle distribution and uses in vs project"() {
+        when:
+        hostGradleWrapperFile << "dummy wrapper"
+
+        settingsFile << """
+            include ':exe'
+        """
+        buildFile << """
+            project(':exe') {
+                model {
+                    components {
+                        main(NativeExecutableSpec)
+                    }
+                }
+            }
+        """
+        and:
+        run ":visualStudio"
+
+        then:
+        final exeProject = projectFile("exe/exe_mainExe.vcxproj")
+        exeProject.projectConfigurations.values().each {
+            assert it.buildCommand == "\"${executer.distribution.gradleHomeDir.file('bin/gradle')}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
         }
     }
 
