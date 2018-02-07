@@ -18,11 +18,6 @@ package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.GradleInvocationSpec
-import org.gradle.performance.measure.MeasuredOperation
 
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
@@ -42,7 +37,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
         runner.targetVersions = [baseline]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", "-PnoExcludes"]
-        //runner.addBuildExperimentListener(createArgsTweaker(baseline))
 
         when:
         def result = runner.run()
@@ -63,7 +57,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
         runner.targetVersions = [baseline]
         runner.args = ["-PnoExcludes"]
-        //runner.addBuildExperimentListener(createArgsTweaker(baseline))
 
         when:
         def result = runner.run()
@@ -82,7 +75,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
         runner.targetVersions = [baseline]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", "-PnoExcludes", "--parallel"]
-        //runner.addBuildExperimentListener(createArgsTweaker(baseline))
 
         when:
         def result = runner.run()
@@ -134,28 +126,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
 
         cleanup:
         stopServer()
-    }
-
-    private static BuildExperimentListener createArgsTweaker(String baseline) {
-        new BuildExperimentListener() {
-            @Override
-            void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
-                GradleInvocationSpec invocation = experimentSpec.invocation as GradleInvocationSpec
-                if (invocation.gradleDistribution.version.version != baseline) {
-                    invocation.args << '-Dorg.gradle.advancedpomsupport=true'
-                }
-            }
-
-            @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-
-            }
-
-            @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-
-            }
-        }
     }
 
 }
