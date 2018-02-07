@@ -35,11 +35,13 @@ import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.swiftpm.Package;
 import org.gradle.swiftpm.internal.AbstractProduct;
+import org.gradle.swiftpm.internal.BranchDependency;
 import org.gradle.swiftpm.internal.DefaultExecutableProduct;
 import org.gradle.swiftpm.internal.DefaultLibraryProduct;
 import org.gradle.swiftpm.internal.DefaultPackage;
 import org.gradle.swiftpm.internal.DefaultTarget;
 import org.gradle.swiftpm.internal.Dependency;
+import org.gradle.swiftpm.internal.VersionDependency;
 import org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlSpec;
@@ -206,10 +208,15 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                     if (vcsSpec == null || !(vcsSpec instanceof GitVersionControlSpec)) {
                         throw new InvalidUserDataException(String.format("Cannot determine the Git URL for dependency on %s:%s.", dependency.getGroup(), dependency.getName()));
                     }
+                    GitVersionControlSpec gitSpec = (GitVersionControlSpec) vcsSpec;
+
                     // TODO - need to map version selector to Swift PM selector
                     String versionSelector = externalDependency.getVersion();
-                    GitVersionControlSpec gitSpec = (GitVersionControlSpec) vcsSpec;
-                    dependencies.add(new Dependency(gitSpec.getUrl(), versionSelector));
+                    if ("latest.integration".equals(versionSelector)) {
+                        dependencies.add(new BranchDependency(gitSpec.getUrl(), "master"));
+                    } else {
+                        dependencies.add(new VersionDependency(gitSpec.getUrl(), versionSelector));
+                    }
                     target.getRequiredProducts().add(externalDependency.getName());
                 }
             }

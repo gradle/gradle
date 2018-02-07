@@ -16,17 +16,17 @@
 
 package org.gradle.swiftpm.internal;
 
-import java.io.Serializable;
 import java.net.URI;
 
-abstract public class Dependency implements Serializable {
-    private final URI url;
+public class BranchDependency extends Dependency {
+    private final String branch;
 
-    public Dependency(URI url) {
-        this.url = url;
+    public BranchDependency(URI url, String branch) {
+        super(url);
+        this.branch = branch;
     }
 
-    public URI getUrl() {
-        return url;
+    public String getBranch() {
+        return branch;
     }
 }

@@ -27,10 +27,12 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.swiftpm.Package;
 import org.gradle.swiftpm.internal.AbstractProduct;
+import org.gradle.swiftpm.internal.BranchDependency;
 import org.gradle.swiftpm.internal.DefaultLibraryProduct;
 import org.gradle.swiftpm.internal.DefaultPackage;
 import org.gradle.swiftpm.internal.DefaultTarget;
 import org.gradle.swiftpm.internal.Dependency;
+import org.gradle.swiftpm.internal.VersionDependency;
 
 import java.io.File;
 import java.io.IOException;
@@ -110,9 +112,16 @@ public class GenerateSwiftPackageManagerManifest extends DefaultTask {
                         } else {
                             writer.print(dependency.getUrl());
                         }
-                        writer.print("\", from: \"");
-                        writer.print(dependency.getVersion());
-                        writer.println("\"),");
+                        writer.print("\", ");
+                        if (dependency instanceof VersionDependency) {
+                            writer.print("from: \"");
+                            writer.print(((VersionDependency) dependency).getVersion());
+                            writer.println("\"),");
+                        } else {
+                            writer.print(".branch(\"");
+                            writer.print(((BranchDependency) dependency).getBranch());
+                            writer.println("\")),");
+                        }
                     }
                     writer.println("    ],");
                 }
