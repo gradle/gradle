@@ -168,7 +168,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         succeeds("myTask")
 
         when:
-        changeGradleVersion()
+        invalidateBuildOutputCleanupState()
         dirInBuildDir.createDir()
         staleFileInDir.touch()
         fileInBuildDir.touch()
@@ -176,10 +176,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         succeeds("myTask")
     }
 
-    // Now that we produce this, we can detect the situation where
-    // someone builds with Gradle 4.3, then 4.2 and then 4.3 again.
-    // recreate the output
-    private void changeGradleVersion() {
+    // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
+    private void invalidateBuildOutputCleanupState() {
         file(".gradle/buildOutputCleanup/cache.properties").text = """
             gradle.version=1.0
         """
@@ -436,18 +434,29 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         run 'backup', 'restore'
 
         then:
+        executedAndNotSkipped(':backup')
+        executedAndNotSkipped(':restore')
         original.text == backup.text
         original.text == "Original"
 
         when:
-        changeGradleVersion()
-        run 'backup', 'restore'
+        /*
+        The whole setup is as follows:
+        - Both the restore and the backup task have an entry in the task history
+        - The output of the restore path is the input of the backup task.
+          This means when the backup task is up-to-date, then the contents of the output of the restore path is in the file system mirror.
+
+        If cleaning up stale output files does not invalidate the file system mirror, then the restore task would be up-to-date.
+         */
+        invalidateBuildOutputCleanupState()
+        run 'backup', 'restore', '--info'
 
         then:
-        original.text == backup.text
-        original.text == "Original"
+        output.contains("Deleting stale output file: ${original.parentFile.absolutePath}")
         skipped ':backup'
         executedAndNotSkipped(':restore')
+        original.text == backup.text
+        original.text == "Original"
     }
 
     class TaskWithLocalState {
