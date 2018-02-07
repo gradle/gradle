@@ -76,7 +76,7 @@ public class MSBuildExecutor {
         withArgument("/t:" + action.toString());
         ExecOutput result = findMSBuild().execute(args, buildEnvironment(testDirectory));
         System.out.println(result.getOut());
-        return new OutputScrapingExecutionResult(result.getOut(), result.getError());
+        return new OutputScrapingExecutionResult(trimLines(result.getOut()), trimLines(result.getError()));
     }
 
     public ExecutionFailure fails() {
@@ -88,7 +88,11 @@ public class MSBuildExecutor {
         ExecOutput result = findMSBuild().execWithFailure(args, buildEnvironment(testDirectory));
         System.out.println(result.getOut());
         System.out.println(result.getError());
-        return new OutputScrapingExecutionFailure(result.getOut(), result.getError());
+        return new OutputScrapingExecutionFailure(trimLines(result.getOut()), trimLines(result.getError()));
+    }
+
+    private String trimLines(String s) {
+        return s.replaceAll("\r?\n\\s+", "\n");
     }
 
     private TestFile findMSBuild() {
