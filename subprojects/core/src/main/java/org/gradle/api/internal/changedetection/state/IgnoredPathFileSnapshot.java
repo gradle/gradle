@@ -65,4 +65,9 @@ public class IgnoredPathFileSnapshot implements NormalizedFileSnapshot {
     public int hashCode() {
         return snapshot.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return "IGNORED / " + snapshot;
+    }
 }
